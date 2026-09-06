@@ -157,7 +157,7 @@
     <string name="default_name">Domyślnie</string>
     <string name="subtitle_background">Tło napisów</string>
     <string name="decoder">Dekoder</string>
-    <string name="decoder_desc">Priorytet dekodera, opcje dekodera odtwarzania</string>
+    <string name="decoder_desc">Opcje dekoderów sprzętowych i programowych</string>
     <string name="subtitle_background_desc">Włącz tło dla tekstu napisów</string>
     <string name="best_fit">Najlepsze dopasowanie</string>
     <string name="rename">Zmień nazwę</string>
@@ -486,4 +486,26 @@
     <string name="playlist_refresh_succeeded">Lista odtwarzania została odświeżona.</string>
     <string name="playlist_refresh_failed">Nie udało się odświeżyć listy odtwarzania. Zapisane pozycje pozostały bez zmian.</string>
     <string name="last_refreshed">Ostatnio odświeżono %1$s</string>
+    <string name="select_decoders">Wybierz dekodery</string>
+    <string name="video_decoder">Dekoder obrazu</string>
+    <string name="audio_decoder">Dekoder dźwięku</string>
+    <string name="decoder_mode_hardware">Sprzętowy</string>
+    <string name="decoder_mode_system_software">Programowy+</string>
+    <string name="decoder_mode_app_software">Programowy</string>
+    <string name="decoder_hardware_description">Wyłącznie dekodery sprzętowe MediaCodec</string>
+    <string name="decoder_system_software_description">Wyłącznie dekodery MediaCodec w systemie Android</string>
+    <string name="decoder_app_software_description">Wbudowany dekoder oprogramowania FFmpeg</string>
+    <string name="video_decoder_mode_not_supported">Dekoder obrazu %1$s nie jest obsługiwany</string>
+    <string name="audio_decoder_mode_not_supported">Dekoder dźwięku %1$s nie jest obsługiwany</string>
+    <string name="no_supported_decoder">Dla tego pliku multimedialnego nie jest dostępny żaden obsługiwany dekoder.</string>
+    <string name="unlock_with_biometrics">Odblokuj za pomocą danych biometrycznych</string>
+    <string name="use_vault_pin">Używaj kodu PIN sejfu</string>
+    <string name="vault_biometric_setup_title">Używać danych biometrycznych do odblokowywania?</string>
+    <string name="vault_biometric_setup_description">Odblokuj swój sejf za pomocą odcisku palca lub rozpoznawania twarzy. Potwierdź to skanem biometrycznym, aby włączyć tę funkcję. Nadal możesz korzystać z kodu PIN i wyłączyć tę opcję w ustawieniach sejfu.</string>
+    <string name="enable_biometric_unlock">Włącz odblokowywanie za pomocą danych biometrycznych</string>
+    <string name="not_now">Nie teraz</string>
+    <string name="vault_settings">Ustawienia sejfu</string>
+    <string name="vault_biometric_description">Aby odblokować urządzenie, użyj odcisku palca lub rozpoznawania twarzy. Kod PIN sejfu pozostaje nadal dostępny.</string>
+    <string name="vault_biometric_unavailable">Aby włączyć odblokowywanie za pomocą danych biometrycznych, skonfiguruj obsługiwany odcisk palca lub rozpoznawanie twarzy w ustawieniach urządzenia.</string>
+    <string name="decoder_mode_auto">Automatycznie</string>
 </resources>
