@@ -73,11 +73,14 @@ keeps the source frame rate and gains decoder headroom.
   All packaged FFmpeg shared libraries are byte-identical between baseline and fixed APKs.
 - HDR tone mapping, physical devices, and audio performance are outside these measurements.
 
-Saved local evidence is in [`build/nextlib-performance`](../../build/nextlib-performance/):
-[raw medians](../../build/nextlib-performance/summary.json), per-run JSONL files,
-[before](../../build/nextlib-performance/before-playback.png) and
-[after](../../build/nextlib-performance/after-playback.png) playback screenshots,
-color-bar PNGs, test logs and both APKs. These generated artifacts are ignored by Git.
+Reviewable evidence is committed in [`verification/ffmpeg`](verification/ffmpeg/):
+[raw runs](verification/ffmpeg/runs.jsonl), [medians](verification/ffmpeg/summary.json),
+[before](verification/ffmpeg/before-playback.png) and
+[after](verification/ffmpeg/after-playback.png) Next Player screenshots, and the
+[green SwiftShader output](verification/ffmpeg/before-swiftshader-bars-420.png) with its
+[corrected color bars](verification/ffmpeg/after-swiftshader-bars-420.png).
+The raw runs include excluded warm-ups (`run = 0`). Additional test logs and both APKs
+remain in the local, Git-ignored `build/nextlib-performance/` directory.
 
 ## Reproduce
 

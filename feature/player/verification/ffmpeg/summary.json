@@ -1,0 +1,74 @@
+{
+  "H264 decode": {
+    "n": 10,
+    "before": {
+      "fps": 895.2074339983667,
+      "cpuMsPerFrame": 2.873333333333333,
+      "elapsedMs": 670.3375209999999
+    },
+    "after": {
+      "fps": 1087.697152516709,
+      "cpuMsPerFrame": 2.7249999999999996,
+      "elapsedMs": 551.6386045
+    },
+    "changePercent": {
+      "fps": 21.50224754709682,
+      "cpuMsPerFrame": -5.162412993039444,
+      "elapsedMs": -17.707335898925447
+    }
+  },
+  "H264 render": {
+    "n": 10,
+    "before": {
+      "fps": 60.018895919611424,
+      "cpuMsPerFrame": 6.59,
+      "elapsedMs": 4998.425836
+    },
+    "after": {
+      "fps": 60.03290306282223,
+      "cpuMsPerFrame": 6.316666666666666,
+      "elapsedMs": 4997.259586
+    },
+    "changePercent": {
+      "fps": 0.023337888836816312,
+      "cpuMsPerFrame": -4.147698533131006,
+      "elapsedMs": -0.02333234578776322
+    }
+  },
+  "HEVC decode": {
+    "n": 5,
+    "before": {
+      "fps": 1330.870114562963,
+      "cpuMsPerFrame": 1.8766666666666667,
+      "elapsedMs": 450.832875
+    },
+    "after": {
+      "fps": 1397.5487577101746,
+      "cpuMsPerFrame": 1.7816666666666667,
+      "elapsedMs": 429.323125
+    },
+    "changePercent": {
+      "fps": 5.01015406519274,
+      "cpuMsPerFrame": -5.062166962699822,
+      "elapsedMs": -4.771113907786784
+    }
+  },
+  "VP9 decode": {
+    "n": 5,
+    "before": {
+      "fps": 814.4941039403049,
+      "cpuMsPerFrame": 1.5883333333333334,
+      "elapsedMs": 736.653583
+    },
+    "after": {
+      "fps": 828.1311548907155,
+      "cpuMsPerFrame": 1.5683333333333334,
+      "elapsedMs": 724.522917
+    },
+    "changePercent": {
+      "fps": 1.6742970740289298,
+      "cpuMsPerFrame": -1.2591815320041944,
+      "elapsedMs": -1.6467259889781927
+    }
+  }
+}
