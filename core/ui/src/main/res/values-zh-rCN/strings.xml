@@ -483,5 +483,5 @@
     <string name="enable_biometric_unlock">启用生物识别解锁</string>
     <string name="vault_biometric_setup_description">使用指纹或面容解锁保险箱。使用生物识别扫描确认可启用此项。您仍可使用 PIN 码并在保险箱设置中关闭此项。</string>
     <string name="vault_biometric_setup_title">使用生物识别解锁吗？</string>
-    <string name="use_vault_pin">使用保险箱 PIN</string>
+    <string name="use_vault_pin">使用保险箱 PIN 码</string>
 </resources>
