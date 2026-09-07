@@ -142,7 +142,7 @@
     <string name="prefer_device_decoders">Предпочитать аппаратные декодеры</string>
     <string name="monospace">Моноширинный</string>
     <string name="subtitle_text_encoding">Кодировка субтитров</string>
-    <string name="decoder_desc">Приоритет декодера, параметры декодера воспроизведения</string>
+    <string name="decoder_desc">Параметры аппаратных и программных декодеров</string>
     <string name="best_fit">Наиболее подходящий</string>
     <string name="serif">С засечками</string>
     <string name="stretch">Растянуть</string>
@@ -170,7 +170,7 @@
     <string name="bitrate">Битрейт</string>
     <string name="frame_rate">Частота кадров</string>
     <string name="language">Язык</string>
-    <string name="okay">Хорошо</string>
+    <string name="okay">Ясно</string>
     <string name="audio_track">Аудиодорожка</string>
     <string name="require_audio_focus_desc">Ставить на паузу другие источники звука при воспроизведении в Next Player и наоборот.</string>
     <string name="sample_rate">Частота дискретизации</string>
@@ -486,4 +486,26 @@
     <string name="playlist_refresh_succeeded">Плейлист обновлён.</string>
     <string name="playlist_refresh_failed">Не удалось обновить плейлист. Сохранённые элементы остались без изменений.</string>
     <string name="last_refreshed">Последнее обновление %1$s</string>
+    <string name="select_decoders">Выбрать декодеры</string>
+    <string name="video_decoder">Видеодекодер</string>
+    <string name="audio_decoder">Аудиодекодер</string>
+    <string name="decoder_mode_hardware">HW</string>
+    <string name="decoder_mode_system_software">SW+</string>
+    <string name="decoder_mode_app_software">SW</string>
+    <string name="decoder_hardware_description">Только аппаратные декодеры MediaCodec</string>
+    <string name="decoder_system_software_description">Только программные декодеры Android MediaCodec</string>
+    <string name="decoder_app_software_description">Встроенный программный декодер FFmpeg</string>
+    <string name="video_decoder_mode_not_supported">%1$s видеодекодер не поддерживается</string>
+    <string name="audio_decoder_mode_not_supported">%1$s аудиодекодер не поддерживается</string>
+    <string name="no_supported_decoder">Для этого медиафайла нет поддерживаемого декодера.</string>
+    <string name="unlock_with_biometrics">Разблокировка по биометрии</string>
+    <string name="use_vault_pin">Использовать PIN-код хранилища</string>
+    <string name="vault_biometric_setup_title">Использовать биометрию для разблокировки?</string>
+    <string name="vault_biometric_setup_description">Разблокируйте хранилище с помощью отпечатка пальца или лица. Подтвердите включение с помощью сканирования биометрии. Вы по-прежнему сможете использовать PIN-код и отключить эту функцию в настройках хранилища.</string>
+    <string name="enable_biometric_unlock">Включить биометрическую разблокировку</string>
+    <string name="not_now">Не сейчас</string>
+    <string name="vault_settings">Настройки хранилища</string>
+    <string name="vault_biometric_description">Используйте отпечаток пальца или лицо для разблокировки. PIN-код хранилища по-прежнему будет доступен.</string>
+    <string name="vault_biometric_unavailable">Добавьте отпечаток пальца или сканирование лица в настройках устройства, чтобы включить биометрическую разблокировку.</string>
+    <string name="decoder_mode_auto">Автоматически</string>
 </resources>
