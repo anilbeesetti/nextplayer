@@ -100,7 +100,7 @@
     <string name="quick_settings">快速設定</string>
     <string name="select_subtitle_track">選擇字幕軌</string>
     <string name="play_pause_ff_rewind">播放/暫停與快進/快退</string>
-    <string name="enter_a_network_url">輸入一個網路 URL：</string>
+    <string name="enter_a_network_url">請輸入網址：</string>
     <string name="thumbnail">縮圖</string>
     <string name="manage_folders_desc">選擇的資料夾將被排除在媒體庫之外</string>
     <string name="remember_brightness_level">記住亮度等級</string>
@@ -119,7 +119,7 @@
     <string name="video_zoom">影片縮放</string>
     <string name="media_library">媒體庫</string>
     <string name="disable">停用</string>
-    <string name="play_url">輸入影片 URL 進行播放</string>
+    <string name="play_url">請輸入影片網址</string>
     <string name="landscape_auto">橫向 (感測器)</string>
     <string name="remember_brightness_level_description">記住播放時的亮度等級</string>
     <string name="preferred_subtitle_lang_description">預設使用的字幕軌語言</string>
@@ -136,7 +136,7 @@
     <string name="permission_info">Next Player 應用程式需要 \"%1$s\" 權限以存取或播放媒體。沒有它，媒體存取與播放功能將無法工作。要完整地使用此應用程式，請授予權限。</string>
     <string name="settings">設定</string>
     <string name="z_a">Z-A</string>
-    <string name="decoder_desc">解碼器優先等級 、播放解碼器選項</string>
+    <string name="decoder_desc">硬體與軟體解碼器選項</string>
     <string name="video_orientation">影片方向</string>
     <string name="best_fit">最適合</string>
     <string name="about_name">關於</string>
@@ -413,7 +413,7 @@
     <string name="name_required">請輸入清單名稱。</string>
     <string name="saving_playlist">正在儲存播放清單…</string>
     <string name="no_playlists_title">沒有播放清單</string>
-    <string name="no_playlists_description">建立播放清單，並從首頁選擇要加入的本機影片。</string>
+    <string name="no_playlists_description">建立本機播放清單或 M3U 來源以開始觀看。</string>
     <string name="local_playlist">本機</string>
     <string name="delete_playlist">刪除播放清單</string>
     <string name="delete_playlist_confirmation">刪除「%1$s」和已儲存的排序？</string>
@@ -447,4 +447,41 @@
     <plurals name="playlist_video_count">
         <item quantity="other">%d 部影片</item>
     </plurals>
+    <string name="choose_playlist_type">建立播放清單</string>
+    <string name="create_local_playlist">建立本機播放清單</string>
+    <string name="add_m3u_url_playlist">從網址新增 M3U 播放清單</string>
+    <string name="add_m3u_file_playlist">從檔案新增 M3U 播放清單</string>
+    <string name="playlist_url">M3U 網址</string>
+    <string name="url_required">請輸入 M3U 網址。</string>
+    <string name="invalid_url">請輸入有效的 HTTP 或 HTTPS 網址。</string>
+    <string name="m3u_url_playlist">M3U 網址</string>
+    <string name="m3u_file_playlist">M3U 檔案</string>
+    <string name="m3u_file_permission_failed">無法繼續存取這個檔案，請再試一次或使用其他檔案。</string>
+    <string name="refresh_playlist">重新整理清單</string>
+    <string name="refreshing_playlist">正在重新整理播放清單…</string>
+    <string name="playlist_refresh_succeeded">播放清單更新完成。</string>
+    <string name="playlist_refresh_failed">無法更新播放清單，未變更已儲存項目。</string>
+    <string name="last_refreshed">最後更新 %1$s</string>
+    <string name="select_decoders">選取解碼器</string>
+    <string name="video_decoder">影片解碼器</string>
+    <string name="audio_decoder">音訊解碼器</string>
+    <string name="decoder_mode_hardware">硬體</string>
+    <string name="decoder_mode_system_software">軟體（進階）</string>
+    <string name="decoder_mode_app_software">軟體</string>
+    <string name="decoder_hardware_description">僅限 MediaCodec 硬體解碼</string>
+    <string name="decoder_system_software_description">僅限 Android MediaCodec 軟體解碼</string>
+    <string name="decoder_app_software_description">附屬 FFmpeg 軟體解碼</string>
+    <string name="video_decoder_mode_not_supported">不支援 %1$s 影片解碼器</string>
+    <string name="audio_decoder_mode_not_supported">不支援 %1$s 音訊解碼器</string>
+    <string name="no_supported_decoder">沒有支援這個媒體的解碼器。</string>
+    <string name="unlock_with_biometrics">使用生物辨識解鎖</string>
+    <string name="use_vault_pin">使用保險箱密碼</string>
+    <string name="vault_biometric_setup_title">要使用生物辨識解鎖嗎？</string>
+    <string name="vault_biometric_setup_description">透過指紋或臉部辨識解鎖您的保險箱。\n啟用前請透過生物辨識掃描進行確認。\n您仍可使用 PIN 碼解鎖，或在保險箱設定中停用。</string>
+    <string name="enable_biometric_unlock">啟用生物辨識解鎖</string>
+    <string name="not_now">現在不要</string>
+    <string name="vault_settings">保險箱設定</string>
+    <string name="vault_biometric_description">使用指紋或臉部辨識解鎖，您的保險箱密碼不受影響。</string>
+    <string name="vault_biometric_unavailable">請在系統設定中完成指紋或臉部掃描以啟用生物辨識解鎖。</string>
+    <string name="decoder_mode_auto">自動</string>
 </resources>

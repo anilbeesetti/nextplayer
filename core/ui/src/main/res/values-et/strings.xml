@@ -327,7 +327,7 @@
     <string name="forgot_pin">Kas unustasid PIN-koodi?</string>
     <string name="copy">Kopeeri</string>
     <string name="move">Teiselda</string>
-    <string name="moving_videos_in_progress">Teiseldan…</string>
+    <string name="moving_videos_in_progress">Teisaldan…</string>
     <string name="copying_videos_in_progress">Kopeerin…</string>
     <string name="transfer_file_progress">Fail %1$d / %2$d</string>
     <plurals name="copied_videos_result">
@@ -432,7 +432,7 @@
     <string name="authentication_rejected">Autentimine ei toiminud. Kontrolli, kas sinu autentimisandmed on õiged ja proovi uuesti.</string>
     <string name="host_key_mismatch">SSH hosti võti ei vasta usaldusväärseks märgitud sõrmejäljele.</string>
     <string name="sftp_root_inaccessible">SFTP juurkaust on puudu või pole ligipääsetav.</string>
-    <string name="no_playlists_description">Koosta esitusloend ja lisa sinna kohalike videoid avalehelt.</string>
+    <string name="no_playlists_description">Vaatamisega alustamiseks koosta kohalik esitusloend või lisa M3U-esitusloend soovitud allikast.</string>
     <string name="local_playlist">Kohalik</string>
     <string name="delete_playlist">Kustuta esitusloend</string>
     <string name="delete_playlist_confirmation">Kas kustutad „%1$s“ esitusloendi koos tema salvestatud järjestusega?</string>
@@ -455,4 +455,19 @@
     <string name="existing_playlists">Olemasolevad esitusloendid</string>
     <string name="no_playlists">Ühtegi esitusloendit veel pole.</string>
     <string name="already_in_playlist">Valitud videod juba on esitusloendis.</string>
+    <string name="choose_playlist_type">Koosta esitusloend</string>
+    <string name="create_local_playlist">Koosta kohalik esitusloend</string>
+    <string name="add_m3u_url_playlist">Lisa M3U-esitusloend võrguaadressilt</string>
+    <string name="add_m3u_file_playlist">Lisa M3U-esitusloend failist</string>
+    <string name="playlist_url">M3U võrguaadress</string>
+    <string name="url_required">Sisesta M3U-esitusloendi võrguaadress.</string>
+    <string name="invalid_url">Sisesta korrektne HTTP- või HTTPS-võrguaadress.</string>
+    <string name="m3u_url_playlist">M3U võrguaadress</string>
+    <string name="m3u_file_playlist">M3U-fail</string>
+    <string name="m3u_file_permission_failed">Ei õnnestanud säilitada ligipääsu sellele failile. Vali ta uuesti või kasuta muud faili.</string>
+    <string name="refresh_playlist">Laadi esitusloend uuesti</string>
+    <string name="refreshing_playlist">Laadin esitusloendit uuesti</string>
+    <string name="playlist_refresh_succeeded">Esitusloend on uuesti laaditud.</string>
+    <string name="playlist_refresh_failed">Esitusloendi uuesti laadimine ei õnnestunud. Salvestatud kirjed on muutmata.</string>
+    <string name="last_refreshed">Viimati laaditud: %1$s</string>
 </resources>
