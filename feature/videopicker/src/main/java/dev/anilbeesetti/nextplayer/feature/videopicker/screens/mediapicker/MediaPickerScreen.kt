@@ -7,18 +7,16 @@ import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.animation.slideInVertically
 import androidx.compose.animation.slideOutVertically
-import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
-import androidx.compose.foundation.combinedClickable
 import androidx.compose.foundation.horizontalScroll
-import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.WindowInsets
+import androidx.compose.foundation.layout.WindowInsetsSides
 import androidx.compose.foundation.layout.asPaddingValues
 import androidx.compose.foundation.layout.calculateStartPadding
 import androidx.compose.foundation.layout.displayCutout
@@ -27,9 +25,11 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.navigationBarsPadding
+import androidx.compose.foundation.layout.only
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.widthIn
+import androidx.compose.foundation.layout.windowInsetsPadding
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.grid.rememberLazyGridState
 import androidx.compose.foundation.lazy.items
@@ -40,8 +40,7 @@ import androidx.compose.foundation.shape.ZeroCornerSize
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.ExperimentalMaterial3ExpressiveApi
 import androidx.compose.material3.FilledTonalIconButton
-import androidx.compose.material3.FloatingActionButtonMenu
-import androidx.compose.material3.FloatingActionButtonMenuItem
+import androidx.compose.material3.FloatingActionButton
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.LinearProgressIndicator
@@ -51,12 +50,9 @@ import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
-import androidx.compose.material3.ToggleFloatingActionButton
-import androidx.compose.material3.ToggleFloatingActionButtonDefaults.animateIcon
 import androidx.compose.material3.pulltorefresh.PullToRefreshBox
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
-import androidx.compose.runtime.derivedStateOf
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -105,10 +101,12 @@ import dev.anilbeesetti.nextplayer.core.model.Video
 import dev.anilbeesetti.nextplayer.core.ui.R
 import dev.anilbeesetti.nextplayer.core.ui.base.DataState
 import dev.anilbeesetti.nextplayer.core.ui.components.CancelButton
-import dev.anilbeesetti.nextplayer.core.ui.components.DoneButton
+import dev.anilbeesetti.nextplayer.core.ui.components.LocalNavigationBottomPadding
 import dev.anilbeesetti.nextplayer.core.ui.components.NextDialog
 import dev.anilbeesetti.nextplayer.core.ui.components.NextTopAppBar
-import dev.anilbeesetti.nextplayer.core.ui.components.thenIf
+import dev.anilbeesetti.nextplayer.core.ui.components.BindTopLevelBottomBarVisible
+import dev.anilbeesetti.nextplayer.core.ui.components.BindTopLevelFab
+import dev.anilbeesetti.nextplayer.core.ui.components.TopLevelFabKey
 import dev.anilbeesetti.nextplayer.core.ui.components.tvFocusRing
 import dev.anilbeesetti.nextplayer.core.ui.composables.PermissionMissingView
 import dev.anilbeesetti.nextplayer.core.ui.designsystem.NextIcons
@@ -132,6 +130,8 @@ import dev.anilbeesetti.nextplayer.feature.videopicker.screens.vault.VAULT_PIN_L
 import dev.anilbeesetti.nextplayer.feature.videopicker.state.SelectionItem
 import dev.anilbeesetti.nextplayer.feature.videopicker.state.SelectionManager
 import dev.anilbeesetti.nextplayer.feature.videopicker.state.rememberSelectionManager
+import dev.anilbeesetti.nextplayer.feature.videopicker.state.toSelectedFolder
+import dev.anilbeesetti.nextplayer.feature.videopicker.state.toSelectedVideo
 import kotlin.math.roundToInt
 
 @Composable
@@ -150,7 +150,6 @@ fun MediaPickerRoute(
     ExperimentalMaterial3Api::class,
     ExperimentalMaterial3ExpressiveApi::class,
     ExperimentalPermissionsApi::class,
-    ExperimentalFoundationApi::class,
 )
 @Composable
 internal fun MediaPickerScreen(
@@ -162,11 +161,11 @@ internal fun MediaPickerScreen(
     val isTv = remember { context.isTelevision }
     val firstItemFocusRequester = remember { FocusRequester() }
     val lastItemFocusRequester = remember { FocusRequester() }
-    val fabFocusRequester = remember { FocusRequester() }
     val firstActionFocusRequester = remember { FocusRequester() }
     var restoredFocusKey by rememberSaveable { mutableStateOf<String?>(null) }
     val hasMedia = (uiState.mediaDataState as? DataState.Success)?.value
         ?.let { it.folders.isNotEmpty() || it.videos.isNotEmpty() } == true
+    val navigationBottomPadding = LocalNavigationBottomPadding.current
 
     // On TV, pressing down from any top-bar button lands on the first list item.
     val topBarDownModifier = if (isTv && hasMedia) {
@@ -190,12 +189,29 @@ internal fun MediaPickerScreen(
         onResult = { uri -> uri?.let { onAction(MediaPickerAction.OnPlayVideo(it)) } },
     )
 
-    var isFabExpanded by rememberSaveable { mutableStateOf(false) }
     var showQuickSettingsDialog by rememberSaveable { mutableStateOf(false) }
-    var showUrlDialog by rememberSaveable { mutableStateOf(false) }
-
     var showRenameActionFor: Video? by rememberSaveable { mutableStateOf(null) }
     var showDeleteVideosConfirmation by rememberSaveable { mutableStateOf(false) }
+
+    val mediaHolder = (uiState.mediaDataState as? DataState.Success)?.value
+    val onFabClick = {
+        val selectedItem = uiState.recentlyPlayedVideo?.toSelectedVideo()
+            ?: mediaHolder?.folders?.firstOrNull()?.toSelectedFolder()
+            ?: mediaHolder?.videos?.firstOrNull()?.toSelectedVideo()
+
+        selectedItem?.let { onAction(MediaPickerAction.PlaySelectedItems(setOf(selectedItem))) }
+            ?: selectVideoFileLauncher.launch("video/*")
+    }
+
+    BindTopLevelBottomBarVisible(uiState.folderName != null || !selectionManager.isInSelectionMode)
+
+    if (uiState.folderName == null) {
+        BindTopLevelFab(
+            key = TopLevelFabKey.MEDIA,
+            icon = NextIcons.Play,
+            onClick = onFabClick,
+        )
+    }
 
     val selectedItemsSize = selectionManager.selectionItems.size
     val totalItemsSize = (uiState.mediaDataState as? DataState.Success)?.value?.run { folders.size + videos.size } ?: 0
@@ -206,22 +222,11 @@ internal fun MediaPickerScreen(
                 title = {
                     val titleText = (uiState.folderName ?: stringResource(R.string.app_name))
                         .takeIf { !selectionManager.isInSelectionMode } ?: ""
-                    val isRootScreen = uiState.folderName == null && !selectionManager.isInSelectionMode
                     Text(
                         text = titleText,
                         maxLines = 1,
                         overflow = TextOverflow.Ellipsis,
                         fontWeight = FontWeight.Bold.takeIf { uiState.folderName == null },
-                        modifier = if (isRootScreen) {
-                            Modifier.combinedClickable(
-                                interactionSource = remember { MutableInteractionSource() },
-                                indication = null,
-                                onClick = {},
-                                onLongClick = { onAction(MediaPickerAction.OnVaultClick) },
-                            )
-                        } else {
-                            Modifier
-                        },
                     )
                 },
                 navigationIcon = {
@@ -371,137 +376,44 @@ internal fun MediaPickerScreen(
             )
         },
         floatingActionButton = {
-            if (selectionManager.isInSelectionMode) return@Scaffold
-
-            FloatingActionButtonMenu(
-                expanded = isFabExpanded,
-                button = {
-                    ToggleFloatingActionButton(
-                        checked = isFabExpanded,
-                        onCheckedChange = { isFabExpanded = !isFabExpanded },
-                        modifier = Modifier
-                            // Match the ring to the FAB's own shape: a 16.dp rounded square while
-                            // collapsed, morphing to a circle once expanded.
-                            .tvFocusRing(
-                                isTv = isTv,
-                                shape = if (isFabExpanded) CircleShape else RoundedCornerShape(16.dp),
-                            )
-                            .thenIf(isTv && hasMedia) {
-                                // Redirect up to the list only while collapsed; when expanded, up must
-                                // reach the menu options above the button.
-                                focusRequester(fabFocusRequester)
-                                    .thenIf(!isFabExpanded) {
-                                        focusProperties { up = lastItemFocusRequester }
-                                    }
-                            },
-                    ) {
-                        val icon by remember {
-                            derivedStateOf {
-                                if (checkedProgress > 0.5f) NextIcons.Close else NextIcons.Play
-                            }
-                        }
-                        Icon(
-                            imageVector = icon,
-                            contentDescription = null,
-                            modifier = Modifier.animateIcon(checkedProgress = { checkedProgress }),
-                        )
-                    }
-                },
-            ) {
-                FloatingActionButtonMenuItem(
-                    // Top-most menu item: up exits the menu back to the last media item.
-                    modifier = Modifier
-                        .tvFocusRing(isTv)
-                        .thenIf(isTv && hasMedia) {
-                            focusProperties { up = lastItemFocusRequester }
-                        },
-                    onClick = {
-                        isFabExpanded = false
-                        showUrlDialog = true
-                    },
-                    icon = {
-                        Icon(
-                            imageVector = NextIcons.Link,
-                            contentDescription = null,
-                        )
-                    },
-                    text = {
-                        Text(text = stringResource(id = R.string.open_network_stream))
-                    },
-                )
-                FloatingActionButtonMenuItem(
-                    modifier = Modifier.tvFocusRing(isTv),
-                    onClick = {
-                        isFabExpanded = false
-                        selectVideoFileLauncher.launch("video/*")
-                    },
-                    icon = {
-                        Icon(
-                            imageVector = NextIcons.FileOpen,
-                            contentDescription = null,
-                        )
-                    },
-                    text = {
-                        Text(text = stringResource(id = R.string.open_local_video))
-                    },
-                )
-                if (uiState.recentlyPlayedVideo != null) {
-                    FloatingActionButtonMenuItem(
-                        modifier = Modifier.tvFocusRing(isTv),
-                        onClick = {
-                            isFabExpanded = false
-                            onAction(MediaPickerAction.OnPlayVideo(uiState.recentlyPlayedVideo.uriString.toUri()))
-                        },
-                        icon = {
-                            Icon(
-                                imageVector = NextIcons.History,
-                                contentDescription = null,
-                            )
-                        },
-                        text = {
-                            Text(text = stringResource(id = R.string.recently_played))
-                        },
-                    )
+            if (uiState.folderName != null && !selectionManager.isInSelectionMode) {
+                FloatingActionButton(onClick = onFabClick) {
+                    Icon(imageVector = NextIcons.Play, contentDescription = null)
                 }
             }
         },
         containerColor = MaterialTheme.colorScheme.surfaceContainer,
     ) { scaffoldPadding ->
-        if (!permissionState.status.isGranted) {
-            Box(
-                modifier = Modifier
-                    .fillMaxSize()
-                    .padding(scaffoldPadding),
-            ) {
+        Box(
+            Modifier
+                .fillMaxSize()
+                .padding(scaffoldPadding.copy(bottom = 0.dp))
+                .clip(RoundedCornerShape(topStart = 24.dp, topEnd = 24.dp))
+                .background(MaterialTheme.colorScheme.background),
+        ) {
+            if (!permissionState.status.isGranted) {
                 PermissionMissingView(
                     isGranted = permissionState.status.isGranted,
                     showRationale = permissionState.status.shouldShowRationale,
                     permission = permissionState.permission,
                     launchPermissionRequest = { permissionState.launchPermissionRequest() },
                 ) {}
+                return@Scaffold
             }
-        } else {
             when (uiState.mediaDataState) {
                 is DataState.Error -> {
                 }
 
                 is DataState.Loading -> {
-                    CenterCircularProgressBar(modifier = Modifier.padding(scaffoldPadding))
+                    CenterCircularProgressBar()
                 }
 
                 is DataState.Success -> {
-                    val containerModifier = Modifier
-                        .fillMaxSize()
-                        .padding(top = scaffoldPadding.calculateTopPadding())
-                        .padding(start = scaffoldPadding.calculateStartPadding(LocalLayoutDirection.current) + 2.dp)
-                        .clip(RoundedCornerShape(topStart = 24.dp, topEnd = 24.dp))
-                        .background(MaterialTheme.colorScheme.background)
-
                     val successContent: @Composable () -> Unit = {
                         val updatedScaffoldPadding = scaffoldPadding.copy(
                             top = 0.dp,
                             start = 0.dp,
-                            bottom = scaffoldPadding.calculateBottomPadding(),
+                            bottom = scaffoldPadding.calculateBottomPadding() + navigationBottomPadding,
                         )
                         val mediaHolder = uiState.mediaDataState.value
                         if (mediaHolder == null || mediaHolder.folders.isEmpty() && mediaHolder.videos.isEmpty()) {
@@ -525,18 +437,16 @@ internal fun MediaPickerScreen(
                                 lastItemDownFocusRequester = when {
                                     !isTv -> null
                                     selectionManager.isInSelectionMode -> firstActionFocusRequester
-                                    else -> fabFocusRequester
+                                    else -> null
                                 },
                                 contentPadding = updatedScaffoldPadding,
                             )
                         }
                     }
-
                     if (isTv) {
-                        Box(modifier = containerModifier) { successContent() }
+                        successContent()
                     } else {
                         PullToRefreshBox(
-                            modifier = containerModifier,
                             isRefreshing = uiState.refreshing,
                             onRefresh = { onAction(MediaPickerAction.Refresh) },
                         ) { successContent() }
@@ -546,21 +456,6 @@ internal fun MediaPickerScreen(
         }
     }
 
-    LaunchedEffect(lazyGridState.isScrollInProgress) {
-        if (isFabExpanded && lazyGridState.isScrollInProgress) {
-            isFabExpanded = false
-        }
-    }
-
-    LaunchedEffect(selectionManager.isInSelectionMode) {
-        if (selectionManager.isInSelectionMode) {
-            isFabExpanded = false
-        }
-    }
-
-    BackHandler(enabled = isFabExpanded) {
-        isFabExpanded = false
-    }
 
     BackHandler(enabled = selectionManager.isInSelectionMode) {
         selectionManager.exitSelectionMode()
@@ -571,13 +466,6 @@ internal fun MediaPickerScreen(
             applicationPreferences = uiState.preferences,
             onDismiss = { showQuickSettingsDialog = false },
             updatePreferences = { onAction(MediaPickerAction.UpdateMenu(it)) },
-        )
-    }
-
-    if (showUrlDialog) {
-        NetworkUrlDialog(
-            onDismiss = { showUrlDialog = false },
-            onDone = { onAction(MediaPickerAction.OnPlayVideo(it.toUri())) },
         )
     }
 
@@ -1023,35 +911,6 @@ private fun SetupPinHeader(
 }
 
 @Composable
-private fun NetworkUrlDialog(
-    onDismiss: () -> Unit,
-    onDone: (String) -> Unit,
-) {
-    var url by rememberSaveable { mutableStateOf("") }
-    NextDialog(
-        onDismissRequest = onDismiss,
-        title = { Text(stringResource(R.string.network_stream)) },
-        content = {
-            Text(text = stringResource(R.string.enter_a_network_url))
-            Spacer(modifier = Modifier.height(10.dp))
-            OutlinedTextField(
-                value = url,
-                onValueChange = { url = it },
-                modifier = Modifier.fillMaxWidth(),
-                placeholder = { Text(text = stringResource(R.string.example_url)) },
-            )
-        },
-        confirmButton = {
-            DoneButton(
-                enabled = url.isNotBlank(),
-                onClick = { onDone(url) },
-            )
-        },
-        dismissButton = { CancelButton(onClick = onDismiss) },
-    )
-}
-
-@Composable
 private fun PlaylistTargetDialog(
     playlists: List<PlaylistSummary>,
     state: AddToPlaylistState,
@@ -1241,9 +1100,8 @@ private fun SelectionActionsSheet(
     }
 
     AnimatedVisibility(
-        modifier = modifier.padding(
-            start = WindowInsets.displayCutout.asPaddingValues()
-                .calculateStartPadding(LocalLayoutDirection.current),
+        modifier = modifier.windowInsetsPadding(
+            WindowInsets.displayCutout.only(WindowInsetsSides.Horizontal),
         ),
         visible = show,
         enter = slideInVertically { it },

@@ -132,12 +132,12 @@ sealed interface SelectionItem: Serializable {
     val name: String
 }
 
-private fun Folder.toSelectedFolder() = SelectionItem.Folder(
+fun Folder.toSelectedFolder() = SelectionItem.Folder(
     name = name,
     path = path,
 )
 
-private fun Video.toSelectedVideo() = SelectionItem.Video(
+fun Video.toSelectedVideo() = SelectionItem.Video(
     name = displayName,
     uriString = uriString,
     path = path,

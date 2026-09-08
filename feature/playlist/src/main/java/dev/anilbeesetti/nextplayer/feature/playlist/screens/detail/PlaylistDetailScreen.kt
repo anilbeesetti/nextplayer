@@ -84,6 +84,7 @@ import dev.anilbeesetti.nextplayer.core.ui.components.rememberTvListFocusRequest
 import dev.anilbeesetti.nextplayer.core.ui.components.tvFocusRing
 import dev.anilbeesetti.nextplayer.core.ui.components.tvListFocus
 import dev.anilbeesetti.nextplayer.core.ui.designsystem.NextIcons
+import dev.anilbeesetti.nextplayer.core.ui.extensions.copy
 import sh.calvin.reorderable.DragGestureDetector
 import sh.calvin.reorderable.ReorderableItem
 import sh.calvin.reorderable.rememberReorderableLazyListState
@@ -91,19 +92,19 @@ import java.text.DateFormat
 import java.util.Date
 
 @Composable
-fun PlaylistDetailScreenRoute(
+fun PlaylistDetailScreen(
     viewModel: PlaylistDetailViewModel,
 ) {
     val uiState by viewModel.state.collectAsStateWithLifecycle()
 
-    PlaylistDetailScreen(
+    PlaylistDetailScreenContent(
         uiState = uiState,
         onAction = viewModel::onAction,
     )
 }
 
 @Composable
-internal fun PlaylistDetailScreen(
+internal fun PlaylistDetailScreenContent(
     uiState: PlaylistDetailUiState,
     isTv: Boolean = LocalContext.current.isTelevision,
     onAction: (PlaylistDetailUiAction) -> Unit = {},
@@ -286,11 +287,10 @@ internal fun PlaylistDetailScreen(
             }
         },
         containerColor = MaterialTheme.colorScheme.surfaceContainer,
-    ) { padding ->
+    ) { scaffoldPadding ->
         val containerModifier = Modifier
             .fillMaxSize()
-            .padding(top = padding.calculateTopPadding())
-            .padding(start = padding.calculateStartPadding(LocalLayoutDirection.current) + 2.dp)
+            .padding(scaffoldPadding.copy(bottom = 0.dp))
             .clip(RoundedCornerShape(topStart = 24.dp, topEnd = 24.dp))
             .background(MaterialTheme.colorScheme.background)
 
@@ -316,7 +316,7 @@ internal fun PlaylistDetailScreen(
                                 !isReordering &&
                                 playbackStartUri != null,
                             actionsEnabled = !uiState.updateActionState.isRunning,
-                            scaffoldPadding = padding,
+                            scaffoldPadding = scaffoldPadding,
                             onAction = onAction,
                             modifier = modifier,
                         )

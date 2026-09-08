@@ -1,5 +1,6 @@
 package dev.anilbeesetti.nextplayer.feature.playlist.screens.list
 
+import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.ui.test.assertCountEquals
 import androidx.compose.ui.test.assertIsDisplayed
 import androidx.compose.ui.test.junit4.createComposeRule
@@ -11,6 +12,9 @@ import androidx.compose.ui.test.performTextInput
 import dev.anilbeesetti.nextplayer.core.model.PlaylistSummary
 import dev.anilbeesetti.nextplayer.core.model.PlaylistType
 import dev.anilbeesetti.nextplayer.core.ui.base.DataState
+import dev.anilbeesetti.nextplayer.core.ui.components.LocalTopLevelFabSetter
+import dev.anilbeesetti.nextplayer.core.ui.components.TopLevelFabKey
+import dev.anilbeesetti.nextplayer.core.ui.components.TopLevelFabState
 import dev.anilbeesetti.nextplayer.core.ui.theme.NextPlayerTheme
 import org.junit.Assert.assertEquals
 import org.junit.Rule
@@ -23,19 +27,26 @@ class PlaylistListScreenTest {
     @Test
     fun createFabEmitsShowCreateDialogAction() {
         val actions = mutableListOf<PlaylistUiAction>()
+        var fabState: TopLevelFabState? = null
 
         composeRule.setContent {
             NextPlayerTheme {
-                PlaylistListScreen(
-                    uiState = PlaylistListUiState(
-                        playlistsDataState = DataState.Success(emptyList()),
-                    ),
-                    onAction = actions::add,
-                )
+                CompositionLocalProvider(
+                    LocalTopLevelFabSetter provides { key, state ->
+                        if (key == TopLevelFabKey.PLAYLISTS) fabState = state
+                    },
+                ) {
+                    PlaylistListScreenContent(
+                        uiState = PlaylistListUiState(
+                            playlistsDataState = DataState.Success(emptyList()),
+                        ),
+                        onAction = actions::add,
+                    )
+                }
             }
         }
 
-        composeRule.onNodeWithContentDescription("Create playlist").performClick()
+        composeRule.runOnIdle { checkNotNull(fabState).onClick() }
 
         assertEquals(listOf(PlaylistUiAction.ShowCreationChooser), actions)
     }
@@ -46,7 +57,7 @@ class PlaylistListScreenTest {
 
         composeRule.setContent {
             NextPlayerTheme {
-                PlaylistListScreen(
+                PlaylistListScreenContent(
                     uiState = PlaylistListUiState(
                         playlistsDataState = DataState.Success(emptyList()),
                         creationDialog = PlaylistCreationDialog.LOCAL_NAME,
@@ -67,7 +78,7 @@ class PlaylistListScreenTest {
     fun creationChooserOffersLocalUrlAndFileSources() {
         composeRule.setContent {
             NextPlayerTheme {
-                PlaylistListScreen(
+                PlaylistListScreenContent(
                     uiState = PlaylistListUiState(
                         playlistsDataState = DataState.Success(emptyList()),
                         creationDialog = PlaylistCreationDialog.CHOOSER,
@@ -88,7 +99,7 @@ class PlaylistListScreenTest {
 
         composeRule.setContent {
             NextPlayerTheme {
-                PlaylistListScreen(
+                PlaylistListScreenContent(
                     uiState = PlaylistListUiState(
                         playlistsDataState = DataState.Success(listOf(playlist)),
                     ),
@@ -113,7 +124,7 @@ class PlaylistListScreenTest {
 
         composeRule.setContent {
             NextPlayerTheme {
-                PlaylistListScreen(
+                PlaylistListScreenContent(
                     uiState = PlaylistListUiState(
                         playlistsDataState = DataState.Success(listOf(playlist)),
                         showDeleteDialogFor = playlist,
@@ -132,7 +143,7 @@ class PlaylistListScreenTest {
     fun emptySuccessShowsEmptyState() {
         composeRule.setContent {
             NextPlayerTheme {
-                PlaylistListScreen(
+                PlaylistListScreenContent(
                     uiState = PlaylistListUiState(
                         playlistsDataState = DataState.Success(emptyList()),
                     ),
