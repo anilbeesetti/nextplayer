@@ -5,6 +5,7 @@ import android.net.Uri
 import android.os.Environment
 import androidx.core.net.toUri
 import dagger.hilt.android.qualifiers.ApplicationContext
+import dev.anilbeesetti.nextplayer.core.common.Utils
 import dev.anilbeesetti.nextplayer.core.common.extensions.mapAsync
 import dev.anilbeesetti.nextplayer.core.data.mappers.toAudioStreamInfo
 import dev.anilbeesetti.nextplayer.core.data.mappers.toFolder
@@ -21,6 +22,7 @@ import dev.anilbeesetti.nextplayer.core.model.Folder
 import dev.anilbeesetti.nextplayer.core.model.MediaInfo
 import dev.anilbeesetti.nextplayer.core.model.Video
 import io.github.anilbeesetti.nextlib.mediainfo.MediaInfoBuilder
+import java.util.Date
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.async
 import kotlinx.coroutines.coroutineScope
@@ -28,6 +30,7 @@ import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.withContext
+import kotlin.math.absoluteValue
 import javax.inject.Inject
 
 class LocalMediaRepository @Inject constructor(
@@ -63,6 +66,22 @@ class LocalMediaRepository @Inject constructor(
         }
     }
 
+    override fun observePlaybackHistory(): Flow<List<Video>> {
+        return combine(mediaService.observeVideos(), mediumStateDao.getAll()) { mediaVideos, mediumStates ->
+            val videosByUri = mediaVideos.associateBy { it.uri.toString() }
+            mediumStates
+                .filter { it.lastPlayedTime != null }
+                .sortedByDescending { it.lastPlayedTime }
+                .map { state ->
+                    videosByUri[state.uriString]?.toVideo(state) ?: state.toHistoryVideo()
+                }
+        }
+    }
+
+    override fun observeTrashVideos(): Flow<List<Video>> {
+        return mediaService.observeTrashVideos().map { videos -> videos.map { it.toVideo() } }
+    }
+
     override suspend fun getVideoByUri(uri: String): Video? = coroutineScope {
         val mediaVideoDeferred = async { mediaService.findVideo(uri.toUri()) }
         val mediaStateDeferred = async { mediumStateDao.get(uri) }
@@ -90,12 +109,17 @@ class LocalMediaRepository @Inject constructor(
         return@withContext result
     }
 
-    override suspend fun updateMediumLastPlayedTime(uri: String, lastPlayedTime: Long) {
+    override suspend fun clearPlaybackHistory() {
+        mediumStateDao.clearPlaybackHistory()
+    }
+
+    override suspend fun updateMediumLastPlayedTime(uri: String, lastPlayedTime: Long, duration: Long?) {
         val stateEntity = mediumStateDao.get(uri) ?: MediumStateEntity(uriString = uri)
 
         mediumStateDao.upsert(
             mediumState = stateEntity.copy(
                 lastPlayedTime = lastPlayedTime,
+                duration = duration ?: stateEntity.duration,
             ),
         )
     }
@@ -190,4 +214,24 @@ class LocalMediaRepository @Inject constructor(
             ),
         )
     }
+}
+
+private fun MediumStateEntity.toHistoryVideo(): Video {
+    val uri = uriString.toUri()
+    val name = uri.lastPathSegment?.substringAfterLast('/')
+        ?: uri.host
+        ?: uriString
+    return Video(
+        id = uriString.hashCode().toLong().absoluteValue,
+        path = uriString,
+        uriString = uriString,
+        nameWithExtension = name,
+        duration = duration ?: 0,
+        width = 0,
+        height = 0,
+        size = 0,
+        formattedDuration = duration?.let(Utils::formatDurationMillis).orEmpty(),
+        playbackPosition = playbackPosition,
+        lastPlayedAt = lastPlayedTime?.let(::Date),
+    )
 }

@@ -2,11 +2,13 @@ package dev.anilbeesetti.nextplayer.core.ui.designsystem
 
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.rounded.ArrowBack
+import androidx.compose.material.icons.automirrored.rounded.ArrowForward
 import androidx.compose.material.icons.automirrored.rounded.CompareArrows
 import androidx.compose.material.icons.automirrored.rounded.DriveFileMove
 import androidx.compose.material.icons.automirrored.rounded.PlaylistAdd
 import androidx.compose.material.icons.automirrored.rounded.PlaylistPlay
 import androidx.compose.material.icons.automirrored.rounded.VolumeUp
+import androidx.compose.material.icons.outlined.Home
 import androidx.compose.material.icons.rounded.Add
 import androidx.compose.material.icons.rounded.AppSettingsAlt
 import androidx.compose.material.icons.rounded.ArrowDownward
@@ -57,6 +59,7 @@ import androidx.compose.material.icons.rounded.LocalMovies
 import androidx.compose.material.icons.rounded.LocationOn
 import androidx.compose.material.icons.rounded.Lock
 import androidx.compose.material.icons.rounded.MiscellaneousServices
+import androidx.compose.material.icons.rounded.MoreHoriz
 import androidx.compose.material.icons.rounded.MoreVert
 import androidx.compose.material.icons.rounded.Movie
 import androidx.compose.material.icons.rounded.Palette
@@ -94,6 +97,7 @@ object NextIcons {
     val Add = Icons.Rounded.Add
     val Appearance = Icons.Rounded.Palette
     val ArrowBack = Icons.AutoMirrored.Rounded.ArrowBack
+    val ArrowForward = Icons.AutoMirrored.Rounded.ArrowForward
     val ArrowDownward = Icons.Rounded.ArrowDownward
     val ArrowUpward = Icons.Rounded.ArrowUpward
     val Audio = Icons.Rounded.Audiotrack
@@ -123,6 +127,7 @@ object NextIcons {
     val HeadsetOff = Icons.Rounded.HeadsetOff
     val Info = Icons.Rounded.Info
     val Home = Icons.Rounded.Home
+    val HomeOutline = Icons.Outlined.Home
     val Network = Icons.Rounded.Lan
     val Cloud = Icons.Rounded.Cloud
     val Dns = Icons.Rounded.Dns
@@ -173,6 +178,7 @@ object NextIcons {
     val Move = Icons.AutoMirrored.Rounded.DriveFileMove
     val ExtraSettings = Icons.Rounded.MiscellaneousServices
     val MoreVert = Icons.Rounded.MoreVert
+    val More = Icons.Rounded.MoreHoriz
     val DeleteSweep = Icons.Rounded.DeleteSweep
     val Image = Icons.Rounded.Image
     val Frame = Icons.Rounded.FilterFrames

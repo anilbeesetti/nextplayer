@@ -20,7 +20,6 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.DropdownMenu
 import androidx.compose.material3.DropdownMenuItem
-import androidx.compose.material3.ExtendedFloatingActionButton
 import androidx.compose.material3.ExperimentalMaterial3ExpressiveApi
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
@@ -39,8 +38,6 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
-import androidx.compose.ui.focus.FocusRequester
-import androidx.compose.ui.focus.focusRequester
 import androidx.compose.ui.platform.LocalLayoutDirection
 import androidx.compose.ui.res.pluralStringResource
 import androidx.compose.ui.res.stringResource
@@ -54,16 +51,20 @@ import dev.anilbeesetti.nextplayer.core.model.PlaylistSummary
 import dev.anilbeesetti.nextplayer.core.model.PlaylistType
 import dev.anilbeesetti.nextplayer.core.ui.R
 import dev.anilbeesetti.nextplayer.core.ui.base.DataState
+import dev.anilbeesetti.nextplayer.core.ui.components.LocalNavigationBottomPadding
 import dev.anilbeesetti.nextplayer.core.ui.components.NextDialog
 import dev.anilbeesetti.nextplayer.core.ui.components.NextSegmentedListItem
 import dev.anilbeesetti.nextplayer.core.ui.components.NextTopAppBar
+import dev.anilbeesetti.nextplayer.core.ui.components.BindTopLevelFab
+import dev.anilbeesetti.nextplayer.core.ui.components.TopLevelFabKey
 import dev.anilbeesetti.nextplayer.core.ui.components.rememberTvListFocusRequester
 import dev.anilbeesetti.nextplayer.core.ui.components.tvFocusRing
 import dev.anilbeesetti.nextplayer.core.ui.components.tvListFocus
 import dev.anilbeesetti.nextplayer.core.ui.designsystem.NextIcons
+import dev.anilbeesetti.nextplayer.core.ui.extensions.copy
 
 @Composable
-fun PlaylistListScreenRoute(
+fun PlaylistListScreen(
     viewModel: PlaylistListViewModel = hiltViewModel(),
 ) {
     val uiState by viewModel.state.collectAsStateWithLifecycle()
@@ -77,7 +78,7 @@ fun PlaylistListScreenRoute(
         viewModel.synchronize()
     }
 
-    PlaylistListScreen(
+    PlaylistListScreenContent(
         uiState = uiState,
         onAction = viewModel::onAction,
         onPickM3UFile = {
@@ -87,12 +88,18 @@ fun PlaylistListScreenRoute(
 }
 
 @Composable
-internal fun PlaylistListScreen(
+internal fun PlaylistListScreenContent(
     uiState: PlaylistListUiState,
     onAction: (PlaylistUiAction) -> Unit = {},
     onPickM3UFile: () -> Unit = {},
 ) {
-    val createFocusRequester = remember { FocusRequester() }
+    BindTopLevelFab(
+        key = TopLevelFabKey.PLAYLISTS,
+        icon = NextIcons.Add,
+        onClick = { onAction(PlaylistUiAction.ShowCreationChooser) },
+    )
+
+    val navigationBottomPadding = LocalNavigationBottomPadding.current
 
     Scaffold(
         topBar = {
@@ -102,7 +109,7 @@ internal fun PlaylistListScreen(
                 actions = {
                     IconButton(
                         onClick = { onAction(PlaylistUiAction.OnSettingsClick) },
-                        modifier = Modifier.tvFocusRing()
+                        modifier = Modifier.tvFocusRing(),
                     ) {
                         Icon(
                             imageVector = NextIcons.Settings,
@@ -112,31 +119,15 @@ internal fun PlaylistListScreen(
                 },
             )
         },
-        floatingActionButton = {
-            ExtendedFloatingActionButton(
-                onClick = { onAction(PlaylistUiAction.ShowCreationChooser) },
-                icon = {
-                    Icon(
-                        imageVector = NextIcons.Add,
-                        contentDescription = stringResource(R.string.create_playlist),
-                    )
-                },
-                text = { Text(stringResource(R.string.create_playlist)) },
-                modifier = Modifier
-                    .focusRequester(createFocusRequester)
-                    .tvFocusRing(shape = RoundedCornerShape(16.dp)),
-            )
-        },
         containerColor = MaterialTheme.colorScheme.surfaceContainer,
-    ) { padding ->
-        val containerModifier = Modifier
-            .fillMaxSize()
-            .padding(top = padding.calculateTopPadding())
-            .padding(start = padding.calculateStartPadding(LocalLayoutDirection.current) + 2.dp)
-            .clip(RoundedCornerShape(topStart = 24.dp, topEnd = 24.dp))
-            .background(MaterialTheme.colorScheme.background)
-
-        Box(modifier = containerModifier) {
+    ) { scaffoldPadding ->
+        Box(
+            modifier = Modifier
+                .fillMaxSize()
+                .padding(scaffoldPadding.copy(bottom = 0.dp))
+                .clip(RoundedCornerShape(topStart = 24.dp, topEnd = 24.dp))
+                .background(MaterialTheme.colorScheme.background),
+        ) {
             when (uiState.playlistsDataState) {
                 is DataState.Loading -> {
                     CircularProgressIndicator(Modifier.align(Alignment.Center))
@@ -156,11 +147,8 @@ internal fun PlaylistListScreen(
                             modifier = Modifier
                                 .fillMaxSize()
                                 .tvListFocus(rememberTvListFocusRequester()),
-                            contentPadding = PaddingValues(
-                                start = 8.dp,
-                                top = 8.dp,
-                                end = 8.dp,
-                                bottom = padding.calculateBottomPadding() + 96.dp,
+                            contentPadding = PaddingValues(8.dp).copy(
+                                bottom = scaffoldPadding.calculateBottomPadding() + navigationBottomPadding + 96.dp,
                             ),
                             verticalArrangement = Arrangement.spacedBy(2.dp),
                         ) {
@@ -195,6 +183,7 @@ internal fun PlaylistListScreen(
                 onPickM3UFile()
             },
         )
+
         PlaylistCreationDialog.LOCAL_NAME -> PlaylistNameDialog(
             title = stringResource(R.string.create_local_playlist),
             confirmLabel = stringResource(R.string.create),
@@ -203,6 +192,7 @@ internal fun PlaylistListScreen(
             onDismissRequest = { onAction(PlaylistUiAction.DismissCreation) },
             onConfirm = { onAction(PlaylistUiAction.CreateLocal(it)) },
         )
+
         PlaylistCreationDialog.M3U_URL -> M3UUrlDialog(
             isSaving = uiState.saveActionState.isRunning,
             error = uiState.saveActionState.errorMessage,
@@ -228,7 +218,7 @@ internal fun PlaylistListScreen(
             title = { Text(text = stringResource(R.string.delete_playlist)) },
             content = {
                 Text(
-                    text = stringResource(R.string.delete_playlist_confirmation, playlist.name)
+                    text = stringResource(R.string.delete_playlist_confirmation, playlist.name),
                 )
             },
             confirmButton = {
@@ -519,9 +509,9 @@ private fun PlaylistType.label(): String = stringResource(
 private fun String.isHttpUrl(): Boolean = runCatching {
     val uri = Uri.parse(this)
     (
-        uri.scheme.equals("http", ignoreCase = true) ||
-            uri.scheme.equals("https", ignoreCase = true)
-        ) && !uri.host.isNullOrBlank()
+            uri.scheme.equals("http", ignoreCase = true) ||
+                    uri.scheme.equals("https", ignoreCase = true)
+            ) && !uri.host.isNullOrBlank()
 }.getOrDefault(false)
 
 private val M3U_MIME_TYPES = arrayOf(

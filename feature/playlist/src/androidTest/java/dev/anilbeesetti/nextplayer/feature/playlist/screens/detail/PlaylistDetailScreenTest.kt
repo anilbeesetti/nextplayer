@@ -237,7 +237,7 @@ class PlaylistDetailScreenTest {
     ) {
         composeRule.setContent {
             NextPlayerTheme {
-                PlaylistDetailScreen(
+                PlaylistDetailScreenContent(
                     uiState = PlaylistDetailUiState(
                         playlistDataState = DataState.Success(playlist),
                         updateActionState = updateActionState,

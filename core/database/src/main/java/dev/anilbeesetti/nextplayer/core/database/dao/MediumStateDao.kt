@@ -24,6 +24,9 @@ interface MediumStateDao {
     @Query("SELECT * FROM media_state")
     fun getAll(): Flow<List<MediumStateEntity>>
 
+    @Query("UPDATE media_state SET last_played_time = NULL")
+    suspend fun clearPlaybackHistory()
+
     @Query("DELETE FROM media_state WHERE uri in (:uris)")
     suspend fun delete(uris: List<String>)
 }

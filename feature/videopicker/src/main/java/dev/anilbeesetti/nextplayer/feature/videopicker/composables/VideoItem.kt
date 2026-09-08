@@ -31,6 +31,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.tooling.preview.PreviewLightDark
@@ -86,7 +87,7 @@ fun VideoItem(
 
 @OptIn(ExperimentalLayoutApi::class, ExperimentalMaterial3ExpressiveApi::class)
 @Composable
-private fun VideoListItem(
+fun VideoListItem(
     video: Video,
     isRecentlyPlayedVideo: Boolean,
     preferences: ApplicationPreferences,
@@ -165,11 +166,12 @@ private fun VideoListItem(
 
 @OptIn(ExperimentalMaterial3ExpressiveApi::class)
 @Composable
-private fun VideoGridItem(
+fun VideoGridItem(
+    modifier: Modifier = Modifier,
     video: Video,
     isRecentlyPlayedVideo: Boolean,
     preferences: ApplicationPreferences,
-    modifier: Modifier = Modifier,
+    textStyle: TextStyle = MaterialTheme.typography.titleMedium,
     isFirstItem: Boolean = false,
     isLastItem: Boolean = false,
     selected: Boolean = false,
@@ -209,7 +211,7 @@ private fun VideoGridItem(
                 Text(
                     text = if (preferences.showExtensionField) video.nameWithExtension else video.displayName,
                     maxLines = 2,
-                    style = MaterialTheme.typography.titleMedium,
+                    style = textStyle,
                     overflow = TextOverflow.Ellipsis,
                     textAlign = TextAlign.Center,
                     color = if (isRecentlyPlayedVideo && preferences.markLastPlayedMedia) {

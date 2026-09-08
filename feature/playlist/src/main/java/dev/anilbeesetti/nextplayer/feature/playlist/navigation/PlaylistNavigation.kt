@@ -5,9 +5,9 @@ import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.navigation3.runtime.EntryProviderScope
 import androidx.navigation3.runtime.NavBackStack
 import androidx.navigation3.runtime.NavKey
-import dev.anilbeesetti.nextplayer.feature.playlist.screens.detail.PlaylistDetailScreenRoute
+import dev.anilbeesetti.nextplayer.feature.playlist.screens.detail.PlaylistDetailScreen
 import dev.anilbeesetti.nextplayer.feature.playlist.screens.detail.PlaylistDetailViewModel
-import dev.anilbeesetti.nextplayer.feature.playlist.screens.list.PlaylistListScreenRoute
+import dev.anilbeesetti.nextplayer.feature.playlist.screens.list.PlaylistListScreen
 import dev.anilbeesetti.nextplayer.feature.playlist.screens.list.PlaylistListViewModel
 import kotlinx.serialization.Serializable
 
@@ -26,7 +26,7 @@ fun EntryProviderScope<NavKey>.playlistListEntry(
     onSettingsClick: () -> Unit,
 ) {
     entry<PlaylistListRoute> {
-        PlaylistListScreenRoute(
+        PlaylistListScreen(
             viewModel = hiltViewModel<PlaylistListViewModel, PlaylistListViewModel.Factory>(
                 creationCallback = { factory ->
                     factory.create(
@@ -46,7 +46,7 @@ fun EntryProviderScope<NavKey>.playlistDetailEntry(
     onPlayPlaylist: (playlistId: Long, startUri: Uri) -> Unit,
 ) {
     entry<PlaylistDetailRoute> { route ->
-        PlaylistDetailScreenRoute(
+        PlaylistDetailScreen(
             viewModel = hiltViewModel<PlaylistDetailViewModel, PlaylistDetailViewModel.Factory>(
                 creationCallback = { factory ->
                     factory.create(

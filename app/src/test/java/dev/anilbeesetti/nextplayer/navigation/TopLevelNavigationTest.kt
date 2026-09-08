@@ -10,12 +10,13 @@ import org.junit.Test
 class TopLevelNavigationTest {
 
     @Test
-    fun playlistsIsTheMiddleTopLevelDestination() {
+    fun topLevelDestinationsAreInOrder() {
         assertEquals(
             listOf(
                 TopLevelDestination.MEDIA,
                 TopLevelDestination.PLAYLISTS,
                 TopLevelDestination.NETWORK,
+                TopLevelDestination.MORE,
             ),
             TopLevelDestination.entries,
         )
@@ -42,5 +43,21 @@ class TopLevelNavigationTest {
             listOf(TopLevelDestination.PLAYLISTS.route, PlaylistDetailRoute(7)),
             state.currentStack,
         )
+    }
+
+    @Test
+    fun topLevelContentKeysContainsDestinations() {
+        val stacks = TopLevelDestination.entries.associate { destination ->
+            destination.route to NavBackStack<NavKey>(destination.route)
+        }
+        val state = TopLevelNavState(
+            destinations = TopLevelDestination.entries,
+            backStacks = stacks,
+            selectedIndexState = mutableIntStateOf(0),
+        )
+        for (dest in TopLevelDestination.entries) {
+            assert(state.topLevelContentKeys.contains(dest.route))
+            assert(state.topLevelContentKeys.contains(Pair("${dest.route}", "${dest.route::class}")))
+        }
     }
 }

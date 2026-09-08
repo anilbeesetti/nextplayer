@@ -53,6 +53,7 @@
     <string name="select_audio_track">Select audio track</string>
     <string name="select_subtitle_track">Select subtitle track</string>
     <string name="settings">Settings</string>
+    <string name="history">History</string>
     <string name="size">Size</string>
     <string name="sort">Sort</string>
     <string name="title">Title</string>
@@ -155,6 +156,11 @@
     <string name="seconds">%1$s seconds</string>
     <string name="share">Share</string>
     <string name="delete">Delete</string>
+    <string name="delete_permanently">Delete permanently</string>
+    <string name="restore">Restore</string>
+    <string name="trash">Trash</string>
+    <string name="move_to_trash">Move to trash</string>
+    <string name="move_to_trash_info">Selected items will be moved to trash.</string>
     <string name="delete_file">The following file will be deleted permanently</string>
     <string name="subtitle_text_encoding">Subtitle text encoding</string>
     <string name="fast_playback_speed">%.1fx speed</string>
@@ -207,6 +213,7 @@
     <string name="mark_last_played_media_desc">Mark last played media in home and in each folder</string>
     <string name="open_local_video">Open local video</string>
     <string name="open_network_stream">Open network stream</string>
+    <string name="pick_file">Pick file</string>
     <string name="exit">Exit</string>
     <string name="play_next_video">Play next video</string>
     <string name="skip_silence">Skip silence</string>
@@ -293,6 +300,8 @@
     <string name="recent_searches">Recent searches</string>
     <string name="popular_folders">Popular folders</string>
     <string name="clear_history">Clear history</string>
+    <string name="clear_all">Clear all</string>
+    <string name="clear_history_confirmation">Remove all watched videos from history?</string>
     <string name="no_results_found">No results found</string>
     <string name="search_results">Search results</string>
     <string name="now_playing">Now playing</string>
@@ -339,9 +348,10 @@
     <string name="pins_do_not_match">PINs don\'t match. Try again</string>
     <string name="incorrect_pin">Incorrect PIN</string>
     <string name="how_to_find_hidden_videos_title">How to find your hidden videos</string>
-    <string name="how_to_find_hidden_videos_description">Hidden videos are kept safe in your Vault. To open it again, press and hold the \"NextPlayer\" title at the top of the home screen and enter your PIN.</string>
+    <string name="how_to_find_hidden_videos_description">Hidden videos are kept safe in your Vault. To open it again, open More, tap Open vault, and enter your PIN.</string>
     <string name="got_it">Got it</string>
     <string name="open_vault">Open vault</string>
+    <string name="open_vault_description">Access your hidden videos</string>
     <string name="unlock_with_biometrics">Unlock with biometrics</string>
     <string name="use_vault_pin">Use vault PIN</string>
     <string name="vault_biometric_setup_title">Use biometrics to unlock?</string>
@@ -374,6 +384,8 @@
     <string name="delete_connection_confirmation">Remove \"%1$s\"?</string>
     <string name="connection_name">Name</string>
     <string name="protocol">Protocol</string>
+    <string name="ftp_sftp">FTP/SFTP</string>
+    <string name="use_sftp">Use SFTP</string>
     <string name="host">Host</string>
     <string name="port">Port</string>
     <string name="port_hint">Port (default %1$d)</string>
@@ -503,4 +515,6 @@
         <item quantity="other">%d videos</item>
     </plurals>
     <string name="decoder_mode_auto">Auto</string>
+    <string name="settings_description">App preferences</string>
+    <string name="more">More</string>
 </resources>

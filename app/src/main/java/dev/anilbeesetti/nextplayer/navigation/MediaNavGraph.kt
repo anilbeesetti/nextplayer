@@ -13,7 +13,6 @@ import dev.anilbeesetti.nextplayer.feature.videopicker.navigation.navigateToMedi
 import dev.anilbeesetti.nextplayer.feature.videopicker.navigation.navigateToSearch
 import dev.anilbeesetti.nextplayer.feature.videopicker.navigation.navigateToVault
 import dev.anilbeesetti.nextplayer.feature.videopicker.navigation.searchEntry
-import dev.anilbeesetti.nextplayer.feature.videopicker.navigation.vaultEntry
 import dev.anilbeesetti.nextplayer.settings.navigation.navigateToSettings
 
 fun EntryProviderScope<NavKey>.mediaNavGraph(
@@ -36,13 +35,6 @@ fun EntryProviderScope<NavKey>.mediaNavGraph(
         onFolderClick = backStack::navigateToMediaPickerScreen,
     )
 
-    vaultEntry(
-        onNavigateUp = { backStack.removeLastIfNotRoot() },
-        // Vault files are served through FileProvider, so read access must be granted at
-        // playback time for both PlayerActivity and the (separate) PlayerService component.
-        onPlayVideo = { uri -> context.startPlayback(uri, grantReadPermission = true) },
-        onPlayVideos = { uris -> context.startPlayback(uris, grantReadPermission = true) },
-    )
 }
 
 internal fun Context.startPlayback(uri: Uri, grantReadPermission: Boolean = false) {

@@ -79,7 +79,7 @@ internal fun fingerprintAfterEndpointEdit(
 ): String = if (protocol == NetworkProtocol.SFTP && previousValue != newValue) "" else fingerprint
 
 @Composable
-fun AddConnectionScreenRoute(
+fun AddConnectionScreen(
     onNavigateUp: () -> Unit,
     viewModel: AddConnectionViewModel,
 ) {
@@ -92,7 +92,7 @@ fun AddConnectionScreenRoute(
 
     ObserveAsEvents(viewModel.savedEvents) { onNavigateUp() }
 
-    AddConnectionScreen(
+    AddConnectionScreenContent(
         isEdit = viewModel.isEdit,
         existing = existing,
         saveState = saveState,
@@ -112,7 +112,7 @@ fun AddConnectionScreenRoute(
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-internal fun AddConnectionScreen(
+internal fun AddConnectionScreenContent(
     isEdit: Boolean,
     existing: NetworkConnection?,
     saveState: SaveState,
@@ -249,10 +249,14 @@ internal fun AddConnectionScreen(
                 color = MaterialTheme.colorScheme.onSurfaceVariant,
             )
             SingleChoiceSegmentedButtonRow(modifier = Modifier.fillMaxWidth()) {
-                val protocols = NetworkProtocol.entries
+                val protocols = listOf(NetworkProtocol.SMB, NetworkProtocol.FTP, NetworkProtocol.WEBDAV)
                 protocols.forEachIndexed { index, entry ->
                     SegmentedButton(
-                        selected = protocol == entry,
+                        selected = if (entry == NetworkProtocol.FTP) {
+                            protocol == NetworkProtocol.FTP || protocol == NetworkProtocol.SFTP
+                        } else {
+                            protocol == entry
+                        },
                         enabled = !isTesting,
                         onClick = {
                             onChange {
@@ -271,8 +275,31 @@ internal fun AddConnectionScreen(
                         shape = SegmentedButtonDefaults.itemShape(index, protocols.size),
                         modifier = Modifier.tvFocusRing(shape = SegmentedButtonDefaults.itemShape(index, protocols.size)),
                     ) {
-                        Text(entry.name)
+                        Text(if (entry == NetworkProtocol.FTP) stringResource(R.string.ftp_sftp) else entry.name)
                     }
+                }
+            }
+            if (protocol == NetworkProtocol.FTP || protocol == NetworkProtocol.SFTP) {
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    verticalAlignment = Alignment.CenterVertically,
+                ) {
+                    Text(stringResource(R.string.use_sftp), modifier = Modifier.weight(1f))
+                    Switch(
+                        checked = protocol == NetworkProtocol.SFTP,
+                        onCheckedChange = { useSftp ->
+                            onChange {
+                                protocol = if (useSftp) NetworkProtocol.SFTP else NetworkProtocol.FTP
+                                if (!useSftp) {
+                                    authentication = NetworkAuthentication.PASSWORD
+                                    privateKeyPassphrase = ""
+                                    hostKeyFingerprint = ""
+                                    if (selectedPrivateKey != null) onRemovePrivateKey()
+                                }
+                            }
+                        },
+                        enabled = !isTesting,
+                    )
                 }
             }
 

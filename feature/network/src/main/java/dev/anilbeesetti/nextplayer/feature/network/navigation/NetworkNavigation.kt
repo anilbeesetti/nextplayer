@@ -12,11 +12,11 @@ import androidx.navigation3.runtime.NavBackStack
 import androidx.navigation3.runtime.NavKey
 import androidx.navigation3.runtime.metadata
 import androidx.navigation3.ui.NavDisplay
-import dev.anilbeesetti.nextplayer.feature.network.screens.addconnection.AddConnectionScreenRoute
+import dev.anilbeesetti.nextplayer.feature.network.screens.addconnection.AddConnectionScreen
 import dev.anilbeesetti.nextplayer.feature.network.screens.addconnection.AddConnectionViewModel
-import dev.anilbeesetti.nextplayer.feature.network.screens.browse.NetworkBrowseScreenRoute
+import dev.anilbeesetti.nextplayer.feature.network.screens.browse.NetworkBrowseScreen
 import dev.anilbeesetti.nextplayer.feature.network.screens.browse.NetworkBrowseViewModel
-import dev.anilbeesetti.nextplayer.feature.network.screens.list.NetworkScreenRoute
+import dev.anilbeesetti.nextplayer.feature.network.screens.list.NetworkScreen
 import kotlinx.serialization.Serializable
 
 @Serializable
@@ -41,13 +41,15 @@ fun EntryProviderScope<NavKey>.networkEntry(
     onEditConnection: (connectionId: Long) -> Unit,
     onOpenConnection: (connectionId: Long) -> Unit,
     onSettingsClick: () -> Unit,
+    onOpenStream: (Uri) -> Unit,
 ) {
     entry<NetworkRoute> {
-        NetworkScreenRoute(
+        NetworkScreen(
             onAddConnection = onAddConnection,
             onEditConnection = onEditConnection,
             onOpenConnection = onOpenConnection,
             onSettingsClick = onSettingsClick,
+            onOpenStream = onOpenStream,
         )
     }
 }
@@ -68,7 +70,7 @@ fun EntryProviderScope<NavKey>.addConnectionEntry(
             }
         }
     ) { key ->
-        AddConnectionScreenRoute(
+        AddConnectionScreen(
             onNavigateUp = onNavigateUp,
             viewModel = hiltViewModel<AddConnectionViewModel, AddConnectionViewModel.Factory>(
                 creationCallback = { factory -> factory.create(key.connectionId) },
@@ -83,7 +85,7 @@ fun EntryProviderScope<NavKey>.networkBrowseEntry(
     onNavigateToFolder: (connectionId: Long, path: String) -> Unit,
 ) {
     entry<NetworkBrowseRoute> { key ->
-        NetworkBrowseScreenRoute(
+        NetworkBrowseScreen(
             onNavigateUp = onNavigateUp,
             onPlayVideo = onPlayVideo,
             onNavigateToFolder = onNavigateToFolder,

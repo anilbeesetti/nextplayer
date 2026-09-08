@@ -9,7 +9,6 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.aspectRatio
-import androidx.compose.foundation.layout.calculateStartPadding
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
@@ -36,7 +35,6 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.platform.LocalContext
-import androidx.compose.ui.platform.LocalLayoutDirection
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.res.vectorResource
 import androidx.compose.ui.text.style.TextAlign
@@ -52,11 +50,12 @@ import dev.anilbeesetti.nextplayer.core.ui.components.rememberTvListFocusRequest
 import dev.anilbeesetti.nextplayer.core.ui.components.tvFocusRing
 import dev.anilbeesetti.nextplayer.core.ui.components.tvListFocus
 import dev.anilbeesetti.nextplayer.core.ui.designsystem.NextIcons
+import dev.anilbeesetti.nextplayer.core.ui.extensions.copy
 import dev.anilbeesetti.nextplayer.feature.network.ObserveAsEvents
 import java.util.Date
 
 @Composable
-fun NetworkBrowseScreenRoute(
+fun NetworkBrowseScreen(
     onNavigateUp: () -> Unit,
     onPlayVideo: (Uri) -> Unit,
     onNavigateToFolder: (connectionId: Long, path: String) -> Unit,
@@ -66,7 +65,7 @@ fun NetworkBrowseScreenRoute(
 
     ObserveAsEvents(viewModel.playEvents) { uri -> onPlayVideo(uri) }
 
-    NetworkBrowseScreen(
+    NetworkBrowseScreenContent(
         uiState = uiState,
         onBack = onNavigateUp,
         onFolderClick = { file -> onNavigateToFolder(viewModel.connectionId, file.path) },
@@ -77,7 +76,7 @@ fun NetworkBrowseScreenRoute(
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-internal fun NetworkBrowseScreen(
+internal fun NetworkBrowseScreenContent(
     uiState: NetworkBrowseUiState,
     onBack: () -> Unit,
     onFolderClick: (NetworkFile) -> Unit,
@@ -99,10 +98,10 @@ internal fun NetworkBrowseScreen(
             )
         },
         containerColor = MaterialTheme.colorScheme.surfaceContainer,
-    ) { padding ->
+    ) { scaffoldPadding ->
         when {
             uiState.isLoading -> {
-                Box(Modifier.fillMaxSize().padding(padding), contentAlignment = Alignment.Center) {
+                Box(Modifier.fillMaxSize().padding(scaffoldPadding), contentAlignment = Alignment.Center) {
                     CircularProgressIndicator()
                 }
             }
@@ -110,7 +109,7 @@ internal fun NetworkBrowseScreen(
             uiState.error != null -> {
                 val error = uiState.error
                 Column(
-                    modifier = Modifier.fillMaxSize().padding(padding).padding(horizontal = 32.dp),
+                    modifier = Modifier.fillMaxSize().padding(scaffoldPadding).padding(horizontal = 32.dp),
                     verticalArrangement = Arrangement.Center,
                     horizontalAlignment = Alignment.CenterHorizontally,
                 ) {
@@ -165,8 +164,7 @@ internal fun NetworkBrowseScreen(
             else -> {
                 val containerModifier = Modifier
                     .fillMaxSize()
-                    .padding(top = padding.calculateTopPadding())
-                    .padding(start = padding.calculateStartPadding(LocalLayoutDirection.current) + 2.dp)
+                    .padding(scaffoldPadding.copy(bottom = 0.dp))
                     .clip(RoundedCornerShape(topStart = 24.dp, topEnd = 24.dp))
                     .background(MaterialTheme.colorScheme.background)
 
@@ -187,7 +185,7 @@ internal fun NetworkBrowseScreen(
                                 start = 8.dp,
                                 end = 8.dp,
                                 top = 8.dp,
-                                bottom = padding.calculateBottomPadding() + 16.dp,
+                                bottom = scaffoldPadding.calculateBottomPadding() + 16.dp,
                             ),
                             verticalArrangement = Arrangement.spacedBy(2.dp),
                         ) {

@@ -125,7 +125,7 @@ class MediaPickerViewModel @AssistedInject constructor(
             is MediaPickerAction.UpdateMenu -> updateMenu(action.preferences)
             is MediaPickerAction.OnPermissionAccepted -> startMediaCollection()
             is MediaPickerAction.PlaySelectedItems -> playSelectedItems(action.selectionItems)
-            is MediaPickerAction.DeleteSelectedItems -> deleteSelectedItems(action.selectionItems)
+            is MediaPickerAction.DeleteSelectedItems -> deleteSelectedItems(action.selectionItems, action.permanently)
             is MediaPickerAction.ShareSelectedItems -> shareSelectedItems(action.selectionItems)
             is MediaPickerAction.ShowMediaInfo -> showMediaInfo(action.video)
             MediaPickerAction.DismissMediaInfo -> uiStateInternal.update { it.copy(mediaInfo = null) }
@@ -317,10 +317,10 @@ class MediaPickerViewModel @AssistedInject constructor(
         }
     }
 
-    private fun deleteSelectedItems(selectedItems: Set<SelectionItem>) {
+    private fun deleteSelectedItems(selectedItems: Set<SelectionItem>, permanently: Boolean) {
         viewModelScope.launch {
             val videoUris = selectedItems.toVideoUris()
-            mediaOperationsService.deleteMedia(videoUris)
+            mediaOperationsService.deleteMedia(videoUris, permanently = permanently)
         }
     }
 
@@ -559,7 +559,7 @@ sealed interface MediaPickerAction {
     data class UpdateMenu(val preferences: ApplicationPreferences) : MediaPickerAction
     data object OnPermissionAccepted : MediaPickerAction
     data class PlaySelectedItems(val selectionItems: Set<SelectionItem>) : MediaPickerAction
-    data class DeleteSelectedItems(val selectionItems: Set<SelectionItem>) : MediaPickerAction
+    data class DeleteSelectedItems(val selectionItems: Set<SelectionItem>, val permanently: Boolean = false) : MediaPickerAction
     data class ShareSelectedItems(val selectionItems: Set<SelectionItem>) : MediaPickerAction
     data class CopySelectedItems(val selectionItems: Set<SelectionItem>) : MediaPickerAction
     data class MoveSelectedItems(val selectionItems: Set<SelectionItem>) : MediaPickerAction

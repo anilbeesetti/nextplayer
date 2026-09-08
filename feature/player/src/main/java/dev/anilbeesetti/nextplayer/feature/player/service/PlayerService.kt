@@ -355,6 +355,7 @@ class PlayerService : MediaSessionService() {
                         mediaRepository.updateMediumLastPlayedTime(
                             uri = it.currentMediaItem?.mediaId ?: return@launch,
                             lastPlayedTime = System.currentTimeMillis(),
+                            duration = it.duration.validDurationOrNull(),
                         )
                     }
                 }
@@ -762,6 +763,8 @@ class PlayerService : MediaSessionService() {
         subtitleCacheDir.deleteFiles()
         serviceScope.cancel()
     }
+
+    private fun Long.validDurationOrNull(): Long? = takeIf { it != C.TIME_UNSET && it >= 0 }
 
     private suspend fun updatedMediaItemsWithMetadata(
         mediaItems: List<MediaItem>,
