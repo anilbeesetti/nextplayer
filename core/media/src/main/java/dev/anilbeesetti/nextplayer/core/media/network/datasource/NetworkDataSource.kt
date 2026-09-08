@@ -6,7 +6,6 @@ import androidx.media3.common.util.UnstableApi
 import androidx.media3.datasource.BaseDataSource
 import androidx.media3.datasource.DataSpec
 import dev.anilbeesetti.nextplayer.core.media.network.NetworkClient
-import dev.anilbeesetti.nextplayer.core.media.network.NetworkUri
 import java.io.IOException
 import java.io.InputStream
 import kotlinx.coroutines.runBlocking
@@ -32,21 +31,17 @@ class NetworkDataSource(
         uri = dataSpec.uri
         transferInitializing(dataSpec)
 
-        val connectionId = NetworkUri.connectionIdOf(dataSpec.uri)
-            ?: throw IOException("Not a network playback uri: ${dataSpec.uri}")
-
         try {
             runBlocking {
-                val session = sessions.session(connectionId)
-                val path = NetworkUri.filePathOf(dataSpec.uri, session.connection.protocol)
-                val fileSize = session.client.fileSize(path)
+                val target = sessions.target(dataSpec.uri)
+                val fileSize = target.client.fileSize(target.filePath)
 
                 bytesRemaining = when {
                     dataSpec.length != C.LENGTH_UNSET.toLong() -> dataSpec.length
                     fileSize >= 0 -> (fileSize - dataSpec.position).coerceAtLeast(0)
                     else -> C.LENGTH_UNSET.toLong()
                 }
-                stream = session.client.openStream(path, dataSpec.position)
+                stream = target.client.openStream(target.filePath, dataSpec.position)
             }
         } catch (e: IOException) {
             throw e

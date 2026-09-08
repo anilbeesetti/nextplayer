@@ -1,8 +1,10 @@
 package dev.anilbeesetti.nextplayer.core.media.network.datasource
 
+import android.net.Uri
 import dev.anilbeesetti.nextplayer.core.media.network.NetworkClient
 import dev.anilbeesetti.nextplayer.core.media.network.NetworkClientFactory
 import dev.anilbeesetti.nextplayer.core.media.network.NetworkConnectionResolver
+import dev.anilbeesetti.nextplayer.core.media.network.NetworkUri
 import dev.anilbeesetti.nextplayer.core.model.NetworkConnection
 import javax.inject.Inject
 import javax.inject.Singleton
@@ -12,10 +14,10 @@ import kotlinx.coroutines.launch
 import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
 
-/** A connected client together with the connection it was built from. */
-class NetworkSession(
-    val connection: NetworkConnection,
+/** A connected client and the path to read on it. */
+class NetworkTarget(
     val client: NetworkClient,
+    val filePath: String,
 )
 
 /**
@@ -32,29 +34,45 @@ class NetworkSessions @Inject constructor(
     private val clientFactory: NetworkClientFactory,
 ) {
     private val mutex = Mutex()
-    private var current: NetworkSession? = null
+    private var connection: NetworkConnection? = null
+    private var client: NetworkClient? = null
 
-    suspend fun session(connectionId: Long): NetworkSession = mutex.withLock {
-        current?.takeIf { it.connection.id == connectionId }?.let { session ->
-            if (!session.client.isConnected()) session.client.connect().getOrThrow()
-            return@withLock session
-        }
-
-        val connection = resolver.connection(connectionId)
-            ?: error("No saved network connection with id $connectionId")
-        val client = clientFactory.create(connection)
-        client.connect().getOrThrow()
-
-        val previous = current
-        current = NetworkSession(connection, client)
-        previous?.let { disconnectDetached(it.client) }
-        current!!
+    /** Resolves [uri] to a connected client, reusing the current one when it already fits. */
+    suspend fun target(uri: Uri): NetworkTarget = mutex.withLock {
+        val target = resolve(uri)
+        NetworkTarget(clientFor(target.connection), target.filePath)
     }
 
-    /** Disconnects the active client. The cache stays usable — the next [session] reconnects. */
+    /** Disconnects the active client. The cache stays usable — the next [target] reconnects. */
     suspend fun release() = mutex.withLock {
-        current?.let { disconnectDetached(it.client) }
-        current = null
+        client?.let(::disconnectDetached)
+        connection = null
+        client = null
+    }
+
+    private suspend fun resolve(uri: Uri): NetworkUri.Target {
+        val connectionId = NetworkUri.connectionIdOf(uri)
+            ?: return NetworkUri.adHocTargetOf(uri)
+                ?: error("Not a playable network uri: $uri")
+
+        val saved = resolver.connection(connectionId)
+            ?: error("No saved network connection with id $connectionId")
+        return NetworkUri.Target(saved, NetworkUri.filePathOf(uri, saved.protocol))
+    }
+
+    private suspend fun clientFor(target: NetworkConnection): NetworkClient {
+        client?.takeIf { connection == target }?.let { existing ->
+            if (!existing.isConnected()) existing.connect().getOrThrow()
+            return existing
+        }
+
+        val fresh = clientFactory.create(target)
+        fresh.connect().getOrThrow()
+
+        client?.let(::disconnectDetached)
+        connection = target
+        client = fresh
+        return fresh
     }
 
     private fun disconnectDetached(client: NetworkClient) {

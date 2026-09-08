@@ -34,6 +34,11 @@
                 <data android:scheme="mmsh" />
                 <data android:scheme="httplive" />
                 <data android:scheme="udp" />
+                <data android:scheme="smb" />
+                <data android:scheme="ftp" />
+                <data android:scheme="sftp" />
+                <data android:scheme="webdav" />
+                <data android:scheme="webdavs" />
             </intent-filter>
 
             <!-- This filter captures protocols with type info -->
@@ -56,6 +61,11 @@
                 <data android:scheme="mmsh" />
                 <data android:scheme="httplive" />
                 <data android:scheme="udp" />
+                <data android:scheme="smb" />
+                <data android:scheme="ftp" />
+                <data android:scheme="sftp" />
+                <data android:scheme="webdav" />
+                <data android:scheme="webdavs" />
             </intent-filter>
 
             <intent-filter>
