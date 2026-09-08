@@ -2,6 +2,7 @@ package dev.anilbeesetti.nextplayer.core.ui.designsystem
 
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.rounded.ArrowBack
+import androidx.compose.material.icons.automirrored.rounded.ArrowForward
 import androidx.compose.material.icons.automirrored.rounded.CompareArrows
 import androidx.compose.material.icons.automirrored.rounded.DriveFileMove
 import androidx.compose.material.icons.automirrored.rounded.PlaylistAdd
@@ -96,6 +97,7 @@ object NextIcons {
     val Add = Icons.Rounded.Add
     val Appearance = Icons.Rounded.Palette
     val ArrowBack = Icons.AutoMirrored.Rounded.ArrowBack
+    val ArrowForward = Icons.AutoMirrored.Rounded.ArrowForward
     val ArrowDownward = Icons.Rounded.ArrowDownward
     val ArrowUpward = Icons.Rounded.ArrowUpward
     val Audio = Icons.Rounded.Audiotrack

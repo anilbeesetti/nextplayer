@@ -22,7 +22,7 @@ import dev.anilbeesetti.nextplayer.core.database.entities.PlaylistItemEntity
         PlaylistEntity::class,
         PlaylistItemEntity::class,
     ],
-    version = 10,
+    version = 11,
     exportSchema = true,
 )
 abstract class MediaDatabase : RoomDatabase() {
@@ -315,6 +315,12 @@ abstract class MediaDatabase : RoomDatabase() {
                     "ALTER TABLE `playlist_item` ADD COLUMN `duration` INTEGER NOT NULL DEFAULT -1",
                 )
                 db.execSQL("ALTER TABLE `playlist_item` ADD COLUMN `group_title` TEXT")
+            }
+        }
+
+        val MIGRATION_10_11 = object : Migration(10, 11) {
+            override fun migrate(db: SupportSQLiteDatabase) {
+                db.execSQL("ALTER TABLE `media_state` ADD COLUMN `duration` INTEGER")
             }
         }
     }

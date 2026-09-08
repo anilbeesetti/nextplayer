@@ -53,6 +53,7 @@
     <string name="select_audio_track">Select audio track</string>
     <string name="select_subtitle_track">Select subtitle track</string>
     <string name="settings">Settings</string>
+    <string name="history">History</string>
     <string name="size">Size</string>
     <string name="sort">Sort</string>
     <string name="title">Title</string>
@@ -294,6 +295,8 @@
     <string name="recent_searches">Recent searches</string>
     <string name="popular_folders">Popular folders</string>
     <string name="clear_history">Clear history</string>
+    <string name="clear_all">Clear all</string>
+    <string name="clear_history_confirmation">Remove all watched videos from history?</string>
     <string name="no_results_found">No results found</string>
     <string name="search_results">Search results</string>
     <string name="now_playing">Now playing</string>

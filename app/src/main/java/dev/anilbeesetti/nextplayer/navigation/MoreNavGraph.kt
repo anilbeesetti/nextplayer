@@ -5,7 +5,9 @@ import androidx.core.net.toUri
 import androidx.navigation3.runtime.EntryProviderScope
 import androidx.navigation3.runtime.NavBackStack
 import androidx.navigation3.runtime.NavKey
+import dev.anilbeesetti.nextplayer.feature.more.navigation.historyEntry
 import dev.anilbeesetti.nextplayer.feature.more.navigation.moreEntry
+import dev.anilbeesetti.nextplayer.feature.more.navigation.navigateToHistory
 import dev.anilbeesetti.nextplayer.feature.videopicker.navigation.navigateToVault
 import dev.anilbeesetti.nextplayer.feature.videopicker.navigation.vaultEntry
 import dev.anilbeesetti.nextplayer.settings.navigation.navigateToSettings
@@ -15,9 +17,15 @@ fun EntryProviderScope<NavKey>.moreNavGraph(
     backStack: NavBackStack<NavKey>,
 ) {
     moreEntry(
+        onHistoryClick = backStack::navigateToHistory,
         onPlayVideo = { context.startPlayback(it.toUri()) },
         onSettingsClick = backStack::navigateToSettings,
         onVaultClick = backStack::navigateToVault,
+    )
+
+    historyEntry(
+        onNavigateUp = { backStack.removeLastIfNotRoot() },
+        onPlayVideo = { context.startPlayback(it.toUri()) },
     )
 
     vaultEntry(

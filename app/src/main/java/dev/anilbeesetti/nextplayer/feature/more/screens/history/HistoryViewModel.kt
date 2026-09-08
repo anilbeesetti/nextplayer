@@ -1,4 +1,4 @@
-package dev.anilbeesetti.nextplayer.feature.more.screens.more
+package dev.anilbeesetti.nextplayer.feature.more.screens.history
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
@@ -14,47 +14,29 @@ import kotlinx.coroutines.flow.catch
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.stateIn
+import kotlinx.coroutines.launch
 import javax.inject.Inject
 
 @HiltViewModel
-class MoreViewModel @Inject constructor(
-    mediaRepository: MediaRepository,
+class HistoryViewModel @Inject constructor(
+    private val mediaRepository: MediaRepository,
     preferencesRepository: PreferencesRepository,
 ) : ViewModel() {
-    val uiState: StateFlow<MoreUiState> = combine(
+    val uiState: StateFlow<HistoryUiState> = combine(
         mediaRepository.observePlaybackHistory()
             .map<List<Video>, DataState<List<Video>>> { DataState.Success(it) }
             .catch { emit(DataState.Error(it)) },
         preferencesRepository.applicationPreferences,
     ) { history, preferences ->
-        MoreUiState(history = history, preferences = preferences)
-    }.stateIn(viewModelScope, SharingStarted.WhileSubscribed(5_000), MoreUiState())
+        HistoryUiState(history = history, preferences = preferences)
+    }.stateIn(viewModelScope, SharingStarted.WhileSubscribed(5_000), HistoryUiState())
 
-    fun onAction(action: MoreAction, output: Output) {
-        when (action) {
-            MoreAction.OpenHistory -> output.openHistory()
-            is MoreAction.PlayVideo -> output.playVideo(action.uri)
-            MoreAction.OpenSettings -> output.openSettings()
-            MoreAction.OpenVault -> output.openVault()
-        }
+    fun clearHistory() {
+        viewModelScope.launch { mediaRepository.clearPlaybackHistory() }
     }
-
-    data class Output(
-        val openHistory: () -> Unit,
-        val playVideo: (String) -> Unit,
-        val openSettings: () -> Unit,
-        val openVault: () -> Unit,
-    )
 }
 
-data class MoreUiState(
+data class HistoryUiState(
     val history: DataState<List<Video>> = DataState.Loading,
     val preferences: ApplicationPreferences = ApplicationPreferences(),
 )
-
-sealed interface MoreAction {
-    data object OpenHistory : MoreAction
-    data class PlayVideo(val uri: String) : MoreAction
-    data object OpenSettings : MoreAction
-    data object OpenVault : MoreAction
-}

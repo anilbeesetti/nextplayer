@@ -25,6 +25,8 @@ data class MediumStateEntity(
     val playbackSpeed: Float? = null,
     @ColumnInfo(name = "last_played_time")
     val lastPlayedTime: Long? = null,
+    @ColumnInfo(name = "duration")
+    val duration: Long? = null,
     @ColumnInfo(name = "external_subs")
     val externalSubs: String = "",
     @ColumnInfo(name = "video_scale")
