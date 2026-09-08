@@ -325,7 +325,7 @@
     <string name="pins_do_not_match">الرمزان غير متطابقين. حاول مرة أخرى</string>
     <string name="incorrect_pin">رمز غير صحيح</string>
     <string name="how_to_find_hidden_videos_title">\"كيف تجد فيديوهاتك المخفية</string>
-    <string name="how_to_find_hidden_videos_description">يتم الاحتفاظ بالفيديوهات المخفية بأمان في الخزنة. لفتحها مرة أخرى، اضغط مطولاً على عنوان \"NextPlayer\" أعلى الشاشة الرئيسية وأدخل رمزك.</string>
+    <string name="how_to_find_hidden_videos_description">الفيديوهات المخفية محفوطة بآمان في الخزنة. لإعادة فتحها، افتح المزيد، ثم اضغط على فتح الخزنة، وأدخل الرمز الشخصي (PIN).</string>
     <string name="got_it">فهمت</string>
     <string name="open_vault">فتح الخزنة</string>
     <string name="vault_empty_title">لا توجد فيديوهات مخفية</string>
@@ -515,4 +515,27 @@
     <string name="audio_decoder_mode_not_supported">مفكك تشفير الصوت %1$s غير مدعوم</string>
     <string name="no_supported_decoder">لا يتوفر فك تشفير مدعوم لهذه الوسائط.</string>
     <string name="decoder_mode_auto">تلقائي</string>
+    <string name="history">السجل</string>
+    <string name="delete_permanently">الحذف النهائي</string>
+    <string name="restore">استعادة</string>
+    <string name="trash">سلة المهملات</string>
+    <string name="move_to_trash">النقل إلى سلة المهملات</string>
+    <string name="move_to_trash_info">ستُنقل العناصر المحددة إلى سلة المهملات.</string>
+    <string name="pick_file">تحديد ملف</string>
+    <string name="clear_all">مسح الكل</string>
+    <string name="clear_history_confirmation">إزالة جميع الفيديوهات المشاهدة من السجل؟</string>
+    <string name="open_vault_description">الوصول إلى الفيديوهات المخفية</string>
+    <string name="unlock_with_biometrics">إلغاء القفل بالبصمة الحيوية</string>
+    <string name="use_vault_pin">استخدام الرمز الشخصي للخزنة</string>
+    <string name="vault_biometric_setup_title">’استخدام البصمة الحيوية لإلغاء القفل؟</string>
+    <string name="vault_biometric_setup_description">افتح خزنتك باستخدام بصمة الإصبع أو الوجه. تأكد بالمسح الحيوي لتفعيل ذلك. يمكنك استخدام الرمز الشخصي (PIN) وإيقاف الميزة من إعدادات الخزنة.</string>
+    <string name="enable_biometric_unlock">تفعيل إلغاء القفل بالبصمة الحيوية</string>
+    <string name="not_now">ليس الآن</string>
+    <string name="vault_settings">إعدادات الخزنة</string>
+    <string name="vault_biometric_description">استخدم بصمة إصبعك أو وجهك لإلغاء القفل. يظل الرمز الشخصي (PIN) لخزنتك متاحاً.</string>
+    <string name="vault_biometric_unavailable">قم بضبط بصمة إصبع أو وجه مدعومة في إعدادات جهازك لتفعيل إلغاء القفل بالبصمة الحيوية.</string>
+    <string name="ftp_sftp">FTP/SFTP</string>
+    <string name="use_sftp">استخدام SFTP</string>
+    <string name="settings_description">تفضيلات التطبيق</string>
+    <string name="more">المزيد</string>
 </resources>
