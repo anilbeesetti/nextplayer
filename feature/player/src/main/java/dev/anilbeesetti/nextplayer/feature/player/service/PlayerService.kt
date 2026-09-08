@@ -772,33 +772,20 @@ class PlayerService : MediaSessionService() {
         mediaItems.map { mediaItem ->
             async {
                 val uri = mediaItem.mediaId.toUri()
-                if (mediaItem.isNetworkMediaItem()) {
-                    return@async mediaItem.buildUpon()
-                        .setMediaMetadata(
-                            mediaItem.mediaMetadata.buildUpon()
-                                .setTitle(
-                                    mediaItem.mediaMetadata.title
-                                        ?: getFilenameFromUri(uri),
-                                )
-                                .setArtworkUri(
-                                    mediaItem.mediaMetadata.artworkUri
-                                        ?: getDefaultArtworkUri(),
-                                )
-                                .build(),
-                        )
-                        .build()
-                }
+                val isNetwork = mediaItem.isNetworkMediaItem()
 
-                val video = mediaRepository.getVideoByUri(uri = mediaItem.mediaId)
+                val video = if (isNetwork) null else mediaRepository.getVideoByUri(uri = mediaItem.mediaId)
                 val videoState = mediaRepository.getVideoState(uri = mediaItem.mediaId)
 
                 val externalSubs = videoState?.externalSubs ?: emptyList()
-                val localSubs = (videoState?.path ?: getPath(uri))?.let {
-                    File(it).getLocalSubtitles(
-                        context = this@PlayerService,
-                        excludeSubsList = externalSubs,
-                    )
-                } ?: emptyList()
+                val localSubs = if (!isNetwork) {
+                    (videoState?.path ?: getPath(uri))?.let {
+                        File(it).getLocalSubtitles(
+                            context = this@PlayerService,
+                            excludeSubsList = externalSubs,
+                        )
+                    } ?: emptyList()
+                } else emptyList()
 
                 val existingSubConfigurations = mediaItem.localConfiguration?.subtitleConfigurations ?: emptyList()
                 val subConfigurations = (localSubs + externalSubs).map { subtitleUri ->
@@ -808,8 +795,13 @@ class PlayerService : MediaSessionService() {
                     )
                 }
 
-                // Use placeholder artwork initially - actual artwork will be loaded in background
-                val artworkUri = getDefaultArtworkUri()
+                // Local items get a placeholder now and their real artwork in the background;
+                // network items have no thumbnail to extract, so keep any supplied artwork.
+                val artworkUri = if (isNetwork) {
+                    mediaItem.mediaMetadata.artworkUri ?: getDefaultArtworkUri()
+                } else {
+                    getDefaultArtworkUri()
+                }
 
                 val title = mediaItem.mediaMetadata.title ?: video?.nameWithExtension ?: getFilenameFromUri(uri)
                 val positionMs = mediaItem.mediaMetadata.positionMs ?: videoState?.position
