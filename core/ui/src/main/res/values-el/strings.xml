@@ -321,7 +321,7 @@
     <string name="pins_do_not_match">Τα PIN δεν ταιριάζουν. Δοκιμάστε ξανά</string>
     <string name="incorrect_pin">Λανθασμένο PIN</string>
     <string name="how_to_find_hidden_videos_title">Πώς να βρείτε τα κρυφά σας βίντεο</string>
-    <string name="how_to_find_hidden_videos_description">Τα κρυμμένα βίντεο φυλάσσονται με ασφάλεια στην κρύπτη σας. Για να την ανοίξετε ξανά, πατήστε παρατεταμένα τον τίτλο \"NextPlayer\" στο επάνω μέρος της αρχικής οθόνης και εισάγετε τον κωδικό PIN σας.</string>
+    <string name="how_to_find_hidden_videos_description">Τα κρυμμένα βίντεο φυλάσσονται με ασφάλεια στην κρύπτη σας. Για να την ανοίξετε ξανά, πατήστε Περισσότερα, Άνοιγμα κρύπτης και εισάγετε το PIN σας.</string>
     <string name="open_vault">Άνοιγμα κρύπτης</string>
     <string name="vault_empty_title">Κανένα κρυφό βίντεο</string>
     <string name="vault_empty_description">Τα βίντεο που αποκρύπτετε θα εμφανίζονται εδώ. Πατήστε παρατεταμένα ένα βίντεο και πατήστε Απόκρυψη για να το προσθέσετε στο αρχείο καταγραφής.</string>
@@ -492,4 +492,18 @@
     <string name="vault_settings">Ρυθμίσεις κρύπτης</string>
     <string name="vault_biometric_description">Χρησιμοποιήστε το δακτυλικό σας αποτύπωμα ή το πρόσωπο σας για ξεκλείδωμα. Ο κωδικός PIN της κρύπτης σας παραμένει διαθέσιμος.</string>
     <string name="vault_biometric_unavailable">Ρυθμίστε ένα υποστηριζόμενο δακτυλικό αποτύπωμα ή πρόσωπο στις ρυθμίσεις της συσκευής σας για να ενεργοποιήσετε το βιομετρικό ξεκλείδωμα.</string>
+    <string name="history">Ιστορικό</string>
+    <string name="delete_permanently">Μόνιμη διαγραφή</string>
+    <string name="restore">Επαναφορά</string>
+    <string name="trash">Απορρίμματα</string>
+    <string name="move_to_trash">Μετακίνηση στα απορρίμματα</string>
+    <string name="move_to_trash_info">Τα επιλεγμένα αντικείμενα θα μεταφερθούν στα απορρίμματα.</string>
+    <string name="pick_file">Επιλογή αρχείου</string>
+    <string name="clear_all">Καθαρισμός</string>
+    <string name="clear_history_confirmation">Κατάργηση όλων των βίντεο που παρακολουθήσατε από το ιστορικό;</string>
+    <string name="open_vault_description">Πρόσβαση στα κρυφά σας βίντεο</string>
+    <string name="ftp_sftp">FTP/SFTP</string>
+    <string name="use_sftp">Χρήση SFTP</string>
+    <string name="settings_description">Ρυθμίσεις εφαρμογής</string>
+    <string name="more">Περισσότερα</string>
 </resources>
