@@ -323,7 +323,7 @@
     <string name="pins_do_not_match">Kody PIN nie są zgodne. Spróbuj ponownie</string>
     <string name="incorrect_pin">Nieprawidłowy kod PIN</string>
     <string name="how_to_find_hidden_videos_title">Jak znaleźć swoje ukryte wideo</string>
-    <string name="how_to_find_hidden_videos_description">Ukryte wideo jest bezpiecznie przechowywane w twoim sejfie. Aby ponownie go otworzyć, naciśnij i przytrzymaj tytuł „NextPlayer” u góry ekranu głównego, a następnie wprowadź swój kod PIN.</string>
+    <string name="how_to_find_hidden_videos_description">Ukryte wideo są bezpiecznie przechowywane w twoim sejfie. Aby je ponownie otworzyć, wybierz opcję „Więcej”, dotknij „Otwórz sejf” i wprowadź swój kod PIN.</string>
     <string name="got_it">Rozumiem</string>
     <string name="open_vault">Otwórz sejf</string>
     <string name="vault_empty_title">Brak ukrytych wideo</string>
@@ -508,4 +508,18 @@
     <string name="vault_biometric_description">Aby odblokować urządzenie, użyj odcisku palca lub rozpoznawania twarzy. Kod PIN sejfu pozostaje nadal dostępny.</string>
     <string name="vault_biometric_unavailable">Aby włączyć odblokowywanie za pomocą danych biometrycznych, skonfiguruj obsługiwany odcisk palca lub rozpoznawanie twarzy w ustawieniach urządzenia.</string>
     <string name="decoder_mode_auto">Automatycznie</string>
+    <string name="history">Historia</string>
+    <string name="delete_permanently">Usuń bezpowrotnie</string>
+    <string name="restore">Przywróć</string>
+    <string name="trash">Kosz</string>
+    <string name="move_to_trash">Przenieś do kosza</string>
+    <string name="move_to_trash_info">Zaznaczone elementy zostaną przeniesione do kosza.</string>
+    <string name="pick_file">Wybierz plik</string>
+    <string name="clear_all">Wyczyść wszystko</string>
+    <string name="clear_history_confirmation">Usunąć wszystkie obejrzane wideo z historii?</string>
+    <string name="open_vault_description">Uzyskaj dostęp do swoich ukrytych wideo</string>
+    <string name="ftp_sftp">FTP/SFTP</string>
+    <string name="use_sftp">Użyj SFTP</string>
+    <string name="settings_description">Ustawienia aplikacji</string>
+    <string name="more">Więcej</string>
 </resources>
