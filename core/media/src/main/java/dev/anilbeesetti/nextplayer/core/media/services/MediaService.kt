@@ -31,6 +31,8 @@ interface MediaService {
      */
     fun observeVideos(folderPath: String? = null): Flow<List<MediaVideo>>
 
+    fun observeTrashVideos(): Flow<List<MediaVideo>>
+
     /**
      * Fetches all unique folders containing videos under the given path (one-shot).
      *

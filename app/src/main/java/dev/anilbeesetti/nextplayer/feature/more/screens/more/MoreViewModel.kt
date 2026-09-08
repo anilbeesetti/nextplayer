@@ -35,6 +35,7 @@ class MoreViewModel @Inject constructor(
             MoreAction.OpenHistory -> output.openHistory()
             is MoreAction.PlayVideo -> output.playVideo(action.uri)
             MoreAction.OpenSettings -> output.openSettings()
+            MoreAction.OpenTrash -> output.openTrash()
             MoreAction.OpenVault -> output.openVault()
         }
     }
@@ -43,6 +44,7 @@ class MoreViewModel @Inject constructor(
         val openHistory: () -> Unit,
         val playVideo: (String) -> Unit,
         val openSettings: () -> Unit,
+        val openTrash: () -> Unit,
         val openVault: () -> Unit,
     )
 }
@@ -56,5 +58,6 @@ sealed interface MoreAction {
     data object OpenHistory : MoreAction
     data class PlayVideo(val uri: String) : MoreAction
     data object OpenSettings : MoreAction
+    data object OpenTrash : MoreAction
     data object OpenVault : MoreAction
 }

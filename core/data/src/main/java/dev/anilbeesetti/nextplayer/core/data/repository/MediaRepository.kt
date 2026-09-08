@@ -32,6 +32,7 @@ interface MediaRepository {
     fun observeVideos(folderPath: String? = null): Flow<List<Video>>
 
     fun observePlaybackHistory(): Flow<List<Video>>
+    fun observeTrashVideos(): Flow<List<Video>>
 
     /**
      * Fetches all unique folders containing videos under the given path (one-shot).

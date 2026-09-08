@@ -66,12 +66,16 @@ class LocalMediaOperationsService @Inject constructor(
         }
     }
 
-    override suspend fun deleteMedia(uris: List<Uri>): Boolean = withContext(Dispatchers.IO) {
+    override suspend fun deleteMedia(uris: List<Uri>, permanently: Boolean): Boolean = withContext(Dispatchers.IO) {
         return@withContext if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) {
-            deleteMediaR(uris)
+            if (permanently) deleteMediaR(uris) else trashMediaR(uris)
         } else {
             deleteMediaBelowR(uris)
         }
+    }
+
+    override suspend fun restoreMedia(uris: List<Uri>): Boolean = withContext(Dispatchers.IO) {
+        return@withContext Build.VERSION.SDK_INT >= Build.VERSION_CODES.R && trashMediaR(uris, trashed = false)
     }
 
     override suspend fun renameMedia(uri: Uri, to: String): Boolean = withContext(Dispatchers.IO) {
@@ -389,6 +393,22 @@ class LocalMediaOperationsService @Inject constructor(
         itemExists = ::mediaExists,
         request = ::requestDeleteR,
     )
+
+    @RequiresApi(Build.VERSION_CODES.R)
+    private suspend fun trashMediaR(uris: List<Uri>, trashed: Boolean = true): Boolean = runMediaRequests(
+        items = uris,
+        itemExists = ::mediaExists,
+        request = { requestTrashR(it, trashed) },
+    )
+
+    @RequiresApi(Build.VERSION_CODES.R)
+    private suspend fun requestTrashR(uris: List<Uri>, trashed: Boolean): Boolean = suspendCancellableCoroutine { continuation ->
+        resultOkCallback = { continuation.resume(true) }
+        resultCancelledCallback = { continuation.resume(false) }
+        MediaStore.createTrashRequest(contentResolver, uris, trashed).also { intent ->
+            mediaRequestLauncher?.launch(IntentSenderRequest.Builder(intent).build())
+        }
+    }
 
     @RequiresApi(Build.VERSION_CODES.R)
     private suspend fun requestDeleteR(uris: List<Uri>): Boolean = suspendCancellableCoroutine { continuation ->

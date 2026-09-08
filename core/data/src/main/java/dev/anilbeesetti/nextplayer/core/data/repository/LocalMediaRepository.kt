@@ -78,6 +78,10 @@ class LocalMediaRepository @Inject constructor(
         }
     }
 
+    override fun observeTrashVideos(): Flow<List<Video>> {
+        return mediaService.observeTrashVideos().map { videos -> videos.map { it.toVideo() } }
+    }
+
     override suspend fun getVideoByUri(uri: String): Video? = coroutineScope {
         val mediaVideoDeferred = async { mediaService.findVideo(uri.toUri()) }
         val mediaStateDeferred = async { mediumStateDao.get(uri) }

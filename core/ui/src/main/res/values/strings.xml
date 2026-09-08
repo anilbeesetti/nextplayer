@@ -156,6 +156,11 @@
     <string name="seconds">%1$s seconds</string>
     <string name="share">Share</string>
     <string name="delete">Delete</string>
+    <string name="delete_permanently">Delete permanently</string>
+    <string name="restore">Restore</string>
+    <string name="trash">Trash</string>
+    <string name="move_to_trash">Move to trash</string>
+    <string name="move_to_trash_info">Selected items will be moved to trash.</string>
     <string name="delete_file">The following file will be deleted permanently</string>
     <string name="subtitle_text_encoding">Subtitle text encoding</string>
     <string name="fast_playback_speed">%.1fx speed</string>

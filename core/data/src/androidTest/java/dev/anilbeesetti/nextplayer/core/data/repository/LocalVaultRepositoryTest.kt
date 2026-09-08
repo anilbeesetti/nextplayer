@@ -419,7 +419,9 @@ private class MovingMediaOperationsService(
 
     override fun initialize(activity: ComponentActivity) = Unit
 
-    override suspend fun deleteMedia(uris: List<Uri>): Boolean = true
+    override suspend fun deleteMedia(uris: List<Uri>, permanently: Boolean): Boolean = true
+
+    override suspend fun restoreMedia(uris: List<Uri>): Boolean = true
 
     override suspend fun renameMedia(uri: Uri, to: String): Boolean = false
 
@@ -454,7 +456,9 @@ private class PausedMovingMediaOperationsService : MediaOperationsService {
 
     override fun initialize(activity: ComponentActivity) = Unit
 
-    override suspend fun deleteMedia(uris: List<Uri>): Boolean = true
+    override suspend fun deleteMedia(uris: List<Uri>, permanently: Boolean): Boolean = true
+
+    override suspend fun restoreMedia(uris: List<Uri>): Boolean = true
 
     override suspend fun renameMedia(uri: Uri, to: String): Boolean = false
 

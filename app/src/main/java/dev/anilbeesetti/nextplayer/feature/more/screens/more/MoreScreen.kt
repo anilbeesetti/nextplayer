@@ -42,6 +42,7 @@ import androidx.compose.ui.unit.dp
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import dev.anilbeesetti.nextplayer.core.model.ApplicationPreferences
 import dev.anilbeesetti.nextplayer.core.ui.R
+import dev.anilbeesetti.nextplayer.core.media.services.MediaOperationsService
 import dev.anilbeesetti.nextplayer.core.model.Video
 import dev.anilbeesetti.nextplayer.core.ui.components.BindTopLevelFab
 import dev.anilbeesetti.nextplayer.core.ui.components.LocalNavigationBottomPadding
@@ -56,15 +57,17 @@ fun MoreScreen(
     onHistoryClick: () -> Unit,
     onPlayVideo: (String) -> Unit,
     onSettingsClick: () -> Unit,
+    onTrashClick: () -> Unit,
     onVaultClick: () -> Unit,
     viewModel: MoreViewModel = hiltViewModel(),
 ) {
     val uiState = viewModel.uiState.collectAsStateWithLifecycle().value
-    val output = remember(onHistoryClick, onPlayVideo, onSettingsClick, onVaultClick) {
+    val output = remember(onHistoryClick, onPlayVideo, onSettingsClick, onTrashClick, onVaultClick) {
         MoreViewModel.Output(
             openHistory = onHistoryClick,
             playVideo = onPlayVideo,
             openSettings = onSettingsClick,
+            openTrash = onTrashClick,
             openVault = onVaultClick,
         )
     }
@@ -139,7 +142,21 @@ internal fun MoreScreenContent(
                         Spacer(modifier = Modifier.size(8.dp))
                         Text(text = stringResource(R.string.pick_file))
                     }
-
+                    if (MediaOperationsService.supportsTrash()) {
+                        FilledTonalButton(
+                            modifier = Modifier.weight(1f),
+                            onClick = { onAction(MoreAction.OpenTrash) },
+                        ) {
+                            Icon(
+                                imageVector = NextIcons.Delete,
+                                contentDescription = null,
+                                modifier = Modifier.size(20.dp),
+                            )
+                            Spacer(modifier = Modifier.size(8.dp))
+                            Text(text = stringResource(R.string.trash))
+                        }
+                        Spacer(modifier = Modifier.weight(1f))
+                    }
                 }
                 HistorySection(
                     history = uiState.history.result.orEmpty().take(10),

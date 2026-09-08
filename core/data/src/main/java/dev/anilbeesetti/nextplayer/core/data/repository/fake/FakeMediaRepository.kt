@@ -40,6 +40,10 @@ class FakeMediaRepository : MediaRepository {
         return updates.map { videos.filter { it.lastPlayedAt != null }.sortedByDescending { it.lastPlayedAt?.time } }
     }
 
+    override fun observeTrashVideos(): Flow<List<Video>> {
+        return updates.map { emptyList() }
+    }
+
     override suspend fun getVideoByUri(uri: String): Video? {
         return videos.find { it.uriString == uri }
     }

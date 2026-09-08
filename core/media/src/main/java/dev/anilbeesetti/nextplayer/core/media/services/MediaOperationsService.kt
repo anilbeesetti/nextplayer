@@ -9,7 +9,8 @@ import kotlinx.coroutines.flow.Flow
 
 interface MediaOperationsService {
     fun initialize(activity: ComponentActivity)
-    suspend fun deleteMedia(uris: List<Uri>): Boolean
+    suspend fun deleteMedia(uris: List<Uri>, permanently: Boolean = false): Boolean
+    suspend fun restoreMedia(uris: List<Uri>): Boolean
     suspend fun renameMedia(uri: Uri, to: String): Boolean
     suspend fun shareMedia(uris: List<Uri>)
     suspend fun moveMedia(targets: Map<Uri, File>): Map<Uri, File?>
@@ -23,6 +24,11 @@ interface MediaOperationsService {
     companion object {
         @ChecksSdkIntAtLeast(api = Build.VERSION_CODES.R)
         fun willSystemAsksForDeleteConfirmation(): Boolean {
+            return Build.VERSION.SDK_INT >= Build.VERSION_CODES.R
+        }
+
+        @ChecksSdkIntAtLeast(api = Build.VERSION_CODES.R)
+        fun supportsTrash(): Boolean {
             return Build.VERSION.SDK_INT >= Build.VERSION_CODES.R
         }
     }

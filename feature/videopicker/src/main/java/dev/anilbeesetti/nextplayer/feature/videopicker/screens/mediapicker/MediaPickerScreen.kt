@@ -38,6 +38,7 @@ import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.shape.ZeroCornerSize
 import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.Checkbox
 import androidx.compose.material3.ExperimentalMaterial3ExpressiveApi
 import androidx.compose.material3.FilledTonalIconButton
 import androidx.compose.material3.FloatingActionButton
@@ -366,12 +367,7 @@ internal fun MediaPickerScreen(
                     selectionManager.exitSelectionMode()
                 },
                 onDeleteAction = {
-                    if (MediaOperationsService.willSystemAsksForDeleteConfirmation()) {
-                        onAction(MediaPickerAction.DeleteSelectedItems(selectionManager.selectionItems))
-                        selectionManager.exitSelectionMode()
-                    } else {
-                        showDeleteVideosConfirmation = true
-                    }
+                    showDeleteVideosConfirmation = true
                 },
             )
         },
@@ -491,8 +487,9 @@ internal fun MediaPickerScreen(
     if (showDeleteVideosConfirmation) {
         DeleteConfirmationDialog(
             selectionItems = selectionManager.selectionItems,
-            onConfirm = {
-                onAction(MediaPickerAction.DeleteSelectedItems(selectionManager.selectionItems))
+            trashSupported = MediaOperationsService.supportsTrash(),
+            onConfirm = { permanently ->
+                onAction(MediaPickerAction.DeleteSelectedItems(selectionManager.selectionItems, permanently = permanently))
                 selectionManager.exitSelectionMode()
                 showDeleteVideosConfirmation = false
             },
@@ -637,11 +634,13 @@ private fun ProgressSection(
 private fun DeleteConfirmationDialog(
     modifier: Modifier = Modifier,
     selectionItems: Set<SelectionItem>,
-    onConfirm: () -> Unit,
+    trashSupported: Boolean,
+    onConfirm: (Boolean) -> Unit,
     onCancel: () -> Unit,
 ) {
     val selectedVideos = selectionItems.filterIsInstance<SelectionItem.Video>()
     val selectedFolders = selectionItems.filterIsInstance<SelectionItem.Folder>()
+    var permanently by rememberSaveable { mutableStateOf(false) }
 
     NextDialog(
         onDismissRequest = onCancel,
@@ -665,23 +664,36 @@ private fun DeleteConfirmationDialog(
         },
         confirmButton = {
             TextButton(
-                onClick = onConfirm,
+                onClick = { onConfirm(permanently || !trashSupported) },
                 modifier = modifier,
             ) {
-                Text(text = stringResource(R.string.delete))
+                Text(text = stringResource(if (permanently || !trashSupported) R.string.delete else R.string.move_to_trash))
             }
         },
         dismissButton = { CancelButton(onClick = onCancel) },
         modifier = modifier,
         content = {
             Text(
-                text = if ((selectedFolders.size + selectedVideos.size) == 1) {
-                    stringResource(R.string.delete_item_info)
+                text = if (permanently || !trashSupported) {
+                    if ((selectedFolders.size + selectedVideos.size) == 1) {
+                        stringResource(R.string.delete_item_info)
+                    } else {
+                        stringResource(R.string.delete_items_info)
+                    }
                 } else {
-                    stringResource(R.string.delete_items_info)
+                    stringResource(R.string.move_to_trash_info)
                 },
                 style = MaterialTheme.typography.titleSmall,
             )
+            if (trashSupported) {
+                Row(verticalAlignment = Alignment.CenterVertically) {
+                    Checkbox(
+                        checked = permanently,
+                        onCheckedChange = { permanently = it },
+                    )
+                    Text(text = stringResource(R.string.delete_permanently))
+                }
+            }
         },
     )
 }
