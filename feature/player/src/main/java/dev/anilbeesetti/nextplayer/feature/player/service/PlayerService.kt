@@ -348,18 +348,6 @@ class PlayerService : MediaSessionService() {
                 mediaSession?.player?.trackSelectionParameters = TrackSelectionParameters.DEFAULT
                 mediaSession?.player?.setPlaybackSpeed(playerPreferences.defaultPlaybackSpeed)
             }
-
-            if (playbackState == Player.STATE_READY) {
-                mediaSession?.player?.let {
-                    serviceScope.launch {
-                        mediaRepository.updateMediumLastPlayedTime(
-                            uri = it.currentMediaItem?.mediaId ?: return@launch,
-                            lastPlayedTime = System.currentTimeMillis(),
-                            duration = it.duration.validDurationOrNull(),
-                        )
-                    }
-                }
-            }
         }
 
         override fun onPlayerError(error: PlaybackException) {
@@ -401,6 +389,14 @@ class PlayerService : MediaSessionService() {
                 player.currentMediaItemIndex,
                 currentMediaItem.copy(durationMs = player.duration.coerceAtLeast(0))
             )
+
+            serviceScope.launch {
+                mediaRepository.updateMediumLastPlayedTime(
+                    uri = currentMediaItem.mediaId,
+                    lastPlayedTime = System.currentTimeMillis(),
+                    duration = player.duration.validDurationOrNull(),
+                )
+            }
         }
 
         override fun onIsPlayingChanged(isPlaying: Boolean) {

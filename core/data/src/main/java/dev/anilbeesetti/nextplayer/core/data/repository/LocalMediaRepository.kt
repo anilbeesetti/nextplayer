@@ -129,7 +129,6 @@ class LocalMediaRepository @Inject constructor(
         mediumStateDao.upsert(
             mediumState = stateEntity.copy(
                 playbackPosition = position,
-                lastPlayedTime = System.currentTimeMillis(),
             ),
         )
     }
@@ -140,7 +139,6 @@ class LocalMediaRepository @Inject constructor(
         mediumStateDao.upsert(
             mediumState = stateEntity.copy(
                 playbackSpeed = playbackSpeed,
-                lastPlayedTime = System.currentTimeMillis(),
             ),
         )
     }
@@ -151,7 +149,6 @@ class LocalMediaRepository @Inject constructor(
         mediumStateDao.upsert(
             mediumState = stateEntity.copy(
                 audioTrackIndex = audioTrackIndex,
-                lastPlayedTime = System.currentTimeMillis(),
             ),
         )
     }
@@ -162,7 +159,6 @@ class LocalMediaRepository @Inject constructor(
         mediumStateDao.upsert(
             mediumState = stateEntity.copy(
                 subtitleTrackIndex = subtitleTrackIndex,
-                lastPlayedTime = System.currentTimeMillis(),
             ),
         )
     }
@@ -173,7 +169,6 @@ class LocalMediaRepository @Inject constructor(
         mediumStateDao.upsert(
             mediumState = stateEntity.copy(
                 videoScale = zoom,
-                lastPlayedTime = System.currentTimeMillis(),
             ),
         )
     }
@@ -188,7 +183,6 @@ class LocalMediaRepository @Inject constructor(
         mediumStateDao.upsert(
             mediumState = stateEntity.copy(
                 externalSubs = newExternalSubs,
-                lastPlayedTime = System.currentTimeMillis(),
             ),
         )
     }
@@ -199,7 +193,6 @@ class LocalMediaRepository @Inject constructor(
         mediumStateDao.upsert(
             mediumState = stateEntity.copy(
                 subtitleDelayMilliseconds = delay,
-                lastPlayedTime = System.currentTimeMillis(),
             ),
         )
     }
@@ -210,7 +203,6 @@ class LocalMediaRepository @Inject constructor(
         mediumStateDao.upsert(
             mediumState = stateEntity.copy(
                 subtitleSpeed = speed,
-                lastPlayedTime = System.currentTimeMillis(),
             ),
         )
     }
