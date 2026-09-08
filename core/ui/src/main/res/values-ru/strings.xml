@@ -326,7 +326,7 @@
     <string name="pins_do_not_match">PIN-коды не совпадают. Попробуйте ещё раз</string>
     <string name="incorrect_pin">Неверный PIN-код</string>
     <string name="how_to_find_hidden_videos_title">Как найти скрытые видео</string>
-    <string name="how_to_find_hidden_videos_description">Скрытые видео надёжно хранятся в секретной папке. Чтобы снова открыть её, нажмите и удерживайте заголовок \"NextPlayer\" в верхней части главного экрана, а затем введите PIN-код.</string>
+    <string name="how_to_find_hidden_videos_description">Скрытые видео надёжно защищены в вашем хранилище. Чтобы снова зайти в него, перейдите в раздел «Ещё», нажмите «Открыть хранилище» и введите свой PIN-код.</string>
     <string name="got_it">Понятно</string>
     <string name="open_vault">Открыть секретную папку</string>
     <string name="vault_empty_title">Скрытых видео нет</string>
@@ -508,4 +508,18 @@
     <string name="vault_biometric_description">Используйте отпечаток пальца или лицо для разблокировки. PIN-код хранилища по-прежнему будет доступен.</string>
     <string name="vault_biometric_unavailable">Добавьте отпечаток пальца или сканирование лица в настройках устройства, чтобы включить биометрическую разблокировку.</string>
     <string name="decoder_mode_auto">Автоматически</string>
+    <string name="history">История</string>
+    <string name="delete_permanently">Удалить навсегда</string>
+    <string name="restore">Восстановить</string>
+    <string name="trash">Корзина</string>
+    <string name="move_to_trash">Переместить в корзину</string>
+    <string name="move_to_trash_info">Выбранные элементы будут перемещены в корзину.</string>
+    <string name="pick_file">Выбрать файл</string>
+    <string name="clear_all">Удалить всё</string>
+    <string name="clear_history_confirmation">Удалить все просмотренные видео из истории?</string>
+    <string name="open_vault_description">Доступ к скрытым видео</string>
+    <string name="ftp_sftp">FTP/SFTP</string>
+    <string name="use_sftp">Использовать SFTP</string>
+    <string name="settings_description">Настройки приложения</string>
+    <string name="more">Ещё</string>
 </resources>
