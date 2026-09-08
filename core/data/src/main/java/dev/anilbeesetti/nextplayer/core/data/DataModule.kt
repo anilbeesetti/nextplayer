@@ -2,6 +2,7 @@ package dev.anilbeesetti.nextplayer.core.data
 
 import dagger.Binds
 import dagger.Module
+import dagger.Provides
 import dagger.hilt.InstallIn
 import dagger.hilt.components.SingletonComponent
 import dev.anilbeesetti.nextplayer.core.data.repository.LocalMediaRepository
@@ -18,6 +19,7 @@ import dev.anilbeesetti.nextplayer.core.data.repository.PlaylistRepository
 import dev.anilbeesetti.nextplayer.core.data.repository.SearchHistoryRepository
 import dev.anilbeesetti.nextplayer.core.data.repository.VaultPinRepository
 import dev.anilbeesetti.nextplayer.core.data.repository.VaultRepository
+import dev.anilbeesetti.nextplayer.core.media.network.NetworkConnectionResolver
 import javax.inject.Singleton
 
 @Module
@@ -64,4 +66,13 @@ interface DataModule {
     fun bindsNetworkConnectionRepository(
         networkConnectionRepository: LocalNetworkConnectionRepository,
     ): NetworkConnectionRepository
+
+    companion object {
+        /** Lets `core:media` resolve a playback uri's connection id without depending on `core:data`. */
+        @Provides
+        @Singleton
+        fun providesNetworkConnectionResolver(
+            repository: NetworkConnectionRepository,
+        ): NetworkConnectionResolver = NetworkConnectionResolver { id -> repository.getConnection(id) }
+    }
 }
