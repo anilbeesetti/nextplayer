@@ -35,6 +35,7 @@ import androidx.media3.session.SessionError
 import androidx.media3.session.SessionResult
 import coil3.ImageLoader
 import coil3.request.ImageRequest
+import com.google.common.util.concurrent.Futures
 import com.google.common.util.concurrent.ListenableFuture
 import dagger.hilt.android.AndroidEntryPoint
 import dev.anilbeesetti.nextplayer.core.common.Logger
@@ -461,21 +462,18 @@ class PlayerService : MediaSessionService() {
     }
 
     private val mediaSessionCallback = object : MediaSession.Callback {
-        override fun onConnect(
+        override fun onConnectAsync(
             session: MediaSession,
             controller: MediaSession.ControllerInfo,
-        ): MediaSession.ConnectionResult {
-            val connectionResult = MediaSession.ConnectionResult
-                .AcceptedResultBuilder(session, controller)
-                .build()
-            return MediaSession.ConnectionResult.accept(
-                connectionResult.availableSessionCommands
+        ): ListenableFuture<MediaSession.ConnectionResult> = Futures.immediateFuture(
+            MediaSession.ConnectionResult.accept(
+                MediaSession.ConnectionResult.DEFAULT_SESSION_COMMANDS
                     .buildUpon()
                     .addSessionCommands(customCommands)
                     .build(),
-                connectionResult.availablePlayerCommands,
-            )
-        }
+                MediaSession.ConnectionResult.DEFAULT_PLAYER_COMMANDS,
+            ),
+        )
 
         override fun onSetMediaItems(
             mediaSession: MediaSession,
