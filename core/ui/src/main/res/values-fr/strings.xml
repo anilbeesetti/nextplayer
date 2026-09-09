@@ -314,7 +314,6 @@
     <string name="reset_brightness_gesture_sensitivity">Réinitialiser la sensibilité du mouvement de contrôle de la luminosité</string>
     <string name="clear_all">Tout effacer</string>
     <string name="clear_history_confirmation">Nettoyer tout l\'historique des vidéos regardées ?</string>
-    <string name="material_you_controls"></string>
     <string name="material_you_controls_description">Utiliser l\'apparence Material You des contrôles</string>
     <string name="hide">Ajouter aux éléments masqués</string>
     <string name="unhide">Retirer des éléments masqués</string>
