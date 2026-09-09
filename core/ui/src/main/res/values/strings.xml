@@ -161,6 +161,8 @@
     <string name="trash">Trash</string>
     <string name="move_to_trash">Move to trash</string>
     <string name="move_to_trash_info">Selected items will be moved to trash.</string>
+    <string name="trash_empty_title">Trash is empty</string>
+    <string name="trash_empty_description">Videos you move to trash will show up here. You can restore them or delete them permanently.</string>
     <string name="delete_file">The following file will be deleted permanently</string>
     <string name="subtitle_text_encoding">Subtitle text encoding</string>
     <string name="fast_playback_speed">%.1fx speed</string>

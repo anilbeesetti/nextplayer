@@ -3,13 +3,18 @@ package dev.anilbeesetti.nextplayer.feature.more.screens.trash
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
+import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.calculateStartPadding
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.itemsIndexed
+import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.FilledTonalIconButton
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
@@ -21,10 +26,13 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.platform.LocalLayoutDirection
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
@@ -122,27 +130,31 @@ internal fun TrashScreenContent(
                     modifier = Modifier.padding(16.dp),
                     color = MaterialTheme.colorScheme.error,
                 )
-                is DataState.Success -> LazyColumn(
-                    contentPadding = PaddingValues(8.dp),
-                    verticalArrangement = Arrangement.spacedBy(2.dp),
-                ) {
-                    itemsIndexed(videos.value, key = { _, video -> video.uriString }) { index, video ->
-                        VideoListItem(
-                            video = video,
-                            isRecentlyPlayedVideo = false,
-                            preferences = uiState.preferences,
-                            selected = selectionManager.isVideoSelected(video),
-                            isFirstItem = index == 0,
-                            isLastItem = index == videos.value.lastIndex,
-                            onClick = {
-                                if (selectionManager.isInSelectionMode) {
-                                    selectionManager.toggleVideoSelection(video)
-                                } else {
-                                    onPlayVideo(video.uriString)
-                                }
-                            },
-                            onLongClick = { selectionManager.toggleVideoSelection(video) },
-                        )
+                is DataState.Success -> if (videos.value.isEmpty()) {
+                    TrashEmptyState()
+                } else {
+                    LazyColumn(
+                        contentPadding = PaddingValues(8.dp),
+                        verticalArrangement = Arrangement.spacedBy(2.dp),
+                    ) {
+                        itemsIndexed(videos.value, key = { _, video -> video.uriString }) { index, video ->
+                            VideoListItem(
+                                video = video,
+                                isRecentlyPlayedVideo = false,
+                                preferences = uiState.preferences,
+                                selected = selectionManager.isVideoSelected(video),
+                                isFirstItem = index == 0,
+                                isLastItem = index == videos.value.lastIndex,
+                                onClick = {
+                                    if (selectionManager.isInSelectionMode) {
+                                        selectionManager.toggleVideoSelection(video)
+                                    } else {
+                                        onPlayVideo(video.uriString)
+                                    }
+                                },
+                                onLongClick = { selectionManager.toggleVideoSelection(video) },
+                            )
+                        }
                     }
                 }
             }
@@ -166,6 +178,46 @@ internal fun TrashScreenContent(
                 TextButton(onClick = { showDeleteConfirmation = false }) { Text(stringResource(R.string.cancel)) }
             },
             content = { Text(stringResource(R.string.delete_items_info)) },
+        )
+    }
+}
+
+@Composable
+private fun TrashEmptyState() {
+    Column(
+        modifier = Modifier
+            .fillMaxSize()
+            .verticalScroll(rememberScrollState())
+            .padding(horizontal = 24.dp, vertical = 40.dp),
+        verticalArrangement = Arrangement.Center,
+        horizontalAlignment = Alignment.CenterHorizontally,
+    ) {
+        Box(
+            modifier = Modifier
+                .clip(MaterialTheme.shapes.large)
+                .background(MaterialTheme.colorScheme.surfaceContainerHigh)
+                .padding(24.dp),
+            contentAlignment = Alignment.Center,
+        ) {
+            Icon(
+                imageVector = NextIcons.Delete,
+                contentDescription = null,
+                tint = MaterialTheme.colorScheme.onSurfaceVariant,
+                modifier = Modifier.size(40.dp),
+            )
+        }
+        Spacer(modifier = Modifier.size(16.dp))
+        Text(
+            text = stringResource(R.string.trash_empty_title),
+            style = MaterialTheme.typography.titleLarge,
+            fontWeight = FontWeight.Bold,
+        )
+        Spacer(modifier = Modifier.size(8.dp))
+        Text(
+            text = stringResource(R.string.trash_empty_description),
+            style = MaterialTheme.typography.bodyMedium,
+            color = MaterialTheme.colorScheme.onSurfaceVariant,
+            textAlign = TextAlign.Center,
         )
     }
 }
