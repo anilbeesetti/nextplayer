@@ -522,4 +522,6 @@
     <string name="use_sftp">Użyj SFTP</string>
     <string name="settings_description">Ustawienia aplikacji</string>
     <string name="more">Więcej</string>
+    <string name="trash_empty_title">Kosz jest pusty</string>
+    <string name="trash_empty_description">Wideo przeniesione do kosza pojawią się w tym miejscu. Możesz je przywrócić lub trwale usunąć.</string>
 </resources>
