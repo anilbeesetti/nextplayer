@@ -522,4 +522,6 @@
     <string name="use_sftp">Использовать SFTP</string>
     <string name="settings_description">Настройки приложения</string>
     <string name="more">Ещё</string>
+    <string name="trash_empty_title">Корзина пуста</string>
+    <string name="trash_empty_description">Здесь будут появляться видео, перемещённые в корзину. Вы можете восстановить их или удалить навсегда.</string>
 </resources>
