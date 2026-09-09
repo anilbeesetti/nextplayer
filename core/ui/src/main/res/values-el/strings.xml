@@ -506,4 +506,6 @@
     <string name="use_sftp">Χρήση SFTP</string>
     <string name="settings_description">Ρυθμίσεις εφαρμογής</string>
     <string name="more">Περισσότερα</string>
+    <string name="trash_empty_title">Ο κάδος είναι άδειος</string>
+    <string name="trash_empty_description">Τα βίντεο που μετακινείτε στον κάδο απορριμμάτων θα εμφανίζονται εδώ. Μπορείτε να τα επαναφέρετε ή να τα διαγράψετε οριστικά.</string>
 </resources>
