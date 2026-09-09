@@ -25,6 +25,7 @@ import androidx.media3.common.util.UnstableApi
 import androidx.media3.exoplayer.ExoPlayer
 import androidx.media3.exoplayer.ExoPlaybackException
 import androidx.media3.exoplayer.analytics.AnalyticsListener
+import androidx.media3.exoplayer.source.DefaultMediaSourceFactory
 import androidx.media3.exoplayer.trackselection.DefaultTrackSelector
 import androidx.media3.session.CommandButton
 import androidx.media3.session.CommandButton.ICON_UNDEFINED
@@ -45,6 +46,8 @@ import dev.anilbeesetti.nextplayer.core.common.extensions.getPath
 import dev.anilbeesetti.nextplayer.core.common.extensions.subtitleCacheDir
 import dev.anilbeesetti.nextplayer.core.data.repository.MediaRepository
 import dev.anilbeesetti.nextplayer.core.data.repository.PreferencesRepository
+import dev.anilbeesetti.nextplayer.core.media.network.NetworkUri
+import dev.anilbeesetti.nextplayer.core.media.network.datasource.NextDataSourceFactory
 import dev.anilbeesetti.nextplayer.core.model.LoopMode
 import dev.anilbeesetti.nextplayer.core.model.PlayerPreferences
 import dev.anilbeesetti.nextplayer.core.model.Resume
@@ -83,6 +86,7 @@ import kotlinx.coroutines.awaitAll
 import kotlinx.coroutines.cancel
 import kotlinx.coroutines.guava.future
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.runBlocking
 import kotlinx.coroutines.supervisorScope
 import kotlinx.coroutines.withContext
 
@@ -96,6 +100,9 @@ class PlayerService : MediaSessionService() {
 
     @Inject
     lateinit var preferencesRepository: PreferencesRepository
+
+    @Inject
+    lateinit var dataSourceFactory: NextDataSourceFactory
 
     @Inject
     lateinit var mediaRepository: MediaRepository
@@ -686,6 +693,9 @@ class PlayerService : MediaSessionService() {
         val player = ExoPlayer.Builder(applicationContext)
             .setRenderersFactory(renderersFactory)
             .setTrackSelector(trackSelector)
+            .setMediaSourceFactory(
+                DefaultMediaSourceFactory(applicationContext).setDataSourceFactory(dataSourceFactory),
+            )
             .setAudioAttributes(
                 AudioAttributes.Builder()
                     .setUsage(C.USAGE_MEDIA)
@@ -757,6 +767,9 @@ class PlayerService : MediaSessionService() {
             mediaSession = null
         }
         subtitleCacheDir.deleteFiles()
+        // Drop the network connection before the scope dies, so a share isn't held open for the
+        // lifetime of the process after playback ends.
+        runBlocking { dataSourceFactory.release() }
         serviceScope.cancel()
     }
 
@@ -969,11 +982,9 @@ class PlayerService : MediaSessionService() {
         }
     }
 
-    private fun MediaItem.isNetworkMediaItem(): Boolean = when (
-        localConfiguration?.uri?.scheme?.lowercase()
-    ) {
-        "http", "https", "rtsp" -> true
-        else -> false
+    private fun MediaItem.isNetworkMediaItem(): Boolean {
+        val uri = localConfiguration?.uri ?: return false
+        return uri.scheme?.lowercase() in REMOTE_SCHEMES || NetworkUri.isNetworkUri(uri)
     }
 
     private fun MediaItem.withArtwork(uri: Uri): MediaItem = buildUpon()
@@ -1047,3 +1058,6 @@ private var Player.playerSpecificSubtitleSpeed: Float
             is ExoPlayer -> this.subtitleSpeed = value
         }
     }
+
+/** Schemes Media3 streams over the network itself, as opposed to reading from local storage. */
+private val REMOTE_SCHEMES = setOf("http", "https", "rtsp")

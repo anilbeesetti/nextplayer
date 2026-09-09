@@ -47,7 +47,7 @@ dependencies {
         exclude(group = "stax", module = "stax")
         exclude(group = "stax", module = "stax-api")
     }
-    implementation(libs.nanohttpd)
+    implementation(libs.androidx.media3.datasource)
 
     // Hilt
     implementation(libs.hilt.android)
@@ -56,6 +56,7 @@ dependencies {
     kspAndroidTest(libs.hilt.compiler)
 
     testImplementation(libs.junit4)
+    testImplementation(libs.robolectric)
     testImplementation(libs.kotlinx.coroutines.test)
     androidTestImplementation(libs.androidx.test.ext)
     androidTestImplementation(libs.androidx.test.espresso.core)

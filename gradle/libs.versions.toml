@@ -43,7 +43,6 @@ universalChardet = "2.5.0"
 smbj = "0.14.0"
 commonsNet = "3.13.0"
 sardineAndroid = "0.9"
-nanohttpd = "2.3.1"
 
 
 [libraries]
@@ -72,6 +71,7 @@ androidx-lifecycle-runtime-ktx = { group = "androidx.lifecycle", name = "lifecyc
 androidx-lifecycle-runtimeCompose = { group = "androidx.lifecycle", name = "lifecycle-runtime-compose", version.ref = "androidxLifecycle" }
 androidx-lifecycle-viewModel-ktx = { group = "androidx.lifecycle", name = "lifecycle-viewmodel-ktx", version.ref = "androidxLifecycle" }
 androidx-media3-common = { group = "androidx.media3", name = "media3-common", version.ref = "androidxMedia3" }
+androidx-media3-datasource = { group = "androidx.media3", name = "media3-datasource", version.ref = "androidxMedia3" }
 androidx-media3-exoplayer = { group = "androidx.media3", name = "media3-exoplayer", version.ref = "androidxMedia3" }
 androidx-media3-exoplayer-dash = { group = "androidx.media3", name = "media3-exoplayer-dash", version.ref = "androidxMedia3" }
 androidx-media3-exoplayer-hls = { group = "androidx.media3", name = "media3-exoplayer-hls", version.ref = "androidxMedia3" }
@@ -110,7 +110,6 @@ sshj = { group = "com.hierynomus", name = "sshj", version.ref = "sshj" }
 bouncycastle-provider = { group = "org.bouncycastle", name = "bcprov-jdk18on", version.ref = "bouncyCastle" }
 commons-net = { group = "commons-net", name = "commons-net", version.ref = "commonsNet" }
 sardine-android = { group = "com.github.thegrizzlylabs", name = "sardine-android", version.ref = "sardineAndroid" }
-nanohttpd = { group = "org.nanohttpd", name = "nanohttpd", version.ref = "nanohttpd" }
 
 [plugins]
 aboutLibraries = { id = "com.mikepenz.aboutlibraries.plugin.android", version.ref = "aboutlibraries" }

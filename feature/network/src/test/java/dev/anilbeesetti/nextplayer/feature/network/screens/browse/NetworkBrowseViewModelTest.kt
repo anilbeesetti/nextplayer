@@ -3,7 +3,6 @@ package dev.anilbeesetti.nextplayer.feature.network.screens.browse
 import dev.anilbeesetti.nextplayer.core.data.repository.NetworkConnectionRepository
 import dev.anilbeesetti.nextplayer.core.media.network.NetworkClient
 import dev.anilbeesetti.nextplayer.core.media.network.NetworkClientFactory
-import dev.anilbeesetti.nextplayer.core.media.network.proxy.NetworkStreamingProxy
 import dev.anilbeesetti.nextplayer.core.media.network.sftp.HostKeyMismatch
 import dev.anilbeesetti.nextplayer.core.model.NetworkConnection
 import dev.anilbeesetti.nextplayer.core.model.NetworkFile
@@ -70,7 +69,6 @@ class NetworkBrowseViewModelTest {
             connectionId = 7,
             path = null,
             repository = FakeRepository(connection()),
-            streamingProxy = NetworkStreamingProxy(factory),
             clientFactory = factory,
         )
     }

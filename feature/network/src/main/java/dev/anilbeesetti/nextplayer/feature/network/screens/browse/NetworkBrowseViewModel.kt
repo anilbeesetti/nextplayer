@@ -11,8 +11,8 @@ import dagger.hilt.android.lifecycle.HiltViewModel
 import dev.anilbeesetti.nextplayer.core.data.repository.NetworkConnectionRepository
 import dev.anilbeesetti.nextplayer.core.media.network.NetworkClient
 import dev.anilbeesetti.nextplayer.core.media.network.NetworkClientFactory
+import dev.anilbeesetti.nextplayer.core.media.network.NetworkUri
 import dev.anilbeesetti.nextplayer.core.media.network.isNetworkVideoFile
-import dev.anilbeesetti.nextplayer.core.media.network.proxy.NetworkStreamingProxy
 import dev.anilbeesetti.nextplayer.core.media.network.sftp.HostKeyMismatch
 import dev.anilbeesetti.nextplayer.core.model.NetworkConnection
 import dev.anilbeesetti.nextplayer.core.model.NetworkFile
@@ -53,7 +53,6 @@ class NetworkBrowseViewModel @AssistedInject constructor(
     /** The folder path to list; `null` means the connection's root. */
     @Assisted private val path: String?,
     private val repository: NetworkConnectionRepository,
-    private val streamingProxy: NetworkStreamingProxy,
     private val clientFactory: NetworkClientFactory,
 ) : ViewModel() {
 
@@ -141,8 +140,7 @@ class NetworkBrowseViewModel @AssistedInject constructor(
         val conn = connection ?: return
         if (file.isDirectory) return
         viewModelScope.launch {
-            val url = streamingProxy.registerStream(conn, file.path, file.name)
-            _playEvents.send(url.toUri())
+            _playEvents.send(NetworkUri.build(conn, file.path))
         }
     }
 
