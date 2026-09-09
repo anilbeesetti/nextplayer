@@ -538,4 +538,6 @@
     <string name="use_sftp">استخدام SFTP</string>
     <string name="settings_description">تفضيلات التطبيق</string>
     <string name="more">المزيد</string>
+    <string name="trash_empty_title">سلة المهملات فارغة</string>
+    <string name="trash_empty_description">مقاطع الفيديو التي تنقلها إلى سلة المهملات ستظهر هنا. يمكنك استعادتها أو حذفها نهائياً.</string>
 </resources>
