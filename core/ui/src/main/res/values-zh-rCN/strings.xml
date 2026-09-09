@@ -498,4 +498,6 @@
     <string name="pick_file">选择文件</string>
     <string name="clear_all">全部清除</string>
     <string name="clear_history_confirmation">从历史移除所有观看过的视频吗？</string>
+    <string name="trash_empty_description">您移动到回收站的视频会在此显示。您可以将其恢复或永久删除。</string>
+    <string name="trash_empty_title">回收站为空</string>
 </resources>
