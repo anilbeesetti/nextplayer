@@ -9,6 +9,7 @@ import dev.anilbeesetti.nextplayer.core.data.repository.PreferencesRepository
 import dev.anilbeesetti.nextplayer.core.model.Folder
 import dev.anilbeesetti.nextplayer.core.model.Sort
 import dev.anilbeesetti.nextplayer.core.model.Video
+import dev.anilbeesetti.nextplayer.core.model.isNew
 import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.combine
@@ -22,7 +23,7 @@ import javax.inject.Inject
  * Each level shows the videos directly inside the current folder plus a [Folder] for every
  * immediate subfolder that contains videos. The top level (folderPath == null) spans all storage
  * volumes: when more than one volume holds videos each volume is shown as a folder ("Internal
- * Storage", a USB drive, …); with a single volume its contents are shown directly.
+ * Storage", a USB drive, ...); with a single volume its contents are shown directly.
  */
 class GetFolderTreeMediaUseCase @Inject constructor(
     private val mediaRepository: MediaRepository,
@@ -47,8 +48,8 @@ class GetFolderTreeMediaUseCase @Inject constructor(
     }
 
     /**
-     * The top level: one folder per storage volume that contains videos, or — when only a single
-     * volume has videos — that volume's contents shown directly (no volume wrapper).
+     * The top level: one folder per storage volume that contains videos, or -- when only a single
+     * volume has videos -- that volume's contents shown directly (no volume wrapper).
      */
     private fun topLevelMedia(videos: List<Video>, excludedFolders: Collection<String>, sort: Sort): MediaHolder {
         val volumeRoots = videos.mapNotNull { volumeRootOf(it.path) }.distinct()
@@ -88,21 +89,22 @@ class GetFolderTreeMediaUseCase @Inject constructor(
             totalDuration = descendantVideos.sumOf { it.duration },
             videosCount = descendantVideos.count { it.parentPath == path },
             foldersCount = immediateChildFolders(path, descendantVideos).size,
+            newVideosCount = descendantVideos.count { it.parentPath == path && it.isNew() },
         )
     }
 
     /** Distinct immediate subfolders of [path] that contain at least one of [videos] (which are all beneath [path]). */
     private fun immediateChildFolders(path: String, videos: List<Video>): List<String> {
-        val prefix = path + File.separator
+        val prefix = "$path/"
         return videos
             .filter { it.parentPath != path }
-            .map { prefix + it.parentPath.removePrefix(prefix).substringBefore(File.separator) }
+            .map { prefix + it.parentPath.removePrefix(prefix).substringBefore('/') }
             .distinct()
     }
 
     /** All videos located somewhere beneath [path]. */
     private fun videosUnder(path: String, videos: List<Video>): List<Video> {
-        val prefix = path + File.separator
+        val prefix = "$path/"
         return videos.filter { it.path.startsWith(prefix) }
     }
 

@@ -21,6 +21,7 @@ import dev.anilbeesetti.nextplayer.core.media.services.MediaService
 import dev.anilbeesetti.nextplayer.core.model.Folder
 import dev.anilbeesetti.nextplayer.core.model.MediaInfo
 import dev.anilbeesetti.nextplayer.core.model.Video
+import dev.anilbeesetti.nextplayer.core.model.isNew
 import io.github.anilbeesetti.nextlib.mediainfo.MediaInfoBuilder
 import java.util.Date
 import kotlinx.coroutines.Dispatchers
@@ -40,8 +41,12 @@ class LocalMediaRepository @Inject constructor(
 ) : MediaRepository {
 
     override fun observeFolders(folderPath: String?): Flow<List<Folder>> {
-        return mediaService.observeFolders(folderPath).map { mediaFolders ->
-            mediaFolders.map { it.toFolder() }
+        return combine(
+            mediaService.observeFolders(folderPath),
+            observeVideos(folderPath),
+        ) { mediaFolders, videos ->
+            val newVideosCountByFolderPath = videos.newVideosCountByParentPath()
+            mediaFolders.map { it.toFolder(newVideosCount = newVideosCountByFolderPath[it.path] ?: 0) }
         }
     }
 
@@ -56,7 +61,9 @@ class LocalMediaRepository @Inject constructor(
     }
 
     override suspend fun fetchFolders(folderPath: String?): List<Folder> {
-        return mediaService.fetchFolders(folderPath).map { it.toFolder() }
+        val mediaFolders = mediaService.fetchFolders(folderPath)
+        val newVideosCountByFolderPath = fetchVideos(folderPath).newVideosCountByParentPath()
+        return mediaFolders.map { it.toFolder(newVideosCount = newVideosCountByFolderPath[it.path] ?: 0) }
     }
 
     override suspend fun fetchVideos(folderPath: String?): List<Video> {
@@ -129,6 +136,7 @@ class LocalMediaRepository @Inject constructor(
         mediumStateDao.upsert(
             mediumState = stateEntity.copy(
                 playbackPosition = position,
+                lastPlayedTime = System.currentTimeMillis(),
             ),
         )
     }
@@ -139,6 +147,7 @@ class LocalMediaRepository @Inject constructor(
         mediumStateDao.upsert(
             mediumState = stateEntity.copy(
                 playbackSpeed = playbackSpeed,
+                lastPlayedTime = System.currentTimeMillis(),
             ),
         )
     }
@@ -149,6 +158,7 @@ class LocalMediaRepository @Inject constructor(
         mediumStateDao.upsert(
             mediumState = stateEntity.copy(
                 audioTrackIndex = audioTrackIndex,
+                lastPlayedTime = System.currentTimeMillis(),
             ),
         )
     }
@@ -159,6 +169,7 @@ class LocalMediaRepository @Inject constructor(
         mediumStateDao.upsert(
             mediumState = stateEntity.copy(
                 subtitleTrackIndex = subtitleTrackIndex,
+                lastPlayedTime = System.currentTimeMillis(),
             ),
         )
     }
@@ -169,6 +180,7 @@ class LocalMediaRepository @Inject constructor(
         mediumStateDao.upsert(
             mediumState = stateEntity.copy(
                 videoScale = zoom,
+                lastPlayedTime = System.currentTimeMillis(),
             ),
         )
     }
@@ -183,6 +195,7 @@ class LocalMediaRepository @Inject constructor(
         mediumStateDao.upsert(
             mediumState = stateEntity.copy(
                 externalSubs = newExternalSubs,
+                lastPlayedTime = System.currentTimeMillis(),
             ),
         )
     }
@@ -193,6 +206,7 @@ class LocalMediaRepository @Inject constructor(
         mediumStateDao.upsert(
             mediumState = stateEntity.copy(
                 subtitleDelayMilliseconds = delay,
+                lastPlayedTime = System.currentTimeMillis(),
             ),
         )
     }
@@ -203,6 +217,7 @@ class LocalMediaRepository @Inject constructor(
         mediumStateDao.upsert(
             mediumState = stateEntity.copy(
                 subtitleSpeed = speed,
+                lastPlayedTime = System.currentTimeMillis(),
             ),
         )
     }
@@ -227,3 +242,10 @@ private fun MediumStateEntity.toHistoryVideo(): Video {
         lastPlayedAt = lastPlayedTime?.let(::Date),
     )
 }
+
+/**
+ * Groups videos that are still "new" (see [isNew]) by their parent folder path, so a folder's
+ * new-videos count can be looked up without re-scanning the whole video list per folder.
+ */
+private fun List<Video>.newVideosCountByParentPath(): Map<String, Int> =
+    filter { it.isNew() }.groupingBy { it.parentPath }.eachCount()
