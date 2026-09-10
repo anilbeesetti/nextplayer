@@ -76,7 +76,6 @@ dependencies {
     implementation(libs.kotlinx.coroutines.guava)
 
     // Hilt
-    implementation(libs.androidx.hilt.navigation.compose)
     implementation(libs.hilt.android)
     ksp(libs.hilt.compiler)
     ksp(libs.kotlin.metadata.jvm)

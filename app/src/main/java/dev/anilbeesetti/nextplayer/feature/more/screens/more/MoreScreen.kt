@@ -26,7 +26,6 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.SideEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -35,7 +34,6 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
-import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import dev.anilbeesetti.nextplayer.core.media.services.MediaOperationsService
 import dev.anilbeesetti.nextplayer.core.model.ApplicationPreferences
@@ -50,13 +48,9 @@ import dev.anilbeesetti.nextplayer.core.ui.extensions.copy
 import dev.anilbeesetti.nextplayer.feature.videopicker.composables.VideoGridItem
 
 @Composable
-fun MoreRoute(
-    output: MoreViewModel.Output,
+fun MoreScreen(
+    viewModel: MoreViewModel,
 ) {
-    val viewModel = hiltViewModel<MoreViewModel, MoreViewModel.Factory>(
-        creationCallback = { factory -> factory.create(output) },
-    )
-    SideEffect { viewModel.output = output }
     val state by viewModel.state.collectAsStateWithLifecycle()
 
     MoreScreenContent(

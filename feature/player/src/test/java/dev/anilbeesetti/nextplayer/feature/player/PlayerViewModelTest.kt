@@ -7,6 +7,9 @@ import dev.anilbeesetti.nextplayer.core.data.repository.fake.FakePreferencesRepo
 import dev.anilbeesetti.nextplayer.core.domain.GetSortedPlaylistUseCase
 import dev.anilbeesetti.nextplayer.core.domain.GetSortedVideosUseCase
 import dev.anilbeesetti.nextplayer.core.model.VideoContentScale
+import dev.anilbeesetti.nextplayer.feature.player.model.DecoderRecoveryState
+import dev.anilbeesetti.nextplayer.feature.player.model.DecoderRecoveryStatus
+import dev.anilbeesetti.nextplayer.feature.player.model.DecoderServiceState
 import dev.anilbeesetti.nextplayer.feature.player.state.VideoZoomEvent
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.cancel
@@ -30,6 +33,7 @@ class PlayerViewModelTest {
     fun setUp() {
         val mediaRepository = FakeMediaRepository()
         viewModel = PlayerViewModel(
+            output = PlayerViewModel.Output(selectSubtitle = {}, navigateUp = {}, playInBackground = {}),
             mediaRepository = mediaRepository,
             preferencesRepository = preferences,
             getSortedPlaylistUseCase = GetSortedPlaylistUseCase(
@@ -51,11 +55,16 @@ class PlayerViewModelTest {
     fun `preference updates preserve paused playback state`() {
         assertTrue(viewModel.state.value.playWhenReady)
         viewModel.onAction(PlayerAction.UpdatePlayWhenReady(false))
+        val decoderState = DecoderServiceState(
+            recoveryState = DecoderRecoveryState(status = DecoderRecoveryStatus.RECOVERING),
+        )
+        viewModel.onAction(PlayerAction.UpdateConnection(null, decoderState))
 
         viewModel.onAction(PlayerAction.UpdateBrightness(0.6f))
         shadowOf(Looper.getMainLooper()).idle()
 
         assertFalse(viewModel.state.value.playWhenReady)
+        assertEquals(decoderState, viewModel.state.value.decoderServiceState)
         assertEquals(0.6f, preferences.playerPreferences.value.playerBrightness)
         assertEquals(preferences.playerPreferences.value, viewModel.state.value.playerPreferences)
 
@@ -63,6 +72,27 @@ class PlayerViewModelTest {
 
         assertTrue(viewModel.state.value.playWhenReady)
         assertEquals(preferences.playerPreferences.value, viewModel.state.value.playerPreferences)
+    }
+
+    @Test
+    fun `screen actions invoke the current activity output`() {
+        val calls = mutableListOf<String>()
+        viewModel.output = PlayerViewModel.Output(
+            selectSubtitle = { calls.add("old") },
+            navigateUp = { calls.add("old") },
+            playInBackground = { calls.add("old") },
+        )
+        viewModel.output = PlayerViewModel.Output(
+            selectSubtitle = { calls.add("subtitle") },
+            navigateUp = { calls.add("back") },
+            playInBackground = { calls.add("background") },
+        )
+
+        viewModel.onAction(PlayerAction.SelectSubtitle)
+        viewModel.onAction(PlayerAction.NavigateUp)
+        viewModel.onAction(PlayerAction.PlayInBackground)
+
+        assertEquals(listOf("subtitle", "back", "background"), calls)
     }
 
     @Test

@@ -33,7 +33,6 @@ import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
-import androidx.compose.runtime.SideEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -48,7 +47,6 @@ import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.unit.dp
-import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import dev.anilbeesetti.nextplayer.core.model.NetworkAuthentication
 import dev.anilbeesetti.nextplayer.core.model.NetworkConnection
@@ -81,17 +79,12 @@ internal fun fingerprintAfterEndpointEdit(
 ): String = if (protocol == NetworkProtocol.SFTP && previousValue != newValue) "" else fingerprint
 
 @Composable
-fun AddConnectionRoute(
-    input: AddConnectionViewModel.Input,
-    output: AddConnectionViewModel.Output,
+fun AddConnectionScreen(
+    viewModel: AddConnectionViewModel,
 ) {
-    val viewModel = hiltViewModel<AddConnectionViewModel, AddConnectionViewModel.Factory>(
-        creationCallback = { factory -> factory.create(input, output) },
-    )
-    SideEffect { viewModel.output = output }
     val state by viewModel.state.collectAsStateWithLifecycle()
 
-    ObserveAsEvents(viewModel.savedEvents) { output.navigateUp() }
+    ObserveAsEvents(viewModel.savedEvents) { viewModel.output.navigateUp() }
 
     AddConnectionScreenContent(
         state = state,

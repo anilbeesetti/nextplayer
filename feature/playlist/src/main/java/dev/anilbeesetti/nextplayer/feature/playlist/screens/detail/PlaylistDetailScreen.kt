@@ -39,7 +39,6 @@ import androidx.compose.material3.pulltorefresh.PullToRefreshBox
 import androidx.compose.material3.surfaceColorAtElevation
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
-import androidx.compose.runtime.SideEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -66,7 +65,6 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.min
 import androidx.core.net.toUri
-import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import coil3.compose.AsyncImage
 import coil3.request.ImageRequest
@@ -92,14 +90,9 @@ import sh.calvin.reorderable.ReorderableItem
 import sh.calvin.reorderable.rememberReorderableLazyListState
 
 @Composable
-fun PlaylistDetailRoute(
-    input: PlaylistDetailViewModel.Input,
-    output: PlaylistDetailViewModel.Output,
+fun PlaylistDetailScreen(
+    viewModel: PlaylistDetailViewModel,
 ) {
-    val viewModel = hiltViewModel<PlaylistDetailViewModel, PlaylistDetailViewModel.Factory>(
-        creationCallback = { factory -> factory.create(input, output) },
-    )
-    SideEffect { viewModel.output = output }
     val state by viewModel.state.collectAsStateWithLifecycle()
 
     PlaylistDetailScreenContent(

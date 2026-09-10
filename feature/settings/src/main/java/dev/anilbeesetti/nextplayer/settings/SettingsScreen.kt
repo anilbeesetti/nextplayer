@@ -49,7 +49,7 @@ private sealed interface SettingsAction {
 }
 
 @Composable
-fun SettingsRoute(output: SettingsOutput) {
+fun SettingsScreen(output: SettingsOutput) {
     SettingsScreenContent { action ->
         when (action) {
             is SettingsAction.NavigateUp -> output.navigateUp()

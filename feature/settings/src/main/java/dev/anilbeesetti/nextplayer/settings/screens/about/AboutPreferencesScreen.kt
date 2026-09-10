@@ -84,7 +84,7 @@ private sealed interface AboutPreferencesAction {
 }
 
 @Composable
-fun AboutPreferencesRoute(output: AboutPreferencesOutput) {
+fun AboutPreferencesScreen(output: AboutPreferencesOutput) {
     AboutPreferencesScreenContent { action ->
         when (action) {
             is AboutPreferencesAction.NavigateUp -> output.navigateUp()

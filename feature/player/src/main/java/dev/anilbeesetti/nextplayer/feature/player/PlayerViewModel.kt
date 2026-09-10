@@ -1,8 +1,11 @@
 package dev.anilbeesetti.nextplayer.feature.player
 
 import android.net.Uri
-import androidx.compose.runtime.Stable
 import androidx.lifecycle.viewModelScope
+import androidx.media3.session.MediaController
+import dagger.assisted.Assisted
+import dagger.assisted.AssistedFactory
+import dagger.assisted.AssistedInject
 import dagger.hilt.android.lifecycle.HiltViewModel
 import dev.anilbeesetti.nextplayer.core.data.repository.MediaRepository
 import dev.anilbeesetti.nextplayer.core.data.repository.PreferencesRepository
@@ -12,22 +15,21 @@ import dev.anilbeesetti.nextplayer.core.model.PlayerPreferences
 import dev.anilbeesetti.nextplayer.core.model.Video
 import dev.anilbeesetti.nextplayer.core.model.VideoContentScale
 import dev.anilbeesetti.nextplayer.core.ui.base.MviViewModel
+import dev.anilbeesetti.nextplayer.feature.player.model.DecoderServiceState
 import dev.anilbeesetti.nextplayer.feature.player.state.SubtitleOptionsEvent
 import dev.anilbeesetti.nextplayer.feature.player.state.VideoZoomEvent
-import javax.inject.Inject
-import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
-import kotlinx.coroutines.flow.receiveAsFlow
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 
-@HiltViewModel
-class PlayerViewModel @Inject constructor(
+@HiltViewModel(assistedFactory = PlayerViewModel.Factory::class)
+class PlayerViewModel @AssistedInject constructor(
     private val mediaRepository: MediaRepository,
     private val preferencesRepository: PreferencesRepository,
     private val getSortedPlaylistUseCase: GetSortedPlaylistUseCase,
+    @Assisted internal var output: Output,
 ) : MviViewModel<PlayerUiState, PlayerAction>() {
 
     data class Output(
@@ -36,8 +38,10 @@ class PlayerViewModel @Inject constructor(
         val playInBackground: () -> Unit,
     )
 
-    private val eventsInternal = Channel<PlayerEvent>(Channel.BUFFERED)
-    val events = eventsInternal.receiveAsFlow()
+    @AssistedFactory
+    interface Factory {
+        fun create(output: Output): PlayerViewModel
+    }
 
     private val stateInternal = MutableStateFlow(
         PlayerUiState(
@@ -56,9 +60,13 @@ class PlayerViewModel @Inject constructor(
 
     override fun onAction(action: PlayerAction) {
         when (action) {
-            is PlayerAction.SelectSubtitle -> viewModelScope.launch { eventsInternal.send(PlayerEvent.SelectSubtitle) }
-            is PlayerAction.NavigateUp -> viewModelScope.launch { eventsInternal.send(PlayerEvent.NavigateUp) }
-            is PlayerAction.PlayInBackground -> viewModelScope.launch { eventsInternal.send(PlayerEvent.PlayInBackground) }
+            is PlayerAction.UpdateConnection -> stateInternal.update {
+                it.copy(player = action.player, decoderServiceState = action.decoderServiceState)
+            }
+
+            is PlayerAction.SelectSubtitle -> output.selectSubtitle()
+            is PlayerAction.NavigateUp -> output.navigateUp()
+            is PlayerAction.PlayInBackground -> output.playInBackground()
 
             is PlayerAction.UpdatePlayWhenReady -> stateInternal.update { it.copy(playWhenReady = action.value) }
             is PlayerAction.UpdateBrightness -> updatePlayerBrightness(action.value)
@@ -131,13 +139,16 @@ class PlayerViewModel @Inject constructor(
     }
 }
 
-@Stable
 data class PlayerUiState(
+    val player: MediaController? = null,
+    val decoderServiceState: DecoderServiceState = DecoderServiceState(),
     val playerPreferences: PlayerPreferences? = null,
     val playWhenReady: Boolean = true,
 )
 
 sealed interface PlayerAction {
+    data class UpdateConnection(val player: MediaController?, val decoderServiceState: DecoderServiceState) : PlayerAction
+
     data object SelectSubtitle : PlayerAction
     data object NavigateUp : PlayerAction
     data object PlayInBackground : PlayerAction
@@ -147,10 +158,4 @@ sealed interface PlayerAction {
     data class UpdateVideoZoom(val event: VideoZoomEvent) : PlayerAction
     data class UpdateSubtitleOptions(val event: SubtitleOptionsEvent) : PlayerAction
     data class SetLoopMode(val loopMode: LoopMode) : PlayerAction
-}
-
-sealed interface PlayerEvent {
-    data object SelectSubtitle : PlayerEvent
-    data object NavigateUp : PlayerEvent
-    data object PlayInBackground : PlayerEvent
 }

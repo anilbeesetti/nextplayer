@@ -41,7 +41,6 @@ import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableLongStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
-import androidx.compose.runtime.rememberUpdatedState
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -64,18 +63,13 @@ import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
-import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.compose.LifecycleEventEffect
-import androidx.lifecycle.compose.LocalLifecycleOwner
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
-import androidx.lifecycle.repeatOnLifecycle
 import androidx.media3.common.Player
 import androidx.media3.common.util.UnstableApi
-import androidx.media3.session.MediaController
 import dev.anilbeesetti.nextplayer.core.common.extensions.isTelevision
 import dev.anilbeesetti.nextplayer.core.model.ControlButtonsPosition
-import dev.anilbeesetti.nextplayer.core.model.PlayerPreferences
 import dev.anilbeesetti.nextplayer.core.ui.R as coreUiR
 import dev.anilbeesetti.nextplayer.core.ui.components.requestFocusUntilLanded
 import dev.anilbeesetti.nextplayer.core.ui.components.thenIf
@@ -88,7 +82,6 @@ import dev.anilbeesetti.nextplayer.feature.player.buttons.PreviousButton
 import dev.anilbeesetti.nextplayer.feature.player.extensions.formatted
 import dev.anilbeesetti.nextplayer.feature.player.extensions.nameRes
 import dev.anilbeesetti.nextplayer.feature.player.model.DecoderRecoveryStatus
-import dev.anilbeesetti.nextplayer.feature.player.model.DecoderServiceState
 import dev.anilbeesetti.nextplayer.feature.player.model.DecoderTrackType
 import dev.anilbeesetti.nextplayer.feature.player.model.labelRes
 import dev.anilbeesetti.nextplayer.feature.player.state.ControlsVisibilityState
@@ -122,39 +115,14 @@ import kotlinx.coroutines.delay
 
 val LocalControlsVisibilityState = compositionLocalOf<ControlsVisibilityState?> { null }
 
-data class MediaPlayerInput(
-    val player: MediaController?,
-    val decoderServiceState: DecoderServiceState,
-)
-
-internal data class MediaPlayerScreenState(
-    val player: MediaController?,
-    val decoderServiceState: DecoderServiceState,
-    val playerPreferences: PlayerPreferences,
-)
-
 @Composable
-fun MediaPlayerRoute(input: MediaPlayerInput, output: PlayerViewModel.Output) {
-    val viewModel: PlayerViewModel = hiltViewModel()
+fun MediaPlayerScreen(viewModel: PlayerViewModel) {
     val state by viewModel.state.collectAsStateWithLifecycle()
-    val currentOutput by rememberUpdatedState(output)
-    val lifecycleOwner = LocalLifecycleOwner.current
-    LaunchedEffect(viewModel, lifecycleOwner) {
-        lifecycleOwner.repeatOnLifecycle(Lifecycle.State.STARTED) {
-            viewModel.events.collect { event ->
-                when (event) {
-                    is PlayerEvent.SelectSubtitle -> currentOutput.selectSubtitle()
-                    is PlayerEvent.NavigateUp -> currentOutput.navigateUp()
-                    is PlayerEvent.PlayInBackground -> currentOutput.playInBackground()
-                }
-            }
-        }
-    }
     val playerPreferences = state.playerPreferences ?: return
     CompositionLocalProvider(LocalUseMaterialYouControls provides playerPreferences.useMaterialYouControls) {
         NextPlayerTheme(darkTheme = true) {
             MediaPlayerScreenContent(
-                state = MediaPlayerScreenState(input.player, input.decoderServiceState, playerPreferences),
+                state = state,
                 onAction = viewModel::onAction,
             )
         }
@@ -164,12 +132,12 @@ fun MediaPlayerRoute(input: MediaPlayerInput, output: PlayerViewModel.Output) {
 @OptIn(UnstableApi::class)
 @Composable
 internal fun MediaPlayerScreenContent(
-    state: MediaPlayerScreenState,
+    state: PlayerUiState,
     onAction: (PlayerAction) -> Unit,
 ) {
     val player = state.player
     val decoderServiceState = state.decoderServiceState
-    val playerPreferences = state.playerPreferences
+    val playerPreferences = state.playerPreferences ?: return
 
     val volumeState = rememberVolumeState(
         player = player,

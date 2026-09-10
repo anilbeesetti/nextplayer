@@ -19,7 +19,6 @@ import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
-import androidx.compose.runtime.SideEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableFloatStateOf
 import androidx.compose.runtime.mutableStateOf
@@ -30,7 +29,6 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.tooling.preview.PreviewLightDark
 import androidx.compose.ui.unit.dp
-import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import dev.anilbeesetti.nextplayer.core.model.ApplicationPreferences
 import dev.anilbeesetti.nextplayer.core.model.ThumbnailGenerationStrategy
@@ -49,13 +47,9 @@ import dev.anilbeesetti.nextplayer.settings.utils.tvListFocus
 import kotlin.math.abs
 
 @Composable
-fun ThumbnailPreferencesRoute(
-    output: ThumbnailPreferencesViewModel.Output,
+fun ThumbnailPreferencesScreen(
+    viewModel: ThumbnailPreferencesViewModel,
 ) {
-    val viewModel = hiltViewModel<ThumbnailPreferencesViewModel, ThumbnailPreferencesViewModel.Factory>(
-        creationCallback = { factory -> factory.create(output) },
-    )
-    SideEffect { viewModel.output = output }
     val state by viewModel.state.collectAsStateWithLifecycle()
 
     ThumbnailPreferencesScreenContent(

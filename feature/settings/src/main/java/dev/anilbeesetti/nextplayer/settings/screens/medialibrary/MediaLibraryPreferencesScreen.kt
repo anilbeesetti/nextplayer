@@ -16,7 +16,6 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
-import androidx.compose.runtime.SideEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -29,7 +28,6 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.tooling.preview.PreviewLightDark
 import androidx.compose.ui.unit.dp
-import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import dev.anilbeesetti.nextplayer.core.common.extensions.isTelevision
 import dev.anilbeesetti.nextplayer.core.model.ThumbnailGenerationStrategy
@@ -46,13 +44,9 @@ import dev.anilbeesetti.nextplayer.core.ui.theme.NextPlayerTheme
 import dev.anilbeesetti.nextplayer.settings.utils.tvFocusDown
 
 @Composable
-fun MediaLibraryPreferencesRoute(
-    output: MediaLibraryPreferencesViewModel.Output,
+fun MediaLibraryPreferencesScreen(
+    viewModel: MediaLibraryPreferencesViewModel,
 ) {
-    val viewModel = hiltViewModel<MediaLibraryPreferencesViewModel, MediaLibraryPreferencesViewModel.Factory>(
-        creationCallback = { factory -> factory.create(output) },
-    )
-    SideEffect { viewModel.output = output }
     val state by viewModel.state.collectAsStateWithLifecycle()
 
     MediaLibraryPreferencesScreenContent(

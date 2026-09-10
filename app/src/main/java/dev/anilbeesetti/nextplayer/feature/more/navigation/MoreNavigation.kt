@@ -1,13 +1,15 @@
 package dev.anilbeesetti.nextplayer.feature.more.navigation
 
+import androidx.compose.runtime.SideEffect
+import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.navigation3.runtime.EntryProviderScope
 import androidx.navigation3.runtime.NavBackStack
 import androidx.navigation3.runtime.NavKey
-import dev.anilbeesetti.nextplayer.feature.more.screens.history.HistoryRoute
+import dev.anilbeesetti.nextplayer.feature.more.screens.history.HistoryScreen
 import dev.anilbeesetti.nextplayer.feature.more.screens.history.HistoryViewModel
-import dev.anilbeesetti.nextplayer.feature.more.screens.more.MoreRoute
+import dev.anilbeesetti.nextplayer.feature.more.screens.more.MoreScreen
 import dev.anilbeesetti.nextplayer.feature.more.screens.more.MoreViewModel
-import dev.anilbeesetti.nextplayer.feature.more.screens.trash.TrashRoute
+import dev.anilbeesetti.nextplayer.feature.more.screens.trash.TrashScreen
 import dev.anilbeesetti.nextplayer.feature.more.screens.trash.TrashViewModel
 import kotlinx.serialization.Serializable
 
@@ -28,15 +30,18 @@ fun EntryProviderScope<NavKey>.moreEntry(
     onVaultClick: () -> Unit,
 ) {
     entry<MoreRoute> {
-        MoreRoute(
-            output = MoreViewModel.Output(
-                openHistory = onHistoryClick,
-                playVideo = onPlayVideo,
-                openSettings = onSettingsClick,
-                openTrash = onTrashClick,
-                openVault = onVaultClick,
-            ),
+        val output = MoreViewModel.Output(
+            openHistory = onHistoryClick,
+            playVideo = onPlayVideo,
+            openSettings = onSettingsClick,
+            openTrash = onTrashClick,
+            openVault = onVaultClick,
         )
+        val viewModel = hiltViewModel<MoreViewModel, MoreViewModel.Factory>(
+            creationCallback = { factory -> factory.create(output = output) },
+        )
+        SideEffect { viewModel.output = output }
+        MoreScreen(viewModel = viewModel)
     }
 }
 
@@ -45,12 +50,15 @@ fun EntryProviderScope<NavKey>.historyEntry(
     onPlayVideo: (String) -> Unit,
 ) {
     entry<HistoryRoute> {
-        HistoryRoute(
-            output = HistoryViewModel.Output(
-                navigateUp = onNavigateUp,
-                playVideo = onPlayVideo,
-            ),
+        val output = HistoryViewModel.Output(
+            navigateUp = onNavigateUp,
+            playVideo = onPlayVideo,
         )
+        val viewModel = hiltViewModel<HistoryViewModel, HistoryViewModel.Factory>(
+            creationCallback = { factory -> factory.create(output = output) },
+        )
+        SideEffect { viewModel.output = output }
+        HistoryScreen(viewModel = viewModel)
     }
 }
 
@@ -59,12 +67,15 @@ fun EntryProviderScope<NavKey>.trashEntry(
     onPlayVideo: (String) -> Unit,
 ) {
     entry<TrashRoute> {
-        TrashRoute(
-            output = TrashViewModel.Output(
-                navigateUp = onNavigateUp,
-                playVideo = onPlayVideo,
-            ),
+        val output = TrashViewModel.Output(
+            navigateUp = onNavigateUp,
+            playVideo = onPlayVideo,
         )
+        val viewModel = hiltViewModel<TrashViewModel, TrashViewModel.Factory>(
+            creationCallback = { factory -> factory.create(output = output) },
+        )
+        SideEffect { viewModel.output = output }
+        TrashScreen(viewModel = viewModel)
     }
 }
 

@@ -52,7 +52,6 @@ import androidx.compose.material3.TextButton
 import androidx.compose.material3.pulltorefresh.PullToRefreshBox
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
-import androidx.compose.runtime.SideEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -78,7 +77,6 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.window.Dialog
 import androidx.compose.ui.window.DialogProperties
 import androidx.core.net.toUri
-import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.google.accompanist.permissions.ExperimentalPermissionsApi
@@ -133,14 +131,9 @@ import dev.anilbeesetti.nextplayer.feature.videopicker.state.toSelectedVideo
 import kotlin.math.roundToInt
 
 @Composable
-fun MediaPickerRoute(
-    input: MediaPickerViewModel.Input,
-    output: MediaPickerViewModel.Output,
+fun MediaPickerScreen(
+    viewModel: MediaPickerViewModel,
 ) {
-    val viewModel = hiltViewModel<MediaPickerViewModel, MediaPickerViewModel.Factory>(
-        creationCallback = { factory -> factory.create(input, output) },
-    )
-    SideEffect { viewModel.output = output }
     val state by viewModel.state.collectAsStateWithLifecycle(minActiveState = Lifecycle.State.RESUMED)
 
     MediaPickerScreenContent(

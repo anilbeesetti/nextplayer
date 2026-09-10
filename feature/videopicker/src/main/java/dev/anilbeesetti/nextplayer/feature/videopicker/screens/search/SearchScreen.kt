@@ -36,7 +36,6 @@ import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
-import androidx.compose.runtime.SideEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -56,7 +55,6 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.tooling.preview.PreviewLightDark
 import androidx.compose.ui.unit.dp
-import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import dev.anilbeesetti.nextplayer.core.domain.MediaHolder
@@ -77,13 +75,9 @@ import dev.anilbeesetti.nextplayer.feature.videopicker.composables.FolderItem
 import dev.anilbeesetti.nextplayer.feature.videopicker.composables.MediaView
 
 @Composable
-fun SearchRoute(
-    output: SearchViewModel.Output,
+fun SearchScreen(
+    viewModel: SearchViewModel,
 ) {
-    val viewModel = hiltViewModel<SearchViewModel, SearchViewModel.Factory>(
-        creationCallback = { factory -> factory.create(output) },
-    )
-    SideEffect { viewModel.output = output }
     val state by viewModel.state.collectAsStateWithLifecycle(minActiveState = Lifecycle.State.RESUMED)
 
     SearchScreenContent(

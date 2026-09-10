@@ -115,7 +115,7 @@ class CrashActivity : ComponentActivity() {
                 dynamicColor = shouldUseDynamicTheming(state = state),
             ) {
                 val clipboard = LocalClipboard.current
-                CrashRoute(
+                CrashScreen(
                     input = CrashState(exceptionString, logcat),
                     output = CrashOutput(
                         shareLogs = {
@@ -224,7 +224,7 @@ private sealed interface CrashAction {
 }
 
 @Composable
-private fun CrashRoute(input: CrashState, output: CrashOutput) {
+private fun CrashScreen(input: CrashState, output: CrashOutput) {
     CrashScreenContent(state = input) { action ->
         when (action) {
             is CrashAction.ShareLogs -> output.shareLogs()

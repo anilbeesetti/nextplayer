@@ -27,7 +27,6 @@ import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.material3.surfaceColorAtElevation
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.SideEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
@@ -40,7 +39,6 @@ import androidx.compose.ui.res.vectorResource
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
-import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import dev.anilbeesetti.nextplayer.core.common.Utils
 import dev.anilbeesetti.nextplayer.core.model.NetworkFile
@@ -56,17 +54,12 @@ import dev.anilbeesetti.nextplayer.feature.network.ObserveAsEvents
 import java.util.Date
 
 @Composable
-fun NetworkBrowseRoute(
-    input: NetworkBrowseViewModel.Input,
-    output: NetworkBrowseViewModel.Output,
+fun NetworkBrowseScreen(
+    viewModel: NetworkBrowseViewModel,
 ) {
-    val viewModel = hiltViewModel<NetworkBrowseViewModel, NetworkBrowseViewModel.Factory>(
-        creationCallback = { factory -> factory.create(input, output) },
-    )
-    SideEffect { viewModel.output = output }
     val state by viewModel.state.collectAsStateWithLifecycle()
 
-    ObserveAsEvents(viewModel.playEvents) { output.playVideo(it) }
+    ObserveAsEvents(viewModel.playEvents) { viewModel.output.playVideo(it) }
 
     NetworkBrowseScreenContent(
         state = state,

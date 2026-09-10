@@ -4,9 +4,9 @@ import androidx.navigation3.runtime.EntryProviderScope
 import androidx.navigation3.runtime.NavBackStack
 import androidx.navigation3.runtime.NavKey
 import dev.anilbeesetti.nextplayer.settings.screens.about.AboutPreferencesOutput
-import dev.anilbeesetti.nextplayer.settings.screens.about.AboutPreferencesRoute
+import dev.anilbeesetti.nextplayer.settings.screens.about.AboutPreferencesScreen
 import dev.anilbeesetti.nextplayer.settings.screens.about.LibrariesOutput
-import dev.anilbeesetti.nextplayer.settings.screens.about.LibrariesRoute
+import dev.anilbeesetti.nextplayer.settings.screens.about.LibrariesScreen
 import kotlinx.serialization.Serializable
 
 @Serializable
@@ -28,12 +28,12 @@ fun EntryProviderScope<NavKey>.aboutPreferencesEntry(
     onNavigateUp: () -> Unit,
 ) {
     entry<AboutPreferencesRoute> {
-        AboutPreferencesRoute(output = AboutPreferencesOutput(navigateUp = onNavigateUp, openLibraries = onLibrariesClick))
+        AboutPreferencesScreen(output = AboutPreferencesOutput(navigateUp = onNavigateUp, openLibraries = onLibrariesClick))
     }
 }
 
 fun EntryProviderScope<NavKey>.librariesEntry(onNavigateUp: () -> Unit) {
     entry<LibrariesRoute> {
-        LibrariesRoute(output = LibrariesOutput(navigateUp = onNavigateUp))
+        LibrariesScreen(output = LibrariesOutput(navigateUp = onNavigateUp))
     }
 }

@@ -16,14 +16,12 @@ import androidx.compose.material3.ListItemDefaults
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.SideEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.tooling.preview.PreviewLightDark
 import androidx.compose.ui.unit.dp
-import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import dev.anilbeesetti.nextplayer.core.ui.R
@@ -38,13 +36,9 @@ import dev.anilbeesetti.nextplayer.settings.utils.tvFocusDown
 import dev.anilbeesetti.nextplayer.settings.utils.tvListFocus
 
 @Composable
-fun FolderPreferencesRoute(
-    output: FolderPreferencesViewModel.Output,
+fun FolderPreferencesScreen(
+    viewModel: FolderPreferencesViewModel,
 ) {
-    val viewModel = hiltViewModel<FolderPreferencesViewModel, FolderPreferencesViewModel.Factory>(
-        creationCallback = { factory -> factory.create(output) },
-    )
-    SideEffect { viewModel.output = output }
     val state by viewModel.state.collectAsStateWithLifecycle(minActiveState = Lifecycle.State.RESUMED)
 
     FolderPreferencesScreenContent(

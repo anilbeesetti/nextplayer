@@ -16,7 +16,6 @@ import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.SideEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -25,7 +24,6 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
-import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import dev.anilbeesetti.nextplayer.core.ui.R
 import dev.anilbeesetti.nextplayer.core.ui.base.DataState
@@ -38,13 +36,9 @@ import dev.anilbeesetti.nextplayer.feature.videopicker.composables.CenterCircula
 import dev.anilbeesetti.nextplayer.feature.videopicker.composables.VideoListItem
 
 @Composable
-fun HistoryRoute(
-    output: HistoryViewModel.Output,
+fun HistoryScreen(
+    viewModel: HistoryViewModel,
 ) {
-    val viewModel = hiltViewModel<HistoryViewModel, HistoryViewModel.Factory>(
-        creationCallback = { factory -> factory.create(output) },
-    )
-    SideEffect { viewModel.output = output }
     val state by viewModel.state.collectAsStateWithLifecycle()
 
     HistoryScreenContent(

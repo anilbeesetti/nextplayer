@@ -44,7 +44,7 @@ private sealed interface LibrariesAction {
 }
 
 @Composable
-fun LibrariesRoute(output: LibrariesOutput) {
+fun LibrariesScreen(output: LibrariesOutput) {
     LibrariesScreenContent { action ->
         when (action) {
             is LibrariesAction.NavigateUp -> output.navigateUp()
