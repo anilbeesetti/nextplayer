@@ -28,14 +28,14 @@ import dev.anilbeesetti.nextplayer.core.ui.components.NextTopAppBar
 import dev.anilbeesetti.nextplayer.core.ui.components.PreferenceSwitch
 import dev.anilbeesetti.nextplayer.core.ui.components.PreferenceSwitchWithDivider
 import dev.anilbeesetti.nextplayer.core.ui.components.RadioTextButton
+import dev.anilbeesetti.nextplayer.core.ui.components.rememberTvListFocusRequester
+import dev.anilbeesetti.nextplayer.core.ui.components.tvFocusDown
+import dev.anilbeesetti.nextplayer.core.ui.components.tvListFocus
 import dev.anilbeesetti.nextplayer.core.ui.designsystem.NextIcons
 import dev.anilbeesetti.nextplayer.core.ui.theme.NextPlayerTheme
 import dev.anilbeesetti.nextplayer.core.ui.theme.supportsDynamicTheming
 import dev.anilbeesetti.nextplayer.settings.composables.OptionsDialog
 import dev.anilbeesetti.nextplayer.settings.extensions.name
-import dev.anilbeesetti.nextplayer.settings.utils.rememberTvListFocusRequester
-import dev.anilbeesetti.nextplayer.settings.utils.tvFocusDown
-import dev.anilbeesetti.nextplayer.settings.utils.tvListFocus
 
 @Composable
 fun AppearancePreferencesScreen(

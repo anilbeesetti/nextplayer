@@ -3,6 +3,7 @@ package dev.anilbeesetti.nextplayer.feature.more.screens.more
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.background
+import androidx.compose.foundation.focusGroup
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -27,14 +28,20 @@ import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.focus.FocusRequester
+import androidx.compose.ui.focus.focusProperties
+import androidx.compose.ui.focus.focusRequester
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import dev.anilbeesetti.nextplayer.core.common.extensions.isTelevision
 import dev.anilbeesetti.nextplayer.core.media.services.MediaOperationsService
 import dev.anilbeesetti.nextplayer.core.model.ApplicationPreferences
 import dev.anilbeesetti.nextplayer.core.model.Video
@@ -43,6 +50,12 @@ import dev.anilbeesetti.nextplayer.core.ui.components.BindTopLevelFab
 import dev.anilbeesetti.nextplayer.core.ui.components.LocalNavigationBottomPadding
 import dev.anilbeesetti.nextplayer.core.ui.components.NextTopAppBar
 import dev.anilbeesetti.nextplayer.core.ui.components.TopLevelFabKey
+import dev.anilbeesetti.nextplayer.core.ui.components.rememberRestorableFocusState
+import dev.anilbeesetti.nextplayer.core.ui.components.restorableFocusGroup
+import dev.anilbeesetti.nextplayer.core.ui.components.restorableFocusItem
+import dev.anilbeesetti.nextplayer.core.ui.components.thenIf
+import dev.anilbeesetti.nextplayer.core.ui.components.tvFocusRing
+import dev.anilbeesetti.nextplayer.core.ui.components.tvListFocus
 import dev.anilbeesetti.nextplayer.core.ui.designsystem.NextIcons
 import dev.anilbeesetti.nextplayer.core.ui.extensions.copy
 import dev.anilbeesetti.nextplayer.feature.videopicker.composables.VideoGridItem
@@ -89,6 +102,7 @@ internal fun MoreScreenContent(
                 modifier = Modifier
                     .fillMaxSize()
                     .verticalScroll(rememberScrollState())
+                    .tvListFocus()
                     .padding(horizontal = 8.dp)
                     .padding(top = 8.dp, bottom = scaffoldPadding.calculateBottomPadding() + LocalNavigationBottomPadding.current + 96.dp),
                 verticalArrangement = Arrangement.spacedBy(16.dp),
@@ -100,7 +114,7 @@ internal fun MoreScreenContent(
                     maxItemsInEachRow = 2,
                 ) {
                     FilledTonalButton(
-                        modifier = Modifier.weight(1f),
+                        modifier = Modifier.weight(1f).tvFocusRing(),
                         onClick = { onAction(MoreAction.OpenVault) },
                     ) {
                         Icon(
@@ -112,7 +126,7 @@ internal fun MoreScreenContent(
                         Text(text = stringResource(R.string.vault))
                     }
                     FilledTonalButton(
-                        modifier = Modifier.weight(1f),
+                        modifier = Modifier.weight(1f).tvFocusRing(),
                         onClick = { filePicker.launch("video/*") },
                     ) {
                         Icon(
@@ -125,7 +139,7 @@ internal fun MoreScreenContent(
                     }
                     if (MediaOperationsService.supportsTrash()) {
                         FilledTonalButton(
-                            modifier = Modifier.weight(1f),
+                            modifier = Modifier.weight(1f).tvFocusRing(),
                             onClick = { onAction(MoreAction.OpenTrash) },
                         ) {
                             Icon(
@@ -158,11 +172,15 @@ private fun HistorySection(
     onVideoClick: (Video) -> Unit,
 ) {
     if (history.isEmpty()) return
+    val isTv = LocalContext.current.isTelevision
+    val historyButtonFocusRequester = remember { FocusRequester() }
+    val historyFocusState = rememberRestorableFocusState()
     Column(
         verticalArrangement = Arrangement.spacedBy(4.dp),
     ) {
         Row(
-            modifier = Modifier.fillMaxWidth(),
+            // Keep the full header in the vertical focus path, including its empty title area.
+            modifier = Modifier.fillMaxWidth().thenIf(isTv) { focusGroup() },
             verticalAlignment = Alignment.CenterVertically,
         ) {
             Text(
@@ -170,18 +188,31 @@ private fun HistorySection(
                 style = MaterialTheme.typography.titleMedium,
                 modifier = Modifier.padding(start = 8.dp).weight(1f),
             )
-            IconButton(onClick = onMoreClick) {
+            IconButton(
+                onClick = onMoreClick,
+                modifier = Modifier
+                    .focusRequester(historyButtonFocusRequester)
+                    .focusProperties { if (isTv) down = historyFocusState.requester }
+                    .tvFocusRing(),
+            ) {
                 Icon(imageVector = NextIcons.ArrowForward, contentDescription = stringResource(R.string.history))
             }
         }
-        LazyRow(horizontalArrangement = Arrangement.spacedBy(2.dp)) {
+        LazyRow(
+            // The screen owns initial focus; this region restores a video only when entered.
+            modifier = Modifier.restorableFocusGroup(historyFocusState, ready = false),
+            horizontalArrangement = Arrangement.spacedBy(2.dp),
+        ) {
             items(history, key = { it.uriString }) { video ->
                 VideoGridItem(
                     video = video,
                     isRecentlyPlayedVideo = false,
                     textStyle = MaterialTheme.typography.bodySmall,
                     preferences = preferences,
-                    modifier = Modifier.width(140.dp),
+                    modifier = Modifier
+                        .width(140.dp)
+                        .restorableFocusItem(historyFocusState, video.uriString)
+                        .focusProperties { if (isTv) up = historyButtonFocusRequester },
                     onClick = { onVideoClick(video) },
                 )
             }

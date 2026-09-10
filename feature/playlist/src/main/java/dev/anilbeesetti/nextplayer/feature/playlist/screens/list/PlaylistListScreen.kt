@@ -23,7 +23,6 @@ import androidx.compose.material3.ExperimentalMaterial3ExpressiveApi
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
@@ -51,10 +50,10 @@ import dev.anilbeesetti.nextplayer.core.ui.base.DataState
 import dev.anilbeesetti.nextplayer.core.ui.components.BindTopLevelFab
 import dev.anilbeesetti.nextplayer.core.ui.components.LocalNavigationBottomPadding
 import dev.anilbeesetti.nextplayer.core.ui.components.NextDialog
+import dev.anilbeesetti.nextplayer.core.ui.components.NextOutlinedTextField
 import dev.anilbeesetti.nextplayer.core.ui.components.NextSegmentedListItem
 import dev.anilbeesetti.nextplayer.core.ui.components.NextTopAppBar
 import dev.anilbeesetti.nextplayer.core.ui.components.TopLevelFabKey
-import dev.anilbeesetti.nextplayer.core.ui.components.rememberTvListFocusRequester
 import dev.anilbeesetti.nextplayer.core.ui.components.tvFocusRing
 import dev.anilbeesetti.nextplayer.core.ui.components.tvListFocus
 import dev.anilbeesetti.nextplayer.core.ui.designsystem.NextIcons
@@ -135,7 +134,7 @@ internal fun PlaylistListScreenContent(
                         LazyColumn(
                             modifier = Modifier
                                 .fillMaxSize()
-                                .tvListFocus(rememberTvListFocusRequester()),
+                                .tvListFocus(),
                             contentPadding = PaddingValues(8.dp).copy(
                                 bottom = scaffoldPadding.calculateBottomPadding() + navigationBottomPadding + 96.dp,
                             ),
@@ -299,7 +298,7 @@ private fun M3UUrlDialog(
         title = { Text(stringResource(R.string.add_m3u_url_playlist)) },
         content = {
             Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
-                OutlinedTextField(
+                NextOutlinedTextField(
                     value = url,
                     onValueChange = { url = it },
                     label = { Text(stringResource(R.string.playlist_url)) },
@@ -361,7 +360,7 @@ private fun PlaylistNameDialog(
         title = { Text(title) },
         content = {
             Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
-                OutlinedTextField(
+                NextOutlinedTextField(
                     value = name,
                     onValueChange = { name = it },
                     label = { Text(stringResource(R.string.playlist_name)) },

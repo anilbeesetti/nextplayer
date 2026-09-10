@@ -7,6 +7,7 @@ import androidx.compose.animation.slideInVertically
 import androidx.compose.animation.slideOutVertically
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.focusGroup
 import androidx.compose.foundation.horizontalScroll
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -56,6 +57,7 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.focus.FocusRequester
 import androidx.compose.ui.focus.focusProperties
 import androidx.compose.ui.focus.focusRequester
+import androidx.compose.ui.focus.focusRestorer
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalLayoutDirection
 import androidx.compose.ui.res.stringResource
@@ -76,7 +78,8 @@ import dev.anilbeesetti.nextplayer.core.ui.R
 import dev.anilbeesetti.nextplayer.core.ui.components.CancelButton
 import dev.anilbeesetti.nextplayer.core.ui.components.NextDialog
 import dev.anilbeesetti.nextplayer.core.ui.components.NextTopAppBar
-import dev.anilbeesetti.nextplayer.core.ui.components.requestFocusUntilLanded
+import dev.anilbeesetti.nextplayer.core.ui.components.rememberRestorableFocusState
+import dev.anilbeesetti.nextplayer.core.ui.components.restorableFocusGroup
 import dev.anilbeesetti.nextplayer.core.ui.components.restorableFocusItem
 import dev.anilbeesetti.nextplayer.core.ui.components.thenIf
 import dev.anilbeesetti.nextplayer.core.ui.components.tvFocusRing
@@ -399,10 +402,7 @@ private fun VaultGalleryContent(
 ) {
     val context = LocalContext.current
     val isTv = remember { context.isTelevision }
-    val firstActionFocusRequester = remember { FocusRequester() }
-    val firstItemRequester = remember { FocusRequester() }
-    val restoreRequester = remember { FocusRequester() }
-    var restoredFocusKey by rememberSaveable { mutableStateOf<String?>(null) }
+    val focusState = rememberRestorableFocusState()
     val selectionManager = rememberSelectionManager()
     var showSortMenu by rememberSaveable { mutableStateOf(false) }
     var showSettings by rememberSaveable { mutableStateOf(false) }
@@ -411,17 +411,6 @@ private fun VaultGalleryContent(
 
     val selectedCount = selectionManager.selectionItems.size
     val totalCount = state.hiddenVideos.size
-
-    var hasRequestedInitialFocus by remember { mutableStateOf(false) }
-    if (isTv) {
-        LaunchedEffect(state.hiddenVideos.size) {
-            if (hasRequestedInitialFocus || state.hiddenVideos.isEmpty()) return@LaunchedEffect
-            val hasRestore = restoredFocusKey != null && state.hiddenVideos.any { it.uriString == restoredFocusKey }
-            // Prefer restoring the previously focused item; fall back to the first item.
-            val targets = if (hasRestore) listOf(restoreRequester, firstItemRequester) else listOf(firstItemRequester)
-            hasRequestedInitialFocus = targets.any { it.requestFocusUntilLanded() }
-        }
-    }
 
     BackHandler(enabled = selectionManager.isInSelectionMode) {
         selectionManager.exitSelectionMode()
@@ -519,7 +508,7 @@ private fun VaultGalleryContent(
         bottomBar = {
             VaultSelectionActionsSheet(
                 show = selectionManager.isInSelectionMode && selectionManager.selectionItems.isNotEmpty(),
-                firstActionFocusRequester = firstActionFocusRequester,
+                contentFocusRequester = focusState.requester,
                 onPlayAction = {
                     onAction(VaultAction.PlaySelected(selectionManager.selectionItems))
                     selectionManager.exitSelectionMode()
@@ -562,7 +551,7 @@ private fun VaultGalleryContent(
 
                 else -> {
                     LazyVerticalGrid(
-                        modifier = Modifier.fillMaxSize(),
+                        modifier = Modifier.fillMaxSize().restorableFocusGroup(focusState),
                         columns = if (state.preferences.mediaLayoutMode == MediaLayoutMode.GRID) {
                             GridCells.Adaptive(minSize = 130.dp)
                         } else {
@@ -578,26 +567,12 @@ private fun VaultGalleryContent(
                         itemsIndexed(
                             items = state.hiddenVideos,
                             key = { _, video -> video.uriString },
-                        ) { index, video ->
+                        ) { _, video ->
                             val selected = selectionManager.isVideoSelected(video)
                             VideoItem(
                                 modifier = Modifier
                                     .padding(2.dp)
-                                    .thenIf(isTv && index == 0) { focusRequester(firstItemRequester) }
-                                    // Down from the last item reaches the selection action bar.
-                                    .thenIf(
-                                        isTv && selectionManager.isInSelectionMode &&
-                                            index == state.hiddenVideos.lastIndex,
-                                    ) {
-                                        focusProperties { down = firstActionFocusRequester }
-                                    }
-                                    .restorableFocusItem(
-                                        isTv = isTv,
-                                        key = video.uriString,
-                                        restoredKey = restoredFocusKey,
-                                        restoreRequester = restoreRequester,
-                                        onFocused = { restoredFocusKey = it },
-                                    ),
+                                    .restorableFocusItem(focusState, video.uriString),
                                 video = video,
                                 isRecentlyPlayedVideo = false,
                                 preferences = state.preferences,
@@ -811,7 +786,7 @@ private fun VaultSortDialog(
 private fun VaultSelectionActionsSheet(
     modifier: Modifier = Modifier,
     show: Boolean,
-    firstActionFocusRequester: FocusRequester,
+    contentFocusRequester: FocusRequester,
     onPlayAction: () -> Unit,
     onInfoAction: () -> Unit,
     showInfoAction: Boolean,
@@ -820,6 +795,7 @@ private fun VaultSelectionActionsSheet(
 ) {
     val context = LocalContext.current
     val isTv = remember { context.isTelevision }
+    val firstActionFocusRequester = remember { FocusRequester() }
 
     AnimatedVisibility(
         modifier = modifier.padding(
@@ -845,6 +821,10 @@ private fun VaultSelectionActionsSheet(
                     )
                     .clip(shape)
                     .horizontalScroll(rememberScrollState())
+                    .thenIf(isTv) {
+                        focusRestorer(fallback = firstActionFocusRequester).focusGroup()
+                            .focusProperties { up = contentFocusRequester }
+                    }
                     .navigationBarsPadding()
                     .padding(
                         horizontal = 8.dp,
@@ -854,7 +834,7 @@ private fun VaultSelectionActionsSheet(
                 horizontalArrangement = Arrangement.SpaceEvenly,
             ) {
                 SelectionAction(
-                    modifier = Modifier.focusRequester(firstActionFocusRequester),
+                    modifier = Modifier.thenIf(isTv) { focusRequester(firstActionFocusRequester) },
                     isTv = isTv,
                     imageVector = NextIcons.Play,
                     title = stringResource(R.string.play),

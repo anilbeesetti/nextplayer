@@ -30,7 +30,6 @@ import androidx.compose.material3.FloatingActionButton
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.OutlinedTextFieldDefaults
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
@@ -76,6 +75,7 @@ import dev.anilbeesetti.nextplayer.core.model.PlaylistType
 import dev.anilbeesetti.nextplayer.core.ui.R
 import dev.anilbeesetti.nextplayer.core.ui.base.DataState
 import dev.anilbeesetti.nextplayer.core.ui.components.NextDialog
+import dev.anilbeesetti.nextplayer.core.ui.components.NextOutlinedTextField
 import dev.anilbeesetti.nextplayer.core.ui.components.NextSegmentedListItem
 import dev.anilbeesetti.nextplayer.core.ui.components.NextTopAppBar
 import dev.anilbeesetti.nextplayer.core.ui.components.rememberTvListFocusRequester
@@ -117,6 +117,7 @@ internal fun PlaylistDetailScreenContent(
         playlist?.type == PlaylistType.LOCAL &&
         !isTv
     val searchFocusRequester = remember { FocusRequester() }
+    val contentFocusRequester = rememberTvListFocusRequester()
     val keyboardController = LocalSoftwareKeyboardController.current
     val exitSearch: () -> Unit = {
         onAction(PlaylistDetailUiAction.OnCloseSearchClick)
@@ -138,14 +139,15 @@ internal fun PlaylistDetailScreenContent(
             NextTopAppBar(
                 title = {
                     if (state.isSearching) {
-                        OutlinedTextField(
+                        NextOutlinedTextField(
                             value = state.searchQuery,
                             onValueChange = {
                                 onAction(PlaylistDetailUiAction.OnSearchQueryChange(it))
                             },
                             modifier = Modifier
                                 .fillMaxWidth()
-                                .focusRequester(searchFocusRequester),
+                                .focusRequester(searchFocusRequester)
+                                .tvFocusRing(shape = CircleShape),
                             placeholder = {
                                 Text(
                                     text = stringResource(R.string.search_playlist),
@@ -274,7 +276,9 @@ internal fun PlaylistDetailScreenContent(
                             PlaylistDetailUiAction.OnPlay(playbackStartUri),
                         )
                     },
-                    modifier = Modifier.tvFocusRing(shape = MaterialTheme.shapes.large),
+                    modifier = Modifier
+                        .tvFocusRing(shape = MaterialTheme.shapes.large)
+                        .focusProperties { if (isTv) up = contentFocusRequester },
                     shape = MaterialTheme.shapes.large,
                 ) {
                     Icon(
@@ -307,6 +311,7 @@ internal fun PlaylistDetailScreenContent(
                     val content: @Composable (Modifier) -> Unit = { modifier ->
                         PlaylistDetailContent(
                             playlist = playlist,
+                            contentFocusRequester = contentFocusRequester,
                             isTv = isTv,
                             isReordering = isReordering,
                             searchQuery = state.searchQuery,
@@ -351,6 +356,7 @@ internal fun PlaylistDetailScreenContent(
 @Composable
 private fun PlaylistDetailContent(
     playlist: Playlist,
+    contentFocusRequester: FocusRequester,
     isTv: Boolean,
     isReordering: Boolean,
     searchQuery: String,
@@ -410,7 +416,7 @@ private fun PlaylistDetailContent(
                 LazyColumn(
                     modifier = Modifier
                         .fillMaxSize()
-                        .tvListFocus(rememberTvListFocusRequester()),
+                        .tvListFocus(contentFocusRequester),
                     state = listState,
                     contentPadding = PaddingValues(
                         start = 8.dp,

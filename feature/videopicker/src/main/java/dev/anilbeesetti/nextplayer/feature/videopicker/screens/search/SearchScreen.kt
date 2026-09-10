@@ -29,7 +29,6 @@ import androidx.compose.material3.FilledTonalIconButton
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.OutlinedTextFieldDefaults
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
@@ -39,13 +38,13 @@ import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
-import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.focus.FocusRequester
 import androidx.compose.ui.focus.focusRequester
+import androidx.compose.ui.focus.onFocusChanged
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalLayoutDirection
 import androidx.compose.ui.platform.LocalSoftwareKeyboardController
@@ -65,8 +64,11 @@ import dev.anilbeesetti.nextplayer.core.model.MediaLayoutMode
 import dev.anilbeesetti.nextplayer.core.model.Video
 import dev.anilbeesetti.nextplayer.core.ui.R
 import dev.anilbeesetti.nextplayer.core.ui.components.ListSectionTitle
+import dev.anilbeesetti.nextplayer.core.ui.components.NextOutlinedTextField
 import dev.anilbeesetti.nextplayer.core.ui.components.NextSegmentedListItem
 import dev.anilbeesetti.nextplayer.core.ui.components.NextTopAppBar
+import dev.anilbeesetti.nextplayer.core.ui.components.rememberRestorableFocusState
+import dev.anilbeesetti.nextplayer.core.ui.components.tvFocusRing
 import dev.anilbeesetti.nextplayer.core.ui.designsystem.NextIcons
 import dev.anilbeesetti.nextplayer.core.ui.extensions.copy
 import dev.anilbeesetti.nextplayer.core.ui.extensions.plus
@@ -94,6 +96,7 @@ internal fun SearchScreenContent(
 ) {
     val focusRequester = remember { FocusRequester() }
     val keyboardController = LocalSoftwareKeyboardController.current
+    var isSearchFocused by remember { mutableStateOf(false) }
 
     LaunchedEffect(Unit) {
         focusRequester.requestFocus()
@@ -103,12 +106,14 @@ internal fun SearchScreenContent(
         topBar = {
             NextTopAppBar(
                 title = {
-                    OutlinedTextField(
+                    NextOutlinedTextField(
                         value = state.query,
                         onValueChange = { onAction(SearchUiEvent.OnQueryChange(it)) },
                         modifier = Modifier
                             .fillMaxWidth()
-                            .focusRequester(focusRequester),
+                            .focusRequester(focusRequester)
+                            .onFocusChanged { isSearchFocused = it.hasFocus }
+                            .tvFocusRing(shape = CircleShape),
                         placeholder = {
                             Text(
                                 text = stringResource(R.string.search_videos_and_folders),
@@ -192,6 +197,7 @@ internal fun SearchScreenContent(
                         searchResults = state.searchResults,
                         preferences = state.preferences,
                         isSearching = state.isSearching,
+                        autoFocus = !isSearchFocused,
                         contentPadding = updatedScaffoldPadding,
                         onFolderClick = { onAction(SearchUiEvent.OpenFolder(it)) },
                         onVideoClick = { onAction(SearchUiEvent.PlayVideo(it)) },
@@ -354,11 +360,12 @@ private fun SearchResultsContent(
     searchResults: SearchResults,
     preferences: ApplicationPreferences,
     isSearching: Boolean,
+    autoFocus: Boolean,
     contentPadding: PaddingValues = PaddingValues(),
     onFolderClick: (String) -> Unit,
     onVideoClick: (Uri) -> Unit,
 ) {
-    var restoredFocusKey by rememberSaveable { mutableStateOf<String?>(null) }
+    val focusState = rememberRestorableFocusState()
     AnimatedVisibility(
         visible = isSearching,
         enter = fadeIn(),
@@ -408,8 +415,8 @@ private fun SearchResultsContent(
                     folders = searchResults.folders,
                 ),
                 preferences = preferences,
-                restoredFocusKey = restoredFocusKey,
-                onItemFocused = { restoredFocusKey = it },
+                focusState = focusState,
+                autoFocus = autoFocus,
                 onFolderClick = onFolderClick,
                 onVideoClick = onVideoClick,
                 showHeaders = true,

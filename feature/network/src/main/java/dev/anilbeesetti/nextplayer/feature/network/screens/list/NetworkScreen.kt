@@ -20,7 +20,6 @@ import androidx.compose.material3.ExperimentalMaterial3ExpressiveApi
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
@@ -34,6 +33,8 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.focus.FocusRequester
+import androidx.compose.ui.focus.focusRequester
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
@@ -49,10 +50,11 @@ import dev.anilbeesetti.nextplayer.core.ui.R
 import dev.anilbeesetti.nextplayer.core.ui.components.BindTopLevelFab
 import dev.anilbeesetti.nextplayer.core.ui.components.LocalNavigationBottomPadding
 import dev.anilbeesetti.nextplayer.core.ui.components.NextDialog
+import dev.anilbeesetti.nextplayer.core.ui.components.NextOutlinedTextField
 import dev.anilbeesetti.nextplayer.core.ui.components.NextSegmentedListItem
 import dev.anilbeesetti.nextplayer.core.ui.components.NextTopAppBar
 import dev.anilbeesetti.nextplayer.core.ui.components.TopLevelFabKey
-import dev.anilbeesetti.nextplayer.core.ui.components.rememberTvListFocusRequester
+import dev.anilbeesetti.nextplayer.core.ui.components.thenIf
 import dev.anilbeesetti.nextplayer.core.ui.components.tvFocusRing
 import dev.anilbeesetti.nextplayer.core.ui.components.tvListFocus
 import dev.anilbeesetti.nextplayer.core.ui.designsystem.NextIcons
@@ -79,9 +81,15 @@ internal fun NetworkScreenContent(
     var connectionToDelete by remember { mutableStateOf<NetworkConnection?>(null) }
     var streamUrl by rememberSaveable { mutableStateOf("") }
     val trimmedStreamUrl = streamUrl.trim()
+    val fabUpFocusRequester = remember { FocusRequester() }
 
     val showEmptyState = state.connections.isEmpty() && !state.isLoading
-    BindTopLevelFab(TopLevelFabKey.NETWORK, NextIcons.Add, { onAction(NetworkAction.AddConnection) })
+    BindTopLevelFab(
+        key = TopLevelFabKey.NETWORK,
+        icon = NextIcons.Add,
+        upFocusRequester = fabUpFocusRequester,
+        onClick = { onAction(NetworkAction.AddConnection) },
+    )
     val navigationBottomPadding = LocalNavigationBottomPadding.current
 
     Scaffold(
@@ -111,7 +119,7 @@ internal fun NetworkScreenContent(
             LazyColumn(
                 modifier = Modifier
                     .fillMaxSize()
-                    .tvListFocus(rememberTvListFocusRequester()),
+                    .tvListFocus(),
                 contentPadding = PaddingValues(8.dp).copy(
                     bottom = scaffoldPadding.calculateBottomPadding() + navigationBottomPadding,
                 ),
@@ -123,6 +131,7 @@ internal fun NetworkScreenContent(
                         onUrlChange = { streamUrl = it },
                         onOpenStream = { onAction(NetworkAction.OpenStream(trimmedStreamUrl.toUri())) },
                         enabled = trimmedStreamUrl.isNotEmpty(),
+                        fabUpFocusRequester = fabUpFocusRequester,
                     )
                 }
                 if (showEmptyState) {
@@ -177,6 +186,7 @@ private fun NetworkStreamCard(
     onUrlChange: (String) -> Unit,
     onOpenStream: () -> Unit,
     enabled: Boolean,
+    fabUpFocusRequester: FocusRequester,
 ) {
     Column(
         modifier = modifier
@@ -195,17 +205,21 @@ private fun NetworkStreamCard(
             style = MaterialTheme.typography.bodyMedium,
             color = MaterialTheme.colorScheme.onSurfaceVariant,
         )
-        OutlinedTextField(
+        NextOutlinedTextField(
             value = url,
             onValueChange = onUrlChange,
-            modifier = Modifier.fillMaxWidth(),
+            modifier = Modifier
+                .fillMaxWidth()
+                .thenIf(!enabled) { focusRequester(fabUpFocusRequester) },
             placeholder = { Text(stringResource(R.string.example_url)) },
             singleLine = true,
         )
         Button(
             onClick = onOpenStream,
             enabled = enabled,
-            modifier = Modifier.align(Alignment.End),
+            modifier = Modifier
+                .align(Alignment.End)
+                .thenIf(enabled) { focusRequester(fabUpFocusRequester) },
         ) {
             Text(stringResource(R.string.open_network_stream))
         }

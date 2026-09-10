@@ -45,7 +45,6 @@ import dev.anilbeesetti.nextplayer.core.model.NetworkFile
 import dev.anilbeesetti.nextplayer.core.ui.R
 import dev.anilbeesetti.nextplayer.core.ui.components.NextSegmentedListItem
 import dev.anilbeesetti.nextplayer.core.ui.components.NextTopAppBar
-import dev.anilbeesetti.nextplayer.core.ui.components.rememberTvListFocusRequester
 import dev.anilbeesetti.nextplayer.core.ui.components.tvFocusRing
 import dev.anilbeesetti.nextplayer.core.ui.components.tvListFocus
 import dev.anilbeesetti.nextplayer.core.ui.designsystem.NextIcons
@@ -167,7 +166,7 @@ internal fun NetworkBrowseScreenContent(
                         LazyColumn(
                             modifier = Modifier
                                 .fillMaxSize()
-                                .tvListFocus(rememberTvListFocusRequester()),
+                                .tvListFocus(),
                             contentPadding = PaddingValues(
                                 start = 8.dp,
                                 end = 8.dp,

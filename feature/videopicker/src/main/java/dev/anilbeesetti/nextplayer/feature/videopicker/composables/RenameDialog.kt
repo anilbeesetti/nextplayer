@@ -1,7 +1,6 @@
 package dev.anilbeesetti.nextplayer.feature.videopicker.composables
 
 import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
@@ -18,6 +17,7 @@ import dev.anilbeesetti.nextplayer.core.ui.R
 import dev.anilbeesetti.nextplayer.core.ui.components.CancelButton
 import dev.anilbeesetti.nextplayer.core.ui.components.DoneButton
 import dev.anilbeesetti.nextplayer.core.ui.components.NextDialog
+import dev.anilbeesetti.nextplayer.core.ui.components.NextOutlinedTextField
 import kotlin.time.Duration.Companion.milliseconds
 import kotlinx.coroutines.delay
 
@@ -33,7 +33,7 @@ fun RenameDialog(
         onDismissRequest = onDismiss,
         title = { Text(stringResource(R.string.rename_to)) },
         content = {
-            OutlinedTextField(
+            NextOutlinedTextField(
                 value = mediaName,
                 onValueChange = { mediaName = it },
                 modifier = Modifier
