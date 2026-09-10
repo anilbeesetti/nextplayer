@@ -2,6 +2,8 @@ package dev.anilbeesetti.nextplayer
 
 import androidx.compose.ui.input.key.Key
 import androidx.compose.ui.test.assertIsDisplayed
+import androidx.compose.ui.test.hasClickAction
+import androidx.compose.ui.test.hasContentDescription
 import androidx.compose.ui.test.hasText
 import androidx.compose.ui.test.isFocused
 import androidx.compose.ui.test.junit4.v2.createAndroidComposeRule
@@ -65,6 +67,32 @@ class TvSettingsFocusTest {
         focused(R.string.thumbnail_generation)
         press(Key.Back)
         focused(R.string.media_library)
+    }
+
+    @Test
+    fun everySettingsPageStartsInContentAndReturnsToItsRow() {
+        val rows = listOf(
+            R.string.appearance_name,
+            R.string.media_library,
+            R.string.player_name,
+            R.string.gestures_name,
+            R.string.audio,
+            R.string.subtitle,
+            R.string.general_name,
+            R.string.about_name,
+        )
+        rows.forEachIndexed { index, row ->
+            focused(row)
+            press(Key.DirectionCenter)
+            composeRule.waitUntil(5_000) {
+                composeRule.onAllNodes(
+                    isFocused() and hasClickAction() and !hasContentDescription(text(R.string.navigate_up)),
+                ).fetchSemanticsNodes().size == 1
+            }
+            press(Key.Back)
+            focused(row)
+            if (index < rows.lastIndex) press(Key.DirectionDown)
+        }
     }
 
     @Test

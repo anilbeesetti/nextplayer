@@ -63,6 +63,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.focus.FocusRequester
 import androidx.compose.ui.focus.focusProperties
+import androidx.compose.ui.focus.focusRequester
 import androidx.compose.ui.focus.focusRestorer
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.pluralStringResource
@@ -1088,6 +1089,7 @@ private fun SelectionActionsSheet(
 ) {
     val context = LocalContext.current
     val isTv = remember { context.isTelevision }
+    val firstActionFocusRequester = remember { FocusRequester() }
     AnimatedVisibility(
         modifier = modifier.windowInsetsPadding(
             WindowInsets.displayCutout.only(WindowInsetsSides.Horizontal),
@@ -1112,7 +1114,8 @@ private fun SelectionActionsSheet(
                     .clip(shape)
                     .horizontalScroll(rememberScrollState())
                     .thenIf(isTv) {
-                        focusRestorer().focusGroup().focusProperties { up = contentFocusRequester }
+                        focusRestorer(fallback = firstActionFocusRequester).focusGroup()
+                            .focusProperties { up = contentFocusRequester }
                     }
                     .navigationBarsPadding()
                     .padding(
@@ -1123,6 +1126,7 @@ private fun SelectionActionsSheet(
                 horizontalArrangement = Arrangement.SpaceEvenly,
             ) {
                 SelectionAction(
+                    modifier = Modifier.thenIf(isTv) { focusRequester(firstActionFocusRequester) },
                     isTv = isTv,
                     imageVector = NextIcons.Play,
                     title = stringResource(R.string.play),

@@ -2,21 +2,21 @@ package dev.anilbeesetti.nextplayer.core.ui.components
 
 import androidx.compose.foundation.focusGroup
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.MutableState
 import androidx.compose.runtime.Stable
-import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.saveable.rememberSaveable
-import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.focus.FocusRequester
 import androidx.compose.ui.focus.focusProperties
 import androidx.compose.ui.focus.focusRequester
 import androidx.compose.ui.focus.onFocusChanged
 import androidx.compose.ui.platform.LocalContext
+import androidx.lifecycle.compose.LifecycleResumeEffect
 import dev.anilbeesetti.nextplayer.core.common.extensions.isTelevision
+import kotlinx.coroutines.launch
 
 /** Keeps item identity across destination recreation and when entering from another focus region. */
 @Stable
@@ -42,18 +42,25 @@ fun rememberRestorableFocusState(): RestorableFocusState {
     return remember(isTv) { RestorableFocusState(isTv, focusedKey) }
 }
 
-/** Request focus once content is available. Later data updates must not steal focus from a toolbar. */
+/** Restore when content becomes available or the destination resumes, including return from playback. */
 @Composable
 fun Modifier.restorableFocusGroup(
     state: RestorableFocusState,
     ready: Boolean = true,
 ): Modifier {
     if (!state.isTv) return this
-    var restoredInitialFocus by remember(state) { mutableStateOf(false) }
-    LaunchedEffect(state, ready) {
-        if (!ready || restoredInitialFocus) return@LaunchedEffect
-        restoredInitialFocus = (state.key != null && state.itemRequester.requestFocusUntilLanded()) ||
-            state.requester.requestFocusUntilLanded()
+    val scope = rememberCoroutineScope()
+    LifecycleResumeEffect(state, ready) {
+        val request = if (ready) {
+            scope.launch {
+                if (state.key == null || !state.itemRequester.requestFocusUntilLanded()) {
+                    state.requester.requestFocusUntilLanded()
+                }
+            }
+        } else {
+            null
+        }
+        onPauseOrDispose { request?.cancel() }
     }
     return focusRequester(state.requester)
         .focusProperties {

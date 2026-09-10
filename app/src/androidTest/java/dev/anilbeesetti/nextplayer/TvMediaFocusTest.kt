@@ -2,19 +2,24 @@ package dev.anilbeesetti.nextplayer
 
 import androidx.activity.ComponentActivity
 import androidx.compose.foundation.focusGroup
+import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.material3.Button
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
 import androidx.compose.runtime.saveable.rememberSaveableStateHolder
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.focus.FocusRequester
 import androidx.compose.ui.focus.focusProperties
+import androidx.compose.ui.focus.focusRequester
 import androidx.compose.ui.focus.focusRestorer
 import androidx.compose.ui.input.key.Key
 import androidx.compose.ui.test.assertIsFocused
@@ -28,6 +33,7 @@ import androidx.compose.ui.test.performKeyInput
 import androidx.compose.ui.test.pressKey
 import androidx.compose.ui.test.printToString
 import androidx.compose.ui.test.requestFocus
+import androidx.lifecycle.Lifecycle
 import androidx.test.ext.junit.runners.AndroidJUnit4
 import dev.anilbeesetti.nextplayer.core.common.extensions.isTelevision
 import dev.anilbeesetti.nextplayer.core.domain.MediaHolder
@@ -75,6 +81,8 @@ class TvMediaFocusTest {
         }
         press(Key.DirectionDown)
         focused("Action")
+        press(Key.DirectionRight)
+        focused("Second action")
         press(Key.DirectionUp)
         focused("Clip 48")
     }
@@ -99,6 +107,18 @@ class TvMediaFocusTest {
         repeat(18) { press(Key.DirectionDown) }
         focused("Clip 19")
         restoration.emulateSavedInstanceStateRestore()
+        focused("Clip 19")
+    }
+
+    @Test
+    fun resumingAfterAnotherActivityRestoresTheMediaItem() {
+        composeRule.setContent { Content() }
+        focused("Clip 01")
+        repeat(18) { press(Key.DirectionDown) }
+        focused("Clip 19")
+        composeRule.onNodeWithText("Toolbar").requestFocus()
+        composeRule.activityRule.scenario.moveToState(Lifecycle.State.STARTED)
+        composeRule.activityRule.scenario.moveToState(Lifecycle.State.RESUMED)
         focused("Clip 19")
     }
 
@@ -135,6 +155,7 @@ class TvMediaFocusTest {
             if (showContent) {
                 holder.SaveableStateProvider("media") {
                     val focus = rememberRestorableFocusState()
+                    val firstAction = remember { FocusRequester() }
                     Column(Modifier.fillMaxSize()) {
                         Button(
                             modifier = Modifier.focusProperties { down = focus.requester },
@@ -156,10 +177,13 @@ class TvMediaFocusTest {
                             )
                         }
                         Row(
-                            Modifier.focusRestorer().focusGroup()
+                            Modifier.fillMaxWidth().focusRestorer(fallback = firstAction).focusGroup()
                                 .focusProperties { up = focus.requester },
+                            horizontalArrangement = Arrangement.SpaceEvenly,
                         ) {
-                            Button(onClick = {}) { Text("Action") }
+                            Button(modifier = Modifier.focusRequester(firstAction), onClick = {}) { Text("Action") }
+                            Button(onClick = {}) { Text("Second action") }
+                            Button(onClick = {}) { Text("Third action") }
                         }
                     }
                 }
