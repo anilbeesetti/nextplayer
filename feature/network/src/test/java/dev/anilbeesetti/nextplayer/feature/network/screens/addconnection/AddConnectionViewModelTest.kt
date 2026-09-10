@@ -42,6 +42,45 @@ class AddConnectionViewModelTest {
     val mainDispatcherRule = MainDispatcherRule()
 
     @Test
+    fun `successful save navigates through the current output after resetting state`() =
+        runTest(mainDispatcherRule.testDispatcher) {
+            val started = CompletableDeferred<Unit>()
+            val finish = CompletableDeferred<Unit>()
+            val repository = FakeRepository()
+            val viewModel = viewModel(
+                repository = repository,
+                clients = ArrayDeque(
+                    listOf(
+                        FakeNetworkClient(Result.success(Unit)) {
+                            started.complete(Unit)
+                            finish.await()
+                        },
+                    ),
+                ),
+            )
+            val calls = mutableListOf<String>()
+            viewModel.output = AddConnectionViewModel.Output(navigateUp = { calls.add("old") })
+            viewModel.onAction(
+                AddConnectionAction.TestAndSave(
+                    keyDraft(authentication = NetworkAuthentication.PASSWORD, privateKeyFileName = ""),
+                ),
+            )
+            started.await()
+            viewModel.output = AddConnectionViewModel.Output(
+                navigateUp = {
+                    assertEquals(SaveState.Idle, viewModel.state.value.saveState)
+                    assertEquals(1, repository.upserted.size)
+                    calls.add("current")
+                },
+            )
+
+            finish.complete(Unit)
+            advanceUntilIdle()
+
+            assertEquals(listOf("current"), calls)
+        }
+
+    @Test
     fun `staging a replacement deletes the previous staged key`() =
         runTest(mainDispatcherRule.testDispatcher) {
             val keyStore = FakeSshKeyStore(

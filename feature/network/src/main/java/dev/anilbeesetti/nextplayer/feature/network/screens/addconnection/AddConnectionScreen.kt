@@ -56,7 +56,6 @@ import dev.anilbeesetti.nextplayer.core.ui.components.NextDialog
 import dev.anilbeesetti.nextplayer.core.ui.components.NextTopAppBar
 import dev.anilbeesetti.nextplayer.core.ui.components.tvFocusRing
 import dev.anilbeesetti.nextplayer.core.ui.designsystem.NextIcons
-import dev.anilbeesetti.nextplayer.feature.network.ObserveAsEvents
 
 /**
  * Default path per protocol: SMB expects a bare share name (no leading slash), while FTP and WebDAV
@@ -83,8 +82,6 @@ fun AddConnectionScreen(
     viewModel: AddConnectionViewModel,
 ) {
     val state by viewModel.state.collectAsStateWithLifecycle()
-
-    ObserveAsEvents(viewModel.savedEvents) { viewModel.output.navigateUp() }
 
     AddConnectionScreenContent(
         state = state,

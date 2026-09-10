@@ -17,11 +17,9 @@ import dev.anilbeesetti.nextplayer.core.model.NetworkFile
 import dev.anilbeesetti.nextplayer.core.ui.base.MviViewModel
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
-import kotlinx.coroutines.flow.receiveAsFlow
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 
@@ -75,9 +73,6 @@ class NetworkBrowseViewModel @AssistedInject constructor(
 
     private val stateInternal = MutableStateFlow(NetworkBrowseUiState())
     override val state: StateFlow<NetworkBrowseUiState> = stateInternal.asStateFlow()
-
-    private val _playEvents = Channel<Uri>()
-    val playEvents = _playEvents.receiveAsFlow()
 
     init {
         connectAndLoad()
@@ -163,9 +158,7 @@ class NetworkBrowseViewModel @AssistedInject constructor(
     private fun playVideo(file: NetworkFile) {
         val conn = connection ?: return
         if (file.isDirectory) return
-        viewModelScope.launch {
-            _playEvents.send(NetworkUri.build(conn, file.path))
-        }
+        output.playVideo(NetworkUri.build(conn, file.path))
     }
 
     override fun onCleared() {

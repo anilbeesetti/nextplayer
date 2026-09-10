@@ -108,9 +108,6 @@ fun VaultScreen(
         lifecycleOwner.repeatOnLifecycle(Lifecycle.State.STARTED) {
             viewModel.events.collect { event ->
                 when (event) {
-                    is VaultEvent.PlayVideo -> viewModel.output.playVideo(event.uri)
-                    is VaultEvent.PlayVideos -> viewModel.output.playVideos(event.uris)
-
                     is VaultEvent.VideosRelocated -> {
                         val message = context.resources.getQuantityString(
                             R.plurals.videos_relocated_to_movies,

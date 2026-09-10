@@ -21,11 +21,9 @@ import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.NonCancellable
-import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
-import kotlinx.coroutines.flow.receiveAsFlow
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.joinAll
 import kotlinx.coroutines.launch
@@ -96,9 +94,6 @@ class AddConnectionViewModel @AssistedInject constructor(
 
     private val stateInternal = MutableStateFlow(AddConnectionUiState(isEdit = connectionId != null))
     override val state: StateFlow<AddConnectionUiState> = stateInternal.asStateFlow()
-
-    private val _savedEvents = Channel<Unit>(Channel.BUFFERED)
-    val savedEvents = _savedEvents.receiveAsFlow()
 
     private data class SaveOperation(
         val id: Long,
@@ -265,8 +260,8 @@ class AddConnectionViewModel @AssistedInject constructor(
         if (error == null) {
             pendingOperation = null
             activeOperation = null
-            _savedEvents.send(Unit)
             stateInternal.update { it.copy(saveState = SaveState.Idle) }
+            output.navigateUp()
             return
         }
 

@@ -194,17 +194,13 @@ class VaultViewModel @AssistedInject constructor(
     }
 
     private fun playVideo(video: Video) {
-        viewModelScope.launch {
-            eventsInternal.send(VaultEvent.PlayVideo(video.uriString.toUri()))
-        }
+        output.playVideo(video.uriString.toUri())
     }
 
     private fun playSelected(selectionItems: Set<SelectionItem>) {
-        viewModelScope.launch {
-            val uris = selectionItems.toVideos().map { it.uriString.toUri() }
-            if (uris.isNotEmpty()) {
-                eventsInternal.send(VaultEvent.PlayVideos(uris))
-            }
+        val uris = selectionItems.toVideos().map { it.uriString.toUri() }
+        if (uris.isNotEmpty()) {
+            output.playVideos(uris)
         }
     }
 
@@ -285,7 +281,5 @@ sealed interface VaultAction {
 }
 
 sealed interface VaultEvent {
-    data class PlayVideo(val uri: Uri) : VaultEvent
-    data class PlayVideos(val uris: List<Uri>) : VaultEvent
     data class VideosRelocated(val count: Int) : VaultEvent
 }

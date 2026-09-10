@@ -50,7 +50,6 @@ import dev.anilbeesetti.nextplayer.core.ui.components.tvFocusRing
 import dev.anilbeesetti.nextplayer.core.ui.components.tvListFocus
 import dev.anilbeesetti.nextplayer.core.ui.designsystem.NextIcons
 import dev.anilbeesetti.nextplayer.core.ui.extensions.copy
-import dev.anilbeesetti.nextplayer.feature.network.ObserveAsEvents
 import java.util.Date
 
 @Composable
@@ -58,8 +57,6 @@ fun NetworkBrowseScreen(
     viewModel: NetworkBrowseViewModel,
 ) {
     val state by viewModel.state.collectAsStateWithLifecycle()
-
-    ObserveAsEvents(viewModel.playEvents) { viewModel.output.playVideo(it) }
 
     NetworkBrowseScreenContent(
         state = state,
