@@ -30,7 +30,6 @@ import androidx.compose.material3.FloatingActionButton
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.OutlinedTextFieldDefaults
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
@@ -76,6 +75,7 @@ import dev.anilbeesetti.nextplayer.core.model.PlaylistType
 import dev.anilbeesetti.nextplayer.core.ui.R
 import dev.anilbeesetti.nextplayer.core.ui.base.DataState
 import dev.anilbeesetti.nextplayer.core.ui.components.NextDialog
+import dev.anilbeesetti.nextplayer.core.ui.components.NextOutlinedTextField
 import dev.anilbeesetti.nextplayer.core.ui.components.NextSegmentedListItem
 import dev.anilbeesetti.nextplayer.core.ui.components.NextTopAppBar
 import dev.anilbeesetti.nextplayer.core.ui.components.tvFocusRing
@@ -137,14 +137,15 @@ internal fun PlaylistDetailScreenContent(
             NextTopAppBar(
                 title = {
                     if (uiState.isSearching) {
-                        OutlinedTextField(
+                        NextOutlinedTextField(
                             value = uiState.searchQuery,
                             onValueChange = {
                                 onAction(PlaylistDetailUiAction.OnSearchQueryChange(it))
                             },
                             modifier = Modifier
                                 .fillMaxWidth()
-                                .focusRequester(searchFocusRequester),
+                                .focusRequester(searchFocusRequester)
+                                .tvFocusRing(shape = CircleShape),
                             placeholder = {
                                 Text(
                                     text = stringResource(R.string.search_playlist),

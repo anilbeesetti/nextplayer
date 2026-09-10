@@ -23,7 +23,6 @@ import androidx.compose.material3.FilledTonalIconButton
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedButton
-import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.SegmentedButton
 import androidx.compose.material3.SegmentedButtonDefaults
@@ -53,6 +52,7 @@ import dev.anilbeesetti.nextplayer.core.model.NetworkConnection
 import dev.anilbeesetti.nextplayer.core.model.NetworkProtocol
 import dev.anilbeesetti.nextplayer.core.ui.R
 import dev.anilbeesetti.nextplayer.core.ui.components.NextDialog
+import dev.anilbeesetti.nextplayer.core.ui.components.NextOutlinedTextField
 import dev.anilbeesetti.nextplayer.core.ui.components.NextTopAppBar
 import dev.anilbeesetti.nextplayer.core.ui.components.tvFocusRing
 import dev.anilbeesetti.nextplayer.core.ui.designsystem.NextIcons
@@ -216,7 +216,10 @@ internal fun AddConnectionScreenContent(
         )
     }
 
-    val onChange: (() -> Unit) -> Unit = { setter -> setter(); onFieldChanged() }
+    val onChange: (() -> Unit) -> Unit = { setter ->
+        setter()
+        onFieldChanged()
+    }
 
     Scaffold(
         topBar = {
@@ -305,7 +308,7 @@ internal fun AddConnectionScreenContent(
 
             val moveToNext = KeyboardActions(onNext = { focusManager.moveFocus(FocusDirection.Down) })
 
-            OutlinedTextField(
+            NextOutlinedTextField(
                 value = name,
                 enabled = !isTesting,
                 onValueChange = { onChange { name = it } },
@@ -315,7 +318,7 @@ internal fun AddConnectionScreenContent(
                 keyboardActions = moveToNext,
                 modifier = Modifier.fillMaxWidth(),
             )
-            OutlinedTextField(
+            NextOutlinedTextField(
                 value = host,
                 enabled = !isTesting,
                 onValueChange = { newHost ->
@@ -335,7 +338,7 @@ internal fun AddConnectionScreenContent(
                 keyboardActions = moveToNext,
                 modifier = Modifier.fillMaxWidth(),
             )
-            OutlinedTextField(
+            NextOutlinedTextField(
                 value = port,
                 enabled = !isTesting,
                 onValueChange = { input ->
@@ -356,7 +359,7 @@ internal fun AddConnectionScreenContent(
                 keyboardActions = moveToNext,
                 modifier = Modifier.fillMaxWidth(),
             )
-            OutlinedTextField(
+            NextOutlinedTextField(
                 value = path,
                 enabled = !isTesting,
                 onValueChange = { onChange { path = it } },
@@ -366,7 +369,7 @@ internal fun AddConnectionScreenContent(
                 keyboardActions = moveToNext,
                 modifier = Modifier.fillMaxWidth(),
             )
-            OutlinedTextField(
+            NextOutlinedTextField(
                 value = username,
                 enabled = !isTesting,
                 onValueChange = { onChange { username = it } },
@@ -419,7 +422,7 @@ internal fun AddConnectionScreenContent(
             }
 
             if (protocol != NetworkProtocol.SFTP || authentication == NetworkAuthentication.PASSWORD) {
-                OutlinedTextField(
+                NextOutlinedTextField(
                     value = password,
                     enabled = !isTesting,
                     onValueChange = { onChange { password = it } },
@@ -480,7 +483,7 @@ internal fun AddConnectionScreenContent(
                         color = MaterialTheme.colorScheme.onSurfaceVariant,
                     )
                 }
-                OutlinedTextField(
+                NextOutlinedTextField(
                     value = privateKeyPassphrase,
                     enabled = !isTesting,
                     onValueChange = { onChange { privateKeyPassphrase = it } },

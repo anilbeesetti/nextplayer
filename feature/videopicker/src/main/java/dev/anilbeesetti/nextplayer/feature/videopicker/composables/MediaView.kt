@@ -58,6 +58,7 @@ fun MediaView(
     lazyGridState: LazyGridState = rememberLazyGridState(),
     modifier: Modifier = Modifier,
     focusState: RestorableFocusState = rememberRestorableFocusState(),
+    autoFocus: Boolean = true,
     onFolderClick: (String) -> Unit,
     onVideoClick: (Uri) -> Unit,
 ) {
@@ -97,7 +98,7 @@ fun MediaView(
         LazyVerticalGrid(
             modifier = modifier.fillMaxSize().restorableFocusGroup(
                 state = focusState,
-                ready = mediaHolder.folders.isNotEmpty() || mediaHolder.videos.isNotEmpty(),
+                ready = autoFocus && (mediaHolder.folders.isNotEmpty() || mediaHolder.videos.isNotEmpty()),
             ),
             state = lazyGridState,
             columns = GridCells.Fixed(spans),

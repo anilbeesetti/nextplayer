@@ -148,8 +148,19 @@ class TvMediaFocusTest {
         composeRule.onNodeWithText("Toolbar").assertIsFocused()
     }
 
+    @Test
+    fun searchResultsCanArriveWithoutTakingFocusFromTheQuery() {
+        videos = emptyList()
+        composeRule.setContent { Content(autoFocus = false) }
+        composeRule.onNodeWithText("Toolbar").requestFocus()
+        composeRule.runOnIdle { videos = clips(3) }
+        composeRule.onNodeWithText("Toolbar").assertIsFocused()
+        press(Key.DirectionDown)
+        focused("Clip 01")
+    }
+
     @Composable
-    private fun Content(layout: MediaLayoutMode = MediaLayoutMode.LIST) {
+    private fun Content(layout: MediaLayoutMode = MediaLayoutMode.LIST, autoFocus: Boolean = true) {
         val holder = rememberSaveableStateHolder()
         NextPlayerTheme {
             if (showContent) {
@@ -172,6 +183,7 @@ class TvMediaFocusTest {
                                 ),
                                 showHeaders = false,
                                 focusState = focus,
+                                autoFocus = autoFocus,
                                 onFolderClick = {},
                                 onVideoClick = {},
                             )
