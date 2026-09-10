@@ -1,6 +1,7 @@
 package dev.anilbeesetti.nextplayer.feature.playlist.navigation
 
 import android.net.Uri
+import androidx.compose.runtime.SideEffect
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.navigation3.runtime.EntryProviderScope
 import androidx.navigation3.runtime.NavBackStack
@@ -26,18 +27,12 @@ fun EntryProviderScope<NavKey>.playlistListEntry(
     onSettingsClick: () -> Unit,
 ) {
     entry<PlaylistListRoute> {
-        PlaylistListScreen(
-            viewModel = hiltViewModel<PlaylistListViewModel, PlaylistListViewModel.Factory>(
-                creationCallback = { factory ->
-                    factory.create(
-                        PlaylistListViewModel.Output(
-                            openPlaylist = onPlaylistClick,
-                            openSettings = onSettingsClick,
-                        ),
-                    )
-                },
-            ),
+        val output = PlaylistListViewModel.Output(openPlaylist = onPlaylistClick, openSettings = onSettingsClick)
+        val viewModel = hiltViewModel<PlaylistListViewModel, PlaylistListViewModel.Factory>(
+            creationCallback = { factory -> factory.create(output = output) },
         )
+        SideEffect { viewModel.output = output }
+        PlaylistListScreen(viewModel = viewModel)
     }
 }
 
@@ -46,20 +41,19 @@ fun EntryProviderScope<NavKey>.playlistDetailEntry(
     onPlayPlaylist: (playlistId: Long, startUri: Uri) -> Unit,
 ) {
     entry<PlaylistDetailRoute> { route ->
-        PlaylistDetailScreen(
-            viewModel = hiltViewModel<PlaylistDetailViewModel, PlaylistDetailViewModel.Factory>(
-                creationCallback = { factory ->
-                    factory.create(
-                        input = PlaylistDetailViewModel.Input(
-                            playlistId = route.playlistId,
-                        ),
-                        output = PlaylistDetailViewModel.Output(
-                            navigateUp = onNavigateUp,
-                            playPlaylist = onPlayPlaylist,
-                        ),
-                    )
-                },
-            ),
+        val output = PlaylistDetailViewModel.Output(
+            navigateUp = onNavigateUp,
+            playPlaylist = onPlayPlaylist,
         )
+        val viewModel = hiltViewModel<PlaylistDetailViewModel, PlaylistDetailViewModel.Factory>(
+            creationCallback = { factory ->
+                factory.create(
+                    input = PlaylistDetailViewModel.Input(playlistId = route.playlistId),
+                    output = output,
+                )
+            },
+        )
+        SideEffect { viewModel.output = output }
+        PlaylistDetailScreen(viewModel = viewModel)
     }
 }

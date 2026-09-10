@@ -3,8 +3,10 @@ package dev.anilbeesetti.nextplayer.feature.videopicker.screens.vault
 import android.net.Uri
 import androidx.compose.runtime.Stable
 import androidx.core.net.toUri
-import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import dagger.assisted.Assisted
+import dagger.assisted.AssistedFactory
+import dagger.assisted.AssistedInject
 import dagger.hilt.android.lifecycle.HiltViewModel
 import dev.anilbeesetti.nextplayer.core.data.repository.PreferencesRepository
 import dev.anilbeesetti.nextplayer.core.data.repository.VaultPinRepository
@@ -14,11 +16,12 @@ import dev.anilbeesetti.nextplayer.core.model.ApplicationPreferences
 import dev.anilbeesetti.nextplayer.core.model.MediaInfo
 import dev.anilbeesetti.nextplayer.core.model.Sort
 import dev.anilbeesetti.nextplayer.core.model.Video
+import dev.anilbeesetti.nextplayer.core.ui.base.MviViewModel
 import dev.anilbeesetti.nextplayer.feature.videopicker.state.SelectionItem
-import javax.inject.Inject
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.receiveAsFlow
 import kotlinx.coroutines.flow.update
@@ -26,16 +29,28 @@ import kotlinx.coroutines.launch
 
 const val VAULT_PIN_LENGTH = 4
 
-@HiltViewModel
-class VaultViewModel @Inject constructor(
+@HiltViewModel(assistedFactory = VaultViewModel.Factory::class)
+class VaultViewModel @AssistedInject constructor(
     private val vaultRepository: VaultRepository,
     private val vaultPinRepository: VaultPinRepository,
     private val getHiddenVideosUseCase: GetHiddenVideosUseCase,
     private val preferencesRepository: PreferencesRepository,
-) : ViewModel() {
+    @Assisted internal var output: Output,
+) : MviViewModel<VaultUiState, VaultAction>() {
 
-    private val uiStateInternal = MutableStateFlow(VaultUiState())
-    val uiState = uiStateInternal.asStateFlow()
+    data class Output(
+        val navigateUp: () -> Unit,
+        val playVideo: (Uri) -> Unit,
+        val playVideos: (List<Uri>) -> Unit,
+    )
+
+    @AssistedFactory
+    interface Factory {
+        fun create(output: Output): VaultViewModel
+    }
+
+    private val stateInternal = MutableStateFlow(VaultUiState())
+    override val state: StateFlow<VaultUiState> = stateInternal.asStateFlow()
 
     private val eventsInternal = Channel<VaultEvent>()
     val events = eventsInternal.receiveAsFlow()
@@ -47,7 +62,7 @@ class VaultViewModel @Inject constructor(
         viewModelScope.launch {
             val hasPin = vaultPinRepository.hasPinSet()
             val biometricEnabled = hasPin && vaultPinRepository.isBiometricEnabled()
-            uiStateInternal.update {
+            stateInternal.update {
                 it.copy(
                     stage = if (hasPin) VaultStage.LOCKED else VaultStage.SET_PIN,
                     biometricEnabled = biometricEnabled,
@@ -58,9 +73,9 @@ class VaultViewModel @Inject constructor(
             preferencesRepository.applicationPreferences.collect { prefs ->
                 val inheritedSort = Sort(by = prefs.sortBy, order = prefs.sortOrder)
                 val shouldRefresh = !hasVaultSortOverride &&
-                    uiStateInternal.value.stage == VaultStage.UNLOCKED &&
-                    uiStateInternal.value.sort != inheritedSort
-                uiStateInternal.update {
+                    stateInternal.value.stage == VaultStage.UNLOCKED &&
+                    stateInternal.value.sort != inheritedSort
+                stateInternal.update {
                     it.copy(
                         preferences = prefs,
                         sort = if (hasVaultSortOverride) it.sort else inheritedSort,
@@ -71,44 +86,46 @@ class VaultViewModel @Inject constructor(
         }
     }
 
-    fun onAction(action: VaultAction) {
+    override fun onAction(action: VaultAction) {
         when (action) {
+            is VaultAction.NavigateUp -> output.navigateUp()
+
             is VaultAction.SubmitNewPin -> submitNewPin(action.pin)
             is VaultAction.SubmitPinConfirmation -> submitPinConfirmation(action.pin)
             is VaultAction.SubmitUnlockPin -> submitUnlockPin(action.pin)
-            VaultAction.BiometricAuthenticated -> {
-                if (uiStateInternal.value.stage == VaultStage.LOCKED && uiStateInternal.value.biometricEnabled) unlockVault()
+            is VaultAction.BiometricAuthenticated -> {
+                if (stateInternal.value.stage == VaultStage.LOCKED && stateInternal.value.biometricEnabled) unlockVault()
             }
             is VaultAction.CompleteBiometricSetup -> completeBiometricSetup(action.enabled)
             is VaultAction.SetBiometricEnabled -> setBiometricEnabled(action.enabled)
-            VaultAction.DismissHowToFindInfo -> dismissHowToFindInfo()
+            is VaultAction.DismissHowToFindInfo -> dismissHowToFindInfo()
             is VaultAction.PlayVideo -> playVideo(action.video)
             is VaultAction.PlaySelected -> playSelected(action.selectionItems)
             is VaultAction.UnhideSelected -> unhideVideos(action.selectionItems)
             is VaultAction.DeleteSelected -> deleteVideos(action.selectionItems)
             is VaultAction.ShowMediaInfo -> showMediaInfo(action.video)
-            VaultAction.DismissMediaInfo -> uiStateInternal.update { it.copy(mediaInfo = null) }
+            is VaultAction.DismissMediaInfo -> stateInternal.update { it.copy(mediaInfo = null) }
             is VaultAction.UpdateSort -> updateSort(action.sort)
         }
     }
 
     private fun updateSort(sort: Sort) {
         hasVaultSortOverride = true
-        val shouldRefresh = uiStateInternal.value.stage == VaultStage.UNLOCKED &&
-            uiStateInternal.value.sort != sort
-        uiStateInternal.update { it.copy(sort = sort) }
+        val shouldRefresh = stateInternal.value.stage == VaultStage.UNLOCKED &&
+            stateInternal.value.sort != sort
+        stateInternal.update { it.copy(sort = sort) }
         if (shouldRefresh) collectHiddenVideos()
     }
 
     private fun submitNewPin(pin: String) {
-        uiStateInternal.update { it.copy(pendingPin = pin, stage = VaultStage.CONFIRM_PIN, pinErrorCount = 0) }
+        stateInternal.update { it.copy(pendingPin = pin, stage = VaultStage.CONFIRM_PIN, pinErrorCount = 0) }
     }
 
     private fun submitPinConfirmation(pin: String) {
-        val pendingPin = uiStateInternal.value.pendingPin
+        val pendingPin = stateInternal.value.pendingPin
         if (pin != pendingPin) {
             // PINs don't match — go back to SET_PIN so the user starts over from scratch
-            uiStateInternal.update {
+            stateInternal.update {
                 it.copy(
                     stage = VaultStage.SET_PIN,
                     pendingPin = null,
@@ -120,7 +137,7 @@ class VaultViewModel @Inject constructor(
         }
         viewModelScope.launch {
             vaultPinRepository.setPin(pin)
-            uiStateInternal.update {
+            stateInternal.update {
                 it.copy(
                     stage = VaultStage.BIOMETRIC_SETUP,
                     pendingPin = null,
@@ -136,24 +153,24 @@ class VaultViewModel @Inject constructor(
             if (isValid) {
                 unlockVault()
             } else {
-                uiStateInternal.update { it.copy(pinErrorCount = it.pinErrorCount + 1) }
+                stateInternal.update { it.copy(pinErrorCount = it.pinErrorCount + 1) }
             }
         }
     }
 
     private fun completeBiometricSetup(enabled: Boolean) {
-        if (uiStateInternal.value.stage != VaultStage.BIOMETRIC_SETUP) return
+        if (stateInternal.value.stage != VaultStage.BIOMETRIC_SETUP) return
         viewModelScope.launch {
             vaultPinRepository.setBiometricEnabled(enabled)
-            uiStateInternal.update { it.copy(stage = VaultStage.HOW_TO_FIND_INFO, biometricEnabled = enabled) }
+            stateInternal.update { it.copy(stage = VaultStage.HOW_TO_FIND_INFO, biometricEnabled = enabled) }
         }
     }
 
     private fun setBiometricEnabled(enabled: Boolean) {
-        if (uiStateInternal.value.stage != VaultStage.UNLOCKED) return
+        if (stateInternal.value.stage != VaultStage.UNLOCKED) return
         viewModelScope.launch {
             vaultPinRepository.setBiometricEnabled(enabled)
-            uiStateInternal.update { it.copy(biometricEnabled = enabled) }
+            stateInternal.update { it.copy(biometricEnabled = enabled) }
         }
     }
 
@@ -162,40 +179,36 @@ class VaultViewModel @Inject constructor(
     }
 
     private fun unlockVault() {
-        uiStateInternal.update { it.copy(stage = VaultStage.UNLOCKED, pinErrorCount = 0) }
+        stateInternal.update { it.copy(stage = VaultStage.UNLOCKED, pinErrorCount = 0) }
         collectHiddenVideos()
     }
 
     private fun collectHiddenVideos() {
         hiddenVideosJob?.cancel()
         hiddenVideosJob = viewModelScope.launch {
-            uiStateInternal.update { it.copy(isLoading = true) }
-            getHiddenVideosUseCase(uiStateInternal.value.sort).collect { videos ->
-                uiStateInternal.update { it.copy(hiddenVideos = videos, isLoading = false) }
+            stateInternal.update { it.copy(isLoading = true) }
+            getHiddenVideosUseCase(stateInternal.value.sort).collect { videos ->
+                stateInternal.update { it.copy(hiddenVideos = videos, isLoading = false) }
             }
         }
     }
 
     private fun playVideo(video: Video) {
-        viewModelScope.launch {
-            eventsInternal.send(VaultEvent.PlayVideo(video.uriString.toUri()))
-        }
+        output.playVideo(video.uriString.toUri())
     }
 
     private fun playSelected(selectionItems: Set<SelectionItem>) {
-        viewModelScope.launch {
-            val uris = selectionItems.toVideos().map { it.uriString.toUri() }
-            if (uris.isNotEmpty()) {
-                eventsInternal.send(VaultEvent.PlayVideos(uris))
-            }
+        val uris = selectionItems.toVideos().map { it.uriString.toUri() }
+        if (uris.isNotEmpty()) {
+            output.playVideos(uris)
         }
     }
 
     private fun unhideVideos(selectionItems: Set<SelectionItem>) {
         viewModelScope.launch {
-            uiStateInternal.update { it.copy(isUnhiding = true) }
+            stateInternal.update { it.copy(isUnhiding = true) }
             val result = vaultRepository.unhideVideos(selectionItems.toVideos())
-            uiStateInternal.update { it.copy(isUnhiding = false) }
+            stateInternal.update { it.copy(isUnhiding = false) }
             if (result.relocatedCount > 0) {
                 eventsInternal.send(VaultEvent.VideosRelocated(result.relocatedCount))
             }
@@ -212,14 +225,14 @@ class VaultViewModel @Inject constructor(
         viewModelScope.launch {
             val mediaInfo = vaultRepository.getHiddenVideoInfo(video.id)
             if (mediaInfo != null) {
-                uiStateInternal.update { it.copy(mediaInfo = mediaInfo) }
+                stateInternal.update { it.copy(mediaInfo = mediaInfo) }
             }
         }
     }
 
     private fun Set<SelectionItem>.toVideos(): List<Video> {
         val selectedUris = filterIsInstance<SelectionItem.Video>().map { it.uriString }.toSet()
-        return uiStateInternal.value.hiddenVideos.filter { it.uriString in selectedUris }
+        return stateInternal.value.hiddenVideos.filter { it.uriString in selectedUris }
     }
 }
 
@@ -249,6 +262,8 @@ data class VaultUiState(
 )
 
 sealed interface VaultAction {
+    data object NavigateUp : VaultAction
+
     data class SubmitNewPin(val pin: String) : VaultAction
     data class SubmitPinConfirmation(val pin: String) : VaultAction
     data class SubmitUnlockPin(val pin: String) : VaultAction
@@ -266,7 +281,5 @@ sealed interface VaultAction {
 }
 
 sealed interface VaultEvent {
-    data class PlayVideo(val uri: Uri) : VaultEvent
-    data class PlayVideos(val uris: List<Uri>) : VaultEvent
     data class VideosRelocated(val count: Int) : VaultEvent
 }

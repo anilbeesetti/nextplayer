@@ -19,13 +19,9 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import dev.anilbeesetti.nextplayer.settings.utils.rememberTvListFocusRequester
-import dev.anilbeesetti.nextplayer.settings.utils.tvFocusDown
-import dev.anilbeesetti.nextplayer.settings.utils.tvListFocus
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.tooling.preview.PreviewLightDark
 import androidx.compose.ui.unit.dp
-import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import dev.anilbeesetti.nextplayer.core.ui.R
@@ -35,27 +31,27 @@ import dev.anilbeesetti.nextplayer.core.ui.components.SelectablePreference
 import dev.anilbeesetti.nextplayer.core.ui.designsystem.NextIcons
 import dev.anilbeesetti.nextplayer.core.ui.extensions.plus
 import dev.anilbeesetti.nextplayer.core.ui.theme.NextPlayerTheme
+import dev.anilbeesetti.nextplayer.settings.utils.rememberTvListFocusRequester
+import dev.anilbeesetti.nextplayer.settings.utils.tvFocusDown
+import dev.anilbeesetti.nextplayer.settings.utils.tvListFocus
 
 @Composable
 fun FolderPreferencesScreen(
-    onNavigateUp: () -> Unit,
-    viewModel: FolderPreferencesViewModel = hiltViewModel(),
+    viewModel: FolderPreferencesViewModel,
 ) {
-    val uiState by viewModel.uiState.collectAsStateWithLifecycle(minActiveState = Lifecycle.State.RESUMED)
+    val state by viewModel.state.collectAsStateWithLifecycle(minActiveState = Lifecycle.State.RESUMED)
 
-    FolderPreferencesContent(
-        uiState = uiState,
-        onNavigateUp = onNavigateUp,
-        onEvent = viewModel::onEvent,
+    FolderPreferencesScreenContent(
+        state = state,
+        onAction = viewModel::onAction,
     )
 }
 
 @OptIn(ExperimentalMaterial3Api::class, ExperimentalMaterial3ExpressiveApi::class)
 @Composable
-private fun FolderPreferencesContent(
-    uiState: FolderPreferencesUiState,
-    onNavigateUp: () -> Unit,
-    onEvent: (FolderPreferencesUiEvent) -> Unit,
+private fun FolderPreferencesScreenContent(
+    state: FolderPreferencesUiState,
+    onAction: (FolderPreferencesUiEvent) -> Unit,
 ) {
     val listFocusRequester = rememberTvListFocusRequester()
     Scaffold(
@@ -64,7 +60,7 @@ private fun FolderPreferencesContent(
                 title = stringResource(id = R.string.manage_folders),
                 navigationIcon = {
                     FilledTonalIconButton(
-                        onClick = onNavigateUp,
+                        onClick = { onAction(FolderPreferencesUiEvent.NavigateUp) },
                         modifier = Modifier.tvFocusDown(listFocusRequester),
                     ) {
                         Icon(
@@ -77,7 +73,7 @@ private fun FolderPreferencesContent(
         },
         containerColor = MaterialTheme.colorScheme.surfaceContainer,
     ) { innerPadding ->
-        when (uiState.foldersDataState) {
+        when (state.foldersDataState) {
             is DataState.Loading -> {
                 Box(
                     modifier = Modifier
@@ -96,14 +92,14 @@ private fun FolderPreferencesContent(
                     contentPadding = innerPadding + PaddingValues(horizontal = 16.dp),
                     verticalArrangement = Arrangement.spacedBy(ListItemDefaults.SegmentedGap),
                 ) {
-                    itemsIndexed(uiState.foldersDataState.value) { index, folder ->
+                    itemsIndexed(state.foldersDataState.value) { index, folder ->
                         SelectablePreference(
                             title = folder.name,
                             description = folder.path,
-                            selected = folder.path in uiState.preferences.excludeFolders,
-                            onClick = { onEvent(FolderPreferencesUiEvent.UpdateExcludeList(folder.path)) },
+                            selected = folder.path in state.preferences.excludeFolders,
+                            onClick = { onAction(FolderPreferencesUiEvent.UpdateExcludeList(folder.path)) },
                             isFirstItem = index == 0,
-                            isLastItem = index == uiState.foldersDataState.value.lastIndex,
+                            isLastItem = index == state.foldersDataState.value.lastIndex,
                         )
                     }
                 }
@@ -118,10 +114,9 @@ private fun FolderPreferencesContent(
 @Composable
 private fun FolderPreferencesScreenPreview() {
     NextPlayerTheme {
-        FolderPreferencesContent(
-            uiState = FolderPreferencesUiState(),
-            onNavigateUp = {},
-            onEvent = {},
+        FolderPreferencesScreenContent(
+            state = FolderPreferencesUiState(),
+            onAction = {},
         )
     }
 }

@@ -2,7 +2,6 @@ package dev.anilbeesetti.nextplayer.settings.screens.about
 
 import android.content.ClipData
 import android.content.Context
-import android.os.Build
 import android.widget.Toast
 import androidx.compose.animation.core.RepeatMode
 import androidx.compose.animation.core.animateFloat
@@ -24,9 +23,6 @@ import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
-import dev.anilbeesetti.nextplayer.settings.utils.rememberTvListFocusRequester
-import dev.anilbeesetti.nextplayer.settings.utils.tvFocusDown
-import dev.anilbeesetti.nextplayer.settings.utils.tvListFocus
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.ExperimentalMaterial3Api
@@ -60,12 +56,16 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.res.vectorResource
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import dev.anilbeesetti.nextplayer.core.common.extensions.appIcon
 import dev.anilbeesetti.nextplayer.core.ui.R
 import dev.anilbeesetti.nextplayer.core.ui.components.ClickablePreferenceItem
 import dev.anilbeesetti.nextplayer.core.ui.components.ListSectionTitle
 import dev.anilbeesetti.nextplayer.core.ui.components.NextTopAppBar
 import dev.anilbeesetti.nextplayer.core.ui.designsystem.NextIcons
+import dev.anilbeesetti.nextplayer.settings.utils.rememberTvListFocusRequester
+import dev.anilbeesetti.nextplayer.settings.utils.tvFocusDown
+import dev.anilbeesetti.nextplayer.settings.utils.tvListFocus
 import kotlinx.coroutines.launch
 
 private const val GITHUB_URL = "https://github.com/anilbeesetti/nextplayer"
@@ -73,11 +73,17 @@ private const val KOFI_URL = "https://ko-fi.com/anilbeesetti"
 private const val PAYPAL_URL = "https://paypal.me/AnilBeesetti"
 private const val UPI_ID = "anilbeesetti10@oksbi"
 
+@Composable
+fun AboutPreferencesScreen(viewModel: AboutPreferencesViewModel) {
+    val state by viewModel.state.collectAsStateWithLifecycle()
+    AboutPreferencesScreenContent(state = state, onAction = viewModel::onAction)
+}
+
 @OptIn(ExperimentalMaterial3Api::class, ExperimentalMaterial3ExpressiveApi::class)
 @Composable
-fun AboutPreferencesScreen(
-    onLibrariesClick: () -> Unit,
-    onNavigateUp: () -> Unit,
+private fun AboutPreferencesScreenContent(
+    state: AboutPreferencesUiState,
+    onAction: (AboutPreferencesAction) -> Unit,
 ) {
     val context = LocalContext.current
     val uriHandler = LocalUriHandler.current
@@ -90,7 +96,7 @@ fun AboutPreferencesScreen(
             NextTopAppBar(
                 title = stringResource(id = R.string.about_name),
                 navigationIcon = {
-                    FilledTonalIconButton(onClick = onNavigateUp, modifier = Modifier.tvFocusDown(listFocusRequester)) {
+                    FilledTonalIconButton(onClick = { onAction(AboutPreferencesAction.NavigateUp) }, modifier = Modifier.tvFocusDown(listFocusRequester)) {
                         Icon(
                             imageVector = NextIcons.ArrowBack,
                             contentDescription = stringResource(id = R.string.navigate_up),
@@ -111,13 +117,14 @@ fun AboutPreferencesScreen(
                 .padding(vertical = 16.dp),
         ) {
             AboutApp(
+                appVersion = state.appVersion,
                 onGithubClick = {
                     uriHandler.openUriOrShowToast(
                         uri = GITHUB_URL,
                         context = context,
                     )
                 },
-                onLibrariesClick = onLibrariesClick,
+                onLibrariesClick = { onAction(AboutPreferencesAction.OpenLibraries) },
             )
             ListSectionTitle(text = stringResource(id = R.string.donate))
             Column(
@@ -133,7 +140,7 @@ fun AboutPreferencesScreen(
                             context = context,
                         )
                     },
-                    isFirstItem = true
+                    isFirstItem = true,
                 )
                 ClickablePreferenceItem(
                     title = stringResource(R.string.paypal),
@@ -165,12 +172,12 @@ fun AboutPreferencesScreen(
 
 @Composable
 fun AboutApp(
+    appVersion: String,
     modifier: Modifier = Modifier,
     onGithubClick: () -> Unit,
     onLibrariesClick: () -> Unit,
 ) {
     val context = LocalContext.current
-    val appVersion = remember { context.appVersion() }
     val appIcon = remember { context.appIcon()?.asImageBitmap() }
 
     val colorPrimary = MaterialTheme.colorScheme.primaryContainer
@@ -299,19 +306,6 @@ fun AboutApp(
             }
         }
     }
-}
-
-private fun Context.appVersion(): String {
-    val packageInfo = packageManager.getPackageInfo(packageName, 0)
-
-    @Suppress("DEPRECATION")
-    val versionCode = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.P) {
-        packageInfo.longVersionCode
-    } else {
-        packageInfo.versionCode
-    }
-
-    return "${packageInfo.versionName} ($versionCode)"
 }
 
 internal fun UriHandler.openUriOrShowToast(uri: String, context: Context) {

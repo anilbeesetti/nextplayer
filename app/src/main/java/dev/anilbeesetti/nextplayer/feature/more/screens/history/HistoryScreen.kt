@@ -4,7 +4,6 @@ import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.PaddingValues
-import androidx.compose.foundation.layout.calculateStartPadding
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
@@ -23,10 +22,8 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
-import androidx.compose.ui.platform.LocalLayoutDirection
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
-import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import dev.anilbeesetti.nextplayer.core.ui.R
 import dev.anilbeesetti.nextplayer.core.ui.base.DataState
@@ -40,26 +37,20 @@ import dev.anilbeesetti.nextplayer.feature.videopicker.composables.VideoListItem
 
 @Composable
 fun HistoryScreen(
-    onNavigateUp: () -> Unit,
-    onPlayVideo: (String) -> Unit,
-    viewModel: HistoryViewModel = hiltViewModel(),
+    viewModel: HistoryViewModel,
 ) {
-    val uiState = viewModel.uiState.collectAsStateWithLifecycle().value
+    val state by viewModel.state.collectAsStateWithLifecycle()
 
     HistoryScreenContent(
-        uiState = uiState,
-        onNavigateUp = onNavigateUp,
-        onPlayVideo = onPlayVideo,
-        onClearHistory = viewModel::clearHistory,
+        state = state,
+        onAction = viewModel::onAction,
     )
 }
 
 @Composable
 internal fun HistoryScreenContent(
-    uiState: HistoryUiState,
-    onNavigateUp: () -> Unit,
-    onPlayVideo: (String) -> Unit,
-    onClearHistory: () -> Unit,
+    state: HistoryUiState,
+    onAction: (HistoryAction) -> Unit,
 ) {
     var showClearConfirmation by remember { mutableStateOf(false) }
 
@@ -69,7 +60,7 @@ internal fun HistoryScreenContent(
                 title = stringResource(R.string.history),
                 navigationIcon = {
                     FilledTonalIconButton(
-                        onClick = onNavigateUp,
+                        onClick = { onAction(HistoryAction.NavigateUp) },
                         modifier = Modifier.tvFocusRing(),
                     ) {
                         Icon(
@@ -80,7 +71,7 @@ internal fun HistoryScreenContent(
                 },
                 actions = {
                     TextButton(
-                        enabled = uiState.history.result.orEmpty().isNotEmpty(),
+                        enabled = state.history.result.orEmpty().isNotEmpty(),
                         onClick = { showClearConfirmation = true },
                         modifier = Modifier.tvFocusRing(),
                     ) {
@@ -98,7 +89,7 @@ internal fun HistoryScreenContent(
                 .clip(RoundedCornerShape(topStart = 24.dp, topEnd = 24.dp))
                 .background(MaterialTheme.colorScheme.background),
         ) {
-            when (val history = uiState.history) {
+            when (val history = state.history) {
                 is DataState.Loading -> CenterCircularProgressBar()
                 is DataState.Error -> Text(
                     text = history.value.message.orEmpty(),
@@ -113,10 +104,10 @@ internal fun HistoryScreenContent(
                         VideoListItem(
                             video = video,
                             isRecentlyPlayedVideo = false,
-                            preferences = uiState.preferences,
+                            preferences = state.preferences,
                             isFirstItem = index == 0,
                             isLastItem = index == history.value.lastIndex,
-                            onClick = { onPlayVideo(video.uriString) },
+                            onClick = { onAction(HistoryAction.PlayVideo(video.uriString)) },
                         )
                     }
                 }
@@ -131,7 +122,7 @@ internal fun HistoryScreenContent(
             confirmButton = {
                 TextButton(
                     onClick = {
-                        onClearHistory()
+                        onAction(HistoryAction.ClearHistory)
                         showClearConfirmation = false
                     },
                 ) {

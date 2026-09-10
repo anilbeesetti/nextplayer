@@ -1,7 +1,7 @@
 package dev.anilbeesetti.nextplayer.feature.network.screens.addconnection
 
-import android.net.Uri
 import android.net.TestUri
+import android.net.Uri
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.ViewModelStore
@@ -42,6 +42,45 @@ class AddConnectionViewModelTest {
     val mainDispatcherRule = MainDispatcherRule()
 
     @Test
+    fun `successful save navigates through the current output after resetting state`() =
+        runTest(mainDispatcherRule.testDispatcher) {
+            val started = CompletableDeferred<Unit>()
+            val finish = CompletableDeferred<Unit>()
+            val repository = FakeRepository()
+            val viewModel = viewModel(
+                repository = repository,
+                clients = ArrayDeque(
+                    listOf(
+                        FakeNetworkClient(Result.success(Unit)) {
+                            started.complete(Unit)
+                            finish.await()
+                        },
+                    ),
+                ),
+            )
+            val calls = mutableListOf<String>()
+            viewModel.output = AddConnectionViewModel.Output(navigateUp = { calls.add("old") })
+            viewModel.onAction(
+                AddConnectionAction.TestAndSave(
+                    keyDraft(authentication = NetworkAuthentication.PASSWORD, privateKeyFileName = ""),
+                ),
+            )
+            started.await()
+            viewModel.output = AddConnectionViewModel.Output(
+                navigateUp = {
+                    assertEquals(SaveState.Idle, viewModel.state.value.saveState)
+                    assertEquals(1, repository.upserted.size)
+                    calls.add("current")
+                },
+            )
+
+            finish.complete(Unit)
+            advanceUntilIdle()
+
+            assertEquals(listOf("current"), calls)
+        }
+
+    @Test
     fun `staging a replacement deletes the previous staged key`() =
         runTest(mainDispatcherRule.testDispatcher) {
             val keyStore = FakeSshKeyStore(
@@ -54,12 +93,12 @@ class AddConnectionViewModelTest {
             )
             val viewModel = viewModel(keyStore = keyStore)
 
-            viewModel.stagePrivateKey(TestUri)
+            viewModel.onAction(AddConnectionAction.StagePrivateKey(TestUri))
             advanceUntilIdle()
-            viewModel.stagePrivateKey(TestUri)
+            viewModel.onAction(AddConnectionAction.StagePrivateKey(TestUri))
             advanceUntilIdle()
 
-            assertEquals(SelectedPrivateKey("second.key", "second.pem"), viewModel.selectedPrivateKey.value)
+            assertEquals(SelectedPrivateKey("second.key", "second.pem"), viewModel.state.value.selectedPrivateKey)
             assertEquals(listOf("first.key"), keyStore.deleted)
         }
 
@@ -90,12 +129,12 @@ class AddConnectionViewModelTest {
                 ),
                 keyStore = keyStore,
             )
-            viewModel.stagePrivateKey(TestUri)
+            viewModel.onAction(AddConnectionAction.StagePrivateKey(TestUri))
             advanceUntilIdle()
 
-            viewModel.testAndSave(keyDraft(privateKeyFileName = "tested-a.key"))
+            viewModel.onAction(AddConnectionAction.TestAndSave(keyDraft(privateKeyFileName = "tested-a.key")))
             connectStarted.await()
-            viewModel.stagePrivateKey(TestUri)
+            viewModel.onAction(AddConnectionAction.StagePrivateKey(TestUri))
             runCurrent()
             allowConnect.complete(Unit)
             advanceUntilIdle()
@@ -128,12 +167,12 @@ class AddConnectionViewModelTest {
                 ),
                 keyStore = keyStore,
             )
-            viewModel.stagePrivateKey(TestUri)
+            viewModel.onAction(AddConnectionAction.StagePrivateKey(TestUri))
             advanceUntilIdle()
 
-            viewModel.testAndSave(keyDraft(privateKeyFileName = "tested-a.key"))
+            viewModel.onAction(AddConnectionAction.TestAndSave(keyDraft(privateKeyFileName = "tested-a.key")))
             connectStarted.await()
-            viewModel.removeSelectedPrivateKey()
+            viewModel.onAction(AddConnectionAction.RemoveSelectedPrivateKey)
             runCurrent()
             allowConnect.complete(Unit)
             advanceUntilIdle()
@@ -163,15 +202,15 @@ class AddConnectionViewModelTest {
                 ),
                 keyStore = keyStore,
             )
-            viewModel.stagePrivateKey(TestUri)
+            viewModel.onAction(AddConnectionAction.StagePrivateKey(TestUri))
             advanceUntilIdle()
 
-            viewModel.testAndSave(keyDraft(privateKeyFileName = "tested-a.key"))
+            viewModel.onAction(AddConnectionAction.TestAndSave(keyDraft(privateKeyFileName = "tested-a.key")))
             connectStarted.await()
-            viewModel.stagePrivateKey(TestUri)
+            viewModel.onAction(AddConnectionAction.StagePrivateKey(TestUri))
             runCurrent()
 
-            assertEquals(SaveState.Testing, viewModel.saveState.value)
+            assertEquals(SaveState.Testing, viewModel.state.value.saveState)
             assertEquals(1, keyStore.stageCalls)
             allowConnect.complete(Unit)
             advanceUntilIdle()
@@ -198,12 +237,12 @@ class AddConnectionViewModelTest {
                 ),
                 keyStore = keyStore,
             )
-            viewModel.stagePrivateKey(TestUri)
+            viewModel.onAction(AddConnectionAction.StagePrivateKey(TestUri))
             advanceUntilIdle()
 
-            viewModel.testAndSave(keyDraft(privateKeyFileName = "tested-a.key"))
+            viewModel.onAction(AddConnectionAction.TestAndSave(keyDraft(privateKeyFileName = "tested-a.key")))
             connectStarted.await()
-            viewModel.cancel()
+            viewModel.onAction(AddConnectionAction.Cancel)
             allowConnect.complete(Unit)
             advanceUntilIdle()
 
@@ -248,17 +287,17 @@ class AddConnectionViewModelTest {
                 deleteFailures = mutableMapOf("staged.key" to 1),
             )
             val viewModel = viewModel(keyStore = keyStore)
-            viewModel.stagePrivateKey(TestUri)
+            viewModel.onAction(AddConnectionAction.StagePrivateKey(TestUri))
             advanceUntilIdle()
 
-            viewModel.removeSelectedPrivateKey()
+            viewModel.onAction(AddConnectionAction.RemoveSelectedPrivateKey)
             advanceUntilIdle()
 
-            assertEquals(SelectedPrivateKey("staged.key", "id_ed25519"), viewModel.selectedPrivateKey.value)
-            assertTrue(viewModel.saveState.value is SaveState.Error)
+            assertEquals(SelectedPrivateKey("staged.key", "id_ed25519"), viewModel.state.value.selectedPrivateKey)
+            assertTrue(viewModel.state.value.saveState is SaveState.Error)
             assertTrue(keyStore.deleted.isEmpty())
 
-            viewModel.cancel()
+            viewModel.onAction(AddConnectionAction.Cancel)
             advanceUntilIdle()
             assertEquals(listOf("staged.key"), keyStore.deleted)
         }
@@ -278,12 +317,12 @@ class AddConnectionViewModelTest {
                 ),
             )
             val viewModel = viewModel(repository, factory, keyStore)
-            viewModel.stagePrivateKey(TestUri)
+            viewModel.onAction(AddConnectionAction.StagePrivateKey(TestUri))
             advanceUntilIdle()
-            viewModel.removeSelectedPrivateKey()
+            viewModel.onAction(AddConnectionAction.RemoveSelectedPrivateKey)
             advanceUntilIdle()
 
-            viewModel.testAndSave(keyDraft(privateKeyFileName = "removed-a.key"))
+            viewModel.onAction(AddConnectionAction.TestAndSave(keyDraft(privateKeyFileName = "removed-a.key")))
             advanceUntilIdle()
 
             assertEquals("", factory.created.single().privateKeyFileName)
@@ -308,7 +347,7 @@ class AddConnectionViewModelTest {
             )
             advanceUntilIdle()
 
-            viewModel.testAndSave(keyDraft(privateKeyFileName = "untrusted-caller.key"))
+            viewModel.onAction(AddConnectionAction.TestAndSave(keyDraft(privateKeyFileName = "untrusted-caller.key")))
             advanceUntilIdle()
 
             assertEquals("committed-existing.key", factory.created.single().privateKeyFileName)
@@ -335,10 +374,10 @@ class AddConnectionViewModelTest {
                 connectionId = 9,
             )
             advanceUntilIdle()
-            viewModel.stagePrivateKey(TestUri)
+            viewModel.onAction(AddConnectionAction.StagePrivateKey(TestUri))
             advanceUntilIdle()
 
-            viewModel.testAndSave(keyDraft(privateKeyFileName = "untrusted-caller.key"))
+            viewModel.onAction(AddConnectionAction.TestAndSave(keyDraft(privateKeyFileName = "untrusted-caller.key")))
             advanceUntilIdle()
 
             assertEquals("selected-new.key", factory.created.single().privateKeyFileName)
@@ -358,9 +397,9 @@ class AddConnectionViewModelTest {
                 deleteFailures = mutableMapOf("first.key" to 4),
             )
             val viewModel = viewModel(keyStore = keyStore)
-            viewModel.stagePrivateKey(TestUri)
+            viewModel.onAction(AddConnectionAction.StagePrivateKey(TestUri))
             advanceUntilIdle()
-            viewModel.stagePrivateKey(TestUri)
+            viewModel.onAction(AddConnectionAction.StagePrivateKey(TestUri))
             advanceUntilIdle()
 
             clear(viewModel)
@@ -377,14 +416,14 @@ class AddConnectionViewModelTest {
             val client = FakeNetworkClient(Result.failure(IllegalStateException("wrapped", confirmation)))
             val viewModel = viewModel(repository = repository, clients = ArrayDeque(listOf(client)))
 
-            viewModel.testAndSave(keyDraft())
+            viewModel.onAction(AddConnectionAction.TestAndSave(keyDraft()))
             advanceUntilIdle()
 
             assertEquals(
                 SaveState.ConfirmHostKey(
                     HostKeyConfirmation("sftp.example", 22, "EdDSA", "SHA256:server-key"),
                 ),
-                viewModel.saveState.value,
+                viewModel.state.value.saveState,
             )
             assertTrue(repository.upserted.isEmpty())
             assertEquals(1, client.disconnectCount)
@@ -424,7 +463,7 @@ class AddConnectionViewModelTest {
                 ),
             )
 
-            viewModel.testAndSave(keyDraft(authentication = NetworkAuthentication.PASSWORD))
+            viewModel.onAction(AddConnectionAction.TestAndSave(keyDraft(authentication = NetworkAuthentication.PASSWORD)))
             advanceUntilIdle()
 
             assertEquals(
@@ -435,7 +474,7 @@ class AddConnectionViewModelTest {
                         presentedFingerprint = "SHA256:presented-key",
                     ),
                 ),
-                viewModel.saveState.value,
+                viewModel.state.value.saveState,
             )
         }
 
@@ -449,15 +488,15 @@ class AddConnectionViewModelTest {
                 keyStore = keyStore,
                 clients = ArrayDeque(listOf(FakeNetworkClient(Result.failure(confirmation())))),
             )
-            viewModel.stagePrivateKey(TestUri)
+            viewModel.onAction(AddConnectionAction.StagePrivateKey(TestUri))
             advanceUntilIdle()
-            viewModel.testAndSave(keyDraft())
+            viewModel.onAction(AddConnectionAction.TestAndSave(keyDraft()))
             advanceUntilIdle()
 
-            viewModel.rejectHostKey()
+            viewModel.onAction(AddConnectionAction.RejectHostKey)
 
-            assertEquals(SaveState.Idle, viewModel.saveState.value)
-            assertEquals(SelectedPrivateKey("staged.key", "id_ed25519"), viewModel.selectedPrivateKey.value)
+            assertEquals(SaveState.Idle, viewModel.state.value.saveState)
+            assertEquals(SelectedPrivateKey("staged.key", "id_ed25519"), viewModel.state.value.selectedPrivateKey)
             assertTrue(keyStore.deleted.isEmpty())
         }
 
@@ -478,12 +517,12 @@ class AddConnectionViewModelTest {
             )
             val repository = FakeRepository()
             val viewModel = viewModel(repository, factory, keyStore)
-            viewModel.stagePrivateKey(TestUri)
+            viewModel.onAction(AddConnectionAction.StagePrivateKey(TestUri))
             advanceUntilIdle()
 
-            viewModel.testAndSave(draft)
+            viewModel.onAction(AddConnectionAction.TestAndSave(draft))
             advanceUntilIdle()
-            viewModel.acceptHostKey()
+            viewModel.onAction(AddConnectionAction.AcceptHostKey)
             advanceUntilIdle()
 
             assertEquals(draft.copy(privateKeyFileName = "staged.key"), factory.created[0])
@@ -512,10 +551,10 @@ class AddConnectionViewModelTest {
             )
             advanceUntilIdle()
             events.clear()
-            viewModel.stagePrivateKey(TestUri)
+            viewModel.onAction(AddConnectionAction.StagePrivateKey(TestUri))
             advanceUntilIdle()
 
-            viewModel.testAndSave(keyDraft(privateKeyFileName = "staged.key"))
+            viewModel.onAction(AddConnectionAction.TestAndSave(keyDraft(privateKeyFileName = "staged.key")))
             advanceUntilIdle()
 
             assertEquals(
@@ -523,7 +562,7 @@ class AddConnectionViewModelTest {
                 events,
             )
             assertEquals("new.key", repository.upserted.single().privateKeyFileName)
-            assertNull(viewModel.selectedPrivateKey.value)
+            assertNull(viewModel.state.value.selectedPrivateKey)
         }
 
     @Test
@@ -540,14 +579,14 @@ class AddConnectionViewModelTest {
                 connectionId = 9,
             )
             advanceUntilIdle()
-            viewModel.stagePrivateKey(TestUri)
+            viewModel.onAction(AddConnectionAction.StagePrivateKey(TestUri))
             advanceUntilIdle()
 
-            viewModel.testAndSave(keyDraft(privateKeyFileName = "staged.key"))
+            viewModel.onAction(AddConnectionAction.TestAndSave(keyDraft(privateKeyFileName = "staged.key")))
             advanceUntilIdle()
 
-            assertTrue(viewModel.saveState.value is SaveState.Error)
-            assertEquals(SelectedPrivateKey("staged.key", "new.pem"), viewModel.selectedPrivateKey.value)
+            assertTrue(viewModel.state.value.saveState is SaveState.Error)
+            assertEquals(SelectedPrivateKey("staged.key", "new.pem"), viewModel.state.value.selectedPrivateKey)
             assertTrue(repository.upserted.isEmpty())
             assertTrue(keyStore.committed.isEmpty())
             assertTrue(keyStore.deleted.isEmpty())
@@ -570,15 +609,17 @@ class AddConnectionViewModelTest {
             )
             advanceUntilIdle()
             events.clear()
-            viewModel.stagePrivateKey(TestUri)
+            viewModel.onAction(AddConnectionAction.StagePrivateKey(TestUri))
             advanceUntilIdle()
 
-            viewModel.testAndSave(
-                keyDraft(
-                    authentication = NetworkAuthentication.PASSWORD,
-                    password = "password",
-                    privateKeyFileName = "stale.key",
-                    privateKeyPassphrase = "stale passphrase",
+            viewModel.onAction(
+                AddConnectionAction.TestAndSave(
+                    keyDraft(
+                        authentication = NetworkAuthentication.PASSWORD,
+                        password = "password",
+                        privateKeyFileName = "stale.key",
+                        privateKeyPassphrase = "stale passphrase",
+                    ),
                 ),
             )
             advanceUntilIdle()
@@ -611,16 +652,16 @@ class AddConnectionViewModelTest {
                 connectionId = 9,
             )
             advanceUntilIdle()
-            viewModel.stagePrivateKey(TestUri)
+            viewModel.onAction(AddConnectionAction.StagePrivateKey(TestUri))
             advanceUntilIdle()
 
-            viewModel.testAndSave(keyDraft(privateKeyFileName = "staged.key"))
+            viewModel.onAction(AddConnectionAction.TestAndSave(keyDraft(privateKeyFileName = "staged.key")))
             advanceUntilIdle()
 
-            assertTrue(viewModel.saveState.value is SaveState.Error)
+            assertTrue(viewModel.state.value.saveState is SaveState.Error)
             assertEquals(listOf("new.key"), keyStore.deleted)
             assertFalse("old.key" in keyStore.deleted)
-            assertNull(viewModel.selectedPrivateKey.value)
+            assertNull(viewModel.state.value.selectedPrivateKey)
         }
 
     @Test
@@ -642,13 +683,13 @@ class AddConnectionViewModelTest {
                 connectionId = 9,
             )
             advanceUntilIdle()
-            viewModel.stagePrivateKey(TestUri)
+            viewModel.onAction(AddConnectionAction.StagePrivateKey(TestUri))
             advanceUntilIdle()
 
-            viewModel.testAndSave(keyDraft(privateKeyFileName = "staged.key"))
+            viewModel.onAction(AddConnectionAction.TestAndSave(keyDraft(privateKeyFileName = "staged.key")))
             advanceUntilIdle()
 
-            assertEquals("database unavailable", (viewModel.saveState.value as SaveState.Error).message)
+            assertEquals("database unavailable", (viewModel.state.value.saveState as SaveState.Error).message)
             assertEquals(listOf("new.key", "new.key"), keyStore.deleteAttempts)
             assertEquals(listOf("new.key"), keyStore.deleted)
             assertFalse("old.key" in keyStore.deleteAttempts)
@@ -670,13 +711,13 @@ class AddConnectionViewModelTest {
                 connectionId = 9,
             )
             advanceUntilIdle()
-            viewModel.stagePrivateKey(TestUri)
+            viewModel.onAction(AddConnectionAction.StagePrivateKey(TestUri))
             advanceUntilIdle()
 
-            viewModel.testAndSave(keyDraft(privateKeyFileName = "staged.key"))
+            viewModel.onAction(AddConnectionAction.TestAndSave(keyDraft(privateKeyFileName = "staged.key")))
             advanceUntilIdle()
 
-            assertEquals(SaveState.Idle, viewModel.saveState.value)
+            assertEquals(SaveState.Idle, viewModel.state.value.saveState)
             assertEquals(listOf("old.key", "old.key"), keyStore.deleteAttempts)
             assertEquals(listOf("old.key"), keyStore.deleted)
         }
@@ -694,10 +735,10 @@ class AddConnectionViewModelTest {
             )
             advanceUntilIdle()
 
-            viewModel.testAndSave(keyDraft(authentication = NetworkAuthentication.PASSWORD, password = "password"))
+            viewModel.onAction(AddConnectionAction.TestAndSave(keyDraft(authentication = NetworkAuthentication.PASSWORD, password = "password")))
             advanceUntilIdle()
 
-            assertEquals(SaveState.Idle, viewModel.saveState.value)
+            assertEquals(SaveState.Idle, viewModel.state.value.saveState)
             assertEquals("", repository.upserted.single().privateKeyFileName)
             assertEquals(listOf("old.key", "old.key"), keyStore.deleteAttempts)
             assertEquals(listOf("old.key"), keyStore.deleted)
@@ -726,10 +767,10 @@ class AddConnectionViewModelTest {
                 connectionId = 9,
             )
             advanceUntilIdle()
-            viewModel.stagePrivateKey(TestUri)
+            viewModel.onAction(AddConnectionAction.StagePrivateKey(TestUri))
             advanceUntilIdle()
 
-            viewModel.testAndSave(keyDraft(privateKeyFileName = "staged.key"))
+            viewModel.onAction(AddConnectionAction.TestAndSave(keyDraft(privateKeyFileName = "staged.key")))
             upsertReached.await()
             clear(viewModel)
             allowUpsertToReturn.complete(Unit)
@@ -761,7 +802,7 @@ class AddConnectionViewModelTest {
             )
             advanceUntilIdle()
 
-            viewModel.testAndSave(keyDraft(authentication = NetworkAuthentication.PASSWORD, password = "password"))
+            viewModel.onAction(AddConnectionAction.TestAndSave(keyDraft(authentication = NetworkAuthentication.PASSWORD, password = "password")))
             upsertReached.await()
             clear(viewModel)
             allowUpsertToReturn.complete(Unit)
@@ -783,14 +824,14 @@ class AddConnectionViewModelTest {
                 connectionId = 9,
             )
             advanceUntilIdle()
-            viewModel.stagePrivateKey(TestUri)
+            viewModel.onAction(AddConnectionAction.StagePrivateKey(TestUri))
             advanceUntilIdle()
 
-            viewModel.cancel()
+            viewModel.onAction(AddConnectionAction.Cancel)
             advanceUntilIdle()
 
             assertEquals(listOf("staged.key"), keyStore.deleted)
-            assertNull(viewModel.selectedPrivateKey.value)
+            assertNull(viewModel.state.value.selectedPrivateKey)
         }
 
     @Test
@@ -805,7 +846,7 @@ class AddConnectionViewModelTest {
                 connectionId = 9,
             )
             advanceUntilIdle()
-            viewModel.stagePrivateKey(TestUri)
+            viewModel.onAction(AddConnectionAction.StagePrivateKey(TestUri))
             advanceUntilIdle()
             val store = register(viewModel)
 
@@ -829,7 +870,8 @@ class AddConnectionViewModelTest {
         keyStore: FakeSshKeyStore,
         connectionId: Long? = null,
     ) = AddConnectionViewModel(
-        connectionId,
+        AddConnectionViewModel.Input(connectionId),
+        AddConnectionViewModel.Output(navigateUp = {}),
         repository,
         factory,
         keyStore,
@@ -868,10 +910,10 @@ class AddConnectionViewModelTest {
                 clients = ArrayDeque(listOf(FakeNetworkClient(Result.failure(error)))),
             )
 
-            viewModel.testAndSave(keyDraft(authentication = NetworkAuthentication.PASSWORD))
+            viewModel.onAction(AddConnectionAction.TestAndSave(keyDraft(authentication = NetworkAuthentication.PASSWORD)))
             advanceUntilIdle()
 
-            assertEquals(expected, (viewModel.saveState.value as SaveState.Error).message)
+            assertEquals(expected, (viewModel.state.value.saveState as SaveState.Error).message)
         }
 
     private fun keyDraft(

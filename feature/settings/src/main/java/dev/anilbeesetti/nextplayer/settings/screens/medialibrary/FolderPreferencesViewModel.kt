@@ -1,37 +1,49 @@
 package dev.anilbeesetti.nextplayer.settings.screens.medialibrary
 
-import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import dagger.assisted.Assisted
+import dagger.assisted.AssistedFactory
+import dagger.assisted.AssistedInject
 import dagger.hilt.android.lifecycle.HiltViewModel
 import dev.anilbeesetti.nextplayer.core.data.repository.MediaRepository
 import dev.anilbeesetti.nextplayer.core.data.repository.PreferencesRepository
 import dev.anilbeesetti.nextplayer.core.model.ApplicationPreferences
 import dev.anilbeesetti.nextplayer.core.model.Folder
 import dev.anilbeesetti.nextplayer.core.ui.base.DataState
-import javax.inject.Inject
+import dev.anilbeesetti.nextplayer.core.ui.base.MviViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 
-@HiltViewModel
-class FolderPreferencesViewModel @Inject constructor(
+@HiltViewModel(assistedFactory = FolderPreferencesViewModel.Factory::class)
+class FolderPreferencesViewModel @AssistedInject constructor(
     mediaRepository: MediaRepository,
     private val preferencesRepository: PreferencesRepository,
-) : ViewModel() {
+    @Assisted internal var output: Output,
+) : MviViewModel<FolderPreferencesUiState, FolderPreferencesUiEvent>() {
 
-    private val uiStateInternal = MutableStateFlow(
+    data class Output(
+        val navigateUp: () -> Unit,
+    )
+
+    @AssistedFactory
+    interface Factory {
+        fun create(output: Output): FolderPreferencesViewModel
+    }
+
+    private val stateInternal = MutableStateFlow(
         FolderPreferencesUiState(
             preferences = preferencesRepository.applicationPreferences.value,
         ),
     )
-    val uiState: StateFlow<FolderPreferencesUiState> = uiStateInternal.asStateFlow()
+    override val state: StateFlow<FolderPreferencesUiState> = stateInternal.asStateFlow()
 
     init {
         viewModelScope.launch {
             mediaRepository.observeFolders().collect {
-                uiStateInternal.update { currentState ->
+                stateInternal.update { currentState ->
                     currentState.copy(foldersDataState = DataState.Success(it))
                 }
             }
@@ -39,16 +51,18 @@ class FolderPreferencesViewModel @Inject constructor(
 
         viewModelScope.launch {
             preferencesRepository.applicationPreferences.collect { preferences ->
-                uiStateInternal.update { currentState ->
+                stateInternal.update { currentState ->
                     currentState.copy(preferences = preferences)
                 }
             }
         }
     }
 
-    fun onEvent(event: FolderPreferencesUiEvent) {
-        when (event) {
-            is FolderPreferencesUiEvent.UpdateExcludeList -> updateExcludeList(event.path)
+    override fun onAction(action: FolderPreferencesUiEvent) {
+        when (action) {
+            is FolderPreferencesUiEvent.NavigateUp -> output.navigateUp()
+
+            is FolderPreferencesUiEvent.UpdateExcludeList -> updateExcludeList(action.path)
         }
     }
 
@@ -73,5 +87,7 @@ data class FolderPreferencesUiState(
 )
 
 sealed interface FolderPreferencesUiEvent {
+    data object NavigateUp : FolderPreferencesUiEvent
+
     data class UpdateExcludeList(val path: String) : FolderPreferencesUiEvent
 }

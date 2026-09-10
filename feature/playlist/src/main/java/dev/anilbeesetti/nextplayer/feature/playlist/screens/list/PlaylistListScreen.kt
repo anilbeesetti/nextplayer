@@ -9,7 +9,6 @@ import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Spacer
-import androidx.compose.foundation.layout.calculateStartPadding
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
@@ -38,24 +37,22 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
-import androidx.compose.ui.platform.LocalLayoutDirection
 import androidx.compose.ui.res.pluralStringResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
-import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import dev.anilbeesetti.nextplayer.core.model.PlaylistSummary
 import dev.anilbeesetti.nextplayer.core.model.PlaylistType
 import dev.anilbeesetti.nextplayer.core.ui.R
 import dev.anilbeesetti.nextplayer.core.ui.base.DataState
+import dev.anilbeesetti.nextplayer.core.ui.components.BindTopLevelFab
 import dev.anilbeesetti.nextplayer.core.ui.components.LocalNavigationBottomPadding
 import dev.anilbeesetti.nextplayer.core.ui.components.NextDialog
 import dev.anilbeesetti.nextplayer.core.ui.components.NextSegmentedListItem
 import dev.anilbeesetti.nextplayer.core.ui.components.NextTopAppBar
-import dev.anilbeesetti.nextplayer.core.ui.components.BindTopLevelFab
 import dev.anilbeesetti.nextplayer.core.ui.components.TopLevelFabKey
 import dev.anilbeesetti.nextplayer.core.ui.components.rememberTvListFocusRequester
 import dev.anilbeesetti.nextplayer.core.ui.components.tvFocusRing
@@ -65,34 +62,26 @@ import dev.anilbeesetti.nextplayer.core.ui.extensions.copy
 
 @Composable
 fun PlaylistListScreen(
-    viewModel: PlaylistListViewModel = hiltViewModel(),
+    viewModel: PlaylistListViewModel,
 ) {
-    val uiState by viewModel.state.collectAsStateWithLifecycle()
-    val openM3UFileLauncher = rememberLauncherForActivityResult(
-        ActivityResultContracts.OpenDocument(),
-    ) { uri ->
-        uri?.let(viewModel::createM3UFile)
-    }
+    val state by viewModel.state.collectAsStateWithLifecycle()
 
-    LaunchedEffect(Unit) {
-        viewModel.synchronize()
-    }
+    LaunchedEffect(viewModel) { viewModel.onAction(PlaylistUiAction.Synchronize) }
 
     PlaylistListScreenContent(
-        uiState = uiState,
+        state = state,
         onAction = viewModel::onAction,
-        onPickM3UFile = {
-            openM3UFileLauncher.launch(M3U_MIME_TYPES)
-        },
     )
 }
 
 @Composable
 internal fun PlaylistListScreenContent(
-    uiState: PlaylistListUiState,
+    state: PlaylistListUiState,
     onAction: (PlaylistUiAction) -> Unit = {},
-    onPickM3UFile: () -> Unit = {},
 ) {
+    val openM3UFileLauncher = rememberLauncherForActivityResult(ActivityResultContracts.OpenDocument()) { uri ->
+        uri?.let { onAction(PlaylistUiAction.CreateM3UFile(it)) }
+    }
     BindTopLevelFab(
         key = TopLevelFabKey.PLAYLISTS,
         icon = NextIcons.Add,
@@ -128,7 +117,7 @@ internal fun PlaylistListScreenContent(
                 .clip(RoundedCornerShape(topStart = 24.dp, topEnd = 24.dp))
                 .background(MaterialTheme.colorScheme.background),
         ) {
-            when (uiState.playlistsDataState) {
+            when (state.playlistsDataState) {
                 is DataState.Loading -> {
                     CircularProgressIndicator(Modifier.align(Alignment.Center))
                 }
@@ -138,7 +127,7 @@ internal fun PlaylistListScreenContent(
                 }
 
                 is DataState.Success -> {
-                    val playlistList = uiState.playlistsDataState.value
+                    val playlistList = state.playlistsDataState.value
 
                     if (playlistList.isEmpty()) {
                         PlaylistListEmptyState(Modifier.fillMaxSize())
@@ -153,13 +142,13 @@ internal fun PlaylistListScreenContent(
                             verticalArrangement = Arrangement.spacedBy(2.dp),
                         ) {
                             itemsIndexed(
-                                items = uiState.playlistsDataState.value,
+                                items = state.playlistsDataState.value,
                                 key = { _, playlist -> playlist.id },
                             ) { index, playlist ->
                                 PlaylistRow(
                                     playlist = playlist,
                                     isFirstItem = index == 0,
-                                    isLastItem = index == uiState.playlistsDataState.value.lastIndex,
+                                    isLastItem = index == state.playlistsDataState.value.lastIndex,
                                     onClick = { onAction(PlaylistUiAction.OnPlaylistClick(playlist)) },
                                     onRename = { onAction(PlaylistUiAction.ShowRenameDialogFor(playlist)) },
                                     onDelete = { onAction(PlaylistUiAction.ShowDeleteDialogFor(playlist)) },
@@ -172,7 +161,7 @@ internal fun PlaylistListScreenContent(
         }
     }
 
-    when (uiState.creationDialog) {
+    when (state.creationDialog) {
         PlaylistCreationDialog.NONE -> Unit
         PlaylistCreationDialog.CHOOSER -> CreationChooserDialog(
             onDismissRequest = { onAction(PlaylistUiAction.DismissCreation) },
@@ -180,40 +169,40 @@ internal fun PlaylistListScreenContent(
             onCreateUrl = { onAction(PlaylistUiAction.ChooseM3UUrl) },
             onCreateFile = {
                 onAction(PlaylistUiAction.DismissCreation)
-                onPickM3UFile()
+                openM3UFileLauncher.launch(M3U_MIME_TYPES)
             },
         )
 
         PlaylistCreationDialog.LOCAL_NAME -> PlaylistNameDialog(
             title = stringResource(R.string.create_local_playlist),
             confirmLabel = stringResource(R.string.create),
-            isSaving = uiState.saveActionState.isRunning,
-            error = uiState.saveActionState.errorMessage,
+            isSaving = state.saveActionState.isRunning,
+            error = state.saveActionState.errorMessage,
             onDismissRequest = { onAction(PlaylistUiAction.DismissCreation) },
             onConfirm = { onAction(PlaylistUiAction.CreateLocal(it)) },
         )
 
         PlaylistCreationDialog.M3U_URL -> M3UUrlDialog(
-            isSaving = uiState.saveActionState.isRunning,
-            error = uiState.saveActionState.errorMessage,
+            isSaving = state.saveActionState.isRunning,
+            error = state.saveActionState.errorMessage,
             onDismissRequest = { onAction(PlaylistUiAction.DismissCreation) },
             onConfirm = { onAction(PlaylistUiAction.CreateM3UUrl(it)) },
         )
     }
 
-    uiState.showRenameDialogFor?.let { playlist ->
+    state.showRenameDialogFor?.let { playlist ->
         PlaylistNameDialog(
             title = stringResource(R.string.rename_playlist),
             confirmLabel = stringResource(R.string.save),
             initialName = playlist.name,
-            isSaving = uiState.saveActionState.isRunning,
-            error = uiState.saveActionState.errorMessage,
+            isSaving = state.saveActionState.isRunning,
+            error = state.saveActionState.errorMessage,
             onDismissRequest = { onAction(PlaylistUiAction.DismissRenameDialog) },
             onConfirm = { onAction(PlaylistUiAction.Rename(playlist.id, it)) },
         )
     }
 
-    uiState.showDeleteDialogFor?.let { playlist ->
+    state.showDeleteDialogFor?.let { playlist ->
         NextDialog(
             title = { Text(text = stringResource(R.string.delete_playlist)) },
             content = {
@@ -430,7 +419,9 @@ private fun PlaylistRow(
 ) {
     var menuExpanded by rememberSaveable { mutableStateOf(false) }
     val videoCount = pluralStringResource(
-        R.plurals.playlist_video_count, playlist.itemCount, playlist.itemCount,
+        R.plurals.playlist_video_count,
+        playlist.itemCount,
+        playlist.itemCount,
     )
 
     NextSegmentedListItem(
@@ -509,9 +500,9 @@ private fun PlaylistType.label(): String = stringResource(
 private fun String.isHttpUrl(): Boolean = runCatching {
     val uri = Uri.parse(this)
     (
-            uri.scheme.equals("http", ignoreCase = true) ||
-                    uri.scheme.equals("https", ignoreCase = true)
-            ) && !uri.host.isNullOrBlank()
+        uri.scheme.equals("http", ignoreCase = true) ||
+            uri.scheme.equals("https", ignoreCase = true)
+        ) && !uri.host.isNullOrBlank()
 }.getOrDefault(false)
 
 private val M3U_MIME_TYPES = arrayOf(

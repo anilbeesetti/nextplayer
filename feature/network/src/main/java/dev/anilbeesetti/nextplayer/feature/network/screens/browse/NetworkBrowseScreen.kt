@@ -1,6 +1,5 @@
 package dev.anilbeesetti.nextplayer.feature.network.screens.browse
 
-import android.net.Uri
 import android.text.format.DateFormat
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
@@ -51,44 +50,32 @@ import dev.anilbeesetti.nextplayer.core.ui.components.tvFocusRing
 import dev.anilbeesetti.nextplayer.core.ui.components.tvListFocus
 import dev.anilbeesetti.nextplayer.core.ui.designsystem.NextIcons
 import dev.anilbeesetti.nextplayer.core.ui.extensions.copy
-import dev.anilbeesetti.nextplayer.feature.network.ObserveAsEvents
 import java.util.Date
 
 @Composable
 fun NetworkBrowseScreen(
-    onNavigateUp: () -> Unit,
-    onPlayVideo: (Uri) -> Unit,
-    onNavigateToFolder: (connectionId: Long, path: String) -> Unit,
     viewModel: NetworkBrowseViewModel,
 ) {
-    val uiState by viewModel.uiState.collectAsStateWithLifecycle()
-
-    ObserveAsEvents(viewModel.playEvents) { uri -> onPlayVideo(uri) }
+    val state by viewModel.state.collectAsStateWithLifecycle()
 
     NetworkBrowseScreenContent(
-        uiState = uiState,
-        onBack = onNavigateUp,
-        onFolderClick = { file -> onNavigateToFolder(viewModel.connectionId, file.path) },
-        onVideoClick = viewModel::playVideo,
-        onRetry = viewModel::retry,
+        state = state,
+        onAction = viewModel::onAction,
     )
 }
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 internal fun NetworkBrowseScreenContent(
-    uiState: NetworkBrowseUiState,
-    onBack: () -> Unit,
-    onFolderClick: (NetworkFile) -> Unit,
-    onVideoClick: (NetworkFile) -> Unit,
-    onRetry: () -> Unit,
+    state: NetworkBrowseUiState,
+    onAction: (NetworkBrowseAction) -> Unit,
 ) {
     Scaffold(
         topBar = {
             NextTopAppBar(
-                title = uiState.title,
+                title = state.title,
                 navigationIcon = {
-                    FilledTonalIconButton(onClick = onBack, modifier = Modifier.tvFocusRing()) {
+                    FilledTonalIconButton(onClick = { onAction(NetworkBrowseAction.NavigateUp) }, modifier = Modifier.tvFocusRing()) {
                         Icon(
                             imageVector = NextIcons.ArrowBack,
                             contentDescription = stringResource(R.string.navigate_up),
@@ -100,14 +87,14 @@ internal fun NetworkBrowseScreenContent(
         containerColor = MaterialTheme.colorScheme.surfaceContainer,
     ) { scaffoldPadding ->
         when {
-            uiState.isLoading -> {
+            state.isLoading -> {
                 Box(Modifier.fillMaxSize().padding(scaffoldPadding), contentAlignment = Alignment.Center) {
                     CircularProgressIndicator()
                 }
             }
 
-            uiState.error != null -> {
-                val error = uiState.error
+            state.error != null -> {
+                val error = state.error
                 Column(
                     modifier = Modifier.fillMaxSize().padding(scaffoldPadding).padding(horizontal = 32.dp),
                     verticalArrangement = Arrangement.Center,
@@ -157,7 +144,7 @@ internal fun NetworkBrowseScreenContent(
                         }
                     }
                     Spacer(Modifier.size(16.dp))
-                    Button(onClick = onRetry) { Text(stringResource(R.string.retry)) }
+                    Button(onClick = { onAction(NetworkBrowseAction.Retry) }) { Text(stringResource(R.string.retry)) }
                 }
             }
 
@@ -169,7 +156,7 @@ internal fun NetworkBrowseScreenContent(
                     .background(MaterialTheme.colorScheme.background)
 
                 Box(modifier = containerModifier) {
-                    if (uiState.files.isEmpty()) {
+                    if (state.files.isEmpty()) {
                         Box(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
                             Text(
                                 text = stringResource(R.string.empty_folder),
@@ -190,15 +177,15 @@ internal fun NetworkBrowseScreenContent(
                             verticalArrangement = Arrangement.spacedBy(2.dp),
                         ) {
                             itemsIndexed(
-                                items = uiState.files,
+                                items = state.files,
                                 key = { _, file -> file.path },
                             ) { index, file ->
                                 NetworkFileItem(
                                     file = file,
                                     isFirstItem = index == 0,
-                                    isLastItem = index == uiState.files.lastIndex,
+                                    isLastItem = index == state.files.lastIndex,
                                     onClick = {
-                                        if (file.isDirectory) onFolderClick(file) else onVideoClick(file)
+                                        if (file.isDirectory) onAction(NetworkBrowseAction.OpenFolder(file)) else onAction(NetworkBrowseAction.PlayVideo(file))
                                     },
                                 )
                             }

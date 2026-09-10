@@ -1,8 +1,11 @@
 package dev.anilbeesetti.nextplayer.feature.videopicker.screens.search
 
+import android.net.Uri
 import androidx.compose.runtime.Stable
-import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import dagger.assisted.Assisted
+import dagger.assisted.AssistedFactory
+import dagger.assisted.AssistedInject
 import dagger.hilt.android.lifecycle.HiltViewModel
 import dev.anilbeesetti.nextplayer.core.data.repository.PreferencesRepository
 import dev.anilbeesetti.nextplayer.core.data.repository.SearchHistoryRepository
@@ -11,26 +14,39 @@ import dev.anilbeesetti.nextplayer.core.domain.SearchMediaUseCase
 import dev.anilbeesetti.nextplayer.core.domain.SearchResults
 import dev.anilbeesetti.nextplayer.core.model.ApplicationPreferences
 import dev.anilbeesetti.nextplayer.core.model.Folder
+import dev.anilbeesetti.nextplayer.core.ui.base.MviViewModel
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.FlowPreview
 import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.debounce
 import kotlinx.coroutines.flow.flatMapLatest
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
-import javax.inject.Inject
 
-@HiltViewModel
-class SearchViewModel @Inject constructor(
+@HiltViewModel(assistedFactory = SearchViewModel.Factory::class)
+class SearchViewModel @AssistedInject constructor(
     private val searchMediaUseCase: SearchMediaUseCase,
     private val getPopularFoldersUseCase: GetPopularFoldersUseCase,
     private val searchHistoryRepository: SearchHistoryRepository,
     private val preferencesRepository: PreferencesRepository,
-) : ViewModel() {
+    @Assisted internal var output: Output,
+) : MviViewModel<SearchUiState, SearchUiEvent>() {
 
-    private val uiStateInternal = MutableStateFlow(SearchUiState())
-    val uiState = uiStateInternal.asStateFlow()
+    data class Output(
+        val navigateUp: () -> Unit,
+        val playVideo: (Uri) -> Unit,
+        val openFolder: (String) -> Unit,
+    )
+
+    @AssistedFactory
+    interface Factory {
+        fun create(output: Output): SearchViewModel
+    }
+
+    private val stateInternal = MutableStateFlow(SearchUiState())
+    override val state: StateFlow<SearchUiState> = stateInternal.asStateFlow()
 
     private val searchQuery = MutableStateFlow("")
 
@@ -44,7 +60,7 @@ class SearchViewModel @Inject constructor(
     private fun collectSearchHistory() {
         viewModelScope.launch {
             searchHistoryRepository.searchHistory.collect { history ->
-                uiStateInternal.update { it.copy(searchHistory = history) }
+                stateInternal.update { it.copy(searchHistory = history) }
             }
         }
     }
@@ -52,7 +68,7 @@ class SearchViewModel @Inject constructor(
     private fun collectPopularFolders() {
         viewModelScope.launch {
             getPopularFoldersUseCase(limit = 5).collect { folders ->
-                uiStateInternal.update { it.copy(popularFolders = folders) }
+                stateInternal.update { it.copy(popularFolders = folders) }
             }
         }
     }
@@ -60,7 +76,7 @@ class SearchViewModel @Inject constructor(
     private fun collectPreferences() {
         viewModelScope.launch {
             preferencesRepository.applicationPreferences.collect { prefs ->
-                uiStateInternal.update { it.copy(preferences = prefs) }
+                stateInternal.update { it.copy(preferences = prefs) }
             }
         }
     }
@@ -74,7 +90,7 @@ class SearchViewModel @Inject constructor(
                     searchMediaUseCase(query)
                 }
                 .collect { results ->
-                    uiStateInternal.update {
+                    stateInternal.update {
                         it.copy(
                             searchResults = results,
                             isSearching = false,
@@ -84,18 +100,22 @@ class SearchViewModel @Inject constructor(
         }
     }
 
-    fun onEvent(event: SearchUiEvent) {
-        when (event) {
-            is SearchUiEvent.OnQueryChange -> onQueryChange(event.query)
-            is SearchUiEvent.OnSearch -> onSearch(event.query)
-            is SearchUiEvent.OnHistoryItemClick -> onHistoryItemClick(event.query)
-            is SearchUiEvent.OnRemoveHistoryItem -> removeHistoryItem(event.query)
+    override fun onAction(action: SearchUiEvent) {
+        when (action) {
+            is SearchUiEvent.NavigateUp -> output.navigateUp()
+            is SearchUiEvent.PlayVideo -> output.playVideo(action.uri)
+            is SearchUiEvent.OpenFolder -> output.openFolder(action.path)
+
+            is SearchUiEvent.OnQueryChange -> onQueryChange(action.query)
+            is SearchUiEvent.OnSearch -> onSearch(action.query)
+            is SearchUiEvent.OnHistoryItemClick -> onHistoryItemClick(action.query)
+            is SearchUiEvent.OnRemoveHistoryItem -> removeHistoryItem(action.query)
             is SearchUiEvent.OnClearHistory -> clearHistory()
         }
     }
 
     private fun onQueryChange(query: String) {
-        uiStateInternal.update { it.copy(query = query, isSearching = query.isNotBlank()) }
+        stateInternal.update { it.copy(query = query, isSearching = query.isNotBlank()) }
         searchQuery.value = query
     }
 
@@ -107,7 +127,7 @@ class SearchViewModel @Inject constructor(
     }
 
     private fun onHistoryItemClick(query: String) {
-        uiStateInternal.update { it.copy(query = query, isSearching = true) }
+        stateInternal.update { it.copy(query = query, isSearching = true) }
         searchQuery.value = query
         onSearch(query)
     }
@@ -140,6 +160,10 @@ data class SearchUiState(
 )
 
 sealed interface SearchUiEvent {
+    data object NavigateUp : SearchUiEvent
+    data class PlayVideo(val uri: Uri) : SearchUiEvent
+    data class OpenFolder(val path: String) : SearchUiEvent
+
     data class OnQueryChange(val query: String) : SearchUiEvent
     data class OnSearch(val query: String) : SearchUiEvent
     data class OnHistoryItemClick(val query: String) : SearchUiEvent

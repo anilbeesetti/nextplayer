@@ -142,6 +142,7 @@ dependencies {
     implementation(libs.github.anilbeesetti.nextlib.mediainfo)
 
     testImplementation(libs.junit4)
+    testImplementation(libs.kotlinx.coroutines.test)
     testImplementation(libs.robolectric)
     androidTestImplementation(platform(libs.androidx.compose.bom))
     androidTestImplementation(libs.androidx.test.ext)

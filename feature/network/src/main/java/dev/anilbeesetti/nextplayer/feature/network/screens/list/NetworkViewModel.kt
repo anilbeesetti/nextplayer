@@ -1,19 +1,22 @@
 package dev.anilbeesetti.nextplayer.feature.network.screens.list
 
-import androidx.lifecycle.ViewModel
+import android.net.Uri
 import androidx.lifecycle.viewModelScope
+import dagger.assisted.Assisted
+import dagger.assisted.AssistedFactory
+import dagger.assisted.AssistedInject
 import dagger.hilt.android.lifecycle.HiltViewModel
 import dev.anilbeesetti.nextplayer.core.data.repository.NetworkConnectionRepository
 import dev.anilbeesetti.nextplayer.core.media.network.keys.SshKeyStore
 import dev.anilbeesetti.nextplayer.core.model.NetworkAuthentication
 import dev.anilbeesetti.nextplayer.core.model.NetworkConnection
-import javax.inject.Inject
+import dev.anilbeesetti.nextplayer.core.ui.base.MviViewModel
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.NonCancellable
-import kotlinx.coroutines.flow.SharingStarted
+import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
-import kotlinx.coroutines.flow.map
-import kotlinx.coroutines.flow.stateIn
+import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 
@@ -22,21 +25,50 @@ data class NetworkUiState(
     val isLoading: Boolean = true,
 )
 
-@HiltViewModel
-class NetworkViewModel @Inject constructor(
+@HiltViewModel(assistedFactory = NetworkViewModel.Factory::class)
+class NetworkViewModel @AssistedInject constructor(
     private val repository: NetworkConnectionRepository,
     private val sshKeyStore: SshKeyStore,
-) : ViewModel() {
+    @Assisted internal var output: Output,
+) : MviViewModel<NetworkUiState, NetworkAction>() {
 
-    val uiState: StateFlow<NetworkUiState> = repository.getConnections()
-        .map { NetworkUiState(connections = it, isLoading = false) }
-        .stateIn(
-            scope = viewModelScope,
-            started = SharingStarted.WhileSubscribed(5_000),
-            initialValue = NetworkUiState(),
-        )
+    data class Output(
+        val addConnection: () -> Unit,
+        val editConnection: (Long) -> Unit,
+        val openConnection: (Long) -> Unit,
+        val openSettings: () -> Unit,
+        val openStream: (Uri) -> Unit,
+    )
 
-    fun deleteConnection(id: Long) {
+    @AssistedFactory
+    interface Factory {
+        fun create(output: Output): NetworkViewModel
+    }
+
+    private val stateInternal = MutableStateFlow(NetworkUiState())
+    override val state: StateFlow<NetworkUiState> = stateInternal.asStateFlow()
+
+    init {
+        viewModelScope.launch {
+            repository.getConnections().collect { connections ->
+                stateInternal.update { it.copy(connections = connections, isLoading = false) }
+            }
+        }
+    }
+
+    override fun onAction(action: NetworkAction) {
+        when (action) {
+            is NetworkAction.AddConnection -> output.addConnection()
+            is NetworkAction.EditConnection -> output.editConnection(action.id)
+            is NetworkAction.OpenConnection -> output.openConnection(action.id)
+            is NetworkAction.OpenSettings -> output.openSettings()
+            is NetworkAction.OpenStream -> output.openStream(action.uri)
+
+            is NetworkAction.DeleteConnection -> deleteConnection(action.id)
+        }
+    }
+
+    private fun deleteConnection(id: Long) {
         viewModelScope.launch {
             try {
                 deleteConnectionAndCleanup(id, repository, sshKeyStore)
@@ -47,6 +79,16 @@ class NetworkViewModel @Inject constructor(
             }
         }
     }
+}
+
+sealed interface NetworkAction {
+    data object AddConnection : NetworkAction
+    data class EditConnection(val id: Long) : NetworkAction
+    data class OpenConnection(val id: Long) : NetworkAction
+    data object OpenSettings : NetworkAction
+    data class OpenStream(val uri: Uri) : NetworkAction
+
+    data class DeleteConnection(val id: Long) : NetworkAction
 }
 
 internal suspend fun deleteConnectionAndCleanup(

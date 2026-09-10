@@ -27,9 +27,6 @@ import androidx.compose.foundation.layout.displayCutout
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.only
-import androidx.compose.foundation.layout.systemBars
-import androidx.compose.foundation.layout.union
-import androidx.compose.foundation.layout.windowInsetsPadding
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Surface
@@ -47,9 +44,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import androidx.core.splashscreen.SplashScreen.Companion.installSplashScreen
 import androidx.fragment.app.FragmentActivity
-import androidx.lifecycle.Lifecycle
-import androidx.lifecycle.lifecycleScope
-import androidx.lifecycle.repeatOnLifecycle
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.navigation3.runtime.entryProvider
 import androidx.navigation3.ui.NavDisplay
 import androidx.window.core.layout.WindowSizeClass
@@ -75,7 +70,6 @@ import dev.anilbeesetti.nextplayer.navigation.networkNavGraph
 import dev.anilbeesetti.nextplayer.navigation.playlistNavGraph
 import dev.anilbeesetti.nextplayer.navigation.rememberTopLevelNavState
 import dev.anilbeesetti.nextplayer.navigation.settingsNavGraph
-import kotlinx.coroutines.launch
 import javax.inject.Inject
 
 @AndroidEntryPoint
@@ -94,25 +88,14 @@ class MainActivity : FragmentActivity() {
         super.onCreate(savedInstanceState)
         systemService.initialize(this@MainActivity)
         mediaOperationsService.initialize(this@MainActivity)
-        var uiState: MainActivityUiState by mutableStateOf(MainActivityUiState.Loading)
-
-        lifecycleScope.launch {
-            repeatOnLifecycle(Lifecycle.State.STARTED) {
-                viewModel.uiState.collect { state ->
-                    uiState = state
-                }
-            }
-        }
 
         installSplashScreen().setKeepOnScreenCondition {
-            when (uiState) {
-                MainActivityUiState.Loading -> true
-                is MainActivityUiState.Success -> false
-            }
+            viewModel.state.value is MainActivityUiState.Loading
         }
 
         setContent {
-            val shouldUseDarkTheme = shouldUseDarkTheme(uiState = uiState)
+            val state by viewModel.state.collectAsStateWithLifecycle()
+            val shouldUseDarkTheme = shouldUseDarkTheme(state = state)
 
             LaunchedEffect(shouldUseDarkTheme) {
                 enableEdgeToEdge(
@@ -131,8 +114,8 @@ class MainActivity : FragmentActivity() {
 
             NextPlayerTheme(
                 darkTheme = shouldUseDarkTheme,
-                highContrastDarkTheme = shouldUseHighContrastDarkTheme(uiState = uiState),
-                dynamicColor = shouldUseDynamicTheming(uiState = uiState),
+                highContrastDarkTheme = shouldUseHighContrastDarkTheme(state = state),
+                dynamicColor = shouldUseDynamicTheming(state = state),
             ) {
                 Surface(
                     modifier = Modifier.fillMaxSize(),
@@ -286,7 +269,7 @@ fun NavigationLayout(
                     NextNavigationBar(
                         state = state,
                         fabState = displayedFabState,
-                        showFabOnly = showNavRail
+                        showFabOnly = showNavRail,
                     )
                 }
             },
@@ -298,7 +281,7 @@ fun NavigationLayout(
                         .fillMaxWidth()
                         .thenIf(showNavigation) {
                             consumeWindowInsets(WindowInsets.displayCutout.only(WindowInsetsSides.Start))
-                        }
+                        },
                 ) {
                     content(it)
                 }
@@ -308,15 +291,15 @@ fun NavigationLayout(
 }
 
 /**
- * Returns `true` if dark theme should be used, as a function of the [uiState] and the
+ * Returns `true` if dark theme should be used, as a function of the [state] and the
  * current system context.
  */
 @Composable
 fun shouldUseDarkTheme(
-    uiState: MainActivityUiState,
-): Boolean = when (uiState) {
+    state: MainActivityUiState,
+): Boolean = when (state) {
     MainActivityUiState.Loading -> isSystemInDarkTheme()
-    is MainActivityUiState.Success -> when (uiState.preferences.themeConfig) {
+    is MainActivityUiState.Success -> when (state.preferences.themeConfig) {
         ThemeConfig.SYSTEM -> isSystemInDarkTheme()
         ThemeConfig.OFF -> false
         ThemeConfig.ON -> true
@@ -325,19 +308,19 @@ fun shouldUseDarkTheme(
 
 @Composable
 fun shouldUseHighContrastDarkTheme(
-    uiState: MainActivityUiState,
-): Boolean = when (uiState) {
+    state: MainActivityUiState,
+): Boolean = when (state) {
     MainActivityUiState.Loading -> false
-    is MainActivityUiState.Success -> uiState.preferences.useHighContrastDarkTheme
+    is MainActivityUiState.Success -> state.preferences.useHighContrastDarkTheme
 }
 
 /**
- * Returns `true` if the dynamic color is disabled, as a function of the [uiState].
+ * Returns `true` if the dynamic color is disabled, as a function of the [state].
  */
 @Composable
 fun shouldUseDynamicTheming(
-    uiState: MainActivityUiState,
-): Boolean = when (uiState) {
+    state: MainActivityUiState,
+): Boolean = when (state) {
     MainActivityUiState.Loading -> false
-    is MainActivityUiState.Success -> uiState.preferences.useDynamicColors
+    is MainActivityUiState.Success -> state.preferences.useDynamicColors
 }
