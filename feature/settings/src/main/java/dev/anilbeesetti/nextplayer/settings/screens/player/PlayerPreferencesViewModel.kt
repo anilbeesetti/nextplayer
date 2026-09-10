@@ -6,6 +6,7 @@ import dagger.assisted.Assisted
 import dagger.assisted.AssistedFactory
 import dagger.assisted.AssistedInject
 import dagger.hilt.android.lifecycle.HiltViewModel
+import dev.anilbeesetti.nextplayer.core.common.extensions.collectWhileSubscribed
 import dev.anilbeesetti.nextplayer.core.common.extensions.round
 import dev.anilbeesetti.nextplayer.core.data.repository.PreferencesRepository
 import dev.anilbeesetti.nextplayer.core.model.ControlButtonsPosition
@@ -42,10 +43,8 @@ class PlayerPreferencesViewModel @AssistedInject constructor(
     override val state: StateFlow<PlayerPreferencesUiState> = stateInternal.asStateFlow()
 
     init {
-        viewModelScope.launch {
-            preferencesRepository.playerPreferences.collect { preferences ->
-                stateInternal.update { it.copy(preferences = preferences) }
-            }
+        preferencesRepository.playerPreferences.collectWhileSubscribed(viewModelScope, stateInternal) { preferences ->
+            stateInternal.update { it.copy(preferences = preferences) }
         }
     }
 

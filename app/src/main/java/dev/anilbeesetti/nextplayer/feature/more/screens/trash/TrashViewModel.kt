@@ -7,6 +7,7 @@ import dagger.assisted.Assisted
 import dagger.assisted.AssistedFactory
 import dagger.assisted.AssistedInject
 import dagger.hilt.android.lifecycle.HiltViewModel
+import dev.anilbeesetti.nextplayer.core.common.extensions.collectWhileSubscribed
 import dev.anilbeesetti.nextplayer.core.data.repository.MediaRepository
 import dev.anilbeesetti.nextplayer.core.data.repository.PreferencesRepository
 import dev.anilbeesetti.nextplayer.core.media.services.MediaOperationsService
@@ -19,7 +20,6 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.catch
-import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
@@ -46,17 +46,14 @@ class TrashViewModel @AssistedInject constructor(
     override val state: StateFlow<TrashUiState> = stateInternal.asStateFlow()
 
     init {
-        viewModelScope.launch {
-            combine(
-                mediaRepository.observeTrashVideos()
-                    .map<List<Video>, DataState<List<Video>>> { DataState.Success(it) }
-                    .catch { emit(DataState.Error(it)) },
-                preferencesRepository.applicationPreferences,
-            ) { videos, preferences ->
-                TrashUiState(videos = videos, preferences = preferences)
-            }.collect { newState ->
-                stateInternal.update { newState }
+        mediaRepository.observeTrashVideos()
+            .map<List<Video>, DataState<List<Video>>> { DataState.Success(it) }
+            .catch { emit(DataState.Error(it)) }
+            .collectWhileSubscribed(viewModelScope, stateInternal) { videos ->
+                stateInternal.update { it.copy(videos = videos) }
             }
+        preferencesRepository.applicationPreferences.collectWhileSubscribed(viewModelScope, stateInternal) { preferences ->
+            stateInternal.update { it.copy(preferences = preferences) }
         }
     }
 

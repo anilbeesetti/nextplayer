@@ -7,6 +7,7 @@ import dagger.assisted.Assisted
 import dagger.assisted.AssistedFactory
 import dagger.assisted.AssistedInject
 import dagger.hilt.android.lifecycle.HiltViewModel
+import dev.anilbeesetti.nextplayer.core.common.extensions.collectWhileSubscribed
 import dev.anilbeesetti.nextplayer.core.common.service.system.SystemService
 import dev.anilbeesetti.nextplayer.core.data.playlist.M3UDocumentPermissionManager
 import dev.anilbeesetti.nextplayer.core.data.playlist.M3UParser
@@ -54,11 +55,9 @@ class PlaylistListViewModel @AssistedInject constructor(
     override val state: StateFlow<PlaylistListUiState> = stateInternal.asStateFlow()
 
     init {
-        viewModelScope.launch {
-            playlistRepository.observePlaylists().collect { playlists ->
-                stateInternal.update {
-                    it.copy(playlistsDataState = DataState.Success(playlists))
-                }
+        playlistRepository.observePlaylists().collectWhileSubscribed(viewModelScope, stateInternal) { playlists ->
+            stateInternal.update {
+                it.copy(playlistsDataState = DataState.Success(playlists))
             }
         }
     }

@@ -7,6 +7,7 @@ import dagger.assisted.Assisted
 import dagger.assisted.AssistedFactory
 import dagger.assisted.AssistedInject
 import dagger.hilt.android.lifecycle.HiltViewModel
+import dev.anilbeesetti.nextplayer.core.common.extensions.collectWhileSubscribed
 import dev.anilbeesetti.nextplayer.core.data.repository.PreferencesRepository
 import dev.anilbeesetti.nextplayer.core.media.extensions.clearAllCache
 import dev.anilbeesetti.nextplayer.core.model.ApplicationPreferences
@@ -42,10 +43,8 @@ class ThumbnailPreferencesViewModel @AssistedInject constructor(
     override val state: StateFlow<ThumbnailPreferencesUiState> = stateInternal.asStateFlow()
 
     init {
-        viewModelScope.launch {
-            preferencesRepository.applicationPreferences.collect { preferences ->
-                stateInternal.update { it.copy(preferences = preferences) }
-            }
+        preferencesRepository.applicationPreferences.collectWhileSubscribed(viewModelScope, stateInternal) { preferences ->
+            stateInternal.update { it.copy(preferences = preferences) }
         }
     }
 

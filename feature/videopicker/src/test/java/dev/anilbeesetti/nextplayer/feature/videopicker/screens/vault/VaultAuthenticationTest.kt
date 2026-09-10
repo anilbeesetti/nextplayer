@@ -15,7 +15,10 @@ import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.flowOf
+import kotlinx.coroutines.launch
 import kotlinx.coroutines.test.StandardTestDispatcher
+import kotlinx.coroutines.test.TestScope
+import kotlinx.coroutines.test.UnconfinedTestDispatcher
 import kotlinx.coroutines.test.advanceUntilIdle
 import kotlinx.coroutines.test.resetMain
 import kotlinx.coroutines.test.runTest
@@ -200,7 +203,7 @@ class VaultAuthenticationTest {
         assertEquals(VaultStage.UNLOCKED, reopened.state.value.stage)
     }
 
-    private fun createViewModel(hasPin: CompletableDeferred<Boolean> = CompletableDeferred(true)) = VaultViewModel(
+    private fun TestScope.createViewModel(hasPin: CompletableDeferred<Boolean> = CompletableDeferred(true)) = VaultViewModel(
         output = VaultViewModel.Output(navigateUp = {}, playVideo = {}, playVideos = {}),
         vaultRepository = vaultRepository,
         vaultPinRepository = object : VaultPinRepository {
@@ -222,7 +225,9 @@ class VaultAuthenticationTest {
             override suspend fun updatePlayerPreferences(transform: suspend (PlayerPreferences) -> PlayerPreferences) = Unit
             override suspend fun resetPreferences() = Unit
         },
-    )
+    ).also { viewModel ->
+        backgroundScope.launch(UnconfinedTestDispatcher(testScheduler)) { viewModel.state.collect {} }
+    }
 
     private class FakeVaultRepository : VaultRepository {
         var observations = 0

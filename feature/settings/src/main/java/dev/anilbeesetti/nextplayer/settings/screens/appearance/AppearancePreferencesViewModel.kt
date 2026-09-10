@@ -6,6 +6,7 @@ import dagger.assisted.Assisted
 import dagger.assisted.AssistedFactory
 import dagger.assisted.AssistedInject
 import dagger.hilt.android.lifecycle.HiltViewModel
+import dev.anilbeesetti.nextplayer.core.common.extensions.collectWhileSubscribed
 import dev.anilbeesetti.nextplayer.core.data.repository.PreferencesRepository
 import dev.anilbeesetti.nextplayer.core.model.ApplicationPreferences
 import dev.anilbeesetti.nextplayer.core.model.ThemeConfig
@@ -39,10 +40,8 @@ class AppearancePreferencesViewModel @AssistedInject constructor(
     override val state: StateFlow<AppearancePreferencesUiState> = stateInternal.asStateFlow()
 
     init {
-        viewModelScope.launch {
-            preferencesRepository.applicationPreferences.collect { preferences ->
-                stateInternal.update { it.copy(preferences = preferences) }
-            }
+        preferencesRepository.applicationPreferences.collectWhileSubscribed(viewModelScope, stateInternal) { preferences ->
+            stateInternal.update { it.copy(preferences = preferences) }
         }
     }
 

@@ -6,6 +6,7 @@ import dagger.assisted.Assisted
 import dagger.assisted.AssistedFactory
 import dagger.assisted.AssistedInject
 import dagger.hilt.android.lifecycle.HiltViewModel
+import dev.anilbeesetti.nextplayer.core.common.extensions.collectWhileSubscribed
 import dev.anilbeesetti.nextplayer.core.data.repository.NetworkConnectionRepository
 import dev.anilbeesetti.nextplayer.core.media.network.keys.SshKeyStore
 import dev.anilbeesetti.nextplayer.core.model.NetworkAuthentication
@@ -49,10 +50,8 @@ class NetworkViewModel @AssistedInject constructor(
     override val state: StateFlow<NetworkUiState> = stateInternal.asStateFlow()
 
     init {
-        viewModelScope.launch {
-            repository.getConnections().collect { connections ->
-                stateInternal.update { it.copy(connections = connections, isLoading = false) }
-            }
+        repository.getConnections().collectWhileSubscribed(viewModelScope, stateInternal) { connections ->
+            stateInternal.update { it.copy(connections = connections, isLoading = false) }
         }
     }
 

@@ -8,6 +8,7 @@ import dagger.assisted.Assisted
 import dagger.assisted.AssistedFactory
 import dagger.assisted.AssistedInject
 import dagger.hilt.android.lifecycle.HiltViewModel
+import dev.anilbeesetti.nextplayer.core.common.extensions.collectWhileSubscribed
 import dev.anilbeesetti.nextplayer.core.data.repository.PreferencesRepository
 import dev.anilbeesetti.nextplayer.core.data.repository.VaultPinRepository
 import dev.anilbeesetti.nextplayer.core.data.repository.VaultRepository
@@ -69,20 +70,18 @@ class VaultViewModel @AssistedInject constructor(
                 )
             }
         }
-        viewModelScope.launch {
-            preferencesRepository.applicationPreferences.collect { prefs ->
-                val inheritedSort = Sort(by = prefs.sortBy, order = prefs.sortOrder)
-                val shouldRefresh = !hasVaultSortOverride &&
-                    stateInternal.value.stage == VaultStage.UNLOCKED &&
-                    stateInternal.value.sort != inheritedSort
-                stateInternal.update {
-                    it.copy(
-                        preferences = prefs,
-                        sort = if (hasVaultSortOverride) it.sort else inheritedSort,
-                    )
-                }
-                if (shouldRefresh) collectHiddenVideos()
+        preferencesRepository.applicationPreferences.collectWhileSubscribed(viewModelScope, stateInternal) { prefs ->
+            val inheritedSort = Sort(by = prefs.sortBy, order = prefs.sortOrder)
+            val shouldRefresh = !hasVaultSortOverride &&
+                stateInternal.value.stage == VaultStage.UNLOCKED &&
+                stateInternal.value.sort != inheritedSort
+            stateInternal.update {
+                it.copy(
+                    preferences = prefs,
+                    sort = if (hasVaultSortOverride) it.sort else inheritedSort,
+                )
             }
+            if (shouldRefresh) collectHiddenVideos()
         }
     }
 
@@ -185,12 +184,11 @@ class VaultViewModel @AssistedInject constructor(
 
     private fun collectHiddenVideos() {
         hiddenVideosJob?.cancel()
-        hiddenVideosJob = viewModelScope.launch {
-            stateInternal.update { it.copy(isLoading = true) }
-            getHiddenVideosUseCase(stateInternal.value.sort).collect { videos ->
+        stateInternal.update { it.copy(isLoading = true) }
+        hiddenVideosJob = getHiddenVideosUseCase(stateInternal.value.sort)
+            .collectWhileSubscribed(viewModelScope, stateInternal) { videos ->
                 stateInternal.update { it.copy(hiddenVideos = videos, isLoading = false) }
             }
-        }
     }
 
     private fun playVideo(video: Video) {

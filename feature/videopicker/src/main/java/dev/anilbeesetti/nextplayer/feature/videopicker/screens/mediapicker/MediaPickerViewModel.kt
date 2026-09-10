@@ -13,6 +13,7 @@ import dagger.assisted.AssistedFactory
 import dagger.assisted.AssistedInject
 import dagger.hilt.android.lifecycle.HiltViewModel
 import dagger.hilt.android.qualifiers.ApplicationContext
+import dev.anilbeesetti.nextplayer.core.common.extensions.collectWhileSubscribed
 import dev.anilbeesetti.nextplayer.core.common.extensions.prettyName
 import dev.anilbeesetti.nextplayer.core.common.service.system.SystemService
 import dev.anilbeesetti.nextplayer.core.common.storagePermission
@@ -47,7 +48,6 @@ import kotlinx.coroutines.Job
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
-import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
@@ -156,43 +156,31 @@ class MediaPickerViewModel @AssistedInject constructor(
             currentState.copy(mediaDataState = DataState.Loading)
         }
         mediaCollectJob = viewModelScope.launch {
-            combine(
-                getSortedMediaUseCase.invoke(folderPath),
-                getRecentlyPlayedVideoUseCase.invoke(folderPath),
-            ) { media, recentlyPlayed ->
-                media to recentlyPlayed
-            }.collect { (media, recentlyPlayed) ->
-                stateInternal.update { currentState ->
-                    currentState.copy(
-                        mediaDataState = DataState.Success(media),
-                        recentlyPlayedVideo = recentlyPlayed,
-                        recentlyPlayedFolder = recentlyPlayed?.let { media?.folders?.findClosestFolder(it.path) },
-                    )
-                }
+            getSortedMediaUseCase(folderPath).collectWhileSubscribed(this, stateInternal) { media ->
+                stateInternal.update { it.copy(mediaDataState = DataState.Success(media)) }
+            }
+            getRecentlyPlayedVideoUseCase(folderPath).collectWhileSubscribed(this, stateInternal) { recentlyPlayed ->
+                stateInternal.update { it.copy(recentlyPlayedVideo = recentlyPlayed) }
             }
         }
     }
 
     private fun collectPreferences() {
-        viewModelScope.launch {
-            preferencesRepository.applicationPreferences.collect {
-                stateInternal.update { currentState ->
-                    currentState.copy(preferences = it)
-                }
+        preferencesRepository.applicationPreferences.collectWhileSubscribed(viewModelScope, stateInternal) {
+            stateInternal.update { currentState ->
+                currentState.copy(preferences = it)
             }
         }
     }
 
     private fun collectPlaylists() {
-        viewModelScope.launch {
-            playlistRepository.observePlaylists().collect { playlists ->
-                stateInternal.update {
-                    it.copy(
-                        playlists = playlists.filter { playlist ->
-                            playlist.type == PlaylistType.LOCAL
-                        },
-                    )
-                }
+        playlistRepository.observePlaylists().collectWhileSubscribed(viewModelScope, stateInternal) { playlists ->
+            stateInternal.update {
+                it.copy(
+                    playlists = playlists.filter { playlist ->
+                        playlist.type == PlaylistType.LOCAL
+                    },
+                )
             }
         }
     }
@@ -515,7 +503,6 @@ data class MediaPickerUiState(
     val folderName: String?,
     val refreshing: Boolean = false,
     val recentlyPlayedVideo: Video? = null,
-    val recentlyPlayedFolder: Folder? = null,
     val mediaDataState: DataState<MediaHolder?> = DataState.Loading,
     val preferences: ApplicationPreferences = ApplicationPreferences(),
     val mediaInfo: dev.anilbeesetti.nextplayer.core.model.MediaInfo? = null,
@@ -523,7 +510,12 @@ data class MediaPickerUiState(
     val transferFlow: TransferFlowState = TransferFlowState.Idle,
     val playlists: List<PlaylistSummary> = emptyList(),
     val addToPlaylistState: AddToPlaylistState = AddToPlaylistState(),
-)
+) {
+    val recentlyPlayedFolder: Folder?
+        get() = recentlyPlayedVideo?.let { video ->
+            (mediaDataState as? DataState.Success)?.value?.folders?.findClosestFolder(video.path)
+        }
+}
 
 @Stable
 data class AddToPlaylistState(
