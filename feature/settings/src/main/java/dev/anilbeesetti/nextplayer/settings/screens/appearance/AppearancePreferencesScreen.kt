@@ -7,9 +7,6 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
-import dev.anilbeesetti.nextplayer.settings.utils.rememberTvListFocusRequester
-import dev.anilbeesetti.nextplayer.settings.utils.tvFocusDown
-import dev.anilbeesetti.nextplayer.settings.utils.tvListFocus
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.ExperimentalMaterial3ExpressiveApi
 import androidx.compose.material3.FilledTonalIconButton
@@ -37,17 +34,20 @@ import dev.anilbeesetti.nextplayer.core.ui.theme.NextPlayerTheme
 import dev.anilbeesetti.nextplayer.core.ui.theme.supportsDynamicTheming
 import dev.anilbeesetti.nextplayer.settings.composables.OptionsDialog
 import dev.anilbeesetti.nextplayer.settings.extensions.name
+import dev.anilbeesetti.nextplayer.settings.utils.rememberTvListFocusRequester
+import dev.anilbeesetti.nextplayer.settings.utils.tvFocusDown
+import dev.anilbeesetti.nextplayer.settings.utils.tvListFocus
 
 @Composable
 fun AppearancePreferencesScreen(
     onNavigateUp: () -> Unit,
     viewModel: AppearancePreferencesViewModel = hiltViewModel(),
 ) {
-    val uiState by viewModel.uiState.collectAsStateWithLifecycle()
+    val uiState by viewModel.state.collectAsStateWithLifecycle()
 
     AppearancePreferencesContent(
         uiState = uiState,
-        onEvent = viewModel::onEvent,
+        onEvent = viewModel::onAction,
         onNavigateUp = onNavigateUp,
     )
 }
@@ -95,7 +95,7 @@ private fun AppearancePreferencesContent(
                     onChecked = { onEvent(AppearancePreferencesEvent.ToggleDarkTheme) },
                     icon = NextIcons.DarkMode,
                     onClick = { onEvent(AppearancePreferencesEvent.ShowDialog(AppearancePreferenceDialog.Theme)) },
-                    isFirstItem = true
+                    isFirstItem = true,
                 )
                 PreferenceSwitch(
                     title = stringResource(R.string.high_contrast_dark_theme),
@@ -103,7 +103,7 @@ private fun AppearancePreferencesContent(
                     icon = NextIcons.Contrast,
                     isChecked = uiState.preferences.useHighContrastDarkTheme,
                     onClick = { onEvent(AppearancePreferencesEvent.ToggleUseHighContrastDarkTheme) },
-                    isLastItem = !supportsDynamicTheming()
+                    isLastItem = !supportsDynamicTheming(),
                 )
                 if (supportsDynamicTheming()) {
                     PreferenceSwitch(
@@ -112,7 +112,7 @@ private fun AppearancePreferencesContent(
                         icon = NextIcons.Appearance,
                         isChecked = uiState.preferences.useDynamicColors,
                         onClick = { onEvent(AppearancePreferencesEvent.ToggleUseDynamicColors) },
-                        isLastItem = true
+                        isLastItem = true,
                     )
                 }
             }

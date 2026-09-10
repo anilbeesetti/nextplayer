@@ -1,10 +1,10 @@
 package dev.anilbeesetti.nextplayer.settings.screens.medialibrary
 
-import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import dagger.hilt.android.lifecycle.HiltViewModel
 import dev.anilbeesetti.nextplayer.core.data.repository.PreferencesRepository
 import dev.anilbeesetti.nextplayer.core.model.ApplicationPreferences
+import dev.anilbeesetti.nextplayer.core.ui.base.MviViewModel
 import javax.inject.Inject
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
@@ -15,10 +15,10 @@ import kotlinx.coroutines.launch
 @HiltViewModel
 class MediaLibraryPreferencesViewModel @Inject constructor(
     private val preferencesRepository: PreferencesRepository,
-) : ViewModel() {
+) : MviViewModel<MediaLibraryPreferencesUiState, MediaLibraryPreferencesUiEvent>() {
 
     private val uiStateInternal = MutableStateFlow(MediaLibraryPreferencesUiState())
-    val uiState: StateFlow<MediaLibraryPreferencesUiState> = uiStateInternal.asStateFlow()
+    override val state: StateFlow<MediaLibraryPreferencesUiState> = uiStateInternal.asStateFlow()
 
     init {
         viewModelScope.launch {
@@ -30,8 +30,8 @@ class MediaLibraryPreferencesViewModel @Inject constructor(
         }
     }
 
-    fun onEvent(event: MediaLibraryPreferencesUiEvent) {
-        when (event) {
+    override fun onAction(action: MediaLibraryPreferencesUiEvent) {
+        when (action) {
             MediaLibraryPreferencesUiEvent.ToggleMarkLastPlayedMedia -> toggleMarkLastPlayedMedia()
         }
     }

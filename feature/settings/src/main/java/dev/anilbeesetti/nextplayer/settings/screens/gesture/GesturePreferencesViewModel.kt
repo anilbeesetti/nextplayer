@@ -1,13 +1,13 @@
 package dev.anilbeesetti.nextplayer.settings.screens.gesture
 
 import androidx.compose.runtime.Stable
-import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import dagger.hilt.android.lifecycle.HiltViewModel
 import dev.anilbeesetti.nextplayer.core.common.extensions.round
 import dev.anilbeesetti.nextplayer.core.data.repository.PreferencesRepository
 import dev.anilbeesetti.nextplayer.core.model.DoubleTapGesture
 import dev.anilbeesetti.nextplayer.core.model.PlayerPreferences
+import dev.anilbeesetti.nextplayer.core.ui.base.MviViewModel
 import javax.inject.Inject
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
@@ -17,14 +17,14 @@ import kotlinx.coroutines.launch
 @HiltViewModel
 class GesturePreferencesViewModel @Inject constructor(
     private val preferencesRepository: PreferencesRepository,
-) : ViewModel() {
+) : MviViewModel<GesturePreferencesUiState, GesturePreferencesUiEvent>() {
 
     private val uiStateInternal = MutableStateFlow(
         GesturePreferencesUiState(
             preferences = preferencesRepository.playerPreferences.value,
         ),
     )
-    val uiState = uiStateInternal.asStateFlow()
+    override val state = uiStateInternal.asStateFlow()
 
     init {
         viewModelScope.launch {
@@ -34,10 +34,10 @@ class GesturePreferencesViewModel @Inject constructor(
         }
     }
 
-    fun onEvent(event: GesturePreferencesUiEvent) {
-        when (event) {
-            is GesturePreferencesUiEvent.ShowDialog -> showDialog(event.value)
-            is GesturePreferencesUiEvent.UpdateDoubleTapGesture -> updateDoubleTapGesture(event.gesture)
+    override fun onAction(action: GesturePreferencesUiEvent) {
+        when (action) {
+            is GesturePreferencesUiEvent.ShowDialog -> showDialog(action.value)
+            is GesturePreferencesUiEvent.UpdateDoubleTapGesture -> updateDoubleTapGesture(action.gesture)
             GesturePreferencesUiEvent.ToggleUseLongPressControls -> toggleUseLongPressControls()
             GesturePreferencesUiEvent.ToggleDoubleTapGesture -> toggleDoubleTapGesture()
             GesturePreferencesUiEvent.ToggleEnableBrightnessSwipeGesture -> toggleEnableBrightnessSwipeGesture()
@@ -45,11 +45,11 @@ class GesturePreferencesViewModel @Inject constructor(
             GesturePreferencesUiEvent.ToggleUseSeekControls -> toggleUseSeekControls()
             GesturePreferencesUiEvent.ToggleUseZoomControls -> toggleUseZoomControls()
             GesturePreferencesUiEvent.ToggleEnablePanGesture -> toggleEnablePanGesture()
-            is GesturePreferencesUiEvent.UpdateLongPressControlsSpeed -> updateLongPressControlsSpeed(event.value)
-            is GesturePreferencesUiEvent.UpdateSeekIncrement -> updateSeekIncrement(event.value)
-            is GesturePreferencesUiEvent.UpdateSeekSensitivity -> updateSeekSensitivity(event.value)
-            is GesturePreferencesUiEvent.UpdateVolumeGestureSensitivity -> updateVolumeGestureSensitivity(event.value)
-            is GesturePreferencesUiEvent.UpdateBrightnessGestureSensitivity -> updateBrightnessGestureSensitivity(event.value)
+            is GesturePreferencesUiEvent.UpdateLongPressControlsSpeed -> updateLongPressControlsSpeed(action.value)
+            is GesturePreferencesUiEvent.UpdateSeekIncrement -> updateSeekIncrement(action.value)
+            is GesturePreferencesUiEvent.UpdateSeekSensitivity -> updateSeekSensitivity(action.value)
+            is GesturePreferencesUiEvent.UpdateVolumeGestureSensitivity -> updateVolumeGestureSensitivity(action.value)
+            is GesturePreferencesUiEvent.UpdateBrightnessGestureSensitivity -> updateBrightnessGestureSensitivity(action.value)
         }
     }
 

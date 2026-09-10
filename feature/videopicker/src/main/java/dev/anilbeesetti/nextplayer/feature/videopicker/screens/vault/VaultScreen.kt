@@ -105,7 +105,7 @@ fun VaultRoute(
     onPlayVideos: (uris: List<Uri>) -> Unit,
     onNavigateUp: () -> Unit,
 ) {
-    val uiState by viewModel.uiState.collectAsStateWithLifecycle()
+    val uiState by viewModel.state.collectAsStateWithLifecycle()
     val context = LocalContext.current
     val lifecycleOwner = LocalLifecycleOwner.current
 

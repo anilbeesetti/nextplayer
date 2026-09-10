@@ -51,14 +51,14 @@ fun MediaLibraryPreferencesScreen(
     onThumbnailSettingClick: () -> Unit = {},
     viewModel: MediaLibraryPreferencesViewModel = hiltViewModel(),
 ) {
-    val uiState by viewModel.uiState.collectAsStateWithLifecycle()
+    val uiState by viewModel.state.collectAsStateWithLifecycle()
 
     MediaLibraryPreferencesContent(
         uiState = uiState,
         onNavigateUp = onNavigateUp,
         onFolderSettingClick = onFolderSettingClick,
         onThumbnailSettingClick = onThumbnailSettingClick,
-        onEvent = viewModel::onEvent,
+        onEvent = viewModel::onAction,
     )
 }
 

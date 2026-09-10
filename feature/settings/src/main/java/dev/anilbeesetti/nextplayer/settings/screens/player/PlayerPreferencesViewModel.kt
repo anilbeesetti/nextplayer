@@ -1,7 +1,6 @@
 package dev.anilbeesetti.nextplayer.settings.screens.player
 
 import androidx.compose.runtime.Stable
-import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import dagger.hilt.android.lifecycle.HiltViewModel
 import dev.anilbeesetti.nextplayer.core.common.extensions.round
@@ -10,6 +9,7 @@ import dev.anilbeesetti.nextplayer.core.model.ControlButtonsPosition
 import dev.anilbeesetti.nextplayer.core.model.PlayerPreferences
 import dev.anilbeesetti.nextplayer.core.model.Resume
 import dev.anilbeesetti.nextplayer.core.model.ScreenOrientation
+import dev.anilbeesetti.nextplayer.core.ui.base.MviViewModel
 import javax.inject.Inject
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
@@ -19,14 +19,14 @@ import kotlinx.coroutines.launch
 @HiltViewModel
 class PlayerPreferencesViewModel @Inject constructor(
     private val preferencesRepository: PreferencesRepository,
-) : ViewModel() {
+) : MviViewModel<PlayerPreferencesUiState, PlayerPreferencesUiEvent>() {
 
     private val uiStateInternal = MutableStateFlow(
         PlayerPreferencesUiState(
             preferences = preferencesRepository.playerPreferences.value,
         ),
     )
-    val uiState = uiStateInternal.asStateFlow()
+    override val state = uiStateInternal.asStateFlow()
 
     init {
         viewModelScope.launch {
@@ -36,19 +36,19 @@ class PlayerPreferencesViewModel @Inject constructor(
         }
     }
 
-    fun onEvent(event: PlayerPreferencesUiEvent) {
-        when (event) {
-            is PlayerPreferencesUiEvent.ShowDialog -> showDialog(event.value)
-            is PlayerPreferencesUiEvent.UpdatePlaybackResume -> updatePlaybackResume(event.resume)
+    override fun onAction(action: PlayerPreferencesUiEvent) {
+        when (action) {
+            is PlayerPreferencesUiEvent.ShowDialog -> showDialog(action.value)
+            is PlayerPreferencesUiEvent.UpdatePlaybackResume -> updatePlaybackResume(action.resume)
             PlayerPreferencesUiEvent.ToggleAutoplay -> toggleAutoplay()
             PlayerPreferencesUiEvent.ToggleAutoPip -> toggleAutoPip()
             PlayerPreferencesUiEvent.ToggleAutoBackgroundPlay -> toggleAutoBackgroundPlay()
             PlayerPreferencesUiEvent.ToggleRememberBrightnessLevel -> toggleRememberBrightnessLevel()
             PlayerPreferencesUiEvent.ToggleRememberSelections -> toggleRememberSelections()
-            is PlayerPreferencesUiEvent.UpdatePreferredPlayerOrientation -> updatePreferredPlayerOrientation(event.value)
-            is PlayerPreferencesUiEvent.UpdatePreferredControlButtonsPosition -> updatePreferredControlButtonsPosition(event.value)
-            is PlayerPreferencesUiEvent.UpdateDefaultPlaybackSpeed -> updateDefaultPlaybackSpeed(event.value)
-            is PlayerPreferencesUiEvent.UpdateControlAutoHideTimeout -> updateControlAutoHideTimeout(event.value)
+            is PlayerPreferencesUiEvent.UpdatePreferredPlayerOrientation -> updatePreferredPlayerOrientation(action.value)
+            is PlayerPreferencesUiEvent.UpdatePreferredControlButtonsPosition -> updatePreferredControlButtonsPosition(action.value)
+            is PlayerPreferencesUiEvent.UpdateDefaultPlaybackSpeed -> updateDefaultPlaybackSpeed(action.value)
+            is PlayerPreferencesUiEvent.UpdateControlAutoHideTimeout -> updateControlAutoHideTimeout(action.value)
             PlayerPreferencesUiEvent.ToggleUseMaterialYouControls -> toggleUseMaterialYouControls()
         }
     }

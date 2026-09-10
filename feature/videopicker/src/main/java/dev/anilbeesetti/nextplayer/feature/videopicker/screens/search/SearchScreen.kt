@@ -82,14 +82,14 @@ fun SearchRoute(
     onFolderClick: (folderPath: String) -> Unit,
     onNavigateUp: () -> Unit,
 ) {
-    val uiState by viewModel.uiState.collectAsStateWithLifecycle(minActiveState = Lifecycle.State.RESUMED)
+    val uiState by viewModel.state.collectAsStateWithLifecycle(minActiveState = Lifecycle.State.RESUMED)
 
     SearchScreen(
         uiState = uiState,
         onNavigateUp = onNavigateUp,
         onFolderClick = onFolderClick,
         onVideoClick = onPlayVideo,
-        onEvent = viewModel::onEvent,
+        onEvent = viewModel::onAction,
     )
 }
 

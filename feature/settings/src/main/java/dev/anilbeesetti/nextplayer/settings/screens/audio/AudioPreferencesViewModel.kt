@@ -1,11 +1,11 @@
 package dev.anilbeesetti.nextplayer.settings.screens.audio
 
 import androidx.compose.runtime.Stable
-import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import dagger.hilt.android.lifecycle.HiltViewModel
 import dev.anilbeesetti.nextplayer.core.data.repository.PreferencesRepository
 import dev.anilbeesetti.nextplayer.core.model.PlayerPreferences
+import dev.anilbeesetti.nextplayer.core.ui.base.MviViewModel
 import javax.inject.Inject
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
@@ -15,14 +15,14 @@ import kotlinx.coroutines.launch
 @HiltViewModel
 class AudioPreferencesViewModel @Inject constructor(
     private val preferencesRepository: PreferencesRepository,
-) : ViewModel() {
+) : MviViewModel<AudioPreferencesUiState, AudioPreferencesUiEvent>() {
 
     private val uiStateInternal = MutableStateFlow(
         AudioPreferencesUiState(
             preferences = preferencesRepository.playerPreferences.value,
         ),
     )
-    val uiState = uiStateInternal.asStateFlow()
+    override val state = uiStateInternal.asStateFlow()
 
     init {
         viewModelScope.launch {
@@ -34,10 +34,10 @@ class AudioPreferencesViewModel @Inject constructor(
         }
     }
 
-    fun onEvent(event: AudioPreferencesUiEvent) {
-        when (event) {
-            is AudioPreferencesUiEvent.ShowDialog -> showDialog(event.value)
-            is AudioPreferencesUiEvent.UpdateAudioLanguage -> updateAudioLanguage(event.value)
+    override fun onAction(action: AudioPreferencesUiEvent) {
+        when (action) {
+            is AudioPreferencesUiEvent.ShowDialog -> showDialog(action.value)
+            is AudioPreferencesUiEvent.UpdateAudioLanguage -> updateAudioLanguage(action.value)
             AudioPreferencesUiEvent.TogglePauseOnHeadsetDisconnect -> togglePauseOnHeadsetDisconnect()
             AudioPreferencesUiEvent.ToggleShowSystemVolumePanel -> toggleShowSystemVolumePanel()
             AudioPreferencesUiEvent.ToggleRequireAudioFocus -> toggleRequireAudioFocus()

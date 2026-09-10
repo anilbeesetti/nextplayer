@@ -1,11 +1,11 @@
 package dev.anilbeesetti.nextplayer.settings.screens.general
 
-import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import coil3.ImageLoader
 import dagger.hilt.android.lifecycle.HiltViewModel
 import dev.anilbeesetti.nextplayer.core.data.repository.PreferencesRepository
 import dev.anilbeesetti.nextplayer.core.media.extensions.clearAllCache
+import dev.anilbeesetti.nextplayer.core.ui.base.MviViewModel
 import javax.inject.Inject
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
@@ -15,14 +15,14 @@ import kotlinx.coroutines.launch
 class GeneralPreferencesViewModel @Inject constructor(
     private val preferencesRepository: PreferencesRepository,
     private val imageLoader: ImageLoader,
-) : ViewModel() {
+) : MviViewModel<GeneralPreferencesUiState, GeneralPreferencesUiEvent>() {
 
     private val uiStateInternal = MutableStateFlow(GeneralPreferencesUiState())
-    val uiState = uiStateInternal.asStateFlow()
+    override val state = uiStateInternal.asStateFlow()
 
-    fun onEvent(event: GeneralPreferencesUiEvent) {
-        when (event) {
-            is GeneralPreferencesUiEvent.ShowDialog -> showDialog(event.value)
+    override fun onAction(action: GeneralPreferencesUiEvent) {
+        when (action) {
+            is GeneralPreferencesUiEvent.ShowDialog -> showDialog(action.value)
             GeneralPreferencesUiEvent.ClearThumbnailCache -> clearThumbnailCache()
             GeneralPreferencesUiEvent.ResetSettings -> resetSettings()
         }

@@ -1,12 +1,12 @@
 package dev.anilbeesetti.nextplayer.settings.screens.appearance
 
 import androidx.compose.runtime.Stable
-import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import dagger.hilt.android.lifecycle.HiltViewModel
 import dev.anilbeesetti.nextplayer.core.data.repository.PreferencesRepository
 import dev.anilbeesetti.nextplayer.core.model.ApplicationPreferences
 import dev.anilbeesetti.nextplayer.core.model.ThemeConfig
+import dev.anilbeesetti.nextplayer.core.ui.base.MviViewModel
 import javax.inject.Inject
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
@@ -16,14 +16,14 @@ import kotlinx.coroutines.launch
 @HiltViewModel
 class AppearancePreferencesViewModel @Inject constructor(
     private val preferencesRepository: PreferencesRepository,
-) : ViewModel() {
+) : MviViewModel<AppearancePreferencesUiState, AppearancePreferencesEvent>() {
 
     private val uiStateInternal = MutableStateFlow(
         AppearancePreferencesUiState(
             preferences = preferencesRepository.applicationPreferences.value,
         ),
     )
-    val uiState = uiStateInternal.asStateFlow()
+    override val state = uiStateInternal.asStateFlow()
 
     init {
         viewModelScope.launch {
@@ -33,11 +33,11 @@ class AppearancePreferencesViewModel @Inject constructor(
         }
     }
 
-    fun onEvent(event: AppearancePreferencesEvent) {
-        when (event) {
-            is AppearancePreferencesEvent.ShowDialog -> showDialog(event.value)
+    override fun onAction(action: AppearancePreferencesEvent) {
+        when (action) {
+            is AppearancePreferencesEvent.ShowDialog -> showDialog(action.value)
             AppearancePreferencesEvent.ToggleDarkTheme -> toggleDarkTheme()
-            is AppearancePreferencesEvent.UpdateThemeConfig -> updateThemeConfig(event.themeConfig)
+            is AppearancePreferencesEvent.UpdateThemeConfig -> updateThemeConfig(action.themeConfig)
             AppearancePreferencesEvent.ToggleUseDynamicColors -> toggleUseDynamicColors()
             AppearancePreferencesEvent.ToggleUseHighContrastDarkTheme -> toggleUseHighContrastDarkTheme()
         }

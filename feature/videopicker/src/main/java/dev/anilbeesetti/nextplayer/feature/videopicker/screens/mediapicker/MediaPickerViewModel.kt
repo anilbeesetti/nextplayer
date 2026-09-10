@@ -7,7 +7,6 @@ import android.widget.Toast
 import androidx.compose.runtime.Stable
 import androidx.core.content.ContextCompat
 import androidx.core.net.toUri
-import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import dagger.assisted.Assisted
 import dagger.assisted.AssistedFactory
@@ -41,6 +40,7 @@ import dev.anilbeesetti.nextplayer.core.model.Video
 import dev.anilbeesetti.nextplayer.core.model.findClosestFolder
 import dev.anilbeesetti.nextplayer.core.ui.R
 import dev.anilbeesetti.nextplayer.core.ui.base.DataState
+import dev.anilbeesetti.nextplayer.core.ui.base.MviViewModel
 import dev.anilbeesetti.nextplayer.feature.videopicker.state.SelectionItem
 import java.io.File
 import kotlinx.coroutines.Job
@@ -67,7 +67,7 @@ class MediaPickerViewModel @AssistedInject constructor(
     @ApplicationContext private val context: Context,
     @Assisted private val input: Input,
     @Assisted internal var output: Output,
-) : ViewModel() {
+) : MviViewModel<MediaPickerUiState, MediaPickerAction>() {
 
     data class Input(
         val folderId: String?,
@@ -99,7 +99,7 @@ class MediaPickerViewModel @AssistedInject constructor(
             preferences = preferencesRepository.applicationPreferences.value,
         ),
     )
-    val uiState = uiStateInternal.asStateFlow()
+    override val state = uiStateInternal.asStateFlow()
 
     private var mediaCollectJob: Job? = null
     private var transferJob: Job? = null
@@ -112,7 +112,7 @@ class MediaPickerViewModel @AssistedInject constructor(
         collectPlaylists()
     }
 
-    fun onAction(action: MediaPickerAction) {
+    override fun onAction(action: MediaPickerAction) {
         when (action) {
             MediaPickerAction.OnNavigateUpClick -> output.navigateUp()
             is MediaPickerAction.OnPlayVideo -> output.playVideo(action.uri)

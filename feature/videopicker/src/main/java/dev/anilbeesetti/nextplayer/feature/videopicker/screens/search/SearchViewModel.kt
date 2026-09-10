@@ -1,7 +1,6 @@
 package dev.anilbeesetti.nextplayer.feature.videopicker.screens.search
 
 import androidx.compose.runtime.Stable
-import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import dagger.hilt.android.lifecycle.HiltViewModel
 import dev.anilbeesetti.nextplayer.core.data.repository.PreferencesRepository
@@ -11,6 +10,8 @@ import dev.anilbeesetti.nextplayer.core.domain.SearchMediaUseCase
 import dev.anilbeesetti.nextplayer.core.domain.SearchResults
 import dev.anilbeesetti.nextplayer.core.model.ApplicationPreferences
 import dev.anilbeesetti.nextplayer.core.model.Folder
+import dev.anilbeesetti.nextplayer.core.ui.base.MviViewModel
+import javax.inject.Inject
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.FlowPreview
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -19,7 +20,6 @@ import kotlinx.coroutines.flow.debounce
 import kotlinx.coroutines.flow.flatMapLatest
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
-import javax.inject.Inject
 
 @HiltViewModel
 class SearchViewModel @Inject constructor(
@@ -27,10 +27,10 @@ class SearchViewModel @Inject constructor(
     private val getPopularFoldersUseCase: GetPopularFoldersUseCase,
     private val searchHistoryRepository: SearchHistoryRepository,
     private val preferencesRepository: PreferencesRepository,
-) : ViewModel() {
+) : MviViewModel<SearchUiState, SearchUiEvent>() {
 
     private val uiStateInternal = MutableStateFlow(SearchUiState())
-    val uiState = uiStateInternal.asStateFlow()
+    override val state = uiStateInternal.asStateFlow()
 
     private val searchQuery = MutableStateFlow("")
 
@@ -84,12 +84,12 @@ class SearchViewModel @Inject constructor(
         }
     }
 
-    fun onEvent(event: SearchUiEvent) {
-        when (event) {
-            is SearchUiEvent.OnQueryChange -> onQueryChange(event.query)
-            is SearchUiEvent.OnSearch -> onSearch(event.query)
-            is SearchUiEvent.OnHistoryItemClick -> onHistoryItemClick(event.query)
-            is SearchUiEvent.OnRemoveHistoryItem -> removeHistoryItem(event.query)
+    override fun onAction(action: SearchUiEvent) {
+        when (action) {
+            is SearchUiEvent.OnQueryChange -> onQueryChange(action.query)
+            is SearchUiEvent.OnSearch -> onSearch(action.query)
+            is SearchUiEvent.OnHistoryItemClick -> onHistoryItemClick(action.query)
+            is SearchUiEvent.OnRemoveHistoryItem -> removeHistoryItem(action.query)
             is SearchUiEvent.OnClearHistory -> clearHistory()
         }
     }

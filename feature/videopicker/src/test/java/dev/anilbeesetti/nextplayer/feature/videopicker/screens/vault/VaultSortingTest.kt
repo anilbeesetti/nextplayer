@@ -58,10 +58,10 @@ class VaultSortingTest {
         viewModel.onAction(VaultAction.SubmitUnlockPin("1234"))
         advanceUntilIdle()
 
-        assertEquals(titleAscending, viewModel.uiState.value.sort)
+        assertEquals(titleAscending, viewModel.state.value.sort)
         assertEquals(
             listOf("Alpha.mp4", "Bravo.mp4", "Zebra.mp4"),
-            viewModel.uiState.value.hiddenVideos.map { it.nameWithExtension },
+            viewModel.state.value.hiddenVideos.map { it.nameWithExtension },
         )
     }
 
@@ -78,10 +78,10 @@ class VaultSortingTest {
             viewModel.onAction(VaultAction.SubmitUnlockPin("1234"))
             advanceUntilIdle()
 
-            assertEquals(titleAscending, viewModel.uiState.value.sort)
+            assertEquals(titleAscending, viewModel.state.value.sort)
             assertEquals(
                 listOf("Alpha.mp4", "Bravo.mp4", "Zebra.mp4"),
-                viewModel.uiState.value.hiddenVideos.map { it.nameWithExtension },
+                viewModel.state.value.hiddenVideos.map { it.nameWithExtension },
             )
 
             viewModel.onAction(
@@ -91,10 +91,10 @@ class VaultSortingTest {
             )
             advanceUntilIdle()
 
-            assertEquals(sizeAscending, viewModel.uiState.value.sort)
+            assertEquals(sizeAscending, viewModel.state.value.sort)
             assertEquals(
                 listOf("Zebra.mp4", "Alpha.mp4", "Bravo.mp4"),
-                viewModel.uiState.value.hiddenVideos.map { it.nameWithExtension },
+                viewModel.state.value.hiddenVideos.map { it.nameWithExtension },
             )
             assertEquals(0, preferencesRepository.applicationUpdateCount)
             assertEquals(Sort.By.TITLE, preferencesRepository.applicationPreferences.value.sortBy)
@@ -116,10 +116,10 @@ class VaultSortingTest {
             )
             advanceUntilIdle()
 
-            assertEquals(sizeAscending, viewModel.uiState.value.sort)
+            assertEquals(sizeAscending, viewModel.state.value.sort)
             assertEquals(
                 listOf("Zebra.mp4", "Alpha.mp4", "Bravo.mp4"),
-                viewModel.uiState.value.hiddenVideos.map { it.nameWithExtension },
+                viewModel.state.value.hiddenVideos.map { it.nameWithExtension },
             )
         }
 
@@ -140,12 +140,12 @@ class VaultSortingTest {
             )
             advanceUntilIdle()
 
-            assertEquals(Sort.By.DATE, viewModel.uiState.value.preferences.sortBy)
-            assertEquals(Sort.Order.DESCENDING, viewModel.uiState.value.preferences.sortOrder)
-            assertEquals(sizeAscending, viewModel.uiState.value.sort)
+            assertEquals(Sort.By.DATE, viewModel.state.value.preferences.sortBy)
+            assertEquals(Sort.Order.DESCENDING, viewModel.state.value.preferences.sortOrder)
+            assertEquals(sizeAscending, viewModel.state.value.sort)
             assertEquals(
                 listOf("Zebra.mp4", "Alpha.mp4", "Bravo.mp4"),
-                viewModel.uiState.value.hiddenVideos.map { it.nameWithExtension },
+                viewModel.state.value.hiddenVideos.map { it.nameWithExtension },
             )
         }
 
@@ -165,12 +165,12 @@ class VaultSortingTest {
             )
             advanceUntilIdle()
 
-            assertEquals(Sort.By.SIZE, viewModel.uiState.value.preferences.sortBy)
-            assertEquals(Sort.Order.ASCENDING, viewModel.uiState.value.preferences.sortOrder)
-            assertEquals(titleAscending, viewModel.uiState.value.sort)
+            assertEquals(Sort.By.SIZE, viewModel.state.value.preferences.sortBy)
+            assertEquals(Sort.Order.ASCENDING, viewModel.state.value.preferences.sortOrder)
+            assertEquals(titleAscending, viewModel.state.value.sort)
             assertEquals(
                 listOf("Alpha.mp4", "Bravo.mp4", "Zebra.mp4"),
-                viewModel.uiState.value.hiddenVideos.map { it.nameWithExtension },
+                viewModel.state.value.hiddenVideos.map { it.nameWithExtension },
             )
         }
 

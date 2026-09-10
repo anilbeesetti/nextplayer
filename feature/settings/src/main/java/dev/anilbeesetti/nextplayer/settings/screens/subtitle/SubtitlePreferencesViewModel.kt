@@ -1,12 +1,12 @@
 package dev.anilbeesetti.nextplayer.settings.screens.subtitle
 
 import androidx.compose.runtime.Stable
-import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import dagger.hilt.android.lifecycle.HiltViewModel
 import dev.anilbeesetti.nextplayer.core.data.repository.PreferencesRepository
 import dev.anilbeesetti.nextplayer.core.model.Font
 import dev.anilbeesetti.nextplayer.core.model.PlayerPreferences
+import dev.anilbeesetti.nextplayer.core.ui.base.MviViewModel
 import javax.inject.Inject
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
@@ -16,14 +16,14 @@ import kotlinx.coroutines.launch
 @HiltViewModel
 class SubtitlePreferencesViewModel @Inject constructor(
     private val preferencesRepository: PreferencesRepository,
-) : ViewModel() {
+) : MviViewModel<SubtitlePreferencesUiState, SubtitlePreferencesUiEvent>() {
 
     private val uiStateInternal = MutableStateFlow(
         SubtitlePreferencesUiState(
             preferences = preferencesRepository.playerPreferences.value,
         ),
     )
-    val uiState = uiStateInternal.asStateFlow()
+    override val state = uiStateInternal.asStateFlow()
 
     init {
         viewModelScope.launch {
@@ -35,16 +35,16 @@ class SubtitlePreferencesViewModel @Inject constructor(
         }
     }
 
-    fun onEvent(event: SubtitlePreferencesUiEvent) {
-        when (event) {
-            is SubtitlePreferencesUiEvent.ShowDialog -> showDialog(event.value)
-            is SubtitlePreferencesUiEvent.UpdateSubtitleLanguage -> updateSubtitleLanguage(event.value)
-            is SubtitlePreferencesUiEvent.UpdateSubtitleFont -> updateSubtitleFont(event.value)
+    override fun onAction(action: SubtitlePreferencesUiEvent) {
+        when (action) {
+            is SubtitlePreferencesUiEvent.ShowDialog -> showDialog(action.value)
+            is SubtitlePreferencesUiEvent.UpdateSubtitleLanguage -> updateSubtitleLanguage(action.value)
+            is SubtitlePreferencesUiEvent.UpdateSubtitleFont -> updateSubtitleFont(action.value)
             SubtitlePreferencesUiEvent.ToggleSubtitleTextBold -> toggleSubtitleTextBold()
-            is SubtitlePreferencesUiEvent.UpdateSubtitleFontSize -> updateSubtitleFontSize(event.value)
+            is SubtitlePreferencesUiEvent.UpdateSubtitleFontSize -> updateSubtitleFontSize(action.value)
             SubtitlePreferencesUiEvent.ToggleSubtitleBackground -> toggleSubtitleBackground()
             SubtitlePreferencesUiEvent.ToggleApplyEmbeddedStyles -> toggleApplyEmbeddedStyles()
-            is SubtitlePreferencesUiEvent.UpdateSubtitleEncoding -> updateSubtitleEncoding(event.value)
+            is SubtitlePreferencesUiEvent.UpdateSubtitleEncoding -> updateSubtitleEncoding(action.value)
             SubtitlePreferencesUiEvent.ToggleUseSystemCaptionStyle -> toggleUseSystemCaptionStyle()
         }
     }

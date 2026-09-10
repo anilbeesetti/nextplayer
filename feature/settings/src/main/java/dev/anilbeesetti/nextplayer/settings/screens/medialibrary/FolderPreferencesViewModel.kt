@@ -1,6 +1,5 @@
 package dev.anilbeesetti.nextplayer.settings.screens.medialibrary
 
-import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import dagger.hilt.android.lifecycle.HiltViewModel
 import dev.anilbeesetti.nextplayer.core.data.repository.MediaRepository
@@ -8,6 +7,7 @@ import dev.anilbeesetti.nextplayer.core.data.repository.PreferencesRepository
 import dev.anilbeesetti.nextplayer.core.model.ApplicationPreferences
 import dev.anilbeesetti.nextplayer.core.model.Folder
 import dev.anilbeesetti.nextplayer.core.ui.base.DataState
+import dev.anilbeesetti.nextplayer.core.ui.base.MviViewModel
 import javax.inject.Inject
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
@@ -19,14 +19,14 @@ import kotlinx.coroutines.launch
 class FolderPreferencesViewModel @Inject constructor(
     mediaRepository: MediaRepository,
     private val preferencesRepository: PreferencesRepository,
-) : ViewModel() {
+) : MviViewModel<FolderPreferencesUiState, FolderPreferencesUiEvent>() {
 
     private val uiStateInternal = MutableStateFlow(
         FolderPreferencesUiState(
             preferences = preferencesRepository.applicationPreferences.value,
         ),
     )
-    val uiState: StateFlow<FolderPreferencesUiState> = uiStateInternal.asStateFlow()
+    override val state: StateFlow<FolderPreferencesUiState> = uiStateInternal.asStateFlow()
 
     init {
         viewModelScope.launch {
@@ -46,9 +46,9 @@ class FolderPreferencesViewModel @Inject constructor(
         }
     }
 
-    fun onEvent(event: FolderPreferencesUiEvent) {
-        when (event) {
-            is FolderPreferencesUiEvent.UpdateExcludeList -> updateExcludeList(event.path)
+    override fun onAction(action: FolderPreferencesUiEvent) {
+        when (action) {
+            is FolderPreferencesUiEvent.UpdateExcludeList -> updateExcludeList(action.path)
         }
     }
 

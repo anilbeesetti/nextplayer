@@ -7,9 +7,6 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
-import dev.anilbeesetti.nextplayer.settings.utils.rememberTvListFocusRequester
-import dev.anilbeesetti.nextplayer.settings.utils.tvFocusDown
-import dev.anilbeesetti.nextplayer.settings.utils.tvListFocus
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.ExperimentalMaterial3ExpressiveApi
 import androidx.compose.material3.FilledIconButton
@@ -43,17 +40,20 @@ import dev.anilbeesetti.nextplayer.core.ui.preview.DayNightPreview
 import dev.anilbeesetti.nextplayer.core.ui.theme.NextPlayerTheme
 import dev.anilbeesetti.nextplayer.settings.composables.OptionsDialog
 import dev.anilbeesetti.nextplayer.settings.extensions.name
+import dev.anilbeesetti.nextplayer.settings.utils.rememberTvListFocusRequester
+import dev.anilbeesetti.nextplayer.settings.utils.tvFocusDown
+import dev.anilbeesetti.nextplayer.settings.utils.tvListFocus
 
 @Composable
 fun PlayerPreferencesScreen(
     onNavigateUp: () -> Unit,
     viewModel: PlayerPreferencesViewModel = hiltViewModel(),
 ) {
-    val uiState by viewModel.uiState.collectAsStateWithLifecycle()
+    val uiState by viewModel.state.collectAsStateWithLifecycle()
 
     PlayerPreferencesContent(
         uiState = uiState,
-        onEvent = viewModel::onEvent,
+        onEvent = viewModel::onAction,
         onNavigateUp = onNavigateUp,
     )
 }
@@ -100,7 +100,7 @@ private fun PlayerPreferencesContent(
                     icon = NextIcons.Appearance,
                     isChecked = uiState.preferences.useMaterialYouControls,
                     onClick = { onEvent(PlayerPreferencesUiEvent.ToggleUseMaterialYouControls) },
-                    isFirstItem = true
+                    isFirstItem = true,
                 )
                 PreferenceSlider(
                     title = stringResource(R.string.controller_timeout),
@@ -202,7 +202,7 @@ private fun PlayerPreferencesContent(
                     onClick = {
                         onEvent(PlayerPreferencesUiEvent.ShowDialog(PlayerPreferenceDialog.PlayerScreenOrientationDialog))
                     },
-                    isLastItem = true
+                    isLastItem = true,
                 )
             }
         }

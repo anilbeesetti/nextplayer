@@ -3,7 +3,6 @@ package dev.anilbeesetti.nextplayer.feature.videopicker.screens.vault
 import android.net.Uri
 import androidx.compose.runtime.Stable
 import androidx.core.net.toUri
-import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import dagger.hilt.android.lifecycle.HiltViewModel
 import dev.anilbeesetti.nextplayer.core.data.repository.PreferencesRepository
@@ -14,6 +13,7 @@ import dev.anilbeesetti.nextplayer.core.model.ApplicationPreferences
 import dev.anilbeesetti.nextplayer.core.model.MediaInfo
 import dev.anilbeesetti.nextplayer.core.model.Sort
 import dev.anilbeesetti.nextplayer.core.model.Video
+import dev.anilbeesetti.nextplayer.core.ui.base.MviViewModel
 import dev.anilbeesetti.nextplayer.feature.videopicker.state.SelectionItem
 import javax.inject.Inject
 import kotlinx.coroutines.Job
@@ -32,10 +32,10 @@ class VaultViewModel @Inject constructor(
     private val vaultPinRepository: VaultPinRepository,
     private val getHiddenVideosUseCase: GetHiddenVideosUseCase,
     private val preferencesRepository: PreferencesRepository,
-) : ViewModel() {
+) : MviViewModel<VaultUiState, VaultAction>() {
 
     private val uiStateInternal = MutableStateFlow(VaultUiState())
-    val uiState = uiStateInternal.asStateFlow()
+    override val state = uiStateInternal.asStateFlow()
 
     private val eventsInternal = Channel<VaultEvent>()
     val events = eventsInternal.receiveAsFlow()
@@ -71,7 +71,7 @@ class VaultViewModel @Inject constructor(
         }
     }
 
-    fun onAction(action: VaultAction) {
+    override fun onAction(action: VaultAction) {
         when (action) {
             is VaultAction.SubmitNewPin -> submitNewPin(action.pin)
             is VaultAction.SubmitPinConfirmation -> submitPinConfirmation(action.pin)
