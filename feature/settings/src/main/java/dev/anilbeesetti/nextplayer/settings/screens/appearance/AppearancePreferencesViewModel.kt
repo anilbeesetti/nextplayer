@@ -2,49 +2,64 @@ package dev.anilbeesetti.nextplayer.settings.screens.appearance
 
 import androidx.compose.runtime.Stable
 import androidx.lifecycle.viewModelScope
+import dagger.assisted.Assisted
+import dagger.assisted.AssistedFactory
+import dagger.assisted.AssistedInject
 import dagger.hilt.android.lifecycle.HiltViewModel
 import dev.anilbeesetti.nextplayer.core.data.repository.PreferencesRepository
 import dev.anilbeesetti.nextplayer.core.model.ApplicationPreferences
 import dev.anilbeesetti.nextplayer.core.model.ThemeConfig
 import dev.anilbeesetti.nextplayer.core.ui.base.MviViewModel
-import javax.inject.Inject
 import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 
-@HiltViewModel
-class AppearancePreferencesViewModel @Inject constructor(
+@HiltViewModel(assistedFactory = AppearancePreferencesViewModel.Factory::class)
+class AppearancePreferencesViewModel @AssistedInject constructor(
     private val preferencesRepository: PreferencesRepository,
+    @Assisted internal var output: Output,
 ) : MviViewModel<AppearancePreferencesUiState, AppearancePreferencesEvent>() {
 
-    private val uiStateInternal = MutableStateFlow(
+    data class Output(
+        val navigateUp: () -> Unit,
+    )
+
+    @AssistedFactory
+    interface Factory {
+        fun create(output: Output): AppearancePreferencesViewModel
+    }
+
+    private val stateInternal = MutableStateFlow(
         AppearancePreferencesUiState(
             preferences = preferencesRepository.applicationPreferences.value,
         ),
     )
-    override val state = uiStateInternal.asStateFlow()
+    override val state: StateFlow<AppearancePreferencesUiState> = stateInternal.asStateFlow()
 
     init {
         viewModelScope.launch {
             preferencesRepository.applicationPreferences.collect { preferences ->
-                uiStateInternal.update { it.copy(preferences = preferences) }
+                stateInternal.update { it.copy(preferences = preferences) }
             }
         }
     }
 
     override fun onAction(action: AppearancePreferencesEvent) {
         when (action) {
+            is AppearancePreferencesEvent.NavigateUp -> output.navigateUp()
+
             is AppearancePreferencesEvent.ShowDialog -> showDialog(action.value)
-            AppearancePreferencesEvent.ToggleDarkTheme -> toggleDarkTheme()
+            is AppearancePreferencesEvent.ToggleDarkTheme -> toggleDarkTheme()
             is AppearancePreferencesEvent.UpdateThemeConfig -> updateThemeConfig(action.themeConfig)
-            AppearancePreferencesEvent.ToggleUseDynamicColors -> toggleUseDynamicColors()
-            AppearancePreferencesEvent.ToggleUseHighContrastDarkTheme -> toggleUseHighContrastDarkTheme()
+            is AppearancePreferencesEvent.ToggleUseDynamicColors -> toggleUseDynamicColors()
+            is AppearancePreferencesEvent.ToggleUseHighContrastDarkTheme -> toggleUseHighContrastDarkTheme()
         }
     }
 
     private fun showDialog(value: AppearancePreferenceDialog?) {
-        uiStateInternal.update {
+        stateInternal.update {
             it.copy(showDialog = value)
         }
     }
@@ -91,6 +106,8 @@ data class AppearancePreferencesUiState(
 )
 
 sealed interface AppearancePreferencesEvent {
+    data object NavigateUp : AppearancePreferencesEvent
+
     data class ShowDialog(val value: AppearancePreferenceDialog?) : AppearancePreferencesEvent
     data object ToggleDarkTheme : AppearancePreferencesEvent
     data class UpdateThemeConfig(val themeConfig: ThemeConfig) : AppearancePreferencesEvent

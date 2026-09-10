@@ -1,29 +1,43 @@
 package dev.anilbeesetti.nextplayer.settings.screens.medialibrary
 
 import androidx.lifecycle.viewModelScope
+import dagger.assisted.Assisted
+import dagger.assisted.AssistedFactory
+import dagger.assisted.AssistedInject
 import dagger.hilt.android.lifecycle.HiltViewModel
 import dev.anilbeesetti.nextplayer.core.data.repository.PreferencesRepository
 import dev.anilbeesetti.nextplayer.core.model.ApplicationPreferences
 import dev.anilbeesetti.nextplayer.core.ui.base.MviViewModel
-import javax.inject.Inject
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 
-@HiltViewModel
-class MediaLibraryPreferencesViewModel @Inject constructor(
+@HiltViewModel(assistedFactory = MediaLibraryPreferencesViewModel.Factory::class)
+class MediaLibraryPreferencesViewModel @AssistedInject constructor(
     private val preferencesRepository: PreferencesRepository,
+    @Assisted internal var output: Output,
 ) : MviViewModel<MediaLibraryPreferencesUiState, MediaLibraryPreferencesUiEvent>() {
 
-    private val uiStateInternal = MutableStateFlow(MediaLibraryPreferencesUiState())
-    override val state: StateFlow<MediaLibraryPreferencesUiState> = uiStateInternal.asStateFlow()
+    data class Output(
+        val navigateUp: () -> Unit,
+        val openFolders: () -> Unit,
+        val openThumbnails: () -> Unit,
+    )
+
+    @AssistedFactory
+    interface Factory {
+        fun create(output: Output): MediaLibraryPreferencesViewModel
+    }
+
+    private val stateInternal = MutableStateFlow(MediaLibraryPreferencesUiState())
+    override val state: StateFlow<MediaLibraryPreferencesUiState> = stateInternal.asStateFlow()
 
     init {
         viewModelScope.launch {
             preferencesRepository.applicationPreferences.collect {
-                uiStateInternal.update { currentState ->
+                stateInternal.update { currentState ->
                     currentState.copy(preferences = it)
                 }
             }
@@ -32,7 +46,11 @@ class MediaLibraryPreferencesViewModel @Inject constructor(
 
     override fun onAction(action: MediaLibraryPreferencesUiEvent) {
         when (action) {
-            MediaLibraryPreferencesUiEvent.ToggleMarkLastPlayedMedia -> toggleMarkLastPlayedMedia()
+            is MediaLibraryPreferencesUiEvent.NavigateUp -> output.navigateUp()
+            is MediaLibraryPreferencesUiEvent.OpenFolders -> output.openFolders()
+            is MediaLibraryPreferencesUiEvent.OpenThumbnails -> output.openThumbnails()
+
+            is MediaLibraryPreferencesUiEvent.ToggleMarkLastPlayedMedia -> toggleMarkLastPlayedMedia()
         }
     }
 
@@ -50,5 +68,9 @@ data class MediaLibraryPreferencesUiState(
 )
 
 sealed interface MediaLibraryPreferencesUiEvent {
+    data object NavigateUp : MediaLibraryPreferencesUiEvent
+    data object OpenFolders : MediaLibraryPreferencesUiEvent
+    data object OpenThumbnails : MediaLibraryPreferencesUiEvent
+
     data object ToggleMarkLastPlayedMedia : MediaLibraryPreferencesUiEvent
 }

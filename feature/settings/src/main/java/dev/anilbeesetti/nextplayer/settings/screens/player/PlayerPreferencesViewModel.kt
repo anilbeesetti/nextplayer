@@ -2,6 +2,9 @@ package dev.anilbeesetti.nextplayer.settings.screens.player
 
 import androidx.compose.runtime.Stable
 import androidx.lifecycle.viewModelScope
+import dagger.assisted.Assisted
+import dagger.assisted.AssistedFactory
+import dagger.assisted.AssistedInject
 import dagger.hilt.android.lifecycle.HiltViewModel
 import dev.anilbeesetti.nextplayer.core.common.extensions.round
 import dev.anilbeesetti.nextplayer.core.data.repository.PreferencesRepository
@@ -10,51 +13,63 @@ import dev.anilbeesetti.nextplayer.core.model.PlayerPreferences
 import dev.anilbeesetti.nextplayer.core.model.Resume
 import dev.anilbeesetti.nextplayer.core.model.ScreenOrientation
 import dev.anilbeesetti.nextplayer.core.ui.base.MviViewModel
-import javax.inject.Inject
 import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 
-@HiltViewModel
-class PlayerPreferencesViewModel @Inject constructor(
+@HiltViewModel(assistedFactory = PlayerPreferencesViewModel.Factory::class)
+class PlayerPreferencesViewModel @AssistedInject constructor(
     private val preferencesRepository: PreferencesRepository,
+    @Assisted internal var output: Output,
 ) : MviViewModel<PlayerPreferencesUiState, PlayerPreferencesUiEvent>() {
 
-    private val uiStateInternal = MutableStateFlow(
+    data class Output(
+        val navigateUp: () -> Unit,
+    )
+
+    @AssistedFactory
+    interface Factory {
+        fun create(output: Output): PlayerPreferencesViewModel
+    }
+
+    private val stateInternal = MutableStateFlow(
         PlayerPreferencesUiState(
             preferences = preferencesRepository.playerPreferences.value,
         ),
     )
-    override val state = uiStateInternal.asStateFlow()
+    override val state: StateFlow<PlayerPreferencesUiState> = stateInternal.asStateFlow()
 
     init {
         viewModelScope.launch {
             preferencesRepository.playerPreferences.collect { preferences ->
-                uiStateInternal.update { it.copy(preferences = preferences) }
+                stateInternal.update { it.copy(preferences = preferences) }
             }
         }
     }
 
     override fun onAction(action: PlayerPreferencesUiEvent) {
         when (action) {
+            is PlayerPreferencesUiEvent.NavigateUp -> output.navigateUp()
+
             is PlayerPreferencesUiEvent.ShowDialog -> showDialog(action.value)
             is PlayerPreferencesUiEvent.UpdatePlaybackResume -> updatePlaybackResume(action.resume)
-            PlayerPreferencesUiEvent.ToggleAutoplay -> toggleAutoplay()
-            PlayerPreferencesUiEvent.ToggleAutoPip -> toggleAutoPip()
-            PlayerPreferencesUiEvent.ToggleAutoBackgroundPlay -> toggleAutoBackgroundPlay()
-            PlayerPreferencesUiEvent.ToggleRememberBrightnessLevel -> toggleRememberBrightnessLevel()
-            PlayerPreferencesUiEvent.ToggleRememberSelections -> toggleRememberSelections()
+            is PlayerPreferencesUiEvent.ToggleAutoplay -> toggleAutoplay()
+            is PlayerPreferencesUiEvent.ToggleAutoPip -> toggleAutoPip()
+            is PlayerPreferencesUiEvent.ToggleAutoBackgroundPlay -> toggleAutoBackgroundPlay()
+            is PlayerPreferencesUiEvent.ToggleRememberBrightnessLevel -> toggleRememberBrightnessLevel()
+            is PlayerPreferencesUiEvent.ToggleRememberSelections -> toggleRememberSelections()
             is PlayerPreferencesUiEvent.UpdatePreferredPlayerOrientation -> updatePreferredPlayerOrientation(action.value)
             is PlayerPreferencesUiEvent.UpdatePreferredControlButtonsPosition -> updatePreferredControlButtonsPosition(action.value)
             is PlayerPreferencesUiEvent.UpdateDefaultPlaybackSpeed -> updateDefaultPlaybackSpeed(action.value)
             is PlayerPreferencesUiEvent.UpdateControlAutoHideTimeout -> updateControlAutoHideTimeout(action.value)
-            PlayerPreferencesUiEvent.ToggleUseMaterialYouControls -> toggleUseMaterialYouControls()
+            is PlayerPreferencesUiEvent.ToggleUseMaterialYouControls -> toggleUseMaterialYouControls()
         }
     }
 
     private fun showDialog(value: PlayerPreferenceDialog?) {
-        uiStateInternal.update {
+        stateInternal.update {
             it.copy(showDialog = value)
         }
     }
@@ -163,6 +178,8 @@ sealed interface PlayerPreferenceDialog {
 }
 
 sealed interface PlayerPreferencesUiEvent {
+    data object NavigateUp : PlayerPreferencesUiEvent
+
     data class ShowDialog(val value: PlayerPreferenceDialog?) : PlayerPreferencesUiEvent
     data class UpdatePlaybackResume(val resume: Resume) : PlayerPreferencesUiEvent
     data object ToggleAutoplay : PlayerPreferencesUiEvent

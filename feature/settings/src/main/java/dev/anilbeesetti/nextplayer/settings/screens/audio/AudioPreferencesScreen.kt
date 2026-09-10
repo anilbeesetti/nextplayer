@@ -15,6 +15,7 @@ import androidx.compose.material3.ListItemDefaults
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.SideEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
@@ -38,25 +39,26 @@ import dev.anilbeesetti.nextplayer.settings.utils.tvFocusDown
 import dev.anilbeesetti.nextplayer.settings.utils.tvListFocus
 
 @Composable
-fun AudioPreferencesScreen(
-    onNavigateUp: () -> Unit,
-    viewModel: AudioPreferencesViewModel = hiltViewModel(),
+fun AudioPreferencesRoute(
+    output: AudioPreferencesViewModel.Output,
 ) {
-    val uiState by viewModel.state.collectAsStateWithLifecycle()
+    val viewModel = hiltViewModel<AudioPreferencesViewModel, AudioPreferencesViewModel.Factory>(
+        creationCallback = { factory -> factory.create(output) },
+    )
+    SideEffect { viewModel.output = output }
+    val state by viewModel.state.collectAsStateWithLifecycle()
 
-    AudioPreferencesContent(
-        uiState = uiState,
-        onEvent = viewModel::onAction,
-        onNavigateUp = onNavigateUp,
+    AudioPreferencesScreenContent(
+        state = state,
+        onAction = viewModel::onAction,
     )
 }
 
 @OptIn(ExperimentalMaterial3Api::class, ExperimentalMaterial3ExpressiveApi::class)
 @Composable
-private fun AudioPreferencesContent(
-    uiState: AudioPreferencesUiState,
-    onEvent: (AudioPreferencesUiEvent) -> Unit,
-    onNavigateUp: () -> Unit,
+private fun AudioPreferencesScreenContent(
+    state: AudioPreferencesUiState,
+    onAction: (AudioPreferencesUiEvent) -> Unit,
 ) {
     val languages = remember { listOf(Pair("None", "")) + LocalesHelper.getAvailableLocales() }
 
@@ -66,7 +68,7 @@ private fun AudioPreferencesContent(
             NextTopAppBar(
                 title = stringResource(id = R.string.audio),
                 navigationIcon = {
-                    FilledTonalIconButton(onClick = onNavigateUp, modifier = Modifier.tvFocusDown(listFocusRequester)) {
+                    FilledTonalIconButton(onClick = { onAction(AudioPreferencesUiEvent.NavigateUp) }, modifier = Modifier.tvFocusDown(listFocusRequester)) {
                         Icon(
                             imageVector = NextIcons.ArrowBack,
                             contentDescription = stringResource(id = R.string.navigate_up),
@@ -91,58 +93,58 @@ private fun AudioPreferencesContent(
             ) {
                 ClickablePreferenceItem(
                     title = stringResource(id = R.string.preferred_audio_lang),
-                    description = LocalesHelper.getLocaleDisplayLanguage(uiState.preferences.preferredAudioLanguage)
+                    description = LocalesHelper.getLocaleDisplayLanguage(state.preferences.preferredAudioLanguage)
                         .takeIf { it.isNotBlank() } ?: stringResource(R.string.preferred_audio_lang_description),
                     icon = NextIcons.Language,
-                    onClick = { onEvent(AudioPreferencesUiEvent.ShowDialog(AudioPreferenceDialog.AudioLanguageDialog)) },
+                    onClick = { onAction(AudioPreferencesUiEvent.ShowDialog(AudioPreferenceDialog.AudioLanguageDialog)) },
                     isFirstItem = true,
                 )
                 PreferenceSwitch(
                     title = stringResource(R.string.require_audio_focus),
                     description = stringResource(R.string.require_audio_focus_desc),
                     icon = NextIcons.Focus,
-                    isChecked = uiState.preferences.requireAudioFocus,
-                    onClick = { onEvent(AudioPreferencesUiEvent.ToggleRequireAudioFocus) },
+                    isChecked = state.preferences.requireAudioFocus,
+                    onClick = { onAction(AudioPreferencesUiEvent.ToggleRequireAudioFocus) },
                 )
                 PreferenceSwitch(
                     title = stringResource(id = R.string.pause_on_headset_disconnect),
                     description = stringResource(id = R.string.pause_on_headset_disconnect_desc),
                     icon = NextIcons.HeadsetOff,
-                    isChecked = uiState.preferences.pauseOnHeadsetDisconnect,
-                    onClick = { onEvent(AudioPreferencesUiEvent.TogglePauseOnHeadsetDisconnect) },
+                    isChecked = state.preferences.pauseOnHeadsetDisconnect,
+                    onClick = { onAction(AudioPreferencesUiEvent.TogglePauseOnHeadsetDisconnect) },
                 )
                 PreferenceSwitch(
                     title = stringResource(id = R.string.system_volume_panel),
                     description = stringResource(id = R.string.system_volume_panel_desc),
                     icon = NextIcons.Headset,
-                    isChecked = uiState.preferences.showSystemVolumePanel,
-                    onClick = { onEvent(AudioPreferencesUiEvent.ToggleShowSystemVolumePanel) },
+                    isChecked = state.preferences.showSystemVolumePanel,
+                    onClick = { onAction(AudioPreferencesUiEvent.ToggleShowSystemVolumePanel) },
                 )
                 PreferenceSwitch(
                     title = stringResource(id = R.string.volume_boost),
                     description = stringResource(id = R.string.volume_boost_desc),
                     icon = NextIcons.VolumeUp,
-                    isChecked = uiState.preferences.enableVolumeBoost,
-                    onClick = { onEvent(AudioPreferencesUiEvent.ToggleVolumeBoost) },
+                    isChecked = state.preferences.enableVolumeBoost,
+                    onClick = { onAction(AudioPreferencesUiEvent.ToggleVolumeBoost) },
                     isLastItem = true,
                 )
             }
         }
 
-        uiState.showDialog?.let { showDialog ->
+        state.showDialog?.let { showDialog ->
             when (showDialog) {
                 AudioPreferenceDialog.AudioLanguageDialog -> {
                     OptionsDialog(
                         text = stringResource(id = R.string.preferred_audio_lang),
-                        onDismissClick = { onEvent(AudioPreferencesUiEvent.ShowDialog(null)) },
+                        onDismissClick = { onAction(AudioPreferencesUiEvent.ShowDialog(null)) },
                     ) {
                         items(languages) {
                             RadioTextButton(
                                 text = it.first,
-                                selected = it.second == uiState.preferences.preferredAudioLanguage,
+                                selected = it.second == state.preferences.preferredAudioLanguage,
                                 onClick = {
-                                    onEvent(AudioPreferencesUiEvent.UpdateAudioLanguage(it.second))
-                                    onEvent(AudioPreferencesUiEvent.ShowDialog(null))
+                                    onAction(AudioPreferencesUiEvent.UpdateAudioLanguage(it.second))
+                                    onAction(AudioPreferencesUiEvent.ShowDialog(null))
                                 },
                             )
                         }
@@ -157,10 +159,9 @@ private fun AudioPreferencesContent(
 @Composable
 private fun AudioPreferencesScreenPreview() {
     NextPlayerTheme {
-        AudioPreferencesContent(
-            uiState = AudioPreferencesUiState(),
-            onNavigateUp = {},
-            onEvent = {},
+        AudioPreferencesScreenContent(
+            state = AudioPreferencesUiState(),
+            onAction = {},
         )
     }
 }

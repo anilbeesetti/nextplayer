@@ -35,10 +35,27 @@ import dev.anilbeesetti.nextplayer.core.ui.components.NextTopAppBar
 import dev.anilbeesetti.nextplayer.core.ui.designsystem.NextIcons
 import dev.anilbeesetti.nextplayer.core.ui.extensions.plus
 
+data class LibrariesOutput(
+    val navigateUp: () -> Unit,
+)
+
+private sealed interface LibrariesAction {
+    data object NavigateUp : LibrariesAction
+}
+
+@Composable
+fun LibrariesRoute(output: LibrariesOutput) {
+    LibrariesScreenContent { action ->
+        when (action) {
+            is LibrariesAction.NavigateUp -> output.navigateUp()
+        }
+    }
+}
+
 @OptIn(ExperimentalMaterial3Api::class, ExperimentalMaterial3ExpressiveApi::class)
 @Composable
-fun LibrariesScreen(
-    onNavigateUp: () -> Unit,
+private fun LibrariesScreenContent(
+    onAction: (LibrariesAction) -> Unit,
 ) {
     val context = LocalContext.current
     val uriHandler = LocalUriHandler.current
@@ -48,7 +65,7 @@ fun LibrariesScreen(
             NextTopAppBar(
                 title = stringResource(id = R.string.libraries),
                 navigationIcon = {
-                    FilledTonalIconButton(onClick = onNavigateUp) {
+                    FilledTonalIconButton(onClick = { onAction(LibrariesAction.NavigateUp) }) {
                         Icon(
                             imageVector = NextIcons.ArrowBack,
                             contentDescription = stringResource(id = R.string.navigate_up),

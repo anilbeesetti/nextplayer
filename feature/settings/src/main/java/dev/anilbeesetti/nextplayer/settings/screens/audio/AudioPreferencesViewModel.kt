@@ -2,32 +2,45 @@ package dev.anilbeesetti.nextplayer.settings.screens.audio
 
 import androidx.compose.runtime.Stable
 import androidx.lifecycle.viewModelScope
+import dagger.assisted.Assisted
+import dagger.assisted.AssistedFactory
+import dagger.assisted.AssistedInject
 import dagger.hilt.android.lifecycle.HiltViewModel
 import dev.anilbeesetti.nextplayer.core.data.repository.PreferencesRepository
 import dev.anilbeesetti.nextplayer.core.model.PlayerPreferences
 import dev.anilbeesetti.nextplayer.core.ui.base.MviViewModel
-import javax.inject.Inject
 import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 
-@HiltViewModel
-class AudioPreferencesViewModel @Inject constructor(
+@HiltViewModel(assistedFactory = AudioPreferencesViewModel.Factory::class)
+class AudioPreferencesViewModel @AssistedInject constructor(
     private val preferencesRepository: PreferencesRepository,
+    @Assisted internal var output: Output,
 ) : MviViewModel<AudioPreferencesUiState, AudioPreferencesUiEvent>() {
 
-    private val uiStateInternal = MutableStateFlow(
+    data class Output(
+        val navigateUp: () -> Unit,
+    )
+
+    @AssistedFactory
+    interface Factory {
+        fun create(output: Output): AudioPreferencesViewModel
+    }
+
+    private val stateInternal = MutableStateFlow(
         AudioPreferencesUiState(
             preferences = preferencesRepository.playerPreferences.value,
         ),
     )
-    override val state = uiStateInternal.asStateFlow()
+    override val state: StateFlow<AudioPreferencesUiState> = stateInternal.asStateFlow()
 
     init {
         viewModelScope.launch {
             preferencesRepository.playerPreferences.collect { preferences ->
-                uiStateInternal.update { currentState ->
+                stateInternal.update { currentState ->
                     currentState.copy(preferences = preferences)
                 }
             }
@@ -36,17 +49,19 @@ class AudioPreferencesViewModel @Inject constructor(
 
     override fun onAction(action: AudioPreferencesUiEvent) {
         when (action) {
+            is AudioPreferencesUiEvent.NavigateUp -> output.navigateUp()
+
             is AudioPreferencesUiEvent.ShowDialog -> showDialog(action.value)
             is AudioPreferencesUiEvent.UpdateAudioLanguage -> updateAudioLanguage(action.value)
-            AudioPreferencesUiEvent.TogglePauseOnHeadsetDisconnect -> togglePauseOnHeadsetDisconnect()
-            AudioPreferencesUiEvent.ToggleShowSystemVolumePanel -> toggleShowSystemVolumePanel()
-            AudioPreferencesUiEvent.ToggleRequireAudioFocus -> toggleRequireAudioFocus()
-            AudioPreferencesUiEvent.ToggleVolumeBoost -> toggleVolumeBoost()
+            is AudioPreferencesUiEvent.TogglePauseOnHeadsetDisconnect -> togglePauseOnHeadsetDisconnect()
+            is AudioPreferencesUiEvent.ToggleShowSystemVolumePanel -> toggleShowSystemVolumePanel()
+            is AudioPreferencesUiEvent.ToggleRequireAudioFocus -> toggleRequireAudioFocus()
+            is AudioPreferencesUiEvent.ToggleVolumeBoost -> toggleVolumeBoost()
         }
     }
 
     private fun showDialog(value: AudioPreferenceDialog?) {
-        uiStateInternal.update {
+        stateInternal.update {
             it.copy(showDialog = value)
         }
     }
@@ -103,6 +118,8 @@ sealed interface AudioPreferenceDialog {
 }
 
 sealed interface AudioPreferencesUiEvent {
+    data object NavigateUp : AudioPreferencesUiEvent
+
     data class ShowDialog(val value: AudioPreferenceDialog?) : AudioPreferencesUiEvent
     data class UpdateAudioLanguage(val value: String) : AudioPreferencesUiEvent
     data object TogglePauseOnHeadsetDisconnect : AudioPreferencesUiEvent

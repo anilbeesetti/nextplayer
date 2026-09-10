@@ -3,41 +3,56 @@ package dev.anilbeesetti.nextplayer.settings.screens.thumbnail
 import androidx.compose.runtime.Stable
 import androidx.lifecycle.viewModelScope
 import coil3.ImageLoader
+import dagger.assisted.Assisted
+import dagger.assisted.AssistedFactory
+import dagger.assisted.AssistedInject
 import dagger.hilt.android.lifecycle.HiltViewModel
 import dev.anilbeesetti.nextplayer.core.data.repository.PreferencesRepository
 import dev.anilbeesetti.nextplayer.core.media.extensions.clearAllCache
 import dev.anilbeesetti.nextplayer.core.model.ApplicationPreferences
 import dev.anilbeesetti.nextplayer.core.model.ThumbnailGenerationStrategy
 import dev.anilbeesetti.nextplayer.core.ui.base.MviViewModel
-import javax.inject.Inject
 import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 
-@HiltViewModel
-class ThumbnailPreferencesViewModel @Inject constructor(
+@HiltViewModel(assistedFactory = ThumbnailPreferencesViewModel.Factory::class)
+class ThumbnailPreferencesViewModel @AssistedInject constructor(
     private val preferencesRepository: PreferencesRepository,
     private val imageLoader: ImageLoader,
+    @Assisted internal var output: Output,
 ) : MviViewModel<ThumbnailPreferencesUiState, ThumbnailPreferencesEvent>() {
 
-    private val uiStateInternal = MutableStateFlow(
+    data class Output(
+        val navigateUp: () -> Unit,
+    )
+
+    @AssistedFactory
+    interface Factory {
+        fun create(output: Output): ThumbnailPreferencesViewModel
+    }
+
+    private val stateInternal = MutableStateFlow(
         ThumbnailPreferencesUiState(
             preferences = preferencesRepository.applicationPreferences.value,
         ),
     )
-    override val state = uiStateInternal.asStateFlow()
+    override val state: StateFlow<ThumbnailPreferencesUiState> = stateInternal.asStateFlow()
 
     init {
         viewModelScope.launch {
             preferencesRepository.applicationPreferences.collect { preferences ->
-                uiStateInternal.update { it.copy(preferences = preferences) }
+                stateInternal.update { it.copy(preferences = preferences) }
             }
         }
     }
 
     override fun onAction(action: ThumbnailPreferencesEvent) {
         when (action) {
+            is ThumbnailPreferencesEvent.NavigateUp -> output.navigateUp()
+
             is ThumbnailPreferencesEvent.UpdateStrategy -> updateStrategy(action.strategy)
             is ThumbnailPreferencesEvent.UpdateFramePosition -> updateFramePosition(action.position)
         }
@@ -76,6 +91,8 @@ data class ThumbnailPreferencesUiState(
 )
 
 sealed interface ThumbnailPreferencesEvent {
+    data object NavigateUp : ThumbnailPreferencesEvent
+
     data class UpdateStrategy(val strategy: ThumbnailGenerationStrategy) : ThumbnailPreferencesEvent
     data class UpdateFramePosition(val position: Float) : ThumbnailPreferencesEvent
 }

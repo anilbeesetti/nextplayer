@@ -15,6 +15,7 @@ import androidx.compose.material3.ListItemDefaults
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.SideEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
@@ -39,25 +40,26 @@ import dev.anilbeesetti.nextplayer.settings.utils.tvFocusDown
 import dev.anilbeesetti.nextplayer.settings.utils.tvListFocus
 
 @Composable
-fun AppearancePreferencesScreen(
-    onNavigateUp: () -> Unit,
-    viewModel: AppearancePreferencesViewModel = hiltViewModel(),
+fun AppearancePreferencesRoute(
+    output: AppearancePreferencesViewModel.Output,
 ) {
-    val uiState by viewModel.state.collectAsStateWithLifecycle()
+    val viewModel = hiltViewModel<AppearancePreferencesViewModel, AppearancePreferencesViewModel.Factory>(
+        creationCallback = { factory -> factory.create(output) },
+    )
+    SideEffect { viewModel.output = output }
+    val state by viewModel.state.collectAsStateWithLifecycle()
 
-    AppearancePreferencesContent(
-        uiState = uiState,
-        onEvent = viewModel::onAction,
-        onNavigateUp = onNavigateUp,
+    AppearancePreferencesScreenContent(
+        state = state,
+        onAction = viewModel::onAction,
     )
 }
 
 @OptIn(ExperimentalMaterial3Api::class, ExperimentalMaterial3ExpressiveApi::class)
 @Composable
-private fun AppearancePreferencesContent(
-    uiState: AppearancePreferencesUiState,
-    onEvent: (AppearancePreferencesEvent) -> Unit,
-    onNavigateUp: () -> Unit = {},
+private fun AppearancePreferencesScreenContent(
+    state: AppearancePreferencesUiState,
+    onAction: (AppearancePreferencesEvent) -> Unit,
 ) {
     val listFocusRequester = rememberTvListFocusRequester()
     Scaffold(
@@ -65,7 +67,7 @@ private fun AppearancePreferencesContent(
             NextTopAppBar(
                 title = stringResource(id = R.string.appearance_name),
                 navigationIcon = {
-                    FilledTonalIconButton(onClick = onNavigateUp, modifier = Modifier.tvFocusDown(listFocusRequester)) {
+                    FilledTonalIconButton(onClick = { onAction(AppearancePreferencesEvent.NavigateUp) }, modifier = Modifier.tvFocusDown(listFocusRequester)) {
                         Icon(
                             imageVector = NextIcons.ArrowBack,
                             contentDescription = stringResource(id = R.string.navigate_up),
@@ -90,19 +92,19 @@ private fun AppearancePreferencesContent(
             ) {
                 PreferenceSwitchWithDivider(
                     title = stringResource(id = R.string.dark_theme),
-                    description = uiState.preferences.themeConfig.name(),
-                    isChecked = uiState.preferences.themeConfig == ThemeConfig.ON,
-                    onChecked = { onEvent(AppearancePreferencesEvent.ToggleDarkTheme) },
+                    description = state.preferences.themeConfig.name(),
+                    isChecked = state.preferences.themeConfig == ThemeConfig.ON,
+                    onChecked = { onAction(AppearancePreferencesEvent.ToggleDarkTheme) },
                     icon = NextIcons.DarkMode,
-                    onClick = { onEvent(AppearancePreferencesEvent.ShowDialog(AppearancePreferenceDialog.Theme)) },
+                    onClick = { onAction(AppearancePreferencesEvent.ShowDialog(AppearancePreferenceDialog.Theme)) },
                     isFirstItem = true,
                 )
                 PreferenceSwitch(
                     title = stringResource(R.string.high_contrast_dark_theme),
                     description = stringResource(R.string.high_contrast_dark_theme_desc),
                     icon = NextIcons.Contrast,
-                    isChecked = uiState.preferences.useHighContrastDarkTheme,
-                    onClick = { onEvent(AppearancePreferencesEvent.ToggleUseHighContrastDarkTheme) },
+                    isChecked = state.preferences.useHighContrastDarkTheme,
+                    onClick = { onAction(AppearancePreferencesEvent.ToggleUseHighContrastDarkTheme) },
                     isLastItem = !supportsDynamicTheming(),
                 )
                 if (supportsDynamicTheming()) {
@@ -110,28 +112,28 @@ private fun AppearancePreferencesContent(
                         title = stringResource(id = R.string.dynamic_theme),
                         description = stringResource(id = R.string.dynamic_theme_description),
                         icon = NextIcons.Appearance,
-                        isChecked = uiState.preferences.useDynamicColors,
-                        onClick = { onEvent(AppearancePreferencesEvent.ToggleUseDynamicColors) },
+                        isChecked = state.preferences.useDynamicColors,
+                        onClick = { onAction(AppearancePreferencesEvent.ToggleUseDynamicColors) },
                         isLastItem = true,
                     )
                 }
             }
         }
 
-        uiState.showDialog?.let { showDialog ->
+        state.showDialog?.let { showDialog ->
             when (showDialog) {
                 AppearancePreferenceDialog.Theme -> {
                     OptionsDialog(
                         text = stringResource(id = R.string.dark_theme),
-                        onDismissClick = { onEvent(AppearancePreferencesEvent.ShowDialog(null)) },
+                        onDismissClick = { onAction(AppearancePreferencesEvent.ShowDialog(null)) },
                     ) {
                         items(ThemeConfig.entries.toTypedArray()) {
                             RadioTextButton(
                                 text = it.name(),
-                                selected = (it == uiState.preferences.themeConfig),
+                                selected = (it == state.preferences.themeConfig),
                                 onClick = {
-                                    onEvent(AppearancePreferencesEvent.UpdateThemeConfig(it))
-                                    onEvent(AppearancePreferencesEvent.ShowDialog(null))
+                                    onAction(AppearancePreferencesEvent.UpdateThemeConfig(it))
+                                    onAction(AppearancePreferencesEvent.ShowDialog(null))
                                 },
                             )
                         }
@@ -146,9 +148,9 @@ private fun AppearancePreferencesContent(
 @Composable
 private fun AppearancePreferencesScreenPreview() {
     NextPlayerTheme {
-        AppearancePreferencesContent(
-            uiState = AppearancePreferencesUiState(),
-            onEvent = {},
+        AppearancePreferencesScreenContent(
+            state = AppearancePreferencesUiState(),
+            onAction = {},
         )
     }
 }

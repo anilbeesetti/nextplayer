@@ -17,6 +17,7 @@ import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.SideEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
@@ -35,25 +36,26 @@ import dev.anilbeesetti.nextplayer.settings.utils.tvFocusDown
 import dev.anilbeesetti.nextplayer.settings.utils.tvListFocus
 
 @Composable
-fun GeneralPreferencesScreen(
-    onNavigateUp: () -> Unit,
-    viewModel: GeneralPreferencesViewModel = hiltViewModel(),
+fun GeneralPreferencesRoute(
+    output: GeneralPreferencesViewModel.Output,
 ) {
-    val uiState by viewModel.state.collectAsStateWithLifecycle()
+    val viewModel = hiltViewModel<GeneralPreferencesViewModel, GeneralPreferencesViewModel.Factory>(
+        creationCallback = { factory -> factory.create(output) },
+    )
+    SideEffect { viewModel.output = output }
+    val state by viewModel.state.collectAsStateWithLifecycle()
 
-    GeneralPreferencesContent(
-        uiState = uiState,
-        onEvent = viewModel::onAction,
-        onNavigateUp = onNavigateUp,
+    GeneralPreferencesScreenContent(
+        state = state,
+        onAction = viewModel::onAction,
     )
 }
 
 @OptIn(ExperimentalMaterial3Api::class, ExperimentalMaterial3ExpressiveApi::class)
 @Composable
-private fun GeneralPreferencesContent(
-    uiState: GeneralPreferencesUiState,
-    onEvent: (GeneralPreferencesUiEvent) -> Unit,
-    onNavigateUp: () -> Unit,
+private fun GeneralPreferencesScreenContent(
+    state: GeneralPreferencesUiState,
+    onAction: (GeneralPreferencesUiEvent) -> Unit,
 ) {
     val listFocusRequester = rememberTvListFocusRequester()
     Scaffold(
@@ -61,7 +63,7 @@ private fun GeneralPreferencesContent(
             NextTopAppBar(
                 title = stringResource(id = R.string.general_name),
                 navigationIcon = {
-                    FilledTonalIconButton(onClick = onNavigateUp, modifier = Modifier.tvFocusDown(listFocusRequester)) {
+                    FilledTonalIconButton(onClick = { onAction(GeneralPreferencesUiEvent.NavigateUp) }, modifier = Modifier.tvFocusDown(listFocusRequester)) {
                         Icon(
                             imageVector = NextIcons.ArrowBack,
                             contentDescription = stringResource(id = R.string.navigate_up),
@@ -88,24 +90,24 @@ private fun GeneralPreferencesContent(
                     title = stringResource(R.string.delete_thumbnail_cache),
                     description = stringResource(R.string.delete_thumbnail_cache_description),
                     icon = NextIcons.DeleteSweep,
-                    onClick = { onEvent(GeneralPreferencesUiEvent.ShowDialog(GeneralPreferencesDialog.ClearThumbnailCacheDialog)) },
+                    onClick = { onAction(GeneralPreferencesUiEvent.ShowDialog(GeneralPreferencesDialog.ClearThumbnailCacheDialog)) },
                     isFirstItem = true,
                 )
                 ClickablePreferenceItem(
                     title = stringResource(R.string.reset_settings),
                     description = stringResource(R.string.reset_settings_description),
                     icon = NextIcons.History,
-                    onClick = { onEvent(GeneralPreferencesUiEvent.ShowDialog(GeneralPreferencesDialog.ResetSettingsDialog)) },
+                    onClick = { onAction(GeneralPreferencesUiEvent.ShowDialog(GeneralPreferencesDialog.ResetSettingsDialog)) },
                     isLastItem = true,
                 )
             }
         }
 
-        uiState.showDialog?.let { dialog ->
+        state.showDialog?.let { dialog ->
             when (dialog) {
                 GeneralPreferencesDialog.ClearThumbnailCacheDialog -> {
                     NextDialog(
-                        onDismissRequest = { onEvent(GeneralPreferencesUiEvent.ShowDialog(null)) },
+                        onDismissRequest = { onAction(GeneralPreferencesUiEvent.ShowDialog(null)) },
                         title = {
                             Text(
                                 text = stringResource(R.string.delete_thumbnail_cache),
@@ -115,14 +117,14 @@ private fun GeneralPreferencesContent(
                         confirmButton = {
                             TextButton(
                                 onClick = {
-                                    onEvent(GeneralPreferencesUiEvent.ClearThumbnailCache)
-                                    onEvent(GeneralPreferencesUiEvent.ShowDialog(null))
+                                    onAction(GeneralPreferencesUiEvent.ClearThumbnailCache)
+                                    onAction(GeneralPreferencesUiEvent.ShowDialog(null))
                                 },
                             ) {
                                 Text(text = stringResource(R.string.delete))
                             }
                         },
-                        dismissButton = { CancelButton(onClick = { onEvent(GeneralPreferencesUiEvent.ShowDialog(null)) }) },
+                        dismissButton = { CancelButton(onClick = { onAction(GeneralPreferencesUiEvent.ShowDialog(null)) }) },
                         content = {
                             Text(
                                 text = stringResource(R.string.delete_thumbnail_cache_confirmation),
@@ -133,7 +135,7 @@ private fun GeneralPreferencesContent(
                 }
                 GeneralPreferencesDialog.ResetSettingsDialog -> {
                     NextDialog(
-                        onDismissRequest = { onEvent(GeneralPreferencesUiEvent.ShowDialog(null)) },
+                        onDismissRequest = { onAction(GeneralPreferencesUiEvent.ShowDialog(null)) },
                         title = {
                             Text(
                                 text = stringResource(R.string.reset_settings),
@@ -143,14 +145,14 @@ private fun GeneralPreferencesContent(
                         confirmButton = {
                             TextButton(
                                 onClick = {
-                                    onEvent(GeneralPreferencesUiEvent.ResetSettings)
-                                    onEvent(GeneralPreferencesUiEvent.ShowDialog(null))
+                                    onAction(GeneralPreferencesUiEvent.ResetSettings)
+                                    onAction(GeneralPreferencesUiEvent.ShowDialog(null))
                                 },
                             ) {
                                 Text(text = stringResource(R.string.reset))
                             }
                         },
-                        dismissButton = { CancelButton(onClick = { onEvent(GeneralPreferencesUiEvent.ShowDialog(null)) }) },
+                        dismissButton = { CancelButton(onClick = { onAction(GeneralPreferencesUiEvent.ShowDialog(null)) }) },
                         content = {
                             Text(
                                 text = stringResource(R.string.reset_settings_confirmation),

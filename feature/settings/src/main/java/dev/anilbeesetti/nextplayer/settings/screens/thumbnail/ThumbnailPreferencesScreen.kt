@@ -19,6 +19,7 @@ import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.SideEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableFloatStateOf
 import androidx.compose.runtime.mutableStateOf
@@ -48,27 +49,28 @@ import dev.anilbeesetti.nextplayer.settings.utils.tvListFocus
 import kotlin.math.abs
 
 @Composable
-fun ThumbnailPreferencesScreen(
-    onNavigateUp: () -> Unit,
-    viewModel: ThumbnailPreferencesViewModel = hiltViewModel(),
+fun ThumbnailPreferencesRoute(
+    output: ThumbnailPreferencesViewModel.Output,
 ) {
-    val uiState by viewModel.state.collectAsStateWithLifecycle()
+    val viewModel = hiltViewModel<ThumbnailPreferencesViewModel, ThumbnailPreferencesViewModel.Factory>(
+        creationCallback = { factory -> factory.create(output) },
+    )
+    SideEffect { viewModel.output = output }
+    val state by viewModel.state.collectAsStateWithLifecycle()
 
-    ThumbnailPreferencesContent(
-        uiState = uiState,
-        onNavigateUp = onNavigateUp,
-        onEvent = viewModel::onAction,
+    ThumbnailPreferencesScreenContent(
+        state = state,
+        onAction = viewModel::onAction,
     )
 }
 
 @OptIn(ExperimentalMaterial3Api::class, ExperimentalMaterial3ExpressiveApi::class)
 @Composable
-private fun ThumbnailPreferencesContent(
-    uiState: ThumbnailPreferencesUiState,
-    onNavigateUp: () -> Unit,
-    onEvent: (ThumbnailPreferencesEvent) -> Unit,
+private fun ThumbnailPreferencesScreenContent(
+    state: ThumbnailPreferencesUiState,
+    onAction: (ThumbnailPreferencesEvent) -> Unit,
 ) {
-    val preferences = uiState.preferences
+    val preferences = state.preferences
     var frameSliderValue by rememberSaveable { mutableFloatStateOf(preferences.thumbnailFramePosition * 100f) }
     var pendingChange by remember { mutableStateOf<ThumbnailPreferenceChange?>(null) }
 
@@ -84,7 +86,7 @@ private fun ThumbnailPreferencesContent(
             NextTopAppBar(
                 title = stringResource(id = R.string.thumbnail_generation),
                 navigationIcon = {
-                    FilledTonalIconButton(onClick = onNavigateUp, modifier = Modifier.tvFocusDown(listFocusRequester)) {
+                    FilledTonalIconButton(onClick = { onAction(ThumbnailPreferencesEvent.NavigateUp) }, modifier = Modifier.tvFocusDown(listFocusRequester)) {
                         Icon(
                             imageVector = NextIcons.ArrowBack,
                             contentDescription = stringResource(id = R.string.navigate_up),
@@ -189,10 +191,10 @@ private fun ThumbnailPreferencesContent(
                         onClick = {
                             when (change) {
                                 is ThumbnailPreferenceChange.Strategy -> {
-                                    onEvent(ThumbnailPreferencesEvent.UpdateStrategy(change.strategy))
+                                    onAction(ThumbnailPreferencesEvent.UpdateStrategy(change.strategy))
                                 }
                                 is ThumbnailPreferenceChange.FramePosition -> {
-                                    onEvent(ThumbnailPreferencesEvent.UpdateFramePosition(change.position))
+                                    onAction(ThumbnailPreferencesEvent.UpdateFramePosition(change.position))
                                 }
                             }
                             pendingChange = null
@@ -229,10 +231,9 @@ private sealed interface ThumbnailPreferenceChange {
 @Composable
 private fun ThumbnailPreferencesScreenPreview() {
     NextPlayerTheme {
-        ThumbnailPreferencesContent(
-            uiState = ThumbnailPreferencesUiState(),
-            onNavigateUp = {},
-            onEvent = {},
+        ThumbnailPreferencesScreenContent(
+            state = ThumbnailPreferencesUiState(),
+            onAction = {},
         )
     }
 }

@@ -3,8 +3,10 @@ package dev.anilbeesetti.nextplayer.settings.navigation
 import androidx.navigation3.runtime.EntryProviderScope
 import androidx.navigation3.runtime.NavBackStack
 import androidx.navigation3.runtime.NavKey
-import dev.anilbeesetti.nextplayer.settings.screens.medialibrary.FolderPreferencesScreen
-import dev.anilbeesetti.nextplayer.settings.screens.medialibrary.MediaLibraryPreferencesScreen
+import dev.anilbeesetti.nextplayer.settings.screens.medialibrary.FolderPreferencesRoute
+import dev.anilbeesetti.nextplayer.settings.screens.medialibrary.FolderPreferencesViewModel
+import dev.anilbeesetti.nextplayer.settings.screens.medialibrary.MediaLibraryPreferencesRoute
+import dev.anilbeesetti.nextplayer.settings.screens.medialibrary.MediaLibraryPreferencesViewModel
 import kotlinx.serialization.Serializable
 
 @Serializable
@@ -27,16 +29,18 @@ fun EntryProviderScope<NavKey>.mediaLibraryPreferencesEntry(
     onThumbnailSettingClick: () -> Unit,
 ) {
     entry<MediaLibraryPreferencesRoute> {
-        MediaLibraryPreferencesScreen(
-            onNavigateUp = onNavigateUp,
-            onFolderSettingClick = onFolderSettingClick,
-            onThumbnailSettingClick = onThumbnailSettingClick,
+        MediaLibraryPreferencesRoute(
+            output = MediaLibraryPreferencesViewModel.Output(
+                navigateUp = onNavigateUp,
+                openFolders = onFolderSettingClick,
+                openThumbnails = onThumbnailSettingClick,
+            ),
         )
     }
 }
 
 fun EntryProviderScope<NavKey>.folderPreferencesEntry(onNavigateUp: () -> Unit) {
     entry<FolderPreferencesRoute> {
-        FolderPreferencesScreen(onNavigateUp = onNavigateUp)
+        FolderPreferencesRoute(output = FolderPreferencesViewModel.Output(navigateUp = onNavigateUp))
     }
 }

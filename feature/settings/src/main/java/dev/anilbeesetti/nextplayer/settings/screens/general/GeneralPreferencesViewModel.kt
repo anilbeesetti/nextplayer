@@ -2,34 +2,50 @@ package dev.anilbeesetti.nextplayer.settings.screens.general
 
 import androidx.lifecycle.viewModelScope
 import coil3.ImageLoader
+import dagger.assisted.Assisted
+import dagger.assisted.AssistedFactory
+import dagger.assisted.AssistedInject
 import dagger.hilt.android.lifecycle.HiltViewModel
 import dev.anilbeesetti.nextplayer.core.data.repository.PreferencesRepository
 import dev.anilbeesetti.nextplayer.core.media.extensions.clearAllCache
 import dev.anilbeesetti.nextplayer.core.ui.base.MviViewModel
-import javax.inject.Inject
 import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 
-@HiltViewModel
-class GeneralPreferencesViewModel @Inject constructor(
+@HiltViewModel(assistedFactory = GeneralPreferencesViewModel.Factory::class)
+class GeneralPreferencesViewModel @AssistedInject constructor(
     private val preferencesRepository: PreferencesRepository,
     private val imageLoader: ImageLoader,
+    @Assisted internal var output: Output,
 ) : MviViewModel<GeneralPreferencesUiState, GeneralPreferencesUiEvent>() {
 
-    private val uiStateInternal = MutableStateFlow(GeneralPreferencesUiState())
-    override val state = uiStateInternal.asStateFlow()
+    data class Output(
+        val navigateUp: () -> Unit,
+    )
+
+    @AssistedFactory
+    interface Factory {
+        fun create(output: Output): GeneralPreferencesViewModel
+    }
+
+    private val stateInternal = MutableStateFlow(GeneralPreferencesUiState())
+    override val state: StateFlow<GeneralPreferencesUiState> = stateInternal.asStateFlow()
 
     override fun onAction(action: GeneralPreferencesUiEvent) {
         when (action) {
+            is GeneralPreferencesUiEvent.NavigateUp -> output.navigateUp()
+
             is GeneralPreferencesUiEvent.ShowDialog -> showDialog(action.value)
-            GeneralPreferencesUiEvent.ClearThumbnailCache -> clearThumbnailCache()
-            GeneralPreferencesUiEvent.ResetSettings -> resetSettings()
+            is GeneralPreferencesUiEvent.ClearThumbnailCache -> clearThumbnailCache()
+            is GeneralPreferencesUiEvent.ResetSettings -> resetSettings()
         }
     }
 
     private fun showDialog(value: GeneralPreferencesDialog?) {
-        uiStateInternal.value = uiStateInternal.value.copy(showDialog = value)
+        stateInternal.update { it.copy(showDialog = value) }
     }
 
     private fun clearThumbnailCache() {
@@ -55,6 +71,8 @@ sealed interface GeneralPreferencesDialog {
 }
 
 sealed interface GeneralPreferencesUiEvent {
+    data object NavigateUp : GeneralPreferencesUiEvent
+
     data class ShowDialog(val value: GeneralPreferencesDialog?) : GeneralPreferencesUiEvent
     data object ClearThumbnailCache : GeneralPreferencesUiEvent
     data object ResetSettings : GeneralPreferencesUiEvent

@@ -24,9 +24,6 @@ import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
-import dev.anilbeesetti.nextplayer.settings.utils.rememberTvListFocusRequester
-import dev.anilbeesetti.nextplayer.settings.utils.tvFocusDown
-import dev.anilbeesetti.nextplayer.settings.utils.tvListFocus
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.ExperimentalMaterial3Api
@@ -66,6 +63,9 @@ import dev.anilbeesetti.nextplayer.core.ui.components.ClickablePreferenceItem
 import dev.anilbeesetti.nextplayer.core.ui.components.ListSectionTitle
 import dev.anilbeesetti.nextplayer.core.ui.components.NextTopAppBar
 import dev.anilbeesetti.nextplayer.core.ui.designsystem.NextIcons
+import dev.anilbeesetti.nextplayer.settings.utils.rememberTvListFocusRequester
+import dev.anilbeesetti.nextplayer.settings.utils.tvFocusDown
+import dev.anilbeesetti.nextplayer.settings.utils.tvListFocus
 import kotlinx.coroutines.launch
 
 private const val GITHUB_URL = "https://github.com/anilbeesetti/nextplayer"
@@ -73,11 +73,30 @@ private const val KOFI_URL = "https://ko-fi.com/anilbeesetti"
 private const val PAYPAL_URL = "https://paypal.me/AnilBeesetti"
 private const val UPI_ID = "anilbeesetti10@oksbi"
 
+data class AboutPreferencesOutput(
+    val navigateUp: () -> Unit,
+    val openLibraries: () -> Unit,
+)
+
+private sealed interface AboutPreferencesAction {
+    data object NavigateUp : AboutPreferencesAction
+    data object OpenLibraries : AboutPreferencesAction
+}
+
+@Composable
+fun AboutPreferencesRoute(output: AboutPreferencesOutput) {
+    AboutPreferencesScreenContent { action ->
+        when (action) {
+            is AboutPreferencesAction.NavigateUp -> output.navigateUp()
+            is AboutPreferencesAction.OpenLibraries -> output.openLibraries()
+        }
+    }
+}
+
 @OptIn(ExperimentalMaterial3Api::class, ExperimentalMaterial3ExpressiveApi::class)
 @Composable
-fun AboutPreferencesScreen(
-    onLibrariesClick: () -> Unit,
-    onNavigateUp: () -> Unit,
+private fun AboutPreferencesScreenContent(
+    onAction: (AboutPreferencesAction) -> Unit,
 ) {
     val context = LocalContext.current
     val uriHandler = LocalUriHandler.current
@@ -90,7 +109,7 @@ fun AboutPreferencesScreen(
             NextTopAppBar(
                 title = stringResource(id = R.string.about_name),
                 navigationIcon = {
-                    FilledTonalIconButton(onClick = onNavigateUp, modifier = Modifier.tvFocusDown(listFocusRequester)) {
+                    FilledTonalIconButton(onClick = { onAction(AboutPreferencesAction.NavigateUp) }, modifier = Modifier.tvFocusDown(listFocusRequester)) {
                         Icon(
                             imageVector = NextIcons.ArrowBack,
                             contentDescription = stringResource(id = R.string.navigate_up),
@@ -117,7 +136,7 @@ fun AboutPreferencesScreen(
                         context = context,
                     )
                 },
-                onLibrariesClick = onLibrariesClick,
+                onLibrariesClick = { onAction(AboutPreferencesAction.OpenLibraries) },
             )
             ListSectionTitle(text = stringResource(id = R.string.donate))
             Column(
@@ -133,7 +152,7 @@ fun AboutPreferencesScreen(
                             context = context,
                         )
                     },
-                    isFirstItem = true
+                    isFirstItem = true,
                 )
                 ClickablePreferenceItem(
                     title = stringResource(R.string.paypal),
