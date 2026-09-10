@@ -65,22 +65,20 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.compose.LifecycleEventEffect
-import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.media3.common.Player
 import androidx.media3.common.util.UnstableApi
+import androidx.media3.session.MediaController
 import dev.anilbeesetti.nextplayer.core.common.extensions.isTelevision
 import dev.anilbeesetti.nextplayer.core.model.ControlButtonsPosition
+import dev.anilbeesetti.nextplayer.core.model.PlayerPreferences
 import dev.anilbeesetti.nextplayer.core.ui.R as coreUiR
 import dev.anilbeesetti.nextplayer.core.ui.components.requestFocusUntilLanded
 import dev.anilbeesetti.nextplayer.core.ui.components.thenIf
 import dev.anilbeesetti.nextplayer.core.ui.extensions.copy
-import dev.anilbeesetti.nextplayer.core.ui.theme.NextPlayerTheme
 import dev.anilbeesetti.nextplayer.feature.player.buttons.NextButton
 import dev.anilbeesetti.nextplayer.feature.player.buttons.PlayPauseButton
 import dev.anilbeesetti.nextplayer.feature.player.buttons.PlayerButton
 import dev.anilbeesetti.nextplayer.feature.player.buttons.PreviousButton
-import dev.anilbeesetti.nextplayer.feature.player.extensions.formatted
-import dev.anilbeesetti.nextplayer.feature.player.extensions.nameRes
 import dev.anilbeesetti.nextplayer.feature.player.model.DecoderRecoveryStatus
 import dev.anilbeesetti.nextplayer.feature.player.model.DecoderTrackType
 import dev.anilbeesetti.nextplayer.feature.player.model.labelRes
@@ -88,6 +86,7 @@ import dev.anilbeesetti.nextplayer.feature.player.state.ControlsVisibilityState
 import dev.anilbeesetti.nextplayer.feature.player.state.VerticalGesture
 import dev.anilbeesetti.nextplayer.feature.player.state.rememberBrightnessState
 import dev.anilbeesetti.nextplayer.feature.player.state.rememberControlsVisibilityState
+import dev.anilbeesetti.nextplayer.feature.player.model.DecoderServiceState
 import dev.anilbeesetti.nextplayer.feature.player.state.rememberDecoderState
 import dev.anilbeesetti.nextplayer.feature.player.state.rememberErrorState
 import dev.anilbeesetti.nextplayer.feature.player.state.rememberMediaPresentationState
@@ -99,6 +98,8 @@ import dev.anilbeesetti.nextplayer.feature.player.state.rememberTapGestureState
 import dev.anilbeesetti.nextplayer.feature.player.state.rememberVideoZoomAndContentScaleState
 import dev.anilbeesetti.nextplayer.feature.player.state.rememberVolumeAndBrightnessGestureState
 import dev.anilbeesetti.nextplayer.feature.player.state.rememberVolumeState
+import dev.anilbeesetti.nextplayer.feature.player.extensions.formatted
+import dev.anilbeesetti.nextplayer.feature.player.extensions.nameRes
 import dev.anilbeesetti.nextplayer.feature.player.state.seekAmountFormatted
 import dev.anilbeesetti.nextplayer.feature.player.state.seekToPositionFormated
 import dev.anilbeesetti.nextplayer.feature.player.ui.DoubleTapIndicator
@@ -109,36 +110,24 @@ import dev.anilbeesetti.nextplayer.feature.player.ui.VerticalProgressView
 import dev.anilbeesetti.nextplayer.feature.player.ui.controls.ControlsBottomView
 import dev.anilbeesetti.nextplayer.feature.player.ui.controls.ControlsTopView
 import kotlin.math.abs
-import kotlin.time.Duration.Companion.milliseconds
 import kotlin.time.Duration.Companion.seconds
 import kotlinx.coroutines.delay
+import kotlin.time.Duration.Companion.milliseconds
 
 val LocalControlsVisibilityState = compositionLocalOf<ControlsVisibilityState?> { null }
 
-@Composable
-fun MediaPlayerScreen(viewModel: PlayerViewModel) {
-    val state by viewModel.state.collectAsStateWithLifecycle()
-    val playerPreferences = state.playerPreferences ?: return
-    CompositionLocalProvider(LocalUseMaterialYouControls provides playerPreferences.useMaterialYouControls) {
-        NextPlayerTheme(darkTheme = true) {
-            MediaPlayerScreenContent(
-                state = state,
-                onAction = viewModel::onAction,
-            )
-        }
-    }
-}
-
 @OptIn(UnstableApi::class)
 @Composable
-internal fun MediaPlayerScreenContent(
-    state: PlayerUiState,
-    onAction: (PlayerAction) -> Unit,
+fun MediaPlayerScreen(
+    decoderServiceState: DecoderServiceState,
+    player: MediaController?,
+    viewModel: PlayerViewModel,
+    playerPreferences: PlayerPreferences,
+    modifier: Modifier = Modifier,
+    onSelectSubtitleClick: () -> Unit,
+    onBackClick: () -> Unit,
+    onPlayInBackgroundClick: () -> Unit,
 ) {
-    val player = state.player
-    val decoderServiceState = state.decoderServiceState
-    val playerPreferences = state.playerPreferences ?: return
-
     val volumeState = rememberVolumeState(
         player = player,
         showVolumePanelIfHeadsetIsOn = playerPreferences.showSystemVolumePanel,
@@ -171,7 +160,7 @@ internal fun MediaPlayerScreenContent(
         initialContentScale = playerPreferences.playerVideoZoom,
         enableZoomGesture = playerPreferences.useZoomControls,
         enablePanGesture = playerPreferences.enablePanGesture,
-        onEvent = { onAction(PlayerAction.UpdateVideoZoom(it)) },
+        onEvent = viewModel::onVideoZoomEvent,
     )
     val brightnessState = rememberBrightnessState()
     val volumeAndBrightnessGestureState = rememberVolumeAndBrightnessGestureState(
@@ -209,7 +198,7 @@ internal fun MediaPlayerScreenContent(
 
     LaunchedEffect(brightnessState.currentBrightness) {
         if (playerPreferences.rememberPlayerBrightness) {
-            onAction(PlayerAction.UpdateBrightness(brightnessState.currentBrightness))
+            viewModel.updatePlayerBrightness(brightnessState.currentBrightness)
         }
     }
 
@@ -261,7 +250,7 @@ internal fun MediaPlayerScreenContent(
     CompositionLocalProvider(LocalControlsVisibilityState provides controlsVisibilityState) {
         Box {
             Box(
-                modifier = Modifier
+                modifier = modifier
                     .fillMaxSize()
                     .background(Color.Black)
                     .then(
@@ -312,7 +301,7 @@ internal fun MediaPlayerScreenContent(
                     exit = fadeOut(),
                 ) {
                     Box(
-                        modifier = Modifier
+                        modifier = modifier
                             .fillMaxSize()
                             .background(Color.Black.copy(alpha = 0.3f)),
                     )
@@ -370,7 +359,7 @@ internal fun MediaPlayerScreenContent(
                                     .onFocusChanged { isUnlockFocused = it.hasFocus }
                             },
                             containerColor = Color.Black.copy(0.5f),
-                            onClick = { controlsVisibilityState.unlockControls() },
+                            onClick = { controlsVisibilityState.unlockControls() }
                         ) {
                             Icon(
                                 painter = painterResource(coreUiR.drawable.ic_lock),
@@ -409,7 +398,7 @@ internal fun MediaPlayerScreenContent(
                                         controlsVisibilityState.hideControls()
                                         overlayView = OverlayView.PLAYLIST
                                     },
-                                    onBackClick = { onAction(PlayerAction.NavigateUp) },
+                                    onBackClick = onBackClick,
                                 )
                             }
                         },
@@ -451,7 +440,7 @@ internal fun MediaPlayerScreenContent(
                                     onSeek = seekGestureState::onSeek,
                                     onSeekEnd = seekGestureState::onSeekEnd,
                                     onRotateClick = rotationState::rotate,
-                                    onPlayInBackgroundClick = { onAction(PlayerAction.PlayInBackground) },
+                                    onPlayInBackgroundClick = onPlayInBackgroundClick,
                                     onLockControlsClick = {
                                         controlsVisibilityState.showControls()
                                         controlsVisibilityState.lockControls()
@@ -522,8 +511,8 @@ internal fun MediaPlayerScreenContent(
                 onDismiss = { overlayView = null },
                 onVideoDecoderModeSelected = decoderState::switchVideoTo,
                 onAudioDecoderModeSelected = decoderState::switchAudioTo,
-                onSelectSubtitleClick = { onAction(PlayerAction.SelectSubtitle) },
-                onSubtitleOptionEvent = { onAction(PlayerAction.UpdateSubtitleOptions(it)) },
+                onSelectSubtitleClick = onSelectSubtitleClick,
+                onSubtitleOptionEvent = viewModel::onSubtitleOptionEvent,
                 onVideoContentScaleChanged = { videoZoomAndContentScaleState.onVideoContentScaleChanged(it) },
             )
         }
@@ -566,7 +555,7 @@ internal fun MediaPlayerScreenContent(
         (
             decoderRecoveryState.status == DecoderRecoveryStatus.NONE &&
                 errorState.playbackError != null
-            )
+        )
     if (showPlayerError) {
         AlertDialog(
             onDismissRequest = { },
@@ -602,7 +591,7 @@ internal fun MediaPlayerScreenContent(
                 TextButton(
                     onClick = {
                         errorState.dismiss()
-                        onAction(PlayerAction.NavigateUp)
+                        onBackClick()
                     },
                 ) {
                     Text(text = stringResource(coreUiR.string.exit))
@@ -615,7 +604,7 @@ internal fun MediaPlayerScreenContent(
         when {
             overlayView != null -> overlayView = null
             isTv && controlsVisibilityState.controlsVisible -> controlsVisibilityState.hideControls()
-            else -> onAction(PlayerAction.NavigateUp)
+            else -> onBackClick()
         }
     }
 }
@@ -747,41 +736,13 @@ private fun handlePlayerKeyEvent(
     }
 
     return when (keyEvent.key) {
-        Key.MediaPlayPause, Key.Spacebar -> {
-            togglePlayPause()
-            controls.showControls()
-            true
-        }
-        Key.MediaPlay -> {
-            player.play()
-            controls.showControls()
-            true
-        }
-        Key.MediaPause -> {
-            player.pause()
-            controls.showControls()
-            true
-        }
-        Key.MediaFastForward -> {
-            seekBy(seekIncrementMs)
-            controls.showControls()
-            true
-        }
-        Key.MediaRewind -> {
-            seekBy(-seekIncrementMs)
-            controls.showControls()
-            true
-        }
-        Key.MediaNext -> {
-            player.seekToNext()
-            controls.showControls()
-            true
-        }
-        Key.MediaPrevious -> {
-            player.seekToPrevious()
-            controls.showControls()
-            true
-        }
+        Key.MediaPlayPause, Key.Spacebar -> { togglePlayPause(); controls.showControls(); true }
+        Key.MediaPlay -> { player.play(); controls.showControls(); true }
+        Key.MediaPause -> { player.pause(); controls.showControls(); true }
+        Key.MediaFastForward -> { seekBy(seekIncrementMs); controls.showControls(); true }
+        Key.MediaRewind -> { seekBy(-seekIncrementMs); controls.showControls(); true }
+        Key.MediaNext -> { player.seekToNext(); controls.showControls(); true }
+        Key.MediaPrevious -> { player.seekToPrevious(); controls.showControls(); true }
         Key.DirectionCenter, Key.Enter, Key.NumPadEnter -> {
             when {
                 !controls.controlsVisible -> {

@@ -13,7 +13,7 @@ import androidx.activity.SystemBarStyle
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
 import androidx.activity.viewModels
-import androidx.compose.runtime.SideEffect
+import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.compositionLocalOf
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -21,6 +21,7 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.core.util.Consumer
 import androidx.lifecycle.compose.LifecycleStartEffect
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.lifecycleScope
 import androidx.media3.common.C
 import androidx.media3.common.MediaItem
@@ -31,18 +32,18 @@ import androidx.media3.session.MediaController
 import androidx.media3.session.SessionToken
 import com.google.common.util.concurrent.ListenableFuture
 import dagger.hilt.android.AndroidEntryPoint
-import dagger.hilt.android.lifecycle.withCreationCallback
 import dev.anilbeesetti.nextplayer.core.common.extensions.getInitialDirectoryUri
 import dev.anilbeesetti.nextplayer.core.common.extensions.getMediaContentUri
 import dev.anilbeesetti.nextplayer.core.common.service.registerForSuspendActivityResult
 import dev.anilbeesetti.nextplayer.core.data.repository.PlaylistRepository
+import dev.anilbeesetti.nextplayer.core.ui.theme.NextPlayerTheme
 import dev.anilbeesetti.nextplayer.feature.player.extensions.OpenDocumentAtInitialUri
 import dev.anilbeesetti.nextplayer.feature.player.extensions.setExtras
 import dev.anilbeesetti.nextplayer.feature.player.extensions.uriToSubtitleConfiguration
 import dev.anilbeesetti.nextplayer.feature.player.model.DecoderServiceState
+import dev.anilbeesetti.nextplayer.feature.player.service.decoderServiceState
 import dev.anilbeesetti.nextplayer.feature.player.service.PlayerService
 import dev.anilbeesetti.nextplayer.feature.player.service.addSubtitleTrack
-import dev.anilbeesetti.nextplayer.feature.player.service.decoderServiceState
 import dev.anilbeesetti.nextplayer.feature.player.service.stopPlayerSession
 import dev.anilbeesetti.nextplayer.feature.player.utils.PlayerApi
 import dev.anilbeesetti.nextplayer.feature.player.utils.PlaylistPlaybackContract
@@ -71,14 +72,8 @@ class PlayerActivity : ComponentActivity() {
     @Inject
     lateinit var playlistRepository: PlaylistRepository
 
-    private val viewModel: PlayerViewModel by viewModels(
-        extrasProducer = {
-            defaultViewModelCreationExtras.withCreationCallback<PlayerViewModel.Factory> { factory ->
-                factory.create(output = createViewModelOutput())
-            }
-        },
-    )
-    val playerPreferences get() = viewModel.state.value.playerPreferences
+    private val viewModel: PlayerViewModel by viewModels()
+    val playerPreferences get() = viewModel.uiState.value.playerPreferences
 
     private val onWindowAttributesChangedListener = CopyOnWriteArrayList<Consumer<WindowManager.LayoutParams?>>()
 
@@ -109,9 +104,8 @@ class PlayerActivity : ComponentActivity() {
             navigationBarStyle = SystemBarStyle.dark(Color.TRANSPARENT),
         )
 
-        viewModel.output = createViewModelOutput()
-
         setContent {
+            val uiState by viewModel.uiState.collectAsStateWithLifecycle()
             var player by remember { mutableStateOf<MediaController?>(null) }
 
             LifecycleStartEffect(Unit) {
@@ -123,51 +117,52 @@ class PlayerActivity : ComponentActivity() {
 
                 onStopOrDispose {
                     player = null
-                    viewModel.onAction(PlayerAction.UpdateConnection(null, decoderServiceState))
                 }
             }
 
-            val connectionAction = PlayerAction.UpdateConnection(player, decoderServiceState)
-            SideEffect {
-                viewModel.onAction(connectionAction)
+            CompositionLocalProvider(LocalUseMaterialYouControls provides (uiState.playerPreferences?.useMaterialYouControls == true)) {
+                NextPlayerTheme(darkTheme = true) {
+                    MediaPlayerScreen(
+                        player = player,
+                        decoderServiceState = decoderServiceState,
+                        viewModel = viewModel,
+                        playerPreferences = uiState.playerPreferences ?: return@NextPlayerTheme,
+                        onSelectSubtitleClick = {
+                            lifecycleScope.launch {
+                                val videoUri = mediaController?.currentMediaItem?.localConfiguration?.uri
+                                val initialUri = videoUri?.let { video ->
+                                    withContext(Dispatchers.IO) { getInitialDirectoryUri(video) }
+                                }
+                                val uri = subtitleFileSuspendLauncher.launch(
+                                    OpenDocumentAtInitialUri.Input(
+                                        mimeTypes = arrayOf(
+                                            MimeTypes.APPLICATION_SUBRIP,
+                                            MimeTypes.APPLICATION_TTML,
+                                            MimeTypes.TEXT_VTT,
+                                            MimeTypes.TEXT_SSA,
+                                            MimeTypes.BASE_TYPE_APPLICATION + "/octet-stream",
+                                            MimeTypes.BASE_TYPE_TEXT + "/*",
+                                        ),
+                                        initialUri = initialUri,
+                                    ),
+                                ) ?: return@launch
+                                contentResolver.takePersistableUriPermission(uri, Intent.FLAG_GRANT_READ_URI_PERMISSION)
+                                maybeInitControllerFuture()
+                                controllerFuture?.await()?.addSubtitleTrack(uri)
+                            }
+                        },
+                        onBackClick = { finishAndStopPlayerSession() },
+                        onPlayInBackgroundClick = {
+                            playInBackground = true
+                            finish()
+                        },
+                    )
+                }
             }
-            MediaPlayerScreen(viewModel = viewModel)
         }
 
         playerApi = PlayerApi(this)
     }
-
-    private fun createViewModelOutput() = PlayerViewModel.Output(
-        selectSubtitle = {
-            lifecycleScope.launch {
-                val videoUri = mediaController?.currentMediaItem?.localConfiguration?.uri
-                val initialUri = videoUri?.let { video ->
-                    withContext(Dispatchers.IO) { getInitialDirectoryUri(video) }
-                }
-                val uri = subtitleFileSuspendLauncher.launch(
-                    OpenDocumentAtInitialUri.Input(
-                        mimeTypes = arrayOf(
-                            MimeTypes.APPLICATION_SUBRIP,
-                            MimeTypes.APPLICATION_TTML,
-                            MimeTypes.TEXT_VTT,
-                            MimeTypes.TEXT_SSA,
-                            MimeTypes.BASE_TYPE_APPLICATION + "/octet-stream",
-                            MimeTypes.BASE_TYPE_TEXT + "/*",
-                        ),
-                        initialUri = initialUri,
-                    ),
-                ) ?: return@launch
-                contentResolver.takePersistableUriPermission(uri, Intent.FLAG_GRANT_READ_URI_PERMISSION)
-                maybeInitControllerFuture()
-                controllerFuture?.await()?.addSubtitleTrack(uri)
-            }
-        },
-        navigateUp = { finishAndStopPlayerSession() },
-        playInBackground = {
-            playInBackground = true
-            finish()
-        },
-    )
 
     override fun onStart() {
         super.onStart()
@@ -185,7 +180,7 @@ class PlayerActivity : ComponentActivity() {
 
     override fun onStop() {
         mediaController?.run {
-            viewModel.onAction(PlayerAction.UpdatePlayWhenReady(playWhenReady))
+            viewModel.playWhenReady = playWhenReady
             removeListener(playbackStateListener)
         }
         val shouldPlayInBackground = playInBackground || playerPreferences?.autoBackgroundPlay == true
@@ -235,7 +230,7 @@ class PlayerActivity : ComponentActivity() {
             )
         ) {
             mediaController?.prepare()
-            mediaController?.playWhenReady = viewModel.state.value.playWhenReady
+            mediaController?.playWhenReady = viewModel.playWhenReady
             return
         }
 
@@ -270,7 +265,7 @@ class PlayerActivity : ComponentActivity() {
             withContext(Dispatchers.Main) {
                 mediaController?.run {
                     setMediaItems(mediaItems, startIndex, C.TIME_UNSET)
-                    playWhenReady = viewModel.state.value.playWhenReady
+                    playWhenReady = viewModel.playWhenReady
                     prepare()
                 }
             }
@@ -320,7 +315,7 @@ class PlayerActivity : ComponentActivity() {
         withContext(Dispatchers.Main) {
             mediaController?.run {
                 setMediaItems(mediaItems, mediaItemIndexToPlay, playerApi.position?.toLong() ?: C.TIME_UNSET)
-                playWhenReady = viewModel.state.value.playWhenReady
+                playWhenReady = viewModel.playWhenReady
                 prepare()
             }
         }
