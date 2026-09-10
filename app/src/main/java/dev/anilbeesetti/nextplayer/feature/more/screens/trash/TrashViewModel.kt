@@ -19,7 +19,6 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.catch
-import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 
@@ -47,10 +46,11 @@ class TrashViewModel @AssistedInject constructor(
     init {
         viewModelScope.launch {
             mediaRepository.observeTrashVideos()
-                .map<List<Video>, DataState<List<Video>>> { DataState.Success(it) }
-                .catch { emit(DataState.Error(it)) }
+                .catch { error ->
+                    stateInternal.update { it.copy(videos = DataState.Error(error)) }
+                }
                 .collect { videos ->
-                    stateInternal.update { it.copy(videos = videos) }
+                    stateInternal.update { it.copy(videos = DataState.Success(videos)) }
                 }
         }
         viewModelScope.launch {

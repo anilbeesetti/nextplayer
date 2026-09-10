@@ -15,7 +15,6 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.catch
-import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 
@@ -37,10 +36,11 @@ class MoreViewModel @AssistedInject constructor(
     init {
         viewModelScope.launch {
             mediaRepository.observePlaybackHistory()
-                .map<List<Video>, DataState<List<Video>>> { DataState.Success(it) }
-                .catch { emit(DataState.Error(it)) }
+                .catch { error ->
+                    stateInternal.update { it.copy(history = DataState.Error(error)) }
+                }
                 .collect { history ->
-                    stateInternal.update { it.copy(history = history) }
+                    stateInternal.update { it.copy(history = DataState.Success(history)) }
                 }
         }
         viewModelScope.launch {
