@@ -93,27 +93,27 @@ import sh.calvin.reorderable.rememberReorderableLazyListState
 fun PlaylistDetailScreen(
     viewModel: PlaylistDetailViewModel,
 ) {
-    val uiState by viewModel.state.collectAsStateWithLifecycle()
+    val state by viewModel.state.collectAsStateWithLifecycle()
 
     PlaylistDetailScreenContent(
-        uiState = uiState,
+        state = state,
         onAction = viewModel::onAction,
     )
 }
 
 @Composable
 internal fun PlaylistDetailScreenContent(
-    uiState: PlaylistDetailUiState,
-    isTv: Boolean = LocalContext.current.isTelevision,
+    state: PlaylistDetailUiState,
     onAction: (PlaylistDetailUiAction) -> Unit = {},
 ) {
-    val playlist = (uiState.playlistDataState as? DataState.Success)?.value
+    val isTv = LocalContext.current.isTelevision
+    val playlist = (state.playlistDataState as? DataState.Success)?.value
     val videoUris = playlist?.items.orEmpty().map { it.uri.toUri() }
     val playbackStartUri = playlist?.lastPlayedItem
         ?.uri
         ?.toUri()
         ?: videoUris.firstOrNull()
-    val isReordering = uiState.isReordering &&
+    val isReordering = state.isReordering &&
         playlist?.type == PlaylistType.LOCAL &&
         !isTv
     val searchFocusRequester = remember { FocusRequester() }
@@ -124,23 +124,23 @@ internal fun PlaylistDetailScreenContent(
         keyboardController?.hide()
     }
 
-    LaunchedEffect(uiState.isSearching) {
-        if (uiState.isSearching) searchFocusRequester.requestFocus()
+    LaunchedEffect(state.isSearching) {
+        if (state.isSearching) searchFocusRequester.requestFocus()
     }
-    LaunchedEffect(isTv, uiState.isReordering) {
-        if (isTv && uiState.isReordering) {
+    LaunchedEffect(isTv, state.isReordering) {
+        if (isTv && state.isReordering) {
             onAction(PlaylistDetailUiAction.OnFinishReorderingClick)
         }
     }
-    BackHandler(enabled = uiState.isSearching, onBack = exitSearch)
+    BackHandler(enabled = state.isSearching, onBack = exitSearch)
 
     Scaffold(
         topBar = {
             NextTopAppBar(
                 title = {
-                    if (uiState.isSearching) {
+                    if (state.isSearching) {
                         NextOutlinedTextField(
-                            value = uiState.searchQuery,
+                            value = state.searchQuery,
                             onValueChange = {
                                 onAction(PlaylistDetailUiAction.OnSearchQueryChange(it))
                             },
@@ -199,13 +199,13 @@ internal fun PlaylistDetailScreenContent(
                     }
                 },
                 actions = {
-                    if (!uiState.isSearching) {
+                    if (!state.isSearching) {
                         if (isReordering) {
                             IconButton(
                                 onClick = {
                                     onAction(PlaylistDetailUiAction.OnFinishReorderingClick)
                                 },
-                                enabled = !uiState.updateActionState.isRunning,
+                                enabled = !state.updateActionState.isRunning,
                                 modifier = Modifier.tvFocusRing(),
                             ) {
                                 Icon(
@@ -215,7 +215,7 @@ internal fun PlaylistDetailScreenContent(
                             }
                         } else {
                             if (playlist?.type != null && playlist.type != PlaylistType.LOCAL) {
-                                if (uiState.isRefreshing) {
+                                if (state.isRefreshing) {
                                     CircularProgressIndicator(
                                         modifier = Modifier
                                             .padding(12.dp)
@@ -254,7 +254,7 @@ internal fun PlaylistDetailScreenContent(
                                         onAction(PlaylistDetailUiAction.OnReorderClick)
                                     },
                                     enabled = videoUris.size > 1 &&
-                                        !uiState.updateActionState.isRunning,
+                                        !state.updateActionState.isRunning,
                                     modifier = Modifier.tvFocusRing(),
                                 ) {
                                     Icon(
@@ -269,7 +269,7 @@ internal fun PlaylistDetailScreenContent(
             )
         },
         floatingActionButton = {
-            if (!uiState.isSearching && !isReordering && playbackStartUri != null) {
+            if (!state.isSearching && !isReordering && playbackStartUri != null) {
                 FloatingActionButton(
                     onClick = {
                         onAction(
@@ -296,7 +296,7 @@ internal fun PlaylistDetailScreenContent(
             .clip(RoundedCornerShape(topStart = 24.dp, topEnd = 24.dp))
             .background(MaterialTheme.colorScheme.background)
 
-        when (uiState.playlistDataState) {
+        when (state.playlistDataState) {
             DataState.Loading ->
                 Box(containerModifier, contentAlignment = Alignment.Center) {
                     CircularProgressIndicator()
@@ -314,11 +314,11 @@ internal fun PlaylistDetailScreenContent(
                             contentFocusRequester = contentFocusRequester,
                             isTv = isTv,
                             isReordering = isReordering,
-                            searchQuery = uiState.searchQuery,
-                            showPlayFab = !uiState.isSearching &&
+                            searchQuery = state.searchQuery,
+                            showPlayFab = !state.isSearching &&
                                 !isReordering &&
                                 playbackStartUri != null,
-                            actionsEnabled = !uiState.updateActionState.isRunning,
+                            actionsEnabled = !state.updateActionState.isRunning,
                             scaffoldPadding = scaffoldPadding,
                             onAction = onAction,
                             modifier = modifier,
@@ -328,7 +328,7 @@ internal fun PlaylistDetailScreenContent(
                         content(containerModifier)
                     } else {
                         PullToRefreshBox(
-                            isRefreshing = uiState.isRefreshing,
+                            isRefreshing = state.isRefreshing,
                             onRefresh = { onAction(PlaylistDetailUiAction.Refresh) },
                             modifier = containerModifier,
                         ) {
@@ -340,7 +340,7 @@ internal fun PlaylistDetailScreenContent(
         }
     }
 
-    uiState.showRemoveDialogFor?.let { item ->
+    state.showRemoveDialogFor?.let { item ->
         RemoveVideoDialog(
             item = item,
             onConfirm = {

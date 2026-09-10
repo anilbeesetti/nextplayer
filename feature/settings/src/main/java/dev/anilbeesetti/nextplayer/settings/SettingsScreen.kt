@@ -29,11 +29,30 @@ import dev.anilbeesetti.nextplayer.core.ui.components.restorableFocusItem
 import dev.anilbeesetti.nextplayer.core.ui.components.tvFocusDown
 import dev.anilbeesetti.nextplayer.core.ui.designsystem.NextIcons
 
+data class SettingsOutput(
+    val navigateUp: () -> Unit,
+    val openSetting: (Setting) -> Unit,
+)
+
+private sealed interface SettingsAction {
+    data object NavigateUp : SettingsAction
+    data class OpenSetting(val setting: Setting) : SettingsAction
+}
+
+@Composable
+fun SettingsScreen(output: SettingsOutput) {
+    SettingsScreenContent { action ->
+        when (action) {
+            is SettingsAction.NavigateUp -> output.navigateUp()
+            is SettingsAction.OpenSetting -> output.openSetting(action.setting)
+        }
+    }
+}
+
 @OptIn(ExperimentalMaterial3Api::class, ExperimentalMaterial3ExpressiveApi::class)
 @Composable
-fun SettingsScreen(
-    onNavigateUp: () -> Unit,
-    onItemClick: (Setting) -> Unit,
+private fun SettingsScreenContent(
+    onAction: (SettingsAction) -> Unit,
 ) {
     val settingRows = remember { SettingRow.entries }
     val focusState = rememberRestorableFocusState()
@@ -44,7 +63,7 @@ fun SettingsScreen(
                 title = stringResource(id = R.string.settings),
                 navigationIcon = {
                     FilledTonalIconButton(
-                        onClick = onNavigateUp,
+                        onClick = { onAction(SettingsAction.NavigateUp) },
                         modifier = Modifier.tvFocusDown(focusState.requester),
                     ) {
                         Icon(
@@ -74,7 +93,7 @@ fun SettingsScreen(
                         title = stringResource(id = row.titleResId),
                         description = stringResource(id = row.descriptionResId),
                         icon = row.icon,
-                        onClick = { onItemClick(row.setting) },
+                        onClick = { onAction(SettingsAction.OpenSetting(row.setting)) },
                         isFirstItem = index == 0,
                         isLastItem = index == settingRows.lastIndex,
                     )

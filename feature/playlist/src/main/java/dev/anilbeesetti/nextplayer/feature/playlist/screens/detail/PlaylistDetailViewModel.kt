@@ -35,7 +35,7 @@ class PlaylistDetailViewModel @AssistedInject constructor(
     private val m3uParser: M3UParser,
     private val systemService: SystemService,
     @Assisted private val input: Input,
-    @Assisted private val output: Output,
+    @Assisted internal var output: Output,
 ) : MviViewModel<PlaylistDetailUiState, PlaylistDetailUiAction>() {
 
     data class Input(
@@ -55,15 +55,15 @@ class PlaylistDetailViewModel @AssistedInject constructor(
         ): PlaylistDetailViewModel
     }
 
-    private val internalState = MutableStateFlow(PlaylistDetailUiState())
-    override val state: StateFlow<PlaylistDetailUiState> = internalState.asStateFlow()
+    private val stateInternal = MutableStateFlow(PlaylistDetailUiState())
+    override val state: StateFlow<PlaylistDetailUiState> = stateInternal.asStateFlow()
 
     private var refreshJob: Job? = null
 
     init {
         viewModelScope.launch {
             observePlaylist(input.playlistId).collect { playlist ->
-                internalState.update { currentState ->
+                stateInternal.update { currentState ->
                     currentState.copy(
                         playlistDataState = DataState.Success(playlist),
                         isReordering = currentState.isReordering &&
@@ -77,32 +77,32 @@ class PlaylistDetailViewModel @AssistedInject constructor(
 
     override fun onAction(action: PlaylistDetailUiAction) {
         when (action) {
-            PlaylistDetailUiAction.OnNavigateUpClick -> output.navigateUp()
-            PlaylistDetailUiAction.OnSearchClick -> internalState.update {
+            is PlaylistDetailUiAction.OnNavigateUpClick -> output.navigateUp()
+            is PlaylistDetailUiAction.OnSearchClick -> stateInternal.update {
                 it.copy(isSearching = true, isReordering = false)
             }
-            is PlaylistDetailUiAction.OnSearchQueryChange -> internalState.update {
+            is PlaylistDetailUiAction.OnSearchQueryChange -> stateInternal.update {
                 it.copy(searchQuery = action.query)
             }
-            PlaylistDetailUiAction.OnCloseSearchClick -> internalState.update {
+            is PlaylistDetailUiAction.OnCloseSearchClick -> stateInternal.update {
                 it.copy(isSearching = false, searchQuery = "")
             }
-            PlaylistDetailUiAction.OnReorderClick -> {
+            is PlaylistDetailUiAction.OnReorderClick -> {
                 if (currentPlaylist()?.type == PlaylistType.LOCAL) {
-                    internalState.update {
+                    stateInternal.update {
                         it.copy(isReordering = true, isSearching = false, searchQuery = "")
                     }
                 }
             }
-            PlaylistDetailUiAction.OnFinishReorderingClick -> internalState.update {
+            is PlaylistDetailUiAction.OnFinishReorderingClick -> stateInternal.update {
                 it.copy(isReordering = false)
             }
             is PlaylistDetailUiAction.OnPlay -> play(action.startUri)
-            PlaylistDetailUiAction.Refresh -> refreshM3U()
-            is PlaylistDetailUiAction.ShowRemoveDialogFor -> internalState.update {
+            is PlaylistDetailUiAction.Refresh -> refreshM3U()
+            is PlaylistDetailUiAction.ShowRemoveDialogFor -> stateInternal.update {
                 it.copy(showRemoveDialogFor = action.item)
             }
-            PlaylistDetailUiAction.DismissRemoveDialog -> internalState.update {
+            is PlaylistDetailUiAction.DismissRemoveDialog -> stateInternal.update {
                 it.copy(showRemoveDialogFor = null)
             }
             is PlaylistDetailUiAction.RemoveVideo -> removeVideo(action.videoUri)
@@ -119,7 +119,7 @@ class PlaylistDetailViewModel @AssistedInject constructor(
         val playlist = currentPlaylist() ?: return
         if (playlist.type == PlaylistType.LOCAL || refreshJob?.isActive == true) return
         refreshJob = viewModelScope.launch {
-            internalState.update { it.copy(isRefreshing = true) }
+            stateInternal.update { it.copy(isRefreshing = true) }
             try {
                 val parsed = parseLinkedSource(playlist).getOrThrow()
                 playlistRepository.replaceM3UItems(input.playlistId, parsed.items)
@@ -132,7 +132,7 @@ class PlaylistDetailViewModel @AssistedInject constructor(
                         ?: systemService.getString(R.string.playlist_refresh_failed),
                 )
             } finally {
-                internalState.update { it.copy(isRefreshing = false) }
+                stateInternal.update { it.copy(isRefreshing = false) }
             }
         }
     }
@@ -153,7 +153,7 @@ class PlaylistDetailViewModel @AssistedInject constructor(
         updatePlaylist(
             block = { playlistRepository.removeVideo(input.playlistId, videoUri) },
             onSuccess = {
-                internalState.update { it.copy(showRemoveDialogFor = null) }
+                stateInternal.update { it.copy(showRemoveDialogFor = null) }
             },
         )
     }
@@ -184,17 +184,17 @@ class PlaylistDetailViewModel @AssistedInject constructor(
     ) {
         if (state.value.updateActionState.isRunning) return
         viewModelScope.launch {
-            internalState.update { it.copy(updateActionState = ActionState.Running) }
+            stateInternal.update { it.copy(updateActionState = ActionState.Running) }
             try {
                 block()
                 onSuccess()
-                internalState.update { it.copy(updateActionState = ActionState.Success) }
+                stateInternal.update { it.copy(updateActionState = ActionState.Success) }
             } catch (cancellation: CancellationException) {
-                internalState.update { it.copy(updateActionState = ActionState.Idle) }
+                stateInternal.update { it.copy(updateActionState = ActionState.Idle) }
                 throw cancellation
             } catch (error: Throwable) {
                 val message = systemService.getString(R.string.playlist_update_failed)
-                internalState.update {
+                stateInternal.update {
                     it.copy(updateActionState = ActionState.Failed(Error(message, error)))
                 }
                 showToast(message)

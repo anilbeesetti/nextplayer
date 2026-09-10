@@ -1,6 +1,5 @@
 package dev.anilbeesetti.nextplayer.feature.videopicker.screens.vault
 
-import android.net.Uri
 import android.widget.Toast
 import androidx.activity.compose.BackHandler
 import androidx.compose.animation.AnimatedVisibility
@@ -67,7 +66,6 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.tooling.preview.PreviewLightDark
 import androidx.compose.ui.unit.dp
-import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.compose.LocalLifecycleOwner
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
@@ -102,13 +100,10 @@ import dev.anilbeesetti.nextplayer.feature.videopicker.state.SelectionItem
 import dev.anilbeesetti.nextplayer.feature.videopicker.state.rememberSelectionManager
 
 @Composable
-fun VaultRoute(
-    viewModel: VaultViewModel = hiltViewModel(),
-    onPlayVideo: (uri: Uri) -> Unit,
-    onPlayVideos: (uris: List<Uri>) -> Unit,
-    onNavigateUp: () -> Unit,
+fun VaultScreen(
+    viewModel: VaultViewModel,
 ) {
-    val uiState by viewModel.uiState.collectAsStateWithLifecycle()
+    val state by viewModel.state.collectAsStateWithLifecycle()
     val context = LocalContext.current
     val lifecycleOwner = LocalLifecycleOwner.current
 
@@ -116,9 +111,6 @@ fun VaultRoute(
         lifecycleOwner.repeatOnLifecycle(Lifecycle.State.STARTED) {
             viewModel.events.collect { event ->
                 when (event) {
-                    is VaultEvent.PlayVideo -> onPlayVideo(event.uri)
-                    is VaultEvent.PlayVideos -> onPlayVideos(event.uris)
-
                     is VaultEvent.VideosRelocated -> {
                         val message = context.resources.getQuantityString(
                             R.plurals.videos_relocated_to_movies,
@@ -132,51 +124,49 @@ fun VaultRoute(
         }
     }
 
-    VaultScreen(
-        uiState = uiState,
+    VaultScreenContent(
+        state = state,
         onAction = viewModel::onAction,
-        onNavigateUp = onNavigateUp,
     )
 }
 
 @Composable
-internal fun VaultScreen(
-    uiState: VaultUiState,
+internal fun VaultScreenContent(
+    state: VaultUiState,
     onAction: (VaultAction) -> Unit,
-    onNavigateUp: () -> Unit,
 ) {
-    when (uiState.stage) {
+    when (state.stage) {
         VaultStage.LOADING -> CenterCircularProgressBar()
 
-        VaultStage.LOCKED -> VaultPinScreen(
+        VaultStage.LOCKED -> VaultPinContent(
             title = stringResource(R.string.enter_vault_pin),
             description = stringResource(R.string.enter_vault_pin_description),
-            pinErrorCount = uiState.pinErrorCount,
+            pinErrorCount = state.pinErrorCount,
             errorMessage = stringResource(R.string.incorrect_pin),
             onSubmit = { onAction(VaultAction.SubmitUnlockPin(it)) },
-            onBiometricAuthenticated = if (uiState.biometricEnabled) {
+            onBiometricAuthenticated = if (state.biometricEnabled) {
                 { onAction(VaultAction.BiometricAuthenticated) }
             } else {
                 null
             },
-            onNavigateUp = onNavigateUp,
+            onNavigateUp = { onAction(VaultAction.NavigateUp) },
         )
 
-        VaultStage.SET_PIN -> VaultPinScreen(
+        VaultStage.SET_PIN -> VaultPinContent(
             title = stringResource(R.string.set_vault_pin),
             description = stringResource(R.string.set_vault_pin_description),
-            pinErrorCount = uiState.setPinGeneration,
+            pinErrorCount = state.setPinGeneration,
             onSubmit = { onAction(VaultAction.SubmitNewPin(it)) },
-            onNavigateUp = onNavigateUp,
+            onNavigateUp = { onAction(VaultAction.NavigateUp) },
         )
 
-        VaultStage.CONFIRM_PIN -> VaultPinScreen(
+        VaultStage.CONFIRM_PIN -> VaultPinContent(
             title = stringResource(R.string.confirm_vault_pin),
             description = stringResource(R.string.confirm_vault_pin_description),
-            pinErrorCount = uiState.pinErrorCount,
+            pinErrorCount = state.pinErrorCount,
             errorMessage = stringResource(R.string.pins_do_not_match),
             onSubmit = { onAction(VaultAction.SubmitPinConfirmation(it)) },
-            onNavigateUp = onNavigateUp,
+            onNavigateUp = { onAction(VaultAction.NavigateUp) },
         )
 
         VaultStage.BIOMETRIC_SETUP -> VaultBiometricSetupDialog(
@@ -189,21 +179,20 @@ internal fun VaultScreen(
             )
         }
 
-        VaultStage.UNLOCKED -> VaultGalleryScreen(
-            uiState = uiState,
+        VaultStage.UNLOCKED -> VaultGalleryContent(
+            state = state,
             onAction = onAction,
-            onNavigateUp = onNavigateUp,
         )
     }
 
-    if (uiState.isUnhiding) {
+    if (state.isUnhiding) {
         VaultProgressDialog(message = stringResource(R.string.unhiding_videos_in_progress))
     }
 }
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-private fun VaultPinScreen(
+private fun VaultPinContent(
     title: String,
     description: String,
     pinErrorCount: Int,
@@ -407,10 +396,9 @@ private fun HowToFindHiddenVideosDialog(
 
 @OptIn(ExperimentalMaterial3Api::class, ExperimentalMaterial3ExpressiveApi::class)
 @Composable
-private fun VaultGalleryScreen(
-    uiState: VaultUiState,
+private fun VaultGalleryContent(
+    state: VaultUiState,
     onAction: (VaultAction) -> Unit,
-    onNavigateUp: () -> Unit,
 ) {
     val context = LocalContext.current
     val isTv = remember { context.isTelevision }
@@ -422,7 +410,7 @@ private fun VaultGalleryScreen(
     var showUnhideConfirmation by rememberSaveable { mutableStateOf(false) }
 
     val selectedCount = selectionManager.selectionItems.size
-    val totalCount = uiState.hiddenVideos.size
+    val totalCount = state.hiddenVideos.size
 
     BackHandler(enabled = selectionManager.isInSelectionMode) {
         selectionManager.exitSelectionMode()
@@ -463,7 +451,7 @@ private fun VaultGalleryScreen(
                         }
                     } else {
                         FilledTonalIconButton(
-                            onClick = onNavigateUp,
+                            onClick = { onAction(VaultAction.NavigateUp) },
                             modifier = Modifier.tvFocusRing(),
                         ) {
                             Icon(
@@ -478,7 +466,7 @@ private fun VaultGalleryScreen(
                         FilledTonalIconButton(
                             onClick = {
                                 if (selectedCount != totalCount) {
-                                    uiState.hiddenVideos.forEach { selectionManager.selectVideo(it) }
+                                    state.hiddenVideos.forEach { selectionManager.selectVideo(it) }
                                 } else {
                                     selectionManager.clearSelection()
                                 }
@@ -527,7 +515,7 @@ private fun VaultGalleryScreen(
                 },
                 onInfoAction = {
                     val selected = selectionManager.selectionItems.firstOrNull()
-                    val video = uiState.hiddenVideos.find { it.uriString == (selected as? SelectionItem.Video)?.uriString }
+                    val video = state.hiddenVideos.find { it.uriString == (selected as? SelectionItem.Video)?.uriString }
                     if (video != null) onAction(VaultAction.ShowMediaInfo(video))
                     selectionManager.exitSelectionMode()
                 },
@@ -548,7 +536,7 @@ private fun VaultGalleryScreen(
         ) {
             val updatedPadding = padding.copy(top = 0.dp, start = 0.dp)
             when {
-                uiState.isLoading -> {
+                state.isLoading -> {
                     Box(
                         modifier = Modifier.fillMaxSize().padding(updatedPadding),
                         contentAlignment = Alignment.Center,
@@ -557,14 +545,14 @@ private fun VaultGalleryScreen(
                     }
                 }
 
-                uiState.hiddenVideos.isEmpty() -> {
+                state.hiddenVideos.isEmpty() -> {
                     VaultEmptyState(contentPadding = updatedPadding)
                 }
 
                 else -> {
                     LazyVerticalGrid(
                         modifier = Modifier.fillMaxSize().restorableFocusGroup(focusState),
-                        columns = if (uiState.preferences.mediaLayoutMode == MediaLayoutMode.GRID) {
+                        columns = if (state.preferences.mediaLayoutMode == MediaLayoutMode.GRID) {
                             GridCells.Adaptive(minSize = 130.dp)
                         } else {
                             GridCells.Fixed(1)
@@ -577,7 +565,7 @@ private fun VaultGalleryScreen(
                         ),
                     ) {
                         itemsIndexed(
-                            items = uiState.hiddenVideos,
+                            items = state.hiddenVideos,
                             key = { _, video -> video.uriString },
                         ) { _, video ->
                             val selected = selectionManager.isVideoSelected(video)
@@ -587,7 +575,7 @@ private fun VaultGalleryScreen(
                                     .restorableFocusItem(focusState, video.uriString),
                                 video = video,
                                 isRecentlyPlayedVideo = false,
-                                preferences = uiState.preferences,
+                                preferences = state.preferences,
                                 selected = selected,
                                 onClick = {
                                     if (selectionManager.isInSelectionMode) {
@@ -609,7 +597,7 @@ private fun VaultGalleryScreen(
 
     if (showSettings) {
         VaultSettingsDialog(
-            biometricEnabled = uiState.biometricEnabled,
+            biometricEnabled = state.biometricEnabled,
             onBiometricEnabledChange = { onAction(VaultAction.SetBiometricEnabled(it)) },
             onDismiss = { showSettings = false },
         )
@@ -617,7 +605,7 @@ private fun VaultGalleryScreen(
 
     if (showSortMenu) {
         VaultSortDialog(
-            sort = uiState.sort,
+            sort = state.sort,
             onDismiss = { showSortMenu = false },
             onSortSelected = {
                 onAction(VaultAction.UpdateSort(it))
@@ -682,7 +670,7 @@ private fun VaultGalleryScreen(
         )
     }
 
-    uiState.mediaInfo?.let { mediaInfo ->
+    state.mediaInfo?.let { mediaInfo ->
         MediaInfoDialog(
             mediaInfo = mediaInfo,
             onDismiss = { onAction(VaultAction.DismissMediaInfo) },
@@ -879,9 +867,9 @@ private fun VaultSelectionActionsSheet(
 
 @PreviewLightDark
 @Composable
-private fun VaultPinScreenPreview() {
+private fun VaultPinContentPreview() {
     NextPlayerTheme {
-        VaultPinScreen(
+        VaultPinContent(
             title = stringResource(R.string.enter_vault_pin),
             description = stringResource(R.string.enter_vault_pin_description),
             pinErrorCount = 0,

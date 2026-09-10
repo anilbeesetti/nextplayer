@@ -320,7 +320,7 @@
     <string name="pins_do_not_match">PIN 码不匹配。请重试。</string>
     <string name="incorrect_pin">PIN 码错误</string>
     <string name="reset_vault_pin_confirmation">重置 PIN 码会永久删除当前在保险箱中的所有视频，因为已无法再将其解锁。继续吗？</string>
-    <string name="how_to_find_hidden_videos_description">隐藏的视频安全地存放在保险箱中。要重新打开保险箱，请按住主屏幕顶部的“Next Player”标题并输入 PIN 码。</string>
+    <string name="how_to_find_hidden_videos_description">隐藏的视频安全地存放在保险箱中。要重新打开保险箱，请打开“更多”，点按“打开保险箱”，并输入 PIN 码。</string>
     <string name="how_to_find_hidden_videos_title">如何找到隐藏的视频</string>
     <string name="got_it">知道了</string>
     <string name="open_vault">打开保险箱</string>
@@ -484,4 +484,20 @@
     <string name="vault_biometric_setup_description">使用指纹或面容解锁保险箱。使用生物识别扫描确认可启用此项。您仍可使用 PIN 码并在保险箱设置中关闭此项。</string>
     <string name="vault_biometric_setup_title">使用生物识别解锁吗？</string>
     <string name="use_vault_pin">使用保险箱 PIN 码</string>
+    <string name="history">历史</string>
+    <string name="delete_permanently">永久删除</string>
+    <string name="restore">恢复</string>
+    <string name="trash">回收站</string>
+    <string name="open_vault_description">访问隐藏的视频</string>
+    <string name="ftp_sftp">FTP/SFTP</string>
+    <string name="use_sftp">使用 SFTP</string>
+    <string name="settings_description">应用偏好</string>
+    <string name="more">更多</string>
+    <string name="move_to_trash">移动到回收站</string>
+    <string name="move_to_trash_info">所选项目会被移动到回收站</string>
+    <string name="pick_file">选择文件</string>
+    <string name="clear_all">全部清除</string>
+    <string name="clear_history_confirmation">从历史移除所有观看过的视频吗？</string>
+    <string name="trash_empty_description">您移动到回收站的视频会在此显示。您可以将其恢复或永久删除。</string>
+    <string name="trash_empty_title">回收站为空</string>
 </resources>

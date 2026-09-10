@@ -323,7 +323,7 @@
     <string name="pins_do_not_match">Los PIN no coinciden. Inténtalo de nuevo</string>
     <string name="incorrect_pin">PIN incorrecto</string>
     <string name="how_to_find_hidden_videos_title">Cómo encontrar tus vídeos ocultos</string>
-    <string name="how_to_find_hidden_videos_description">Los vídeos ocultos se guardan de forma segura en tu Bóveda. Para volver a abrirla, mantén pulsado el título \"NextPlayer\" en la parte superior de la pantalla de inicio e ingrese su PIN.</string>
+    <string name="how_to_find_hidden_videos_description">Los vídeos ocultos se mantienen a salvo en tu Bóveda. Para abrirla de nuevo, ve a Más, toca en Abrir bóveda e introduce tu PIN.</string>
     <string name="got_it">Entendido</string>
     <string name="open_vault">Abrir bóveda</string>
     <string name="vault_empty_title">Sin vídeos ocultos</string>
@@ -500,4 +500,20 @@
     <string name="vault_settings">Ajustes de la bóveda</string>
     <string name="vault_biometric_description">Usa tu huella o tu rostro para desbloquear. Tu PIN de la bóveda seguirá disponible.</string>
     <string name="vault_biometric_unavailable">Configura una huella o un rostro compatibles en los ajustes de tu dispositivo para activar el desbloqueo biométrico.</string>
+    <string name="delete_permanently">Eliminar permanentemente</string>
+    <string name="restore">Restaurar</string>
+    <string name="trash">Papelera</string>
+    <string name="move_to_trash_info">Los elementos seleccionados se moverán a la papelera.</string>
+    <string name="move_to_trash">Mover a la papelera</string>
+    <string name="history">Historial</string>
+    <string name="trash_empty_title">La papelera está vacía</string>
+    <string name="trash_empty_description">Los vídeos que muevas a la papelera aparecerán aquí. Puedes restaurarlos o eliminarlos permanentemente.</string>
+    <string name="pick_file">Seleccionar archivo</string>
+    <string name="clear_all">Borrar todo</string>
+    <string name="clear_history_confirmation">¿Eliminar todos los vídeos vistos del historial?</string>
+    <string name="open_vault_description">Accede a tus vídeos ocultos</string>
+    <string name="ftp_sftp">FTP/SFTP</string>
+    <string name="use_sftp">Usar SFTP</string>
+    <string name="settings_description">Preferencias de la aplicación</string>
+    <string name="more">Más</string>
 </resources>

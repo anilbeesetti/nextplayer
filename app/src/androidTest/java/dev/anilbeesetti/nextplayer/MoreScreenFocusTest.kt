@@ -113,7 +113,7 @@ class MoreScreenFocusTest {
     private fun showMore(history: List<Video> = clips) {
         state.value = MoreUiState(history = DataState.Success(history))
         composeRule.setContent {
-            NextPlayerTheme { MoreScreenContent(uiState = state.value, onAction = {}) }
+            NextPlayerTheme { MoreScreenContent(state = state.value, onAction = {}) }
         }
     }
 

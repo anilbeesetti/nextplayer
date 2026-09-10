@@ -27,6 +27,7 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -39,7 +40,6 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
-import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import dev.anilbeesetti.nextplayer.core.common.extensions.isTelevision
 import dev.anilbeesetti.nextplayer.core.media.services.MediaOperationsService
@@ -62,33 +62,19 @@ import dev.anilbeesetti.nextplayer.feature.videopicker.composables.VideoGridItem
 
 @Composable
 fun MoreScreen(
-    onHistoryClick: () -> Unit,
-    onPlayVideo: (String) -> Unit,
-    onSettingsClick: () -> Unit,
-    onTrashClick: () -> Unit,
-    onVaultClick: () -> Unit,
-    viewModel: MoreViewModel = hiltViewModel(),
+    viewModel: MoreViewModel,
 ) {
-    val uiState = viewModel.uiState.collectAsStateWithLifecycle().value
-    val output = remember(onHistoryClick, onPlayVideo, onSettingsClick, onTrashClick, onVaultClick) {
-        MoreViewModel.Output(
-            openHistory = onHistoryClick,
-            playVideo = onPlayVideo,
-            openSettings = onSettingsClick,
-            openTrash = onTrashClick,
-            openVault = onVaultClick,
-        )
-    }
+    val state by viewModel.state.collectAsStateWithLifecycle()
 
     MoreScreenContent(
-        uiState = uiState,
-        onAction = { viewModel.onAction(it, output) },
+        state = state,
+        onAction = viewModel::onAction,
     )
 }
 
 @Composable
 internal fun MoreScreenContent(
-    uiState: MoreUiState,
+    state: MoreUiState,
     onAction: (MoreAction) -> Unit,
 ) {
     BindTopLevelFab(TopLevelFabKey.MORE, NextIcons.Settings) { onAction(MoreAction.OpenSettings) }
@@ -168,8 +154,8 @@ internal fun MoreScreenContent(
                     }
                 }
                 HistorySection(
-                    history = uiState.history.result.orEmpty().take(10),
-                    preferences = uiState.preferences,
+                    history = state.history.result.orEmpty().take(10),
+                    preferences = state.preferences,
                     onMoreClick = { onAction(MoreAction.OpenHistory) },
                     onVideoClick = { onAction(MoreAction.PlayVideo(it.uriString)) },
                 )
@@ -237,5 +223,5 @@ private fun HistorySection(
 @Preview
 @Composable
 private fun MoreScreenContentPreview() {
-    MoreScreenContent(uiState = MoreUiState(), onAction = {})
+    MoreScreenContent(state = MoreUiState(), onAction = {})
 }

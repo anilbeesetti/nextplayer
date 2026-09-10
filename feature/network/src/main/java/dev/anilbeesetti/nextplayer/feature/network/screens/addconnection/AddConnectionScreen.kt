@@ -56,7 +56,6 @@ import dev.anilbeesetti.nextplayer.core.ui.components.NextOutlinedTextField
 import dev.anilbeesetti.nextplayer.core.ui.components.NextTopAppBar
 import dev.anilbeesetti.nextplayer.core.ui.components.tvFocusRing
 import dev.anilbeesetti.nextplayer.core.ui.designsystem.NextIcons
-import dev.anilbeesetti.nextplayer.feature.network.ObserveAsEvents
 
 /**
  * Default path per protocol: SMB expects a bare share name (no leading slash), while FTP and WebDAV
@@ -80,51 +79,30 @@ internal fun fingerprintAfterEndpointEdit(
 
 @Composable
 fun AddConnectionScreen(
-    onNavigateUp: () -> Unit,
     viewModel: AddConnectionViewModel,
 ) {
-    val saveState by viewModel.saveState.collectAsStateWithLifecycle()
-    val existing by viewModel.existingConnection.collectAsStateWithLifecycle()
-    val selectedPrivateKey by viewModel.selectedPrivateKey.collectAsStateWithLifecycle()
-    val keyPicker = rememberLauncherForActivityResult(ActivityResultContracts.OpenDocument()) { uri ->
-        uri?.let(viewModel::stagePrivateKey)
-    }
-
-    ObserveAsEvents(viewModel.savedEvents) { onNavigateUp() }
+    val state by viewModel.state.collectAsStateWithLifecycle()
 
     AddConnectionScreenContent(
-        isEdit = viewModel.isEdit,
-        existing = existing,
-        saveState = saveState,
-        selectedPrivateKey = selectedPrivateKey,
-        onNavigateUp = {
-            viewModel.cancel()
-            onNavigateUp()
-        },
-        onFieldChanged = viewModel::clearError,
-        onChoosePrivateKey = { keyPicker.launch(arrayOf("*/*")) },
-        onRemovePrivateKey = viewModel::removeSelectedPrivateKey,
-        onTestAndSave = viewModel::testAndSave,
-        onAcceptHostKey = viewModel::acceptHostKey,
-        onRejectHostKey = viewModel::rejectHostKey,
+        state = state,
+        onAction = viewModel::onAction,
     )
 }
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 internal fun AddConnectionScreenContent(
-    isEdit: Boolean,
-    existing: NetworkConnection?,
-    saveState: SaveState,
-    selectedPrivateKey: SelectedPrivateKey?,
-    onNavigateUp: () -> Unit,
-    onFieldChanged: () -> Unit,
-    onChoosePrivateKey: () -> Unit,
-    onRemovePrivateKey: () -> Unit,
-    onTestAndSave: (NetworkConnection) -> Unit,
-    onAcceptHostKey: () -> Unit,
-    onRejectHostKey: () -> Unit,
+    state: AddConnectionUiState,
+    onAction: (AddConnectionAction) -> Unit,
 ) {
+    val isEdit = state.isEdit
+    val existing = state.existingConnection
+    val saveState = state.saveState
+    val selectedPrivateKey = state.selectedPrivateKey
+    val keyPicker = rememberLauncherForActivityResult(ActivityResultContracts.OpenDocument()) { uri ->
+        uri?.let { onAction(AddConnectionAction.StagePrivateKey(it)) }
+    }
+
     var protocol by rememberSaveable { mutableStateOf(NetworkProtocol.SMB) }
     var name by rememberSaveable { mutableStateOf("") }
     var host by rememberSaveable { mutableStateOf("") }
@@ -176,49 +154,51 @@ internal fun AddConnectionScreenContent(
     )
 
     fun submit() {
-        onTestAndSave(
-            NetworkConnection(
-                name = name.trim(),
-                protocol = protocol,
-                host = host.trim(),
-                port = port.toIntOrNull(),
-                path = normalizedPathFor(protocol, path),
-                username = username.trim(),
-                password = if (
-                    protocol == NetworkProtocol.SFTP && authentication == NetworkAuthentication.SSH_KEY
-                ) {
-                    ""
-                } else {
-                    password
-                },
-                useHttps = protocol == NetworkProtocol.WEBDAV && useHttps,
-                authentication = if (protocol == NetworkProtocol.SFTP) {
-                    authentication
-                } else {
-                    NetworkAuthentication.PASSWORD
-                },
-                privateKeyFileName = if (
-                    protocol == NetworkProtocol.SFTP && authentication == NetworkAuthentication.SSH_KEY
-                ) {
-                    activeKeyName
-                } else {
-                    ""
-                },
-                privateKeyPassphrase = if (
-                    protocol == NetworkProtocol.SFTP && authentication == NetworkAuthentication.SSH_KEY
-                ) {
-                    privateKeyPassphrase
-                } else {
-                    ""
-                },
-                hostKeyFingerprint = if (protocol == NetworkProtocol.SFTP) hostKeyFingerprint else "",
+        onAction(
+            AddConnectionAction.TestAndSave(
+                NetworkConnection(
+                    name = name.trim(),
+                    protocol = protocol,
+                    host = host.trim(),
+                    port = port.toIntOrNull(),
+                    path = normalizedPathFor(protocol, path),
+                    username = username.trim(),
+                    password = if (
+                        protocol == NetworkProtocol.SFTP && authentication == NetworkAuthentication.SSH_KEY
+                    ) {
+                        ""
+                    } else {
+                        password
+                    },
+                    useHttps = protocol == NetworkProtocol.WEBDAV && useHttps,
+                    authentication = if (protocol == NetworkProtocol.SFTP) {
+                        authentication
+                    } else {
+                        NetworkAuthentication.PASSWORD
+                    },
+                    privateKeyFileName = if (
+                        protocol == NetworkProtocol.SFTP && authentication == NetworkAuthentication.SSH_KEY
+                    ) {
+                        activeKeyName
+                    } else {
+                        ""
+                    },
+                    privateKeyPassphrase = if (
+                        protocol == NetworkProtocol.SFTP && authentication == NetworkAuthentication.SSH_KEY
+                    ) {
+                        privateKeyPassphrase
+                    } else {
+                        ""
+                    },
+                    hostKeyFingerprint = if (protocol == NetworkProtocol.SFTP) hostKeyFingerprint else "",
+                ),
             ),
         )
     }
 
     val onChange: (() -> Unit) -> Unit = { setter ->
         setter()
-        onFieldChanged()
+        onAction(AddConnectionAction.ClearError)
     }
 
     Scaffold(
@@ -226,7 +206,7 @@ internal fun AddConnectionScreenContent(
             NextTopAppBar(
                 title = stringResource(if (isEdit) R.string.edit_connection else R.string.add_connection),
                 navigationIcon = {
-                    FilledTonalIconButton(onClick = onNavigateUp, modifier = Modifier.tvFocusRing()) {
+                    FilledTonalIconButton(onClick = { onAction(AddConnectionAction.Cancel) }, modifier = Modifier.tvFocusRing()) {
                         Icon(
                             imageVector = NextIcons.Close,
                             contentDescription = stringResource(R.string.navigate_up),
@@ -270,7 +250,7 @@ internal fun AddConnectionScreenContent(
                                     authentication = NetworkAuthentication.PASSWORD
                                     privateKeyPassphrase = ""
                                     hostKeyFingerprint = ""
-                                    if (selectedPrivateKey != null) onRemovePrivateKey()
+                                    if (selectedPrivateKey != null) onAction(AddConnectionAction.RemoveSelectedPrivateKey)
                                 }
                                 protocol = entry
                             }
@@ -297,7 +277,7 @@ internal fun AddConnectionScreenContent(
                                     authentication = NetworkAuthentication.PASSWORD
                                     privateKeyPassphrase = ""
                                     hostKeyFingerprint = ""
-                                    if (selectedPrivateKey != null) onRemovePrivateKey()
+                                    if (selectedPrivateKey != null) onAction(AddConnectionAction.RemoveSelectedPrivateKey)
                                 }
                             }
                         },
@@ -398,7 +378,7 @@ internal fun AddConnectionScreenContent(
                                     when (method) {
                                         NetworkAuthentication.PASSWORD -> {
                                             privateKeyPassphrase = ""
-                                            if (selectedPrivateKey != null) onRemovePrivateKey()
+                                            if (selectedPrivateKey != null) onAction(AddConnectionAction.RemoveSelectedPrivateKey)
                                         }
                                         NetworkAuthentication.SSH_KEY -> password = ""
                                     }
@@ -445,7 +425,7 @@ internal fun AddConnectionScreenContent(
                     verticalAlignment = Alignment.CenterVertically,
                 ) {
                     OutlinedButton(
-                        onClick = onChoosePrivateKey,
+                        onClick = { keyPicker.launch(arrayOf("*/*")) },
                         enabled = !isTesting,
                         modifier = Modifier.weight(1f),
                     ) {
@@ -464,7 +444,7 @@ internal fun AddConnectionScreenContent(
                             enabled = !isTesting,
                             onClick = {
                                 if (selectedPrivateKey != null) {
-                                    onRemovePrivateKey()
+                                    onAction(AddConnectionAction.RemoveSelectedPrivateKey)
                                 } else {
                                     onChange { existingPrivateKeyRemoved = true }
                                 }
@@ -571,7 +551,7 @@ internal fun AddConnectionScreenContent(
 
     (saveState as? SaveState.ConfirmHostKey)?.confirmation?.let { confirmation ->
         NextDialog(
-            onDismissRequest = onRejectHostKey,
+            onDismissRequest = { onAction(AddConnectionAction.RejectHostKey) },
             title = { Text(stringResource(R.string.confirm_ssh_host_key)) },
             content = {
                 Text(stringResource(R.string.confirm_ssh_host_key_description))
@@ -583,12 +563,12 @@ internal fun AddConnectionScreenContent(
                 }
             },
             confirmButton = {
-                TextButton(onClick = onAcceptHostKey) {
+                TextButton(onClick = { onAction(AddConnectionAction.AcceptHostKey) }) {
                     Text(stringResource(R.string.trust))
                 }
             },
             dismissButton = {
-                TextButton(onClick = onRejectHostKey) {
+                TextButton(onClick = { onAction(AddConnectionAction.RejectHostKey) }) {
                     Text(stringResource(R.string.reject))
                 }
             },

@@ -19,7 +19,6 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.tooling.preview.PreviewLightDark
 import androidx.compose.ui.unit.dp
-import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import dev.anilbeesetti.nextplayer.core.model.ThumbnailGenerationStrategy
 import dev.anilbeesetti.nextplayer.core.ui.R
@@ -36,32 +35,23 @@ import dev.anilbeesetti.nextplayer.core.ui.theme.NextPlayerTheme
 
 @Composable
 fun MediaLibraryPreferencesScreen(
-    onNavigateUp: () -> Unit,
-    onFolderSettingClick: () -> Unit = {},
-    onThumbnailSettingClick: () -> Unit = {},
-    viewModel: MediaLibraryPreferencesViewModel = hiltViewModel(),
+    viewModel: MediaLibraryPreferencesViewModel,
 ) {
-    val uiState by viewModel.uiState.collectAsStateWithLifecycle()
+    val state by viewModel.state.collectAsStateWithLifecycle()
 
-    MediaLibraryPreferencesContent(
-        uiState = uiState,
-        onNavigateUp = onNavigateUp,
-        onFolderSettingClick = onFolderSettingClick,
-        onThumbnailSettingClick = onThumbnailSettingClick,
-        onEvent = viewModel::onEvent,
+    MediaLibraryPreferencesScreenContent(
+        state = state,
+        onAction = viewModel::onAction,
     )
 }
 
 @OptIn(ExperimentalMaterial3Api::class, ExperimentalMaterial3ExpressiveApi::class)
 @Composable
-private fun MediaLibraryPreferencesContent(
-    uiState: MediaLibraryPreferencesUiState,
-    onNavigateUp: () -> Unit,
-    onFolderSettingClick: () -> Unit,
-    onThumbnailSettingClick: () -> Unit,
-    onEvent: (MediaLibraryPreferencesUiEvent) -> Unit,
+private fun MediaLibraryPreferencesScreenContent(
+    state: MediaLibraryPreferencesUiState,
+    onAction: (MediaLibraryPreferencesUiEvent) -> Unit,
 ) {
-    val preferences = uiState.preferences
+    val preferences = state.preferences
 
     val focusState = rememberRestorableFocusState()
 
@@ -70,7 +60,7 @@ private fun MediaLibraryPreferencesContent(
             NextTopAppBar(
                 title = stringResource(id = R.string.media_library),
                 navigationIcon = {
-                    FilledTonalIconButton(onClick = onNavigateUp, modifier = Modifier.tvFocusDown(focusState.requester)) {
+                    FilledTonalIconButton(onClick = { onAction(MediaLibraryPreferencesUiEvent.NavigateUp) }, modifier = Modifier.tvFocusDown(focusState.requester)) {
                         Icon(
                             imageVector = NextIcons.ArrowBack,
                             contentDescription = stringResource(id = R.string.navigate_up),
@@ -101,7 +91,7 @@ private fun MediaLibraryPreferencesContent(
                     ),
                     icon = NextIcons.Check,
                     isChecked = preferences.markLastPlayedMedia,
-                    onClick = { onEvent(MediaLibraryPreferencesUiEvent.ToggleMarkLastPlayedMedia) },
+                    onClick = { onAction(MediaLibraryPreferencesUiEvent.ToggleMarkLastPlayedMedia) },
                     isFirstItem = true,
                     isLastItem = true,
                 )
@@ -116,7 +106,7 @@ private fun MediaLibraryPreferencesContent(
                     title = stringResource(id = R.string.manage_folders),
                     description = stringResource(id = R.string.manage_folders_desc),
                     icon = NextIcons.FolderOff,
-                    onClick = onFolderSettingClick,
+                    onClick = { onAction(MediaLibraryPreferencesUiEvent.OpenFolders) },
                     isFirstItem = true,
                     isLastItem = true,
                 )
@@ -135,7 +125,7 @@ private fun MediaLibraryPreferencesContent(
                         ThumbnailGenerationStrategy.HYBRID -> stringResource(id = R.string.hybrid)
                     },
                     icon = NextIcons.Image,
-                    onClick = onThumbnailSettingClick,
+                    onClick = { onAction(MediaLibraryPreferencesUiEvent.OpenThumbnails) },
                     isFirstItem = true,
                     isLastItem = true,
                 )
@@ -148,12 +138,9 @@ private fun MediaLibraryPreferencesContent(
 @Composable
 private fun MediaLibraryPreferencesScreenPreview() {
     NextPlayerTheme {
-        MediaLibraryPreferencesContent(
-            uiState = MediaLibraryPreferencesUiState(),
-            onNavigateUp = {},
-            onFolderSettingClick = {},
-            onThumbnailSettingClick = {},
-            onEvent = {},
+        MediaLibraryPreferencesScreenContent(
+            state = MediaLibraryPreferencesUiState(),
+            onAction = {},
         )
     }
 }

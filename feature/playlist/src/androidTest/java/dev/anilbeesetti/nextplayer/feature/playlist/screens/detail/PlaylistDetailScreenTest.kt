@@ -17,6 +17,7 @@ import androidx.compose.ui.test.performKeyInput
 import androidx.compose.ui.test.pressKey
 import androidx.compose.ui.test.requestFocus
 import androidx.test.core.app.ApplicationProvider
+import androidx.test.platform.app.InstrumentationRegistry
 import dev.anilbeesetti.nextplayer.core.common.extensions.isTelevision
 import dev.anilbeesetti.nextplayer.core.model.Playlist
 import dev.anilbeesetti.nextplayer.core.model.PlaylistItem
@@ -270,10 +271,12 @@ class PlaylistDetailScreenTest {
         showRemoveDialogFor: PlaylistItem? = null,
         onAction: (PlaylistDetailUiAction) -> Unit = {},
     ) {
+        val context = InstrumentationRegistry.getInstrumentation().targetContext
+        assumeTrue("Requires ${if (isTv) "TV" else "phone"} device", context.isTelevision == isTv)
         composeRule.setContent {
             NextPlayerTheme {
                 PlaylistDetailScreenContent(
-                    uiState = PlaylistDetailUiState(
+                    state = PlaylistDetailUiState(
                         playlistDataState = DataState.Success(playlist),
                         updateActionState = updateActionState,
                         isSearching = isSearching,
@@ -281,7 +284,6 @@ class PlaylistDetailScreenTest {
                         isReordering = isReordering,
                         showRemoveDialogFor = showRemoveDialogFor,
                     ),
-                    isTv = isTv,
                     onAction = onAction,
                 )
             }

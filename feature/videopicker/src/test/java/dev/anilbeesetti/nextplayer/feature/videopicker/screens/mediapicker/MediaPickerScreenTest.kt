@@ -4,15 +4,20 @@ import android.Manifest
 import android.app.Application
 import android.content.pm.PackageManager
 import androidx.activity.ComponentActivity
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.input.key.Key
 import androidx.compose.ui.test.assertIsDisplayed
 import androidx.compose.ui.test.assertIsFocused
 import androidx.compose.ui.test.junit4.v2.createAndroidComposeRule
+import androidx.compose.ui.test.longClick
 import androidx.compose.ui.test.onNodeWithContentDescription
 import androidx.compose.ui.test.onNodeWithText
 import androidx.compose.ui.test.onRoot
 import androidx.compose.ui.test.performClick
 import androidx.compose.ui.test.performKeyInput
+import androidx.compose.ui.test.performTouchInput
 import androidx.compose.ui.test.pressKey
 import androidx.compose.ui.test.requestFocus
 import androidx.lifecycle.Lifecycle
@@ -25,9 +30,6 @@ import dev.anilbeesetti.nextplayer.core.model.Video
 import dev.anilbeesetti.nextplayer.core.ui.R
 import dev.anilbeesetti.nextplayer.core.ui.base.DataState
 import dev.anilbeesetti.nextplayer.core.ui.theme.NextPlayerTheme
-import dev.anilbeesetti.nextplayer.feature.videopicker.state.SelectionItem
-import dev.anilbeesetti.nextplayer.feature.videopicker.state.SelectionManager
-import org.junit.Assert.assertFalse
 import org.junit.Assert.assertTrue
 import org.junit.Rule
 import org.junit.Test
@@ -51,8 +53,8 @@ class MediaPickerScreenTest {
         val video = Video.sample.copy(nameWithExtension = "Clip.mp4", uriString = "content://video/1")
         composeRule.setContent {
             NextPlayerTheme {
-                MediaPickerScreen(
-                    uiState = MediaPickerUiState(
+                MediaPickerScreenContent(
+                    state = MediaPickerUiState(
                         folderName = "Movies",
                         mediaDataState = DataState.Success(MediaHolder(listOf(video), emptyList())),
                     ),
@@ -73,8 +75,8 @@ class MediaPickerScreenTest {
 
         composeRule.setContent {
             NextPlayerTheme {
-                MediaPickerScreen(
-                    uiState = MediaPickerUiState(folderName = null),
+                MediaPickerScreenContent(
+                    state = MediaPickerUiState(folderName = null),
                 )
             }
         }
@@ -87,8 +89,8 @@ class MediaPickerScreenTest {
         val actions = mutableListOf<MediaPickerAction>()
         composeRule.setContent {
             NextPlayerTheme {
-                MediaPickerScreen(
-                    uiState = MediaPickerUiState(folderName = null),
+                MediaPickerScreenContent(
+                    state = MediaPickerUiState(folderName = null),
                     onAction = actions::add,
                 )
             }
@@ -107,21 +109,16 @@ class MediaPickerScreenTest {
     @Test
     fun choosingPlaylistDispatchesActionAndExitsSelectionMode() {
         val actions = mutableListOf<MediaPickerAction>()
-        val selectionManager = SelectionManager(
-            initialSelectionItems = setOf(
-                SelectionItem.Video(
-                    name = "Video",
-                    uriString = "content://video/1",
-                    path = "/storage/emulated/0/video.mp4",
-                ),
-            ),
-            initialIsInSelectionMode = true,
-        )
+        val application = ApplicationProvider.getApplicationContext<Application>()
+        shadowOf(application).grantPermissions(Manifest.permission.READ_MEDIA_VIDEO)
+        var showPlaylistDialog by mutableStateOf(false)
+        val video = Video.sample.copy(nameWithExtension = "Video.mp4", uriString = "content://video/1")
         composeRule.setContent {
             NextPlayerTheme {
-                MediaPickerScreen(
-                    uiState = MediaPickerUiState(
+                MediaPickerScreenContent(
+                    state = MediaPickerUiState(
                         folderName = null,
+                        mediaDataState = DataState.Success(MediaHolder(folders = emptyList(), videos = listOf(video))),
                         playlists = listOf(
                             PlaylistSummary(
                                 id = 7,
@@ -132,22 +129,25 @@ class MediaPickerScreenTest {
                             ),
                         ),
                         addToPlaylistState = AddToPlaylistState(
-                            isVisible = true,
+                            isVisible = showPlaylistDialog,
                             hasVideos = true,
                         ),
                     ),
-                    selectionManager = selectionManager,
                     onAction = actions::add,
                 )
             }
         }
+
+        composeRule.onNodeWithText("Video").performTouchInput { longClick() }
+        composeRule.onNodeWithText("1 / 1 Selected").assertIsDisplayed()
+        composeRule.runOnIdle { showPlaylistDialog = true }
 
         composeRule.onNodeWithText("Choose a playlist").assertIsDisplayed()
         composeRule.onNodeWithText("Create new playlist").assertIsDisplayed()
         composeRule.onNodeWithText("Movies").performClick()
 
         assertTrue(MediaPickerAction.AddSelectionToPlaylist(7) in actions)
-        assertFalse(selectionManager.isInSelectionMode)
-        assertTrue(selectionManager.selectionItems.isEmpty())
+        composeRule.runOnIdle { showPlaylistDialog = false }
+        composeRule.onNodeWithText("1 / 1 Selected").assertDoesNotExist()
     }
 }

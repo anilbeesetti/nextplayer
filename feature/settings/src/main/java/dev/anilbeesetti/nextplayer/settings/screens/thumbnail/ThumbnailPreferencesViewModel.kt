@@ -1,51 +1,66 @@
 package dev.anilbeesetti.nextplayer.settings.screens.thumbnail
 
 import androidx.compose.runtime.Stable
-import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import coil3.ImageLoader
+import dagger.assisted.Assisted
+import dagger.assisted.AssistedFactory
+import dagger.assisted.AssistedInject
 import dagger.hilt.android.lifecycle.HiltViewModel
 import dev.anilbeesetti.nextplayer.core.data.repository.PreferencesRepository
 import dev.anilbeesetti.nextplayer.core.media.extensions.clearAllCache
 import dev.anilbeesetti.nextplayer.core.model.ApplicationPreferences
 import dev.anilbeesetti.nextplayer.core.model.ThumbnailGenerationStrategy
-import javax.inject.Inject
+import dev.anilbeesetti.nextplayer.core.ui.base.MviViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 
-@HiltViewModel
-class ThumbnailPreferencesViewModel @Inject constructor(
+@HiltViewModel(assistedFactory = ThumbnailPreferencesViewModel.Factory::class)
+class ThumbnailPreferencesViewModel @AssistedInject constructor(
     private val preferencesRepository: PreferencesRepository,
     private val imageLoader: ImageLoader,
-) : ViewModel() {
+    @Assisted internal var output: Output,
+) : MviViewModel<ThumbnailPreferencesUiState, ThumbnailPreferencesEvent>() {
 
-    private val uiStateInternal = MutableStateFlow(
+    data class Output(
+        val navigateUp: () -> Unit,
+    )
+
+    @AssistedFactory
+    interface Factory {
+        fun create(output: Output): ThumbnailPreferencesViewModel
+    }
+
+    private val stateInternal = MutableStateFlow(
         ThumbnailPreferencesUiState(
             preferences = preferencesRepository.applicationPreferences.value,
         ),
     )
-    val uiState = uiStateInternal.asStateFlow()
+    override val state: StateFlow<ThumbnailPreferencesUiState> = stateInternal.asStateFlow()
 
     init {
         viewModelScope.launch {
             preferencesRepository.applicationPreferences.collect { preferences ->
-                uiStateInternal.update { it.copy(preferences = preferences) }
+                stateInternal.update { it.copy(preferences = preferences) }
             }
         }
     }
 
-    fun onEvent(event: ThumbnailPreferencesEvent) {
-        when (event) {
-            is ThumbnailPreferencesEvent.UpdateStrategy -> updateStrategy(event.strategy)
-            is ThumbnailPreferencesEvent.UpdateFramePosition -> updateFramePosition(event.position)
+    override fun onAction(action: ThumbnailPreferencesEvent) {
+        when (action) {
+            is ThumbnailPreferencesEvent.NavigateUp -> output.navigateUp()
+
+            is ThumbnailPreferencesEvent.UpdateStrategy -> updateStrategy(action.strategy)
+            is ThumbnailPreferencesEvent.UpdateFramePosition -> updateFramePosition(action.position)
         }
     }
 
     private fun updateStrategy(strategy: ThumbnailGenerationStrategy) {
         viewModelScope.launch {
-            val currentStrategy = uiState.value.preferences.thumbnailGenerationStrategy
+            val currentStrategy = state.value.preferences.thumbnailGenerationStrategy
             preferencesRepository.updateApplicationPreferences {
                 it.copy(thumbnailGenerationStrategy = strategy)
             }
@@ -58,7 +73,7 @@ class ThumbnailPreferencesViewModel @Inject constructor(
 
     private fun updateFramePosition(position: Float) {
         viewModelScope.launch {
-            val currentPosition = uiState.value.preferences.thumbnailFramePosition
+            val currentPosition = state.value.preferences.thumbnailFramePosition
             preferencesRepository.updateApplicationPreferences {
                 it.copy(thumbnailFramePosition = position)
             }
@@ -76,6 +91,8 @@ data class ThumbnailPreferencesUiState(
 )
 
 sealed interface ThumbnailPreferencesEvent {
+    data object NavigateUp : ThumbnailPreferencesEvent
+
     data class UpdateStrategy(val strategy: ThumbnailGenerationStrategy) : ThumbnailPreferencesEvent
     data class UpdateFramePosition(val position: Float) : ThumbnailPreferencesEvent
 }

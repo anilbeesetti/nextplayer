@@ -6,7 +6,6 @@ import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Spacer
-import androidx.compose.foundation.layout.calculateStartPadding
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
@@ -29,12 +28,10 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
-import androidx.compose.ui.platform.LocalLayoutDirection
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
-import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import dev.anilbeesetti.nextplayer.core.ui.R
 import dev.anilbeesetti.nextplayer.core.ui.base.DataState
@@ -45,33 +42,24 @@ import dev.anilbeesetti.nextplayer.core.ui.designsystem.NextIcons
 import dev.anilbeesetti.nextplayer.core.ui.extensions.copy
 import dev.anilbeesetti.nextplayer.feature.videopicker.composables.CenterCircularProgressBar
 import dev.anilbeesetti.nextplayer.feature.videopicker.composables.VideoListItem
-import dev.anilbeesetti.nextplayer.feature.videopicker.state.SelectionItem
 import dev.anilbeesetti.nextplayer.feature.videopicker.state.rememberSelectionManager
-import dev.anilbeesetti.nextplayer.feature.videopicker.state.toSelectedVideo
 
 @Composable
 fun TrashScreen(
-    onNavigateUp: () -> Unit,
-    onPlayVideo: (String) -> Unit,
-    viewModel: TrashViewModel = hiltViewModel(),
+    viewModel: TrashViewModel,
 ) {
-    val uiState = viewModel.uiState.collectAsStateWithLifecycle().value
+    val state by viewModel.state.collectAsStateWithLifecycle()
+
     TrashScreenContent(
-        uiState = uiState,
-        onNavigateUp = onNavigateUp,
-        onPlayVideo = onPlayVideo,
-        onRestore = viewModel::restore,
-        onDelete = viewModel::deletePermanently,
+        state = state,
+        onAction = viewModel::onAction,
     )
 }
 
 @Composable
 internal fun TrashScreenContent(
-    uiState: TrashUiState,
-    onNavigateUp: () -> Unit,
-    onPlayVideo: (String) -> Unit,
-    onRestore: (Set<SelectionItem>) -> Unit,
-    onDelete: (Set<SelectionItem>) -> Unit,
+    state: TrashUiState,
+    onAction: (TrashAction) -> Unit,
 ) {
     val selectionManager = rememberSelectionManager()
     var showDeleteConfirmation by remember { mutableStateOf(false) }
@@ -80,14 +68,14 @@ internal fun TrashScreenContent(
         topBar = {
             NextTopAppBar(
                 title = if (selectionManager.isInSelectionMode) {
-                    stringResource(R.string.m_n_selected, selectionManager.selectionItems.size, uiState.videos.result.orEmpty().size)
+                    stringResource(R.string.m_n_selected, selectionManager.selectionItems.size, state.videos.result.orEmpty().size)
                 } else {
                     stringResource(R.string.trash)
                 },
                 navigationIcon = {
                     FilledTonalIconButton(
                         onClick = {
-                            if (selectionManager.isInSelectionMode) selectionManager.exitSelectionMode() else onNavigateUp()
+                            if (selectionManager.isInSelectionMode) selectionManager.exitSelectionMode() else onAction(TrashAction.NavigateUp)
                         },
                         modifier = Modifier.tvFocusRing(),
                     ) {
@@ -101,7 +89,7 @@ internal fun TrashScreenContent(
                     if (selectionManager.isInSelectionMode && selectionManager.selectionItems.isNotEmpty()) {
                         TextButton(
                             onClick = {
-                                onRestore(selectionManager.selectionItems)
+                                onAction(TrashAction.Restore(selectionManager.selectionItems))
                                 selectionManager.exitSelectionMode()
                             },
                             modifier = Modifier.tvFocusRing(),
@@ -123,7 +111,7 @@ internal fun TrashScreenContent(
                 .clip(RoundedCornerShape(topStart = 24.dp, topEnd = 24.dp))
                 .background(MaterialTheme.colorScheme.background),
         ) {
-            when (val videos = uiState.videos) {
+            when (val videos = state.videos) {
                 DataState.Loading -> CenterCircularProgressBar()
                 is DataState.Error -> Text(
                     text = videos.value.message.orEmpty(),
@@ -141,7 +129,7 @@ internal fun TrashScreenContent(
                             VideoListItem(
                                 video = video,
                                 isRecentlyPlayedVideo = false,
-                                preferences = uiState.preferences,
+                                preferences = state.preferences,
                                 selected = selectionManager.isVideoSelected(video),
                                 isFirstItem = index == 0,
                                 isLastItem = index == videos.value.lastIndex,
@@ -149,7 +137,7 @@ internal fun TrashScreenContent(
                                     if (selectionManager.isInSelectionMode) {
                                         selectionManager.toggleVideoSelection(video)
                                     } else {
-                                        onPlayVideo(video.uriString)
+                                        onAction(TrashAction.PlayVideo(video.uriString))
                                     }
                                 },
                                 onLongClick = { selectionManager.toggleVideoSelection(video) },
@@ -168,7 +156,7 @@ internal fun TrashScreenContent(
             confirmButton = {
                 TextButton(
                     onClick = {
-                        onDelete(selectionManager.selectionItems)
+                        onAction(TrashAction.DeletePermanently(selectionManager.selectionItems))
                         selectionManager.exitSelectionMode()
                         showDeleteConfirmation = false
                     },

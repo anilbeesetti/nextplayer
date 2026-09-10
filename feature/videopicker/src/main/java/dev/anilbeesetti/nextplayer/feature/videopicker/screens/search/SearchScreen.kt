@@ -54,7 +54,6 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.tooling.preview.PreviewLightDark
 import androidx.compose.ui.unit.dp
-import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import dev.anilbeesetti.nextplayer.core.domain.MediaHolder
@@ -78,31 +77,22 @@ import dev.anilbeesetti.nextplayer.feature.videopicker.composables.FolderItem
 import dev.anilbeesetti.nextplayer.feature.videopicker.composables.MediaView
 
 @Composable
-fun SearchRoute(
-    viewModel: SearchViewModel = hiltViewModel(),
-    onPlayVideo: (uri: Uri) -> Unit,
-    onFolderClick: (folderPath: String) -> Unit,
-    onNavigateUp: () -> Unit,
+fun SearchScreen(
+    viewModel: SearchViewModel,
 ) {
-    val uiState by viewModel.uiState.collectAsStateWithLifecycle(minActiveState = Lifecycle.State.RESUMED)
+    val state by viewModel.state.collectAsStateWithLifecycle(minActiveState = Lifecycle.State.RESUMED)
 
-    SearchScreen(
-        uiState = uiState,
-        onNavigateUp = onNavigateUp,
-        onFolderClick = onFolderClick,
-        onVideoClick = onPlayVideo,
-        onEvent = viewModel::onEvent,
+    SearchScreenContent(
+        state = state,
+        onAction = viewModel::onAction,
     )
 }
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-internal fun SearchScreen(
-    uiState: SearchUiState,
-    onNavigateUp: () -> Unit = {},
-    onFolderClick: (String) -> Unit = {},
-    onVideoClick: (Uri) -> Unit = {},
-    onEvent: (SearchUiEvent) -> Unit = {},
+internal fun SearchScreenContent(
+    state: SearchUiState,
+    onAction: (SearchUiEvent) -> Unit,
 ) {
     val focusRequester = remember { FocusRequester() }
     val keyboardController = LocalSoftwareKeyboardController.current
@@ -117,8 +107,8 @@ internal fun SearchScreen(
             NextTopAppBar(
                 title = {
                     NextOutlinedTextField(
-                        value = uiState.query,
-                        onValueChange = { onEvent(SearchUiEvent.OnQueryChange(it)) },
+                        value = state.query,
+                        onValueChange = { onAction(SearchUiEvent.OnQueryChange(it)) },
                         modifier = Modifier
                             .fillMaxWidth()
                             .focusRequester(focusRequester)
@@ -135,14 +125,14 @@ internal fun SearchScreen(
                         },
                         textStyle = MaterialTheme.typography.bodyLarge,
                         trailingIcon = {
-                            if (uiState.query.isNotEmpty()) {
-                                IconButton(onClick = { onEvent(SearchUiEvent.OnQueryChange("")) }) {
+                            if (state.query.isNotEmpty()) {
+                                IconButton(onClick = { onAction(SearchUiEvent.OnQueryChange("")) }) {
                                     Icon(
                                         imageVector = NextIcons.Close,
                                         contentDescription = stringResource(R.string.clear_history),
                                     )
                                 }
-                            } else if (uiState.isSearching) {
+                            } else if (state.isSearching) {
                                 CircularProgressIndicator(
                                     modifier = Modifier.size(24.dp),
                                     strokeWidth = 2.dp,
@@ -153,7 +143,7 @@ internal fun SearchScreen(
                         keyboardOptions = KeyboardOptions(imeAction = ImeAction.Search),
                         keyboardActions = KeyboardActions(
                             onSearch = {
-                                onEvent(SearchUiEvent.OnSearch(uiState.query))
+                                onAction(SearchUiEvent.OnSearch(state.query))
                                 keyboardController?.hide()
                             },
                         ),
@@ -167,7 +157,7 @@ internal fun SearchScreen(
                     )
                 },
                 navigationIcon = {
-                    FilledTonalIconButton(onClick = onNavigateUp) {
+                    FilledTonalIconButton(onClick = { onAction(SearchUiEvent.NavigateUp) }) {
                         Icon(
                             imageVector = NextIcons.ArrowBack,
                             contentDescription = stringResource(id = R.string.navigate_up),
@@ -191,26 +181,26 @@ internal fun SearchScreen(
                     .background(MaterialTheme.colorScheme.background),
             ) {
                 val updatedScaffoldPadding = scaffoldPadding.copy(top = 0.dp, start = 0.dp)
-                if (uiState.query.isBlank()) {
+                if (state.query.isBlank()) {
                     SuggestionsContent(
-                        searchHistory = uiState.searchHistory,
-                        popularFolders = uiState.popularFolders,
-                        preferences = uiState.preferences,
+                        searchHistory = state.searchHistory,
+                        popularFolders = state.popularFolders,
+                        preferences = state.preferences,
                         contentPadding = updatedScaffoldPadding,
-                        onHistoryItemClick = { onEvent(SearchUiEvent.OnHistoryItemClick(it)) },
-                        onRemoveHistoryItem = { onEvent(SearchUiEvent.OnRemoveHistoryItem(it)) },
-                        onClearHistory = { onEvent(SearchUiEvent.OnClearHistory) },
-                        onFolderClick = onFolderClick,
+                        onHistoryItemClick = { onAction(SearchUiEvent.OnHistoryItemClick(it)) },
+                        onRemoveHistoryItem = { onAction(SearchUiEvent.OnRemoveHistoryItem(it)) },
+                        onClearHistory = { onAction(SearchUiEvent.OnClearHistory) },
+                        onFolderClick = { onAction(SearchUiEvent.OpenFolder(it)) },
                     )
                 } else {
                     SearchResultsContent(
-                        searchResults = uiState.searchResults,
-                        preferences = uiState.preferences,
-                        isSearching = uiState.isSearching,
+                        searchResults = state.searchResults,
+                        preferences = state.preferences,
+                        isSearching = state.isSearching,
                         autoFocus = !isSearchFocused,
                         contentPadding = updatedScaffoldPadding,
-                        onFolderClick = onFolderClick,
-                        onVideoClick = onVideoClick,
+                        onFolderClick = { onAction(SearchUiEvent.OpenFolder(it)) },
+                        onVideoClick = { onAction(SearchUiEvent.PlayVideo(it)) },
                     )
                 }
             }
@@ -440,8 +430,9 @@ private fun SearchResultsContent(
 @Composable
 private fun SearchScreenEmptyPreview() {
     NextPlayerTheme {
-        SearchScreen(
-            uiState = SearchUiState(),
+        SearchScreenContent(
+            state = SearchUiState(),
+            onAction = {},
         )
     }
 }
@@ -450,8 +441,9 @@ private fun SearchScreenEmptyPreview() {
 @Composable
 private fun SearchScreenWithHistoryPreview() {
     NextPlayerTheme {
-        SearchScreen(
-            uiState = SearchUiState(
+        SearchScreenContent(
+            onAction = {},
+            state = SearchUiState(
                 searchHistory = listOf("avengers", "movie", "trailer"),
                 popularFolders = listOf(
                     Folder(
@@ -474,8 +466,9 @@ private fun SearchScreenWithHistoryPreview() {
 @Composable
 private fun SearchScreenWithResultsPreview() {
     NextPlayerTheme {
-        SearchScreen(
-            uiState = SearchUiState(
+        SearchScreenContent(
+            onAction = {},
+            state = SearchUiState(
                 query = "movie",
                 searchResults = SearchResults(
                     folders = listOf(
@@ -499,8 +492,9 @@ private fun SearchScreenWithResultsPreview() {
 @Composable
 private fun SearchScreenNoResultsPreview() {
     NextPlayerTheme {
-        SearchScreen(
-            uiState = SearchUiState(
+        SearchScreenContent(
+            onAction = {},
+            state = SearchUiState(
                 query = "xyz123",
                 searchResults = SearchResults(),
             ),
