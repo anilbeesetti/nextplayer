@@ -1,27 +1,36 @@
 package dev.anilbeesetti.nextplayer.feature.more.screens.more
 
-import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import dagger.assisted.Assisted
+import dagger.assisted.AssistedFactory
+import dagger.assisted.AssistedInject
 import dagger.hilt.android.lifecycle.HiltViewModel
 import dev.anilbeesetti.nextplayer.core.data.repository.MediaRepository
 import dev.anilbeesetti.nextplayer.core.data.repository.PreferencesRepository
 import dev.anilbeesetti.nextplayer.core.model.ApplicationPreferences
 import dev.anilbeesetti.nextplayer.core.model.Video
 import dev.anilbeesetti.nextplayer.core.ui.base.DataState
+import dev.anilbeesetti.nextplayer.core.ui.base.MviViewModel
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.catch
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.stateIn
-import javax.inject.Inject
 
-@HiltViewModel
-class MoreViewModel @Inject constructor(
+@HiltViewModel(assistedFactory = MoreViewModel.Factory::class)
+class MoreViewModel @AssistedInject constructor(
     mediaRepository: MediaRepository,
     preferencesRepository: PreferencesRepository,
-) : ViewModel() {
-    val uiState: StateFlow<MoreUiState> = combine(
+    @Assisted internal var output: Output,
+) : MviViewModel<MoreUiState, MoreAction>() {
+
+    @AssistedFactory
+    interface Factory {
+        fun create(output: Output): MoreViewModel
+    }
+
+    override val state: StateFlow<MoreUiState> = combine(
         mediaRepository.observePlaybackHistory()
             .map<List<Video>, DataState<List<Video>>> { DataState.Success(it) }
             .catch { emit(DataState.Error(it)) },
@@ -30,7 +39,7 @@ class MoreViewModel @Inject constructor(
         MoreUiState(history = history, preferences = preferences)
     }.stateIn(viewModelScope, SharingStarted.WhileSubscribed(5_000), MoreUiState())
 
-    fun onAction(action: MoreAction, output: Output) {
+    override fun onAction(action: MoreAction) {
         when (action) {
             MoreAction.OpenHistory -> output.openHistory()
             is MoreAction.PlayVideo -> output.playVideo(action.uri)

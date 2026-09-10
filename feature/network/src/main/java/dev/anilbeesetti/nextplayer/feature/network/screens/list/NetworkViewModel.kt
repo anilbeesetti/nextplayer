@@ -1,12 +1,12 @@
 package dev.anilbeesetti.nextplayer.feature.network.screens.list
 
-import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import dagger.hilt.android.lifecycle.HiltViewModel
 import dev.anilbeesetti.nextplayer.core.data.repository.NetworkConnectionRepository
 import dev.anilbeesetti.nextplayer.core.media.network.keys.SshKeyStore
 import dev.anilbeesetti.nextplayer.core.model.NetworkAuthentication
 import dev.anilbeesetti.nextplayer.core.model.NetworkConnection
+import dev.anilbeesetti.nextplayer.core.ui.base.MviViewModel
 import javax.inject.Inject
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.NonCancellable
@@ -26,9 +26,9 @@ data class NetworkUiState(
 class NetworkViewModel @Inject constructor(
     private val repository: NetworkConnectionRepository,
     private val sshKeyStore: SshKeyStore,
-) : ViewModel() {
+) : MviViewModel<NetworkUiState, NetworkAction>() {
 
-    val uiState: StateFlow<NetworkUiState> = repository.getConnections()
+    override val state: StateFlow<NetworkUiState> = repository.getConnections()
         .map { NetworkUiState(connections = it, isLoading = false) }
         .stateIn(
             scope = viewModelScope,
@@ -36,7 +36,13 @@ class NetworkViewModel @Inject constructor(
             initialValue = NetworkUiState(),
         )
 
-    fun deleteConnection(id: Long) {
+    override fun onAction(action: NetworkAction) {
+        when (action) {
+            is NetworkAction.DeleteConnection -> deleteConnection(action.id)
+        }
+    }
+
+    private fun deleteConnection(id: Long) {
         viewModelScope.launch {
             try {
                 deleteConnectionAndCleanup(id, repository, sshKeyStore)
@@ -47,6 +53,10 @@ class NetworkViewModel @Inject constructor(
             }
         }
     }
+}
+
+sealed interface NetworkAction {
+    data class DeleteConnection(val id: Long) : NetworkAction
 }
 
 internal suspend fun deleteConnectionAndCleanup(

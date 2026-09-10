@@ -79,14 +79,16 @@ import dev.anilbeesetti.nextplayer.feature.player.buttons.NextButton
 import dev.anilbeesetti.nextplayer.feature.player.buttons.PlayPauseButton
 import dev.anilbeesetti.nextplayer.feature.player.buttons.PlayerButton
 import dev.anilbeesetti.nextplayer.feature.player.buttons.PreviousButton
+import dev.anilbeesetti.nextplayer.feature.player.extensions.formatted
+import dev.anilbeesetti.nextplayer.feature.player.extensions.nameRes
 import dev.anilbeesetti.nextplayer.feature.player.model.DecoderRecoveryStatus
+import dev.anilbeesetti.nextplayer.feature.player.model.DecoderServiceState
 import dev.anilbeesetti.nextplayer.feature.player.model.DecoderTrackType
 import dev.anilbeesetti.nextplayer.feature.player.model.labelRes
 import dev.anilbeesetti.nextplayer.feature.player.state.ControlsVisibilityState
 import dev.anilbeesetti.nextplayer.feature.player.state.VerticalGesture
 import dev.anilbeesetti.nextplayer.feature.player.state.rememberBrightnessState
 import dev.anilbeesetti.nextplayer.feature.player.state.rememberControlsVisibilityState
-import dev.anilbeesetti.nextplayer.feature.player.model.DecoderServiceState
 import dev.anilbeesetti.nextplayer.feature.player.state.rememberDecoderState
 import dev.anilbeesetti.nextplayer.feature.player.state.rememberErrorState
 import dev.anilbeesetti.nextplayer.feature.player.state.rememberMediaPresentationState
@@ -98,8 +100,6 @@ import dev.anilbeesetti.nextplayer.feature.player.state.rememberTapGestureState
 import dev.anilbeesetti.nextplayer.feature.player.state.rememberVideoZoomAndContentScaleState
 import dev.anilbeesetti.nextplayer.feature.player.state.rememberVolumeAndBrightnessGestureState
 import dev.anilbeesetti.nextplayer.feature.player.state.rememberVolumeState
-import dev.anilbeesetti.nextplayer.feature.player.extensions.formatted
-import dev.anilbeesetti.nextplayer.feature.player.extensions.nameRes
 import dev.anilbeesetti.nextplayer.feature.player.state.seekAmountFormatted
 import dev.anilbeesetti.nextplayer.feature.player.state.seekToPositionFormated
 import dev.anilbeesetti.nextplayer.feature.player.ui.DoubleTapIndicator
@@ -110,9 +110,9 @@ import dev.anilbeesetti.nextplayer.feature.player.ui.VerticalProgressView
 import dev.anilbeesetti.nextplayer.feature.player.ui.controls.ControlsBottomView
 import dev.anilbeesetti.nextplayer.feature.player.ui.controls.ControlsTopView
 import kotlin.math.abs
+import kotlin.time.Duration.Companion.milliseconds
 import kotlin.time.Duration.Companion.seconds
 import kotlinx.coroutines.delay
-import kotlin.time.Duration.Companion.milliseconds
 
 val LocalControlsVisibilityState = compositionLocalOf<ControlsVisibilityState?> { null }
 
@@ -160,7 +160,7 @@ fun MediaPlayerScreen(
         initialContentScale = playerPreferences.playerVideoZoom,
         enableZoomGesture = playerPreferences.useZoomControls,
         enablePanGesture = playerPreferences.enablePanGesture,
-        onEvent = viewModel::onVideoZoomEvent,
+        onEvent = { viewModel.onAction(PlayerAction.UpdateVideoZoom(it)) },
     )
     val brightnessState = rememberBrightnessState()
     val volumeAndBrightnessGestureState = rememberVolumeAndBrightnessGestureState(
@@ -198,7 +198,7 @@ fun MediaPlayerScreen(
 
     LaunchedEffect(brightnessState.currentBrightness) {
         if (playerPreferences.rememberPlayerBrightness) {
-            viewModel.updatePlayerBrightness(brightnessState.currentBrightness)
+            viewModel.onAction(PlayerAction.UpdateBrightness(brightnessState.currentBrightness))
         }
     }
 
@@ -359,7 +359,7 @@ fun MediaPlayerScreen(
                                     .onFocusChanged { isUnlockFocused = it.hasFocus }
                             },
                             containerColor = Color.Black.copy(0.5f),
-                            onClick = { controlsVisibilityState.unlockControls() }
+                            onClick = { controlsVisibilityState.unlockControls() },
                         ) {
                             Icon(
                                 painter = painterResource(coreUiR.drawable.ic_lock),
@@ -512,7 +512,7 @@ fun MediaPlayerScreen(
                 onVideoDecoderModeSelected = decoderState::switchVideoTo,
                 onAudioDecoderModeSelected = decoderState::switchAudioTo,
                 onSelectSubtitleClick = onSelectSubtitleClick,
-                onSubtitleOptionEvent = viewModel::onSubtitleOptionEvent,
+                onSubtitleOptionEvent = { viewModel.onAction(PlayerAction.UpdateSubtitleOptions(it)) },
                 onVideoContentScaleChanged = { videoZoomAndContentScaleState.onVideoContentScaleChanged(it) },
             )
         }
@@ -555,7 +555,7 @@ fun MediaPlayerScreen(
         (
             decoderRecoveryState.status == DecoderRecoveryStatus.NONE &&
                 errorState.playbackError != null
-        )
+            )
     if (showPlayerError) {
         AlertDialog(
             onDismissRequest = { },
@@ -736,13 +736,41 @@ private fun handlePlayerKeyEvent(
     }
 
     return when (keyEvent.key) {
-        Key.MediaPlayPause, Key.Spacebar -> { togglePlayPause(); controls.showControls(); true }
-        Key.MediaPlay -> { player.play(); controls.showControls(); true }
-        Key.MediaPause -> { player.pause(); controls.showControls(); true }
-        Key.MediaFastForward -> { seekBy(seekIncrementMs); controls.showControls(); true }
-        Key.MediaRewind -> { seekBy(-seekIncrementMs); controls.showControls(); true }
-        Key.MediaNext -> { player.seekToNext(); controls.showControls(); true }
-        Key.MediaPrevious -> { player.seekToPrevious(); controls.showControls(); true }
+        Key.MediaPlayPause, Key.Spacebar -> {
+            togglePlayPause()
+            controls.showControls()
+            true
+        }
+        Key.MediaPlay -> {
+            player.play()
+            controls.showControls()
+            true
+        }
+        Key.MediaPause -> {
+            player.pause()
+            controls.showControls()
+            true
+        }
+        Key.MediaFastForward -> {
+            seekBy(seekIncrementMs)
+            controls.showControls()
+            true
+        }
+        Key.MediaRewind -> {
+            seekBy(-seekIncrementMs)
+            controls.showControls()
+            true
+        }
+        Key.MediaNext -> {
+            player.seekToNext()
+            controls.showControls()
+            true
+        }
+        Key.MediaPrevious -> {
+            player.seekToPrevious()
+            controls.showControls()
+            true
+        }
         Key.DirectionCenter, Key.Enter, Key.NumPadEnter -> {
             when {
                 !controls.controlsVisible -> {

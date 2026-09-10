@@ -1,7 +1,6 @@
 package dev.anilbeesetti.nextplayer.feature.network.screens.addconnection
 
 import android.net.Uri
-import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import dagger.assisted.Assisted
 import dagger.assisted.AssistedFactory
@@ -16,6 +15,7 @@ import dev.anilbeesetti.nextplayer.core.media.network.sftp.HostKeyMismatch
 import dev.anilbeesetti.nextplayer.core.model.NetworkAuthentication
 import dev.anilbeesetti.nextplayer.core.model.NetworkConnection
 import dev.anilbeesetti.nextplayer.core.model.NetworkProtocol
+import dev.anilbeesetti.nextplayer.core.ui.base.MviViewModel
 import java.io.FileNotFoundException
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.CoroutineScope
@@ -26,6 +26,7 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.receiveAsFlow
+import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.joinAll
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
@@ -57,6 +58,23 @@ sealed interface SaveState {
     ) : SaveState
 }
 
+data class AddConnectionUiState(
+    val isEdit: Boolean = false,
+    val existingConnection: NetworkConnection? = null,
+    val saveState: SaveState = SaveState.Idle,
+    val selectedPrivateKey: SelectedPrivateKey? = null,
+)
+
+sealed interface AddConnectionAction {
+    data class StagePrivateKey(val uri: Uri) : AddConnectionAction
+    data object RemoveSelectedPrivateKey : AddConnectionAction
+    data class TestAndSave(val connection: NetworkConnection) : AddConnectionAction
+    data object AcceptHostKey : AddConnectionAction
+    data object RejectHostKey : AddConnectionAction
+    data object ClearError : AddConnectionAction
+    data object Cancel : AddConnectionAction
+}
+
 @HiltViewModel(assistedFactory = AddConnectionViewModel.Factory::class)
 class AddConnectionViewModel @AssistedInject constructor(
     @Assisted private val connectionId: Long?,
@@ -64,23 +82,15 @@ class AddConnectionViewModel @AssistedInject constructor(
     private val clientFactory: NetworkClientFactory,
     private val sshKeyStore: SshKeyStore,
     @ApplicationScope private val applicationScope: CoroutineScope,
-) : ViewModel() {
+) : MviViewModel<AddConnectionUiState, AddConnectionAction>() {
 
     @AssistedFactory
     interface Factory {
         fun create(connectionId: Long?): AddConnectionViewModel
     }
 
-    val isEdit: Boolean = connectionId != null
-
-    private val _existingConnection = MutableStateFlow<NetworkConnection?>(null)
-    val existingConnection: StateFlow<NetworkConnection?> = _existingConnection.asStateFlow()
-
-    private val _saveState = MutableStateFlow<SaveState>(SaveState.Idle)
-    val saveState: StateFlow<SaveState> = _saveState.asStateFlow()
-
-    private val _selectedPrivateKey = MutableStateFlow<SelectedPrivateKey?>(null)
-    val selectedPrivateKey: StateFlow<SelectedPrivateKey?> = _selectedPrivateKey.asStateFlow()
+    private val internalState = MutableStateFlow(AddConnectionUiState(isEdit = connectionId != null))
+    override val state: StateFlow<AddConnectionUiState> = internalState.asStateFlow()
 
     private val _savedEvents = Channel<Unit>(Channel.BUFFERED)
     val savedEvents = _savedEvents.receiveAsFlow()
@@ -108,11 +118,26 @@ class AddConnectionViewModel @AssistedInject constructor(
 
     init {
         if (connectionId != null) {
-            viewModelScope.launch { _existingConnection.value = repository.getConnection(connectionId) }
+            viewModelScope.launch {
+                val connection = repository.getConnection(connectionId)
+                internalState.update { it.copy(existingConnection = connection) }
+            }
         }
     }
 
-    fun stagePrivateKey(uri: Uri) {
+    override fun onAction(action: AddConnectionAction) {
+        when (action) {
+            is AddConnectionAction.StagePrivateKey -> stagePrivateKey(action.uri)
+            AddConnectionAction.RemoveSelectedPrivateKey -> removeSelectedPrivateKey()
+            is AddConnectionAction.TestAndSave -> testAndSave(action.connection)
+            AddConnectionAction.AcceptHostKey -> acceptHostKey()
+            AddConnectionAction.RejectHostKey -> rejectHostKey()
+            AddConnectionAction.ClearError -> clearError()
+            AddConnectionAction.Cancel -> invalidateAndCleanup()
+        }
+    }
+
+    private fun stagePrivateKey(uri: Uri) {
         if (keyMutationBlocked()) return
         val mutationEpoch = lifecycleEpoch
         activeKeyMutationJob = viewModelScope.launch {
@@ -126,47 +151,51 @@ class AddConnectionViewModel @AssistedInject constructor(
             }
             result
                 .onSuccess { staged ->
-                    val previous = _selectedPrivateKey.value
+                    val previous = state.value.selectedPrivateKey
                     trackSessionKey(staged.fileName)
-                    _selectedPrivateKey.value = SelectedPrivateKey(staged.fileName, staged.displayName)
+                    internalState.update {
+                        it.copy(selectedPrivateKey = SelectedPrivateKey(staged.fileName, staged.displayName))
+                    }
                     if (previous != null && previous.stagedFileName != staged.fileName) {
                         runCatching { sshKeyStore.delete(previous.stagedFileName) }
                             .onSuccess { untrackSessionKey(previous.stagedFileName) }
-                            .onFailure {
-                                _saveState.value = SaveState.Error(it.actionableMessage())
+                            .onFailure { error ->
+                                internalState.update { it.copy(saveState = SaveState.Error(error.actionableMessage())) }
                                 scheduleTrackedCleanup(previous.stagedFileName)
                             }
                     }
                 }
-                .onFailure { _saveState.value = SaveState.Error(it.actionableMessage()) }
+                .onFailure { error ->
+                    internalState.update { it.copy(saveState = SaveState.Error(error.actionableMessage())) }
+                }
         }
     }
 
-    fun removeSelectedPrivateKey() {
+    private fun removeSelectedPrivateKey() {
         if (keyMutationBlocked()) return
-        val selected = _selectedPrivateKey.value ?: return
+        val selected = state.value.selectedPrivateKey ?: return
         val mutationEpoch = lifecycleEpoch
         activeKeyMutationJob = viewModelScope.launch {
             runCatching { sshKeyStore.delete(selected.stagedFileName) }
                 .onSuccess {
                     untrackSessionKey(selected.stagedFileName)
-                    if (keyMutationMayComplete(mutationEpoch) && _selectedPrivateKey.value == selected) {
-                        _selectedPrivateKey.value = null
+                    if (keyMutationMayComplete(mutationEpoch) && state.value.selectedPrivateKey == selected) {
+                        internalState.update { it.copy(selectedPrivateKey = null) }
                     }
                 }
-                .onFailure {
+                .onFailure { error ->
                     if (keyMutationMayComplete(mutationEpoch)) {
-                        _saveState.value = SaveState.Error(it.actionableMessage())
+                        internalState.update { it.copy(saveState = SaveState.Error(error.actionableMessage())) }
                     }
                 }
         }
     }
 
     /** Tests [connection] by connecting, and persists it (with the existing id when editing) on success. */
-    fun testAndSave(connection: NetworkConnection) {
+    private fun testAndSave(connection: NetworkConnection) {
         if (cleanupRequested || activeOperation != null || activeKeyMutationJob?.isActive == true) return
-        val selected = _selectedPrivateKey.value
-        val existingPrivateKeyFileName = _existingConnection.value
+        val selected = state.value.selectedPrivateKey
+        val existingPrivateKeyFileName = state.value.existingConnection
             ?.takeIf { it.authentication == NetworkAuthentication.SSH_KEY }
             ?.privateKeyFileName
             .orEmpty()
@@ -179,8 +208,8 @@ class AddConnectionViewModel @AssistedInject constructor(
         startSave(operation)
     }
 
-    fun acceptHostKey() {
-        val confirmation = (_saveState.value as? SaveState.ConfirmHostKey)?.confirmation ?: return
+    private fun acceptHostKey() {
+        val confirmation = (state.value.saveState as? SaveState.ConfirmHostKey)?.confirmation ?: return
         val pending = pendingOperation ?: return
         val retry = pending.copy(draft = pending.draft.copy(hostKeyFingerprint = confirmation.fingerprint))
         activeOperation = retry
@@ -188,19 +217,17 @@ class AddConnectionViewModel @AssistedInject constructor(
         startSave(retry)
     }
 
-    fun rejectHostKey() {
-        if (_saveState.value !is SaveState.ConfirmHostKey) return
+    private fun rejectHostKey() {
+        if (state.value.saveState !is SaveState.ConfirmHostKey) return
         pendingOperation = null
         activeOperation = null
-        _saveState.value = SaveState.Idle
+        internalState.update { it.copy(saveState = SaveState.Idle) }
     }
 
-    fun clearError() {
-        if (_saveState.value is SaveState.Error) _saveState.value = SaveState.Idle
-    }
-
-    fun cancel() {
-        invalidateAndCleanup()
+    private fun clearError() {
+        internalState.update {
+            if (it.saveState is SaveState.Error) it.copy(saveState = SaveState.Idle) else it
+        }
     }
 
     override fun onCleared() {
@@ -210,7 +237,7 @@ class AddConnectionViewModel @AssistedInject constructor(
     }
 
     private fun startSave(operation: SaveOperation) {
-        _saveState.value = SaveState.Testing
+        internalState.update { it.copy(saveState = SaveState.Testing) }
         activeSaveJob = viewModelScope.launch { connectAndSave(operation) }
     }
 
@@ -231,31 +258,35 @@ class AddConnectionViewModel @AssistedInject constructor(
             pendingOperation = null
             activeOperation = null
             _savedEvents.send(Unit)
-            _saveState.value = SaveState.Idle
+            internalState.update { it.copy(saveState = SaveState.Idle) }
             return
         }
 
         val hostConfirmation = error.findCause<HostKeyConfirmationRequired>()
         if (hostConfirmation != null) {
             pendingOperation = operation
-            _saveState.value = SaveState.ConfirmHostKey(
-                HostKeyConfirmation(
-                    host = hostConfirmation.host,
-                    port = hostConfirmation.port,
-                    algorithm = hostConfirmation.algorithm,
-                    fingerprint = hostConfirmation.fingerprint,
-                ),
-            )
+            internalState.update {
+                it.copy(
+                    saveState = SaveState.ConfirmHostKey(
+                        HostKeyConfirmation(
+                            host = hostConfirmation.host,
+                            port = hostConfirmation.port,
+                            algorithm = hostConfirmation.algorithm,
+                            fingerprint = hostConfirmation.fingerprint,
+                        ),
+                    ),
+                )
+            }
         } else {
             pendingOperation = null
             activeOperation = null
-            _saveState.value = error.toSaveError()
+            internalState.update { it.copy(saveState = error.toSaveError()) }
         }
     }
 
     private suspend fun persist(operation: SaveOperation) {
         val draft = operation.draft
-        val oldKey = _existingConnection.value
+        val oldKey = state.value.existingConnection
             ?.takeIf { it.authentication == NetworkAuthentication.SSH_KEY }
             ?.privateKeyFileName
             .orEmpty()
@@ -275,7 +306,9 @@ class AddConnectionViewModel @AssistedInject constructor(
                 if (isCleared) scheduleTrackedCleanup(selected.stagedFileName)
                 throw error
             }
-            if (_selectedPrivateKey.value == selected) _selectedPrivateKey.value = null
+            internalState.update {
+                if (it.selectedPrivateKey == selected) it.copy(selectedPrivateKey = null) else it
+            }
             replacePersistingKey(selected.stagedFileName, committed)
             val saved = draft.copy(privateKeyFileName = committed)
             try {
@@ -298,7 +331,9 @@ class AddConnectionViewModel @AssistedInject constructor(
         repository.upsert(draft)
         if (oldKey.isNotBlank()) cleanupAfterSuccessfulSave(oldKey)
         val unusedStage = operation.selectedPrivateKey
-        if (_selectedPrivateKey.value == unusedStage) _selectedPrivateKey.value = null
+        internalState.update {
+            if (it.selectedPrivateKey == unusedStage) it.copy(selectedPrivateKey = null) else it
+        }
         if (unusedStage != null) cleanupAfterSuccessfulSave(unusedStage.stagedFileName)
     }
 
@@ -319,7 +354,7 @@ class AddConnectionViewModel @AssistedInject constructor(
             cleanupRequested = true
             listOfNotNull(activeSaveJob, activeKeyMutationJob)
         }
-        _selectedPrivateKey.value = null
+        internalState.update { it.copy(selectedPrivateKey = null) }
         jobs.forEach(Job::cancel)
         applicationScope.launch {
             jobs.joinAll()
@@ -411,9 +446,11 @@ class AddConnectionViewModel @AssistedInject constructor(
             "The private key passphrase is incorrect or missing."
         causeMessages().any { message ->
             message.contains("key", ignoreCase = true) &&
-                (message.contains("format", ignoreCase = true) ||
-                    message.contains("malformed", ignoreCase = true) ||
-                    message.contains("invalid pem", ignoreCase = true))
+                (
+                    message.contains("format", ignoreCase = true) ||
+                        message.contains("malformed", ignoreCase = true) ||
+                        message.contains("invalid pem", ignoreCase = true)
+                    )
         } ->
             "The private key format isn't supported or the file is malformed."
         causeMessages().any { message ->

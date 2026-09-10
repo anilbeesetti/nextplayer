@@ -228,7 +228,7 @@ class NetworkViewModelTest {
                     lookupFailure = IllegalStateException("lookup"),
                 ),
                 sshKeyStore = FakeSshKeyStore(lookupEvents),
-            ).deleteConnection(1)
+            ).onAction(NetworkAction.DeleteConnection(1))
 
             NetworkViewModel(
                 repository = FakeNetworkConnectionRepository(
@@ -237,7 +237,7 @@ class NetworkViewModelTest {
                     deleteFailure = IllegalStateException("delete"),
                 ),
                 sshKeyStore = FakeSshKeyStore(deleteEvents),
-            ).deleteConnection(2)
+            ).onAction(NetworkAction.DeleteConnection(2))
 
             NetworkViewModel(
                 repository = FakeNetworkConnectionRepository(
@@ -248,7 +248,7 @@ class NetworkViewModelTest {
                     cleanupEvents,
                     deleteFailure = IllegalStateException("cleanup"),
                 ),
-            ).deleteConnection(3)
+            ).onAction(NetworkAction.DeleteConnection(3))
 
             advanceUntilIdle()
 

@@ -2,7 +2,6 @@ package dev.anilbeesetti.nextplayer.feature.player
 
 import android.net.Uri
 import androidx.compose.runtime.Stable
-import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import dagger.hilt.android.lifecycle.HiltViewModel
 import dev.anilbeesetti.nextplayer.core.data.repository.MediaRepository
@@ -12,6 +11,7 @@ import dev.anilbeesetti.nextplayer.core.model.LoopMode
 import dev.anilbeesetti.nextplayer.core.model.PlayerPreferences
 import dev.anilbeesetti.nextplayer.core.model.Video
 import dev.anilbeesetti.nextplayer.core.model.VideoContentScale
+import dev.anilbeesetti.nextplayer.core.ui.base.MviViewModel
 import dev.anilbeesetti.nextplayer.feature.player.state.SubtitleOptionsEvent
 import dev.anilbeesetti.nextplayer.feature.player.state.VideoZoomEvent
 import javax.inject.Inject
@@ -25,16 +25,14 @@ class PlayerViewModel @Inject constructor(
     private val mediaRepository: MediaRepository,
     private val preferencesRepository: PreferencesRepository,
     private val getSortedPlaylistUseCase: GetSortedPlaylistUseCase,
-) : ViewModel() {
-
-    var playWhenReady: Boolean = true
+) : MviViewModel<PlayerUiState, PlayerAction>() {
 
     private val internalUiState = MutableStateFlow(
         PlayerUiState(
             playerPreferences = preferencesRepository.playerPreferences.value,
         ),
     )
-    val uiState = internalUiState.asStateFlow()
+    override val state = internalUiState.asStateFlow()
 
     init {
         viewModelScope.launch {
@@ -44,35 +42,45 @@ class PlayerViewModel @Inject constructor(
         }
     }
 
+    override fun onAction(action: PlayerAction) {
+        when (action) {
+            is PlayerAction.UpdatePlayWhenReady -> internalUiState.update { it.copy(playWhenReady = action.value) }
+            is PlayerAction.UpdateBrightness -> updatePlayerBrightness(action.value)
+            is PlayerAction.UpdateVideoZoom -> onVideoZoomEvent(action.event)
+            is PlayerAction.UpdateSubtitleOptions -> onSubtitleOptionEvent(action.event)
+            is PlayerAction.SetLoopMode -> setLoopMode(action.loopMode)
+        }
+    }
+
     suspend fun getPlaylistFromUri(uri: Uri): List<Video> {
         return getSortedPlaylistUseCase.invoke(uri)
     }
 
-    fun updateVideoZoom(uri: String, zoom: Float) {
+    private fun updateVideoZoom(uri: String, zoom: Float) {
         viewModelScope.launch {
             mediaRepository.updateMediumZoom(uri, zoom)
         }
     }
 
-    fun updatePlayerBrightness(value: Float) {
+    private fun updatePlayerBrightness(value: Float) {
         viewModelScope.launch {
             preferencesRepository.updatePlayerPreferences { it.copy(playerBrightness = value) }
         }
     }
 
-    fun updateVideoContentScale(contentScale: VideoContentScale) {
+    private fun updateVideoContentScale(contentScale: VideoContentScale) {
         viewModelScope.launch {
             preferencesRepository.updatePlayerPreferences { it.copy(playerVideoZoom = contentScale) }
         }
     }
 
-    fun setLoopMode(loopMode: LoopMode) {
+    private fun setLoopMode(loopMode: LoopMode) {
         viewModelScope.launch {
             preferencesRepository.updatePlayerPreferences { it.copy(loopMode = loopMode) }
         }
     }
 
-    fun onVideoZoomEvent(event: VideoZoomEvent) {
+    private fun onVideoZoomEvent(event: VideoZoomEvent) {
         when (event) {
             is VideoZoomEvent.ContentScaleChanged -> {
                 updateVideoContentScale(event.contentScale)
@@ -83,7 +91,7 @@ class PlayerViewModel @Inject constructor(
         }
     }
 
-    fun onSubtitleOptionEvent(event: SubtitleOptionsEvent) {
+    private fun onSubtitleOptionEvent(event: SubtitleOptionsEvent) {
         when (event) {
             is SubtitleOptionsEvent.DelayChanged -> {
                 updateSubtitleDelay(event.mediaItem.mediaId, event.delay)
@@ -110,6 +118,13 @@ class PlayerViewModel @Inject constructor(
 @Stable
 data class PlayerUiState(
     val playerPreferences: PlayerPreferences? = null,
+    val playWhenReady: Boolean = true,
 )
 
-sealed interface PlayerEvent
+sealed interface PlayerAction {
+    data class UpdatePlayWhenReady(val value: Boolean) : PlayerAction
+    data class UpdateBrightness(val value: Float) : PlayerAction
+    data class UpdateVideoZoom(val event: VideoZoomEvent) : PlayerAction
+    data class UpdateSubtitleOptions(val event: SubtitleOptionsEvent) : PlayerAction
+    data class SetLoopMode(val loopMode: LoopMode) : PlayerAction
+}

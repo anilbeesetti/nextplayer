@@ -1,8 +1,6 @@
 package dev.anilbeesetti.nextplayer.feature.network.screens.browse
 
 import android.net.Uri
-import androidx.core.net.toUri
-import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import dagger.assisted.Assisted
 import dagger.assisted.AssistedFactory
@@ -16,6 +14,7 @@ import dev.anilbeesetti.nextplayer.core.media.network.isNetworkVideoFile
 import dev.anilbeesetti.nextplayer.core.media.network.sftp.HostKeyMismatch
 import dev.anilbeesetti.nextplayer.core.model.NetworkConnection
 import dev.anilbeesetti.nextplayer.core.model.NetworkFile
+import dev.anilbeesetti.nextplayer.core.ui.base.MviViewModel
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.channels.Channel
@@ -54,7 +53,7 @@ class NetworkBrowseViewModel @AssistedInject constructor(
     @Assisted private val path: String?,
     private val repository: NetworkConnectionRepository,
     private val clientFactory: NetworkClientFactory,
-) : ViewModel() {
+) : MviViewModel<NetworkBrowseUiState, NetworkBrowseAction>() {
 
     @AssistedFactory
     interface Factory {
@@ -66,7 +65,7 @@ class NetworkBrowseViewModel @AssistedInject constructor(
     private var currentPath: String? = path
 
     private val _uiState = MutableStateFlow(NetworkBrowseUiState())
-    val uiState: StateFlow<NetworkBrowseUiState> = _uiState.asStateFlow()
+    override val state: StateFlow<NetworkBrowseUiState> = _uiState.asStateFlow()
 
     private val _playEvents = Channel<Uri>()
     val playEvents = _playEvents.receiveAsFlow()
@@ -132,11 +131,18 @@ class NetworkBrowseViewModel @AssistedInject constructor(
     private fun title(conn: NetworkConnection): String =
         path?.trimEnd('/')?.substringAfterLast('/')?.takeIf { it.isNotEmpty() } ?: conn.name
 
-    fun retry() {
+    override fun onAction(action: NetworkBrowseAction) {
+        when (action) {
+            NetworkBrowseAction.Retry -> retry()
+            is NetworkBrowseAction.PlayVideo -> playVideo(action.file)
+        }
+    }
+
+    private fun retry() {
         if (currentPath == null || client?.isConnected() != true) connectAndLoad() else loadCurrent()
     }
 
-    fun playVideo(file: NetworkFile) {
+    private fun playVideo(file: NetworkFile) {
         val conn = connection ?: return
         if (file.isDirectory) return
         viewModelScope.launch {
@@ -149,6 +155,11 @@ class NetworkBrowseViewModel @AssistedInject constructor(
         // Best-effort disconnect on a detached IO scope, since viewModelScope is already cancelled.
         CoroutineScope(Dispatchers.IO).launch { runCatching { client.disconnect() } }
     }
+}
+
+sealed interface NetworkBrowseAction {
+    data object Retry : NetworkBrowseAction
+    data class PlayVideo(val file: NetworkFile) : NetworkBrowseAction
 }
 
 private fun Throwable.toNetworkBrowseError(): NetworkBrowseError {

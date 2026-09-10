@@ -83,30 +83,28 @@ fun AddConnectionScreen(
     onNavigateUp: () -> Unit,
     viewModel: AddConnectionViewModel,
 ) {
-    val saveState by viewModel.saveState.collectAsStateWithLifecycle()
-    val existing by viewModel.existingConnection.collectAsStateWithLifecycle()
-    val selectedPrivateKey by viewModel.selectedPrivateKey.collectAsStateWithLifecycle()
+    val uiState by viewModel.state.collectAsStateWithLifecycle()
     val keyPicker = rememberLauncherForActivityResult(ActivityResultContracts.OpenDocument()) { uri ->
-        uri?.let(viewModel::stagePrivateKey)
+        uri?.let { viewModel.onAction(AddConnectionAction.StagePrivateKey(it)) }
     }
 
     ObserveAsEvents(viewModel.savedEvents) { onNavigateUp() }
 
     AddConnectionScreenContent(
-        isEdit = viewModel.isEdit,
-        existing = existing,
-        saveState = saveState,
-        selectedPrivateKey = selectedPrivateKey,
+        isEdit = uiState.isEdit,
+        existing = uiState.existingConnection,
+        saveState = uiState.saveState,
+        selectedPrivateKey = uiState.selectedPrivateKey,
         onNavigateUp = {
-            viewModel.cancel()
+            viewModel.onAction(AddConnectionAction.Cancel)
             onNavigateUp()
         },
-        onFieldChanged = viewModel::clearError,
+        onFieldChanged = { viewModel.onAction(AddConnectionAction.ClearError) },
         onChoosePrivateKey = { keyPicker.launch(arrayOf("*/*")) },
-        onRemovePrivateKey = viewModel::removeSelectedPrivateKey,
-        onTestAndSave = viewModel::testAndSave,
-        onAcceptHostKey = viewModel::acceptHostKey,
-        onRejectHostKey = viewModel::rejectHostKey,
+        onRemovePrivateKey = { viewModel.onAction(AddConnectionAction.RemoveSelectedPrivateKey) },
+        onTestAndSave = { viewModel.onAction(AddConnectionAction.TestAndSave(it)) },
+        onAcceptHostKey = { viewModel.onAction(AddConnectionAction.AcceptHostKey) },
+        onRejectHostKey = { viewModel.onAction(AddConnectionAction.RejectHostKey) },
     )
 }
 
@@ -216,7 +214,10 @@ internal fun AddConnectionScreenContent(
         )
     }
 
-    val onChange: (() -> Unit) -> Unit = { setter -> setter(); onFieldChanged() }
+    val onChange: (() -> Unit) -> Unit = { setter ->
+        setter()
+        onFieldChanged()
+    }
 
     Scaffold(
         topBar = {

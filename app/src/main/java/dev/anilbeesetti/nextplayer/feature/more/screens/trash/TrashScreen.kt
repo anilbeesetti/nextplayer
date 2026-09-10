@@ -6,7 +6,6 @@ import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Spacer
-import androidx.compose.foundation.layout.calculateStartPadding
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
@@ -29,7 +28,6 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
-import androidx.compose.ui.platform.LocalLayoutDirection
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
@@ -47,7 +45,6 @@ import dev.anilbeesetti.nextplayer.feature.videopicker.composables.CenterCircula
 import dev.anilbeesetti.nextplayer.feature.videopicker.composables.VideoListItem
 import dev.anilbeesetti.nextplayer.feature.videopicker.state.SelectionItem
 import dev.anilbeesetti.nextplayer.feature.videopicker.state.rememberSelectionManager
-import dev.anilbeesetti.nextplayer.feature.videopicker.state.toSelectedVideo
 
 @Composable
 fun TrashScreen(
@@ -55,13 +52,13 @@ fun TrashScreen(
     onPlayVideo: (String) -> Unit,
     viewModel: TrashViewModel = hiltViewModel(),
 ) {
-    val uiState = viewModel.uiState.collectAsStateWithLifecycle().value
+    val uiState = viewModel.state.collectAsStateWithLifecycle().value
     TrashScreenContent(
         uiState = uiState,
         onNavigateUp = onNavigateUp,
         onPlayVideo = onPlayVideo,
-        onRestore = viewModel::restore,
-        onDelete = viewModel::deletePermanently,
+        onRestore = { viewModel.onAction(TrashAction.Restore(it)) },
+        onDelete = { viewModel.onAction(TrashAction.DeletePermanently(it)) },
     )
 }
 

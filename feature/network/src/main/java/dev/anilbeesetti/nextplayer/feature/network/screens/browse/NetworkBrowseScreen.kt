@@ -61,7 +61,7 @@ fun NetworkBrowseScreen(
     onNavigateToFolder: (connectionId: Long, path: String) -> Unit,
     viewModel: NetworkBrowseViewModel,
 ) {
-    val uiState by viewModel.uiState.collectAsStateWithLifecycle()
+    val uiState by viewModel.state.collectAsStateWithLifecycle()
 
     ObserveAsEvents(viewModel.playEvents) { uri -> onPlayVideo(uri) }
 
@@ -69,8 +69,8 @@ fun NetworkBrowseScreen(
         uiState = uiState,
         onBack = onNavigateUp,
         onFolderClick = { file -> onNavigateToFolder(viewModel.connectionId, file.path) },
-        onVideoClick = viewModel::playVideo,
-        onRetry = viewModel::retry,
+        onVideoClick = { viewModel.onAction(NetworkBrowseAction.PlayVideo(it)) },
+        onRetry = { viewModel.onAction(NetworkBrowseAction.Retry) },
     )
 }
 

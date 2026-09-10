@@ -27,9 +27,6 @@ import androidx.compose.foundation.layout.displayCutout
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.only
-import androidx.compose.foundation.layout.systemBars
-import androidx.compose.foundation.layout.union
-import androidx.compose.foundation.layout.windowInsetsPadding
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Surface
@@ -75,8 +72,8 @@ import dev.anilbeesetti.nextplayer.navigation.networkNavGraph
 import dev.anilbeesetti.nextplayer.navigation.playlistNavGraph
 import dev.anilbeesetti.nextplayer.navigation.rememberTopLevelNavState
 import dev.anilbeesetti.nextplayer.navigation.settingsNavGraph
-import kotlinx.coroutines.launch
 import javax.inject.Inject
+import kotlinx.coroutines.launch
 
 @AndroidEntryPoint
 class MainActivity : FragmentActivity() {
@@ -98,7 +95,7 @@ class MainActivity : FragmentActivity() {
 
         lifecycleScope.launch {
             repeatOnLifecycle(Lifecycle.State.STARTED) {
-                viewModel.uiState.collect { state ->
+                viewModel.state.collect { state ->
                     uiState = state
                 }
             }
@@ -286,7 +283,7 @@ fun NavigationLayout(
                     NextNavigationBar(
                         state = state,
                         fabState = displayedFabState,
-                        showFabOnly = showNavRail
+                        showFabOnly = showNavRail,
                     )
                 }
             },
@@ -298,7 +295,7 @@ fun NavigationLayout(
                         .fillMaxWidth()
                         .thenIf(showNavigation) {
                             consumeWindowInsets(WindowInsets.displayCutout.only(WindowInsetsSides.Start))
-                        }
+                        },
                 ) {
                     content(it)
                 }

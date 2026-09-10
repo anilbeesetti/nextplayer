@@ -90,7 +90,7 @@ class CrashActivity : ComponentActivity() {
 
         lifecycleScope.launch {
             repeatOnLifecycle(Lifecycle.State.STARTED) {
-                viewModel.uiState.collect { state ->
+                viewModel.state.collect { state ->
                     uiState = state
                 }
             }

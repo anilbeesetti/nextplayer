@@ -41,9 +41,9 @@ import dev.anilbeesetti.nextplayer.feature.player.extensions.OpenDocumentAtIniti
 import dev.anilbeesetti.nextplayer.feature.player.extensions.setExtras
 import dev.anilbeesetti.nextplayer.feature.player.extensions.uriToSubtitleConfiguration
 import dev.anilbeesetti.nextplayer.feature.player.model.DecoderServiceState
-import dev.anilbeesetti.nextplayer.feature.player.service.decoderServiceState
 import dev.anilbeesetti.nextplayer.feature.player.service.PlayerService
 import dev.anilbeesetti.nextplayer.feature.player.service.addSubtitleTrack
+import dev.anilbeesetti.nextplayer.feature.player.service.decoderServiceState
 import dev.anilbeesetti.nextplayer.feature.player.service.stopPlayerSession
 import dev.anilbeesetti.nextplayer.feature.player.utils.PlayerApi
 import dev.anilbeesetti.nextplayer.feature.player.utils.PlaylistPlaybackContract
@@ -73,7 +73,7 @@ class PlayerActivity : ComponentActivity() {
     lateinit var playlistRepository: PlaylistRepository
 
     private val viewModel: PlayerViewModel by viewModels()
-    val playerPreferences get() = viewModel.uiState.value.playerPreferences
+    val playerPreferences get() = viewModel.state.value.playerPreferences
 
     private val onWindowAttributesChangedListener = CopyOnWriteArrayList<Consumer<WindowManager.LayoutParams?>>()
 
@@ -105,7 +105,7 @@ class PlayerActivity : ComponentActivity() {
         )
 
         setContent {
-            val uiState by viewModel.uiState.collectAsStateWithLifecycle()
+            val uiState by viewModel.state.collectAsStateWithLifecycle()
             var player by remember { mutableStateOf<MediaController?>(null) }
 
             LifecycleStartEffect(Unit) {
@@ -180,7 +180,7 @@ class PlayerActivity : ComponentActivity() {
 
     override fun onStop() {
         mediaController?.run {
-            viewModel.playWhenReady = playWhenReady
+            viewModel.onAction(PlayerAction.UpdatePlayWhenReady(playWhenReady))
             removeListener(playbackStateListener)
         }
         val shouldPlayInBackground = playInBackground || playerPreferences?.autoBackgroundPlay == true
@@ -230,7 +230,7 @@ class PlayerActivity : ComponentActivity() {
             )
         ) {
             mediaController?.prepare()
-            mediaController?.playWhenReady = viewModel.playWhenReady
+            mediaController?.playWhenReady = viewModel.state.value.playWhenReady
             return
         }
 
@@ -265,7 +265,7 @@ class PlayerActivity : ComponentActivity() {
             withContext(Dispatchers.Main) {
                 mediaController?.run {
                     setMediaItems(mediaItems, startIndex, C.TIME_UNSET)
-                    playWhenReady = viewModel.playWhenReady
+                    playWhenReady = viewModel.state.value.playWhenReady
                     prepare()
                 }
             }
@@ -315,7 +315,7 @@ class PlayerActivity : ComponentActivity() {
         withContext(Dispatchers.Main) {
             mediaController?.run {
                 setMediaItems(mediaItems, mediaItemIndexToPlay, playerApi.position?.toLong() ?: C.TIME_UNSET)
-                playWhenReady = viewModel.playWhenReady
+                playWhenReady = viewModel.state.value.playWhenReady
                 prepare()
             }
         }
