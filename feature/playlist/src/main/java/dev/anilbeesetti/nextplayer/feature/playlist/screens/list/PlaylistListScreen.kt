@@ -9,7 +9,6 @@ import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Spacer
-import androidx.compose.foundation.layout.calculateStartPadding
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
@@ -38,7 +37,6 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
-import androidx.compose.ui.platform.LocalLayoutDirection
 import androidx.compose.ui.res.pluralStringResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
@@ -51,13 +49,12 @@ import dev.anilbeesetti.nextplayer.core.model.PlaylistSummary
 import dev.anilbeesetti.nextplayer.core.model.PlaylistType
 import dev.anilbeesetti.nextplayer.core.ui.R
 import dev.anilbeesetti.nextplayer.core.ui.base.DataState
+import dev.anilbeesetti.nextplayer.core.ui.components.BindTopLevelFab
 import dev.anilbeesetti.nextplayer.core.ui.components.LocalNavigationBottomPadding
 import dev.anilbeesetti.nextplayer.core.ui.components.NextDialog
 import dev.anilbeesetti.nextplayer.core.ui.components.NextSegmentedListItem
 import dev.anilbeesetti.nextplayer.core.ui.components.NextTopAppBar
-import dev.anilbeesetti.nextplayer.core.ui.components.BindTopLevelFab
 import dev.anilbeesetti.nextplayer.core.ui.components.TopLevelFabKey
-import dev.anilbeesetti.nextplayer.core.ui.components.rememberTvListFocusRequester
 import dev.anilbeesetti.nextplayer.core.ui.components.tvFocusRing
 import dev.anilbeesetti.nextplayer.core.ui.components.tvListFocus
 import dev.anilbeesetti.nextplayer.core.ui.designsystem.NextIcons
@@ -146,7 +143,7 @@ internal fun PlaylistListScreenContent(
                         LazyColumn(
                             modifier = Modifier
                                 .fillMaxSize()
-                                .tvListFocus(rememberTvListFocusRequester()),
+                                .tvListFocus(),
                             contentPadding = PaddingValues(8.dp).copy(
                                 bottom = scaffoldPadding.calculateBottomPadding() + navigationBottomPadding + 96.dp,
                             ),
@@ -430,7 +427,9 @@ private fun PlaylistRow(
 ) {
     var menuExpanded by rememberSaveable { mutableStateOf(false) }
     val videoCount = pluralStringResource(
-        R.plurals.playlist_video_count, playlist.itemCount, playlist.itemCount,
+        R.plurals.playlist_video_count,
+        playlist.itemCount,
+        playlist.itemCount,
     )
 
     NextSegmentedListItem(
@@ -509,9 +508,9 @@ private fun PlaylistType.label(): String = stringResource(
 private fun String.isHttpUrl(): Boolean = runCatching {
     val uri = Uri.parse(this)
     (
-            uri.scheme.equals("http", ignoreCase = true) ||
-                    uri.scheme.equals("https", ignoreCase = true)
-            ) && !uri.host.isNullOrBlank()
+        uri.scheme.equals("http", ignoreCase = true) ||
+            uri.scheme.equals("https", ignoreCase = true)
+        ) && !uri.host.isNullOrBlank()
 }.getOrDefault(false)
 
 private val M3U_MIME_TYPES = arrayOf(

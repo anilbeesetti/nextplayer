@@ -9,6 +9,7 @@ import androidx.compose.animation.slideInVertically
 import androidx.compose.animation.slideOutVertically
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.focusGroup
 import androidx.compose.foundation.horizontalScroll
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -17,8 +18,6 @@ import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.WindowInsetsSides
-import androidx.compose.foundation.layout.asPaddingValues
-import androidx.compose.foundation.layout.calculateStartPadding
 import androidx.compose.foundation.layout.displayCutout
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -37,8 +36,8 @@ import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.shape.ZeroCornerSize
-import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Checkbox
+import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.ExperimentalMaterial3ExpressiveApi
 import androidx.compose.material3.FilledTonalIconButton
 import androidx.compose.material3.FloatingActionButton
@@ -64,9 +63,8 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.focus.FocusRequester
 import androidx.compose.ui.focus.focusProperties
-import androidx.compose.ui.focus.focusRequester
+import androidx.compose.ui.focus.focusRestorer
 import androidx.compose.ui.platform.LocalContext
-import androidx.compose.ui.platform.LocalLayoutDirection
 import androidx.compose.ui.res.pluralStringResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
@@ -101,13 +99,15 @@ import dev.anilbeesetti.nextplayer.core.model.PlaylistSummary
 import dev.anilbeesetti.nextplayer.core.model.Video
 import dev.anilbeesetti.nextplayer.core.ui.R
 import dev.anilbeesetti.nextplayer.core.ui.base.DataState
+import dev.anilbeesetti.nextplayer.core.ui.components.BindTopLevelBottomBarVisible
+import dev.anilbeesetti.nextplayer.core.ui.components.BindTopLevelFab
 import dev.anilbeesetti.nextplayer.core.ui.components.CancelButton
 import dev.anilbeesetti.nextplayer.core.ui.components.LocalNavigationBottomPadding
 import dev.anilbeesetti.nextplayer.core.ui.components.NextDialog
 import dev.anilbeesetti.nextplayer.core.ui.components.NextTopAppBar
-import dev.anilbeesetti.nextplayer.core.ui.components.BindTopLevelBottomBarVisible
-import dev.anilbeesetti.nextplayer.core.ui.components.BindTopLevelFab
 import dev.anilbeesetti.nextplayer.core.ui.components.TopLevelFabKey
+import dev.anilbeesetti.nextplayer.core.ui.components.rememberRestorableFocusState
+import dev.anilbeesetti.nextplayer.core.ui.components.thenIf
 import dev.anilbeesetti.nextplayer.core.ui.components.tvFocusRing
 import dev.anilbeesetti.nextplayer.core.ui.composables.PermissionMissingView
 import dev.anilbeesetti.nextplayer.core.ui.designsystem.NextIcons
@@ -160,17 +160,14 @@ internal fun MediaPickerScreen(
 ) {
     val context = LocalContext.current
     val isTv = remember { context.isTelevision }
-    val firstItemFocusRequester = remember { FocusRequester() }
-    val lastItemFocusRequester = remember { FocusRequester() }
-    val firstActionFocusRequester = remember { FocusRequester() }
-    var restoredFocusKey by rememberSaveable { mutableStateOf<String?>(null) }
+    val focusState = rememberRestorableFocusState()
     val hasMedia = (uiState.mediaDataState as? DataState.Success)?.value
         ?.let { it.folders.isNotEmpty() || it.videos.isNotEmpty() } == true
     val navigationBottomPadding = LocalNavigationBottomPadding.current
 
-    // On TV, pressing down from any top-bar button lands on the first list item.
+    // Re-enter the content region so its previously focused item is restored.
     val topBarDownModifier = if (isTv && hasMedia) {
-        Modifier.focusProperties { down = firstItemFocusRequester }
+        Modifier.focusProperties { down = focusState.requester }
     } else {
         Modifier
     }
@@ -326,8 +323,7 @@ internal fun MediaPickerScreen(
         bottomBar = {
             SelectionActionsSheet(
                 show = selectionManager.isInSelectionMode && selectionManager.selectionItems.isNotEmpty(),
-                firstActionFocusRequester = firstActionFocusRequester,
-                lastItemFocusRequester = lastItemFocusRequester,
+                contentFocusRequester = focusState.requester,
                 showRenameAction = selectionManager.isSingleVideoSelected,
                 showInfoAction = selectionManager.isSingleVideoSelected,
                 showHideAction = selectionManager.selectionItems.isNotEmpty(),
@@ -424,17 +420,7 @@ internal fun MediaPickerScreen(
                                 onVideoClick = { onAction(MediaPickerAction.OnPlayVideo(it)) },
                                 selectionManager = selectionManager,
                                 lazyGridState = lazyGridState,
-                                firstItemFocusRequester = if (isTv) firstItemFocusRequester else null,
-                                lastItemFocusRequester = if (isTv) lastItemFocusRequester else null,
-                                restoredFocusKey = restoredFocusKey,
-                                onItemFocused = { restoredFocusKey = it },
-                                // Down from the last item goes to the FAB normally, or to the selection
-                                // action bar while selecting (the FAB is hidden then).
-                                lastItemDownFocusRequester = when {
-                                    !isTv -> null
-                                    selectionManager.isInSelectionMode -> firstActionFocusRequester
-                                    else -> null
-                                },
+                                focusState = focusState,
                                 contentPadding = updatedScaffoldPadding,
                             )
                         }
@@ -451,7 +437,6 @@ internal fun MediaPickerScreen(
             }
         }
     }
-
 
     BackHandler(enabled = selectionManager.isInSelectionMode) {
         selectionManager.exitSelectionMode()
@@ -1087,8 +1072,7 @@ private fun PlaylistTargetDialog(
 private fun SelectionActionsSheet(
     modifier: Modifier = Modifier,
     show: Boolean,
-    firstActionFocusRequester: FocusRequester,
-    lastItemFocusRequester: FocusRequester,
+    contentFocusRequester: FocusRequester,
     showRenameAction: Boolean,
     showInfoAction: Boolean,
     showHideAction: Boolean,
@@ -1104,13 +1088,6 @@ private fun SelectionActionsSheet(
 ) {
     val context = LocalContext.current
     val isTv = remember { context.isTelevision }
-    // Pressing up from any action lands on the last list item.
-    val actionUpModifier = if (isTv) {
-        Modifier.focusProperties { up = lastItemFocusRequester }
-    } else {
-        Modifier
-    }
-
     AnimatedVisibility(
         modifier = modifier.windowInsetsPadding(
             WindowInsets.displayCutout.only(WindowInsetsSides.Horizontal),
@@ -1134,6 +1111,9 @@ private fun SelectionActionsSheet(
                     )
                     .clip(shape)
                     .horizontalScroll(rememberScrollState())
+                    .thenIf(isTv) {
+                        focusRestorer().focusGroup().focusProperties { up = contentFocusRequester }
+                    }
                     .navigationBarsPadding()
                     .padding(
                         horizontal = 8.dp,
@@ -1143,14 +1123,12 @@ private fun SelectionActionsSheet(
                 horizontalArrangement = Arrangement.SpaceEvenly,
             ) {
                 SelectionAction(
-                    modifier = actionUpModifier.focusRequester(firstActionFocusRequester),
                     isTv = isTv,
                     imageVector = NextIcons.Play,
                     title = stringResource(R.string.play),
                     onClick = onPlayAction,
                 )
                 SelectionAction(
-                    modifier = actionUpModifier,
                     isTv = isTv,
                     imageVector = NextIcons.PlaylistAdd,
                     title = stringResource(R.string.add_to_playlist),
@@ -1158,7 +1136,6 @@ private fun SelectionActionsSheet(
                 )
                 if (showRenameAction) {
                     SelectionAction(
-                        modifier = actionUpModifier,
                         isTv = isTv,
                         imageVector = NextIcons.Edit,
                         title = stringResource(R.string.rename),
@@ -1166,21 +1143,18 @@ private fun SelectionActionsSheet(
                     )
                 }
                 SelectionAction(
-                    modifier = actionUpModifier,
                     isTv = isTv,
                     imageVector = NextIcons.Share,
                     title = stringResource(R.string.share),
                     onClick = onShareAction,
                 )
                 SelectionAction(
-                    modifier = actionUpModifier,
                     isTv = isTv,
                     imageVector = NextIcons.Copy,
                     title = stringResource(R.string.copy),
                     onClick = onCopyAction,
                 )
                 SelectionAction(
-                    modifier = actionUpModifier,
                     isTv = isTv,
                     imageVector = NextIcons.Move,
                     title = stringResource(R.string.move),
@@ -1188,7 +1162,6 @@ private fun SelectionActionsSheet(
                 )
                 if (showInfoAction) {
                     SelectionAction(
-                        modifier = actionUpModifier,
                         isTv = isTv,
                         imageVector = NextIcons.Info,
                         title = stringResource(id = R.string.info),
@@ -1197,7 +1170,6 @@ private fun SelectionActionsSheet(
                 }
                 if (showHideAction) {
                     SelectionAction(
-                        modifier = actionUpModifier,
                         isTv = isTv,
                         imageVector = NextIcons.HideSource,
                         title = stringResource(id = R.string.hide),
@@ -1205,7 +1177,6 @@ private fun SelectionActionsSheet(
                     )
                 }
                 SelectionAction(
-                    modifier = actionUpModifier,
                     isTv = isTv,
                     imageVector = NextIcons.Delete,
                     title = stringResource(id = R.string.delete),

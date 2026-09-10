@@ -37,9 +37,7 @@ import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
-import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -68,6 +66,7 @@ import dev.anilbeesetti.nextplayer.core.ui.R
 import dev.anilbeesetti.nextplayer.core.ui.components.ListSectionTitle
 import dev.anilbeesetti.nextplayer.core.ui.components.NextSegmentedListItem
 import dev.anilbeesetti.nextplayer.core.ui.components.NextTopAppBar
+import dev.anilbeesetti.nextplayer.core.ui.components.rememberRestorableFocusState
 import dev.anilbeesetti.nextplayer.core.ui.designsystem.NextIcons
 import dev.anilbeesetti.nextplayer.core.ui.extensions.copy
 import dev.anilbeesetti.nextplayer.core.ui.extensions.plus
@@ -368,7 +367,7 @@ private fun SearchResultsContent(
     onFolderClick: (String) -> Unit,
     onVideoClick: (Uri) -> Unit,
 ) {
-    var restoredFocusKey by rememberSaveable { mutableStateOf<String?>(null) }
+    val focusState = rememberRestorableFocusState()
     AnimatedVisibility(
         visible = isSearching,
         enter = fadeIn(),
@@ -418,8 +417,7 @@ private fun SearchResultsContent(
                     folders = searchResults.folders,
                 ),
                 preferences = preferences,
-                restoredFocusKey = restoredFocusKey,
-                onItemFocused = { restoredFocusKey = it },
+                focusState = focusState,
                 onFolderClick = onFolderClick,
                 onVideoClick = onVideoClick,
                 showHeaders = true,
