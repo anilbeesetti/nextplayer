@@ -40,7 +40,7 @@ bouncyCastle = "1.80.2"
 robolectric = "4.16.1"
 nextlib = "1.11.0-0.15.0"
 universalChardet = "2.5.0"
-smbj = "0.14.0"
+smbj = "0.15.0"
 commonsNet = "3.13.0"
 sardineAndroid = "0.9"
 
