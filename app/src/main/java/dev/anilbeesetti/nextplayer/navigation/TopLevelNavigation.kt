@@ -36,7 +36,6 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.LocalContentColor
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.NavigationRail
-import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.MutableIntState
@@ -52,6 +51,7 @@ import androidx.compose.runtime.toMutableStateList
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.focus.focusProperties
 import androidx.compose.ui.geometry.Rect
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
@@ -59,7 +59,9 @@ import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.layout.LookaheadScope
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalDensity
+import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.unit.dp
@@ -72,6 +74,7 @@ import androidx.navigation3.runtime.rememberDecoratedNavEntries
 import androidx.navigation3.runtime.rememberNavBackStack
 import androidx.navigation3.runtime.rememberSaveableStateHolderNavEntryDecorator
 import androidx.navigation3.scene.Scene
+import dev.anilbeesetti.nextplayer.core.common.extensions.isTelevision
 import dev.anilbeesetti.nextplayer.core.ui.R
 import dev.anilbeesetti.nextplayer.core.ui.components.TopLevelFabKey
 import dev.anilbeesetti.nextplayer.core.ui.components.TopLevelFabState
@@ -193,6 +196,7 @@ fun NextNavigationBar(
     fabState: TopLevelFabState?,
     showFabOnly: Boolean = false,
 ) {
+    val isTv = LocalContext.current.isTelevision
     Box(
         modifier = Modifier
             .fillMaxWidth()
@@ -230,14 +234,21 @@ fun NextNavigationBar(
             }
 
             fabState?.let { fab ->
-                FloatingActionButton(onClick = fab.onClick) {
+                FloatingActionButton(
+                    onClick = fab.onClick,
+                    modifier = Modifier
+                        .testTag("top_level_fab")
+                        .tvFocusRing(shape = MaterialTheme.shapes.large)
+                        .focusProperties { if (isTv) up = fab.upFocusRequester },
+                    shape = MaterialTheme.shapes.large,
+                ) {
                     AnimatedContent(
                         targetState = fab,
                         transitionSpec = {
                             fadeIn(tween(250, easing = FastOutSlowInEasing)) +
-                                    scaleIn(tween(250, easing = FastOutSlowInEasing), initialScale = 0.25f) togetherWith
-                                    fadeOut(tween(250, easing = FastOutSlowInEasing)) +
-                                    scaleOut(tween(250, easing = FastOutSlowInEasing), targetScale = 0.25f)
+                                scaleIn(tween(250, easing = FastOutSlowInEasing), initialScale = 0.25f) togetherWith
+                                fadeOut(tween(250, easing = FastOutSlowInEasing)) +
+                                scaleOut(tween(250, easing = FastOutSlowInEasing), targetScale = 0.25f)
                         },
                         label = "fab_icon_swap",
                     ) { fab ->

@@ -370,7 +370,11 @@ internal fun MediaPickerScreen(
         },
         floatingActionButton = {
             if (uiState.folderName != null && !selectionManager.isInSelectionMode) {
-                FloatingActionButton(onClick = onFabClick) {
+                FloatingActionButton(
+                    onClick = onFabClick,
+                    modifier = Modifier.tvFocusRing(shape = MaterialTheme.shapes.large),
+                    shape = MaterialTheme.shapes.large,
+                ) {
                     Icon(imageVector = NextIcons.Play, contentDescription = null)
                 }
             }
