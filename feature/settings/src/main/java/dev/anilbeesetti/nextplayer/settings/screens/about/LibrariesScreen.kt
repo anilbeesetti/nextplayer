@@ -20,41 +20,30 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.remember
+import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalUriHandler
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
-import com.mikepenz.aboutlibraries.Libs
-import com.mikepenz.aboutlibraries.util.withContext
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import dev.anilbeesetti.nextplayer.core.ui.R
 import dev.anilbeesetti.nextplayer.core.ui.components.NextSegmentedListItem
 import dev.anilbeesetti.nextplayer.core.ui.components.NextTopAppBar
 import dev.anilbeesetti.nextplayer.core.ui.designsystem.NextIcons
 import dev.anilbeesetti.nextplayer.core.ui.extensions.plus
 
-data class LibrariesOutput(
-    val navigateUp: () -> Unit,
-)
-
-private sealed interface LibrariesAction {
-    data object NavigateUp : LibrariesAction
-}
-
 @Composable
-fun LibrariesScreen(output: LibrariesOutput) {
-    LibrariesScreenContent { action ->
-        when (action) {
-            is LibrariesAction.NavigateUp -> output.navigateUp()
-        }
-    }
+fun LibrariesScreen(viewModel: LibrariesViewModel) {
+    val state by viewModel.state.collectAsStateWithLifecycle()
+    LibrariesScreenContent(state = state, onAction = viewModel::onAction)
 }
 
 @OptIn(ExperimentalMaterial3Api::class, ExperimentalMaterial3ExpressiveApi::class)
 @Composable
 private fun LibrariesScreenContent(
+    state: LibrariesUiState,
     onAction: (LibrariesAction) -> Unit,
 ) {
     val context = LocalContext.current
@@ -76,14 +65,12 @@ private fun LibrariesScreenContent(
         },
         containerColor = MaterialTheme.colorScheme.surfaceContainer,
     ) { innerPadding ->
-        val libs = remember { Libs.Builder().withContext(context).build() }
-
         LazyColumn(
             modifier = Modifier.fillMaxSize(),
             contentPadding = innerPadding + PaddingValues(horizontal = 16.dp),
             verticalArrangement = Arrangement.spacedBy(ListItemDefaults.SegmentedGap),
         ) {
-            itemsIndexed(libs.libraries, key = { _, library -> library.uniqueId }) { index, library ->
+            itemsIndexed(state.libraries, key = { _, library -> library.uniqueId }) { index, library ->
                 NextSegmentedListItem(
                     content = {
                         Row(
@@ -124,7 +111,7 @@ private fun LibrariesScreenContent(
                         }
                     },
                     isFirstItem = index == 0,
-                    isLastItem = index == libs.libraries.lastIndex,
+                    isLastItem = index == state.libraries.lastIndex,
                     onClick = {
                         library.website?.takeIf { it.isNotBlank() }?.let {
                             uriHandler.openUriOrShowToast(uri = it, context = context)

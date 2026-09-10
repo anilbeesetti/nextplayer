@@ -2,7 +2,6 @@ package dev.anilbeesetti.nextplayer.settings.screens.about
 
 import android.content.ClipData
 import android.content.Context
-import android.os.Build
 import android.widget.Toast
 import androidx.compose.animation.core.RepeatMode
 import androidx.compose.animation.core.animateFloat
@@ -57,6 +56,7 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.res.vectorResource
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import dev.anilbeesetti.nextplayer.core.common.extensions.appIcon
 import dev.anilbeesetti.nextplayer.core.ui.R
 import dev.anilbeesetti.nextplayer.core.ui.components.ClickablePreferenceItem
@@ -73,29 +73,16 @@ private const val KOFI_URL = "https://ko-fi.com/anilbeesetti"
 private const val PAYPAL_URL = "https://paypal.me/AnilBeesetti"
 private const val UPI_ID = "anilbeesetti10@oksbi"
 
-data class AboutPreferencesOutput(
-    val navigateUp: () -> Unit,
-    val openLibraries: () -> Unit,
-)
-
-private sealed interface AboutPreferencesAction {
-    data object NavigateUp : AboutPreferencesAction
-    data object OpenLibraries : AboutPreferencesAction
-}
-
 @Composable
-fun AboutPreferencesScreen(output: AboutPreferencesOutput) {
-    AboutPreferencesScreenContent { action ->
-        when (action) {
-            is AboutPreferencesAction.NavigateUp -> output.navigateUp()
-            is AboutPreferencesAction.OpenLibraries -> output.openLibraries()
-        }
-    }
+fun AboutPreferencesScreen(viewModel: AboutPreferencesViewModel) {
+    val state by viewModel.state.collectAsStateWithLifecycle()
+    AboutPreferencesScreenContent(state = state, onAction = viewModel::onAction)
 }
 
 @OptIn(ExperimentalMaterial3Api::class, ExperimentalMaterial3ExpressiveApi::class)
 @Composable
 private fun AboutPreferencesScreenContent(
+    state: AboutPreferencesUiState,
     onAction: (AboutPreferencesAction) -> Unit,
 ) {
     val context = LocalContext.current
@@ -130,6 +117,7 @@ private fun AboutPreferencesScreenContent(
                 .padding(vertical = 16.dp),
         ) {
             AboutApp(
+                appVersion = state.appVersion,
                 onGithubClick = {
                     uriHandler.openUriOrShowToast(
                         uri = GITHUB_URL,
@@ -184,12 +172,12 @@ private fun AboutPreferencesScreenContent(
 
 @Composable
 fun AboutApp(
+    appVersion: String,
     modifier: Modifier = Modifier,
     onGithubClick: () -> Unit,
     onLibrariesClick: () -> Unit,
 ) {
     val context = LocalContext.current
-    val appVersion = remember { context.appVersion() }
     val appIcon = remember { context.appIcon()?.asImageBitmap() }
 
     val colorPrimary = MaterialTheme.colorScheme.primaryContainer
@@ -318,19 +306,6 @@ fun AboutApp(
             }
         }
     }
-}
-
-private fun Context.appVersion(): String {
-    val packageInfo = packageManager.getPackageInfo(packageName, 0)
-
-    @Suppress("DEPRECATION")
-    val versionCode = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.P) {
-        packageInfo.longVersionCode
-    } else {
-        packageInfo.versionCode
-    }
-
-    return "${packageInfo.versionName} ($versionCode)"
 }
 
 internal fun UriHandler.openUriOrShowToast(uri: String, context: Context) {
