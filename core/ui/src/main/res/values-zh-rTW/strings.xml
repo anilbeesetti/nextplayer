@@ -321,7 +321,7 @@
     <string name="pins_do_not_match">PIN 碼不符，請再試一次</string>
     <string name="incorrect_pin">錯誤的 PIN 碼</string>
     <string name="how_to_find_hidden_videos_title">如何尋找您隱藏的影片</string>
-    <string name="how_to_find_hidden_videos_description">您隱藏的影片皆妥善存放於保險箱。\n如要再次開啟，請輕觸並按住首頁頂端「NextPlayer」並輸入密碼。</string>
+    <string name="how_to_find_hidden_videos_description">隱藏的影片皆妥善存放於保險箱。\n如要再次查看，請按下「更多」開啟保險箱並輸入密碼。</string>
     <string name="got_it">知道了</string>
     <string name="open_vault">開啟保險箱</string>
     <string name="vault_empty_title">沒有隱藏的影片</string>
@@ -484,4 +484,20 @@
     <string name="vault_biometric_description">使用指紋或臉部辨識解鎖，您的保險箱密碼不受影響。</string>
     <string name="vault_biometric_unavailable">請在系統設定中完成指紋或臉部掃描以啟用生物辨識解鎖。</string>
     <string name="decoder_mode_auto">自動</string>
+    <string name="history">記錄</string>
+    <string name="delete_permanently">永久刪除</string>
+    <string name="restore">還原</string>
+    <string name="trash">垃圾桶</string>
+    <string name="move_to_trash">移至垃圾桶</string>
+    <string name="move_to_trash_info">選取的項目將會移動至垃圾桶。</string>
+    <string name="trash_empty_title">垃圾桶是空的</string>
+    <string name="trash_empty_description">您移至垃圾桶的影片將會顯示在這裡。\n您可將其復原或永久刪除。</string>
+    <string name="pick_file">選擇檔案</string>
+    <string name="clear_all">全部清除</string>
+    <string name="clear_history_confirmation">刪除所有觀看記錄？</string>
+    <string name="open_vault_description">存取您隱藏的影片</string>
+    <string name="ftp_sftp">FTP / SFTP</string>
+    <string name="use_sftp">使用 SFTP</string>
+    <string name="settings_description">應用程式設定</string>
+    <string name="more">更多</string>
 </resources>

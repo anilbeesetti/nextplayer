@@ -294,7 +294,7 @@
     <string name="confirm_vault_pin_description">Zadejte váš PIN znovu pro potvrzení</string>
     <string name="enter_vault_pin">Zadejte PIN</string>
     <string name="how_to_find_hidden_videos_title">Jak najít vaše skryté videa</string>
-    <string name="how_to_find_hidden_videos_description">Skryté videa jsou zabezpečeny ve vašem sejfu. Pro jeho otevření, udělejte dlouhé klepnutí na název \"NextPlayer\" na horní části výchozí obrazovky a zadejte váš PIN.</string>
+    <string name="how_to_find_hidden_videos_description">Skryté videa jsou zabezpečeny ve vašem sejfu. Pro jeho otevření, přejděte na kartu Více, klepněte na Otevřít sejf a zadejte váš PIN.</string>
     <string name="got_it">Rozumím</string>
     <string name="open_vault">Otevřít sejf</string>
     <string name="vault_empty_title">Žádné skryté videa</string>
@@ -489,4 +489,21 @@
     <string name="playlist_refresh_succeeded">Playlist aktualizován.</string>
     <string name="playlist_refresh_failed">Nešlo aktualizovat playlist. Uložené položky nebyly změněny.</string>
     <string name="last_refreshed">Posledně aktualizováno v %1$s</string>
+    <string name="pick_file">Vybrat soubor</string>
+    <string name="more">Více</string>
+    <string name="vault_settings">Nastavení sejfu</string>
+    <string name="vault_biometric_unavailable">Nastavte podporovaný otisk prstu nebo tváře ve nastavení vašeho zařízení pro zapnutí biometrického odemykání.</string>
+    <string name="unlock_with_biometrics">Odemknout pomocí biometriky</string>
+    <string name="use_vault_pin">Použít PIN sejfu</string>
+    <string name="vault_biometric_setup_description">Odemkněte váš sejf s vaším otiskem prstu nebo tváří. Pro zapnutí potvrďte vaším biometrickým skenem. Můžete stále používat váš PIN a vypnout tuto funkci v nastavení sejfu.</string>
+    <string name="not_now">Teď ne</string>
+    <string name="vault_biometric_setup_title">Použít biometrií pro odemknutí?</string>
+    <string name="enable_biometric_unlock">Zapnout biometrické odemknutí</string>
+    <string name="history">Historie</string>
+    <string name="clear_all">Vymazat vše</string>
+    <string name="clear_history_confirmation">Odstranit všechny zhlédnuté videa z historie?</string>
+    <string name="open_vault_description">Přístup k vaším skrytých videích</string>
+    <string name="ftp_sftp">FTP/SFPT</string>
+    <string name="use_sftp">Použít SFTP</string>
+    <string name="settings_description">Možnosti aplikace</string>
 </resources>
