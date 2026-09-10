@@ -322,9 +322,6 @@
     <string name="enter_vault_pin_description">Wprowadź swój kod PIN, aby uzyskać dostęp do ukrytych wideo</string>
     <string name="pins_do_not_match">Kody PIN nie są zgodne. Spróbuj ponownie</string>
     <string name="incorrect_pin">Nieprawidłowy kod PIN</string>
-    <string name="how_to_find_hidden_videos_title">Jak znaleźć swoje ukryte wideo</string>
-    <string name="how_to_find_hidden_videos_description">Ukryte wideo są bezpiecznie przechowywane w twoim sejfie. Aby je ponownie otworzyć, wybierz opcję „Więcej”, dotknij „Otwórz sejf” i wprowadź swój kod PIN.</string>
-    <string name="got_it">Rozumiem</string>
     <string name="open_vault">Otwórz sejf</string>
     <string name="vault_empty_title">Brak ukrytych wideo</string>
     <string name="vault_empty_description">W tym miejscu pojawi się wideo, które ukryjesz. Naciśnij i przytrzymaj wideo, a następnie wybierz opcję „Ukryj”, aby przenieść je do sejfu.</string>

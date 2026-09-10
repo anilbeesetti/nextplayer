@@ -322,9 +322,6 @@
     <string name="enter_vault_pin_description">Ingrese su PIN para acceder a vídeos ocultos</string>
     <string name="pins_do_not_match">Los PIN no coinciden. Inténtalo de nuevo</string>
     <string name="incorrect_pin">PIN incorrecto</string>
-    <string name="how_to_find_hidden_videos_title">Cómo encontrar tus vídeos ocultos</string>
-    <string name="how_to_find_hidden_videos_description">Los vídeos ocultos se mantienen a salvo en tu Bóveda. Para abrirla de nuevo, ve a Más, toca en Abrir bóveda e introduce tu PIN.</string>
-    <string name="got_it">Entendido</string>
     <string name="open_vault">Abrir bóveda</string>
     <string name="vault_empty_title">Sin vídeos ocultos</string>
     <string name="vault_empty_description">Los vídeos que ocultes aparecerán aquí. Mantén presionado un vídeo y toca Ocultar para agregarlo a la bóveda.</string>

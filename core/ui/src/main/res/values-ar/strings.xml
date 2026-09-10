@@ -324,9 +324,6 @@
     <string name="enter_vault_pin_description">أدخل رمزك للوصول إلى الفيديوهات المخفية</string>
     <string name="pins_do_not_match">الرمزان غير متطابقين. حاول مرة أخرى</string>
     <string name="incorrect_pin">رمز غير صحيح</string>
-    <string name="how_to_find_hidden_videos_title">\"كيف تجد فيديوهاتك المخفية</string>
-    <string name="how_to_find_hidden_videos_description">الفيديوهات المخفية محفوطة بآمان في الخزنة. لإعادة فتحها، افتح المزيد، ثم اضغط على فتح الخزنة، وأدخل الرمز الشخصي (PIN).</string>
-    <string name="got_it">فهمت</string>
     <string name="open_vault">فتح الخزنة</string>
     <string name="vault_empty_title">لا توجد فيديوهات مخفية</string>
     <string name="vault_empty_description">ستظهر هنا الفيديوهات التي تخفيها. اضغط مطولاً على الفيديو ثم اختر \"أخفِ\" لإضافته إلى الخزنة.</string>

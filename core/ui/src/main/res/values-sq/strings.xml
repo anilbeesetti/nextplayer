@@ -321,9 +321,6 @@
     <string name="enter_vault_pin_description">Vendos PIN-in tënd për të hyrë te videot e fshehura</string>
     <string name="pins_do_not_match">PIN-et nuk përputhen. Provo përsëri</string>
     <string name="incorrect_pin">PIN i gabuar</string>
-    <string name="how_to_find_hidden_videos_title">Si t\'i gjesh videot e tua të fshehura</string>
-    <string name="how_to_find_hidden_videos_description">Videot e fshehura mbahen të sigurta në Kasafortën tënde. Për ta hapur përsëri, shtyp dhe mbaj titullin \"NextPlayer\" në krye të ekranit kryesor dhe vendos PIN-in tënd.</string>
-    <string name="got_it">E kuptova</string>
     <string name="open_vault">Hap kasafortën</string>
     <string name="vault_empty_title">Nuk ka video të fshehura</string>
     <string name="vault_empty_description">Videot që fsheh do të shfaqen këtu. Shtyp gjatë një video dhe trokit \'Fshih\' për ta shtuar te kasaforta.</string>

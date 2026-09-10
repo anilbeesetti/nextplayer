@@ -320,13 +320,10 @@
     <string name="enter_vault_pin_description">Εισάγετε το PIN σας για να αποκτήσετε πρόσβαση στα κρυφά βίντεο</string>
     <string name="pins_do_not_match">Τα PIN δεν ταιριάζουν. Δοκιμάστε ξανά</string>
     <string name="incorrect_pin">Λανθασμένο PIN</string>
-    <string name="how_to_find_hidden_videos_title">Πώς να βρείτε τα κρυφά σας βίντεο</string>
-    <string name="how_to_find_hidden_videos_description">Τα κρυμμένα βίντεο φυλάσσονται με ασφάλεια στην κρύπτη σας. Για να την ανοίξετε ξανά, πατήστε Περισσότερα, Άνοιγμα κρύπτης και εισάγετε το PIN σας.</string>
     <string name="open_vault">Άνοιγμα κρύπτης</string>
     <string name="vault_empty_title">Κανένα κρυφό βίντεο</string>
     <string name="vault_empty_description">Τα βίντεο που αποκρύπτετε θα εμφανίζονται εδώ. Πατήστε παρατεταμένα ένα βίντεο και πατήστε Απόκρυψη για να το προσθέσετε στο αρχείο καταγραφής.</string>
     <string name="folder_duration">Διάρκεια φακέλου</string>
-    <string name="got_it">Κατάλαβα</string>
     <string name="unhide_one_video_confirmation">Επανεμφάνιση αυτού του βίντεο; Θα μετακινηθεί πίσω στην αρχική του θέση.</string>
     <string name="unhide_videos_confirmation">Επανεμφάνιση %1$d βίντεο; Θα μετακινηθούν πίσω στην αρχική τους θέση.</string>
     <string name="delete_one_video_from_vault">Μόνιμη διαγραφή του βίντεο;</string>

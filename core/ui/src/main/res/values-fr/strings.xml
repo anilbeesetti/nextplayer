@@ -338,9 +338,6 @@
     <string name="enter_vault_pin_description">Entrez votre code PIN pour accéder aux éléments masqués</string>
     <string name="pins_do_not_match">Les codes PIN sont différents. Réessayez</string>
     <string name="incorrect_pin">Code PIN incorrect</string>
-    <string name="how_to_find_hidden_videos_title">Comment trouver les éléments masqués</string>
-    <string name="how_to_find_hidden_videos_description">Les vidéos ajoutées aux éléments masqués sont sécurisées. Pour y accéder, appuyez sur Plus, puis Accéder aux éléments sécurisés, et entrez votre code PIN.</string>
-    <string name="got_it">Compris</string>
     <string name="open_vault">Accéder aux éléments sécurisés</string>
     <string name="open_vault_description">Accéder aux éléments sécurisés</string>
     <string name="unlock_with_biometrics">Déverrouillage biométrique</string>

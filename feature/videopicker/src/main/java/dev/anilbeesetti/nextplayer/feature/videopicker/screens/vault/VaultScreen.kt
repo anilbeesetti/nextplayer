@@ -170,12 +170,6 @@ internal fun VaultScreenContent(
             onComplete = { onAction(VaultAction.CompleteBiometricSetup(it)) },
         )
 
-        VaultStage.HOW_TO_FIND_INFO -> {
-            HowToFindHiddenVideosDialog(
-                onDismiss = { onAction(VaultAction.DismissHowToFindInfo) },
-            )
-        }
-
         VaultStage.UNLOCKED -> VaultGalleryContent(
             state = state,
             onAction = onAction,
@@ -373,22 +367,6 @@ private fun PinEntryHeader(
             )
         }
     }
-}
-
-@Composable
-private fun HowToFindHiddenVideosDialog(
-    onDismiss: () -> Unit,
-) {
-    NextDialog(
-        onDismissRequest = onDismiss,
-        title = { Text(text = stringResource(R.string.how_to_find_hidden_videos_title)) },
-        content = { Text(text = stringResource(R.string.how_to_find_hidden_videos_description)) },
-        confirmButton = {
-            TextButton(onClick = onDismiss) {
-                Text(text = stringResource(R.string.got_it))
-            }
-        },
-    )
 }
 
 @OptIn(ExperimentalMaterial3Api::class, ExperimentalMaterial3ExpressiveApi::class)

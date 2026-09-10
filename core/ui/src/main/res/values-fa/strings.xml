@@ -321,9 +321,6 @@
     <string name="enter_vault_pin_description">رمز کوتاه را برای دسترسی به ویدیوهای پنهان وارد کنید</string>
     <string name="pins_do_not_match">رمزهای کوتاه مطابقت ندارند. دوباره تلاش کنید</string>
     <string name="incorrect_pin">رمز کوتاه نادرست</string>
-    <string name="how_to_find_hidden_videos_title">چگونه ویدیوهای پنهان خود را پیدا کنید</string>
-    <string name="how_to_find_hidden_videos_description">ویدیوهای پنهان در گاوصندوق شما امن نگه داشته می‌شوند. برای باز کردن دوباره، عنوان «NextPlayer» در بالای صفحه خانگی را نگه دارید و رمز کوتاه را وارد کنید.</string>
-    <string name="got_it">فهمیدم</string>
     <string name="open_vault">باز کردن گاوصندوق</string>
     <string name="vault_empty_title">هیچ ویدیوی پنهانی نیست</string>
     <string name="vault_empty_description">ویدیوهایی که پنهان می‌کنید اینجا نمایش داده می‌شوند. روی ویدیو نگه دارید و روی پنهان کردن بزنید تا به گاوصندوق افزوده شود.</string>
