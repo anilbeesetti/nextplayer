@@ -4,6 +4,8 @@ import androidx.compose.foundation.focusGroup
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.MutableState
 import androidx.compose.runtime.Stable
+import androidx.compose.runtime.derivedStateOf
+import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
@@ -48,10 +50,9 @@ fun Modifier.restorableFocusGroup(
     state: RestorableFocusState,
     ready: Boolean = true,
 ): Modifier {
-    if (!state.isTv) return this
     val scope = rememberCoroutineScope()
     LifecycleResumeEffect(state, ready) {
-        val request = if (ready) {
+        val request = if (state.isTv && ready) {
             scope.launch {
                 if (state.key == null || !state.itemRequester.requestFocusUntilLanded()) {
                     state.requester.requestFocusUntilLanded()
@@ -62,6 +63,7 @@ fun Modifier.restorableFocusGroup(
         }
         onPauseOrDispose { request?.cancel() }
     }
+    if (!state.isTv) return this
     return focusRequester(state.requester)
         .focusProperties {
             onEnter = {
@@ -71,8 +73,12 @@ fun Modifier.restorableFocusGroup(
         .focusGroup()
 }
 
+@Composable
 fun Modifier.restorableFocusItem(state: RestorableFocusState, key: String): Modifier {
     if (!state.isTv) return this
-    return thenIf(key == state.key) { focusRequester(state.itemRequester) }
+    // Comparing against the focused key directly would make every sibling observe it and recompose
+    // on each focus move. Only the two items whose answer actually flips read a change here.
+    val isRestoreTarget by remember(state, key) { derivedStateOf { key == state.key } }
+    return thenIf(isRestoreTarget) { focusRequester(state.itemRequester) }
         .onFocusChanged { if (it.isFocused) state.key = key }
 }

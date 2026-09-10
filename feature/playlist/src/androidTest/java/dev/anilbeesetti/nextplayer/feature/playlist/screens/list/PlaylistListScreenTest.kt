@@ -1,6 +1,8 @@
 package dev.anilbeesetti.nextplayer.feature.playlist.screens.list
 
+import android.content.Context
 import androidx.compose.runtime.CompositionLocalProvider
+import androidx.compose.ui.input.key.Key
 import androidx.compose.ui.test.assertCountEquals
 import androidx.compose.ui.test.assertIsDisplayed
 import androidx.compose.ui.test.junit4.createComposeRule
@@ -8,7 +10,11 @@ import androidx.compose.ui.test.onAllNodesWithText
 import androidx.compose.ui.test.onNodeWithContentDescription
 import androidx.compose.ui.test.onNodeWithText
 import androidx.compose.ui.test.performClick
+import androidx.compose.ui.test.performKeyInput
 import androidx.compose.ui.test.performTextInput
+import androidx.compose.ui.test.pressKey
+import androidx.test.core.app.ApplicationProvider
+import dev.anilbeesetti.nextplayer.core.common.extensions.isTelevision
 import dev.anilbeesetti.nextplayer.core.model.PlaylistSummary
 import dev.anilbeesetti.nextplayer.core.model.PlaylistType
 import dev.anilbeesetti.nextplayer.core.ui.base.DataState
@@ -67,7 +73,12 @@ class PlaylistListScreenTest {
             }
         }
 
-        composeRule.onNodeWithText("Playlist name").performTextInput("Movies")
+        val nameField = composeRule.onNodeWithText("Playlist name")
+        // On TV the field is selected but read-only until the remote activates it.
+        if (ApplicationProvider.getApplicationContext<Context>().isTelevision) {
+            nameField.performKeyInput { pressKey(Key.DirectionCenter) }
+        }
+        nameField.performTextInput("Movies")
         composeRule.onNodeWithText("Create").performClick()
 
         assertEquals(listOf(PlaylistUiAction.CreateLocal("Movies")), actions)

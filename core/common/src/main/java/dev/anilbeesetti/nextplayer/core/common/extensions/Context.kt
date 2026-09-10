@@ -35,11 +35,20 @@ import org.mozilla.universalchardet.UniversalDetector
 
 val VIDEO_COLLECTION_URI: Uri = MediaStore.Video.Media.EXTERNAL_CONTENT_URI
 
+private var isTelevisionCache: Boolean? = null
+
+/**
+ * Whether the app runs on Android TV. The device form factor cannot change within a process, so the
+ * answer is computed once: both checks are binder calls and this is read from composables that
+ * recompose on every keystroke.
+ */
 val Context.isTelevision: Boolean
-    get() {
+    get() = isTelevisionCache ?: run {
         val uiModeManager = getSystemService(Context.UI_MODE_SERVICE) as? UiModeManager
-        if (uiModeManager?.currentModeType == Configuration.UI_MODE_TYPE_TELEVISION) return true
-        return packageManager.hasSystemFeature(PackageManager.FEATURE_LEANBACK)
+        val isTv = uiModeManager?.currentModeType == Configuration.UI_MODE_TYPE_TELEVISION ||
+            packageManager.hasSystemFeature(PackageManager.FEATURE_LEANBACK)
+        isTelevisionCache = isTv
+        isTv
     }
 
 /**
