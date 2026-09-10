@@ -4,10 +4,12 @@ import androidx.compose.ui.input.key.Key
 import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.semantics.SemanticsProperties
 import androidx.compose.ui.test.SemanticsMatcher
+import androidx.compose.ui.test.assertIsFocused
 import androidx.compose.ui.test.hasTestTag
 import androidx.compose.ui.test.isFocused
 import androidx.compose.ui.test.junit4.v2.createAndroidComposeRule
 import androidx.compose.ui.test.onNodeWithTag
+import androidx.compose.ui.test.onNodeWithText
 import androidx.compose.ui.test.onRoot
 import androidx.compose.ui.test.performClick
 import androidx.compose.ui.test.performKeyInput
@@ -46,6 +48,16 @@ class TopLevelFabFocusTest {
 
     @Test
     fun moreFabUpReturnsToContent() = checkFabUp(tabIndex = 3)
+
+    @Test
+    fun openingMoreFocusesItsFirstActionEvenAfterSwitchingTabs() {
+        composeRule.onAllNodes(tab)[3].performClick()
+        composeRule.onNodeWithText("Vault").assertIsFocused()
+        composeRule.onNodeWithText("Pick file").requestFocus()
+        composeRule.onAllNodes(tab)[0].performClick()
+        composeRule.onAllNodes(tab)[3].performClick()
+        composeRule.onNodeWithText("Vault").assertIsFocused()
+    }
 
     @Test
     fun switchingTabsKeepsFabUpInTheCurrentScreen() {

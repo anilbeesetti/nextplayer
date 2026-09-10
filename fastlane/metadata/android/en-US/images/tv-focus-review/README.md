@@ -9,6 +9,8 @@ Verified September 10, 2026 on disposable Android TV emulators using API 36, ARM
 - Home, Playlists, More, and Network FABs move Up into screen content. Network prefers the enabled Open network stream button, otherwise the URL field. Folder and playlist-detail Play FABs return to their media regions.
 - Down traverses content before reaching the shared FAB; Left can still reach the navigation rail. Every FAB has a TV focus outline.
 
+- More focuses Vault when opened, including after switching tabs. D-pad and Tab navigation place the History arrow between the top actions and the history videos. Up from a video reaches the arrow; Down restores the same video.
+
 ## Validation
 
 JDK 17 and the checked-in Gradle wrapper:
@@ -20,9 +22,9 @@ JDK 17 and the checked-in Gradle wrapper:
 
 Both commands passed. Local JUnit XML contains 196 executions with zero failures, errors, or skips; XML was inspected independently because local test tasks ignore failures. Direct ktlint checks of changed Kotlin files and `git diff --check` also passed.
 
-Final app instrumentation reported 31 tests OK in 91.145 seconds: 30 passed and one phone-only keyboard test skipped by assumption. The suites were `NavigationLayoutFabFocusTest`, `TopLevelFabFocusTest`, `NetworkFabFocusTest`, `TvMediaFocusTest`, `TvSettingsFocusTest`, and `NextOutlinedTextFieldTest`.
+The broader app instrumentation run reported 31 tests OK in 91.145 seconds: 30 passed and one phone-only keyboard test skipped by assumption. The suites were `NavigationLayoutFabFocusTest`, `TopLevelFabFocusTest`, `NetworkFabFocusTest`, `TvMediaFocusTest`, `TvSettingsFocusTest`, and `NextOutlinedTextFieldTest`.
 
-`PlaylistDetailScreenTest` passed all 12 tests in 18.56 seconds on the disposable TV. Total applicable TV device checks: **42 passed**.
+`PlaylistDetailScreenTest` passed all 12 tests in 18.56 seconds on the disposable TV. Together these broader runs covered **42 applicable TV device checks**. The More focus-order change adds nine regression cases; its targeted run passed all **22 tests** in 41.792 seconds (`MoreScreenFocusTest`, `TopLevelFabFocusTest`, `NavigationLayoutFabFocusTest`, and `NetworkFabFocusTest`). This gives 51 distinct applicable TV cases across the runs. Local XML still contains 196 passing tests.
 
 The phone text-focus regression was also verified separately on a disposable Pixel 6a profile using the `android-37.1` ARM64 system image. That emulator was deleted afterward.
 
@@ -41,3 +43,13 @@ These captures use synthetic media only. The before/after pair shows return from
 Shared Home FAB with its TV focus outline:
 
 ![Focused Home FAB](home-fab-focused.png)
+
+## More focus order
+
+Opening More with the D-pad focuses Vault. Two Down presses then visit Trash and the History arrow; another Down enters the history row. Up from a video returns to the arrow, and Down returns to that video. Empty history, delayed history updates, tab re-entry, and Tab traversal are covered by the regression tests.
+
+| Before: two Down presses skip the arrow | After: two Down presses focus the arrow |
+| --- | --- |
+| ![History arrow skipped](more-order-before.png) | ![History arrow focused](more-history-arrow.png) |
+
+![Vault focused on More entry](more-first-action.png)
