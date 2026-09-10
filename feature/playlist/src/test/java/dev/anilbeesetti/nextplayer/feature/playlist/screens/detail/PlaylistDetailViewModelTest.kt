@@ -13,10 +13,7 @@ import dev.anilbeesetti.nextplayer.feature.playlist.FakePlaylistRepository
 import dev.anilbeesetti.nextplayer.feature.playlist.FakeSystemService
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
-import kotlinx.coroutines.launch
 import kotlinx.coroutines.test.StandardTestDispatcher
-import kotlinx.coroutines.test.TestScope
-import kotlinx.coroutines.test.UnconfinedTestDispatcher
 import kotlinx.coroutines.test.advanceUntilIdle
 import kotlinx.coroutines.test.resetMain
 import kotlinx.coroutines.test.runCurrent
@@ -110,7 +107,7 @@ class PlaylistDetailViewModelTest {
         assertTrue(systemService.toasts.isEmpty())
     }
 
-    private fun TestScope.viewModel() = PlaylistDetailViewModel(
+    private fun viewModel() = PlaylistDetailViewModel(
         observePlaylist = ObservePlaylistUseCase(repository, mediaRepository),
         playlistRepository = repository,
         m3uParser = M3UParser(context, Dispatchers.Unconfined),
@@ -120,9 +117,7 @@ class PlaylistDetailViewModelTest {
             navigateUp = {},
             playPlaylist = { _, _ -> },
         ),
-    ).also { viewModel ->
-        backgroundScope.launch(UnconfinedTestDispatcher(testScheduler)) { viewModel.state.collect {} }
-    }
+    )
 
     private fun linkedRecord(source: String?) = PlaylistRecord(
         id = 7,

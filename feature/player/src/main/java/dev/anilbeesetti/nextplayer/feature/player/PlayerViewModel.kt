@@ -51,7 +51,6 @@ class PlayerViewModel @AssistedInject constructor(
     override val state: StateFlow<PlayerUiState> = stateInternal.asStateFlow()
 
     init {
-        // Activity lifecycle callbacks need current preferences even while the UI is stopped.
         viewModelScope.launch {
             preferencesRepository.playerPreferences.collect { prefs ->
                 stateInternal.update { it.copy(playerPreferences = prefs) }

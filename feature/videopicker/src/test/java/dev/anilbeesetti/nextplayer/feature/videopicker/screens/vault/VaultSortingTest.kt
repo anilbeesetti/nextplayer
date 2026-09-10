@@ -15,10 +15,7 @@ import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
-import kotlinx.coroutines.launch
 import kotlinx.coroutines.test.StandardTestDispatcher
-import kotlinx.coroutines.test.TestScope
-import kotlinx.coroutines.test.UnconfinedTestDispatcher
 import kotlinx.coroutines.test.advanceUntilIdle
 import kotlinx.coroutines.test.resetMain
 import kotlinx.coroutines.test.runTest
@@ -177,7 +174,7 @@ class VaultSortingTest {
             )
         }
 
-    private fun TestScope.createViewModel(preferencesRepository: FakePreferencesRepository): VaultViewModel {
+    private fun createViewModel(preferencesRepository: FakePreferencesRepository): VaultViewModel {
         val vaultRepository = FakeVaultRepository(
             listOf(
                 Video.sample.copy(
@@ -212,9 +209,7 @@ class VaultSortingTest {
             vaultPinRepository = FakeVaultPinRepository,
             getHiddenVideosUseCase = GetHiddenVideosUseCase(vaultRepository, testDispatcher),
             preferencesRepository = preferencesRepository,
-        ).also { viewModel ->
-            backgroundScope.launch(UnconfinedTestDispatcher(testScheduler)) { viewModel.state.collect {} }
-        }
+        )
     }
 
     private class FakeVaultRepository(videos: List<Video>) : VaultRepository {

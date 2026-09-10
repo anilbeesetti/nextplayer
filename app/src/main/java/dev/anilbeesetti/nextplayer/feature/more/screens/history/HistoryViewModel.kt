@@ -5,7 +5,6 @@ import dagger.assisted.Assisted
 import dagger.assisted.AssistedFactory
 import dagger.assisted.AssistedInject
 import dagger.hilt.android.lifecycle.HiltViewModel
-import dev.anilbeesetti.nextplayer.core.common.extensions.collectWhileSubscribed
 import dev.anilbeesetti.nextplayer.core.data.repository.MediaRepository
 import dev.anilbeesetti.nextplayer.core.data.repository.PreferencesRepository
 import dev.anilbeesetti.nextplayer.core.model.ApplicationPreferences
@@ -41,14 +40,18 @@ class HistoryViewModel @AssistedInject constructor(
     override val state: StateFlow<HistoryUiState> = stateInternal.asStateFlow()
 
     init {
-        mediaRepository.observePlaybackHistory()
-            .map<List<Video>, DataState<List<Video>>> { DataState.Success(it) }
-            .catch { emit(DataState.Error(it)) }
-            .collectWhileSubscribed(viewModelScope, stateInternal) { history ->
-                stateInternal.update { it.copy(history = history) }
+        viewModelScope.launch {
+            mediaRepository.observePlaybackHistory()
+                .map<List<Video>, DataState<List<Video>>> { DataState.Success(it) }
+                .catch { emit(DataState.Error(it)) }
+                .collect { history ->
+                    stateInternal.update { it.copy(history = history) }
+                }
+        }
+        viewModelScope.launch {
+            preferencesRepository.applicationPreferences.collect { preferences ->
+                stateInternal.update { it.copy(preferences = preferences) }
             }
-        preferencesRepository.applicationPreferences.collectWhileSubscribed(viewModelScope, stateInternal) { preferences ->
-            stateInternal.update { it.copy(preferences = preferences) }
         }
     }
 

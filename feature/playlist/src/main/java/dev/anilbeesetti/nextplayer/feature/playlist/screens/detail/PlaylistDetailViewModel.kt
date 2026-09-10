@@ -8,7 +8,6 @@ import dagger.assisted.Assisted
 import dagger.assisted.AssistedFactory
 import dagger.assisted.AssistedInject
 import dagger.hilt.android.lifecycle.HiltViewModel
-import dev.anilbeesetti.nextplayer.core.common.extensions.collectWhileSubscribed
 import dev.anilbeesetti.nextplayer.core.common.service.system.SystemService
 import dev.anilbeesetti.nextplayer.core.data.playlist.M3UParser
 import dev.anilbeesetti.nextplayer.core.data.repository.PlaylistRepository
@@ -62,14 +61,16 @@ class PlaylistDetailViewModel @AssistedInject constructor(
     private var refreshJob: Job? = null
 
     init {
-        observePlaylist(input.playlistId).collectWhileSubscribed(viewModelScope, stateInternal) { playlist ->
-            stateInternal.update { currentState ->
-                currentState.copy(
-                    playlistDataState = DataState.Success(playlist),
-                    isReordering = currentState.isReordering &&
-                        playlist?.type == PlaylistType.LOCAL &&
-                        playlist.items.size > 1,
-                )
+        viewModelScope.launch {
+            observePlaylist(input.playlistId).collect { playlist ->
+                stateInternal.update { currentState ->
+                    currentState.copy(
+                        playlistDataState = DataState.Success(playlist),
+                        isReordering = currentState.isReordering &&
+                            playlist?.type == PlaylistType.LOCAL &&
+                            playlist.items.size > 1,
+                    )
+                }
             }
         }
     }

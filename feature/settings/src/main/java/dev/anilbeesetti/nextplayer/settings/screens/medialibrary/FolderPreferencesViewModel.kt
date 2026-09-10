@@ -5,7 +5,6 @@ import dagger.assisted.Assisted
 import dagger.assisted.AssistedFactory
 import dagger.assisted.AssistedInject
 import dagger.hilt.android.lifecycle.HiltViewModel
-import dev.anilbeesetti.nextplayer.core.common.extensions.collectWhileSubscribed
 import dev.anilbeesetti.nextplayer.core.data.repository.MediaRepository
 import dev.anilbeesetti.nextplayer.core.data.repository.PreferencesRepository
 import dev.anilbeesetti.nextplayer.core.model.ApplicationPreferences
@@ -42,15 +41,19 @@ class FolderPreferencesViewModel @AssistedInject constructor(
     override val state: StateFlow<FolderPreferencesUiState> = stateInternal.asStateFlow()
 
     init {
-        mediaRepository.observeFolders().collectWhileSubscribed(viewModelScope, stateInternal) {
-            stateInternal.update { currentState ->
-                currentState.copy(foldersDataState = DataState.Success(it))
+        viewModelScope.launch {
+            mediaRepository.observeFolders().collect {
+                stateInternal.update { currentState ->
+                    currentState.copy(foldersDataState = DataState.Success(it))
+                }
             }
         }
 
-        preferencesRepository.applicationPreferences.collectWhileSubscribed(viewModelScope, stateInternal) { preferences ->
-            stateInternal.update { currentState ->
-                currentState.copy(preferences = preferences)
+        viewModelScope.launch {
+            preferencesRepository.applicationPreferences.collect { preferences ->
+                stateInternal.update { currentState ->
+                    currentState.copy(preferences = preferences)
+                }
             }
         }
     }

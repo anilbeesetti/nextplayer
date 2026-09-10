@@ -5,7 +5,6 @@ import dagger.assisted.Assisted
 import dagger.assisted.AssistedFactory
 import dagger.assisted.AssistedInject
 import dagger.hilt.android.lifecycle.HiltViewModel
-import dev.anilbeesetti.nextplayer.core.common.extensions.collectWhileSubscribed
 import dev.anilbeesetti.nextplayer.core.data.repository.PreferencesRepository
 import dev.anilbeesetti.nextplayer.core.model.ApplicationPreferences
 import dev.anilbeesetti.nextplayer.core.ui.base.MviViewModel
@@ -36,9 +35,11 @@ class MediaLibraryPreferencesViewModel @AssistedInject constructor(
     override val state: StateFlow<MediaLibraryPreferencesUiState> = stateInternal.asStateFlow()
 
     init {
-        preferencesRepository.applicationPreferences.collectWhileSubscribed(viewModelScope, stateInternal) {
-            stateInternal.update { currentState ->
-                currentState.copy(preferences = it)
+        viewModelScope.launch {
+            preferencesRepository.applicationPreferences.collect {
+                stateInternal.update { currentState ->
+                    currentState.copy(preferences = it)
+                }
             }
         }
     }

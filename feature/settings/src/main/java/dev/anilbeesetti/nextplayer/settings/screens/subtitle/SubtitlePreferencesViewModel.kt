@@ -6,7 +6,6 @@ import dagger.assisted.Assisted
 import dagger.assisted.AssistedFactory
 import dagger.assisted.AssistedInject
 import dagger.hilt.android.lifecycle.HiltViewModel
-import dev.anilbeesetti.nextplayer.core.common.extensions.collectWhileSubscribed
 import dev.anilbeesetti.nextplayer.core.data.repository.PreferencesRepository
 import dev.anilbeesetti.nextplayer.core.model.Font
 import dev.anilbeesetti.nextplayer.core.model.PlayerPreferences
@@ -40,9 +39,11 @@ class SubtitlePreferencesViewModel @AssistedInject constructor(
     override val state: StateFlow<SubtitlePreferencesUiState> = stateInternal.asStateFlow()
 
     init {
-        preferencesRepository.playerPreferences.collectWhileSubscribed(viewModelScope, stateInternal) { preferences ->
-            stateInternal.update { currentState ->
-                currentState.copy(preferences = preferences)
+        viewModelScope.launch {
+            preferencesRepository.playerPreferences.collect { preferences ->
+                stateInternal.update { currentState ->
+                    currentState.copy(preferences = preferences)
+                }
             }
         }
     }

@@ -21,7 +21,6 @@ class MainViewModel @Inject constructor(
     override val state: StateFlow<MainActivityUiState> = stateInternal.asStateFlow()
 
     init {
-        // The splash screen reads state.value before a screen starts collecting.
         viewModelScope.launch {
             preferencesRepository.applicationPreferences.collect { preferences ->
                 stateInternal.update { MainActivityUiState.Success(preferences) }

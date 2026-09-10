@@ -13,7 +13,6 @@ import dagger.assisted.AssistedFactory
 import dagger.assisted.AssistedInject
 import dagger.hilt.android.lifecycle.HiltViewModel
 import dagger.hilt.android.qualifiers.ApplicationContext
-import dev.anilbeesetti.nextplayer.core.common.extensions.collectWhileSubscribed
 import dev.anilbeesetti.nextplayer.core.common.extensions.prettyName
 import dev.anilbeesetti.nextplayer.core.common.service.system.SystemService
 import dev.anilbeesetti.nextplayer.core.common.storagePermission
@@ -156,31 +155,39 @@ class MediaPickerViewModel @AssistedInject constructor(
             currentState.copy(mediaDataState = DataState.Loading)
         }
         mediaCollectJob = viewModelScope.launch {
-            getSortedMediaUseCase(folderPath).collectWhileSubscribed(this, stateInternal) { media ->
-                stateInternal.update { it.copy(mediaDataState = DataState.Success(media)) }
+            launch {
+                getSortedMediaUseCase(folderPath).collect { media ->
+                    stateInternal.update { it.copy(mediaDataState = DataState.Success(media)) }
+                }
             }
-            getRecentlyPlayedVideoUseCase(folderPath).collectWhileSubscribed(this, stateInternal) { recentlyPlayed ->
-                stateInternal.update { it.copy(recentlyPlayedVideo = recentlyPlayed) }
+            launch {
+                getRecentlyPlayedVideoUseCase(folderPath).collect { recentlyPlayed ->
+                    stateInternal.update { it.copy(recentlyPlayedVideo = recentlyPlayed) }
+                }
             }
         }
     }
 
     private fun collectPreferences() {
-        preferencesRepository.applicationPreferences.collectWhileSubscribed(viewModelScope, stateInternal) {
-            stateInternal.update { currentState ->
-                currentState.copy(preferences = it)
+        viewModelScope.launch {
+            preferencesRepository.applicationPreferences.collect {
+                stateInternal.update { currentState ->
+                    currentState.copy(preferences = it)
+                }
             }
         }
     }
 
     private fun collectPlaylists() {
-        playlistRepository.observePlaylists().collectWhileSubscribed(viewModelScope, stateInternal) { playlists ->
-            stateInternal.update {
-                it.copy(
-                    playlists = playlists.filter { playlist ->
-                        playlist.type == PlaylistType.LOCAL
-                    },
-                )
+        viewModelScope.launch {
+            playlistRepository.observePlaylists().collect { playlists ->
+                stateInternal.update {
+                    it.copy(
+                        playlists = playlists.filter { playlist ->
+                            playlist.type == PlaylistType.LOCAL
+                        },
+                    )
+                }
             }
         }
     }

@@ -7,7 +7,6 @@ import dagger.assisted.Assisted
 import dagger.assisted.AssistedFactory
 import dagger.assisted.AssistedInject
 import dagger.hilt.android.lifecycle.HiltViewModel
-import dev.anilbeesetti.nextplayer.core.common.extensions.collectWhileSubscribed
 import dev.anilbeesetti.nextplayer.core.data.repository.MediaRepository
 import dev.anilbeesetti.nextplayer.core.data.repository.PreferencesRepository
 import dev.anilbeesetti.nextplayer.core.media.services.MediaOperationsService
@@ -46,14 +45,18 @@ class TrashViewModel @AssistedInject constructor(
     override val state: StateFlow<TrashUiState> = stateInternal.asStateFlow()
 
     init {
-        mediaRepository.observeTrashVideos()
-            .map<List<Video>, DataState<List<Video>>> { DataState.Success(it) }
-            .catch { emit(DataState.Error(it)) }
-            .collectWhileSubscribed(viewModelScope, stateInternal) { videos ->
-                stateInternal.update { it.copy(videos = videos) }
+        viewModelScope.launch {
+            mediaRepository.observeTrashVideos()
+                .map<List<Video>, DataState<List<Video>>> { DataState.Success(it) }
+                .catch { emit(DataState.Error(it)) }
+                .collect { videos ->
+                    stateInternal.update { it.copy(videos = videos) }
+                }
+        }
+        viewModelScope.launch {
+            preferencesRepository.applicationPreferences.collect { preferences ->
+                stateInternal.update { it.copy(preferences = preferences) }
             }
-        preferencesRepository.applicationPreferences.collectWhileSubscribed(viewModelScope, stateInternal) { preferences ->
-            stateInternal.update { it.copy(preferences = preferences) }
         }
     }
 

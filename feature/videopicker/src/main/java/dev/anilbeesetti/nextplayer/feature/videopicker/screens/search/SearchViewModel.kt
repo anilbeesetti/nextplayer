@@ -7,7 +7,6 @@ import dagger.assisted.Assisted
 import dagger.assisted.AssistedFactory
 import dagger.assisted.AssistedInject
 import dagger.hilt.android.lifecycle.HiltViewModel
-import dev.anilbeesetti.nextplayer.core.common.extensions.collectWhileSubscribed
 import dev.anilbeesetti.nextplayer.core.data.repository.PreferencesRepository
 import dev.anilbeesetti.nextplayer.core.data.repository.SearchHistoryRepository
 import dev.anilbeesetti.nextplayer.core.domain.GetPopularFoldersUseCase
@@ -59,38 +58,46 @@ class SearchViewModel @AssistedInject constructor(
     }
 
     private fun collectSearchHistory() {
-        searchHistoryRepository.searchHistory.collectWhileSubscribed(viewModelScope, stateInternal) { history ->
-            stateInternal.update { it.copy(searchHistory = history) }
+        viewModelScope.launch {
+            searchHistoryRepository.searchHistory.collect { history ->
+                stateInternal.update { it.copy(searchHistory = history) }
+            }
         }
     }
 
     private fun collectPopularFolders() {
-        getPopularFoldersUseCase(limit = 5).collectWhileSubscribed(viewModelScope, stateInternal) { folders ->
-            stateInternal.update { it.copy(popularFolders = folders) }
+        viewModelScope.launch {
+            getPopularFoldersUseCase(limit = 5).collect { folders ->
+                stateInternal.update { it.copy(popularFolders = folders) }
+            }
         }
     }
 
     private fun collectPreferences() {
-        preferencesRepository.applicationPreferences.collectWhileSubscribed(viewModelScope, stateInternal) { prefs ->
-            stateInternal.update { it.copy(preferences = prefs) }
+        viewModelScope.launch {
+            preferencesRepository.applicationPreferences.collect { prefs ->
+                stateInternal.update { it.copy(preferences = prefs) }
+            }
         }
     }
 
     @OptIn(FlowPreview::class, ExperimentalCoroutinesApi::class)
     private fun collectSearchResults() {
-        searchQuery
-            .debounce(SEARCH_DEBOUNCE_MS)
-            .flatMapLatest { query ->
-                searchMediaUseCase(query)
-            }
-            .collectWhileSubscribed(viewModelScope, stateInternal) { results ->
-                stateInternal.update {
-                    it.copy(
-                        searchResults = results,
-                        isSearching = false,
-                    )
+        viewModelScope.launch {
+            searchQuery
+                .debounce(SEARCH_DEBOUNCE_MS)
+                .flatMapLatest { query ->
+                    searchMediaUseCase(query)
                 }
-            }
+                .collect { results ->
+                    stateInternal.update {
+                        it.copy(
+                            searchResults = results,
+                            isSearching = false,
+                        )
+                    }
+                }
+        }
     }
 
     override fun onAction(action: SearchUiEvent) {
