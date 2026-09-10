@@ -77,20 +77,25 @@ sealed interface AddConnectionAction {
 
 @HiltViewModel(assistedFactory = AddConnectionViewModel.Factory::class)
 class AddConnectionViewModel @AssistedInject constructor(
-    @Assisted private val connectionId: Long?,
+    @Assisted private val input: Input,
+    @Assisted internal var output: Output,
     private val repository: NetworkConnectionRepository,
     private val clientFactory: NetworkClientFactory,
     private val sshKeyStore: SshKeyStore,
     @ApplicationScope private val applicationScope: CoroutineScope,
 ) : MviViewModel<AddConnectionUiState, AddConnectionAction>() {
 
+    data class Input(val connectionId: Long?)
+    data class Output(val navigateUp: () -> Unit)
+    private val connectionId = input.connectionId
+
     @AssistedFactory
     interface Factory {
-        fun create(connectionId: Long?): AddConnectionViewModel
+        fun create(input: Input, output: Output): AddConnectionViewModel
     }
 
-    private val internalState = MutableStateFlow(AddConnectionUiState(isEdit = connectionId != null))
-    override val state: StateFlow<AddConnectionUiState> = internalState.asStateFlow()
+    private val stateInternal = MutableStateFlow(AddConnectionUiState(isEdit = connectionId != null))
+    override val state: StateFlow<AddConnectionUiState> = stateInternal.asStateFlow()
 
     private val _savedEvents = Channel<Unit>(Channel.BUFFERED)
     val savedEvents = _savedEvents.receiveAsFlow()
@@ -120,7 +125,7 @@ class AddConnectionViewModel @AssistedInject constructor(
         if (connectionId != null) {
             viewModelScope.launch {
                 val connection = repository.getConnection(connectionId)
-                internalState.update { it.copy(existingConnection = connection) }
+                stateInternal.update { it.copy(existingConnection = connection) }
             }
         }
     }
@@ -128,12 +133,15 @@ class AddConnectionViewModel @AssistedInject constructor(
     override fun onAction(action: AddConnectionAction) {
         when (action) {
             is AddConnectionAction.StagePrivateKey -> stagePrivateKey(action.uri)
-            AddConnectionAction.RemoveSelectedPrivateKey -> removeSelectedPrivateKey()
+            is AddConnectionAction.RemoveSelectedPrivateKey -> removeSelectedPrivateKey()
             is AddConnectionAction.TestAndSave -> testAndSave(action.connection)
-            AddConnectionAction.AcceptHostKey -> acceptHostKey()
-            AddConnectionAction.RejectHostKey -> rejectHostKey()
-            AddConnectionAction.ClearError -> clearError()
-            AddConnectionAction.Cancel -> invalidateAndCleanup()
+            is AddConnectionAction.AcceptHostKey -> acceptHostKey()
+            is AddConnectionAction.RejectHostKey -> rejectHostKey()
+            is AddConnectionAction.ClearError -> clearError()
+            is AddConnectionAction.Cancel -> {
+                invalidateAndCleanup()
+                output.navigateUp()
+            }
         }
     }
 
@@ -153,20 +161,20 @@ class AddConnectionViewModel @AssistedInject constructor(
                 .onSuccess { staged ->
                     val previous = state.value.selectedPrivateKey
                     trackSessionKey(staged.fileName)
-                    internalState.update {
+                    stateInternal.update {
                         it.copy(selectedPrivateKey = SelectedPrivateKey(staged.fileName, staged.displayName))
                     }
                     if (previous != null && previous.stagedFileName != staged.fileName) {
                         runCatching { sshKeyStore.delete(previous.stagedFileName) }
                             .onSuccess { untrackSessionKey(previous.stagedFileName) }
                             .onFailure { error ->
-                                internalState.update { it.copy(saveState = SaveState.Error(error.actionableMessage())) }
+                                stateInternal.update { it.copy(saveState = SaveState.Error(error.actionableMessage())) }
                                 scheduleTrackedCleanup(previous.stagedFileName)
                             }
                     }
                 }
                 .onFailure { error ->
-                    internalState.update { it.copy(saveState = SaveState.Error(error.actionableMessage())) }
+                    stateInternal.update { it.copy(saveState = SaveState.Error(error.actionableMessage())) }
                 }
         }
     }
@@ -180,12 +188,12 @@ class AddConnectionViewModel @AssistedInject constructor(
                 .onSuccess {
                     untrackSessionKey(selected.stagedFileName)
                     if (keyMutationMayComplete(mutationEpoch) && state.value.selectedPrivateKey == selected) {
-                        internalState.update { it.copy(selectedPrivateKey = null) }
+                        stateInternal.update { it.copy(selectedPrivateKey = null) }
                     }
                 }
                 .onFailure { error ->
                     if (keyMutationMayComplete(mutationEpoch)) {
-                        internalState.update { it.copy(saveState = SaveState.Error(error.actionableMessage())) }
+                        stateInternal.update { it.copy(saveState = SaveState.Error(error.actionableMessage())) }
                     }
                 }
         }
@@ -221,11 +229,11 @@ class AddConnectionViewModel @AssistedInject constructor(
         if (state.value.saveState !is SaveState.ConfirmHostKey) return
         pendingOperation = null
         activeOperation = null
-        internalState.update { it.copy(saveState = SaveState.Idle) }
+        stateInternal.update { it.copy(saveState = SaveState.Idle) }
     }
 
     private fun clearError() {
-        internalState.update {
+        stateInternal.update {
             if (it.saveState is SaveState.Error) it.copy(saveState = SaveState.Idle) else it
         }
     }
@@ -237,7 +245,7 @@ class AddConnectionViewModel @AssistedInject constructor(
     }
 
     private fun startSave(operation: SaveOperation) {
-        internalState.update { it.copy(saveState = SaveState.Testing) }
+        stateInternal.update { it.copy(saveState = SaveState.Testing) }
         activeSaveJob = viewModelScope.launch { connectAndSave(operation) }
     }
 
@@ -258,14 +266,14 @@ class AddConnectionViewModel @AssistedInject constructor(
             pendingOperation = null
             activeOperation = null
             _savedEvents.send(Unit)
-            internalState.update { it.copy(saveState = SaveState.Idle) }
+            stateInternal.update { it.copy(saveState = SaveState.Idle) }
             return
         }
 
         val hostConfirmation = error.findCause<HostKeyConfirmationRequired>()
         if (hostConfirmation != null) {
             pendingOperation = operation
-            internalState.update {
+            stateInternal.update {
                 it.copy(
                     saveState = SaveState.ConfirmHostKey(
                         HostKeyConfirmation(
@@ -280,7 +288,7 @@ class AddConnectionViewModel @AssistedInject constructor(
         } else {
             pendingOperation = null
             activeOperation = null
-            internalState.update { it.copy(saveState = error.toSaveError()) }
+            stateInternal.update { it.copy(saveState = error.toSaveError()) }
         }
     }
 
@@ -306,7 +314,7 @@ class AddConnectionViewModel @AssistedInject constructor(
                 if (isCleared) scheduleTrackedCleanup(selected.stagedFileName)
                 throw error
             }
-            internalState.update {
+            stateInternal.update {
                 if (it.selectedPrivateKey == selected) it.copy(selectedPrivateKey = null) else it
             }
             replacePersistingKey(selected.stagedFileName, committed)
@@ -331,7 +339,7 @@ class AddConnectionViewModel @AssistedInject constructor(
         repository.upsert(draft)
         if (oldKey.isNotBlank()) cleanupAfterSuccessfulSave(oldKey)
         val unusedStage = operation.selectedPrivateKey
-        internalState.update {
+        stateInternal.update {
             if (it.selectedPrivateKey == unusedStage) it.copy(selectedPrivateKey = null) else it
         }
         if (unusedStage != null) cleanupAfterSuccessfulSave(unusedStage.stagedFileName)
@@ -354,7 +362,7 @@ class AddConnectionViewModel @AssistedInject constructor(
             cleanupRequested = true
             listOfNotNull(activeSaveJob, activeKeyMutationJob)
         }
-        internalState.update { it.copy(selectedPrivateKey = null) }
+        stateInternal.update { it.copy(selectedPrivateKey = null) }
         jobs.forEach(Job::cancel)
         applicationScope.launch {
             jobs.joinAll()

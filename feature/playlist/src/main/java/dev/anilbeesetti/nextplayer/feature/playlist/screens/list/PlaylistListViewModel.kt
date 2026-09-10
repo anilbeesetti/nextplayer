@@ -35,7 +35,7 @@ class PlaylistListViewModel @AssistedInject constructor(
     private val documentPermissionManager: M3UDocumentPermissionManager,
     private val mediaSynchronizer: MediaSynchronizer,
     private val systemService: SystemService,
-    @Assisted private val output: Output,
+    @Assisted internal var output: Output,
 ) : MviViewModel<PlaylistListUiState, PlaylistUiAction>() {
 
     data class Output(
@@ -50,13 +50,13 @@ class PlaylistListViewModel @AssistedInject constructor(
 
     private var linkedCreationJob: Job? = null
 
-    private val internalState = MutableStateFlow(PlaylistListUiState())
-    override val state: StateFlow<PlaylistListUiState> = internalState.asStateFlow()
+    private val stateInternal = MutableStateFlow(PlaylistListUiState())
+    override val state: StateFlow<PlaylistListUiState> = stateInternal.asStateFlow()
 
     init {
         viewModelScope.launch {
             playlistRepository.observePlaylists().collect { playlists ->
-                internalState.update {
+                stateInternal.update {
                     it.copy(playlistsDataState = DataState.Success(playlists))
                 }
             }
@@ -65,22 +65,25 @@ class PlaylistListViewModel @AssistedInject constructor(
 
     override fun onAction(action: PlaylistUiAction) {
         when (action) {
-            PlaylistUiAction.OnSettingsClick -> output.openSettings()
+            is PlaylistUiAction.Synchronize -> synchronize()
+            is PlaylistUiAction.CreateM3UFile -> createM3UFile(action.uri)
+
+            is PlaylistUiAction.OnSettingsClick -> output.openSettings()
             is PlaylistUiAction.OnPlaylistClick -> output.openPlaylist(action.playlist.id)
-            PlaylistUiAction.ShowCreationChooser -> showCreationDialog(PlaylistCreationDialog.CHOOSER)
-            PlaylistUiAction.ChooseLocalPlaylist -> showCreationDialog(PlaylistCreationDialog.LOCAL_NAME)
-            PlaylistUiAction.ChooseM3UUrl -> showCreationDialog(PlaylistCreationDialog.M3U_URL)
-            PlaylistUiAction.DismissCreation -> showCreationDialog(PlaylistCreationDialog.NONE)
-            is PlaylistUiAction.ShowRenameDialogFor -> internalState.update {
+            is PlaylistUiAction.ShowCreationChooser -> showCreationDialog(PlaylistCreationDialog.CHOOSER)
+            is PlaylistUiAction.ChooseLocalPlaylist -> showCreationDialog(PlaylistCreationDialog.LOCAL_NAME)
+            is PlaylistUiAction.ChooseM3UUrl -> showCreationDialog(PlaylistCreationDialog.M3U_URL)
+            is PlaylistUiAction.DismissCreation -> showCreationDialog(PlaylistCreationDialog.NONE)
+            is PlaylistUiAction.ShowRenameDialogFor -> stateInternal.update {
                 it.copy(showRenameDialogFor = action.playlist, saveActionState = ActionState.Idle)
             }
-            PlaylistUiAction.DismissRenameDialog -> internalState.update {
+            is PlaylistUiAction.DismissRenameDialog -> stateInternal.update {
                 it.copy(showRenameDialogFor = null, saveActionState = ActionState.Idle)
             }
-            is PlaylistUiAction.ShowDeleteDialogFor -> internalState.update {
+            is PlaylistUiAction.ShowDeleteDialogFor -> stateInternal.update {
                 it.copy(showDeleteDialogFor = action.playlist, saveActionState = ActionState.Idle)
             }
-            PlaylistUiAction.DismissDeleteDialog -> internalState.update {
+            is PlaylistUiAction.DismissDeleteDialog -> stateInternal.update {
                 it.copy(showDeleteDialogFor = null, saveActionState = ActionState.Idle)
             }
             is PlaylistUiAction.CreateLocal -> createLocal(action.name)
@@ -90,11 +93,11 @@ class PlaylistListViewModel @AssistedInject constructor(
         }
     }
 
-    fun synchronize() {
+    private fun synchronize() {
         mediaSynchronizer.startSync()
     }
 
-    fun createM3UFile(uri: Uri) {
+    private fun createM3UFile(uri: Uri) {
         if (linkedCreationJob?.isActive == true) return
         linkedCreationJob = viewModelScope.launch {
             val grant = documentPermissionManager.acquire(uri).getOrElse {
@@ -113,7 +116,7 @@ class PlaylistListViewModel @AssistedInject constructor(
     }
 
     private fun showCreationDialog(dialog: PlaylistCreationDialog) {
-        internalState.update {
+        stateInternal.update {
             it.copy(creationDialog = dialog, saveActionState = ActionState.Idle)
         }
     }
@@ -121,7 +124,7 @@ class PlaylistListViewModel @AssistedInject constructor(
     private fun createLocal(name: String) {
         save {
             val playlistId = playlistRepository.create(name)
-            internalState.update { it.copy(creationDialog = PlaylistCreationDialog.NONE) }
+            stateInternal.update { it.copy(creationDialog = PlaylistCreationDialog.NONE) }
             output.openPlaylist(playlistId)
         }
     }
@@ -147,11 +150,11 @@ class PlaylistListViewModel @AssistedInject constructor(
         showInlineError: Boolean,
         parse: suspend () -> Result<M3UPlaylist>,
     ) {
-        internalState.update { it.copy(saveActionState = ActionState.Running) }
+        stateInternal.update { it.copy(saveActionState = ActionState.Running) }
         try {
             val playlist = parse().getOrThrow()
             val playlistId = playlistRepository.createM3U(type, source, playlist)
-            internalState.update {
+            stateInternal.update {
                 it.copy(
                     creationDialog = PlaylistCreationDialog.NONE,
                     saveActionState = ActionState.Success,
@@ -160,18 +163,18 @@ class PlaylistListViewModel @AssistedInject constructor(
             output.openPlaylist(playlistId)
         } catch (cancellation: CancellationException) {
             grant?.let(documentPermissionManager::release)
-            internalState.update { it.copy(saveActionState = ActionState.Idle) }
+            stateInternal.update { it.copy(saveActionState = ActionState.Idle) }
             throw cancellation
         } catch (error: Throwable) {
             grant?.let(documentPermissionManager::release)
             val message = error.message?.takeIf(String::isNotBlank)
                 ?: systemService.getString(R.string.playlist_save_failed)
             if (showInlineError) {
-                internalState.update {
+                stateInternal.update {
                     it.copy(saveActionState = ActionState.Failed(Error(message, error)))
                 }
             } else {
-                internalState.update {
+                stateInternal.update {
                     it.copy(
                         creationDialog = PlaylistCreationDialog.NONE,
                         saveActionState = ActionState.Idle,
@@ -185,7 +188,7 @@ class PlaylistListViewModel @AssistedInject constructor(
     private fun rename(playlistId: Long, name: String) {
         save {
             playlistRepository.rename(playlistId, name)
-            internalState.update { it.copy(showRenameDialogFor = null) }
+            stateInternal.update { it.copy(showRenameDialogFor = null) }
         }
     }
 
@@ -200,7 +203,7 @@ class PlaylistListViewModel @AssistedInject constructor(
                 ) {
                     playlist.source?.let(Uri::parse)?.let(documentPermissionManager::release)
                 }
-                internalState.update { it.copy(showDeleteDialogFor = null) }
+                stateInternal.update { it.copy(showDeleteDialogFor = null) }
             } catch (cancellation: CancellationException) {
                 throw cancellation
             } catch (_: Throwable) {
@@ -212,15 +215,15 @@ class PlaylistListViewModel @AssistedInject constructor(
     private fun save(block: suspend () -> Unit) {
         if (state.value.saveActionState.isRunning) return
         viewModelScope.launch {
-            internalState.update { it.copy(saveActionState = ActionState.Running) }
+            stateInternal.update { it.copy(saveActionState = ActionState.Running) }
             try {
                 block()
-                internalState.update { it.copy(saveActionState = ActionState.Success) }
+                stateInternal.update { it.copy(saveActionState = ActionState.Success) }
             } catch (cancellation: CancellationException) {
-                internalState.update { it.copy(saveActionState = ActionState.Idle) }
+                stateInternal.update { it.copy(saveActionState = ActionState.Idle) }
                 throw cancellation
             } catch (error: Throwable) {
-                internalState.update {
+                stateInternal.update {
                     it.copy(
                         saveActionState = ActionState.Failed(
                             Error(systemService.getString(R.string.playlist_save_failed), error),
@@ -255,6 +258,9 @@ data class PlaylistListUiState(
 )
 
 sealed interface PlaylistUiAction {
+    data object Synchronize : PlaylistUiAction
+    data class CreateM3UFile(val uri: Uri) : PlaylistUiAction
+
     data object OnSettingsClick : PlaylistUiAction
     data class OnPlaylistClick(val playlist: PlaylistSummary) : PlaylistUiAction
     data object ShowCreationChooser : PlaylistUiAction

@@ -27,7 +27,7 @@ import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.SideEffect
-import androidx.compose.runtime.remember
+import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -50,37 +50,24 @@ import dev.anilbeesetti.nextplayer.core.ui.extensions.copy
 import dev.anilbeesetti.nextplayer.feature.videopicker.composables.VideoGridItem
 
 @Composable
-fun MoreScreen(
-    onHistoryClick: () -> Unit,
-    onPlayVideo: (String) -> Unit,
-    onSettingsClick: () -> Unit,
-    onTrashClick: () -> Unit,
-    onVaultClick: () -> Unit,
+fun MoreRoute(
+    output: MoreViewModel.Output,
 ) {
-    val output = remember(onHistoryClick, onPlayVideo, onSettingsClick, onTrashClick, onVaultClick) {
-        MoreViewModel.Output(
-            openHistory = onHistoryClick,
-            playVideo = onPlayVideo,
-            openSettings = onSettingsClick,
-            openTrash = onTrashClick,
-            openVault = onVaultClick,
-        )
-    }
     val viewModel = hiltViewModel<MoreViewModel, MoreViewModel.Factory>(
         creationCallback = { factory -> factory.create(output) },
     )
     SideEffect { viewModel.output = output }
-    val uiState = viewModel.state.collectAsStateWithLifecycle().value
+    val state by viewModel.state.collectAsStateWithLifecycle()
 
     MoreScreenContent(
-        uiState = uiState,
+        state = state,
         onAction = viewModel::onAction,
     )
 }
 
 @Composable
 internal fun MoreScreenContent(
-    uiState: MoreUiState,
+    state: MoreUiState,
     onAction: (MoreAction) -> Unit,
 ) {
     BindTopLevelFab(TopLevelFabKey.MORE, NextIcons.Settings) { onAction(MoreAction.OpenSettings) }
@@ -159,8 +146,8 @@ internal fun MoreScreenContent(
                     }
                 }
                 HistorySection(
-                    history = uiState.history.result.orEmpty().take(10),
-                    preferences = uiState.preferences,
+                    history = state.history.result.orEmpty().take(10),
+                    preferences = state.preferences,
                     onMoreClick = { onAction(MoreAction.OpenHistory) },
                     onVideoClick = { onAction(MoreAction.PlayVideo(it.uriString)) },
                 )
@@ -211,5 +198,5 @@ private fun HistorySection(
 @Preview
 @Composable
 private fun MoreScreenContentPreview() {
-    MoreScreenContent(uiState = MoreUiState(), onAction = {})
+    MoreScreenContent(state = MoreUiState(), onAction = {})
 }

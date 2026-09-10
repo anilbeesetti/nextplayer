@@ -45,6 +45,7 @@ import dev.anilbeesetti.nextplayer.feature.videopicker.state.SelectionItem
 import java.io.File
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.first
@@ -93,13 +94,13 @@ class MediaPickerViewModel @AssistedInject constructor(
 
     val folderPath = input.folderId
 
-    private val uiStateInternal = MutableStateFlow(
+    private val stateInternal = MutableStateFlow(
         MediaPickerUiState(
             folderName = folderPath?.let { File(folderPath).prettyName },
             preferences = preferencesRepository.applicationPreferences.value,
         ),
     )
-    override val state = uiStateInternal.asStateFlow()
+    override val state: StateFlow<MediaPickerUiState> = stateInternal.asStateFlow()
 
     private var mediaCollectJob: Job? = null
     private var transferJob: Job? = null
@@ -114,12 +115,12 @@ class MediaPickerViewModel @AssistedInject constructor(
 
     override fun onAction(action: MediaPickerAction) {
         when (action) {
-            MediaPickerAction.OnNavigateUpClick -> output.navigateUp()
+            is MediaPickerAction.OnNavigateUpClick -> output.navigateUp()
             is MediaPickerAction.OnPlayVideo -> output.playVideo(action.uri)
             is MediaPickerAction.OnFolderClick -> output.openFolder(action.folderPath)
-            MediaPickerAction.OnSettingsClick -> output.openSettings()
-            MediaPickerAction.OnSearchClick -> output.openSearch()
-            MediaPickerAction.OnVaultClick -> output.openVault()
+            is MediaPickerAction.OnSettingsClick -> output.openSettings()
+            is MediaPickerAction.OnSearchClick -> output.openSearch()
+            is MediaPickerAction.OnVaultClick -> output.openVault()
             is MediaPickerAction.Refresh -> refresh()
             is MediaPickerAction.RenameVideo -> renameVideo(action.uri, action.to)
             is MediaPickerAction.UpdateMenu -> updateMenu(action.preferences)
@@ -128,19 +129,19 @@ class MediaPickerViewModel @AssistedInject constructor(
             is MediaPickerAction.DeleteSelectedItems -> deleteSelectedItems(action.selectionItems, action.permanently)
             is MediaPickerAction.ShareSelectedItems -> shareSelectedItems(action.selectionItems)
             is MediaPickerAction.ShowMediaInfo -> showMediaInfo(action.video)
-            MediaPickerAction.DismissMediaInfo -> uiStateInternal.update { it.copy(mediaInfo = null) }
+            is MediaPickerAction.DismissMediaInfo -> stateInternal.update { it.copy(mediaInfo = null) }
             is MediaPickerAction.CopySelectedItems -> transferSelectedItems(action.selectionItems, TransferMode.COPY)
             is MediaPickerAction.MoveSelectedItems -> transferSelectedItems(action.selectionItems, TransferMode.MOVE)
-            MediaPickerAction.CancelTransfer -> cancelTransfer()
+            is MediaPickerAction.CancelTransfer -> cancelTransfer()
             is MediaPickerAction.RequestHideSelectedItems -> requestHideSelectedItems(action.selectionItems)
             is MediaPickerAction.SetVaultPinAndHide -> setVaultPinAndHide(action.pin)
             is MediaPickerAction.CompleteBiometricSetup -> completeBiometricSetup(action.enabled)
-            MediaPickerAction.ConfirmHidePendingItems -> confirmHidePendingItems()
-            MediaPickerAction.DismissHideFlow -> uiStateInternal.update { it.copy(hideFlow = HideFlowState.Idle) }
+            is MediaPickerAction.ConfirmHidePendingItems -> confirmHidePendingItems()
+            is MediaPickerAction.DismissHideFlow -> stateInternal.update { it.copy(hideFlow = HideFlowState.Idle) }
             is MediaPickerAction.ShowAddToPlaylist -> showAddToPlaylist(action.selectionItems)
             is MediaPickerAction.AddSelectionToPlaylist -> addSelectionToPlaylist(action.playlistId)
             is MediaPickerAction.CreatePlaylistWithSelection -> createPlaylistWithSelection(action.name)
-            MediaPickerAction.DismissAddToPlaylist -> dismissAddToPlaylist()
+            is MediaPickerAction.DismissAddToPlaylist -> dismissAddToPlaylist()
         }
     }
 
@@ -151,7 +152,7 @@ class MediaPickerViewModel @AssistedInject constructor(
 
     private fun collectMedia() {
         mediaCollectJob?.cancel()
-        uiStateInternal.update { currentState ->
+        stateInternal.update { currentState ->
             currentState.copy(mediaDataState = DataState.Loading)
         }
         mediaCollectJob = viewModelScope.launch {
@@ -161,7 +162,7 @@ class MediaPickerViewModel @AssistedInject constructor(
             ) { media, recentlyPlayed ->
                 media to recentlyPlayed
             }.collect { (media, recentlyPlayed) ->
-                uiStateInternal.update { currentState ->
+                stateInternal.update { currentState ->
                     currentState.copy(
                         mediaDataState = DataState.Success(media),
                         recentlyPlayedVideo = recentlyPlayed,
@@ -175,7 +176,7 @@ class MediaPickerViewModel @AssistedInject constructor(
     private fun collectPreferences() {
         viewModelScope.launch {
             preferencesRepository.applicationPreferences.collect {
-                uiStateInternal.update { currentState ->
+                stateInternal.update { currentState ->
                     currentState.copy(preferences = it)
                 }
             }
@@ -185,7 +186,7 @@ class MediaPickerViewModel @AssistedInject constructor(
     private fun collectPlaylists() {
         viewModelScope.launch {
             playlistRepository.observePlaylists().collect { playlists ->
-                uiStateInternal.update {
+                stateInternal.update {
                     it.copy(
                         playlists = playlists.filter { playlist ->
                             playlist.type == PlaylistType.LOCAL
@@ -199,7 +200,7 @@ class MediaPickerViewModel @AssistedInject constructor(
     private var pendingPlaylistVideos: List<Video> = emptyList()
 
     private fun showAddToPlaylist(selectedItems: Set<SelectionItem>) {
-        uiStateInternal.update {
+        stateInternal.update {
             it.copy(
                 addToPlaylistState = AddToPlaylistState(
                     isVisible = true,
@@ -211,7 +212,7 @@ class MediaPickerViewModel @AssistedInject constructor(
             try {
                 val videos = selectedItems.toVideos()
                 pendingPlaylistVideos = videos
-                uiStateInternal.update {
+                stateInternal.update {
                     it.copy(
                         addToPlaylistState = AddToPlaylistState(
                             isVisible = true,
@@ -227,7 +228,7 @@ class MediaPickerViewModel @AssistedInject constructor(
             } catch (error: kotlinx.coroutines.CancellationException) {
                 throw error
             } catch (_: Throwable) {
-                uiStateInternal.update {
+                stateInternal.update {
                     it.copy(
                         addToPlaylistState = AddToPlaylistState(
                             isVisible = true,
@@ -259,25 +260,25 @@ class MediaPickerViewModel @AssistedInject constructor(
     }
 
     private fun savePlaylistSelection(block: suspend () -> Int) {
-        if (pendingPlaylistVideos.isEmpty() || uiStateInternal.value.addToPlaylistState.isSaving) return
-        uiStateInternal.update {
+        if (pendingPlaylistVideos.isEmpty() || stateInternal.value.addToPlaylistState.isSaving) return
+        stateInternal.update {
             it.copy(addToPlaylistState = it.addToPlaylistState.copy(isSaving = true, errorRes = null))
         }
         viewModelScope.launch {
             try {
                 val addedCount = block()
                 pendingPlaylistVideos = emptyList()
-                uiStateInternal.update {
+                stateInternal.update {
                     it.copy(addToPlaylistState = AddToPlaylistState())
                 }
                 showPlaylistItemsAddedToast(addedCount)
             } catch (error: kotlinx.coroutines.CancellationException) {
-                uiStateInternal.update {
+                stateInternal.update {
                     it.copy(addToPlaylistState = it.addToPlaylistState.copy(isSaving = false))
                 }
                 throw error
             } catch (_: Throwable) {
-                uiStateInternal.update {
+                stateInternal.update {
                     it.copy(
                         addToPlaylistState = it.addToPlaylistState.copy(
                             isSaving = false,
@@ -290,9 +291,9 @@ class MediaPickerViewModel @AssistedInject constructor(
     }
 
     private fun dismissAddToPlaylist() {
-        if (uiStateInternal.value.addToPlaylistState.isSaving) return
+        if (stateInternal.value.addToPlaylistState.isSaving) return
         pendingPlaylistVideos = emptyList()
-        uiStateInternal.update {
+        stateInternal.update {
             it.copy(addToPlaylistState = AddToPlaylistState())
         }
     }
@@ -337,7 +338,7 @@ class MediaPickerViewModel @AssistedInject constructor(
             val videoUris = selectedItems.toVideoUris()
             if (videoUris.isEmpty()) return@launch
 
-            uiStateInternal.update {
+            stateInternal.update {
                 it.copy(
                     transferFlow = TransferFlowState.Processing(
                         mode = mode,
@@ -352,14 +353,14 @@ class MediaPickerViewModel @AssistedInject constructor(
                 mode = mode,
             ).collect { event ->
                 when (event) {
-                    is TransferEvent.Progress -> uiStateInternal.update {
+                    is TransferEvent.Progress -> stateInternal.update {
                         (it.transferFlow as? TransferFlowState.Processing)?.let { state ->
                             it.copy(transferFlow = state.copy(progress = event.progress))
                         } ?: it
                     }
 
                     is TransferEvent.Completed -> {
-                        uiStateInternal.update { it.copy(transferFlow = TransferFlowState.Idle) }
+                        stateInternal.update { it.copy(transferFlow = TransferFlowState.Idle) }
                         showTransferCompleteToast(mode, event.result)
                     }
                 }
@@ -402,14 +403,14 @@ class MediaPickerViewModel @AssistedInject constructor(
     private fun cancelTransfer() {
         transferJob?.cancel()
         transferJob = null
-        uiStateInternal.update { it.copy(transferFlow = TransferFlowState.Idle) }
+        stateInternal.update { it.copy(transferFlow = TransferFlowState.Idle) }
     }
 
     private fun showMediaInfo(video: Video) {
         viewModelScope.launch {
             val mediaInfo = mediaRepository.getMediaInfo(video.uriString)
             if (mediaInfo != null) {
-                uiStateInternal.update { it.copy(mediaInfo = mediaInfo) }
+                stateInternal.update { it.copy(mediaInfo = mediaInfo) }
             }
         }
     }
@@ -422,9 +423,9 @@ class MediaPickerViewModel @AssistedInject constructor(
 
     private fun refresh() {
         viewModelScope.launch {
-            uiStateInternal.update { it.copy(refreshing = true) }
+            stateInternal.update { it.copy(refreshing = true) }
             mediaSynchronizer.refresh()
-            uiStateInternal.update { it.copy(refreshing = false) }
+            stateInternal.update { it.copy(refreshing = false) }
         }
     }
 
@@ -441,10 +442,10 @@ class MediaPickerViewModel @AssistedInject constructor(
             val hasPin = vaultPinRepository.hasPinSet()
             when {
                 !hasPin -> {
-                    uiStateInternal.update { it.copy(hideFlow = HideFlowState.SetupPin(videoItems)) }
+                    stateInternal.update { it.copy(hideFlow = HideFlowState.SetupPin(videoItems)) }
                 }
                 !vaultPinRepository.hasShownHideConfirmation() -> {
-                    uiStateInternal.update { it.copy(hideFlow = HideFlowState.ConfirmHide(videoItems)) }
+                    stateInternal.update { it.copy(hideFlow = HideFlowState.ConfirmHide(videoItems)) }
                 }
                 else -> {
                     hideVideoItems(videoItems)
@@ -454,40 +455,40 @@ class MediaPickerViewModel @AssistedInject constructor(
     }
 
     private fun setVaultPinAndHide(pin: String) {
-        val pending = (uiStateInternal.value.hideFlow as? HideFlowState.SetupPin)?.items ?: return
+        val pending = (stateInternal.value.hideFlow as? HideFlowState.SetupPin)?.items ?: return
         viewModelScope.launch {
             vaultPinRepository.setPin(pin)
             hideVideoItems(pending)
             vaultPinRepository.setHideConfirmationShown()
-            uiStateInternal.update { it.copy(hideFlow = HideFlowState.BiometricSetup) }
+            stateInternal.update { it.copy(hideFlow = HideFlowState.BiometricSetup) }
         }
     }
 
     private fun completeBiometricSetup(enabled: Boolean) {
-        if (uiStateInternal.value.hideFlow != HideFlowState.BiometricSetup) return
+        if (stateInternal.value.hideFlow != HideFlowState.BiometricSetup) return
         viewModelScope.launch {
             vaultPinRepository.setBiometricEnabled(enabled)
-            uiStateInternal.update { it.copy(hideFlow = HideFlowState.HowToFindInfo) }
+            stateInternal.update { it.copy(hideFlow = HideFlowState.HowToFindInfo) }
         }
     }
 
     private fun confirmHidePendingItems() {
-        val pending = (uiStateInternal.value.hideFlow as? HideFlowState.ConfirmHide)?.items ?: return
+        val pending = (stateInternal.value.hideFlow as? HideFlowState.ConfirmHide)?.items ?: return
         viewModelScope.launch {
             hideVideoItems(pending)
             vaultPinRepository.setHideConfirmationShown()
-            uiStateInternal.update { it.copy(hideFlow = HideFlowState.Idle) }
+            stateInternal.update { it.copy(hideFlow = HideFlowState.Idle) }
         }
     }
 
     private suspend fun hideVideoItems(videos: List<Video>) {
-        uiStateInternal.update { it.copy(hideFlow = HideFlowState.Processing) }
+        stateInternal.update { it.copy(hideFlow = HideFlowState.Processing) }
         vaultRepository.hideVideos(videos)
-        uiStateInternal.update { it.copy(hideFlow = HideFlowState.Idle) }
+        stateInternal.update { it.copy(hideFlow = HideFlowState.Idle) }
     }
 
     private suspend fun Set<SelectionItem>.toVideos(): List<Video> {
-        val preferences = uiStateInternal.value.preferences
+        val preferences = stateInternal.value.preferences
         return flatMap { selectionItem ->
             when (selectionItem) {
                 is SelectionItem.Video -> listOfNotNull(mediaRepository.getVideoByUri(selectionItem.uriString))

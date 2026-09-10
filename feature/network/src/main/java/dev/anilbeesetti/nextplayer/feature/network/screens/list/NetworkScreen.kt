@@ -1,6 +1,5 @@
 package dev.anilbeesetti.nextplayer.feature.network.screens.list
 
-import android.net.Uri
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -27,6 +26,7 @@ import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.material3.surfaceColorAtElevation
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.SideEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -62,42 +62,32 @@ import dev.anilbeesetti.nextplayer.core.ui.extensions.copy
 import dev.anilbeesetti.nextplayer.core.ui.theme.NextPlayerTheme
 
 @Composable
-fun NetworkScreen(
-    onAddConnection: () -> Unit,
-    onEditConnection: (Long) -> Unit,
-    onOpenConnection: (Long) -> Unit,
-    onSettingsClick: () -> Unit,
-    onOpenStream: (Uri) -> Unit,
-    viewModel: NetworkViewModel = hiltViewModel(),
+fun NetworkRoute(
+    output: NetworkViewModel.Output,
 ) {
-    val uiState by viewModel.state.collectAsStateWithLifecycle()
+    val viewModel = hiltViewModel<NetworkViewModel, NetworkViewModel.Factory>(
+        creationCallback = { factory -> factory.create(output) },
+    )
+    SideEffect { viewModel.output = output }
+    val state by viewModel.state.collectAsStateWithLifecycle()
+
     NetworkScreenContent(
-        uiState = uiState,
-        onAddConnection = onAddConnection,
-        onEditConnection = onEditConnection,
-        onOpenConnection = onOpenConnection,
-        onSettingsClick = onSettingsClick,
-        onOpenStream = onOpenStream,
-        onDeleteConnection = { viewModel.onAction(NetworkAction.DeleteConnection(it)) },
+        state = state,
+        onAction = viewModel::onAction,
     )
 }
 
 @Composable
 internal fun NetworkScreenContent(
-    uiState: NetworkUiState,
-    onAddConnection: () -> Unit,
-    onEditConnection: (Long) -> Unit,
-    onOpenConnection: (Long) -> Unit,
-    onSettingsClick: () -> Unit,
-    onOpenStream: (Uri) -> Unit,
-    onDeleteConnection: (Long) -> Unit,
+    state: NetworkUiState,
+    onAction: (NetworkAction) -> Unit,
 ) {
     var connectionToDelete by remember { mutableStateOf<NetworkConnection?>(null) }
     var streamUrl by rememberSaveable { mutableStateOf("") }
     val trimmedStreamUrl = streamUrl.trim()
 
-    val showEmptyState = uiState.connections.isEmpty() && !uiState.isLoading
-    BindTopLevelFab(TopLevelFabKey.NETWORK, NextIcons.Add, onAddConnection)
+    val showEmptyState = state.connections.isEmpty() && !state.isLoading
+    BindTopLevelFab(TopLevelFabKey.NETWORK, NextIcons.Add, { onAction(NetworkAction.AddConnection) })
     val navigationBottomPadding = LocalNavigationBottomPadding.current
 
     Scaffold(
@@ -106,7 +96,7 @@ internal fun NetworkScreenContent(
                 title = stringResource(R.string.network),
                 fontWeight = FontWeight.Bold,
                 actions = {
-                    IconButton(onClick = onSettingsClick, modifier = Modifier.tvFocusRing()) {
+                    IconButton(onClick = { onAction(NetworkAction.OpenSettings) }, modifier = Modifier.tvFocusRing()) {
                         Icon(
                             imageVector = NextIcons.Settings,
                             contentDescription = stringResource(R.string.settings),
@@ -137,7 +127,7 @@ internal fun NetworkScreenContent(
                     NetworkStreamCard(
                         url = streamUrl,
                         onUrlChange = { streamUrl = it },
-                        onOpenStream = { onOpenStream(trimmedStreamUrl.toUri()) },
+                        onOpenStream = { onAction(NetworkAction.OpenStream(trimmedStreamUrl.toUri())) },
                         enabled = trimmedStreamUrl.isNotEmpty(),
                     )
                 }
@@ -147,15 +137,15 @@ internal fun NetworkScreenContent(
                     }
                 } else {
                     itemsIndexed(
-                        items = uiState.connections,
+                        items = state.connections,
                         key = { _, connection -> connection.id },
                     ) { index, connection ->
                         ConnectionItem(
                             connection = connection,
                             isFirstItem = index == 0,
-                            isLastItem = index == uiState.connections.lastIndex,
-                            onClick = { onOpenConnection(connection.id) },
-                            onEdit = { onEditConnection(connection.id) },
+                            isLastItem = index == state.connections.lastIndex,
+                            onClick = { onAction(NetworkAction.OpenConnection(connection.id)) },
+                            onEdit = { onAction(NetworkAction.EditConnection(connection.id)) },
                             onDelete = { connectionToDelete = connection },
                         )
                     }
@@ -172,7 +162,7 @@ internal fun NetworkScreenContent(
             confirmButton = {
                 TextButton(
                     onClick = {
-                        onDeleteConnection(connection.id)
+                        onAction(NetworkAction.DeleteConnection(connection.id))
                         connectionToDelete = null
                     },
                 ) { Text(stringResource(R.string.delete)) }
@@ -348,13 +338,8 @@ internal fun NetworkProtocol.icon(): ImageVector = when (this) {
 private fun NetworkScreenPreview() {
     NextPlayerTheme {
         NetworkScreenContent(
-            uiState = NetworkUiState(connections = listOf(NetworkConnection.sample), isLoading = false),
-            onAddConnection = {},
-            onEditConnection = {},
-            onOpenConnection = {},
-            onSettingsClick = {},
-            onOpenStream = {},
-            onDeleteConnection = {},
+            state = NetworkUiState(connections = listOf(NetworkConnection.sample), isLoading = false),
+            onAction = {},
         )
     }
 }

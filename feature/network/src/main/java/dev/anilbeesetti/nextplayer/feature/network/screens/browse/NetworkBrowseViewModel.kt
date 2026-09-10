@@ -22,6 +22,7 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.receiveAsFlow
+import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 
 data class NetworkBrowseUiState(
@@ -47,25 +48,33 @@ data class NetworkBrowseError(
  */
 @HiltViewModel(assistedFactory = NetworkBrowseViewModel.Factory::class)
 class NetworkBrowseViewModel @AssistedInject constructor(
-    /** The connection being browsed; exposed so the screen can build child-folder routes. */
-    @Assisted val connectionId: Long,
-    /** The folder path to list; `null` means the connection's root. */
-    @Assisted private val path: String?,
+    @Assisted private val input: Input,
+    @Assisted internal var output: Output,
     private val repository: NetworkConnectionRepository,
     private val clientFactory: NetworkClientFactory,
 ) : MviViewModel<NetworkBrowseUiState, NetworkBrowseAction>() {
 
+    data class Input(val connectionId: Long, val path: String?)
+    data class Output(
+        val navigateUp: () -> Unit,
+        val playVideo: (Uri) -> Unit,
+        val openFolder: (Long, String) -> Unit,
+    )
+
+    private val connectionId = input.connectionId
+    private val path = input.path
+
     @AssistedFactory
     interface Factory {
-        fun create(connectionId: Long, path: String?): NetworkBrowseViewModel
+        fun create(input: Input, output: Output): NetworkBrowseViewModel
     }
 
     private var connection: NetworkConnection? = null
     private var client: NetworkClient? = null
     private var currentPath: String? = path
 
-    private val _uiState = MutableStateFlow(NetworkBrowseUiState())
-    override val state: StateFlow<NetworkBrowseUiState> = _uiState.asStateFlow()
+    private val stateInternal = MutableStateFlow(NetworkBrowseUiState())
+    override val state: StateFlow<NetworkBrowseUiState> = stateInternal.asStateFlow()
 
     private val _playEvents = Channel<Uri>()
     val playEvents = _playEvents.receiveAsFlow()
@@ -76,25 +85,29 @@ class NetworkBrowseViewModel @AssistedInject constructor(
 
     /** Loads the connection, (re)establishes the client, then lists the current folder. */
     private fun connectAndLoad() {
-        _uiState.value = _uiState.value.copy(isLoading = true, error = null)
+        stateInternal.update { it.copy(isLoading = true, error = null) }
         viewModelScope.launch {
             val conn = connection ?: repository.getConnection(connectionId)?.also { connection = it }
             if (conn == null) {
-                _uiState.value = NetworkBrowseUiState(
-                    isLoading = false,
-                    error = NetworkBrowseError("Connection not found"),
-                )
+                stateInternal.update {
+                    NetworkBrowseUiState(
+                        isLoading = false,
+                        error = NetworkBrowseError("Connection not found"),
+                    )
+                }
                 return@launch
             }
             val activeClient = client ?: clientFactory.create(conn).also { client = it }
             if (!activeClient.isConnected()) {
                 val connected = activeClient.connect()
                 if (connected.isFailure) {
-                    _uiState.value = NetworkBrowseUiState(
-                        title = title(conn),
-                        isLoading = false,
-                        error = connected.exceptionOrNull()?.toNetworkBrowseError(),
-                    )
+                    stateInternal.update {
+                        NetworkBrowseUiState(
+                            title = title(conn),
+                            isLoading = false,
+                            error = connected.exceptionOrNull()?.toNetworkBrowseError(),
+                        )
+                    }
                     return@launch
                 }
             }
@@ -107,21 +120,23 @@ class NetworkBrowseViewModel @AssistedInject constructor(
         val client = client ?: return
         val conn = connection ?: return
         val path = currentPath ?: return
-        _uiState.value = _uiState.value.copy(isLoading = true, error = null)
+        stateInternal.update { it.copy(isLoading = true, error = null) }
         viewModelScope.launch {
             client.listFiles(path).fold(
                 onSuccess = { files ->
                     val visible = files
                         .filter { it.isDirectory || isNetworkVideoFile(it.name) }
                         .sortedWith(compareByDescending<NetworkFile> { it.isDirectory }.thenBy { it.name.lowercase() })
-                    _uiState.value = NetworkBrowseUiState(
-                        title = title(conn),
-                        files = visible,
-                        isLoading = false,
-                    )
+                    stateInternal.update {
+                        NetworkBrowseUiState(
+                            title = title(conn),
+                            files = visible,
+                            isLoading = false,
+                        )
+                    }
                 },
                 onFailure = { e ->
-                    _uiState.value = _uiState.value.copy(isLoading = false, error = e.toNetworkBrowseError())
+                    stateInternal.update { it.copy(isLoading = false, error = e.toNetworkBrowseError()) }
                 },
             )
         }
@@ -133,7 +148,10 @@ class NetworkBrowseViewModel @AssistedInject constructor(
 
     override fun onAction(action: NetworkBrowseAction) {
         when (action) {
-            NetworkBrowseAction.Retry -> retry()
+            is NetworkBrowseAction.NavigateUp -> output.navigateUp()
+            is NetworkBrowseAction.OpenFolder -> output.openFolder(connectionId, action.file.path)
+
+            is NetworkBrowseAction.Retry -> retry()
             is NetworkBrowseAction.PlayVideo -> playVideo(action.file)
         }
     }
@@ -158,6 +176,9 @@ class NetworkBrowseViewModel @AssistedInject constructor(
 }
 
 sealed interface NetworkBrowseAction {
+    data object NavigateUp : NetworkBrowseAction
+    data class OpenFolder(val file: NetworkFile) : NetworkBrowseAction
+
     data object Retry : NetworkBrowseAction
     data class PlayVideo(val file: NetworkFile) : NetworkBrowseAction
 }

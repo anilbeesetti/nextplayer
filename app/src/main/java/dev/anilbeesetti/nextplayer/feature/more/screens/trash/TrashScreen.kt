@@ -21,6 +21,7 @@ import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.SideEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -43,32 +44,28 @@ import dev.anilbeesetti.nextplayer.core.ui.designsystem.NextIcons
 import dev.anilbeesetti.nextplayer.core.ui.extensions.copy
 import dev.anilbeesetti.nextplayer.feature.videopicker.composables.CenterCircularProgressBar
 import dev.anilbeesetti.nextplayer.feature.videopicker.composables.VideoListItem
-import dev.anilbeesetti.nextplayer.feature.videopicker.state.SelectionItem
 import dev.anilbeesetti.nextplayer.feature.videopicker.state.rememberSelectionManager
 
 @Composable
-fun TrashScreen(
-    onNavigateUp: () -> Unit,
-    onPlayVideo: (String) -> Unit,
-    viewModel: TrashViewModel = hiltViewModel(),
+fun TrashRoute(
+    output: TrashViewModel.Output,
 ) {
-    val uiState = viewModel.state.collectAsStateWithLifecycle().value
+    val viewModel = hiltViewModel<TrashViewModel, TrashViewModel.Factory>(
+        creationCallback = { factory -> factory.create(output) },
+    )
+    SideEffect { viewModel.output = output }
+    val state by viewModel.state.collectAsStateWithLifecycle()
+
     TrashScreenContent(
-        uiState = uiState,
-        onNavigateUp = onNavigateUp,
-        onPlayVideo = onPlayVideo,
-        onRestore = { viewModel.onAction(TrashAction.Restore(it)) },
-        onDelete = { viewModel.onAction(TrashAction.DeletePermanently(it)) },
+        state = state,
+        onAction = viewModel::onAction,
     )
 }
 
 @Composable
 internal fun TrashScreenContent(
-    uiState: TrashUiState,
-    onNavigateUp: () -> Unit,
-    onPlayVideo: (String) -> Unit,
-    onRestore: (Set<SelectionItem>) -> Unit,
-    onDelete: (Set<SelectionItem>) -> Unit,
+    state: TrashUiState,
+    onAction: (TrashAction) -> Unit,
 ) {
     val selectionManager = rememberSelectionManager()
     var showDeleteConfirmation by remember { mutableStateOf(false) }
@@ -77,14 +74,14 @@ internal fun TrashScreenContent(
         topBar = {
             NextTopAppBar(
                 title = if (selectionManager.isInSelectionMode) {
-                    stringResource(R.string.m_n_selected, selectionManager.selectionItems.size, uiState.videos.result.orEmpty().size)
+                    stringResource(R.string.m_n_selected, selectionManager.selectionItems.size, state.videos.result.orEmpty().size)
                 } else {
                     stringResource(R.string.trash)
                 },
                 navigationIcon = {
                     FilledTonalIconButton(
                         onClick = {
-                            if (selectionManager.isInSelectionMode) selectionManager.exitSelectionMode() else onNavigateUp()
+                            if (selectionManager.isInSelectionMode) selectionManager.exitSelectionMode() else onAction(TrashAction.NavigateUp)
                         },
                         modifier = Modifier.tvFocusRing(),
                     ) {
@@ -98,7 +95,7 @@ internal fun TrashScreenContent(
                     if (selectionManager.isInSelectionMode && selectionManager.selectionItems.isNotEmpty()) {
                         TextButton(
                             onClick = {
-                                onRestore(selectionManager.selectionItems)
+                                onAction(TrashAction.Restore(selectionManager.selectionItems))
                                 selectionManager.exitSelectionMode()
                             },
                             modifier = Modifier.tvFocusRing(),
@@ -120,7 +117,7 @@ internal fun TrashScreenContent(
                 .clip(RoundedCornerShape(topStart = 24.dp, topEnd = 24.dp))
                 .background(MaterialTheme.colorScheme.background),
         ) {
-            when (val videos = uiState.videos) {
+            when (val videos = state.videos) {
                 DataState.Loading -> CenterCircularProgressBar()
                 is DataState.Error -> Text(
                     text = videos.value.message.orEmpty(),
@@ -138,7 +135,7 @@ internal fun TrashScreenContent(
                             VideoListItem(
                                 video = video,
                                 isRecentlyPlayedVideo = false,
-                                preferences = uiState.preferences,
+                                preferences = state.preferences,
                                 selected = selectionManager.isVideoSelected(video),
                                 isFirstItem = index == 0,
                                 isLastItem = index == videos.value.lastIndex,
@@ -146,7 +143,7 @@ internal fun TrashScreenContent(
                                     if (selectionManager.isInSelectionMode) {
                                         selectionManager.toggleVideoSelection(video)
                                     } else {
-                                        onPlayVideo(video.uriString)
+                                        onAction(TrashAction.PlayVideo(video.uriString))
                                     }
                                 },
                                 onLongClick = { selectionManager.toggleVideoSelection(video) },
@@ -165,7 +162,7 @@ internal fun TrashScreenContent(
             confirmButton = {
                 TextButton(
                     onClick = {
-                        onDelete(selectionManager.selectionItems)
+                        onAction(TrashAction.DeletePermanently(selectionManager.selectionItems))
                         selectionManager.exitSelectionMode()
                         showDeleteConfirmation = false
                     },

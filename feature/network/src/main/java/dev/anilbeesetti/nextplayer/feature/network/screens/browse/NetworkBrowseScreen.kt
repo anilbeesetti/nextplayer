@@ -1,6 +1,5 @@
 package dev.anilbeesetti.nextplayer.feature.network.screens.browse
 
-import android.net.Uri
 import android.text.format.DateFormat
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
@@ -28,6 +27,7 @@ import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.material3.surfaceColorAtElevation
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.SideEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
@@ -40,6 +40,7 @@ import androidx.compose.ui.res.vectorResource
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
+import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import dev.anilbeesetti.nextplayer.core.common.Utils
 import dev.anilbeesetti.nextplayer.core.model.NetworkFile
@@ -55,40 +56,36 @@ import dev.anilbeesetti.nextplayer.feature.network.ObserveAsEvents
 import java.util.Date
 
 @Composable
-fun NetworkBrowseScreen(
-    onNavigateUp: () -> Unit,
-    onPlayVideo: (Uri) -> Unit,
-    onNavigateToFolder: (connectionId: Long, path: String) -> Unit,
-    viewModel: NetworkBrowseViewModel,
+fun NetworkBrowseRoute(
+    input: NetworkBrowseViewModel.Input,
+    output: NetworkBrowseViewModel.Output,
 ) {
-    val uiState by viewModel.state.collectAsStateWithLifecycle()
+    val viewModel = hiltViewModel<NetworkBrowseViewModel, NetworkBrowseViewModel.Factory>(
+        creationCallback = { factory -> factory.create(input, output) },
+    )
+    SideEffect { viewModel.output = output }
+    val state by viewModel.state.collectAsStateWithLifecycle()
 
-    ObserveAsEvents(viewModel.playEvents) { uri -> onPlayVideo(uri) }
+    ObserveAsEvents(viewModel.playEvents) { output.playVideo(it) }
 
     NetworkBrowseScreenContent(
-        uiState = uiState,
-        onBack = onNavigateUp,
-        onFolderClick = { file -> onNavigateToFolder(viewModel.connectionId, file.path) },
-        onVideoClick = { viewModel.onAction(NetworkBrowseAction.PlayVideo(it)) },
-        onRetry = { viewModel.onAction(NetworkBrowseAction.Retry) },
+        state = state,
+        onAction = viewModel::onAction,
     )
 }
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 internal fun NetworkBrowseScreenContent(
-    uiState: NetworkBrowseUiState,
-    onBack: () -> Unit,
-    onFolderClick: (NetworkFile) -> Unit,
-    onVideoClick: (NetworkFile) -> Unit,
-    onRetry: () -> Unit,
+    state: NetworkBrowseUiState,
+    onAction: (NetworkBrowseAction) -> Unit,
 ) {
     Scaffold(
         topBar = {
             NextTopAppBar(
-                title = uiState.title,
+                title = state.title,
                 navigationIcon = {
-                    FilledTonalIconButton(onClick = onBack, modifier = Modifier.tvFocusRing()) {
+                    FilledTonalIconButton(onClick = { onAction(NetworkBrowseAction.NavigateUp) }, modifier = Modifier.tvFocusRing()) {
                         Icon(
                             imageVector = NextIcons.ArrowBack,
                             contentDescription = stringResource(R.string.navigate_up),
@@ -100,14 +97,14 @@ internal fun NetworkBrowseScreenContent(
         containerColor = MaterialTheme.colorScheme.surfaceContainer,
     ) { scaffoldPadding ->
         when {
-            uiState.isLoading -> {
+            state.isLoading -> {
                 Box(Modifier.fillMaxSize().padding(scaffoldPadding), contentAlignment = Alignment.Center) {
                     CircularProgressIndicator()
                 }
             }
 
-            uiState.error != null -> {
-                val error = uiState.error
+            state.error != null -> {
+                val error = state.error
                 Column(
                     modifier = Modifier.fillMaxSize().padding(scaffoldPadding).padding(horizontal = 32.dp),
                     verticalArrangement = Arrangement.Center,
@@ -157,7 +154,7 @@ internal fun NetworkBrowseScreenContent(
                         }
                     }
                     Spacer(Modifier.size(16.dp))
-                    Button(onClick = onRetry) { Text(stringResource(R.string.retry)) }
+                    Button(onClick = { onAction(NetworkBrowseAction.Retry) }) { Text(stringResource(R.string.retry)) }
                 }
             }
 
@@ -169,7 +166,7 @@ internal fun NetworkBrowseScreenContent(
                     .background(MaterialTheme.colorScheme.background)
 
                 Box(modifier = containerModifier) {
-                    if (uiState.files.isEmpty()) {
+                    if (state.files.isEmpty()) {
                         Box(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
                             Text(
                                 text = stringResource(R.string.empty_folder),
@@ -190,15 +187,15 @@ internal fun NetworkBrowseScreenContent(
                             verticalArrangement = Arrangement.spacedBy(2.dp),
                         ) {
                             itemsIndexed(
-                                items = uiState.files,
+                                items = state.files,
                                 key = { _, file -> file.path },
                             ) { index, file ->
                                 NetworkFileItem(
                                     file = file,
                                     isFirstItem = index == 0,
-                                    isLastItem = index == uiState.files.lastIndex,
+                                    isLastItem = index == state.files.lastIndex,
                                     onClick = {
-                                        if (file.isDirectory) onFolderClick(file) else onVideoClick(file)
+                                        if (file.isDirectory) onAction(NetworkBrowseAction.OpenFolder(file)) else onAction(NetworkBrowseAction.PlayVideo(file))
                                     },
                                 )
                             }

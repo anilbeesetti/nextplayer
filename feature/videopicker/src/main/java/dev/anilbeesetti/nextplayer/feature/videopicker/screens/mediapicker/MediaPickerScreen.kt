@@ -52,6 +52,7 @@ import androidx.compose.material3.TextButton
 import androidx.compose.material3.pulltorefresh.PullToRefreshBox
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.SideEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -126,7 +127,6 @@ import dev.anilbeesetti.nextplayer.feature.videopicker.composables.vault.VaultBi
 import dev.anilbeesetti.nextplayer.feature.videopicker.composables.vault.VaultProgressDialog
 import dev.anilbeesetti.nextplayer.feature.videopicker.screens.vault.VAULT_PIN_LENGTH
 import dev.anilbeesetti.nextplayer.feature.videopicker.state.SelectionItem
-import dev.anilbeesetti.nextplayer.feature.videopicker.state.SelectionManager
 import dev.anilbeesetti.nextplayer.feature.videopicker.state.rememberSelectionManager
 import dev.anilbeesetti.nextplayer.feature.videopicker.state.toSelectedFolder
 import dev.anilbeesetti.nextplayer.feature.videopicker.state.toSelectedVideo
@@ -134,12 +134,17 @@ import kotlin.math.roundToInt
 
 @Composable
 fun MediaPickerRoute(
-    viewModel: MediaPickerViewModel = hiltViewModel(),
+    input: MediaPickerViewModel.Input,
+    output: MediaPickerViewModel.Output,
 ) {
-    val uiState by viewModel.state.collectAsStateWithLifecycle(minActiveState = Lifecycle.State.RESUMED)
+    val viewModel = hiltViewModel<MediaPickerViewModel, MediaPickerViewModel.Factory>(
+        creationCallback = { factory -> factory.create(input, output) },
+    )
+    SideEffect { viewModel.output = output }
+    val state by viewModel.state.collectAsStateWithLifecycle(minActiveState = Lifecycle.State.RESUMED)
 
-    MediaPickerScreen(
-        uiState = uiState,
+    MediaPickerScreenContent(
+        state = state,
         onAction = viewModel::onAction,
     )
 }
@@ -150,18 +155,18 @@ fun MediaPickerRoute(
     ExperimentalPermissionsApi::class,
 )
 @Composable
-internal fun MediaPickerScreen(
-    uiState: MediaPickerUiState,
-    selectionManager: SelectionManager = rememberSelectionManager(),
+internal fun MediaPickerScreenContent(
+    state: MediaPickerUiState,
     onAction: (MediaPickerAction) -> Unit = {},
 ) {
+    val selectionManager = rememberSelectionManager()
     val context = LocalContext.current
     val isTv = remember { context.isTelevision }
     val firstItemFocusRequester = remember { FocusRequester() }
     val lastItemFocusRequester = remember { FocusRequester() }
     val firstActionFocusRequester = remember { FocusRequester() }
     var restoredFocusKey by rememberSaveable { mutableStateOf<String?>(null) }
-    val hasMedia = (uiState.mediaDataState as? DataState.Success)?.value
+    val hasMedia = (state.mediaDataState as? DataState.Success)?.value
         ?.let { it.folders.isNotEmpty() || it.videos.isNotEmpty() } == true
     val navigationBottomPadding = LocalNavigationBottomPadding.current
 
@@ -191,9 +196,9 @@ internal fun MediaPickerScreen(
     var showRenameActionFor: Video? by rememberSaveable { mutableStateOf(null) }
     var showDeleteVideosConfirmation by rememberSaveable { mutableStateOf(false) }
 
-    val mediaHolder = (uiState.mediaDataState as? DataState.Success)?.value
+    val mediaHolder = (state.mediaDataState as? DataState.Success)?.value
     val onFabClick = {
-        val selectedItem = uiState.recentlyPlayedVideo?.toSelectedVideo()
+        val selectedItem = state.recentlyPlayedVideo?.toSelectedVideo()
             ?: mediaHolder?.folders?.firstOrNull()?.toSelectedFolder()
             ?: mediaHolder?.videos?.firstOrNull()?.toSelectedVideo()
 
@@ -201,9 +206,9 @@ internal fun MediaPickerScreen(
             ?: selectVideoFileLauncher.launch("video/*")
     }
 
-    BindTopLevelBottomBarVisible(uiState.folderName != null || !selectionManager.isInSelectionMode)
+    BindTopLevelBottomBarVisible(state.folderName != null || !selectionManager.isInSelectionMode)
 
-    if (uiState.folderName == null) {
+    if (state.folderName == null) {
         BindTopLevelFab(
             key = TopLevelFabKey.MEDIA,
             icon = NextIcons.Play,
@@ -212,19 +217,19 @@ internal fun MediaPickerScreen(
     }
 
     val selectedItemsSize = selectionManager.selectionItems.size
-    val totalItemsSize = (uiState.mediaDataState as? DataState.Success)?.value?.run { folders.size + videos.size } ?: 0
+    val totalItemsSize = (state.mediaDataState as? DataState.Success)?.value?.run { folders.size + videos.size } ?: 0
 
     Scaffold(
         topBar = {
             NextTopAppBar(
                 title = {
-                    val titleText = (uiState.folderName ?: stringResource(R.string.app_name))
+                    val titleText = (state.folderName ?: stringResource(R.string.app_name))
                         .takeIf { !selectionManager.isInSelectionMode } ?: ""
                     Text(
                         text = titleText,
                         maxLines = 1,
                         overflow = TextOverflow.Ellipsis,
-                        fontWeight = FontWeight.Bold.takeIf { uiState.folderName == null },
+                        fontWeight = FontWeight.Bold.takeIf { state.folderName == null },
                     )
                 },
                 navigationIcon = {
@@ -248,7 +253,7 @@ internal fun MediaPickerScreen(
                                 style = MaterialTheme.typography.labelLarge,
                             )
                         }
-                    } else if (uiState.folderName != null) {
+                    } else if (state.folderName != null) {
                         FilledTonalIconButton(
                             onClick = { onAction(MediaPickerAction.OnNavigateUpClick) },
                             modifier = topBarDownModifier.tvFocusRing(isTv),
@@ -265,7 +270,7 @@ internal fun MediaPickerScreen(
                         FilledTonalIconButton(
                             onClick = {
                                 if (selectedItemsSize != totalItemsSize) {
-                                    (uiState.mediaDataState as? DataState.Success)?.value?.let { folder ->
+                                    (state.mediaDataState as? DataState.Success)?.value?.let { folder ->
                                         folder.folders.forEach { selectionManager.selectFolder(it) }
                                         folder.videos.forEach { selectionManager.selectVideo(it) }
                                     }
@@ -337,13 +342,13 @@ internal fun MediaPickerScreen(
                 },
                 onRenameAction = {
                     val selectedVideo = selectionManager.selectionItems.firstOrNull() ?: return@SelectionActionsSheet
-                    val video = (uiState.mediaDataState as? DataState.Success)?.value?.videos
+                    val video = (state.mediaDataState as? DataState.Success)?.value?.videos
                         ?.find { it.uriString == selectedVideo.id } ?: return@SelectionActionsSheet
                     showRenameActionFor = video
                 },
                 onInfoAction = {
                     val selectedVideo = selectionManager.selectionItems.firstOrNull() ?: return@SelectionActionsSheet
-                    val video = (uiState.mediaDataState as? DataState.Success)?.value?.videos
+                    val video = (state.mediaDataState as? DataState.Success)?.value?.videos
                         ?.find { it.uriString == selectedVideo.id } ?: return@SelectionActionsSheet
                     onAction(MediaPickerAction.ShowMediaInfo(video))
                     selectionManager.exitSelectionMode()
@@ -369,7 +374,7 @@ internal fun MediaPickerScreen(
             )
         },
         floatingActionButton = {
-            if (uiState.folderName != null && !selectionManager.isInSelectionMode) {
+            if (state.folderName != null && !selectionManager.isInSelectionMode) {
                 FloatingActionButton(onClick = onFabClick) {
                     Icon(imageVector = NextIcons.Play, contentDescription = null)
                 }
@@ -393,7 +398,7 @@ internal fun MediaPickerScreen(
                 ) {}
                 return@Scaffold
             }
-            when (uiState.mediaDataState) {
+            when (state.mediaDataState) {
                 is DataState.Error -> {
                 }
 
@@ -408,15 +413,15 @@ internal fun MediaPickerScreen(
                             start = 0.dp,
                             bottom = scaffoldPadding.calculateBottomPadding() + navigationBottomPadding,
                         )
-                        val mediaHolder = uiState.mediaDataState.value
+                        val mediaHolder = state.mediaDataState.value
                         if (mediaHolder == null || mediaHolder.folders.isEmpty() && mediaHolder.videos.isEmpty()) {
                             NoVideosFound(contentPadding = updatedScaffoldPadding)
                         } else {
                             MediaView(
-                                recentlyPlayedVideo = uiState.recentlyPlayedVideo,
-                                recentlyPlayedFolder = uiState.recentlyPlayedFolder,
+                                recentlyPlayedVideo = state.recentlyPlayedVideo,
+                                recentlyPlayedFolder = state.recentlyPlayedFolder,
                                 mediaHolder = mediaHolder,
-                                preferences = uiState.preferences,
+                                preferences = state.preferences,
                                 onFolderClick = { onAction(MediaPickerAction.OnFolderClick(it)) },
                                 onVideoClick = { onAction(MediaPickerAction.OnPlayVideo(it)) },
                                 selectionManager = selectionManager,
@@ -440,7 +445,7 @@ internal fun MediaPickerScreen(
                         successContent()
                     } else {
                         PullToRefreshBox(
-                            isRefreshing = uiState.refreshing,
+                            isRefreshing = state.refreshing,
                             onRefresh = { onAction(MediaPickerAction.Refresh) },
                         ) { successContent() }
                     }
@@ -455,7 +460,7 @@ internal fun MediaPickerScreen(
 
     if (showQuickSettingsDialog) {
         QuickSettingsDialog(
-            applicationPreferences = uiState.preferences,
+            applicationPreferences = state.preferences,
             onDismiss = { showQuickSettingsDialog = false },
             updatePreferences = { onAction(MediaPickerAction.UpdateMenu(it)) },
         )
@@ -473,7 +478,7 @@ internal fun MediaPickerScreen(
         )
     }
 
-    uiState.mediaInfo?.let { mediaInfo ->
+    state.mediaInfo?.let { mediaInfo ->
         MediaInfoDialog(
             mediaInfo = mediaInfo,
             onDismiss = { onAction(MediaPickerAction.DismissMediaInfo) },
@@ -494,14 +499,14 @@ internal fun MediaPickerScreen(
     }
 
     HideFlowDialogs(
-        hideFlow = uiState.hideFlow,
+        hideFlow = state.hideFlow,
         onConfirmHide = { onAction(MediaPickerAction.ConfirmHidePendingItems) },
         onSetPinAndHide = { onAction(MediaPickerAction.SetVaultPinAndHide(it)) },
         onBiometricSetupComplete = { onAction(MediaPickerAction.CompleteBiometricSetup(it)) },
         onDismiss = { onAction(MediaPickerAction.DismissHideFlow) },
     )
 
-    (uiState.transferFlow as? TransferFlowState.Processing)?.let { transfer ->
+    (state.transferFlow as? TransferFlowState.Processing)?.let { transfer ->
         TransferProgressDialog(
             mode = transfer.mode,
             progress = transfer.progress,
@@ -509,10 +514,10 @@ internal fun MediaPickerScreen(
         )
     }
 
-    if (uiState.addToPlaylistState.isVisible) {
+    if (state.addToPlaylistState.isVisible) {
         PlaylistTargetDialog(
-            playlists = uiState.playlists,
-            state = uiState.addToPlaylistState,
+            playlists = state.playlists,
+            state = state.addToPlaylistState,
             onDismissRequest = { onAction(MediaPickerAction.DismissAddToPlaylist) },
             onPlaylistSelected = {
                 onAction(MediaPickerAction.AddSelectionToPlaylist(it))
@@ -1220,8 +1225,8 @@ private fun MediaPickerScreenPreview(
     videos: List<Video>,
 ) {
     NextPlayerTheme {
-        MediaPickerScreen(
-            uiState = MediaPickerUiState(
+        MediaPickerScreenContent(
+            state = MediaPickerUiState(
                 folderName = null,
                 mediaDataState = DataState.Success(
                     value = MediaHolder(
@@ -1258,8 +1263,8 @@ private fun ButtonPreview() {
 private fun MediaPickerNoVideosFoundPreview() {
     NextPlayerTheme {
         Surface {
-            MediaPickerScreen(
-                uiState = MediaPickerUiState(
+            MediaPickerScreenContent(
+                state = MediaPickerUiState(
                     folderName = null,
                     mediaDataState = DataState.Success(null),
                     preferences = ApplicationPreferences(),
@@ -1274,8 +1279,8 @@ private fun MediaPickerNoVideosFoundPreview() {
 private fun MediaPickerLoadingPreview() {
     NextPlayerTheme {
         Surface {
-            MediaPickerScreen(
-                uiState = MediaPickerUiState(
+            MediaPickerScreenContent(
+                state = MediaPickerUiState(
                     folderName = null,
                     mediaDataState = DataState.Loading,
                     preferences = ApplicationPreferences(),

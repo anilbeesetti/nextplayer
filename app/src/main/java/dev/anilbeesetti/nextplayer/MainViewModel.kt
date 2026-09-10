@@ -6,22 +6,27 @@ import dev.anilbeesetti.nextplayer.core.data.repository.PreferencesRepository
 import dev.anilbeesetti.nextplayer.core.model.ApplicationPreferences
 import dev.anilbeesetti.nextplayer.core.ui.base.MviViewModel
 import javax.inject.Inject
-import kotlinx.coroutines.flow.SharingStarted
-import kotlinx.coroutines.flow.map
-import kotlinx.coroutines.flow.stateIn
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.update
+import kotlinx.coroutines.launch
 
 @HiltViewModel
 class MainViewModel @Inject constructor(
     private val preferencesRepository: PreferencesRepository,
 ) : MviViewModel<MainActivityUiState, Nothing>() {
 
-    override val state = preferencesRepository.applicationPreferences.map { preferences ->
-        MainActivityUiState.Success(preferences)
-    }.stateIn(
-        scope = viewModelScope,
-        started = SharingStarted.WhileSubscribed(5000),
-        initialValue = MainActivityUiState.Loading,
-    )
+    private val stateInternal = MutableStateFlow<MainActivityUiState>(MainActivityUiState.Loading)
+    override val state: StateFlow<MainActivityUiState> = stateInternal.asStateFlow()
+
+    init {
+        viewModelScope.launch {
+            preferencesRepository.applicationPreferences.collect { preferences ->
+                stateInternal.update { MainActivityUiState.Success(preferences) }
+            }
+        }
+    }
 
     // Application preferences are observed only; this view model has no input actions.
     override fun onAction(action: Nothing) = Unit

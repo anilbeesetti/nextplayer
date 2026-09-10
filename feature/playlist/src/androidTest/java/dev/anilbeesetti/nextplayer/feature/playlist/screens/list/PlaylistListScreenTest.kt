@@ -37,7 +37,7 @@ class PlaylistListScreenTest {
                     },
                 ) {
                     PlaylistListScreenContent(
-                        uiState = PlaylistListUiState(
+                        state = PlaylistListUiState(
                             playlistsDataState = DataState.Success(emptyList()),
                         ),
                         onAction = actions::add,
@@ -58,7 +58,7 @@ class PlaylistListScreenTest {
         composeRule.setContent {
             NextPlayerTheme {
                 PlaylistListScreenContent(
-                    uiState = PlaylistListUiState(
+                    state = PlaylistListUiState(
                         playlistsDataState = DataState.Success(emptyList()),
                         creationDialog = PlaylistCreationDialog.LOCAL_NAME,
                     ),
@@ -79,7 +79,7 @@ class PlaylistListScreenTest {
         composeRule.setContent {
             NextPlayerTheme {
                 PlaylistListScreenContent(
-                    uiState = PlaylistListUiState(
+                    state = PlaylistListUiState(
                         playlistsDataState = DataState.Success(emptyList()),
                         creationDialog = PlaylistCreationDialog.CHOOSER,
                     ),
@@ -100,7 +100,7 @@ class PlaylistListScreenTest {
         composeRule.setContent {
             NextPlayerTheme {
                 PlaylistListScreenContent(
-                    uiState = PlaylistListUiState(
+                    state = PlaylistListUiState(
                         playlistsDataState = DataState.Success(listOf(playlist)),
                     ),
                     onAction = actions::add,
@@ -125,7 +125,7 @@ class PlaylistListScreenTest {
         composeRule.setContent {
             NextPlayerTheme {
                 PlaylistListScreenContent(
-                    uiState = PlaylistListUiState(
+                    state = PlaylistListUiState(
                         playlistsDataState = DataState.Success(listOf(playlist)),
                         showDeleteDialogFor = playlist,
                     ),
@@ -144,7 +144,7 @@ class PlaylistListScreenTest {
         composeRule.setContent {
             NextPlayerTheme {
                 PlaylistListScreenContent(
-                    uiState = PlaylistListUiState(
+                    state = PlaylistListUiState(
                         playlistsDataState = DataState.Success(emptyList()),
                     ),
                 )

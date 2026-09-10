@@ -15,8 +15,11 @@ import dev.anilbeesetti.nextplayer.core.ui.base.MviViewModel
 import dev.anilbeesetti.nextplayer.feature.player.state.SubtitleOptionsEvent
 import dev.anilbeesetti.nextplayer.feature.player.state.VideoZoomEvent
 import javax.inject.Inject
+import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.receiveAsFlow
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 
@@ -27,24 +30,37 @@ class PlayerViewModel @Inject constructor(
     private val getSortedPlaylistUseCase: GetSortedPlaylistUseCase,
 ) : MviViewModel<PlayerUiState, PlayerAction>() {
 
-    private val internalUiState = MutableStateFlow(
+    data class Output(
+        val selectSubtitle: () -> Unit,
+        val navigateUp: () -> Unit,
+        val playInBackground: () -> Unit,
+    )
+
+    private val eventsInternal = Channel<PlayerEvent>(Channel.BUFFERED)
+    val events = eventsInternal.receiveAsFlow()
+
+    private val stateInternal = MutableStateFlow(
         PlayerUiState(
             playerPreferences = preferencesRepository.playerPreferences.value,
         ),
     )
-    override val state = internalUiState.asStateFlow()
+    override val state: StateFlow<PlayerUiState> = stateInternal.asStateFlow()
 
     init {
         viewModelScope.launch {
             preferencesRepository.playerPreferences.collect { prefs ->
-                internalUiState.update { it.copy(playerPreferences = prefs) }
+                stateInternal.update { it.copy(playerPreferences = prefs) }
             }
         }
     }
 
     override fun onAction(action: PlayerAction) {
         when (action) {
-            is PlayerAction.UpdatePlayWhenReady -> internalUiState.update { it.copy(playWhenReady = action.value) }
+            is PlayerAction.SelectSubtitle -> viewModelScope.launch { eventsInternal.send(PlayerEvent.SelectSubtitle) }
+            is PlayerAction.NavigateUp -> viewModelScope.launch { eventsInternal.send(PlayerEvent.NavigateUp) }
+            is PlayerAction.PlayInBackground -> viewModelScope.launch { eventsInternal.send(PlayerEvent.PlayInBackground) }
+
+            is PlayerAction.UpdatePlayWhenReady -> stateInternal.update { it.copy(playWhenReady = action.value) }
             is PlayerAction.UpdateBrightness -> updatePlayerBrightness(action.value)
             is PlayerAction.UpdateVideoZoom -> onVideoZoomEvent(action.event)
             is PlayerAction.UpdateSubtitleOptions -> onSubtitleOptionEvent(action.event)
@@ -122,9 +138,19 @@ data class PlayerUiState(
 )
 
 sealed interface PlayerAction {
+    data object SelectSubtitle : PlayerAction
+    data object NavigateUp : PlayerAction
+    data object PlayInBackground : PlayerAction
+
     data class UpdatePlayWhenReady(val value: Boolean) : PlayerAction
     data class UpdateBrightness(val value: Float) : PlayerAction
     data class UpdateVideoZoom(val event: VideoZoomEvent) : PlayerAction
     data class UpdateSubtitleOptions(val event: SubtitleOptionsEvent) : PlayerAction
     data class SetLoopMode(val loopMode: LoopMode) : PlayerAction
+}
+
+sealed interface PlayerEvent {
+    data object SelectSubtitle : PlayerEvent
+    data object NavigateUp : PlayerEvent
+    data object PlayInBackground : PlayerEvent
 }

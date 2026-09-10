@@ -51,6 +51,7 @@ class VaultPlaybackEventTest {
     fun `direct video action emits direct playback event`() = runTest(testDispatcher.scheduler) {
         val uri = "content://dev.anilbeesetti.nextplayer.fileprovider/vault/1821".toUri()
         val viewModel = VaultViewModel(
+            output = VaultViewModel.Output(navigateUp = {}, playVideo = {}, playVideos = {}),
             vaultRepository = FakeVaultRepository,
             vaultPinRepository = FakeVaultPinRepository,
             getHiddenVideosUseCase = GetHiddenVideosUseCase(FakeVaultRepository, testDispatcher),

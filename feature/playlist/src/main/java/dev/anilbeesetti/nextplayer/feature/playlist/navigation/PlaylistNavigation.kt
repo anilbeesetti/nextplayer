@@ -1,13 +1,12 @@
 package dev.anilbeesetti.nextplayer.feature.playlist.navigation
 
 import android.net.Uri
-import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.navigation3.runtime.EntryProviderScope
 import androidx.navigation3.runtime.NavBackStack
 import androidx.navigation3.runtime.NavKey
-import dev.anilbeesetti.nextplayer.feature.playlist.screens.detail.PlaylistDetailScreen
+import dev.anilbeesetti.nextplayer.feature.playlist.screens.detail.PlaylistDetailRoute
 import dev.anilbeesetti.nextplayer.feature.playlist.screens.detail.PlaylistDetailViewModel
-import dev.anilbeesetti.nextplayer.feature.playlist.screens.list.PlaylistListScreen
+import dev.anilbeesetti.nextplayer.feature.playlist.screens.list.PlaylistListRoute
 import dev.anilbeesetti.nextplayer.feature.playlist.screens.list.PlaylistListViewModel
 import kotlinx.serialization.Serializable
 
@@ -26,18 +25,7 @@ fun EntryProviderScope<NavKey>.playlistListEntry(
     onSettingsClick: () -> Unit,
 ) {
     entry<PlaylistListRoute> {
-        PlaylistListScreen(
-            viewModel = hiltViewModel<PlaylistListViewModel, PlaylistListViewModel.Factory>(
-                creationCallback = { factory ->
-                    factory.create(
-                        PlaylistListViewModel.Output(
-                            openPlaylist = onPlaylistClick,
-                            openSettings = onSettingsClick,
-                        ),
-                    )
-                },
-            ),
-        )
+        PlaylistListRoute(output = PlaylistListViewModel.Output(openPlaylist = onPlaylistClick, openSettings = onSettingsClick))
     }
 }
 
@@ -46,19 +34,11 @@ fun EntryProviderScope<NavKey>.playlistDetailEntry(
     onPlayPlaylist: (playlistId: Long, startUri: Uri) -> Unit,
 ) {
     entry<PlaylistDetailRoute> { route ->
-        PlaylistDetailScreen(
-            viewModel = hiltViewModel<PlaylistDetailViewModel, PlaylistDetailViewModel.Factory>(
-                creationCallback = { factory ->
-                    factory.create(
-                        input = PlaylistDetailViewModel.Input(
-                            playlistId = route.playlistId,
-                        ),
-                        output = PlaylistDetailViewModel.Output(
-                            navigateUp = onNavigateUp,
-                            playPlaylist = onPlayPlaylist,
-                        ),
-                    )
-                },
+        PlaylistDetailRoute(
+            input = PlaylistDetailViewModel.Input(playlistId = route.playlistId),
+            output = PlaylistDetailViewModel.Output(
+                navigateUp = onNavigateUp,
+                playPlaylist = onPlayPlaylist,
             ),
         )
     }

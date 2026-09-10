@@ -3,9 +3,12 @@ package dev.anilbeesetti.nextplayer.feature.more.navigation
 import androidx.navigation3.runtime.EntryProviderScope
 import androidx.navigation3.runtime.NavBackStack
 import androidx.navigation3.runtime.NavKey
-import dev.anilbeesetti.nextplayer.feature.more.screens.history.HistoryScreen
-import dev.anilbeesetti.nextplayer.feature.more.screens.more.MoreScreen
-import dev.anilbeesetti.nextplayer.feature.more.screens.trash.TrashScreen
+import dev.anilbeesetti.nextplayer.feature.more.screens.history.HistoryRoute
+import dev.anilbeesetti.nextplayer.feature.more.screens.history.HistoryViewModel
+import dev.anilbeesetti.nextplayer.feature.more.screens.more.MoreRoute
+import dev.anilbeesetti.nextplayer.feature.more.screens.more.MoreViewModel
+import dev.anilbeesetti.nextplayer.feature.more.screens.trash.TrashRoute
+import dev.anilbeesetti.nextplayer.feature.more.screens.trash.TrashViewModel
 import kotlinx.serialization.Serializable
 
 @Serializable
@@ -25,12 +28,14 @@ fun EntryProviderScope<NavKey>.moreEntry(
     onVaultClick: () -> Unit,
 ) {
     entry<MoreRoute> {
-        MoreScreen(
-            onHistoryClick = onHistoryClick,
-            onPlayVideo = onPlayVideo,
-            onSettingsClick = onSettingsClick,
-            onTrashClick = onTrashClick,
-            onVaultClick = onVaultClick,
+        MoreRoute(
+            output = MoreViewModel.Output(
+                openHistory = onHistoryClick,
+                playVideo = onPlayVideo,
+                openSettings = onSettingsClick,
+                openTrash = onTrashClick,
+                openVault = onVaultClick,
+            ),
         )
     }
 }
@@ -40,9 +45,11 @@ fun EntryProviderScope<NavKey>.historyEntry(
     onPlayVideo: (String) -> Unit,
 ) {
     entry<HistoryRoute> {
-        HistoryScreen(
-            onNavigateUp = onNavigateUp,
-            onPlayVideo = onPlayVideo,
+        HistoryRoute(
+            output = HistoryViewModel.Output(
+                navigateUp = onNavigateUp,
+                playVideo = onPlayVideo,
+            ),
         )
     }
 }
@@ -52,9 +59,11 @@ fun EntryProviderScope<NavKey>.trashEntry(
     onPlayVideo: (String) -> Unit,
 ) {
     entry<TrashRoute> {
-        TrashScreen(
-            onNavigateUp = onNavigateUp,
-            onPlayVideo = onPlayVideo,
+        TrashRoute(
+            output = TrashViewModel.Output(
+                navigateUp = onNavigateUp,
+                playVideo = onPlayVideo,
+            ),
         )
     }
 }

@@ -5,6 +5,7 @@ import androidx.navigation3.runtime.EntryProviderScope
 import androidx.navigation3.runtime.NavBackStack
 import androidx.navigation3.runtime.NavKey
 import dev.anilbeesetti.nextplayer.feature.videopicker.screens.search.SearchRoute
+import dev.anilbeesetti.nextplayer.feature.videopicker.screens.search.SearchViewModel
 import kotlinx.serialization.Serializable
 
 @Serializable
@@ -21,9 +22,11 @@ fun EntryProviderScope<NavKey>.searchEntry(
 ) {
     entry<SearchRoute> {
         SearchRoute(
-            onPlayVideo = onPlayVideo,
-            onNavigateUp = onNavigateUp,
-            onFolderClick = onFolderClick,
+            output = SearchViewModel.Output(
+                playVideo = onPlayVideo,
+                navigateUp = onNavigateUp,
+                openFolder = onFolderClick,
+            ),
         )
     }
 }

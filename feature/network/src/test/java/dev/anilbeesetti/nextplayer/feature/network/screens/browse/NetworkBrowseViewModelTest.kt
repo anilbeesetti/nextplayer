@@ -66,8 +66,8 @@ class NetworkBrowseViewModelTest {
         val client = FakeNetworkClient(connectResult)
         val factory = NetworkClientFactory { client }
         return NetworkBrowseViewModel(
-            connectionId = 7,
-            path = null,
+            input = NetworkBrowseViewModel.Input(connectionId = 7, path = null),
+            output = NetworkBrowseViewModel.Output(navigateUp = {}, playVideo = {}, openFolder = { _, _ -> }),
             repository = FakeRepository(connection()),
             clientFactory = factory,
         )

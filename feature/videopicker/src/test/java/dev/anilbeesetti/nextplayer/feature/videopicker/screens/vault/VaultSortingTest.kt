@@ -204,6 +204,7 @@ class VaultSortingTest {
             ),
         )
         return VaultViewModel(
+            output = VaultViewModel.Output(navigateUp = {}, playVideo = {}, playVideos = {}),
             vaultRepository = vaultRepository,
             vaultPinRepository = FakeVaultPinRepository,
             getHiddenVideosUseCase = GetHiddenVideosUseCase(vaultRepository, testDispatcher),

@@ -16,6 +16,7 @@ import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.SideEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -37,27 +38,25 @@ import dev.anilbeesetti.nextplayer.feature.videopicker.composables.CenterCircula
 import dev.anilbeesetti.nextplayer.feature.videopicker.composables.VideoListItem
 
 @Composable
-fun HistoryScreen(
-    onNavigateUp: () -> Unit,
-    onPlayVideo: (String) -> Unit,
-    viewModel: HistoryViewModel = hiltViewModel(),
+fun HistoryRoute(
+    output: HistoryViewModel.Output,
 ) {
-    val uiState = viewModel.state.collectAsStateWithLifecycle().value
+    val viewModel = hiltViewModel<HistoryViewModel, HistoryViewModel.Factory>(
+        creationCallback = { factory -> factory.create(output) },
+    )
+    SideEffect { viewModel.output = output }
+    val state by viewModel.state.collectAsStateWithLifecycle()
 
     HistoryScreenContent(
-        uiState = uiState,
-        onNavigateUp = onNavigateUp,
-        onPlayVideo = onPlayVideo,
-        onClearHistory = { viewModel.onAction(HistoryAction.ClearHistory) },
+        state = state,
+        onAction = viewModel::onAction,
     )
 }
 
 @Composable
 internal fun HistoryScreenContent(
-    uiState: HistoryUiState,
-    onNavigateUp: () -> Unit,
-    onPlayVideo: (String) -> Unit,
-    onClearHistory: () -> Unit,
+    state: HistoryUiState,
+    onAction: (HistoryAction) -> Unit,
 ) {
     var showClearConfirmation by remember { mutableStateOf(false) }
 
@@ -67,7 +66,7 @@ internal fun HistoryScreenContent(
                 title = stringResource(R.string.history),
                 navigationIcon = {
                     FilledTonalIconButton(
-                        onClick = onNavigateUp,
+                        onClick = { onAction(HistoryAction.NavigateUp) },
                         modifier = Modifier.tvFocusRing(),
                     ) {
                         Icon(
@@ -78,7 +77,7 @@ internal fun HistoryScreenContent(
                 },
                 actions = {
                     TextButton(
-                        enabled = uiState.history.result.orEmpty().isNotEmpty(),
+                        enabled = state.history.result.orEmpty().isNotEmpty(),
                         onClick = { showClearConfirmation = true },
                         modifier = Modifier.tvFocusRing(),
                     ) {
@@ -96,7 +95,7 @@ internal fun HistoryScreenContent(
                 .clip(RoundedCornerShape(topStart = 24.dp, topEnd = 24.dp))
                 .background(MaterialTheme.colorScheme.background),
         ) {
-            when (val history = uiState.history) {
+            when (val history = state.history) {
                 is DataState.Loading -> CenterCircularProgressBar()
                 is DataState.Error -> Text(
                     text = history.value.message.orEmpty(),
@@ -111,10 +110,10 @@ internal fun HistoryScreenContent(
                         VideoListItem(
                             video = video,
                             isRecentlyPlayedVideo = false,
-                            preferences = uiState.preferences,
+                            preferences = state.preferences,
                             isFirstItem = index == 0,
                             isLastItem = index == history.value.lastIndex,
-                            onClick = { onPlayVideo(video.uriString) },
+                            onClick = { onAction(HistoryAction.PlayVideo(video.uriString)) },
                         )
                     }
                 }
@@ -129,7 +128,7 @@ internal fun HistoryScreenContent(
             confirmButton = {
                 TextButton(
                     onClick = {
-                        onClearHistory()
+                        onAction(HistoryAction.ClearHistory)
                         showClearConfirmation = false
                     },
                 ) {

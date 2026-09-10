@@ -201,6 +201,7 @@ class VaultAuthenticationTest {
     }
 
     private fun createViewModel(hasPin: CompletableDeferred<Boolean> = CompletableDeferred(true)) = VaultViewModel(
+        output = VaultViewModel.Output(navigateUp = {}, playVideo = {}, playVideos = {}),
         vaultRepository = vaultRepository,
         vaultPinRepository = object : VaultPinRepository {
             override suspend fun hasPinSet(): Boolean = hasPin.await()

@@ -831,7 +831,8 @@ class AddConnectionViewModelTest {
         keyStore: FakeSshKeyStore,
         connectionId: Long? = null,
     ) = AddConnectionViewModel(
-        connectionId,
+        AddConnectionViewModel.Input(connectionId),
+        AddConnectionViewModel.Output(navigateUp = {}),
         repository,
         factory,
         keyStore,

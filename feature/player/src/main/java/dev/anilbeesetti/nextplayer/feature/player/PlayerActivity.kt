@@ -13,7 +13,6 @@ import androidx.activity.SystemBarStyle
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
 import androidx.activity.viewModels
-import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.compositionLocalOf
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -21,7 +20,6 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.core.util.Consumer
 import androidx.lifecycle.compose.LifecycleStartEffect
-import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.lifecycleScope
 import androidx.media3.common.C
 import androidx.media3.common.MediaItem
@@ -36,7 +34,6 @@ import dev.anilbeesetti.nextplayer.core.common.extensions.getInitialDirectoryUri
 import dev.anilbeesetti.nextplayer.core.common.extensions.getMediaContentUri
 import dev.anilbeesetti.nextplayer.core.common.service.registerForSuspendActivityResult
 import dev.anilbeesetti.nextplayer.core.data.repository.PlaylistRepository
-import dev.anilbeesetti.nextplayer.core.ui.theme.NextPlayerTheme
 import dev.anilbeesetti.nextplayer.feature.player.extensions.OpenDocumentAtInitialUri
 import dev.anilbeesetti.nextplayer.feature.player.extensions.setExtras
 import dev.anilbeesetti.nextplayer.feature.player.extensions.uriToSubtitleConfiguration
@@ -105,7 +102,6 @@ class PlayerActivity : ComponentActivity() {
         )
 
         setContent {
-            val uiState by viewModel.state.collectAsStateWithLifecycle()
             var player by remember { mutableStateOf<MediaController?>(null) }
 
             LifecycleStartEffect(Unit) {
@@ -120,45 +116,40 @@ class PlayerActivity : ComponentActivity() {
                 }
             }
 
-            CompositionLocalProvider(LocalUseMaterialYouControls provides (uiState.playerPreferences?.useMaterialYouControls == true)) {
-                NextPlayerTheme(darkTheme = true) {
-                    MediaPlayerScreen(
-                        player = player,
-                        decoderServiceState = decoderServiceState,
-                        viewModel = viewModel,
-                        playerPreferences = uiState.playerPreferences ?: return@NextPlayerTheme,
-                        onSelectSubtitleClick = {
-                            lifecycleScope.launch {
-                                val videoUri = mediaController?.currentMediaItem?.localConfiguration?.uri
-                                val initialUri = videoUri?.let { video ->
-                                    withContext(Dispatchers.IO) { getInitialDirectoryUri(video) }
-                                }
-                                val uri = subtitleFileSuspendLauncher.launch(
-                                    OpenDocumentAtInitialUri.Input(
-                                        mimeTypes = arrayOf(
-                                            MimeTypes.APPLICATION_SUBRIP,
-                                            MimeTypes.APPLICATION_TTML,
-                                            MimeTypes.TEXT_VTT,
-                                            MimeTypes.TEXT_SSA,
-                                            MimeTypes.BASE_TYPE_APPLICATION + "/octet-stream",
-                                            MimeTypes.BASE_TYPE_TEXT + "/*",
-                                        ),
-                                        initialUri = initialUri,
-                                    ),
-                                ) ?: return@launch
-                                contentResolver.takePersistableUriPermission(uri, Intent.FLAG_GRANT_READ_URI_PERMISSION)
-                                maybeInitControllerFuture()
-                                controllerFuture?.await()?.addSubtitleTrack(uri)
+            MediaPlayerRoute(
+                input = MediaPlayerInput(player = player, decoderServiceState = decoderServiceState),
+                output = PlayerViewModel.Output(
+                    selectSubtitle = {
+                        lifecycleScope.launch {
+                            val videoUri = mediaController?.currentMediaItem?.localConfiguration?.uri
+                            val initialUri = videoUri?.let { video ->
+                                withContext(Dispatchers.IO) { getInitialDirectoryUri(video) }
                             }
-                        },
-                        onBackClick = { finishAndStopPlayerSession() },
-                        onPlayInBackgroundClick = {
-                            playInBackground = true
-                            finish()
-                        },
-                    )
-                }
-            }
+                            val uri = subtitleFileSuspendLauncher.launch(
+                                OpenDocumentAtInitialUri.Input(
+                                    mimeTypes = arrayOf(
+                                        MimeTypes.APPLICATION_SUBRIP,
+                                        MimeTypes.APPLICATION_TTML,
+                                        MimeTypes.TEXT_VTT,
+                                        MimeTypes.TEXT_SSA,
+                                        MimeTypes.BASE_TYPE_APPLICATION + "/octet-stream",
+                                        MimeTypes.BASE_TYPE_TEXT + "/*",
+                                    ),
+                                    initialUri = initialUri,
+                                ),
+                            ) ?: return@launch
+                            contentResolver.takePersistableUriPermission(uri, Intent.FLAG_GRANT_READ_URI_PERMISSION)
+                            maybeInitControllerFuture()
+                            controllerFuture?.await()?.addSubtitleTrack(uri)
+                        }
+                    },
+                    navigateUp = { finishAndStopPlayerSession() },
+                    playInBackground = {
+                        playInBackground = true
+                        finish()
+                    },
+                ),
+            )
         }
 
         playerApi = PlayerApi(this)

@@ -1,6 +1,9 @@
 package dev.anilbeesetti.nextplayer.feature.more.screens.history
 
 import androidx.lifecycle.viewModelScope
+import dagger.assisted.Assisted
+import dagger.assisted.AssistedFactory
+import dagger.assisted.AssistedInject
 import dagger.hilt.android.lifecycle.HiltViewModel
 import dev.anilbeesetti.nextplayer.core.data.repository.MediaRepository
 import dev.anilbeesetti.nextplayer.core.data.repository.PreferencesRepository
@@ -8,32 +11,56 @@ import dev.anilbeesetti.nextplayer.core.model.ApplicationPreferences
 import dev.anilbeesetti.nextplayer.core.model.Video
 import dev.anilbeesetti.nextplayer.core.ui.base.DataState
 import dev.anilbeesetti.nextplayer.core.ui.base.MviViewModel
-import javax.inject.Inject
-import kotlinx.coroutines.flow.SharingStarted
+import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.catch
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.map
-import kotlinx.coroutines.flow.stateIn
+import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 
-@HiltViewModel
-class HistoryViewModel @Inject constructor(
+@HiltViewModel(assistedFactory = HistoryViewModel.Factory::class)
+class HistoryViewModel @AssistedInject constructor(
     private val mediaRepository: MediaRepository,
     preferencesRepository: PreferencesRepository,
+    @Assisted internal var output: Output,
 ) : MviViewModel<HistoryUiState, HistoryAction>() {
-    override val state: StateFlow<HistoryUiState> = combine(
-        mediaRepository.observePlaybackHistory()
-            .map<List<Video>, DataState<List<Video>>> { DataState.Success(it) }
-            .catch { emit(DataState.Error(it)) },
-        preferencesRepository.applicationPreferences,
-    ) { history, preferences ->
-        HistoryUiState(history = history, preferences = preferences)
-    }.stateIn(viewModelScope, SharingStarted.WhileSubscribed(5_000), HistoryUiState())
+
+    data class Output(
+        val navigateUp: () -> Unit,
+        val playVideo: (String) -> Unit,
+    )
+
+    @AssistedFactory
+    interface Factory {
+        fun create(output: Output): HistoryViewModel
+    }
+
+    private val stateInternal = MutableStateFlow(HistoryUiState())
+    override val state: StateFlow<HistoryUiState> = stateInternal.asStateFlow()
+
+    init {
+        viewModelScope.launch {
+            combine(
+                mediaRepository.observePlaybackHistory()
+                    .map<List<Video>, DataState<List<Video>>> { DataState.Success(it) }
+                    .catch { emit(DataState.Error(it)) },
+                preferencesRepository.applicationPreferences,
+            ) { history, preferences ->
+                HistoryUiState(history = history, preferences = preferences)
+            }.collect { newState ->
+                stateInternal.update { newState }
+            }
+        }
+    }
 
     override fun onAction(action: HistoryAction) {
         when (action) {
-            HistoryAction.ClearHistory -> clearHistory()
+            is HistoryAction.NavigateUp -> output.navigateUp()
+            is HistoryAction.PlayVideo -> output.playVideo(action.uri)
+
+            is HistoryAction.ClearHistory -> clearHistory()
         }
     }
 
@@ -48,5 +75,8 @@ data class HistoryUiState(
 )
 
 sealed interface HistoryAction {
+    data object NavigateUp : HistoryAction
+    data class PlayVideo(val uri: String) : HistoryAction
+
     data object ClearHistory : HistoryAction
 }

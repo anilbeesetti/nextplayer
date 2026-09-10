@@ -41,6 +41,7 @@ import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableLongStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberUpdatedState
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -63,8 +64,12 @@ import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
+import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.compose.LifecycleEventEffect
+import androidx.lifecycle.compose.LocalLifecycleOwner
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import androidx.lifecycle.repeatOnLifecycle
 import androidx.media3.common.Player
 import androidx.media3.common.util.UnstableApi
 import androidx.media3.session.MediaController
@@ -75,6 +80,7 @@ import dev.anilbeesetti.nextplayer.core.ui.R as coreUiR
 import dev.anilbeesetti.nextplayer.core.ui.components.requestFocusUntilLanded
 import dev.anilbeesetti.nextplayer.core.ui.components.thenIf
 import dev.anilbeesetti.nextplayer.core.ui.extensions.copy
+import dev.anilbeesetti.nextplayer.core.ui.theme.NextPlayerTheme
 import dev.anilbeesetti.nextplayer.feature.player.buttons.NextButton
 import dev.anilbeesetti.nextplayer.feature.player.buttons.PlayPauseButton
 import dev.anilbeesetti.nextplayer.feature.player.buttons.PlayerButton
@@ -116,18 +122,55 @@ import kotlinx.coroutines.delay
 
 val LocalControlsVisibilityState = compositionLocalOf<ControlsVisibilityState?> { null }
 
+data class MediaPlayerInput(
+    val player: MediaController?,
+    val decoderServiceState: DecoderServiceState,
+)
+
+internal data class MediaPlayerScreenState(
+    val player: MediaController?,
+    val decoderServiceState: DecoderServiceState,
+    val playerPreferences: PlayerPreferences,
+)
+
+@Composable
+fun MediaPlayerRoute(input: MediaPlayerInput, output: PlayerViewModel.Output) {
+    val viewModel: PlayerViewModel = hiltViewModel()
+    val state by viewModel.state.collectAsStateWithLifecycle()
+    val currentOutput by rememberUpdatedState(output)
+    val lifecycleOwner = LocalLifecycleOwner.current
+    LaunchedEffect(viewModel, lifecycleOwner) {
+        lifecycleOwner.repeatOnLifecycle(Lifecycle.State.STARTED) {
+            viewModel.events.collect { event ->
+                when (event) {
+                    is PlayerEvent.SelectSubtitle -> currentOutput.selectSubtitle()
+                    is PlayerEvent.NavigateUp -> currentOutput.navigateUp()
+                    is PlayerEvent.PlayInBackground -> currentOutput.playInBackground()
+                }
+            }
+        }
+    }
+    val playerPreferences = state.playerPreferences ?: return
+    CompositionLocalProvider(LocalUseMaterialYouControls provides playerPreferences.useMaterialYouControls) {
+        NextPlayerTheme(darkTheme = true) {
+            MediaPlayerScreenContent(
+                state = MediaPlayerScreenState(input.player, input.decoderServiceState, playerPreferences),
+                onAction = viewModel::onAction,
+            )
+        }
+    }
+}
+
 @OptIn(UnstableApi::class)
 @Composable
-fun MediaPlayerScreen(
-    decoderServiceState: DecoderServiceState,
-    player: MediaController?,
-    viewModel: PlayerViewModel,
-    playerPreferences: PlayerPreferences,
-    modifier: Modifier = Modifier,
-    onSelectSubtitleClick: () -> Unit,
-    onBackClick: () -> Unit,
-    onPlayInBackgroundClick: () -> Unit,
+internal fun MediaPlayerScreenContent(
+    state: MediaPlayerScreenState,
+    onAction: (PlayerAction) -> Unit,
 ) {
+    val player = state.player
+    val decoderServiceState = state.decoderServiceState
+    val playerPreferences = state.playerPreferences
+
     val volumeState = rememberVolumeState(
         player = player,
         showVolumePanelIfHeadsetIsOn = playerPreferences.showSystemVolumePanel,
@@ -160,7 +203,7 @@ fun MediaPlayerScreen(
         initialContentScale = playerPreferences.playerVideoZoom,
         enableZoomGesture = playerPreferences.useZoomControls,
         enablePanGesture = playerPreferences.enablePanGesture,
-        onEvent = { viewModel.onAction(PlayerAction.UpdateVideoZoom(it)) },
+        onEvent = { onAction(PlayerAction.UpdateVideoZoom(it)) },
     )
     val brightnessState = rememberBrightnessState()
     val volumeAndBrightnessGestureState = rememberVolumeAndBrightnessGestureState(
@@ -198,7 +241,7 @@ fun MediaPlayerScreen(
 
     LaunchedEffect(brightnessState.currentBrightness) {
         if (playerPreferences.rememberPlayerBrightness) {
-            viewModel.onAction(PlayerAction.UpdateBrightness(brightnessState.currentBrightness))
+            onAction(PlayerAction.UpdateBrightness(brightnessState.currentBrightness))
         }
     }
 
@@ -250,7 +293,7 @@ fun MediaPlayerScreen(
     CompositionLocalProvider(LocalControlsVisibilityState provides controlsVisibilityState) {
         Box {
             Box(
-                modifier = modifier
+                modifier = Modifier
                     .fillMaxSize()
                     .background(Color.Black)
                     .then(
@@ -301,7 +344,7 @@ fun MediaPlayerScreen(
                     exit = fadeOut(),
                 ) {
                     Box(
-                        modifier = modifier
+                        modifier = Modifier
                             .fillMaxSize()
                             .background(Color.Black.copy(alpha = 0.3f)),
                     )
@@ -398,7 +441,7 @@ fun MediaPlayerScreen(
                                         controlsVisibilityState.hideControls()
                                         overlayView = OverlayView.PLAYLIST
                                     },
-                                    onBackClick = onBackClick,
+                                    onBackClick = { onAction(PlayerAction.NavigateUp) },
                                 )
                             }
                         },
@@ -440,7 +483,7 @@ fun MediaPlayerScreen(
                                     onSeek = seekGestureState::onSeek,
                                     onSeekEnd = seekGestureState::onSeekEnd,
                                     onRotateClick = rotationState::rotate,
-                                    onPlayInBackgroundClick = onPlayInBackgroundClick,
+                                    onPlayInBackgroundClick = { onAction(PlayerAction.PlayInBackground) },
                                     onLockControlsClick = {
                                         controlsVisibilityState.showControls()
                                         controlsVisibilityState.lockControls()
@@ -511,8 +554,8 @@ fun MediaPlayerScreen(
                 onDismiss = { overlayView = null },
                 onVideoDecoderModeSelected = decoderState::switchVideoTo,
                 onAudioDecoderModeSelected = decoderState::switchAudioTo,
-                onSelectSubtitleClick = onSelectSubtitleClick,
-                onSubtitleOptionEvent = { viewModel.onAction(PlayerAction.UpdateSubtitleOptions(it)) },
+                onSelectSubtitleClick = { onAction(PlayerAction.SelectSubtitle) },
+                onSubtitleOptionEvent = { onAction(PlayerAction.UpdateSubtitleOptions(it)) },
                 onVideoContentScaleChanged = { videoZoomAndContentScaleState.onVideoContentScaleChanged(it) },
             )
         }
@@ -591,7 +634,7 @@ fun MediaPlayerScreen(
                 TextButton(
                     onClick = {
                         errorState.dismiss()
-                        onBackClick()
+                        onAction(PlayerAction.NavigateUp)
                     },
                 ) {
                     Text(text = stringResource(coreUiR.string.exit))
@@ -604,7 +647,7 @@ fun MediaPlayerScreen(
         when {
             overlayView != null -> overlayView = null
             isTv && controlsVisibilityState.controlsVisible -> controlsVisibilityState.hideControls()
-            else -> onBackClick()
+            else -> onAction(PlayerAction.NavigateUp)
         }
     }
 }

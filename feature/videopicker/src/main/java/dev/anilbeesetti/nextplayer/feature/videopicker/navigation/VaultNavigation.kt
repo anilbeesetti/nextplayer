@@ -5,6 +5,7 @@ import androidx.navigation3.runtime.EntryProviderScope
 import androidx.navigation3.runtime.NavBackStack
 import androidx.navigation3.runtime.NavKey
 import dev.anilbeesetti.nextplayer.feature.videopicker.screens.vault.VaultRoute
+import dev.anilbeesetti.nextplayer.feature.videopicker.screens.vault.VaultViewModel
 import kotlinx.serialization.Serializable
 
 @Serializable
@@ -21,9 +22,11 @@ fun EntryProviderScope<NavKey>.vaultEntry(
 ) {
     entry<VaultRoute> {
         VaultRoute(
-            onPlayVideo = onPlayVideo,
-            onPlayVideos = onPlayVideos,
-            onNavigateUp = onNavigateUp,
+            output = VaultViewModel.Output(
+                playVideo = onPlayVideo,
+                playVideos = onPlayVideos,
+                navigateUp = onNavigateUp,
+            ),
         )
     }
 }

@@ -9,6 +9,8 @@ import androidx.compose.ui.test.onAllNodesWithText
 import androidx.compose.ui.test.onNodeWithContentDescription
 import androidx.compose.ui.test.onNodeWithText
 import androidx.compose.ui.test.performClick
+import androidx.test.platform.app.InstrumentationRegistry
+import dev.anilbeesetti.nextplayer.core.common.extensions.isTelevision
 import dev.anilbeesetti.nextplayer.core.model.Playlist
 import dev.anilbeesetti.nextplayer.core.model.PlaylistItem
 import dev.anilbeesetti.nextplayer.core.model.PlaylistType
@@ -17,6 +19,7 @@ import dev.anilbeesetti.nextplayer.core.ui.base.ActionState
 import dev.anilbeesetti.nextplayer.core.ui.base.DataState
 import dev.anilbeesetti.nextplayer.core.ui.theme.NextPlayerTheme
 import org.junit.Assert.assertEquals
+import org.junit.Assume.assumeTrue
 import org.junit.Rule
 import org.junit.Test
 
@@ -235,10 +238,12 @@ class PlaylistDetailScreenTest {
         showRemoveDialogFor: PlaylistItem? = null,
         onAction: (PlaylistDetailUiAction) -> Unit = {},
     ) {
+        val context = InstrumentationRegistry.getInstrumentation().targetContext
+        assumeTrue("Requires ${if (isTv) "TV" else "phone"} device", context.isTelevision == isTv)
         composeRule.setContent {
             NextPlayerTheme {
                 PlaylistDetailScreenContent(
-                    uiState = PlaylistDetailUiState(
+                    state = PlaylistDetailUiState(
                         playlistDataState = DataState.Success(playlist),
                         updateActionState = updateActionState,
                         isSearching = isSearching,
@@ -246,7 +251,6 @@ class PlaylistDetailScreenTest {
                         isReordering = isReordering,
                         showRemoveDialogFor = showRemoveDialogFor,
                     ),
-                    isTv = isTv,
                     onAction = onAction,
                 )
             }
