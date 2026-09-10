@@ -51,7 +51,9 @@ import androidx.compose.runtime.toMutableStateList
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.focus.FocusRequester
 import androidx.compose.ui.focus.focusProperties
+import androidx.compose.ui.focus.focusRequester
 import androidx.compose.ui.geometry.Rect
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
@@ -194,6 +196,8 @@ fun TopLevelNavState.isNavigationBetweenTopLevelDestinations(initialState: Scene
 fun NextNavigationBar(
     state: TopLevelNavState,
     fabState: TopLevelFabState?,
+    contentFocusRequester: FocusRequester,
+    fabFocusRequester: FocusRequester,
     showFabOnly: Boolean = false,
 ) {
     val isTv = LocalContext.current.isTelevision
@@ -238,8 +242,14 @@ fun NextNavigationBar(
                     onClick = fab.onClick,
                     modifier = Modifier
                         .testTag("top_level_fab")
+                        .focusRequester(fabFocusRequester)
                         .tvFocusRing(shape = MaterialTheme.shapes.large)
-                        .focusProperties { if (isTv) up = fab.upFocusRequester },
+                        .focusProperties {
+                            if (isTv) {
+                                up = fab.upFocusRequester.takeUnless { it == FocusRequester.Default }
+                                    ?: contentFocusRequester
+                            }
+                        },
                     shape = MaterialTheme.shapes.large,
                 ) {
                     AnimatedContent(

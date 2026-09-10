@@ -372,10 +372,12 @@ internal fun MediaPickerScreen(
             if (uiState.folderName != null && !selectionManager.isInSelectionMode) {
                 FloatingActionButton(
                     onClick = onFabClick,
-                    modifier = Modifier.tvFocusRing(shape = MaterialTheme.shapes.large),
+                    modifier = Modifier
+                        .tvFocusRing(shape = MaterialTheme.shapes.large)
+                        .focusProperties { if (isTv && hasMedia) up = focusState.requester },
                     shape = MaterialTheme.shapes.large,
                 ) {
-                    Icon(imageVector = NextIcons.Play, contentDescription = null)
+                    Icon(imageVector = NextIcons.Play, contentDescription = stringResource(R.string.play))
                 }
             }
         },

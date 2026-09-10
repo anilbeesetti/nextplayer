@@ -16,6 +16,7 @@ import androidx.compose.animation.slideInVertically
 import androidx.compose.animation.slideOutHorizontally
 import androidx.compose.animation.slideOutVertically
 import androidx.compose.animation.togetherWith
+import androidx.compose.foundation.focusGroup
 import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.PaddingValues
@@ -27,9 +28,6 @@ import androidx.compose.foundation.layout.displayCutout
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.only
-import androidx.compose.foundation.layout.systemBars
-import androidx.compose.foundation.layout.union
-import androidx.compose.foundation.layout.windowInsetsPadding
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Surface
@@ -44,6 +42,11 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.runtime.snapshots.SnapshotStateMap
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.focus.FocusDirection
+import androidx.compose.ui.focus.FocusRequester
+import androidx.compose.ui.focus.focusProperties
+import androidx.compose.ui.focus.focusRequester
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
 import androidx.core.splashscreen.SplashScreen.Companion.installSplashScreen
 import androidx.fragment.app.FragmentActivity
@@ -55,6 +58,7 @@ import androidx.navigation3.ui.NavDisplay
 import androidx.window.core.layout.WindowSizeClass
 import com.google.accompanist.permissions.ExperimentalPermissionsApi
 import dagger.hilt.android.AndroidEntryPoint
+import dev.anilbeesetti.nextplayer.core.common.extensions.isTelevision
 import dev.anilbeesetti.nextplayer.core.common.service.system.SystemService
 import dev.anilbeesetti.nextplayer.core.media.services.MediaOperationsService
 import dev.anilbeesetti.nextplayer.core.model.ThemeConfig
@@ -75,8 +79,8 @@ import dev.anilbeesetti.nextplayer.navigation.networkNavGraph
 import dev.anilbeesetti.nextplayer.navigation.playlistNavGraph
 import dev.anilbeesetti.nextplayer.navigation.rememberTopLevelNavState
 import dev.anilbeesetti.nextplayer.navigation.settingsNavGraph
-import kotlinx.coroutines.launch
 import javax.inject.Inject
+import kotlinx.coroutines.launch
 
 @AndroidEntryPoint
 class MainActivity : FragmentActivity() {
@@ -261,6 +265,9 @@ fun NavigationLayout(
     windowSizeClass: WindowSizeClass = currentWindowAdaptiveInfoV2().windowSizeClass,
     content: @Composable (PaddingValues) -> Unit,
 ) {
+    val isTv = LocalContext.current.isTelevision
+    val contentFocusRequester = remember { FocusRequester() }
+    val fabFocusRequester = remember { FocusRequester() }
     val showNavRail = windowSizeClass.isWidthAtLeastBreakpoint(WindowSizeClass.WIDTH_DP_MEDIUM_LOWER_BOUND)
     val showNavigation = state.currentStack.lastOrNull()?.let { state.topLevelContentKeys.contains(it) } == true
     val selectedFabState = state.destinations[state.selectedIndex].fabKey?.let(fabStates::get)
@@ -286,7 +293,9 @@ fun NavigationLayout(
                     NextNavigationBar(
                         state = state,
                         fabState = displayedFabState,
-                        showFabOnly = showNavRail
+                        contentFocusRequester = contentFocusRequester,
+                        fabFocusRequester = fabFocusRequester,
+                        showFabOnly = showNavRail,
                     )
                 }
             },
@@ -296,9 +305,24 @@ fun NavigationLayout(
                 Box(
                     modifier = Modifier
                         .fillMaxWidth()
+                        .thenIf(isTv) {
+                            // The FAB sits outside screen content, whose full-height focus groups
+                            // overlap it. Enter the content explicitly instead of searching the rail.
+                            focusRequester(contentFocusRequester)
+                                .focusProperties {
+                                    onExit = {
+                                        if (requestedFocusDirection == FocusDirection.Down &&
+                                            showNavigation && showBottomBar && displayedFabState != null
+                                        ) {
+                                            fabFocusRequester.requestFocus()
+                                        }
+                                    }
+                                }
+                                .focusGroup()
+                        }
                         .thenIf(showNavigation) {
                             consumeWindowInsets(WindowInsets.displayCutout.only(WindowInsetsSides.Start))
-                        }
+                        },
                 ) {
                     content(it)
                 }

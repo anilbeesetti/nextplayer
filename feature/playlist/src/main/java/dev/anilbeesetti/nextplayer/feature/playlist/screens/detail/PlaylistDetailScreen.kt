@@ -78,6 +78,7 @@ import dev.anilbeesetti.nextplayer.core.ui.components.NextDialog
 import dev.anilbeesetti.nextplayer.core.ui.components.NextOutlinedTextField
 import dev.anilbeesetti.nextplayer.core.ui.components.NextSegmentedListItem
 import dev.anilbeesetti.nextplayer.core.ui.components.NextTopAppBar
+import dev.anilbeesetti.nextplayer.core.ui.components.rememberTvListFocusRequester
 import dev.anilbeesetti.nextplayer.core.ui.components.tvFocusRing
 import dev.anilbeesetti.nextplayer.core.ui.components.tvListFocus
 import dev.anilbeesetti.nextplayer.core.ui.designsystem.NextIcons
@@ -116,6 +117,7 @@ internal fun PlaylistDetailScreenContent(
         playlist?.type == PlaylistType.LOCAL &&
         !isTv
     val searchFocusRequester = remember { FocusRequester() }
+    val contentFocusRequester = rememberTvListFocusRequester()
     val keyboardController = LocalSoftwareKeyboardController.current
     val exitSearch: () -> Unit = {
         onAction(PlaylistDetailUiAction.OnCloseSearchClick)
@@ -274,7 +276,9 @@ internal fun PlaylistDetailScreenContent(
                             PlaylistDetailUiAction.OnPlay(playbackStartUri),
                         )
                     },
-                    modifier = Modifier.tvFocusRing(shape = MaterialTheme.shapes.large),
+                    modifier = Modifier
+                        .tvFocusRing(shape = MaterialTheme.shapes.large)
+                        .focusProperties { if (isTv) up = contentFocusRequester },
                     shape = MaterialTheme.shapes.large,
                 ) {
                     Icon(
@@ -307,6 +311,7 @@ internal fun PlaylistDetailScreenContent(
                     val content: @Composable (Modifier) -> Unit = { modifier ->
                         PlaylistDetailContent(
                             playlist = playlist,
+                            contentFocusRequester = contentFocusRequester,
                             isTv = isTv,
                             isReordering = isReordering,
                             searchQuery = uiState.searchQuery,
@@ -351,6 +356,7 @@ internal fun PlaylistDetailScreenContent(
 @Composable
 private fun PlaylistDetailContent(
     playlist: Playlist,
+    contentFocusRequester: FocusRequester,
     isTv: Boolean,
     isReordering: Boolean,
     searchQuery: String,
@@ -410,7 +416,7 @@ private fun PlaylistDetailContent(
                 LazyColumn(
                     modifier = Modifier
                         .fillMaxSize()
-                        .tvListFocus(),
+                        .tvListFocus(contentFocusRequester),
                     state = listState,
                     contentPadding = PaddingValues(
                         start = 8.dp,
