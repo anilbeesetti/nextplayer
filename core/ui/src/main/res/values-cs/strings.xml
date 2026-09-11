@@ -500,7 +500,17 @@
     <string name="clear_all">Vymazat vše</string>
     <string name="clear_history_confirmation">Odstranit všechny zhlédnuté videa z historie?</string>
     <string name="open_vault_description">Přístup k vaším skrytých videích</string>
-    <string name="ftp_sftp">FTP/SFPT</string>
+    <string name="ftp_sftp">FTP/SFTP</string>
     <string name="use_sftp">Použít SFTP</string>
     <string name="settings_description">Možnosti aplikace</string>
+    <string name="trash">Koš</string>
+    <string name="move_to_trash">Přesunout do koše</string>
+    <string name="move_to_trash_info">Vybrané položky budou přesunuty do koše.</string>
+    <string name="trash_empty_title">Koš je prázdný</string>
+    <string name="trash_empty_description">Videa které přesunete do koše se budou zobrazovat zde. Můžete je obnovit nebo nenávratně odstranit.</string>
+    <string name="delete_permanently">Odstranit nenávratně</string>
+    <string name="restore">Obnovit</string>
+    <string name="vault_biometric_description">Použít váš otisk prstu nebo tvář pro odemykání. Váš PIN pro sejf bude stále dostupný.</string>
+    <string name="system_volume_panel_desc">Zobrazit systémový panel hlasitosti při nastavování hlasitosti se sluchátkáma</string>
+    <string name="system_volume_panel">Systémový panel hlasitosti</string>
 </resources>
