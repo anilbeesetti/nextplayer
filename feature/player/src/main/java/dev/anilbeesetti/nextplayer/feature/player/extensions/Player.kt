@@ -84,9 +84,9 @@ fun Player.addAdditionalSubtitleConfiguration(subtitle: MediaItem.SubtitleConfig
         .copy(subtitleTrackIndex = textTracks.size)
 
     val index = currentMediaItemIndex
-    addMediaItem(index + 1, updateMediaItem)
-    seekTo(index + 1, currentPosition)
-    removeMediaItem(index)
+    val position = currentPosition
+    replaceMediaItem(index, updateMediaItem)
+    seekTo(index, position)
 }
 
 @OptIn(UnstableApi::class)

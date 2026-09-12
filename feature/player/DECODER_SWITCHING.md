@@ -4,7 +4,7 @@ NextPlayer uses nextlib's `DecoderManager` on one `ExoPlayer`. Video and audio c
 independent and reset to `AUTO` for a new playlist item, but survive metadata updates.
 The overlay offers HW (`HARDWARE`), SW+ (`SOFTWARE` MediaCodec), and SW (`FFMPEG`).
 Automatic selection stays internal; controls show the initialized decoder category and
-show “Decoders” while that category is unknown.
+show “-” while that category is unknown.
 
 ```kotlin
 val decoderManager = DecoderManager()
@@ -19,6 +19,11 @@ decoderManager.attach(player)
 MediaSession extras. `PlayerActivity` receives `onExtrasChanged` and passes the state to
 Compose, so a dialog or decoder label can update without a playback-state event. Existing
 session extras, such as skip-silence state, are preserved.
+
+Adding a local subtitle replaces the current item at the same playlist index and restores its
+position. It must not temporarily seek to a new index, which would reset manual decoder choices.
+Nextlib also restores active modes from successful decoder reuse evaluations: a renderer can be
+disabled and enabled again without initializing a new codec.
 
 NextPlayer owns fallback policy. Each track keeps a bounded queue of fallback modes;
 duplicate failures for the same attempt are ignored.
