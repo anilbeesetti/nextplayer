@@ -60,6 +60,7 @@ interface MediaRepository {
     suspend fun updateMediumAudioTrack(uri: String, audioTrackIndex: Int)
     suspend fun updateMediumSubtitleTrack(uri: String, subtitleTrackIndex: Int)
     suspend fun updateMediumZoom(uri: String, zoom: Float)
+    suspend fun addExternalAudioToMedium(uri: String, audioUri: Uri)
     suspend fun addExternalSubtitleToMedium(uri: String, subtitleUri: Uri)
     suspend fun updateSubtitleDelay(uri: String, delay: Long)
     suspend fun updateSubtitleSpeed(uri: String, speed: Float)
