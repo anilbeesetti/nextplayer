@@ -82,3 +82,39 @@ profile. Tested SwiftShader and host GPU rendering. No app crash was recorded.
 colors with host GPU rendering. MediaCodec output was correct. The native rendering source is
 unchanged from nextlib main; these checks do not establish whether physical devices are affected.
 Decoder selection and recovery passed, but FFmpeg visual playback did not.
+
+
+## Verification on 2026-09-12
+
+Tested NextPlayer `5f6aef14` with local nextlib `23417ad`. The app changes also passed
+`assembleDebug test ktlintCheck` against published nextlib `1.11.0-0.15.0`. The complete
+fix passed those checks with composite substitution, 206 NextPlayer JVM tests, 11 nextlib
+JVM tests, and the new nextlib decoder lifecycle instrumentation regression. Test failures
+were enforced with a temporary Gradle init script overriding the root `ignoreFailures = true`.
+Builds used the checked-in Gradle daemon configuration and Java 17 bytecode target.
+
+Disposable device: Pixel 6a profile, Android 17 / API 37 (`android-37.1` system image),
+ARM64, 16 KB pages, 720 × 1600. Final checks used host graphics.
+
+- Reproduced HW → “-” after adding a local SRT on the original app. Both new regressions
+  failed against the original implementations and passed with the fixes.
+- All six directed transitions among HW, SW+, and SW passed while paused and again while
+  playing. Paused position stayed exactly 30,255 ms; playing position advanced throughout.
+  Independently selected SW audio survived every video transition.
+- Local subtitles preserved all three manual video modes and the paused position
+  (163,649 ms). Starting subtitle selection while playing retained HW and resumed playback.
+- Rapid repeated mode selections settled on the final requested HW decoder.
+- Unsupported HW audio prompted and recovered to SW+ while retaining SW video; repeating
+  the failure recovered again. Unsupported FFmpeg MPEG-4 video prompted and recovered to SW+.
+- New media reset automatic selection. Video-only and audio-only media tolerated all three
+  choices for the absent track without false recovery; the present track remained selectable.
+  Audio-only testing used an app-private fixture because the app requests video storage access.
+  The inaccessible shared audio fixture correctly used the ordinary source-error dialog.
+- FFmpeg colors and subtitles rendered correctly on the H.264 fixture. No app crash was recorded.
+
+The first SwiftShader run was interrupted by a host emulator SIGABRT in gRPC
+`CallbackWithSuccessTag`. The complete transition matrix passed after restarting with host
+graphics. The disposable device was shut down and its data removed after verification.
+
+The general decoder-reuse fix is in nextlib `23417ad`; use `-PnextlibPath` until a published
+nextlib release includes that commit. No dependency was pointed at an unpublished version.
