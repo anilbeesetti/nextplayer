@@ -320,9 +320,6 @@
     <string name="enter_vault_pin_description">請輸入密碼以存取您的影片</string>
     <string name="pins_do_not_match">PIN 碼不符，請再試一次</string>
     <string name="incorrect_pin">錯誤的 PIN 碼</string>
-    <string name="how_to_find_hidden_videos_title">如何尋找您隱藏的影片</string>
-    <string name="how_to_find_hidden_videos_description">隱藏的影片皆妥善存放於保險箱。\n如要再次查看，請按下「更多」開啟保險箱並輸入密碼。</string>
-    <string name="got_it">知道了</string>
     <string name="open_vault">開啟保險箱</string>
     <string name="vault_empty_title">沒有隱藏的影片</string>
     <string name="vault_empty_description">您隱藏的影片將會顯示在這裡。\n按住影片並選擇「隱藏」即可加入保險箱。</string>

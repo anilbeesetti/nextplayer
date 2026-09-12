@@ -349,9 +349,6 @@
     <string name="enter_vault_pin_description">Enter your PIN to access hidden videos</string>
     <string name="pins_do_not_match">PINs don\'t match. Try again</string>
     <string name="incorrect_pin">Incorrect PIN</string>
-    <string name="how_to_find_hidden_videos_title">How to find your hidden videos</string>
-    <string name="how_to_find_hidden_videos_description">Hidden videos are kept safe in your Vault. To open it again, open More, tap Open vault, and enter your PIN.</string>
-    <string name="got_it">Got it</string>
     <string name="open_vault">Open vault</string>
     <string name="open_vault_description">Access your hidden videos</string>
     <string name="unlock_with_biometrics">Unlock with biometrics</string>

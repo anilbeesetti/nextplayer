@@ -325,9 +325,6 @@
     <string name="enter_vault_pin_description">Введите PIN-код для доступа к скрытым видео</string>
     <string name="pins_do_not_match">PIN-коды не совпадают. Попробуйте ещё раз</string>
     <string name="incorrect_pin">Неверный PIN-код</string>
-    <string name="how_to_find_hidden_videos_title">Как найти скрытые видео</string>
-    <string name="how_to_find_hidden_videos_description">Скрытые видео надёжно защищены в вашем хранилище. Чтобы снова зайти в него, перейдите в раздел «Ещё», нажмите «Открыть хранилище» и введите свой PIN-код.</string>
-    <string name="got_it">Понятно</string>
     <string name="open_vault">Открыть секретную папку</string>
     <string name="vault_empty_title">Скрытых видео нет</string>
     <string name="delete_one_video_from_vault">Удалить это видео навсегда?</string>

@@ -734,19 +734,6 @@ private fun HideFlowDialogs(
         }
 
         HideFlowState.BiometricSetup -> VaultBiometricSetupDialog(onComplete = onBiometricSetupComplete)
-
-        HideFlowState.HowToFindInfo -> {
-            NextDialog(
-                onDismissRequest = onDismiss,
-                title = { Text(text = stringResource(R.string.how_to_find_hidden_videos_title)) },
-                content = { Text(text = stringResource(R.string.how_to_find_hidden_videos_description)) },
-                confirmButton = {
-                    TextButton(onClick = onDismiss) {
-                        Text(text = stringResource(R.string.got_it))
-                    }
-                },
-            )
-        }
     }
 }
 

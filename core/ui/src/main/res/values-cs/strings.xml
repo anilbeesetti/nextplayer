@@ -293,9 +293,6 @@
     <string name="confirm_vault_pin">Potvrzení PINu</string>
     <string name="confirm_vault_pin_description">Zadejte váš PIN znovu pro potvrzení</string>
     <string name="enter_vault_pin">Zadejte PIN</string>
-    <string name="how_to_find_hidden_videos_title">Jak najít vaše skryté videa</string>
-    <string name="how_to_find_hidden_videos_description">Skryté videa jsou zabezpečeny ve vašem sejfu. Pro jeho otevření, přejděte na kartu Více, klepněte na Otevřít sejf a zadejte váš PIN.</string>
-    <string name="got_it">Rozumím</string>
     <string name="open_vault">Otevřít sejf</string>
     <string name="vault_empty_title">Žádné skryté videa</string>
     <string name="vault_empty_description">Skryté videa se budou zobrazovat zde. Na video udělejte dlouhé klepnutí a klepněte na Skyýt pro přidání do sejfu.</string>

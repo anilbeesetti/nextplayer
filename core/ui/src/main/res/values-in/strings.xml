@@ -344,9 +344,6 @@
     <string name="enter_vault_pin_description">Masukkan PIN Anda untuk mengakses video tersembunyi</string>
     <string name="pins_do_not_match">PIN tidak cocok. Coba lagi</string>
     <string name="incorrect_pin">PIN salah</string>
-    <string name="how_to_find_hidden_videos_title">Cara menemukan video tersembunyi Anda</string>
-    <string name="how_to_find_hidden_videos_description">Video tersembunyi Anda disimpan dengan aman di Brankas. Untuk membukanya kembali, tekan dan tahan judul \"NextPlayer\" di bagian atas layar beranda, lalu masukkan PIN Anda.</string>
-    <string name="got_it">Mengerti</string>
     <string name="open_vault">Buka brankas</string>
     <string name="vault_empty_title">Tidak ada video tersembunyi</string>
     <string name="vault_empty_description">Video yang Anda sembunyikan akan muncul di sini. Tekan lama video, lalu ketuk Sembunyikan untuk menambahkannya ke brankas.</string>
