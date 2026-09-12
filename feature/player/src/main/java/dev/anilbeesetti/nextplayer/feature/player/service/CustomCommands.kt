@@ -14,6 +14,7 @@ import kotlinx.coroutines.guava.await
 
 enum class CustomCommands(val customAction: String) {
     ADD_SUBTITLE_TRACK(customAction = "ADD_SUBTITLE_TRACK"),
+    ADD_AUDIO_TRACK(customAction = "ADD_AUDIO_TRACK"),
     SET_SKIP_SILENCE_ENABLED(customAction = "SET_SKIP_SILENCE_ENABLED"),
     GET_SKIP_SILENCE_ENABLED(customAction = "GET_SKIP_SILENCE_ENABLED"),
     SET_IS_SCRUBBING_MODE_ENABLED(customAction = "SET_IS_SCRUBBING_MODE_ENABLED"),
@@ -41,6 +42,7 @@ enum class CustomCommands(val customAction: String) {
             return entries.map { it.sessionCommand }
         }
 
+        const val AUDIO_TRACK_URI_KEY = "audio_track_uri"
         const val SUBTITLE_TRACK_URI_KEY = "subtitle_track_uri"
         const val SKIP_SILENCE_ENABLED_KEY = "skip_silence_enabled"
         const val IS_SCRUBBING_MODE_ENABLED_KEY = "is_scrubbing_mode_enabled"
@@ -54,6 +56,13 @@ enum class CustomCommands(val customAction: String) {
         const val DECODER_RECOVERY_TRACK_TYPE_KEY = "decoder_recovery_track_type"
         const val UNSUPPORTED_DECODER_MODE_KEY = "unsupported_decoder_mode"
     }
+}
+
+suspend fun MediaController.addAudioTrack(uri: Uri): Boolean {
+    val args = Bundle().apply {
+        putString(CustomCommands.AUDIO_TRACK_URI_KEY, uri.toString())
+    }
+    return sendCustomCommand(CustomCommands.ADD_AUDIO_TRACK.sessionCommand, args).await().resultCode == SessionResult.RESULT_SUCCESS
 }
 
 fun MediaController.addSubtitleTrack(uri: Uri) {

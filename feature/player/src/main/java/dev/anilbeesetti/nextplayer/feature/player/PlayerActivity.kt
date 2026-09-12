@@ -8,6 +8,7 @@ import android.net.Uri
 import android.os.Build
 import android.os.Bundle
 import android.view.WindowManager
+import android.widget.Toast
 import androidx.activity.ComponentActivity
 import androidx.activity.SystemBarStyle
 import androidx.activity.compose.setContent
@@ -36,14 +37,16 @@ import dev.anilbeesetti.nextplayer.core.common.extensions.getInitialDirectoryUri
 import dev.anilbeesetti.nextplayer.core.common.extensions.getMediaContentUri
 import dev.anilbeesetti.nextplayer.core.common.service.registerForSuspendActivityResult
 import dev.anilbeesetti.nextplayer.core.data.repository.PlaylistRepository
+import dev.anilbeesetti.nextplayer.core.ui.R as coreUiR
 import dev.anilbeesetti.nextplayer.core.ui.theme.NextPlayerTheme
 import dev.anilbeesetti.nextplayer.feature.player.extensions.OpenDocumentAtInitialUri
 import dev.anilbeesetti.nextplayer.feature.player.extensions.setExtras
 import dev.anilbeesetti.nextplayer.feature.player.extensions.uriToSubtitleConfiguration
 import dev.anilbeesetti.nextplayer.feature.player.model.DecoderServiceState
-import dev.anilbeesetti.nextplayer.feature.player.service.decoderServiceState
 import dev.anilbeesetti.nextplayer.feature.player.service.PlayerService
+import dev.anilbeesetti.nextplayer.feature.player.service.addAudioTrack
 import dev.anilbeesetti.nextplayer.feature.player.service.addSubtitleTrack
+import dev.anilbeesetti.nextplayer.feature.player.service.decoderServiceState
 import dev.anilbeesetti.nextplayer.feature.player.service.stopPlayerSession
 import dev.anilbeesetti.nextplayer.feature.player.utils.PlayerApi
 import dev.anilbeesetti.nextplayer.feature.player.utils.PlaylistPlaybackContract
@@ -94,6 +97,8 @@ class PlayerActivity : ComponentActivity() {
      * Listeners
      */
     private val playbackStateListener: Player.Listener = playbackStateListener()
+
+    private val audioFileSuspendLauncher = registerForSuspendActivityResult(OpenDocumentAtInitialUri())
 
     private val subtitleFileSuspendLauncher = registerForSuspendActivityResult(OpenDocumentAtInitialUri())
 
@@ -151,6 +156,29 @@ class PlayerActivity : ComponentActivity() {
                                 controllerFuture?.await()?.addSubtitleTrack(uri)
                             }
                         },
+                        onSelectAudioClick = {
+                            lifecycleScope.launch {
+                                val videoUri = mediaController?.currentMediaItem?.localConfiguration?.uri
+                                val initialUri = videoUri?.let { video ->
+                                    withContext(Dispatchers.IO) { getInitialDirectoryUri(video) }
+                                }
+                                val uri = audioFileSuspendLauncher.launch(
+                                    OpenDocumentAtInitialUri.Input(
+                                        mimeTypes = arrayOf("audio/*", "application/ogg"),
+                                        initialUri = initialUri,
+                                    ),
+                                ) ?: return@launch
+                                try {
+                                    contentResolver.takePersistableUriPermission(uri, Intent.FLAG_GRANT_READ_URI_PERMISSION)
+                                    maybeInitControllerFuture()
+                                    if (controllerFuture?.await()?.addAudioTrack(uri) != true) {
+                                        Toast.makeText(this@PlayerActivity, coreUiR.string.error_opening_audio, Toast.LENGTH_LONG).show()
+                                    }
+                                } catch (_: SecurityException) {
+                                    Toast.makeText(this@PlayerActivity, coreUiR.string.error_opening_audio, Toast.LENGTH_LONG).show()
+                                }
+                            }
+                        },
                         onBackClick = { finishAndStopPlayerSession() },
                         onPlayInBackgroundClick = {
                             playInBackground = true
@@ -184,7 +212,7 @@ class PlayerActivity : ComponentActivity() {
             removeListener(playbackStateListener)
         }
         val shouldPlayInBackground = playInBackground || playerPreferences?.autoBackgroundPlay == true
-        if (subtitleFileSuspendLauncher.isAwaitingResult || !shouldPlayInBackground) {
+        if (subtitleFileSuspendLauncher.isAwaitingResult || audioFileSuspendLauncher.isAwaitingResult || !shouldPlayInBackground) {
             mediaController?.pause()
         }
 
