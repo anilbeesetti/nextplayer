@@ -320,9 +320,6 @@
     <string name="enter_vault_pin_description">숨긴 동영상에 접근하려면 PIN을 입력하세요.</string>
     <string name="pins_do_not_match">PIN이 일치하지 않습니다. 다시 시도해 주세요.</string>
     <string name="incorrect_pin">PIN이 올바르지 않습니다.</string>
-    <string name="how_to_find_hidden_videos_title">숨긴 동영상 찾는 방법</string>
-    <string name="how_to_find_hidden_videos_description">숨긴 동영상은 보관함에 안전하게 보관됩니다. 다시 열려면 더보기를 열고 보관함 열기를 누른 뒤 PIN을 입력하세요.</string>
-    <string name="got_it">확인</string>
     <string name="open_vault">보관함 열기</string>
     <string name="vault_empty_title">숨긴 동영상 없음</string>
     <string name="vault_empty_description">숨긴 동영상이 여기에 표시됩니다. 동영상을 길게 누른 뒤 숨기기를 눌러 보관함에 추가하세요.</string>
