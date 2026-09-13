@@ -76,17 +76,22 @@ fun Player.addAdditionalSubtitleConfiguration(subtitle: MediaItem.SubtitleConfig
     val textTracks = currentTracks.groups.filter {
         it.type == C.TRACK_TYPE_TEXT && it.isSupported
     }
+    val position = currentPosition
 
     val updateMediaItem = currentMediaItemLocal
         .buildUpon()
         .setSubtitleConfigurations(existingSubConfigurations + listOf(subtitle))
         .build()
-        .copy(subtitleTrackIndex = textTracks.size)
+        .copy(positionMs = position, subtitleTrackIndex = textTracks.size)
 
     val index = currentMediaItemIndex
-    val position = currentPosition
-    replaceMediaItem(index, updateMediaItem)
-    seekTo(index, position)
+    val items = (0 until mediaItemCount).map { if (it == index) updateMediaItem else getMediaItemAt(it) }
+    val exoPlayer = this as? ExoPlayer
+    val shuffleOrder = exoPlayer?.shuffleOrder
+    // replaceMediaItem can reuse the old source without loading its new subtitle configurations.
+    // Rebuild at the same index so the media identity and manual decoder choices stay unchanged.
+    setMediaItems(items, index, position)
+    shuffleOrder?.let { exoPlayer.setShuffleOrder(it) }
 }
 
 @OptIn(UnstableApi::class)

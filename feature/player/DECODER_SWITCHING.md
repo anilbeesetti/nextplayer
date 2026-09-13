@@ -20,8 +20,10 @@ MediaSession extras. `PlayerActivity` receives `onExtrasChanged` and passes the 
 Compose, so a dialog or decoder label can update without a playback-state event. Existing
 session extras, such as skip-silence state, are preserved.
 
-Adding a local subtitle replaces the current item at the same playlist index and restores its
-position. It must not temporarily seek to a new index, which would reset manual decoder choices.
+Adding a local subtitle rebuilds the media sources at the same playlist index and position,
+preserving shuffle order. `replaceMediaItem` alone can reuse the old source without loading
+new subtitle configurations. The reload must not temporarily seek to a new index, which would
+reset manual decoder choices. Its resume metadata must also use the current playback position.
 Nextlib also restores active modes from successful decoder reuse evaluations: a renderer can be
 disabled and enabled again without initializing a new codec.
 
@@ -118,3 +120,37 @@ graphics. The disposable device was shut down and its data removed after verific
 
 The general decoder-reuse fix is in nextlib `23417ad`, published in `1.11.1-0.16.0`.
 NextPlayer now uses that release; local composite substitution is no longer required.
+
+## Local subtitle regression verification on 2026-09-13
+
+The September 12 checks did not establish immediate availability of a newly added subtitle
+track. The metadata-only replacement introduced in `5f6aef14` preserved the codec label but
+could leave the subtitle missing until reopening. This was reproduced on `71c065f9`.
+
+With nextlib `1.11.1-0.16.0`, the corrected reload passed `assembleDebug test ktlintCheck`
+with test failures enforced. The expanded `PlayerTest` fails on the previous implementation
+and verifies source recreation, playlist identity/order, shuffle order, resume metadata,
+position, playback intent, and duplicate additions. `LocalSubtitleTest` also fails before
+the fix and passes afterward: real playback discovers first and subsequent SRT tracks and
+renders their cues without reopening, while paused and playing.
+
+Disposable Pixel 6a profile: Android 17 / API 37, ARM64, 16 KB pages, 720 × 1600, host graphics.
+The app's Subtitle → Open local subtitle flow was verified with generated H.264/AAC video
+and three distinct SRT files stored separately in Downloads to prevent automatic discovery.
+
+- First subtitle appeared immediately in the list, was selected, and rendered with manual HW.
+- A second subtitle appeared, was selected, and rendered with SW+; both tracks remained listed.
+- Paused position stayed at 22,875 ms for both additions.
+- A third subtitle rendered with SW after returning from the picker to playing playback;
+  the session reported PLAYING and its position advanced. All three tracks remained listed.
+- Independent SW audio remained selected.
+- No app crashes were recorded.
+
+The JVM regression verifies duplicate subtitle IDs are a no-op. Separately, the emulator's
+Downloads provider returned both `raw:` and `msf:` URIs for the same file on successive picks;
+the existing URI-based deduplication treats these as different subtitles. This source-reload
+fix does not change document identity handling.
+
+Screenshots: [before](../../fastlane/metadata/qa/local-subtitle-refresh/before.png),
+[after](../../fastlane/metadata/qa/local-subtitle-refresh/after.png), and
+[rendering with SW](../../fastlane/metadata/qa/local-subtitle-refresh/rendering.png).
