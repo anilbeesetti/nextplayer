@@ -157,7 +157,7 @@ fun ControlsBottomView(
                 )
             }
 
-            Box(modifier = Modifier.weight(1f), contentAlignment = Alignment.CenterEnd) {
+            Box(modifier = Modifier.weight(1f), contentAlignment = Alignment.CenterStart) {
                 if (chapters.isNotEmpty()) {
                     val showChaptersLabel = stringResource(R.string.show_chapters)
                     Surface(
@@ -169,7 +169,7 @@ fun ControlsBottomView(
                         modifier = Modifier
                             .widthIn(max = 360.dp)
                             .padding(horizontal = 8.dp)
-                            .heightIn(min = 48.dp)
+                            .heightIn(min = 32.dp)
                             .tvFocusRing(isTv)
                             .semantics { onClick(label = showChaptersLabel, action = null) },
                     ) {
