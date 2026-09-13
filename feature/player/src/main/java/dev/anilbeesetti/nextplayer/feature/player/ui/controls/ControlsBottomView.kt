@@ -56,7 +56,9 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.Path
 import androidx.compose.ui.graphics.drawscope.DrawScope
 import androidx.compose.ui.graphics.drawscope.clipPath
+import androidx.compose.ui.hapticfeedback.HapticFeedbackType
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.platform.LocalHapticFeedback
 import androidx.compose.ui.platform.LocalLayoutDirection
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
@@ -80,6 +82,7 @@ import dev.anilbeesetti.nextplayer.feature.player.buttons.ShuffleButton
 import dev.anilbeesetti.nextplayer.feature.player.extensions.drawableRes
 import dev.anilbeesetti.nextplayer.feature.player.extensions.noRippleClickable
 import dev.anilbeesetti.nextplayer.feature.player.state.MediaPresentationState
+import dev.anilbeesetti.nextplayer.feature.player.state.currentChapterIndex
 import dev.anilbeesetti.nextplayer.feature.player.state.durationFormatted
 import dev.anilbeesetti.nextplayer.feature.player.state.pendingPositionFormatted
 import dev.anilbeesetti.nextplayer.feature.player.state.positionFormatted
@@ -257,7 +260,7 @@ fun ControlsBottomView(
 
 @kotlin.OptIn(ExperimentalMaterial3Api::class)
 @Composable
-private fun PlayerSeekbar(
+internal fun PlayerSeekbar(
     modifier: Modifier = Modifier,
     position: Float,
     duration: Float,
@@ -265,6 +268,21 @@ private fun PlayerSeekbar(
     onSeek: (Float) -> Unit,
     onSeekFinished: () -> Unit,
 ) {
+    val hapticFeedback = LocalHapticFeedback.current
+    var lastSeekChapterIndex by remember(chapters) { mutableStateOf<Int?>(null) }
+    val onValueChange: (Float) -> Unit = { value ->
+        val chapterIndex = chapters.currentChapterIndex(value.toLong())
+        val previousChapterIndex = lastSeekChapterIndex ?: chapters.currentChapterIndex(position.toLong())
+        if (chapterIndex != previousChapterIndex) {
+            hapticFeedback.performHapticFeedback(HapticFeedbackType.SegmentTick)
+        }
+        lastSeekChapterIndex = chapterIndex
+        onSeek(value)
+    }
+    val onValueChangeFinished = {
+        lastSeekChapterIndex = null
+        onSeekFinished()
+    }
     var isFocused by remember { mutableStateOf(false) }
     val focusModifier = modifier
         .fillMaxWidth()
@@ -277,8 +295,8 @@ private fun PlayerSeekbar(
                 chapters = chapters,
                 value = position,
                 valueRange = 0f..duration,
-                onValueChange = onSeek,
-                onValueChangeFinished = onSeekFinished,
+                onValueChange = onValueChange,
+                onValueChangeFinished = onValueChangeFinished,
             )
         } else {
             SimpleSlider(
@@ -287,8 +305,8 @@ private fun PlayerSeekbar(
                 chapters = chapters,
                 value = position,
                 valueRange = 0f..duration,
-                onValueChange = onSeek,
-                onValueChangeFinished = onSeekFinished,
+                onValueChange = onValueChange,
+                onValueChangeFinished = onValueChangeFinished,
             )
         }
     }
