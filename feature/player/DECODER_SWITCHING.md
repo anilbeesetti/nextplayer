@@ -116,5 +116,5 @@ The first SwiftShader run was interrupted by a host emulator SIGABRT in gRPC
 `CallbackWithSuccessTag`. The complete transition matrix passed after restarting with host
 graphics. The disposable device was shut down and its data removed after verification.
 
-The general decoder-reuse fix is in nextlib `23417ad`; use `-PnextlibPath` until a published
-nextlib release includes that commit. No dependency was pointed at an unpublished version.
+The general decoder-reuse fix is in nextlib `23417ad`, published in `1.11.1-0.16.0`.
+NextPlayer now uses that release; local composite substitution is no longer required.
