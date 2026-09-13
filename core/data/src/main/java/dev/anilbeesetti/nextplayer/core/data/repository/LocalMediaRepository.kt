@@ -2,7 +2,6 @@ package dev.anilbeesetti.nextplayer.core.data.repository
 
 import android.content.Context
 import android.net.Uri
-import android.os.Environment
 import androidx.core.net.toUri
 import dagger.hilt.android.qualifiers.ApplicationContext
 import dev.anilbeesetti.nextplayer.core.common.Utils
@@ -23,6 +22,8 @@ import dev.anilbeesetti.nextplayer.core.model.MediaInfo
 import dev.anilbeesetti.nextplayer.core.model.Video
 import io.github.anilbeesetti.nextlib.mediainfo.MediaInfoBuilder
 import java.util.Date
+import javax.inject.Inject
+import kotlin.math.absoluteValue
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.async
 import kotlinx.coroutines.coroutineScope
@@ -30,8 +31,6 @@ import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.withContext
-import kotlin.math.absoluteValue
-import javax.inject.Inject
 
 class LocalMediaRepository @Inject constructor(
     private val mediumStateDao: MediumStateDao,
@@ -170,6 +169,15 @@ class LocalMediaRepository @Inject constructor(
             mediumState = stateEntity.copy(
                 videoScale = zoom,
             ),
+        )
+    }
+
+    override suspend fun addExternalAudioToMedium(uri: String, audioUri: Uri) {
+        val stateEntity = mediumStateDao.get(uri) ?: MediumStateEntity(uriString = uri)
+        val audio = UriListConverter.fromStringToList(stateEntity.externalAudio)
+        if (audioUri in audio) return
+        mediumStateDao.upsert(
+            stateEntity.copy(externalAudio = UriListConverter.fromListToString(audio + audioUri)),
         )
     }
 
