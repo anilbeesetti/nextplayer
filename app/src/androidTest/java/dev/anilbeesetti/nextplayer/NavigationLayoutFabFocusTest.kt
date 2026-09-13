@@ -98,7 +98,7 @@ class NavigationLayoutFabFocusTest {
                         TopLevelFabKey.MEDIA to TopLevelFabState(NextIcons.Play, {}),
                     )
                 }
-                NavigationLayout(state = state, fabStates = fabs, showBottomBar = true) {
+                NavigationLayout(state = state, fabStates = fabs, showBottomBar = true, showNavigation = true) {
                     Column(Modifier.fillMaxSize()) {
                         Button(onClick = {}) { Text("Settings") }
                         Box(Modifier.fillMaxSize()) {

@@ -7,15 +7,10 @@ import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
 import androidx.activity.viewModels
 import androidx.compose.animation.AnimatedVisibility
-import androidx.compose.animation.core.LinearEasing
-import androidx.compose.animation.core.tween
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
-import androidx.compose.animation.slideInHorizontally
 import androidx.compose.animation.slideInVertically
-import androidx.compose.animation.slideOutHorizontally
 import androidx.compose.animation.slideOutVertically
-import androidx.compose.animation.togetherWith
 import androidx.compose.foundation.focusGroup
 import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.foundation.layout.Box
@@ -51,6 +46,8 @@ import androidx.compose.ui.unit.dp
 import androidx.core.splashscreen.SplashScreen.Companion.installSplashScreen
 import androidx.fragment.app.FragmentActivity
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import androidx.navigation3.runtime.NavEntryDecorator
+import androidx.navigation3.runtime.NavKey
 import androidx.navigation3.runtime.entryProvider
 import androidx.navigation3.ui.NavDisplay
 import androidx.window.core.layout.WindowSizeClass
@@ -70,9 +67,9 @@ import dev.anilbeesetti.nextplayer.navigation.NextNavigationBar
 import dev.anilbeesetti.nextplayer.navigation.NextNavigationRail
 import dev.anilbeesetti.nextplayer.navigation.TopLevelDestination
 import dev.anilbeesetti.nextplayer.navigation.TopLevelNavState
-import dev.anilbeesetti.nextplayer.navigation.isNavigationBetweenTopLevelDestinations
 import dev.anilbeesetti.nextplayer.navigation.mediaNavGraph
 import dev.anilbeesetti.nextplayer.navigation.moreNavGraph
+import dev.anilbeesetti.nextplayer.navigation.navigationTransition
 import dev.anilbeesetti.nextplayer.navigation.networkNavGraph
 import dev.anilbeesetti.nextplayer.navigation.playlistNavGraph
 import dev.anilbeesetti.nextplayer.navigation.rememberTopLevelNavState
@@ -145,97 +142,38 @@ class MainActivity : FragmentActivity() {
 
                     val topLevelFabStates = remember { mutableStateMapOf<String, TopLevelFabState>() }
                     var showTopLevelBottomBar by remember { mutableStateOf(true) }
-                    NavigationLayout(
-                        state = navState,
-                        fabStates = topLevelFabStates,
-                        showBottomBar = showTopLevelBottomBar,
-                    ) { layoutPaddingValues ->
-                        CompositionLocalProvider(
-                            LocalNavigationBottomPadding provides layoutPaddingValues.calculateBottomPadding(),
-                            LocalTopLevelBottomBarVisibleSetter provides { showTopLevelBottomBar = it },
-                            LocalTopLevelFabSetter provides { key, state ->
-                                if (state == null) {
-                                    topLevelFabStates.remove(key)
-                                } else {
-                                    topLevelFabStates[key] = state
+                    // Keep each screen's rail and insets inside its transition so its width stays stable.
+                    val navigationLayoutDecorator = remember(navState) {
+                        NavEntryDecorator<NavKey> { entry ->
+                            NavigationLayout(
+                                state = navState,
+                                fabStates = topLevelFabStates,
+                                showBottomBar = showTopLevelBottomBar,
+                                showNavigation = navState.topLevelContentKeys.contains(entry.contentKey),
+                            ) { layoutPaddingValues ->
+                                CompositionLocalProvider(
+                                    LocalNavigationBottomPadding provides layoutPaddingValues.calculateBottomPadding(),
+                                    LocalTopLevelBottomBarVisibleSetter provides { showTopLevelBottomBar = it },
+                                    LocalTopLevelFabSetter provides { key, state ->
+                                        if (state == null) {
+                                            topLevelFabStates.remove(key)
+                                        } else {
+                                            topLevelFabStates[key] = state
+                                        }
+                                    },
+                                ) {
+                                    entry.Content()
                                 }
-                            },
-                        ) {
-                            NavDisplay(
-                                entries = navState.rememberEntries(provider),
-                                onBack = { navState.goBack() },
-                                transitionSpec = {
-                                    if (navState.isNavigationBetweenTopLevelDestinations(initialState, targetState)) {
-                                        fadeIn(
-                                            animationSpec = tween(
-                                                durationMillis = 200,
-                                                easing = LinearEasing,
-                                            ),
-                                        ) togetherWith fadeOut(
-                                            animationSpec = tween(
-                                                durationMillis = 200,
-                                                easing = LinearEasing,
-                                            ),
-                                        )
-                                    } else {
-                                        slideInHorizontally(
-                                            initialOffsetX = { it },
-                                            animationSpec = tween(durationMillis = 200, easing = LinearEasing),
-                                        ) togetherWith slideOutHorizontally(
-                                            targetOffsetX = { fullOffset -> -(fullOffset * 0.3f).toInt() },
-                                            animationSpec = tween(durationMillis = 200, easing = LinearEasing),
-                                        )
-                                    }
-                                },
-                                popTransitionSpec = {
-                                    if (navState.isNavigationBetweenTopLevelDestinations(initialState, targetState)) {
-                                        fadeIn(
-                                            animationSpec = tween(
-                                                durationMillis = 200,
-                                                easing = LinearEasing,
-                                            ),
-                                        ) togetherWith fadeOut(
-                                            animationSpec = tween(
-                                                durationMillis = 200,
-                                                easing = LinearEasing,
-                                            ),
-                                        )
-                                    } else {
-                                        slideInHorizontally(
-                                            initialOffsetX = { fullOffset -> -(fullOffset * 0.3f).toInt() },
-                                            animationSpec = tween(durationMillis = 200, easing = LinearEasing),
-                                        ) togetherWith slideOutHorizontally(
-                                            targetOffsetX = { it },
-                                            animationSpec = tween(durationMillis = 200, easing = LinearEasing),
-                                        )
-                                    }
-                                },
-                                predictivePopTransitionSpec = {
-                                    if (navState.isNavigationBetweenTopLevelDestinations(initialState, targetState)) {
-                                        fadeIn(
-                                            animationSpec = tween(
-                                                durationMillis = 200,
-                                                easing = LinearEasing,
-                                            ),
-                                        ) togetherWith fadeOut(
-                                            animationSpec = tween(
-                                                durationMillis = 200,
-                                                easing = LinearEasing,
-                                            ),
-                                        )
-                                    } else {
-                                        slideInHorizontally(
-                                            initialOffsetX = { fullOffset -> -(fullOffset * 0.3f).toInt() },
-                                            animationSpec = tween(durationMillis = 200, easing = LinearEasing),
-                                        ) togetherWith slideOutHorizontally(
-                                            targetOffsetX = { it },
-                                            animationSpec = tween(durationMillis = 200, easing = LinearEasing),
-                                        )
-                                    }
-                                },
-                            )
+                            }
                         }
                     }
+                    NavDisplay(
+                        entries = navState.rememberEntries(provider, navigationLayoutDecorator),
+                        onBack = { navState.goBack() },
+                        transitionSpec = { navState.navigationTransition(initialState, targetState) },
+                        popTransitionSpec = { navState.navigationTransition(initialState, targetState) },
+                        predictivePopTransitionSpec = { navState.navigationTransition(initialState, targetState) },
+                    )
                 }
             }
         }
@@ -248,6 +186,7 @@ fun NavigationLayout(
     state: TopLevelNavState,
     fabStates: SnapshotStateMap<String, TopLevelFabState>,
     showBottomBar: Boolean,
+    showNavigation: Boolean,
     windowSizeClass: WindowSizeClass = currentWindowAdaptiveInfoV2().windowSizeClass,
     content: @Composable (PaddingValues) -> Unit,
 ) {
@@ -255,7 +194,6 @@ fun NavigationLayout(
     val contentFocusRequester = remember { FocusRequester() }
     val fabFocusRequester = remember { FocusRequester() }
     val showNavRail = windowSizeClass.isWidthAtLeastBreakpoint(WindowSizeClass.WIDTH_DP_MEDIUM_LOWER_BOUND)
-    val showNavigation = state.currentStack.lastOrNull()?.let { state.topLevelContentKeys.contains(it) } == true
     val selectedFabState = state.destinations[state.selectedIndex].fabKey?.let(fabStates::get)
     var displayedFabState by remember { mutableStateOf<TopLevelFabState?>(null) }
     LaunchedEffect(selectedFabState) {
