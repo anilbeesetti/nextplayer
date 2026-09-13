@@ -3,9 +3,11 @@ package dev.anilbeesetti.nextplayer
 import android.content.ContentValues
 import android.content.pm.ActivityInfo
 import android.provider.MediaStore
+import androidx.compose.ui.test.assertCountEquals
 import androidx.compose.ui.test.assertIsDisplayed
 import androidx.compose.ui.test.getUnclippedBoundsInRoot
 import androidx.compose.ui.test.junit4.v2.createAndroidComposeRule
+import androidx.compose.ui.test.onAllNodesWithContentDescription
 import androidx.compose.ui.test.onAllNodesWithText
 import androidx.compose.ui.test.onNodeWithContentDescription
 import androidx.compose.ui.test.onNodeWithText
@@ -29,6 +31,29 @@ class MainActivityNavigationAnimationTest {
 
     @get:Rule(order = 1)
     val composeRule = createAndroidComposeRule<MainActivity>()
+
+    @Test
+    fun switchingTabsKeepsTheSameBottomNavigationBar() {
+        composeRule.activity.requestedOrientation = ActivityInfo.SCREEN_ORIENTATION_PORTRAIT
+        val home = composeRule.activity.getString(R.string.home)
+        val playlists = composeRule.activity.getString(R.string.playlists)
+        composeRule.waitUntil(10_000) {
+            composeRule.onAllNodesWithContentDescription(home).fetchSemanticsNodes().isNotEmpty()
+        }
+        val homeNode = composeRule.onNodeWithContentDescription(home).fetchSemanticsNode()
+        try {
+            composeRule.mainClock.autoAdvance = false
+            composeRule.onNodeWithContentDescription(playlists).performClick()
+            composeRule.mainClock.advanceTimeBy(64)
+            composeRule.onAllNodesWithContentDescription(home).assertCountEquals(1)
+            val animatedHomeNode = composeRule.onNodeWithContentDescription(home).fetchSemanticsNode()
+            assertEquals(homeNode.id, animatedHomeNode.id)
+            assertEquals(homeNode.boundsInRoot, animatedHomeNode.boundsInRoot)
+        } finally {
+            composeRule.mainClock.autoAdvance = true
+            composeRule.activity.requestedOrientation = ActivityInfo.SCREEN_ORIENTATION_UNSPECIFIED
+        }
+    }
 
     @Test
     fun quickFolderBackRestoresLandscapeLayout() {

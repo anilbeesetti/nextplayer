@@ -7,22 +7,25 @@ import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
 import androidx.activity.viewModels
 import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.animation.expandHorizontally
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
+import androidx.compose.animation.shrinkHorizontally
 import androidx.compose.animation.slideInVertically
 import androidx.compose.animation.slideOutVertically
 import androidx.compose.foundation.focusGroup
 import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.PaddingValues
-import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.WindowInsetsSides
+import androidx.compose.foundation.layout.calculateStartPadding
 import androidx.compose.foundation.layout.consumeWindowInsets
 import androidx.compose.foundation.layout.displayCutout
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.only
+import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Surface
@@ -36,12 +39,16 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.runtime.snapshots.SnapshotStateMap
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.focus.FocusDirection
 import androidx.compose.ui.focus.FocusRequester
 import androidx.compose.ui.focus.focusProperties
 import androidx.compose.ui.focus.focusRequester
+import androidx.compose.ui.layout.onSizeChanged
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.platform.LocalDensity
+import androidx.compose.ui.platform.LocalLayoutDirection
 import androidx.compose.ui.unit.dp
 import androidx.core.splashscreen.SplashScreen.Companion.installSplashScreen
 import androidx.fragment.app.FragmentActivity
@@ -142,38 +149,45 @@ class MainActivity : FragmentActivity() {
 
                     val topLevelFabStates = remember { mutableStateMapOf<String, TopLevelFabState>() }
                     var showTopLevelBottomBar by remember { mutableStateOf(true) }
-                    // Keep each screen's rail and insets inside its transition so its width stays stable.
-                    val navigationLayoutDecorator = remember(navState) {
-                        NavEntryDecorator<NavKey> { entry ->
-                            NavigationLayout(
-                                state = navState,
-                                fabStates = topLevelFabStates,
-                                showBottomBar = showTopLevelBottomBar,
-                                showNavigation = navState.topLevelContentKeys.contains(entry.contentKey),
-                            ) { layoutPaddingValues ->
-                                CompositionLocalProvider(
-                                    LocalNavigationBottomPadding provides layoutPaddingValues.calculateBottomPadding(),
-                                    LocalTopLevelBottomBarVisibleSetter provides { showTopLevelBottomBar = it },
-                                    LocalTopLevelFabSetter provides { key, state ->
-                                        if (state == null) {
-                                            topLevelFabStates.remove(key)
-                                        } else {
-                                            topLevelFabStates[key] = state
-                                        }
+                    NavigationLayout(
+                        state = navState,
+                        fabStates = topLevelFabStates,
+                        showBottomBar = showTopLevelBottomBar,
+                    ) { layoutPaddingValues ->
+                        val railPadding = layoutPaddingValues.calculateStartPadding(LocalLayoutDirection.current)
+                        val navigationInsetsDecorator = remember(navState, railPadding) {
+                            NavEntryDecorator<NavKey> { entry ->
+                                // Reserve rail space per entry without resizing the animated display.
+                                Box(
+                                    Modifier.thenIf(navState.topLevelContentKeys.contains(entry.contentKey)) {
+                                        padding(start = railPadding)
+                                            .consumeWindowInsets(WindowInsets.displayCutout.only(WindowInsetsSides.Start))
                                     },
                                 ) {
                                     entry.Content()
                                 }
                             }
                         }
+                        CompositionLocalProvider(
+                            LocalNavigationBottomPadding provides layoutPaddingValues.calculateBottomPadding(),
+                            LocalTopLevelBottomBarVisibleSetter provides { showTopLevelBottomBar = it },
+                            LocalTopLevelFabSetter provides { key, state ->
+                                if (state == null) {
+                                    topLevelFabStates.remove(key)
+                                } else {
+                                    topLevelFabStates[key] = state
+                                }
+                            },
+                        ) {
+                            NavDisplay(
+                                entries = navState.rememberEntries(provider, navigationInsetsDecorator),
+                                onBack = { navState.goBack() },
+                                transitionSpec = { navState.navigationTransition(initialState, targetState) },
+                                popTransitionSpec = { navState.navigationTransition(initialState, targetState) },
+                                predictivePopTransitionSpec = { navState.navigationTransition(initialState, targetState) },
+                            )
+                        }
                     }
-                    NavDisplay(
-                        entries = navState.rememberEntries(provider, navigationLayoutDecorator),
-                        onBack = { navState.goBack() },
-                        transitionSpec = { navState.navigationTransition(initialState, targetState) },
-                        popTransitionSpec = { navState.navigationTransition(initialState, targetState) },
-                        predictivePopTransitionSpec = { navState.navigationTransition(initialState, targetState) },
-                    )
                 }
             }
         }
@@ -186,26 +200,23 @@ fun NavigationLayout(
     state: TopLevelNavState,
     fabStates: SnapshotStateMap<String, TopLevelFabState>,
     showBottomBar: Boolean,
-    showNavigation: Boolean,
     windowSizeClass: WindowSizeClass = currentWindowAdaptiveInfoV2().windowSizeClass,
     content: @Composable (PaddingValues) -> Unit,
 ) {
     val isTv = LocalContext.current.isTelevision
+    val density = LocalDensity.current
+    var railWidth by remember(density) { mutableStateOf(0.dp) }
     val contentFocusRequester = remember { FocusRequester() }
     val fabFocusRequester = remember { FocusRequester() }
     val showNavRail = windowSizeClass.isWidthAtLeastBreakpoint(WindowSizeClass.WIDTH_DP_MEDIUM_LOWER_BOUND)
+    val showNavigation = state.currentStack.lastOrNull()?.let { state.topLevelContentKeys.contains(it) } == true
     val selectedFabState = state.destinations[state.selectedIndex].fabKey?.let(fabStates::get)
     var displayedFabState by remember { mutableStateOf<TopLevelFabState?>(null) }
     LaunchedEffect(selectedFabState) {
         selectedFabState?.let { displayedFabState = it }
     }
 
-    Row(modifier = Modifier.fillMaxSize()) {
-        AnimatedVisibility(
-            visible = showNavRail && showNavigation,
-        ) {
-            NextNavigationRail(state = state)
-        }
+    Box(modifier = Modifier.fillMaxSize()) {
         Scaffold(
             modifier = modifier,
             bottomBar = {
@@ -243,15 +254,27 @@ fun NavigationLayout(
                                     }
                                 }
                                 .focusGroup()
-                        }
-                        .thenIf(showNavigation) {
-                            consumeWindowInsets(WindowInsets.displayCutout.only(WindowInsetsSides.Start))
                         },
                 ) {
-                    content(it)
+                    content(
+                        PaddingValues(
+                            start = if (showNavRail) railWidth else 0.dp,
+                            bottom = it.calculateBottomPadding(),
+                        ),
+                    )
                 }
             },
         )
+        AnimatedVisibility(
+            visible = showNavRail && showNavigation,
+            enter = fadeIn() + expandHorizontally(expandFrom = Alignment.Start),
+            exit = fadeOut() + shrinkHorizontally(shrinkTowards = Alignment.Start),
+        ) {
+            NextNavigationRail(
+                state = state,
+                modifier = Modifier.onSizeChanged { railWidth = with(density) { it.width.toDp() } },
+            )
+        }
     }
 }
 

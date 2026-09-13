@@ -389,9 +389,9 @@ fun NavigationView(
 }
 
 @Composable
-fun NextNavigationRail(state: TopLevelNavState) {
+fun NextNavigationRail(state: TopLevelNavState, modifier: Modifier = Modifier) {
     NavigationRail(
-        modifier = Modifier.fillMaxHeight(),
+        modifier = modifier.fillMaxHeight(),
         containerColor = MaterialTheme.colorScheme.surfaceContainer,
     ) {
         Column(
