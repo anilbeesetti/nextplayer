@@ -61,7 +61,7 @@ ANDROID_HOME=/path/to/sdk ./gradlew -PnextlibPath=../nextlib assembleDebug test 
 ```
 
 Without `nextlibPath`, Gradle uses the published version. Tests cover fallback exhaustion,
-confirmation, duplicate failures, independent attempts, media identity, and session-state
+confirmation, duplicate failures, independent attempts, per-item decoder choices, and session-state
 parsing. Device verification must also cover switching while paused/playing, actual decoder
 names, position continuity, independent audio/video choices, and fallback dialogs.
 
@@ -92,100 +92,3 @@ profile. Tested SwiftShader and host GPU rendering. No app crash was recorded.
 colors with host GPU rendering. MediaCodec output was correct. The native rendering source is
 unchanged from nextlib main; these checks do not establish whether physical devices are affected.
 Decoder selection and recovery passed, but FFmpeg visual playback did not.
-
-
-## Verification on 2026-09-12
-
-Tested NextPlayer `5f6aef14` with local nextlib `23417ad`. The app changes also passed
-`assembleDebug test ktlintCheck` against published nextlib `1.11.0-0.15.0`. The complete
-fix passed those checks with composite substitution, 206 NextPlayer JVM tests, 11 nextlib
-JVM tests, and the new nextlib decoder lifecycle instrumentation regression. Test failures
-were enforced with a temporary Gradle init script overriding the root `ignoreFailures = true`.
-Builds used the checked-in Gradle daemon configuration and Java 17 bytecode target.
-
-Disposable device: Pixel 6a profile, Android 17 / API 37 (`android-37.1` system image),
-ARM64, 16 KB pages, 720 × 1600. Final checks used host graphics.
-
-- Reproduced HW → “-” after adding a local SRT on the original app. Both new regressions
-  failed against the original implementations and passed with the fixes.
-- All six directed transitions among HW, SW+, and SW passed while paused and again while
-  playing. Paused position stayed exactly 30,255 ms; playing position advanced throughout.
-  Independently selected SW audio survived every video transition.
-- Local subtitles preserved all three manual video modes and the paused position
-  (163,649 ms). Starting subtitle selection while playing retained HW and resumed playback.
-- Rapid repeated mode selections settled on the final requested HW decoder.
-- Unsupported HW audio prompted and recovered to SW+ while retaining SW video; repeating
-  the failure recovered again. Unsupported FFmpeg MPEG-4 video prompted and recovered to SW+.
-- New media reset automatic selection. Video-only and audio-only media tolerated all three
-  choices for the absent track without false recovery; the present track remained selectable.
-  Audio-only testing used an app-private fixture because the app requests video storage access.
-  The inaccessible shared audio fixture correctly used the ordinary source-error dialog.
-- FFmpeg colors and subtitles rendered correctly on the H.264 fixture. No app crash was recorded.
-
-The first SwiftShader run was interrupted by a host emulator SIGABRT in gRPC
-`CallbackWithSuccessTag`. The complete transition matrix passed after restarting with host
-graphics. The disposable device was shut down and its data removed after verification.
-
-The general decoder-reuse fix is in nextlib `23417ad`, published in `1.11.1-0.16.0`.
-NextPlayer now uses that release; local composite substitution is no longer required.
-
-## Local subtitle regression verification on 2026-09-13
-
-The September 12 checks did not establish immediate availability of a newly added subtitle
-track. The metadata-only replacement introduced in `5f6aef14` preserved the codec label but
-could leave the subtitle missing until reopening. This was reproduced on `71c065f9`.
-
-With nextlib `1.11.1-0.16.0`, the corrected reload passed `assembleDebug test ktlintCheck`
-with test failures enforced. The expanded `PlayerTest` fails on the previous implementation
-and verifies source recreation, playlist identity/order, shuffle order, resume metadata,
-position, playback intent, and duplicate additions. `LocalSubtitleTest` also fails before
-the fix and passes afterward: real playback discovers first and subsequent SRT tracks and
-renders their cues without reopening, while paused and playing.
-
-Disposable Pixel 6a profile: Android 17 / API 37, ARM64, 16 KB pages, 720 × 1600, host graphics.
-The app's Subtitle → Open local subtitle flow was verified with generated H.264/AAC video
-and three distinct SRT files stored separately in Downloads to prevent automatic discovery.
-
-- First subtitle appeared immediately in the list, was selected, and rendered with manual HW.
-- A second subtitle appeared, was selected, and rendered with SW+; both tracks remained listed.
-- Paused position stayed at 22,875 ms for both additions.
-- A third subtitle rendered with SW after returning from the picker to playing playback;
-  the session reported PLAYING and its position advanced. All three tracks remained listed.
-- Independent SW audio remained selected.
-- No app crashes were recorded.
-
-The JVM regression verifies duplicate subtitle IDs are a no-op. Separately, the emulator's
-Downloads provider returned both `raw:` and `msf:` URIs for the same file on successive picks;
-the existing URI-based deduplication treats these as different subtitles. This source-reload
-fix does not change document identity handling.
-
-Screenshots: [before](../../fastlane/metadata/qa/local-subtitle-refresh/before.png),
-[after](../../fastlane/metadata/qa/local-subtitle-refresh/after.png), and
-[rendering with SW](../../fastlane/metadata/qa/local-subtitle-refresh/rendering.png).
-
-## Per-item decoder verification on 2026-09-13
-
-Verified with published nextlib `1.11.1-0.16.0` on a disposable Pixel 6a profile,
-Android 17 / API 37, ARM64, 16 KB pages, 720 × 1600, host graphics.
-
-- `assembleDebug test ktlintCheck :app:assembleDebugAndroidTest` passed with test failures
-  enforced. All 207 JVM tests passed. Metadata tests cover all mode combinations, Bundle
-  transport, unrelated metadata copies, independent updates, Auto, and invalid mode names.
-- The subtitle JVM regression now asserts that exactly one source is recreated while queue
-  contents, saved modes, position, resume metadata, playback intent, and shuffle order survive.
-- `LocalSubtitleTest` now runs through the real `PlayerService` and `MediaController` in the
-  app test APK. It verifies first/subsequent subtitles, rendered cues, paused/playing reloads,
-  independent saved decoder modes, new-item Auto defaults, and restoration on returning to
-  an earlier playlist item. It passed through `AndroidJUnitRunner`.
-- On generated H.264/AAC video, Auto displayed HW and loaded the first SRT immediately.
-  Manual SW+ video survived a second addition after unsupported HW audio recovered to SW+.
-  Manual SW video/audio survived a third addition started while playing; the session returned
-  to PLAYING. Manual HW video with independent SW audio survived a fourth addition.
-- The first two paused additions kept position at 21,458 ms. After playing, the final paused
-  addition kept position at 26,333 ms. All four subtitles appeared and the latest rendered
-  without reopening. No app crashes were recorded.
-
-The service deliberately writes decoder metadata even when `MediaItem.equals` reports no
-change: Media3 equality does not compare the contents of extras. Metadata-only changes may
-also produce no controller notification, so the device regression verifies the saved choices
-on the reloaded item rather than waiting for an extras-only event.
