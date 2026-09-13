@@ -18,6 +18,8 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.semantics.contentDescription
+import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.media3.common.util.UnstableApi
@@ -42,6 +44,7 @@ fun ControlsTopView(
 ) {
     val systemBarsPadding = WindowInsets.systemBars.union(WindowInsets.displayCutout).asPaddingValues()
     val videoDecoderLabel = videoDecoderMode?.labelRes?.let { stringResource(it) } ?: "-"
+    val decoderDescription = stringResource(R.string.select_decoders)
     // Add top spacing only when the system bars don't already provide it (e.g. on TV / landscape).
     val extraTopPadding = if (systemBarsPadding.calculateTopPadding() == 0.dp) 16.dp else 0.dp
     Row(
@@ -72,7 +75,10 @@ fun ControlsTopView(
             verticalAlignment = Alignment.CenterVertically,
             horizontalArrangement = Arrangement.spacedBy(8.dp)
         ) {
-            PlayerButton(onClick = onDecoderClick) {
+            PlayerButton(
+                modifier = Modifier.semantics { contentDescription = decoderDescription },
+                onClick = onDecoderClick,
+            ) {
                 Text(
                     text = videoDecoderLabel,
                     style = MaterialTheme.typography.labelLarge,
