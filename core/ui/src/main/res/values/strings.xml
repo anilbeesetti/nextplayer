@@ -162,7 +162,7 @@
     <string name="move_to_trash">Move to trash</string>
     <string name="move_to_trash_info">Selected items will be moved to trash.</string>
     <string name="trash_empty_title">Trash is empty</string>
-    <string name="trash_empty_description">Videos you move to trash will show up here. You can restore them or delete them permanently.</string>
+    <string name="trash_empty_description">Deleted videos will appear here before they\'re permanently removed.</string>
     <string name="delete_file">The following file will be deleted permanently</string>
     <string name="subtitle_text_encoding">Subtitle text encoding</string>
     <string name="fast_playback_speed">%.1fx speed</string>
@@ -480,11 +480,11 @@
     <string name="no_playlists_description">Create a local playlist or add an M3U source to start watching.</string>
     <string name="local_playlist">Local</string>
     <string name="delete_playlist">Delete playlist</string>
-    <string name="delete_playlist_confirmation">Delete “%1$s” and its saved order?</string>
+    <string name="delete_playlist_confirmation">Delete "%1$s" and its saved order?</string>
     <string name="playlist_actions">Playlist actions</string>
     <string name="play_all">Play all</string>
     <string name="remove_video">Remove video</string>
-    <string name="remove_video_confirmation">Remove “%1$s” from this playlist?</string>
+    <string name="remove_video_confirmation">Remove "%1$s" from this playlist?</string>
     <string name="reorder_playlist">Reorder playlist</string>
     <string name="finish_reordering">Finish reordering</string>
     <string name="reorder_playlist_item">Reorder playlist item</string>
@@ -516,4 +516,10 @@
     <string name="decoder_mode_auto">Auto</string>
     <string name="settings_description">App preferences</string>
     <string name="more">More</string>
+    <string name="new_label">NEW</string>
+    <string name="new_videos_count_overflow" translatable="false">9+</string>
+    <plurals name="new_videos_count">
+        <item quantity="one">%d new video</item>
+        <item quantity="other">%d new videos</item>
+    </plurals>
 </resources>

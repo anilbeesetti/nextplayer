@@ -32,6 +32,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
@@ -45,6 +46,8 @@ import coil3.request.crossfade
 import dev.anilbeesetti.nextplayer.core.model.ApplicationPreferences
 import dev.anilbeesetti.nextplayer.core.model.MediaLayoutMode
 import dev.anilbeesetti.nextplayer.core.model.Video
+import dev.anilbeesetti.nextplayer.core.model.isNew
+import dev.anilbeesetti.nextplayer.core.ui.R
 import dev.anilbeesetti.nextplayer.core.ui.components.NextSegmentedListItem
 import dev.anilbeesetti.nextplayer.core.ui.designsystem.NextIcons
 import dev.anilbeesetti.nextplayer.core.ui.theme.NextPlayerTheme
@@ -238,11 +241,7 @@ fun VideoGridItem(
     )
 }
 
-/**
- * A thumbnail is produced by decoding the video itself, so Coil has to read the whole source
- * before it can extract a frame. For a remote video that means downloading the entire file just
- * to draw a list item, so those fall back to the placeholder icon.
- */
+/** True if the video is local. Remote videos avoid full download and use a placeholder. */
 private fun Video.isLocalUri(): Boolean {
     val scheme = uriString.toUri().scheme
     return scheme.equals("content", ignoreCase = true) || scheme.equals("file", ignoreCase = true)
@@ -290,6 +289,18 @@ private fun ThumbnailView(
                     .align(Alignment.BottomEnd),
                 backgroundColor = Color.Black.copy(alpha = 0.6f),
                 contentColor = Color.White,
+                shape = MaterialTheme.shapes.extraSmall,
+            )
+        }
+
+        if (video.isNew()) {
+            InfoChip(
+                text = stringResource(R.string.new_label),
+                modifier = Modifier
+                    .padding(5.dp)
+                    .align(Alignment.TopStart),
+                backgroundColor = MaterialTheme.colorScheme.primary,
+                contentColor = MaterialTheme.colorScheme.onPrimary,
                 shape = MaterialTheme.shapes.extraSmall,
             )
         }
