@@ -8,22 +8,12 @@ import io.github.anilbeesetti.nextlib.media3ext.ffdecoder.DecoderMode
 /** Keeps NextPlayer's decoder fallback policy separate from nextlib's decoder switching. */
 internal class DecoderRecoveryManager {
 
-    private var currentMedia: DecoderMediaIdentity? = null
     private val videoRecovery = TrackRecovery()
     private val audioRecovery = TrackRecovery()
 
     // Terminal errors and confirmation take precedence over background recovery.
     val state: DecoderRecoveryState
         get() = listOf(videoRecovery.state, audioRecovery.state).maxBy { it.status }
-
-    fun onMediaItemChanged(media: DecoderMediaIdentity?): Boolean {
-        if (media == currentMedia) return false
-
-        currentMedia = media
-        videoRecovery.reset()
-        audioRecovery.reset()
-        return media != null
-    }
 
     fun onUserSelection(trackType: DecoderTrackType, mode: DecoderMode) {
         recoveryFor(trackType).apply {
@@ -107,12 +97,6 @@ internal class DecoderRecoveryManager {
         }
     }
 }
-
-internal data class DecoderMediaIdentity(
-    val index: Int,
-    val mediaId: String,
-    val uri: String?,
-)
 
 internal data class DecoderRetry(
     val trackType: DecoderTrackType,

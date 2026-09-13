@@ -1,7 +1,8 @@
 # Runtime decoder switching
 
 NextPlayer uses nextlib's `DecoderManager` on one `ExoPlayer`. Video and audio choices are
-independent and reset to `AUTO` for a new playlist item, but survive metadata updates.
+independent and stored in each `MediaItem`. New items default to `AUTO`; returning to an
+existing playlist item restores its saved choices. Metadata updates preserve those choices.
 The overlay offers HW (`HARDWARE`), SW+ (`SOFTWARE` MediaCodec), and SW (`FFMPEG`).
 Automatic selection stays internal; controls show the initialized decoder category and
 show “-” while that category is unknown.
@@ -20,10 +21,17 @@ MediaSession extras. `PlayerActivity` receives `onExtrasChanged` and passes the 
 Compose, so a dialog or decoder label can update without a playback-state event. Existing
 session extras, such as skip-silence state, are preserved.
 
-Adding a local subtitle rebuilds the media sources at the same playlist index and position,
-preserving shuffle order. `replaceMediaItem` alone can reuse the old source without loading
-new subtitle configurations. The reload must not temporarily seek to a new index, which would
-reset manual decoder choices. Its resume metadata must also use the current playback position.
+`videoDecoderMode` and `audioDecoderMode` in media metadata store requested modes, including
+`AUTO`, rather than the active decoder category. The shared selection path updates them for
+both user selections and fallback retries. On media transitions the service restores the
+saved modes and starts fresh recovery attempts. Choices stay within the current playlist;
+they are not saved to the media database.
+
+Adding a local subtitle copies that metadata into a new item, inserts it after the current
+item, seeks to it, then removes the old item. This recreates only the current source, while
+preserving position, playback intent, and the original shuffle order. `replaceMediaItem`
+alone can reuse a source without loading new subtitle configurations. Resume metadata also
+uses the current playback position.
 Nextlib also restores active modes from successful decoder reuse evaluations: a renderer can be
 disabled and enabled again without initializing a new codec.
 
@@ -154,3 +162,30 @@ fix does not change document identity handling.
 Screenshots: [before](../../fastlane/metadata/qa/local-subtitle-refresh/before.png),
 [after](../../fastlane/metadata/qa/local-subtitle-refresh/after.png), and
 [rendering with SW](../../fastlane/metadata/qa/local-subtitle-refresh/rendering.png).
+
+## Per-item decoder verification on 2026-09-13
+
+Verified with published nextlib `1.11.1-0.16.0` on a disposable Pixel 6a profile,
+Android 17 / API 37, ARM64, 16 KB pages, 720 × 1600, host graphics.
+
+- `assembleDebug test ktlintCheck :app:assembleDebugAndroidTest` passed with test failures
+  enforced. All 207 JVM tests passed. Metadata tests cover all mode combinations, Bundle
+  transport, unrelated metadata copies, independent updates, Auto, and invalid mode names.
+- The subtitle JVM regression now asserts that exactly one source is recreated while queue
+  contents, saved modes, position, resume metadata, playback intent, and shuffle order survive.
+- `LocalSubtitleTest` now runs through the real `PlayerService` and `MediaController` in the
+  app test APK. It verifies first/subsequent subtitles, rendered cues, paused/playing reloads,
+  independent saved decoder modes, new-item Auto defaults, and restoration on returning to
+  an earlier playlist item. It passed through `AndroidJUnitRunner`.
+- On generated H.264/AAC video, Auto displayed HW and loaded the first SRT immediately.
+  Manual SW+ video survived a second addition after unsupported HW audio recovered to SW+.
+  Manual SW video/audio survived a third addition started while playing; the session returned
+  to PLAYING. Manual HW video with independent SW audio survived a fourth addition.
+- The first two paused additions kept position at 21,458 ms. After playing, the final paused
+  addition kept position at 26,333 ms. All four subtitles appeared and the latest rendered
+  without reopening. No app crashes were recorded.
+
+The service deliberately writes decoder metadata even when `MediaItem.equals` reports no
+change: Media3 equality does not compare the contents of extras. Metadata-only changes may
+also produce no controller notification, so the device regression verifies the saved choices
+on the reloaded item rather than waiting for an extras-only event.

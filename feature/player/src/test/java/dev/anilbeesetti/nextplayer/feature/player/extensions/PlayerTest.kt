@@ -7,6 +7,7 @@ import androidx.media3.exoplayer.ExoPlayer
 import androidx.media3.exoplayer.source.DefaultMediaSourceFactory
 import androidx.media3.exoplayer.source.MediaSource
 import androidx.media3.exoplayer.source.ShuffleOrder
+import io.github.anilbeesetti.nextlib.media3ext.ffdecoder.DecoderMode
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertTrue
 import org.junit.Test
@@ -17,7 +18,7 @@ import org.robolectric.RuntimeEnvironment
 @RunWith(RobolectricTestRunner::class)
 class PlayerTest {
     @Test
-    fun addingSubtitlePreservesPlaylistIdentityPositionAndPlaybackIntent() {
+    fun addingSubtitleReloadsOnlyCurrentSourceAndPreservesPlaybackState() {
         val context = RuntimeEnvironment.getApplication()
         val sourceFactory = DefaultMediaSourceFactory(context)
         val createdItems = mutableListOf<MediaItem>()
@@ -36,13 +37,14 @@ class PlayerTest {
             val subtitle = MediaItem.SubtitleConfiguration.Builder(android.net.Uri.parse("file:///test.srt"))
                 .setId("test").setMimeType(MimeTypes.APPLICATION_SUBRIP).build()
             player.setMediaItems(items, 1, 12_000)
+            player.replaceMediaItem(1, items[1].copy(videoDecoderMode = DecoderMode.HARDWARE, audioDecoderMode = DecoderMode.FFMPEG))
             val shuffleOrder = ShuffleOrder.DefaultShuffleOrder(intArrayOf(2, 1, 0), 0)
             player.setShuffleOrder(shuffleOrder)
             player.shuffleModeEnabled = true
-            val transitions = mutableListOf<Pair<Int, String?>>()
+            val transitions = mutableListOf<MediaItem?>()
             player.addListener(object : Player.Listener {
                 override fun onMediaItemTransition(mediaItem: MediaItem?, reason: Int) {
-                    transitions += player.currentMediaItemIndex to mediaItem?.mediaId
+                    transitions += mediaItem
                 }
             })
 
@@ -52,9 +54,9 @@ class PlayerTest {
                 player.addAdditionalSubtitleConfiguration(subtitle.buildUpon().setId("test-$playing").build())
 
                 assertEquals(
-                    "Adding a subtitle must rebuild the source, not only update its MediaItem",
-                    player.currentMediaItem,
-                    createdItems.lastOrNull { it.mediaId == "current" },
+                    "Only the current source should be recreated",
+                    listOf(player.currentMediaItem),
+                    createdItems,
                 )
                 assertEquals(shuffleOrder, player.shuffleOrder)
                 assertTrue(player.shuffleModeEnabled)
@@ -63,7 +65,12 @@ class PlayerTest {
                 assertEquals(12_000L, player.currentPosition)
                 assertEquals(12_000L, player.mediaMetadata.positionMs)
                 assertEquals(playing, player.playWhenReady)
-                assertTrue(transitions.all { it == (1 to "current") })
+                assertTrue(transitions.isNotEmpty())
+                assertTrue(transitions.all {
+                    it?.mediaId == "current" &&
+                        it.mediaMetadata.videoDecoderMode == DecoderMode.HARDWARE &&
+                        it.mediaMetadata.audioDecoderMode == DecoderMode.FFMPEG
+                })
             }
             assertEquals(2, player.currentMediaItem?.localConfiguration?.subtitleConfigurations?.size)
             assertEquals(0, player.mediaMetadata.subtitleTrackIndex)
