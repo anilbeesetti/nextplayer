@@ -10,6 +10,7 @@ import dev.anilbeesetti.nextplayer.core.model.VideoContentScale
 import dev.anilbeesetti.nextplayer.feature.player.extensions.noRippleClickable
 import dev.anilbeesetti.nextplayer.feature.player.state.SubtitleOptionsEvent
 import io.github.anilbeesetti.nextlib.media3ext.ffdecoder.DecoderMode
+import io.github.anilbeesetti.nextlib.mediainfo.Chapter
 
 @Composable
 fun BoxScope.OverlayShowView(
@@ -18,6 +19,9 @@ fun BoxScope.OverlayShowView(
     videoDecoderMode: DecoderMode?,
     audioDecoderMode: DecoderMode?,
     videoContentScale: VideoContentScale,
+    chapters: List<Chapter>,
+    currentChapterIndex: Int,
+    onChapterSelected: (Chapter) -> Unit,
     onDismiss: () -> Unit = {},
     onVideoDecoderModeSelected: (DecoderMode) -> Unit = {},
     onAudioDecoderModeSelected: (DecoderMode) -> Unit = {},
@@ -75,6 +79,13 @@ fun BoxScope.OverlayShowView(
         show = overlayView == OverlayView.PLAYLIST,
         player = player,
     )
+
+    ChaptersView(
+        show = overlayView == OverlayView.CHAPTERS,
+        chapters = chapters,
+        currentChapterIndex = currentChapterIndex,
+        onChapterSelected = onChapterSelected,
+    )
 }
 
 val Configuration.isPortrait: Boolean
@@ -87,4 +98,5 @@ enum class OverlayView {
     PLAYBACK_SPEED,
     VIDEO_CONTENT_SCALE,
     PLAYLIST,
+    CHAPTERS,
 }

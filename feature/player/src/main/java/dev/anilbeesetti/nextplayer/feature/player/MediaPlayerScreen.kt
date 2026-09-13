@@ -79,14 +79,19 @@ import dev.anilbeesetti.nextplayer.feature.player.buttons.NextButton
 import dev.anilbeesetti.nextplayer.feature.player.buttons.PlayPauseButton
 import dev.anilbeesetti.nextplayer.feature.player.buttons.PlayerButton
 import dev.anilbeesetti.nextplayer.feature.player.buttons.PreviousButton
+import dev.anilbeesetti.nextplayer.feature.player.extensions.formatted
+import dev.anilbeesetti.nextplayer.feature.player.extensions.nameRes
 import dev.anilbeesetti.nextplayer.feature.player.model.DecoderRecoveryStatus
+import dev.anilbeesetti.nextplayer.feature.player.model.DecoderServiceState
 import dev.anilbeesetti.nextplayer.feature.player.model.DecoderTrackType
 import dev.anilbeesetti.nextplayer.feature.player.model.labelRes
 import dev.anilbeesetti.nextplayer.feature.player.state.ControlsVisibilityState
 import dev.anilbeesetti.nextplayer.feature.player.state.VerticalGesture
+import dev.anilbeesetti.nextplayer.feature.player.state.currentChapterIndex
+import dev.anilbeesetti.nextplayer.feature.player.state.forDuration
 import dev.anilbeesetti.nextplayer.feature.player.state.rememberBrightnessState
+import dev.anilbeesetti.nextplayer.feature.player.state.rememberChapters
 import dev.anilbeesetti.nextplayer.feature.player.state.rememberControlsVisibilityState
-import dev.anilbeesetti.nextplayer.feature.player.model.DecoderServiceState
 import dev.anilbeesetti.nextplayer.feature.player.state.rememberDecoderState
 import dev.anilbeesetti.nextplayer.feature.player.state.rememberErrorState
 import dev.anilbeesetti.nextplayer.feature.player.state.rememberMediaPresentationState
@@ -98,8 +103,6 @@ import dev.anilbeesetti.nextplayer.feature.player.state.rememberTapGestureState
 import dev.anilbeesetti.nextplayer.feature.player.state.rememberVideoZoomAndContentScaleState
 import dev.anilbeesetti.nextplayer.feature.player.state.rememberVolumeAndBrightnessGestureState
 import dev.anilbeesetti.nextplayer.feature.player.state.rememberVolumeState
-import dev.anilbeesetti.nextplayer.feature.player.extensions.formatted
-import dev.anilbeesetti.nextplayer.feature.player.extensions.nameRes
 import dev.anilbeesetti.nextplayer.feature.player.state.seekAmountFormatted
 import dev.anilbeesetti.nextplayer.feature.player.state.seekToPositionFormated
 import dev.anilbeesetti.nextplayer.feature.player.ui.DoubleTapIndicator
@@ -110,9 +113,9 @@ import dev.anilbeesetti.nextplayer.feature.player.ui.VerticalProgressView
 import dev.anilbeesetti.nextplayer.feature.player.ui.controls.ControlsBottomView
 import dev.anilbeesetti.nextplayer.feature.player.ui.controls.ControlsTopView
 import kotlin.math.abs
+import kotlin.time.Duration.Companion.milliseconds
 import kotlin.time.Duration.Companion.seconds
 import kotlinx.coroutines.delay
-import kotlin.time.Duration.Companion.milliseconds
 
 val LocalControlsVisibilityState = compositionLocalOf<ControlsVisibilityState?> { null }
 
@@ -135,6 +138,11 @@ fun MediaPlayerScreen(
     player ?: return
     val metadataState = rememberMetadataState(player)
     val mediaPresentationState = rememberMediaPresentationState(player)
+    val embeddedChapters = rememberChapters(metadataState.mediaId)
+    val chapters = remember(embeddedChapters, mediaPresentationState.duration) {
+        embeddedChapters.forDuration(mediaPresentationState.duration)
+    }
+    val currentChapterIndex = chapters.currentChapterIndex(mediaPresentationState.position)
     val controlsVisibilityState = rememberControlsVisibilityState(
         player = player,
         hideAfter = playerPreferences.controllerAutoHideTimeout.seconds,
@@ -203,6 +211,10 @@ fun MediaPlayerScreen(
     }
 
     var overlayView by remember { mutableStateOf<OverlayView?>(null) }
+
+    LaunchedEffect(metadataState.mediaId) {
+        if (overlayView == OverlayView.CHAPTERS) overlayView = null
+    }
 
     val context = LocalContext.current
     val isTv = remember { context.isTelevision }
@@ -359,7 +371,7 @@ fun MediaPlayerScreen(
                                     .onFocusChanged { isUnlockFocused = it.hasFocus }
                             },
                             containerColor = Color.Black.copy(0.5f),
-                            onClick = { controlsVisibilityState.unlockControls() }
+                            onClick = { controlsVisibilityState.unlockControls() },
                         ) {
                             Icon(
                                 painter = painterResource(coreUiR.drawable.ic_lock),
@@ -427,6 +439,12 @@ fun MediaPlayerScreen(
                                 ControlsBottomView(
                                     player = player,
                                     mediaPresentationState = mediaPresentationState,
+                                    chapters = chapters,
+                                    currentChapterIndex = currentChapterIndex,
+                                    onChaptersClick = {
+                                        controlsVisibilityState.hideControls()
+                                        overlayView = OverlayView.CHAPTERS
+                                    },
                                     controlsAlignment = when (playerPreferences.controlButtonsPosition) {
                                         ControlButtonsPosition.LEFT -> Alignment.Start
                                         ControlButtonsPosition.RIGHT -> Alignment.End
@@ -505,6 +523,15 @@ fun MediaPlayerScreen(
             OverlayShowView(
                 player = player,
                 overlayView = overlayView,
+                chapters = chapters,
+                currentChapterIndex = currentChapterIndex,
+                onChapterSelected = { chapter ->
+                    if (player.isCurrentMediaItemSeekable) {
+                        player.seekTo(chapter.start)
+                        overlayView = null
+                        controlsVisibilityState.showControls()
+                    }
+                },
                 videoDecoderMode = decoderState.videoMode,
                 audioDecoderMode = decoderState.audioMode,
                 videoContentScale = videoZoomAndContentScaleState.videoContentScale,
@@ -555,7 +582,7 @@ fun MediaPlayerScreen(
         (
             decoderRecoveryState.status == DecoderRecoveryStatus.NONE &&
                 errorState.playbackError != null
-        )
+            )
     if (showPlayerError) {
         AlertDialog(
             onDismissRequest = { },
@@ -736,13 +763,41 @@ private fun handlePlayerKeyEvent(
     }
 
     return when (keyEvent.key) {
-        Key.MediaPlayPause, Key.Spacebar -> { togglePlayPause(); controls.showControls(); true }
-        Key.MediaPlay -> { player.play(); controls.showControls(); true }
-        Key.MediaPause -> { player.pause(); controls.showControls(); true }
-        Key.MediaFastForward -> { seekBy(seekIncrementMs); controls.showControls(); true }
-        Key.MediaRewind -> { seekBy(-seekIncrementMs); controls.showControls(); true }
-        Key.MediaNext -> { player.seekToNext(); controls.showControls(); true }
-        Key.MediaPrevious -> { player.seekToPrevious(); controls.showControls(); true }
+        Key.MediaPlayPause, Key.Spacebar -> {
+            togglePlayPause()
+            controls.showControls()
+            true
+        }
+        Key.MediaPlay -> {
+            player.play()
+            controls.showControls()
+            true
+        }
+        Key.MediaPause -> {
+            player.pause()
+            controls.showControls()
+            true
+        }
+        Key.MediaFastForward -> {
+            seekBy(seekIncrementMs)
+            controls.showControls()
+            true
+        }
+        Key.MediaRewind -> {
+            seekBy(-seekIncrementMs)
+            controls.showControls()
+            true
+        }
+        Key.MediaNext -> {
+            player.seekToNext()
+            controls.showControls()
+            true
+        }
+        Key.MediaPrevious -> {
+            player.seekToPrevious()
+            controls.showControls()
+            true
+        }
         Key.DirectionCenter, Key.Enter, Key.NumPadEnter -> {
             when {
                 !controls.controlsVisible -> {

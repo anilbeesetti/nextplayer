@@ -11,23 +11,27 @@ import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.asPaddingValues
 import androidx.compose.foundation.layout.displayCutout
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.systemBars
 import androidx.compose.foundation.layout.union
 import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.layout.widthIn
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.rounded.NavigateNext
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Slider
+import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.CompositionLocalProvider
@@ -39,6 +43,7 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.draw.drawWithCache
 import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.focus.onFocusChanged
 import androidx.compose.ui.geometry.CornerRadius
@@ -46,12 +51,18 @@ import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.geometry.Rect
 import androidx.compose.ui.geometry.RoundRect
 import androidx.compose.ui.geometry.Size
+import androidx.compose.ui.graphics.ClipOp
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.Path
 import androidx.compose.ui.graphics.drawscope.DrawScope
+import androidx.compose.ui.graphics.drawscope.clipPath
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalLayoutDirection
 import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.semantics.onClick
+import androidx.compose.ui.semantics.semantics
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.LayoutDirection
 import androidx.compose.ui.unit.dp
 import androidx.media3.common.Player
@@ -59,6 +70,7 @@ import androidx.media3.common.util.UnstableApi
 import dev.anilbeesetti.nextplayer.core.common.extensions.isTelevision
 import dev.anilbeesetti.nextplayer.core.model.VideoContentScale
 import dev.anilbeesetti.nextplayer.core.ui.R
+import dev.anilbeesetti.nextplayer.core.ui.components.tvFocusRing
 import dev.anilbeesetti.nextplayer.core.ui.extensions.copy
 import dev.anilbeesetti.nextplayer.feature.player.LocalUseMaterialYouControls
 import dev.anilbeesetti.nextplayer.feature.player.buttons.LoopButton
@@ -70,6 +82,8 @@ import dev.anilbeesetti.nextplayer.feature.player.state.MediaPresentationState
 import dev.anilbeesetti.nextplayer.feature.player.state.durationFormatted
 import dev.anilbeesetti.nextplayer.feature.player.state.pendingPositionFormatted
 import dev.anilbeesetti.nextplayer.feature.player.state.positionFormatted
+import dev.anilbeesetti.nextplayer.feature.player.ui.titleOrDefault
+import io.github.anilbeesetti.nextlib.mediainfo.Chapter
 
 @OptIn(UnstableApi::class)
 @Composable
@@ -77,6 +91,9 @@ fun ControlsBottomView(
     modifier: Modifier = Modifier,
     player: Player,
     mediaPresentationState: MediaPresentationState,
+    chapters: List<Chapter>,
+    currentChapterIndex: Int,
+    onChaptersClick: () -> Unit,
     controlsAlignment: Alignment.Horizontal,
     videoContentScale: VideoContentScale,
     isPipSupported: Boolean,
@@ -99,7 +116,7 @@ fun ControlsBottomView(
             .padding(horizontal = 8.dp)
             .padding(top = 16.dp)
             .padding(bottom = 16.dp.takeIf { systemBarsPadding.calculateBottomPadding() == 0.dp } ?: 0.dp),
-        verticalArrangement = Arrangement.spacedBy(4.dp)
+        verticalArrangement = Arrangement.spacedBy(4.dp),
     ) {
         Row(
             modifier = Modifier.padding(horizontal = 8.dp),
@@ -137,7 +154,44 @@ fun ControlsBottomView(
                 )
             }
 
-            Spacer(modifier = Modifier.weight(1f))
+            Box(modifier = Modifier.weight(1f), contentAlignment = Alignment.CenterEnd) {
+                if (chapters.isNotEmpty()) {
+                    val showChaptersLabel = stringResource(R.string.show_chapters)
+                    Surface(
+                        onClick = onChaptersClick,
+                        enabled = player.isCurrentMediaItemSeekable,
+                        shape = CircleShape,
+                        color = Color.White.copy(alpha = 0.15f),
+                        contentColor = Color.White,
+                        modifier = Modifier
+                            .widthIn(max = 360.dp)
+                            .padding(horizontal = 8.dp)
+                            .heightIn(min = 48.dp)
+                            .tvFocusRing(isTv)
+                            .semantics { onClick(label = showChaptersLabel, action = null) },
+                    ) {
+                        Row(
+                            modifier = Modifier.padding(horizontal = 12.dp),
+                            verticalAlignment = Alignment.CenterVertically,
+                            horizontalArrangement = Arrangement.spacedBy(4.dp),
+                        ) {
+                            Text(
+                                text = chapters.getOrNull(currentChapterIndex)?.titleOrDefault(currentChapterIndex)
+                                    ?: stringResource(R.string.chapters),
+                                modifier = Modifier.weight(1f, fill = false),
+                                style = MaterialTheme.typography.labelLarge,
+                                maxLines = 1,
+                                overflow = TextOverflow.Ellipsis,
+                            )
+                            Icon(
+                                imageVector = Icons.AutoMirrored.Rounded.NavigateNext,
+                                contentDescription = null,
+                                modifier = Modifier.size(20.dp),
+                            )
+                        }
+                    }
+                }
+            }
             if (!isTv) {
                 PlayerButton(
                     modifier = modifier.size(30.dp),
@@ -155,6 +209,7 @@ fun ControlsBottomView(
             modifier = seekBarModifier,
             position = mediaPresentationState.position.toFloat(),
             duration = mediaPresentationState.duration.toFloat(),
+            chapters = chapters,
             onSeek = { onSeek(it.toLong()) },
             onSeekFinished = { onSeekEnd() },
         )
@@ -206,6 +261,7 @@ private fun PlayerSeekbar(
     modifier: Modifier = Modifier,
     position: Float,
     duration: Float,
+    chapters: List<Chapter>,
     onSeek: (Float) -> Unit,
     onSeekFinished: () -> Unit,
 ) {
@@ -218,6 +274,7 @@ private fun PlayerSeekbar(
             MaterialYouSlider(
                 modifier = focusModifier,
                 isFocused = isFocused,
+                chapters = chapters,
                 value = position,
                 valueRange = 0f..duration,
                 onValueChange = onSeek,
@@ -227,6 +284,7 @@ private fun PlayerSeekbar(
             SimpleSlider(
                 modifier = focusModifier,
                 isFocused = isFocused,
+                chapters = chapters,
                 value = position,
                 valueRange = 0f..duration,
                 onValueChange = onSeek,
@@ -245,6 +303,7 @@ private fun MaterialYouSlider(
     onValueChange: (Float) -> Unit,
     onValueChangeFinished: () -> Unit,
     isFocused: Boolean = false,
+    chapters: List<Chapter> = emptyList(),
 ) {
     val primaryColor = MaterialTheme.colorScheme.primary
     val interactionSource = remember { MutableInteractionSource() }
@@ -267,7 +326,8 @@ private fun MaterialYouSlider(
             Canvas(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .height(trackHeight),
+                    .height(trackHeight)
+                    .chapterGaps(chapters, valueRange.endInclusive),
             ) {
                 val min = sliderState.valueRange.start
                 val max = sliderState.valueRange.endInclusive
@@ -366,6 +426,7 @@ private fun SimpleSlider(
     onValueChange: (Float) -> Unit,
     onValueChangeFinished: () -> Unit,
     isFocused: Boolean = false,
+    chapters: List<Chapter> = emptyList(),
 ) {
     val thumbSize by animateDpAsState(if (isFocused) 22.dp else 16.dp, label = "thumbSize")
     Slider(
@@ -393,18 +454,35 @@ private fun SimpleSlider(
                 modifier = Modifier
                     .fillMaxWidth()
                     .height(4.dp)
+                    .chapterGaps(chapters, valueRange.endInclusive)
                     .clip(MaterialTheme.shapes.extraSmall)
-                    .background(Color.White.copy(0.5f))
+                    .background(Color.White.copy(0.5f)),
             ) {
                 if (valueRange.endInclusive > 0f) {
                     Box(
                         modifier = Modifier
                             .fillMaxWidth(value / valueRange.endInclusive)
                             .height(4.dp)
-                            .background(MaterialTheme.colorScheme.primary)
+                            .background(MaterialTheme.colorScheme.primary),
                     )
                 }
             }
-        }
+        },
     )
+}
+
+private fun Modifier.chapterGaps(chapters: List<Chapter>, duration: Float): Modifier = drawWithCache {
+    val gaps = Path()
+    if (duration > 0f) {
+        val halfGap = 1.5.dp.toPx()
+        chapters.forEach { chapter ->
+            if (chapter.start > 0 && chapter.start < duration) {
+                val x = size.width * (chapter.start / duration)
+                gaps.addRect(Rect(x - halfGap, 0f, x + halfGap, size.height))
+            }
+        }
+    }
+    onDrawWithContent {
+        clipPath(gaps, ClipOp.Difference) { this@onDrawWithContent.drawContent() }
+    }
 }
