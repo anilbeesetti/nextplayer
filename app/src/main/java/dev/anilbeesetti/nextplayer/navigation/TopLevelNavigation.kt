@@ -3,13 +3,17 @@ package dev.anilbeesetti.nextplayer.navigation
 import androidx.annotation.StringRes
 import androidx.compose.animation.AnimatedContent
 import androidx.compose.animation.BoundsTransform
+import androidx.compose.animation.ContentTransform
 import androidx.compose.animation.animateBounds
 import androidx.compose.animation.core.FastOutSlowInEasing
+import androidx.compose.animation.core.LinearEasing
 import androidx.compose.animation.core.tween
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
 import androidx.compose.animation.scaleIn
 import androidx.compose.animation.scaleOut
+import androidx.compose.animation.slideInHorizontally
+import androidx.compose.animation.slideOutHorizontally
 import androidx.compose.animation.togetherWith
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
@@ -71,6 +75,7 @@ import androidx.compose.ui.zIndex
 import androidx.lifecycle.viewmodel.navigation3.rememberViewModelStoreNavEntryDecorator
 import androidx.navigation3.runtime.NavBackStack
 import androidx.navigation3.runtime.NavEntry
+import androidx.navigation3.runtime.NavEntryDecorator
 import androidx.navigation3.runtime.NavKey
 import androidx.navigation3.runtime.rememberDecoratedNavEntries
 import androidx.navigation3.runtime.rememberNavBackStack
@@ -173,7 +178,10 @@ class TopLevelNavState(
     }
 
     @Composable
-    fun rememberEntries(entryProvider: (NavKey) -> NavEntry<NavKey>): SnapshotStateList<NavEntry<NavKey>> {
+    fun rememberEntries(
+        entryProvider: (NavKey) -> NavEntry<NavKey>,
+        entryDecorator: NavEntryDecorator<NavKey>,
+    ): SnapshotStateList<NavEntry<NavKey>> {
         val decoratedByRoute = LinkedHashMap<NavKey, List<NavEntry<NavKey>>>()
         for (dest in destinations) {
             decoratedByRoute[dest.route] = rememberDecoratedNavEntries(
@@ -181,6 +189,7 @@ class TopLevelNavState(
                 entryDecorators = listOf(
                     rememberSaveableStateHolderNavEntryDecorator(),
                     rememberViewModelStoreNavEntryDecorator(),
+                    entryDecorator,
                 ),
                 entryProvider = entryProvider,
             )
@@ -191,6 +200,23 @@ class TopLevelNavState(
 
 fun TopLevelNavState.isNavigationBetweenTopLevelDestinations(initialState: Scene<NavKey>, targetState: Scene<NavKey>): Boolean =
     topLevelContentKeys.run { contains(initialState.entries.lastOrNull()?.contentKey) && contains(targetState.entries.lastOrNull()?.contentKey) }
+
+internal fun TopLevelNavState.navigationTransition(initialState: Scene<NavKey>, targetState: Scene<NavKey>): ContentTransform {
+    if (isNavigationBetweenTopLevelDestinations(initialState, targetState)) {
+        return fadeIn(tween(200, easing = LinearEasing)) togetherWith fadeOut(tween(200, easing = LinearEasing))
+    }
+
+    // Quick Back can select the pop spec while the animated scenes still describe the push.
+    // Keep the direction tied to those scenes so the existing slide can reverse smoothly.
+    val isPop = initialState.previousEntries.any { it.contentKey == targetState.entries.lastOrNull()?.contentKey }
+    return slideInHorizontally(
+        initialOffsetX = { if (isPop) -(it * 0.3f).toInt() else it },
+        animationSpec = tween(durationMillis = 200, easing = LinearEasing),
+    ) togetherWith slideOutHorizontally(
+        targetOffsetX = { if (isPop) it else -(it * 0.3f).toInt() },
+        animationSpec = tween(durationMillis = 200, easing = LinearEasing),
+    )
+}
 
 @Composable
 fun NextNavigationBar(
@@ -363,9 +389,9 @@ fun NavigationView(
 }
 
 @Composable
-fun NextNavigationRail(state: TopLevelNavState) {
+fun NextNavigationRail(state: TopLevelNavState, modifier: Modifier = Modifier) {
     NavigationRail(
-        modifier = Modifier.fillMaxHeight(),
+        modifier = modifier.fillMaxHeight(),
         containerColor = MaterialTheme.colorScheme.surfaceContainer,
     ) {
         Column(

@@ -7,27 +7,25 @@ import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
 import androidx.activity.viewModels
 import androidx.compose.animation.AnimatedVisibility
-import androidx.compose.animation.core.LinearEasing
-import androidx.compose.animation.core.tween
+import androidx.compose.animation.expandHorizontally
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
-import androidx.compose.animation.slideInHorizontally
+import androidx.compose.animation.shrinkHorizontally
 import androidx.compose.animation.slideInVertically
-import androidx.compose.animation.slideOutHorizontally
 import androidx.compose.animation.slideOutVertically
-import androidx.compose.animation.togetherWith
 import androidx.compose.foundation.focusGroup
 import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.PaddingValues
-import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.WindowInsetsSides
+import androidx.compose.foundation.layout.calculateStartPadding
 import androidx.compose.foundation.layout.consumeWindowInsets
 import androidx.compose.foundation.layout.displayCutout
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.only
+import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Surface
@@ -41,16 +39,22 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.runtime.snapshots.SnapshotStateMap
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.focus.FocusDirection
 import androidx.compose.ui.focus.FocusRequester
 import androidx.compose.ui.focus.focusProperties
 import androidx.compose.ui.focus.focusRequester
+import androidx.compose.ui.layout.onSizeChanged
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.platform.LocalDensity
+import androidx.compose.ui.platform.LocalLayoutDirection
 import androidx.compose.ui.unit.dp
 import androidx.core.splashscreen.SplashScreen.Companion.installSplashScreen
 import androidx.fragment.app.FragmentActivity
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import androidx.navigation3.runtime.NavEntryDecorator
+import androidx.navigation3.runtime.NavKey
 import androidx.navigation3.runtime.entryProvider
 import androidx.navigation3.ui.NavDisplay
 import androidx.window.core.layout.WindowSizeClass
@@ -70,9 +74,9 @@ import dev.anilbeesetti.nextplayer.navigation.NextNavigationBar
 import dev.anilbeesetti.nextplayer.navigation.NextNavigationRail
 import dev.anilbeesetti.nextplayer.navigation.TopLevelDestination
 import dev.anilbeesetti.nextplayer.navigation.TopLevelNavState
-import dev.anilbeesetti.nextplayer.navigation.isNavigationBetweenTopLevelDestinations
 import dev.anilbeesetti.nextplayer.navigation.mediaNavGraph
 import dev.anilbeesetti.nextplayer.navigation.moreNavGraph
+import dev.anilbeesetti.nextplayer.navigation.navigationTransition
 import dev.anilbeesetti.nextplayer.navigation.networkNavGraph
 import dev.anilbeesetti.nextplayer.navigation.playlistNavGraph
 import dev.anilbeesetti.nextplayer.navigation.rememberTopLevelNavState
@@ -150,6 +154,20 @@ class MainActivity : FragmentActivity() {
                         fabStates = topLevelFabStates,
                         showBottomBar = showTopLevelBottomBar,
                     ) { layoutPaddingValues ->
+                        val railPadding = layoutPaddingValues.calculateStartPadding(LocalLayoutDirection.current)
+                        val navigationInsetsDecorator = remember(navState, railPadding) {
+                            NavEntryDecorator<NavKey> { entry ->
+                                // Reserve rail space per entry without resizing the animated display.
+                                Box(
+                                    Modifier.thenIf(navState.topLevelContentKeys.contains(entry.contentKey)) {
+                                        padding(start = railPadding)
+                                            .consumeWindowInsets(WindowInsets.displayCutout.only(WindowInsetsSides.Start))
+                                    },
+                                ) {
+                                    entry.Content()
+                                }
+                            }
+                        }
                         CompositionLocalProvider(
                             LocalNavigationBottomPadding provides layoutPaddingValues.calculateBottomPadding(),
                             LocalTopLevelBottomBarVisibleSetter provides { showTopLevelBottomBar = it },
@@ -162,77 +180,11 @@ class MainActivity : FragmentActivity() {
                             },
                         ) {
                             NavDisplay(
-                                entries = navState.rememberEntries(provider),
+                                entries = navState.rememberEntries(provider, navigationInsetsDecorator),
                                 onBack = { navState.goBack() },
-                                transitionSpec = {
-                                    if (navState.isNavigationBetweenTopLevelDestinations(initialState, targetState)) {
-                                        fadeIn(
-                                            animationSpec = tween(
-                                                durationMillis = 200,
-                                                easing = LinearEasing,
-                                            ),
-                                        ) togetherWith fadeOut(
-                                            animationSpec = tween(
-                                                durationMillis = 200,
-                                                easing = LinearEasing,
-                                            ),
-                                        )
-                                    } else {
-                                        slideInHorizontally(
-                                            initialOffsetX = { it },
-                                            animationSpec = tween(durationMillis = 200, easing = LinearEasing),
-                                        ) togetherWith slideOutHorizontally(
-                                            targetOffsetX = { fullOffset -> -(fullOffset * 0.3f).toInt() },
-                                            animationSpec = tween(durationMillis = 200, easing = LinearEasing),
-                                        )
-                                    }
-                                },
-                                popTransitionSpec = {
-                                    if (navState.isNavigationBetweenTopLevelDestinations(initialState, targetState)) {
-                                        fadeIn(
-                                            animationSpec = tween(
-                                                durationMillis = 200,
-                                                easing = LinearEasing,
-                                            ),
-                                        ) togetherWith fadeOut(
-                                            animationSpec = tween(
-                                                durationMillis = 200,
-                                                easing = LinearEasing,
-                                            ),
-                                        )
-                                    } else {
-                                        slideInHorizontally(
-                                            initialOffsetX = { fullOffset -> -(fullOffset * 0.3f).toInt() },
-                                            animationSpec = tween(durationMillis = 200, easing = LinearEasing),
-                                        ) togetherWith slideOutHorizontally(
-                                            targetOffsetX = { it },
-                                            animationSpec = tween(durationMillis = 200, easing = LinearEasing),
-                                        )
-                                    }
-                                },
-                                predictivePopTransitionSpec = {
-                                    if (navState.isNavigationBetweenTopLevelDestinations(initialState, targetState)) {
-                                        fadeIn(
-                                            animationSpec = tween(
-                                                durationMillis = 200,
-                                                easing = LinearEasing,
-                                            ),
-                                        ) togetherWith fadeOut(
-                                            animationSpec = tween(
-                                                durationMillis = 200,
-                                                easing = LinearEasing,
-                                            ),
-                                        )
-                                    } else {
-                                        slideInHorizontally(
-                                            initialOffsetX = { fullOffset -> -(fullOffset * 0.3f).toInt() },
-                                            animationSpec = tween(durationMillis = 200, easing = LinearEasing),
-                                        ) togetherWith slideOutHorizontally(
-                                            targetOffsetX = { it },
-                                            animationSpec = tween(durationMillis = 200, easing = LinearEasing),
-                                        )
-                                    }
-                                },
+                                transitionSpec = { navState.navigationTransition(initialState, targetState) },
+                                popTransitionSpec = { navState.navigationTransition(initialState, targetState) },
+                                predictivePopTransitionSpec = { navState.navigationTransition(initialState, targetState) },
                             )
                         }
                     }
@@ -252,6 +204,8 @@ fun NavigationLayout(
     content: @Composable (PaddingValues) -> Unit,
 ) {
     val isTv = LocalContext.current.isTelevision
+    val density = LocalDensity.current
+    var railWidth by remember(density) { mutableStateOf(0.dp) }
     val contentFocusRequester = remember { FocusRequester() }
     val fabFocusRequester = remember { FocusRequester() }
     val showNavRail = windowSizeClass.isWidthAtLeastBreakpoint(WindowSizeClass.WIDTH_DP_MEDIUM_LOWER_BOUND)
@@ -262,12 +216,7 @@ fun NavigationLayout(
         selectedFabState?.let { displayedFabState = it }
     }
 
-    Row(modifier = Modifier.fillMaxSize()) {
-        AnimatedVisibility(
-            visible = showNavRail && showNavigation,
-        ) {
-            NextNavigationRail(state = state)
-        }
+    Box(modifier = Modifier.fillMaxSize()) {
         Scaffold(
             modifier = modifier,
             bottomBar = {
@@ -305,15 +254,27 @@ fun NavigationLayout(
                                     }
                                 }
                                 .focusGroup()
-                        }
-                        .thenIf(showNavigation) {
-                            consumeWindowInsets(WindowInsets.displayCutout.only(WindowInsetsSides.Start))
                         },
                 ) {
-                    content(it)
+                    content(
+                        PaddingValues(
+                            start = if (showNavRail) railWidth else 0.dp,
+                            bottom = it.calculateBottomPadding(),
+                        ),
+                    )
                 }
             },
         )
+        AnimatedVisibility(
+            visible = showNavRail && showNavigation,
+            enter = fadeIn() + expandHorizontally(expandFrom = Alignment.Start),
+            exit = fadeOut() + shrinkHorizontally(shrinkTowards = Alignment.Start),
+        ) {
+            NextNavigationRail(
+                state = state,
+                modifier = Modifier.onSizeChanged { railWidth = with(density) { it.width.toDp() } },
+            )
+        }
     }
 }
 
