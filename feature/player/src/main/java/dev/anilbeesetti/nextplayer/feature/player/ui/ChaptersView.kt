@@ -15,10 +15,10 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
+import androidx.media3.extractor.metadata.Chapter
 import dev.anilbeesetti.nextplayer.core.ui.R
 import dev.anilbeesetti.nextplayer.core.ui.components.NextSegmentedListItem
 import dev.anilbeesetti.nextplayer.feature.player.extensions.formatted
-import io.github.anilbeesetti.nextlib.mediainfo.Chapter
 import kotlin.time.Duration.Companion.milliseconds
 
 @OptIn(ExperimentalMaterial3ExpressiveApi::class)
@@ -35,7 +35,7 @@ fun BoxScope.ChaptersView(
             state = rememberLazyListState(initialFirstVisibleItemIndex = currentChapterIndex.coerceAtLeast(0)),
             contentPadding = PaddingValues(horizontal = 16.dp, vertical = 8.dp),
         ) {
-            itemsIndexed(chapters, key = { _, chapter -> chapter.start }) { index, chapter ->
+            itemsIndexed(chapters, key = { _, chapter -> chapter.startTimeMs }) { index, chapter ->
                 NextSegmentedListItem(
                     selected = index == currentChapterIndex,
                     isFirstItem = index == 0,
@@ -50,7 +50,7 @@ fun BoxScope.ChaptersView(
                         )
                     },
                     supportingContent = {
-                        Text(text = chapter.start.milliseconds.formatted())
+                        Text(text = chapter.startTimeMs.milliseconds.formatted())
                     },
                 )
             }
@@ -60,4 +60,4 @@ fun BoxScope.ChaptersView(
 
 @Composable
 internal fun Chapter.titleOrDefault(index: Int): String =
-    title?.takeIf { it.isNotBlank() } ?: stringResource(R.string.chapter_number, index + 1)
+    title?.value?.takeIf { it.isNotBlank() } ?: stringResource(R.string.chapter_number, index + 1)

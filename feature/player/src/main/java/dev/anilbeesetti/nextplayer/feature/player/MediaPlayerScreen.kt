@@ -88,7 +88,6 @@ import dev.anilbeesetti.nextplayer.feature.player.model.labelRes
 import dev.anilbeesetti.nextplayer.feature.player.state.ControlsVisibilityState
 import dev.anilbeesetti.nextplayer.feature.player.state.VerticalGesture
 import dev.anilbeesetti.nextplayer.feature.player.state.currentChapterIndex
-import dev.anilbeesetti.nextplayer.feature.player.state.forDuration
 import dev.anilbeesetti.nextplayer.feature.player.state.rememberBrightnessState
 import dev.anilbeesetti.nextplayer.feature.player.state.rememberChapters
 import dev.anilbeesetti.nextplayer.feature.player.state.rememberControlsVisibilityState
@@ -138,10 +137,7 @@ fun MediaPlayerScreen(
     player ?: return
     val metadataState = rememberMetadataState(player)
     val mediaPresentationState = rememberMediaPresentationState(player)
-    val embeddedChapters = rememberChapters(metadataState.mediaId)
-    val chapters = remember(embeddedChapters, mediaPresentationState.duration) {
-        embeddedChapters.forDuration(mediaPresentationState.duration)
-    }
+    val chapters = rememberChapters(player)
     val currentChapterIndex = chapters.currentChapterIndex(mediaPresentationState.position)
     val controlsVisibilityState = rememberControlsVisibilityState(
         player = player,
@@ -527,7 +523,7 @@ fun MediaPlayerScreen(
                 currentChapterIndex = currentChapterIndex,
                 onChapterSelected = { chapter ->
                     if (player.isCurrentMediaItemSeekable) {
-                        player.seekTo(chapter.start)
+                        player.seekTo(chapter.startTimeMs)
                         overlayView = null
                         controlsVisibilityState.showControls()
                     }

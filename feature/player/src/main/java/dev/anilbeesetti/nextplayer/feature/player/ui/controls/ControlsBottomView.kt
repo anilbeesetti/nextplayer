@@ -67,6 +67,7 @@ import androidx.compose.ui.unit.LayoutDirection
 import androidx.compose.ui.unit.dp
 import androidx.media3.common.Player
 import androidx.media3.common.util.UnstableApi
+import androidx.media3.extractor.metadata.Chapter
 import dev.anilbeesetti.nextplayer.core.common.extensions.isTelevision
 import dev.anilbeesetti.nextplayer.core.model.VideoContentScale
 import dev.anilbeesetti.nextplayer.core.ui.R
@@ -83,7 +84,6 @@ import dev.anilbeesetti.nextplayer.feature.player.state.durationFormatted
 import dev.anilbeesetti.nextplayer.feature.player.state.pendingPositionFormatted
 import dev.anilbeesetti.nextplayer.feature.player.state.positionFormatted
 import dev.anilbeesetti.nextplayer.feature.player.ui.titleOrDefault
-import io.github.anilbeesetti.nextlib.mediainfo.Chapter
 
 @OptIn(UnstableApi::class)
 @Composable
@@ -476,8 +476,8 @@ private fun Modifier.chapterGaps(chapters: List<Chapter>, duration: Float): Modi
     if (duration > 0f) {
         val halfGap = 1.5.dp.toPx()
         chapters.forEach { chapter ->
-            if (chapter.start > 0 && chapter.start < duration) {
-                val x = size.width * (chapter.start / duration)
+            if (chapter.startTimeMs > 0 && chapter.startTimeMs < duration) {
+                val x = size.width * (chapter.startTimeMs / duration)
                 gaps.addRect(Rect(x - halfGap, 0f, x + halfGap, size.height))
             }
         }
