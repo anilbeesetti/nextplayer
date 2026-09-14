@@ -16,12 +16,9 @@ import dev.anilbeesetti.nextplayer.feature.network.MainDispatcherRule
 import java.io.InputStream
 import java.util.Date
 import kotlinx.coroutines.ExperimentalCoroutinesApi
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.Flow
-import kotlinx.coroutines.flow.collect
 import kotlinx.coroutines.flow.flowOf
-import kotlinx.coroutines.launch
-import kotlinx.coroutines.test.TestScope
-import kotlinx.coroutines.test.UnconfinedTestDispatcher
 import kotlinx.coroutines.test.advanceUntilIdle
 import kotlinx.coroutines.test.runTest
 import org.junit.Assert.assertEquals
@@ -136,7 +133,7 @@ class NetworkBrowseViewModelTest {
                         video.copy(uriString = "content://media/external/video/media/1", lastPlayedAt = Date(500)),
                     ),
                 )
-                val viewModel = viewModel(conn = conn, path = path, mediaRepository = mediaRepository)
+                val viewModel = viewModel(conn = conn, path = path, mediaRepository = mediaRepository, connectionDelayMillis = 1_000)
                 advanceUntilIdle()
 
                 assertEquals(setOf("$path/Season #1/Episode 1.mp4"), viewModel.state.value.playbackHistory.keys)
@@ -168,17 +165,21 @@ class NetworkBrowseViewModelTest {
     @Test
     fun `display preferences update without reloading the folder`() = runTest(mainDispatcherRule.testDispatcher) {
         val preferences = FakePreferencesRepository()
-        val viewModel = viewModel(preferencesRepository = preferences)
-        advanceUntilIdle()
-
         preferences.updateApplicationPreferences { it.copy(markLastPlayedMedia = false, showPlayedProgress = false) }
+        val viewModel = viewModel(preferencesRepository = preferences)
         advanceUntilIdle()
 
         assertFalse(viewModel.state.value.preferences.markLastPlayedMedia)
         assertFalse(viewModel.state.value.preferences.showPlayedProgress)
+
+        preferences.updateApplicationPreferences { it.copy(markLastPlayedMedia = true, showPlayedProgress = true) }
+        advanceUntilIdle()
+
+        assertTrue(viewModel.state.value.preferences.markLastPlayedMedia)
+        assertTrue(viewModel.state.value.preferences.showPlayedProgress)
     }
 
-    private fun TestScope.viewModel(
+    private fun viewModel(
         connectResult: Result<Unit> = Result.success(Unit),
         conn: NetworkConnection = connection(),
         path: String? = null,
@@ -186,19 +187,18 @@ class NetworkBrowseViewModelTest {
         mediaRepository: FakeMediaRepository = FakeMediaRepository(),
         preferencesRepository: FakePreferencesRepository = FakePreferencesRepository(),
         onPlayVideos: (List<Uri>, Uri) -> Unit = { _, _ -> },
+        connectionDelayMillis: Long = 0,
     ): NetworkBrowseViewModel {
         val client = FakeNetworkClient(connectResult, files)
         val factory = NetworkClientFactory { client }
         return NetworkBrowseViewModel(
             input = NetworkBrowseViewModel.Input(connectionId = conn.id, path = path),
             output = NetworkBrowseViewModel.Output(navigateUp = {}, playVideos = onPlayVideos, openFolder = { _, _ -> }),
-            repository = FakeRepository(conn),
+            repository = FakeRepository(conn, connectionDelayMillis),
             clientFactory = factory,
             mediaRepository = mediaRepository,
             preferencesRepository = preferencesRepository,
-        ).also { viewModel ->
-            backgroundScope.launch(UnconfinedTestDispatcher(testScheduler)) { viewModel.state.collect() }
-        }
+        )
     }
 
     private fun connection() = NetworkConnection(
@@ -213,10 +213,14 @@ class NetworkBrowseViewModelTest {
 
 private class FakeRepository(
     private val connection: NetworkConnection,
+    private val connectionDelayMillis: Long,
 ) : NetworkConnectionRepository {
     override fun getConnections(): Flow<List<NetworkConnection>> = flowOf(listOf(connection))
 
-    override suspend fun getConnection(id: Long): NetworkConnection = connection
+    override suspend fun getConnection(id: Long): NetworkConnection {
+        delay(connectionDelayMillis)
+        return connection
+    }
 
     override suspend fun upsert(connection: NetworkConnection): Long = error("Not used")
 

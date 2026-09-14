@@ -23,10 +23,9 @@ import dev.anilbeesetti.nextplayer.core.ui.base.MviViewModel
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.MutableStateFlow
-import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.combine
-import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 
@@ -79,38 +78,43 @@ class NetworkBrowseViewModel @AssistedInject constructor(
         fun create(input: Input, output: Output): NetworkBrowseViewModel
     }
 
-    private var connection: NetworkConnection? = null
+    private val connection = MutableStateFlow<NetworkConnection?>(null)
     private var client: NetworkClient? = null
     private var currentPath: String? = path
 
     private val stateInternal = MutableStateFlow(NetworkBrowseUiState())
-    override val state: StateFlow<NetworkBrowseUiState> = combine(
-        stateInternal,
-        mediaRepository.observePlaybackHistory(),
-        preferencesRepository.applicationPreferences,
-    ) { state, history, preferences ->
-        val conn = connection
-        val folderPrefix = currentPath?.trimEnd('/').orEmpty()
-        val playbackHistory = if (conn == null) {
-            emptyMap()
-        } else {
-            history.mapNotNull { video ->
-                val uri = video.uriString.toUri()
-                if (!NetworkUri.isNetworkUri(uri) || NetworkUri.connectionIdOf(uri) != connectionId) return@mapNotNull null
-                val filePath = NetworkUri.filePathOf(uri, conn.protocol)
-                if (uri != NetworkUri.build(conn, filePath)) return@mapNotNull null
-                if (folderPrefix.isNotEmpty() && !filePath.startsWith("$folderPrefix/")) return@mapNotNull null
-                filePath to video
-            }.toMap()
-        }
-        state.copy(
-            playbackHistory = playbackHistory,
-            recentlyPlayedPath = playbackHistory.maxByOrNull { it.value.lastPlayedAt?.time ?: Long.MIN_VALUE }?.key,
-            preferences = preferences,
-        )
-    }.stateIn(viewModelScope, SharingStarted.WhileSubscribed(5_000), NetworkBrowseUiState())
+    override val state: StateFlow<NetworkBrowseUiState> = stateInternal.asStateFlow()
 
     init {
+        viewModelScope.launch {
+            combine(connection, mediaRepository.observePlaybackHistory()) { conn, history ->
+                val folderPrefix = currentPath?.trimEnd('/').orEmpty()
+                if (conn == null) {
+                    emptyMap()
+                } else {
+                    history.mapNotNull { video ->
+                        val uri = video.uriString.toUri()
+                        if (!NetworkUri.isNetworkUri(uri) || NetworkUri.connectionIdOf(uri) != connectionId) return@mapNotNull null
+                        val filePath = NetworkUri.filePathOf(uri, conn.protocol)
+                        if (uri != NetworkUri.build(conn, filePath)) return@mapNotNull null
+                        if (folderPrefix.isNotEmpty() && !filePath.startsWith("$folderPrefix/")) return@mapNotNull null
+                        filePath to video
+                    }.toMap()
+                }
+            }.collect { playbackHistory ->
+                stateInternal.update {
+                    it.copy(
+                        playbackHistory = playbackHistory,
+                        recentlyPlayedPath = playbackHistory.maxByOrNull { it.value.lastPlayedAt?.time ?: Long.MIN_VALUE }?.key,
+                    )
+                }
+            }
+        }
+        viewModelScope.launch {
+            preferencesRepository.applicationPreferences.collect { preferences ->
+                stateInternal.update { it.copy(preferences = preferences) }
+            }
+        }
         connectAndLoad()
     }
 
@@ -118,10 +122,10 @@ class NetworkBrowseViewModel @AssistedInject constructor(
     private fun connectAndLoad() {
         stateInternal.update { it.copy(isLoading = true, error = null) }
         viewModelScope.launch {
-            val conn = connection ?: repository.getConnection(connectionId)?.also { connection = it }
+            val conn = connection.value ?: repository.getConnection(connectionId)
             if (conn == null) {
                 stateInternal.update {
-                    NetworkBrowseUiState(
+                    it.copy(
                         isLoading = false,
                         error = NetworkBrowseError("Connection not found"),
                     )
@@ -129,11 +133,13 @@ class NetworkBrowseViewModel @AssistedInject constructor(
                 return@launch
             }
             val activeClient = client ?: clientFactory.create(conn).also { client = it }
+            if (currentPath == null) currentPath = activeClient.rootPath
+            connection.value = conn
             if (!activeClient.isConnected()) {
                 val connected = activeClient.connect()
                 if (connected.isFailure) {
                     stateInternal.update {
-                        NetworkBrowseUiState(
+                        it.copy(
                             title = title(conn),
                             isLoading = false,
                             error = connected.exceptionOrNull()?.toNetworkBrowseError(),
@@ -142,14 +148,13 @@ class NetworkBrowseViewModel @AssistedInject constructor(
                     return@launch
                 }
             }
-            if (currentPath == null) currentPath = activeClient.rootPath
             loadCurrent()
         }
     }
 
     private fun loadCurrent() {
         val client = client ?: return
-        val conn = connection ?: return
+        val conn = connection.value ?: return
         val path = currentPath ?: return
         stateInternal.update { it.copy(isLoading = true, error = null) }
         viewModelScope.launch {
@@ -159,7 +164,7 @@ class NetworkBrowseViewModel @AssistedInject constructor(
                         .filter { it.isDirectory || isNetworkVideoFile(it.name) }
                         .sortedWith(compareByDescending<NetworkFile> { it.isDirectory }.thenBy { it.name.lowercase() })
                     stateInternal.update {
-                        NetworkBrowseUiState(
+                        it.copy(
                             title = title(conn),
                             files = visible,
                             isLoading = false,
@@ -193,7 +198,7 @@ class NetworkBrowseViewModel @AssistedInject constructor(
     }
 
     private fun playVideo(file: NetworkFile) {
-        val conn = connection ?: return
+        val conn = connection.value ?: return
         val videos = stateInternal.value.files.filter { !it.isDirectory }
         if (file !in videos) return
         output.playVideos(videos.map { NetworkUri.build(conn, it.path) }, NetworkUri.build(conn, file.path))
