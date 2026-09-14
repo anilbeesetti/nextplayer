@@ -29,7 +29,7 @@ fun EntryProviderScope<NavKey>.networkNavGraph(
 
     networkBrowseEntry(
         onNavigateUp = { backStack.removeLastIfNotRoot() },
-        onPlayVideo = { uri -> context.startPlayback(uri) },
+        onPlayVideos = { uris, startUri -> context.startPlayback(uris, startUri) },
         onNavigateToFolder = { id, path -> backStack.navigateToNetworkBrowse(id, path) },
     )
 }

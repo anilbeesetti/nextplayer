@@ -95,13 +95,13 @@ fun EntryProviderScope<NavKey>.addConnectionEntry(
 
 fun EntryProviderScope<NavKey>.networkBrowseEntry(
     onNavigateUp: () -> Unit,
-    onPlayVideo: (uri: Uri) -> Unit,
+    onPlayVideos: (uris: List<Uri>, startUri: Uri) -> Unit,
     onNavigateToFolder: (connectionId: Long, path: String) -> Unit,
 ) {
     entry<NetworkBrowseRoute> { key ->
         val output = NetworkBrowseViewModel.Output(
             navigateUp = onNavigateUp,
-            playVideo = onPlayVideo,
+            playVideos = onPlayVideos,
             openFolder = onNavigateToFolder,
         )
         val viewModel = hiltViewModel<NetworkBrowseViewModel, NetworkBrowseViewModel.Factory>(

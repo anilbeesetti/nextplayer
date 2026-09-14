@@ -1,31 +1,41 @@
 package dev.anilbeesetti.nextplayer.feature.network.screens.browse
 
 import android.net.Uri
+import androidx.core.net.toUri
 import androidx.lifecycle.viewModelScope
 import dagger.assisted.Assisted
 import dagger.assisted.AssistedFactory
 import dagger.assisted.AssistedInject
 import dagger.hilt.android.lifecycle.HiltViewModel
+import dev.anilbeesetti.nextplayer.core.data.repository.MediaRepository
 import dev.anilbeesetti.nextplayer.core.data.repository.NetworkConnectionRepository
+import dev.anilbeesetti.nextplayer.core.data.repository.PreferencesRepository
 import dev.anilbeesetti.nextplayer.core.media.network.NetworkClient
 import dev.anilbeesetti.nextplayer.core.media.network.NetworkClientFactory
 import dev.anilbeesetti.nextplayer.core.media.network.NetworkUri
 import dev.anilbeesetti.nextplayer.core.media.network.isNetworkVideoFile
 import dev.anilbeesetti.nextplayer.core.media.network.sftp.HostKeyMismatch
+import dev.anilbeesetti.nextplayer.core.model.ApplicationPreferences
 import dev.anilbeesetti.nextplayer.core.model.NetworkConnection
 import dev.anilbeesetti.nextplayer.core.model.NetworkFile
+import dev.anilbeesetti.nextplayer.core.model.Video
 import dev.anilbeesetti.nextplayer.core.ui.base.MviViewModel
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
-import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.combine
+import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 
 data class NetworkBrowseUiState(
     val title: String = "",
     val files: List<NetworkFile> = emptyList(),
+    val playbackHistory: Map<String, Video> = emptyMap(),
+    val recentlyPlayedPath: String? = null,
+    val preferences: ApplicationPreferences = ApplicationPreferences(),
     val isLoading: Boolean = true,
     val error: NetworkBrowseError? = null,
 )
@@ -50,12 +60,14 @@ class NetworkBrowseViewModel @AssistedInject constructor(
     @Assisted internal var output: Output,
     private val repository: NetworkConnectionRepository,
     private val clientFactory: NetworkClientFactory,
+    mediaRepository: MediaRepository,
+    preferencesRepository: PreferencesRepository,
 ) : MviViewModel<NetworkBrowseUiState, NetworkBrowseAction>() {
 
     data class Input(val connectionId: Long, val path: String?)
     data class Output(
         val navigateUp: () -> Unit,
-        val playVideo: (Uri) -> Unit,
+        val playVideos: (List<Uri>, Uri) -> Unit,
         val openFolder: (Long, String) -> Unit,
     )
 
@@ -72,7 +84,31 @@ class NetworkBrowseViewModel @AssistedInject constructor(
     private var currentPath: String? = path
 
     private val stateInternal = MutableStateFlow(NetworkBrowseUiState())
-    override val state: StateFlow<NetworkBrowseUiState> = stateInternal.asStateFlow()
+    override val state: StateFlow<NetworkBrowseUiState> = combine(
+        stateInternal,
+        mediaRepository.observePlaybackHistory(),
+        preferencesRepository.applicationPreferences,
+    ) { state, history, preferences ->
+        val conn = connection
+        val folderPrefix = currentPath?.trimEnd('/').orEmpty()
+        val playbackHistory = if (conn == null) {
+            emptyMap()
+        } else {
+            history.mapNotNull { video ->
+                val uri = video.uriString.toUri()
+                if (!NetworkUri.isNetworkUri(uri) || NetworkUri.connectionIdOf(uri) != connectionId) return@mapNotNull null
+                val filePath = NetworkUri.filePathOf(uri, conn.protocol)
+                if (uri != NetworkUri.build(conn, filePath)) return@mapNotNull null
+                if (folderPrefix.isNotEmpty() && !filePath.startsWith("$folderPrefix/")) return@mapNotNull null
+                filePath to video
+            }.toMap()
+        }
+        state.copy(
+            playbackHistory = playbackHistory,
+            recentlyPlayedPath = playbackHistory.maxByOrNull { it.value.lastPlayedAt?.time ?: Long.MIN_VALUE }?.key,
+            preferences = preferences,
+        )
+    }.stateIn(viewModelScope, SharingStarted.WhileSubscribed(5_000), NetworkBrowseUiState())
 
     init {
         connectAndLoad()
@@ -148,6 +184,7 @@ class NetworkBrowseViewModel @AssistedInject constructor(
 
             is NetworkBrowseAction.Retry -> retry()
             is NetworkBrowseAction.PlayVideo -> playVideo(action.file)
+            is NetworkBrowseAction.PlayAll -> stateInternal.value.files.firstOrNull { !it.isDirectory }?.let(::playVideo)
         }
     }
 
@@ -157,8 +194,9 @@ class NetworkBrowseViewModel @AssistedInject constructor(
 
     private fun playVideo(file: NetworkFile) {
         val conn = connection ?: return
-        if (file.isDirectory) return
-        output.playVideo(NetworkUri.build(conn, file.path))
+        val videos = stateInternal.value.files.filter { !it.isDirectory }
+        if (file !in videos) return
+        output.playVideos(videos.map { NetworkUri.build(conn, it.path) }, NetworkUri.build(conn, file.path))
     }
 
     override fun onCleared() {
@@ -174,6 +212,7 @@ sealed interface NetworkBrowseAction {
 
     data object Retry : NetworkBrowseAction
     data class PlayVideo(val file: NetworkFile) : NetworkBrowseAction
+    data object PlayAll : NetworkBrowseAction
 }
 
 private fun Throwable.toNetworkBrowseError(): NetworkBrowseError {
