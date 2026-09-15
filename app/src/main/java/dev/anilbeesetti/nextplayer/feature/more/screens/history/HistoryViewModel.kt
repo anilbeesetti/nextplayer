@@ -21,7 +21,7 @@ import kotlinx.coroutines.launch
 @HiltViewModel(assistedFactory = HistoryViewModel.Factory::class)
 class HistoryViewModel @AssistedInject constructor(
     private val mediaRepository: MediaRepository,
-    preferencesRepository: PreferencesRepository,
+    private val preferencesRepository: PreferencesRepository,
     @Assisted internal var output: Output,
 ) : MviViewModel<HistoryUiState, HistoryAction>() {
 
@@ -61,6 +61,11 @@ class HistoryViewModel @AssistedInject constructor(
             is HistoryAction.PlayVideo -> output.playVideo(action.uri)
 
             is HistoryAction.ClearHistory -> clearHistory()
+            is HistoryAction.ToggleHistoryPaused -> viewModelScope.launch {
+                preferencesRepository.updateApplicationPreferences {
+                    it.copy(isHistoryPaused = !it.isHistoryPaused)
+                }
+            }
         }
     }
 
@@ -79,4 +84,5 @@ sealed interface HistoryAction {
     data class PlayVideo(val uri: String) : HistoryAction
 
     data object ClearHistory : HistoryAction
+    data object ToggleHistoryPaused : HistoryAction
 }

@@ -9,8 +9,11 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material3.DropdownMenu
+import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.FilledTonalIconButton
 import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
@@ -53,6 +56,7 @@ internal fun HistoryScreenContent(
     onAction: (HistoryAction) -> Unit,
 ) {
     var showClearConfirmation by remember { mutableStateOf(false) }
+    var menuExpanded by remember { mutableStateOf(false) }
 
     Scaffold(
         topBar = {
@@ -70,12 +74,38 @@ internal fun HistoryScreenContent(
                     }
                 },
                 actions = {
-                    TextButton(
-                        enabled = state.history.result.orEmpty().isNotEmpty(),
-                        onClick = { showClearConfirmation = true },
-                        modifier = Modifier.tvFocusRing(),
-                    ) {
-                        Text(stringResource(R.string.clear_all))
+                    Box {
+                        IconButton(
+                            onClick = { menuExpanded = true },
+                            modifier = Modifier.tvFocusRing(),
+                        ) {
+                            Icon(
+                                imageVector = NextIcons.MoreVert,
+                                contentDescription = stringResource(R.string.menu),
+                            )
+                        }
+                        DropdownMenu(
+                            expanded = menuExpanded,
+                            onDismissRequest = { menuExpanded = false },
+                        ) {
+                            DropdownMenuItem(
+                                text = {
+                                    Text(stringResource(if (state.preferences.isHistoryPaused) R.string.resume_history else R.string.pause_history))
+                                },
+                                onClick = {
+                                    menuExpanded = false
+                                    onAction(HistoryAction.ToggleHistoryPaused)
+                                },
+                            )
+                            DropdownMenuItem(
+                                text = { Text(stringResource(R.string.clear_history)) },
+                                enabled = state.history.result.orEmpty().isNotEmpty(),
+                                onClick = {
+                                    menuExpanded = false
+                                    showClearConfirmation = true
+                                },
+                            )
+                        }
                     }
                 },
             )

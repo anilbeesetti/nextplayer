@@ -171,7 +171,6 @@ private fun HistorySection(
     onMoreClick: () -> Unit,
     onVideoClick: (Video) -> Unit,
 ) {
-    if (history.isEmpty()) return
     val isTv = LocalContext.current.isTelevision
     val historyButtonFocusRequester = remember { FocusRequester() }
     val historyFocusState = rememberRestorableFocusState()
@@ -192,7 +191,7 @@ private fun HistorySection(
                 onClick = onMoreClick,
                 modifier = Modifier
                     .focusRequester(historyButtonFocusRequester)
-                    .focusProperties { if (isTv) down = historyFocusState.requester }
+                    .focusProperties { if (isTv && history.isNotEmpty()) down = historyFocusState.requester }
                     .tvFocusRing(),
             ) {
                 Icon(imageVector = NextIcons.ArrowForward, contentDescription = stringResource(R.string.history))

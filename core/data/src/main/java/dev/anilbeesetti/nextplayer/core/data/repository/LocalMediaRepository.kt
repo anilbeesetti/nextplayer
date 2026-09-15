@@ -2,7 +2,6 @@ package dev.anilbeesetti.nextplayer.core.data.repository
 
 import android.content.Context
 import android.net.Uri
-import android.os.Environment
 import androidx.core.net.toUri
 import dagger.hilt.android.qualifiers.ApplicationContext
 import dev.anilbeesetti.nextplayer.core.common.Utils
@@ -17,25 +16,28 @@ import dev.anilbeesetti.nextplayer.core.data.models.VideoState
 import dev.anilbeesetti.nextplayer.core.database.converter.UriListConverter
 import dev.anilbeesetti.nextplayer.core.database.dao.MediumStateDao
 import dev.anilbeesetti.nextplayer.core.database.entities.MediumStateEntity
+import dev.anilbeesetti.nextplayer.core.datastore.datasource.AppPreferencesDataSource
 import dev.anilbeesetti.nextplayer.core.media.services.MediaService
 import dev.anilbeesetti.nextplayer.core.model.Folder
 import dev.anilbeesetti.nextplayer.core.model.MediaInfo
 import dev.anilbeesetti.nextplayer.core.model.Video
 import io.github.anilbeesetti.nextlib.mediainfo.MediaInfoBuilder
 import java.util.Date
+import javax.inject.Inject
+import kotlin.math.absoluteValue
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.async
 import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.combine
+import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.withContext
-import kotlin.math.absoluteValue
-import javax.inject.Inject
 
 class LocalMediaRepository @Inject constructor(
     private val mediumStateDao: MediumStateDao,
     private val mediaService: MediaService,
+    private val appPreferencesDataSource: AppPreferencesDataSource,
     @ApplicationContext private val context: Context,
 ) : MediaRepository {
 
@@ -114,11 +116,12 @@ class LocalMediaRepository @Inject constructor(
     }
 
     override suspend fun updateMediumLastPlayedTime(uri: String, lastPlayedTime: Long, duration: Long?) {
+        val isHistoryPaused = appPreferencesDataSource.preferences.first().isHistoryPaused
         val stateEntity = mediumStateDao.get(uri) ?: MediumStateEntity(uriString = uri)
 
         mediumStateDao.upsert(
             mediumState = stateEntity.copy(
-                lastPlayedTime = lastPlayedTime,
+                lastPlayedTime = if (isHistoryPaused) stateEntity.lastPlayedTime else lastPlayedTime,
                 duration = duration ?: stateEntity.duration,
             ),
         )
