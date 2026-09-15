@@ -2,6 +2,7 @@ package dev.anilbeesetti.nextplayer.core.database.dao
 
 import androidx.room.Dao
 import androidx.room.Query
+import androidx.room.Transaction
 import androidx.room.Upsert
 import dev.anilbeesetti.nextplayer.core.database.entities.MediumStateEntity
 import kotlinx.coroutines.flow.Flow
@@ -14,6 +15,11 @@ interface MediumStateDao {
 
     @Upsert
     suspend fun upsertAll(mediaStates: List<MediumStateEntity>)
+
+    @Transaction
+    suspend fun update(uri: String, transform: (MediumStateEntity) -> MediumStateEntity) {
+        upsert(transform(get(uri) ?: MediumStateEntity(uriString = uri)))
+    }
 
     @Query("SELECT * FROM media_state WHERE uri = :uri")
     suspend fun get(uri: String): MediumStateEntity?

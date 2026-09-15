@@ -2,17 +2,20 @@ package dev.anilbeesetti.nextplayer.core.data.repository
 
 import android.net.Uri
 import androidx.datastore.core.DataStoreFactory
-import dev.anilbeesetti.nextplayer.core.database.dao.MediumStateDao
+import androidx.room.Room
+import dev.anilbeesetti.nextplayer.core.database.MediaDatabase
 import dev.anilbeesetti.nextplayer.core.database.entities.MediumStateEntity
 import dev.anilbeesetti.nextplayer.core.datastore.datasource.AppPreferencesDataSource
 import dev.anilbeesetti.nextplayer.core.datastore.serializer.ApplicationPreferencesSerializer
 import dev.anilbeesetti.nextplayer.core.media.services.MediaFolder
 import dev.anilbeesetti.nextplayer.core.media.services.MediaService
 import dev.anilbeesetti.nextplayer.core.media.services.MediaVideo
-import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.flow.flowOf
-import kotlinx.coroutines.flow.map
+import kotlinx.coroutines.launch
 import kotlinx.coroutines.test.runTest
+import org.junit.After
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertNull
 import org.junit.Rule
@@ -27,6 +30,17 @@ class LocalMediaRepositoryTest {
     @get:Rule
     val temporaryFolder = TemporaryFolder()
 
+    private val database = Room.inMemoryDatabaseBuilder(
+        RuntimeEnvironment.getApplication(),
+        MediaDatabase::class.java,
+    ).build()
+    private val dao = database.mediumStateDao()
+
+    @After
+    fun tearDown() {
+        database.close()
+    }
+
     @Test
     fun `persisted pause skips watch timestamps while preserving playback state and resumes tracking`() = runTest {
         val file = temporaryFolder.newFile().apply { writeText("""{"isHistoryPaused":true}""") }
@@ -37,22 +51,7 @@ class LocalMediaRepositoryTest {
                 produceFile = { file },
             ),
         )
-        val states = MutableStateFlow(listOf(MediumStateEntity(uriString = "content://watched", lastPlayedTime = 100)))
-        val dao = object : MediumStateDao {
-            override suspend fun upsert(mediumState: MediumStateEntity) {
-                states.value = states.value.filterNot { it.uriString == mediumState.uriString } + mediumState
-            }
-            override suspend fun upsertAll(mediaStates: List<MediumStateEntity>) = mediaStates.forEach { upsert(it) }
-            override suspend fun get(uri: String) = states.value.find { it.uriString == uri }
-            override fun getAsFlow(uri: String) = states.map { values -> values.find { it.uriString == uri } }
-            override fun getAll() = states
-            override suspend fun clearPlaybackHistory() {
-                states.value = states.value.map { it.copy(lastPlayedTime = null) }
-            }
-            override suspend fun delete(uris: List<String>) {
-                states.value = states.value.filterNot { it.uriString in uris }
-            }
-        }
+        dao.upsert(MediumStateEntity(uriString = "content://watched", lastPlayedTime = 100))
         val mediaService = object : MediaService {
             override fun observeFolders(folderPath: String?) = flowOf(emptyList<MediaFolder>())
             override fun observeVideos(folderPath: String?) = flowOf(emptyList<MediaVideo>())
@@ -83,5 +82,22 @@ class LocalMediaRepositoryTest {
         assertNull(dao.get("content://new")?.lastPlayedTime)
         assertNull(dao.get("content://watched")?.lastPlayedTime)
         assertEquals(400L, dao.get("content://new")?.playbackPosition)
+    }
+
+    @Test
+    fun `concurrent playback state updates preserve each other's changes`() = runTest {
+        val uri = "content://concurrent"
+        coroutineScope {
+            repeat(50) {
+                launch(Dispatchers.IO) {
+                    dao.update(uri) { it.copy(playbackPosition = it.playbackPosition + 1) }
+                }
+                launch(Dispatchers.IO) {
+                    dao.update(uri) { it.copy(lastPlayedTime = (it.lastPlayedTime ?: 0) + 1) }
+                }
+            }
+        }
+        assertEquals(50L, dao.get(uri)?.playbackPosition)
+        assertEquals(50L, dao.get(uri)?.lastPlayedTime)
     }
 }
