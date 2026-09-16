@@ -11,6 +11,8 @@ android {
 
     defaultConfig {
         minSdk = libs.versions.android.minSdk.get().toInt()
+        // Keep vector resources as XML for reproducible F-Droid builds.
+        vectorDrawables.generatedDensities()
     }
 
     compileOptions {
