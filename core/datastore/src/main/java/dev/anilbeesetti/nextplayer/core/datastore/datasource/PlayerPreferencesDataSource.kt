@@ -3,10 +3,12 @@ package dev.anilbeesetti.nextplayer.core.datastore.datasource
 import androidx.datastore.core.DataStore
 import dev.anilbeesetti.nextplayer.core.common.Logger
 import dev.anilbeesetti.nextplayer.core.model.PlayerPreferences
-import javax.inject.Inject
+import org.koin.core.annotation.Factory
+import org.koin.core.annotation.Named
 
-class PlayerPreferencesDataSource @Inject constructor(
-    private val preferencesDataStore: DataStore<PlayerPreferences>,
+@Factory(binds = [])
+class PlayerPreferencesDataSource(
+    @Named("playerPreferences") private val preferencesDataStore: DataStore<PlayerPreferences>,
 ) : PreferencesDataSource<PlayerPreferences> {
 
     companion object {

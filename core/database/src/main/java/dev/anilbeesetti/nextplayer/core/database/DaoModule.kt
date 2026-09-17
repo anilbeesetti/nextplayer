@@ -1,22 +1,19 @@
 package dev.anilbeesetti.nextplayer.core.database
 
-import dagger.Module
-import dagger.Provides
-import dagger.hilt.InstallIn
-import dagger.hilt.components.SingletonComponent
+import org.koin.core.annotation.Factory
+import org.koin.core.annotation.Module
 @Module
-@InstallIn(SingletonComponent::class)
-object DaoModule {
+class DaoModule {
 
-    @Provides
+    @Factory
     fun provideMediumStateDao(db: MediaDatabase) = db.mediumStateDao()
 
-    @Provides
+    @Factory
     fun provideHiddenVideoDao(db: MediaDatabase) = db.hiddenVideoDao()
 
-    @Provides
+    @Factory
     fun provideNetworkConnectionDao(db: MediaDatabase) = db.networkConnectionDao()
 
-    @Provides
+    @Factory
     fun providePlaylistDao(db: MediaDatabase) = db.playlistDao()
 }

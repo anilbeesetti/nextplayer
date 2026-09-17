@@ -3,16 +3,16 @@ package dev.anilbeesetti.nextplayer.core.media.services
 import android.content.ContentUris
 import android.content.Context
 import android.database.ContentObserver
-import android.os.Build
-import android.os.Bundle
 import android.database.Cursor
 import android.net.Uri
+import android.os.Build
+import android.os.Bundle
 import android.provider.MediaStore
 import androidx.annotation.RequiresApi
-import dagger.hilt.android.qualifiers.ApplicationContext
-import dev.anilbeesetti.nextplayer.core.common.di.ApplicationScope
 import dev.anilbeesetti.nextplayer.core.common.extensions.VIDEO_COLLECTION_URI
 import dev.anilbeesetti.nextplayer.core.common.extensions.prettyName
+import java.io.File
+import kotlin.time.Duration.Companion.milliseconds
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.FlowPreview
@@ -26,9 +26,8 @@ import kotlinx.coroutines.flow.flowOn
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.shareIn
 import kotlinx.coroutines.withContext
-import java.io.File
-import javax.inject.Inject
-import kotlin.time.Duration.Companion.milliseconds
+import org.koin.core.annotation.Named
+import org.koin.core.annotation.Single
 
 /**
  * [MediaService] implementation that queries the Android MediaStore for video files.
@@ -37,9 +36,10 @@ import kotlin.time.Duration.Companion.milliseconds
  * - Videos are fetched recursively from the specified folder path
  * - Folders are derived from video parent directories
  */
-class MediaStoreMediaService @Inject constructor(
-    @ApplicationContext private val context: Context,
-    @ApplicationScope private val applicationScope: CoroutineScope,
+@Single
+class MediaStoreMediaService(
+    private val context: Context,
+    @Named("applicationScope") private val applicationScope: CoroutineScope,
 ) : MediaService {
 
     companion object {

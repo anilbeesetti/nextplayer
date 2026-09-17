@@ -1,28 +1,17 @@
 package dev.anilbeesetti.nextplayer.core.common.di
 
-import dagger.Module
-import dagger.Provides
-import dagger.hilt.InstallIn
-import dagger.hilt.components.SingletonComponent
-import dev.anilbeesetti.nextplayer.core.common.Dispatcher
-import dev.anilbeesetti.nextplayer.core.common.NextDispatchers
-import javax.inject.Qualifier
-import javax.inject.Singleton
 import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.SupervisorJob
-
-@Retention(AnnotationRetention.RUNTIME)
-@Qualifier
-annotation class ApplicationScope
+import org.koin.core.annotation.Module
+import org.koin.core.annotation.Named
+import org.koin.core.annotation.Single
 
 @Module
-@InstallIn(SingletonComponent::class)
-object CoroutineScopesModule {
-    @Provides
-    @Singleton
-    @ApplicationScope
+class CoroutineScopesModule {
+    @Single
+    @Named("applicationScope")
     fun providesCoroutineScope(
-        @Dispatcher(NextDispatchers.Default) dispatcher: CoroutineDispatcher,
+        @Named("default") dispatcher: CoroutineDispatcher,
     ): CoroutineScope = CoroutineScope(SupervisorJob() + dispatcher)
 }

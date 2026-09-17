@@ -1,13 +1,12 @@
 package dev.anilbeesetti.nextplayer.core.domain
 
-import dev.anilbeesetti.nextplayer.core.common.Dispatcher
-import dev.anilbeesetti.nextplayer.core.common.NextDispatchers
 import dev.anilbeesetti.nextplayer.core.model.Folder
-import javax.inject.Inject
 import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.flowOn
+import org.koin.core.annotation.Factory
+import org.koin.core.annotation.Named
 
 /**
  * Use case for retrieving the most popular folders based on video play history.
@@ -17,10 +16,11 @@ import kotlinx.coroutines.flow.flowOn
  * 2. Most recent play time of any video in the folder
  * 3. Total video count in the folder
  */
-class GetPopularFoldersUseCase @Inject constructor(
+@Factory
+class GetPopularFoldersUseCase(
     private val getSortedFoldersUseCase: GetSortedFoldersUseCase,
     private val getSortedVideosUseCase: GetSortedVideosUseCase,
-    @Dispatcher(NextDispatchers.Default) private val defaultDispatcher: CoroutineDispatcher,
+    @Named("default") private val defaultDispatcher: CoroutineDispatcher,
 ) {
 
     operator fun invoke(limit: Int = 5): Flow<List<Folder>> {

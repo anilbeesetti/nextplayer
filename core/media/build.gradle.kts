@@ -2,8 +2,7 @@ import org.jetbrains.kotlin.gradle.dsl.JvmTarget
 
 plugins {
     alias(libs.plugins.androidLibrary)
-    alias(libs.plugins.hilt)
-    alias(libs.plugins.ksp)
+    alias(libs.plugins.koin.compiler)
 }
 
 android {
@@ -32,6 +31,7 @@ dependencies {
     implementation(project(":core:model"))
 
     implementation(libs.androidx.core.ktx)
+    implementation(libs.androidx.activity.ktx)
     implementation(libs.coil.compose)
     implementation(libs.kotlinx.coroutines.android)
 
@@ -49,11 +49,9 @@ dependencies {
     }
     implementation(libs.androidx.media3.datasource)
 
-    // Hilt
-    implementation(libs.hilt.android)
-    ksp(libs.hilt.compiler)
-    ksp(libs.kotlin.metadata.jvm)
-    kspAndroidTest(libs.hilt.compiler)
+    // Koin
+    implementation(libs.koin.core)
+    implementation(libs.koin.annotations)
 
     testImplementation(libs.junit4)
     testImplementation(libs.robolectric)

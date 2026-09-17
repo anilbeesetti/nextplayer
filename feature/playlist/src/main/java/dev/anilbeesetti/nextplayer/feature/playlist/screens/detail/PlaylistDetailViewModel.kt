@@ -4,10 +4,6 @@ import android.net.Uri
 import android.widget.Toast
 import androidx.core.net.toUri
 import androidx.lifecycle.viewModelScope
-import dagger.assisted.Assisted
-import dagger.assisted.AssistedFactory
-import dagger.assisted.AssistedInject
-import dagger.hilt.android.lifecycle.HiltViewModel
 import dev.anilbeesetti.nextplayer.core.common.service.system.SystemService
 import dev.anilbeesetti.nextplayer.core.data.playlist.M3UParser
 import dev.anilbeesetti.nextplayer.core.data.repository.PlaylistRepository
@@ -27,15 +23,17 @@ import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
+import org.koin.core.annotation.InjectedParam
+import org.koin.core.annotation.KoinViewModel
 
-@HiltViewModel(assistedFactory = PlaylistDetailViewModel.Factory::class)
-class PlaylistDetailViewModel @AssistedInject constructor(
+@KoinViewModel
+class PlaylistDetailViewModel(
     observePlaylist: ObservePlaylistUseCase,
     private val playlistRepository: PlaylistRepository,
     private val m3uParser: M3UParser,
     private val systemService: SystemService,
-    @Assisted private val input: Input,
-    @Assisted internal var output: Output,
+    @InjectedParam private val input: Input,
+    @InjectedParam internal var output: Output,
 ) : MviViewModel<PlaylistDetailUiState, PlaylistDetailUiAction>() {
 
     data class Input(
@@ -46,14 +44,6 @@ class PlaylistDetailViewModel @AssistedInject constructor(
         val navigateUp: () -> Unit,
         val playPlaylist: (playlistId: Long, startUri: Uri) -> Unit,
     )
-
-    @AssistedFactory
-    interface Factory {
-        fun create(
-            input: Input,
-            output: Output,
-        ): PlaylistDetailViewModel
-    }
 
     private val stateInternal = MutableStateFlow(PlaylistDetailUiState())
     override val state: StateFlow<PlaylistDetailUiState> = stateInternal.asStateFlow()

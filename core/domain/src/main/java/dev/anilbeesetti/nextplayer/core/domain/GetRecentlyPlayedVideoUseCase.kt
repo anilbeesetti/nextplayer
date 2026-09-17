@@ -1,7 +1,5 @@
 package dev.anilbeesetti.nextplayer.core.domain
 
-import dev.anilbeesetti.nextplayer.core.common.Dispatcher
-import dev.anilbeesetti.nextplayer.core.common.NextDispatchers
 import dev.anilbeesetti.nextplayer.core.data.repository.PreferencesRepository
 import dev.anilbeesetti.nextplayer.core.model.MediaViewMode
 import dev.anilbeesetti.nextplayer.core.model.Video
@@ -12,7 +10,8 @@ import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.flatMapLatest
 import kotlinx.coroutines.flow.flowOn
 import kotlinx.coroutines.flow.map
-import javax.inject.Inject
+import org.koin.core.annotation.Factory
+import org.koin.core.annotation.Named
 
 /**
  * Use case for retrieving the most recently played video.
@@ -20,10 +19,11 @@ import javax.inject.Inject
  * Returns the video with the most recent play timestamp, optionally
  * filtered to a specific folder path based on the current view mode.
  */
-class GetRecentlyPlayedVideoUseCase @Inject constructor(
+@Factory
+class GetRecentlyPlayedVideoUseCase(
     private val getSortedVideosUseCase: GetSortedVideosUseCase,
     private val preferencesRepository: PreferencesRepository,
-    @Dispatcher(NextDispatchers.Default) private val defaultDispatcher: CoroutineDispatcher,
+    @Named("default") private val defaultDispatcher: CoroutineDispatcher,
 ) {
 
     @OptIn(ExperimentalCoroutinesApi::class)

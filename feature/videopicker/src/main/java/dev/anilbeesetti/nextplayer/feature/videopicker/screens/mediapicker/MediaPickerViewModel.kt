@@ -8,11 +8,6 @@ import androidx.compose.runtime.Stable
 import androidx.core.content.ContextCompat
 import androidx.core.net.toUri
 import androidx.lifecycle.viewModelScope
-import dagger.assisted.Assisted
-import dagger.assisted.AssistedFactory
-import dagger.assisted.AssistedInject
-import dagger.hilt.android.lifecycle.HiltViewModel
-import dagger.hilt.android.qualifiers.ApplicationContext
 import dev.anilbeesetti.nextplayer.core.common.extensions.prettyName
 import dev.anilbeesetti.nextplayer.core.common.service.system.SystemService
 import dev.anilbeesetti.nextplayer.core.common.storagePermission
@@ -50,9 +45,11 @@ import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
+import org.koin.core.annotation.InjectedParam
+import org.koin.core.annotation.KoinViewModel
 
-@HiltViewModel(assistedFactory = MediaPickerViewModel.Factory::class)
-class MediaPickerViewModel @AssistedInject constructor(
+@KoinViewModel
+class MediaPickerViewModel(
     private val getSortedMediaUseCase: GetSortedMediaUseCase,
     private val getRecentlyPlayedVideoUseCase: GetRecentlyPlayedVideoUseCase,
     private val getSortedVideosUseCase: GetSortedVideosUseCase,
@@ -64,9 +61,9 @@ class MediaPickerViewModel @AssistedInject constructor(
     private val vaultRepository: VaultRepository,
     private val vaultPinRepository: VaultPinRepository,
     private val systemService: SystemService,
-    @ApplicationContext private val context: Context,
-    @Assisted private val input: Input,
-    @Assisted internal var output: Output,
+    private val context: Context,
+    @InjectedParam private val input: Input,
+    @InjectedParam internal var output: Output,
 ) : MviViewModel<MediaPickerUiState, MediaPickerAction>() {
 
     data class Input(
@@ -82,14 +79,6 @@ class MediaPickerViewModel @AssistedInject constructor(
         val openSearch: () -> Unit,
         val openVault: () -> Unit,
     )
-
-    @AssistedFactory
-    interface Factory {
-        fun create(
-            input: Input,
-            output: Output,
-        ): MediaPickerViewModel
-    }
 
     val folderPath = input.folderId
 

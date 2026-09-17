@@ -7,8 +7,6 @@ import android.content.pm.PackageManager
 import androidx.core.content.ContextCompat
 import androidx.core.net.toUri
 import coil3.ImageLoader
-import dagger.hilt.android.qualifiers.ApplicationContext
-import dev.anilbeesetti.nextplayer.core.common.di.ApplicationScope
 import dev.anilbeesetti.nextplayer.core.common.extensions.getStorageVolumes
 import dev.anilbeesetti.nextplayer.core.common.extensions.scanPaths
 import dev.anilbeesetti.nextplayer.core.common.extensions.scanStorage
@@ -18,7 +16,6 @@ import dev.anilbeesetti.nextplayer.core.database.dao.MediumStateDao
 import dev.anilbeesetti.nextplayer.core.database.dao.PlaylistDao
 import dev.anilbeesetti.nextplayer.core.media.services.MediaService
 import dev.anilbeesetti.nextplayer.core.media.services.MediaVideo
-import javax.inject.Inject
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
@@ -28,14 +25,17 @@ import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
+import org.koin.core.annotation.Named
+import org.koin.core.annotation.Single
 
-class LocalMediaSynchronizer @Inject constructor(
+@Single
+class LocalMediaSynchronizer(
     private val mediumStateDao: MediumStateDao,
     private val playlistDao: PlaylistDao,
     private val imageLoader: ImageLoader,
     private val mediaService: MediaService,
-    @ApplicationScope private val applicationScope: CoroutineScope,
-    @ApplicationContext private val context: Context,
+    @Named("applicationScope") private val applicationScope: CoroutineScope,
+    private val context: Context,
 ) : MediaSynchronizer {
 
     private var mediaSyncingJob: Job? = null

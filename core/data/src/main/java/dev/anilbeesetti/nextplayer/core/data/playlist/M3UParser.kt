@@ -4,9 +4,6 @@ import android.content.ContentResolver
 import android.content.Context
 import android.net.Uri
 import android.provider.OpenableColumns
-import dagger.hilt.android.qualifiers.ApplicationContext
-import dev.anilbeesetti.nextplayer.core.common.Dispatcher
-import dev.anilbeesetti.nextplayer.core.common.NextDispatchers
 import dev.anilbeesetti.nextplayer.core.model.M3UPlaylist
 import dev.anilbeesetti.nextplayer.core.model.M3UPlaylistItem
 import java.io.IOException
@@ -15,10 +12,11 @@ import java.net.URI
 import java.net.URL
 import java.net.URLDecoder
 import java.util.Locale
-import javax.inject.Inject
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.withContext
+import org.koin.core.annotation.Factory
+import org.koin.core.annotation.Named
 
 internal sealed interface M3USource {
     val fallbackName: String
@@ -41,9 +39,10 @@ private data class PendingEntryMetadata(
     val groupTitle: String? = null,
 )
 
-class M3UParser @Inject constructor(
-    @ApplicationContext private val context: Context,
-    @Dispatcher(NextDispatchers.IO)
+@Factory
+class M3UParser(
+    private val context: Context,
+    @Named("io")
     private val ioDispatcher: CoroutineDispatcher,
 ) {
     suspend fun parseUrl(url: String): Result<M3UPlaylist> = withContext(ioDispatcher) {

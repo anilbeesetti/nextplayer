@@ -22,8 +22,8 @@ import androidx.media3.common.Player.DISCONTINUITY_REASON_SEEK
 import androidx.media3.common.TrackSelectionParameters
 import androidx.media3.common.Tracks
 import androidx.media3.common.util.UnstableApi
-import androidx.media3.exoplayer.ExoPlayer
 import androidx.media3.exoplayer.ExoPlaybackException
+import androidx.media3.exoplayer.ExoPlayer
 import androidx.media3.exoplayer.analytics.AnalyticsListener
 import androidx.media3.exoplayer.source.DefaultMediaSourceFactory
 import androidx.media3.exoplayer.trackselection.DefaultTrackSelector
@@ -38,7 +38,6 @@ import coil3.ImageLoader
 import coil3.request.ImageRequest
 import com.google.common.util.concurrent.Futures
 import com.google.common.util.concurrent.ListenableFuture
-import dagger.hilt.android.AndroidEntryPoint
 import dev.anilbeesetti.nextplayer.core.common.Logger
 import dev.anilbeesetti.nextplayer.core.common.extensions.deleteFiles
 import dev.anilbeesetti.nextplayer.core.common.extensions.getFilenameFromUri
@@ -78,7 +77,6 @@ import io.github.anilbeesetti.nextlib.media3ext.ffdecoder.NextRenderersFactory
 import io.github.anilbeesetti.nextlib.media3ext.renderer.subtitleDelayMilliseconds
 import io.github.anilbeesetti.nextlib.media3ext.renderer.subtitleSpeed
 import java.io.File
-import javax.inject.Inject
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
@@ -92,26 +90,22 @@ import kotlinx.coroutines.launch
 import kotlinx.coroutines.runBlocking
 import kotlinx.coroutines.supervisorScope
 import kotlinx.coroutines.withContext
+import org.koin.android.ext.android.inject
 
 @OptIn(UnstableApi::class)
-@AndroidEntryPoint
 class PlayerService : MediaSessionService() {
 
     private val serviceScope: CoroutineScope = CoroutineScope(Dispatchers.Main + SupervisorJob())
     private var mediaSession: MediaSession? = null
     private var artworkLoadJob: Job? = null
 
-    @Inject
-    lateinit var preferencesRepository: PreferencesRepository
+    private val preferencesRepository: PreferencesRepository by inject()
 
-    @Inject
-    lateinit var dataSourceFactory: NextDataSourceFactory
+    private val dataSourceFactory: NextDataSourceFactory by inject()
 
-    @Inject
-    lateinit var mediaRepository: MediaRepository
+    private val mediaRepository: MediaRepository by inject()
 
-    @Inject
-    lateinit var imageLoader: ImageLoader
+    private val imageLoader: ImageLoader by inject()
 
     private val playerPreferences: PlayerPreferences
         get() = preferencesRepository.playerPreferences.value
@@ -343,7 +337,7 @@ class PlayerService : MediaSessionService() {
                 (
                     playbackState == Player.STATE_IDLE &&
                         player?.mediaItemCount == 0
-                )
+                    )
             if (shouldResetPlaybackParameters) {
                 mediaSession?.player?.trackSelectionParameters = TrackSelectionParameters.DEFAULT
                 mediaSession?.player?.setPlaybackSpeed(playerPreferences.defaultPlaybackSpeed)
@@ -387,7 +381,7 @@ class PlayerService : MediaSessionService() {
             // Update the media metadata duration so that it will be used later in position discontinuity handling
             player.replaceMediaItem(
                 player.currentMediaItemIndex,
-                currentMediaItem.copy(durationMs = player.duration.coerceAtLeast(0))
+                currentMediaItem.copy(durationMs = player.duration.coerceAtLeast(0)),
             )
 
             serviceScope.launch {
@@ -784,7 +778,9 @@ class PlayerService : MediaSessionService() {
                             excludeSubsList = externalSubs,
                         )
                     } ?: emptyList()
-                } else emptyList()
+                } else {
+                    emptyList()
+                }
 
                 val existingSubConfigurations = mediaItem.localConfiguration?.subtitleConfigurations ?: emptyList()
                 val subConfigurations = (localSubs + externalSubs).map { subtitleUri ->

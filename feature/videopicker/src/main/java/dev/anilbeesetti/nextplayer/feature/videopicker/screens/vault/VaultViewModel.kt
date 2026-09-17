@@ -4,10 +4,6 @@ import android.net.Uri
 import androidx.compose.runtime.Stable
 import androidx.core.net.toUri
 import androidx.lifecycle.viewModelScope
-import dagger.assisted.Assisted
-import dagger.assisted.AssistedFactory
-import dagger.assisted.AssistedInject
-import dagger.hilt.android.lifecycle.HiltViewModel
 import dev.anilbeesetti.nextplayer.core.data.repository.PreferencesRepository
 import dev.anilbeesetti.nextplayer.core.data.repository.VaultPinRepository
 import dev.anilbeesetti.nextplayer.core.data.repository.VaultRepository
@@ -26,16 +22,18 @@ import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.receiveAsFlow
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
+import org.koin.core.annotation.InjectedParam
+import org.koin.core.annotation.KoinViewModel
 
 const val VAULT_PIN_LENGTH = 4
 
-@HiltViewModel(assistedFactory = VaultViewModel.Factory::class)
-class VaultViewModel @AssistedInject constructor(
+@KoinViewModel
+class VaultViewModel(
     private val vaultRepository: VaultRepository,
     private val vaultPinRepository: VaultPinRepository,
     private val getHiddenVideosUseCase: GetHiddenVideosUseCase,
     private val preferencesRepository: PreferencesRepository,
-    @Assisted internal var output: Output,
+    @InjectedParam internal var output: Output,
 ) : MviViewModel<VaultUiState, VaultAction>() {
 
     data class Output(
@@ -43,11 +41,6 @@ class VaultViewModel @AssistedInject constructor(
         val playVideo: (Uri) -> Unit,
         val playVideos: (List<Uri>) -> Unit,
     )
-
-    @AssistedFactory
-    interface Factory {
-        fun create(output: Output): VaultViewModel
-    }
 
     private val stateInternal = MutableStateFlow(VaultUiState())
     override val state: StateFlow<VaultUiState> = stateInternal.asStateFlow()
