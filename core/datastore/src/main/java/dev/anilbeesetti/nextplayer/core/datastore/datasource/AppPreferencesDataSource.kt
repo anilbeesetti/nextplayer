@@ -2,13 +2,14 @@ package dev.anilbeesetti.nextplayer.core.datastore.datasource
 
 import androidx.datastore.core.DataStore
 import dev.anilbeesetti.nextplayer.core.common.Logger
+import dev.anilbeesetti.nextplayer.core.common.di.DiQualifiers
 import dev.anilbeesetti.nextplayer.core.model.ApplicationPreferences
 import org.koin.core.annotation.Factory
 import org.koin.core.annotation.Named
 
 @Factory(binds = [])
 class AppPreferencesDataSource(
-    @Named("appPreferences") private val appPreferences: DataStore<ApplicationPreferences>,
+    @Named(DiQualifiers.APP_PREFERENCES) private val appPreferences: DataStore<ApplicationPreferences>,
 ) : PreferencesDataSource<ApplicationPreferences> {
 
     companion object {

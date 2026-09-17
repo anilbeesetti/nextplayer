@@ -1,5 +1,6 @@
 package dev.anilbeesetti.nextplayer.core.domain
 
+import dev.anilbeesetti.nextplayer.core.common.di.DiQualifiers
 import dev.anilbeesetti.nextplayer.core.data.repository.VaultRepository
 import dev.anilbeesetti.nextplayer.core.model.Sort
 import dev.anilbeesetti.nextplayer.core.model.Video
@@ -16,7 +17,7 @@ import org.koin.core.annotation.Named
 @Factory
 class GetHiddenVideosUseCase(
     private val vaultRepository: VaultRepository,
-    @Named("default") private val defaultDispatcher: CoroutineDispatcher,
+    @Named(DiQualifiers.DEFAULT_DISPATCHER) private val defaultDispatcher: CoroutineDispatcher,
 ) {
 
     operator fun invoke(sort: Sort): Flow<List<Video>> {

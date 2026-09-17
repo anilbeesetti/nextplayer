@@ -11,10 +11,10 @@ import org.koin.core.annotation.Named
 @ComponentScan("dev.anilbeesetti.nextplayer.core.common")
 class DispatchersModule {
     @Factory
-    @Named("io")
+    @Named(DiQualifiers.IO_DISPATCHER)
     fun providesIODispatcher(): CoroutineDispatcher = Dispatchers.IO
 
     @Factory
-    @Named("default")
+    @Named(DiQualifiers.DEFAULT_DISPATCHER)
     fun providesDefaultDispatcher(): CoroutineDispatcher = Dispatchers.Default
 }

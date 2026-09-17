@@ -4,6 +4,7 @@ import android.content.ContentResolver
 import android.content.Context
 import android.net.Uri
 import android.provider.OpenableColumns
+import dev.anilbeesetti.nextplayer.core.common.di.DiQualifiers
 import dev.anilbeesetti.nextplayer.core.model.M3UPlaylist
 import dev.anilbeesetti.nextplayer.core.model.M3UPlaylistItem
 import java.io.IOException
@@ -42,7 +43,7 @@ private data class PendingEntryMetadata(
 @Factory
 class M3UParser(
     private val context: Context,
-    @Named("io")
+    @Named(DiQualifiers.IO_DISPATCHER)
     private val ioDispatcher: CoroutineDispatcher,
 ) {
     suspend fun parseUrl(url: String): Result<M3UPlaylist> = withContext(ioDispatcher) {

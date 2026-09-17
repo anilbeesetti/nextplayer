@@ -1,5 +1,6 @@
 package dev.anilbeesetti.nextplayer.core.domain
 
+import dev.anilbeesetti.nextplayer.core.common.di.DiQualifiers
 import dev.anilbeesetti.nextplayer.core.data.repository.MediaRepository
 import dev.anilbeesetti.nextplayer.core.data.repository.PreferencesRepository
 import dev.anilbeesetti.nextplayer.core.model.Folder
@@ -15,7 +16,7 @@ import org.koin.core.annotation.Named
 class GetSortedFoldersUseCase(
     private val mediaRepository: MediaRepository,
     private val preferencesRepository: PreferencesRepository,
-    @Named("default") private val defaultDispatcher: CoroutineDispatcher,
+    @Named(DiQualifiers.DEFAULT_DISPATCHER) private val defaultDispatcher: CoroutineDispatcher,
 ) {
 
     operator fun invoke(folderPath: String? = null): Flow<List<Folder>> {

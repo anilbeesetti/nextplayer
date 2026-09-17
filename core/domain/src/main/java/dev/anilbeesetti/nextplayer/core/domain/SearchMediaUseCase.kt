@@ -1,5 +1,6 @@
 package dev.anilbeesetti.nextplayer.core.domain
 
+import dev.anilbeesetti.nextplayer.core.common.di.DiQualifiers
 import dev.anilbeesetti.nextplayer.core.model.Folder
 import dev.anilbeesetti.nextplayer.core.model.Video
 import kotlinx.coroutines.CoroutineDispatcher
@@ -25,7 +26,7 @@ data class SearchResults(
 class SearchMediaUseCase(
     private val getSortedVideosUseCase: GetSortedVideosUseCase,
     private val getSortedFoldersUseCase: GetSortedFoldersUseCase,
-    @Named("default") private val defaultDispatcher: CoroutineDispatcher,
+    @Named(DiQualifiers.DEFAULT_DISPATCHER) private val defaultDispatcher: CoroutineDispatcher,
 ) {
 
     operator fun invoke(query: String): Flow<SearchResults> {

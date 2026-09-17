@@ -1,5 +1,6 @@
 package dev.anilbeesetti.nextplayer.core.domain
 
+import dev.anilbeesetti.nextplayer.core.common.di.DiQualifiers
 import dev.anilbeesetti.nextplayer.core.data.repository.PreferencesRepository
 import dev.anilbeesetti.nextplayer.core.model.Folder
 import dev.anilbeesetti.nextplayer.core.model.MediaViewMode
@@ -28,7 +29,7 @@ class GetSortedMediaUseCase(
     private val getSortedFoldersUseCase: GetSortedFoldersUseCase,
     private val getFolderTreeMediaUseCase: GetFolderTreeMediaUseCase,
     private val preferencesRepository: PreferencesRepository,
-    @Named("default") private val defaultDispatcher: CoroutineDispatcher,
+    @Named(DiQualifiers.DEFAULT_DISPATCHER) private val defaultDispatcher: CoroutineDispatcher,
 ) {
 
     /**

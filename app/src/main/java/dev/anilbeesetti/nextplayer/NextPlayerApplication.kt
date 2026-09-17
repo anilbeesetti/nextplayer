@@ -5,6 +5,7 @@ import coil3.ImageLoader
 import coil3.PlatformContext
 import coil3.SingletonImageLoader
 import dev.anilbeesetti.nextplayer.core.common.Logger
+import dev.anilbeesetti.nextplayer.core.common.di.DiQualifiers
 import dev.anilbeesetti.nextplayer.core.data.repository.NetworkConnectionRepository
 import dev.anilbeesetti.nextplayer.core.media.network.keys.SshKeyStore
 import dev.anilbeesetti.nextplayer.crash.CrashActivity
@@ -28,7 +29,7 @@ class NextPlayerApplication :
 
     private val sshKeyStore: SshKeyStore by inject()
 
-    private val applicationScope: CoroutineScope by inject(named("applicationScope"))
+    private val applicationScope: CoroutineScope by inject(named(DiQualifiers.APPLICATION_SCOPE))
 
     override fun onCreate() {
         super.onCreate()

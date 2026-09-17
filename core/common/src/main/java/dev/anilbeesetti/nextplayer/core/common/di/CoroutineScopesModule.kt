@@ -10,8 +10,8 @@ import org.koin.core.annotation.Single
 @Module
 class CoroutineScopesModule {
     @Single
-    @Named("applicationScope")
+    @Named(DiQualifiers.APPLICATION_SCOPE)
     fun providesCoroutineScope(
-        @Named("default") dispatcher: CoroutineDispatcher,
+        @Named(DiQualifiers.DEFAULT_DISPATCHER) dispatcher: CoroutineDispatcher,
     ): CoroutineScope = CoroutineScope(SupervisorJob() + dispatcher)
 }

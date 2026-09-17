@@ -1,5 +1,6 @@
 package dev.anilbeesetti.nextplayer.core.domain
 
+import dev.anilbeesetti.nextplayer.core.common.di.DiQualifiers
 import dev.anilbeesetti.nextplayer.core.model.Folder
 import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.flow.Flow
@@ -20,7 +21,7 @@ import org.koin.core.annotation.Named
 class GetPopularFoldersUseCase(
     private val getSortedFoldersUseCase: GetSortedFoldersUseCase,
     private val getSortedVideosUseCase: GetSortedVideosUseCase,
-    @Named("default") private val defaultDispatcher: CoroutineDispatcher,
+    @Named(DiQualifiers.DEFAULT_DISPATCHER) private val defaultDispatcher: CoroutineDispatcher,
 ) {
 
     operator fun invoke(limit: Int = 5): Flow<List<Folder>> {

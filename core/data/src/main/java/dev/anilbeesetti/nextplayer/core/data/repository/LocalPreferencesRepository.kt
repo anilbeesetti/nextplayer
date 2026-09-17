@@ -1,5 +1,6 @@
 package dev.anilbeesetti.nextplayer.core.data.repository
 
+import dev.anilbeesetti.nextplayer.core.common.di.DiQualifiers
 import dev.anilbeesetti.nextplayer.core.datastore.datasource.AppPreferencesDataSource
 import dev.anilbeesetti.nextplayer.core.datastore.datasource.PlayerPreferencesDataSource
 import dev.anilbeesetti.nextplayer.core.model.ApplicationPreferences
@@ -15,7 +16,7 @@ import org.koin.core.annotation.Single
 class LocalPreferencesRepository(
     private val appPreferencesDataSource: AppPreferencesDataSource,
     private val playerPreferencesDataSource: PlayerPreferencesDataSource,
-    @Named("applicationScope") private val applicationScope: CoroutineScope,
+    @Named(DiQualifiers.APPLICATION_SCOPE) private val applicationScope: CoroutineScope,
 ) : PreferencesRepository {
 
     override val applicationPreferences: StateFlow<ApplicationPreferences> =

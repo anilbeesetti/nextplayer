@@ -6,6 +6,7 @@ import androidx.lifecycle.ViewModelStore
 import androidx.lifecycle.viewmodel.CreationExtras
 import androidx.test.ext.junit.runners.AndroidJUnit4
 import androidx.test.platform.app.InstrumentationRegistry
+import dev.anilbeesetti.nextplayer.core.common.di.DiQualifiers
 import dev.anilbeesetti.nextplayer.core.data.repository.PreferencesRepository
 import dev.anilbeesetti.nextplayer.core.media.network.datasource.NextDataSourceFactory
 import dev.anilbeesetti.nextplayer.core.media.services.MediaOperationsService
@@ -65,9 +66,9 @@ class KoinGraphTest {
             assertSame(koin.get<NextDataSourceFactory>(), koin.get<NextDataSourceFactory>())
             withTimeout(10_000) {
                 // Read the typed values to catch collisions between erased DataStore keys.
-                koin.get<DataStore<ApplicationPreferences>>(named("appPreferences")).data.first().mediaViewMode
-                koin.get<DataStore<PlayerPreferences>>(named("playerPreferences")).data.first().resume
-                koin.get<DataStore<SearchHistory>>(named("searchHistory")).data.first().queries.size
+                koin.get<DataStore<ApplicationPreferences>>(named(DiQualifiers.APP_PREFERENCES)).data.first().mediaViewMode
+                koin.get<DataStore<PlayerPreferences>>(named(DiQualifiers.PLAYER_PREFERENCES)).data.first().resume
+                koin.get<DataStore<SearchHistory>>(named(DiQualifiers.SEARCH_HISTORY)).data.first().queries.size
             }
         }
     }

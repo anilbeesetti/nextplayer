@@ -2,6 +2,7 @@ package dev.anilbeesetti.nextplayer.feature.network.screens.addconnection
 
 import android.net.Uri
 import androidx.lifecycle.viewModelScope
+import dev.anilbeesetti.nextplayer.core.common.di.DiQualifiers
 import dev.anilbeesetti.nextplayer.core.data.repository.NetworkConnectionRepository
 import dev.anilbeesetti.nextplayer.core.media.network.NetworkClientFactory
 import dev.anilbeesetti.nextplayer.core.media.network.keys.SshKeyStore
@@ -78,7 +79,7 @@ class AddConnectionViewModel(
     private val repository: NetworkConnectionRepository,
     private val clientFactory: NetworkClientFactory,
     private val sshKeyStore: SshKeyStore,
-    @Named("applicationScope") private val applicationScope: CoroutineScope,
+    @Named(DiQualifiers.APPLICATION_SCOPE) private val applicationScope: CoroutineScope,
 ) : MviViewModel<AddConnectionUiState, AddConnectionAction>() {
 
     data class Input(val connectionId: Long?)

@@ -9,6 +9,7 @@ import android.os.Build
 import android.os.Bundle
 import android.provider.MediaStore
 import androidx.annotation.RequiresApi
+import dev.anilbeesetti.nextplayer.core.common.di.DiQualifiers
 import dev.anilbeesetti.nextplayer.core.common.extensions.VIDEO_COLLECTION_URI
 import dev.anilbeesetti.nextplayer.core.common.extensions.prettyName
 import java.io.File
@@ -39,7 +40,7 @@ import org.koin.core.annotation.Single
 @Single
 class MediaStoreMediaService(
     private val context: Context,
-    @Named("applicationScope") private val applicationScope: CoroutineScope,
+    @Named(DiQualifiers.APPLICATION_SCOPE) private val applicationScope: CoroutineScope,
 ) : MediaService {
 
     companion object {

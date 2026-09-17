@@ -2,6 +2,7 @@ package dev.anilbeesetti.nextplayer.core.domain
 
 import android.content.Context
 import android.net.Uri
+import dev.anilbeesetti.nextplayer.core.common.di.DiQualifiers
 import dev.anilbeesetti.nextplayer.core.common.extensions.getPath
 import dev.anilbeesetti.nextplayer.core.data.repository.PreferencesRepository
 import dev.anilbeesetti.nextplayer.core.model.MediaViewMode
@@ -18,7 +19,7 @@ class GetSortedPlaylistUseCase(
     private val getSortedVideosUseCase: GetSortedVideosUseCase,
     private val preferencesRepository: PreferencesRepository,
     private val context: Context,
-    @Named("default") private val defaultDispatcher: CoroutineDispatcher,
+    @Named(DiQualifiers.DEFAULT_DISPATCHER) private val defaultDispatcher: CoroutineDispatcher,
 ) {
 
     suspend operator fun invoke(uri: Uri): List<Video> = withContext(defaultDispatcher) {

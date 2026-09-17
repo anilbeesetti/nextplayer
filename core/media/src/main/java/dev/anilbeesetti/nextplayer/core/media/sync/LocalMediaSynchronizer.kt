@@ -7,6 +7,7 @@ import android.content.pm.PackageManager
 import androidx.core.content.ContextCompat
 import androidx.core.net.toUri
 import coil3.ImageLoader
+import dev.anilbeesetti.nextplayer.core.common.di.DiQualifiers
 import dev.anilbeesetti.nextplayer.core.common.extensions.getStorageVolumes
 import dev.anilbeesetti.nextplayer.core.common.extensions.scanPaths
 import dev.anilbeesetti.nextplayer.core.common.extensions.scanStorage
@@ -34,7 +35,7 @@ class LocalMediaSynchronizer(
     private val playlistDao: PlaylistDao,
     private val imageLoader: ImageLoader,
     private val mediaService: MediaService,
-    @Named("applicationScope") private val applicationScope: CoroutineScope,
+    @Named(DiQualifiers.APPLICATION_SCOPE) private val applicationScope: CoroutineScope,
     private val context: Context,
 ) : MediaSynchronizer {
 

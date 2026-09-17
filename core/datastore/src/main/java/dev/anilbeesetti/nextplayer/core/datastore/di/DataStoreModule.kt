@@ -4,6 +4,7 @@ import android.content.Context
 import androidx.datastore.core.DataStore
 import androidx.datastore.core.DataStoreFactory
 import androidx.datastore.dataStoreFile
+import dev.anilbeesetti.nextplayer.core.common.di.DiQualifiers
 import dev.anilbeesetti.nextplayer.core.common.di.DispatchersModule
 import dev.anilbeesetti.nextplayer.core.datastore.serializer.ApplicationPreferencesSerializer
 import dev.anilbeesetti.nextplayer.core.datastore.serializer.PlayerPreferencesSerializer
@@ -27,11 +28,11 @@ private const val SEARCH_HISTORY_DATASTORE_FILE = "search_history.json"
 class DataStoreModule {
 
     @Single
-    @Named("appPreferences")
+    @Named(DiQualifiers.APP_PREFERENCES)
     fun provideAppPreferencesDataStore(
         context: Context,
-        @Named("io") ioDispatcher: CoroutineDispatcher,
-        @Named("applicationScope") scope: CoroutineScope,
+        @Named(DiQualifiers.IO_DISPATCHER) ioDispatcher: CoroutineDispatcher,
+        @Named(DiQualifiers.APPLICATION_SCOPE) scope: CoroutineScope,
     ): DataStore<ApplicationPreferences> = DataStoreFactory.create(
         serializer = ApplicationPreferencesSerializer,
         scope = CoroutineScope(scope.coroutineContext + ioDispatcher),
@@ -39,11 +40,11 @@ class DataStoreModule {
     )
 
     @Single
-    @Named("playerPreferences")
+    @Named(DiQualifiers.PLAYER_PREFERENCES)
     fun providePlayerPreferencesDataStore(
         applicationContext: Context,
-        @Named("io") ioDispatcher: CoroutineDispatcher,
-        @Named("applicationScope") scope: CoroutineScope,
+        @Named(DiQualifiers.IO_DISPATCHER) ioDispatcher: CoroutineDispatcher,
+        @Named(DiQualifiers.APPLICATION_SCOPE) scope: CoroutineScope,
     ): DataStore<PlayerPreferences> = DataStoreFactory.create(
         serializer = PlayerPreferencesSerializer,
         scope = CoroutineScope(scope.coroutineContext + ioDispatcher),
@@ -51,11 +52,11 @@ class DataStoreModule {
     )
 
     @Single
-    @Named("searchHistory")
+    @Named(DiQualifiers.SEARCH_HISTORY)
     fun provideSearchHistoryDataStore(
         applicationContext: Context,
-        @Named("io") ioDispatcher: CoroutineDispatcher,
-        @Named("applicationScope") scope: CoroutineScope,
+        @Named(DiQualifiers.IO_DISPATCHER) ioDispatcher: CoroutineDispatcher,
+        @Named(DiQualifiers.APPLICATION_SCOPE) scope: CoroutineScope,
     ): DataStore<SearchHistory> = DataStoreFactory.create(
         serializer = SearchHistorySerializer,
         scope = CoroutineScope(scope.coroutineContext + ioDispatcher),
