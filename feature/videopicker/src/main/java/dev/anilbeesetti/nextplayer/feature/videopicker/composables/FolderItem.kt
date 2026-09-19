@@ -144,14 +144,14 @@ private fun FolderListItem(
                         shape = MaterialTheme.shapes.extraSmall,
                     )
                 }
+
+                if (folder.newVideosCount > 0) {
+                    NewVideosCountBadge(
+                        count = folder.newVideosCount,
+                        modifier = Modifier.align(Alignment.TopEnd),
+                    )
+                }
             }
-        },
-        trailingContent = if (folder.newVideosCount > 0) {
-            {
-                NewVideosCountBadge(count = folder.newVideosCount)
-            }
-        } else {
-            null
         },
         content = {
             Text(
@@ -265,9 +265,7 @@ private fun FolderGridItem(
                     if (folder.newVideosCount > 0) {
                         NewVideosCountBadge(
                             count = folder.newVideosCount,
-                            modifier = Modifier
-                                .padding(4.dp)
-                                .align(Alignment.TopEnd),
+                            modifier = Modifier.align(Alignment.TopEnd),
                         )
                     }
                 }
