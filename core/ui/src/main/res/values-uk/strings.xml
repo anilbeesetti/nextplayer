@@ -505,4 +505,20 @@
     <string name="vault_biometric_description">Використовуйте відбиток пальця або обличчя для розблокування. Ваш PIN-код від сховища залишається доступним.</string>
     <string name="vault_biometric_unavailable">Налаштуйте підтримуваний відбиток пальця або обличчя в параметрах пристрою, щоб увімкнути біометричне розблокування.</string>
     <string name="decoder_mode_auto">Авто</string>
+    <string name="history">Історія</string>
+    <string name="delete_permanently">Назавжди видалити</string>
+    <string name="restore">Відновити</string>
+    <string name="trash">Смітник</string>
+    <string name="move_to_trash">Перемістити до смітника</string>
+    <string name="move_to_trash_info">Вибрані елементи будуть переміщені до кошика.</string>
+    <string name="trash_empty_title">Смітник порожній</string>
+    <string name="trash_empty_description">Відео, які ви перемістите в смітник, з’являться тут. Ви можете відновити їх або видалити назавжди.</string>
+    <string name="pick_file">Вибрати файл</string>
+    <string name="clear_all">Очистити все</string>
+    <string name="clear_history_confirmation">Видалити всі переглянуті відео з історії?</string>
+    <string name="open_vault_description">Отримайте доступ до прихованих відео</string>
+    <string name="ftp_sftp">FTP/SFTP</string>
+    <string name="use_sftp">Використовувати SFTP</string>
+    <string name="settings_description">Налаштування застосунку</string>
+    <string name="more">Більше</string>
 </resources>
