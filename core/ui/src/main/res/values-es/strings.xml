@@ -513,4 +513,9 @@
     <string name="use_sftp">Usar SFTP</string>
     <string name="settings_description">Preferencias de la aplicación</string>
     <string name="more">Más</string>
+    <string name="open_audio">Abrir audio local</string>
+    <string name="error_opening_audio">No se puede abrir este archivo de audio</string>
+    <string name="chapters">Capítulos</string>
+    <string name="chapter_number">Capítulo %1$d</string>
+    <string name="show_chapters">Mostrar capítulos</string>
 </resources>
