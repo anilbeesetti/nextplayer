@@ -1,37 +1,63 @@
 package dev.anilbeesetti.nextplayer.feature.more.screens.history
 
-import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import dagger.hilt.android.lifecycle.HiltViewModel
 import dev.anilbeesetti.nextplayer.core.data.repository.MediaRepository
 import dev.anilbeesetti.nextplayer.core.data.repository.PreferencesRepository
 import dev.anilbeesetti.nextplayer.core.model.ApplicationPreferences
 import dev.anilbeesetti.nextplayer.core.model.Video
 import dev.anilbeesetti.nextplayer.core.ui.base.DataState
-import kotlinx.coroutines.flow.SharingStarted
+import dev.anilbeesetti.nextplayer.core.ui.base.MviViewModel
+import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.catch
-import kotlinx.coroutines.flow.combine
-import kotlinx.coroutines.flow.map
-import kotlinx.coroutines.flow.stateIn
+import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
-import javax.inject.Inject
+import org.koin.core.annotation.InjectedParam
+import org.koin.core.annotation.KoinViewModel
 
-@HiltViewModel
-class HistoryViewModel @Inject constructor(
+@KoinViewModel
+class HistoryViewModel(
     private val mediaRepository: MediaRepository,
     preferencesRepository: PreferencesRepository,
-) : ViewModel() {
-    val uiState: StateFlow<HistoryUiState> = combine(
-        mediaRepository.observePlaybackHistory()
-            .map<List<Video>, DataState<List<Video>>> { DataState.Success(it) }
-            .catch { emit(DataState.Error(it)) },
-        preferencesRepository.applicationPreferences,
-    ) { history, preferences ->
-        HistoryUiState(history = history, preferences = preferences)
-    }.stateIn(viewModelScope, SharingStarted.WhileSubscribed(5_000), HistoryUiState())
+    @InjectedParam internal var output: Output,
+) : MviViewModel<HistoryUiState, HistoryAction>() {
 
-    fun clearHistory() {
+    data class Output(
+        val navigateUp: () -> Unit,
+        val playVideo: (String) -> Unit,
+    )
+
+    private val stateInternal = MutableStateFlow(HistoryUiState())
+    override val state: StateFlow<HistoryUiState> = stateInternal.asStateFlow()
+
+    init {
+        viewModelScope.launch {
+            mediaRepository.observePlaybackHistory()
+                .catch { error ->
+                    stateInternal.update { it.copy(history = DataState.Error(error)) }
+                }
+                .collect { history ->
+                    stateInternal.update { it.copy(history = DataState.Success(history)) }
+                }
+        }
+        viewModelScope.launch {
+            preferencesRepository.applicationPreferences.collect { preferences ->
+                stateInternal.update { it.copy(preferences = preferences) }
+            }
+        }
+    }
+
+    override fun onAction(action: HistoryAction) {
+        when (action) {
+            is HistoryAction.NavigateUp -> output.navigateUp()
+            is HistoryAction.PlayVideo -> output.playVideo(action.uri)
+
+            is HistoryAction.ClearHistory -> clearHistory()
+        }
+    }
+
+    private fun clearHistory() {
         viewModelScope.launch { mediaRepository.clearPlaybackHistory() }
     }
 }
@@ -40,3 +66,10 @@ data class HistoryUiState(
     val history: DataState<List<Video>> = DataState.Loading,
     val preferences: ApplicationPreferences = ApplicationPreferences(),
 )
+
+sealed interface HistoryAction {
+    data object NavigateUp : HistoryAction
+    data class PlayVideo(val uri: String) : HistoryAction
+
+    data object ClearHistory : HistoryAction
+}

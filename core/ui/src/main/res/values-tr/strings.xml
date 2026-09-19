@@ -317,8 +317,6 @@
     <string name="enter_vault_pin_description">Gizli videolara erişmek için PIN\'inizi girin</string>
     <string name="pins_do_not_match">PIN\'ler eşleşmiyor. Tekrar deneyin</string>
     <string name="incorrect_pin">Yanlış PIN</string>
-    <string name="how_to_find_hidden_videos_title">Gizli videolarınızı nasıl bulabilirsiniz</string>
-    <string name="how_to_find_hidden_videos_description">Gizli videolarınız Kasanızda güvenli bir şekilde saklanır. Tekrar açmak için ana ekranın üst kısmındaki \"NextPlayer\" başlığına basılı tutun ve PIN\'inizi girin.</string>
     <string name="open_vault">Kasayı aç</string>
     <string name="vault_empty_title">Gizli video yok</string>
     <string name="vault_empty_description">Gizlediğiniz videolar burada görünecektir. Bir videoya uzun süre basılı tutun ve Gizle seçeneğine dokunarak onu kasaya ekleyin.</string>
@@ -362,7 +360,6 @@
         <item quantity="one">Orijinal klasörü geri yüklenemedi — Filmler/ klasörüne taşındı</item>
         <item quantity="other">%1$d videonun orijinal klasörü geri yüklenemedi — Filmler/ klasörüne taşındı</item>
     </plurals>
-    <string name="got_it">Anladım</string>
     <string name="transfer_file_progress">Dosya %1$d / %2$d</string>
     <string name="home">Ana Sayfa</string>
     <string name="network">Ağ</string>

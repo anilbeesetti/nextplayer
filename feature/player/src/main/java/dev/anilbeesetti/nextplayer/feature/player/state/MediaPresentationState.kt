@@ -4,14 +4,17 @@ import androidx.annotation.IntRange
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.Stable
+import androidx.compose.runtime.derivedStateOf
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableLongStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.media3.common.Player
+import androidx.media3.common.Timeline
 import androidx.media3.common.listen
 import androidx.media3.common.util.UnstableApi
+import androidx.media3.extractor.metadata.Chapter
 import dev.anilbeesetti.nextplayer.feature.player.extensions.formatted
 import kotlin.time.Duration.Companion.milliseconds
 import kotlinx.coroutines.coroutineScope
@@ -21,7 +24,7 @@ import kotlinx.coroutines.launch
 @UnstableApi
 @Composable
 fun rememberMediaPresentationState(player: Player): MediaPresentationState {
-    val mediaPresentationState = remember { MediaPresentationState(player) }
+    val mediaPresentationState = remember(player) { MediaPresentationState(player) }
     LaunchedEffect(player) { mediaPresentationState.observe() }
     return mediaPresentationState
 }
@@ -37,6 +40,11 @@ class MediaPresentationState(
     var duration: Long by mutableLongStateOf(0L)
         private set
 
+    var chapters: List<Chapter> by mutableStateOf(emptyList())
+        private set
+
+    val currentChapterIndex: Int by derivedStateOf { chapters.currentChapterIndex(position) }
+
     var isPlaying: Boolean by mutableStateOf(false)
         private set
 
@@ -49,6 +57,7 @@ class MediaPresentationState(
     suspend fun observe() {
         updatePosition()
         updateDuration()
+        updateChapters()
         isPlaying = player.isPlaying
         isLoading = player.isLoading
         isBuffering = player.playbackState == Player.STATE_BUFFERING
@@ -63,6 +72,17 @@ class MediaPresentationState(
                         )
                     ) {
                         updateDuration()
+                    }
+
+                    if (events.containsAny(
+                            Player.EVENT_TRACKS_CHANGED,
+                            Player.EVENT_TIMELINE_CHANGED,
+                            Player.EVENT_MEDIA_ITEM_TRANSITION,
+                            Player.EVENT_POSITION_DISCONTINUITY,
+                            Player.EVENT_PLAYBACK_STATE_CHANGED,
+                        )
+                    ) {
+                        updateChapters()
                     }
 
                     if (events.contains(Player.EVENT_PLAYBACK_STATE_CHANGED)) {
@@ -98,6 +118,15 @@ class MediaPresentationState(
 
     private fun updateDuration() {
         duration = player.duration.coerceAtLeast(0L)
+    }
+
+    private fun updateChapters() {
+        chapters = if (player.currentTimeline.isEmpty) {
+            emptyList()
+        } else {
+            val periodOffsetMs = player.currentTimeline.getPeriod(player.currentPeriodIndex, Timeline.Period()).positionInWindowMs
+            player.currentTracks.chapters(player.duration, periodOffsetMs)
+        }
     }
 }
 

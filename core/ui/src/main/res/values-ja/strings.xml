@@ -348,10 +348,7 @@
     <string name="enter_vault_pin_description">非表示にした動画にアクセスするには PIN を入力してください</string>
     <string name="pins_do_not_match">PIN が一致しません。もう一度お試しください</string>
     <string name="incorrect_pin">PIN が間違っています</string>
-    <string name="how_to_find_hidden_videos_title">非表示にした動画を見つける方法</string>
-    <string name="how_to_find_hidden_videos_description">非表示にした動画は保管庫に安全に保管されています。再度開くには、ホーム画面上部の「NextPlayer」タイトルを長押しし、PIN を入力してください。</string>
     <string name="reset_controller_timeout">コントローラーが非表示になるまでの時間をリセット</string>
-    <string name="got_it">わかりました</string>
     <string name="open_vault">保管庫を開く</string>
     <string name="vault_empty_title">非表示にした動画はありません</string>
     <string name="vault_empty_description">非表示にした動画はここに表示されます。動画を長押しして「非表示」をタップすると、動画を保管庫に追加できます。</string>

@@ -322,9 +322,6 @@
     <string name="enter_vault_pin_description">Введіть PIN-код для перегляду прихованих відео</string>
     <string name="pins_do_not_match">PIN-коди не збігаються. Спробуйте ще раз</string>
     <string name="incorrect_pin">Неправильний PIN-код</string>
-    <string name="how_to_find_hidden_videos_title">Як знайти ваші приховані відео</string>
-    <string name="how_to_find_hidden_videos_description">Приховані відео надійно зберігаються у вашому сховищі. Щоб знову відкрити їх, натисніть і утримуйте заголовок «NextPlayer» у верхній частині головного екрана та введіть PIN-код.</string>
-    <string name="got_it">Зрозуміло</string>
     <string name="open_vault">Відкрити сховище</string>
     <string name="vault_empty_title">Немає прихованих відео</string>
     <string name="vault_empty_description">Відео, які ви приховаєте, з’являтимуться тут. Натисніть і утримуйте відео, а потім виберіть «Приховати», щоби додати його до сховища.</string>

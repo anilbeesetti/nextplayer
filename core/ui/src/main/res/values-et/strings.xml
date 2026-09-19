@@ -317,8 +317,6 @@
     <string name="enter_vault_pin_description">Ligipääsuks oma peidetud videotele sisesta PIN-kood</string>
     <string name="pins_do_not_match">PIN-koodid ei klapi. Proovi uuesti</string>
     <string name="incorrect_pin">Vigane PIN-kood</string>
-    <string name="how_to_find_hidden_videos_title">Kuidas saad leida oma peidetud videoid</string>
-    <string name="got_it">Selge</string>
     <string name="open_vault">Ava turvakaust</string>
     <string name="vault_empty_title">Peidetud videoid pole</string>
     <string name="sort_by">Järjestus</string>
@@ -357,7 +355,6 @@
         <item quantity="one">Video taastamine tema algkausta ei õnnestunud, selle asemel tõstsin kausta „Movies/“</item>
         <item quantity="other">%1$d video taastamine nende algkausta ei õnnestunud, selle asemel tõstsin kausta „Movies/“</item>
     </plurals>
-    <string name="how_to_find_hidden_videos_description">Peidetud videoid hoitakse turvaliselt sinu turvakaustas. Uuesti avamiseks vajuta NextPlayeri pealkirja ekraani ülaosas ja hoia all ning siis sisesta oma turvakausta PIN-kood.</string>
     <string name="vault_empty_description">Sinu peidetavad videod saavad olema nähtavad siin. Turvakausta lisamiseks vajuta videot pikalt ja vali „Peida“.</string>
     <string name="unhide_one_video_confirmation">Kas lõpetad selle video peitmine? Ta tõstetakse tagasi oma algsesse kausta.</string>
     <string name="unhide_videos_confirmation">Kas lõpetad %1$d video peitmine? Nad tõstetakse tagasi oma algse(te)sse kausta(desse).</string>

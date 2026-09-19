@@ -29,7 +29,6 @@ import androidx.compose.material3.FilledTonalIconButton
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.OutlinedTextFieldDefaults
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
@@ -39,13 +38,13 @@ import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
-import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.focus.FocusRequester
 import androidx.compose.ui.focus.focusRequester
+import androidx.compose.ui.focus.onFocusChanged
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalLayoutDirection
 import androidx.compose.ui.platform.LocalSoftwareKeyboardController
@@ -55,7 +54,6 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.tooling.preview.PreviewLightDark
 import androidx.compose.ui.unit.dp
-import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import dev.anilbeesetti.nextplayer.core.domain.MediaHolder
@@ -66,8 +64,11 @@ import dev.anilbeesetti.nextplayer.core.model.MediaLayoutMode
 import dev.anilbeesetti.nextplayer.core.model.Video
 import dev.anilbeesetti.nextplayer.core.ui.R
 import dev.anilbeesetti.nextplayer.core.ui.components.ListSectionTitle
+import dev.anilbeesetti.nextplayer.core.ui.components.NextOutlinedTextField
 import dev.anilbeesetti.nextplayer.core.ui.components.NextSegmentedListItem
 import dev.anilbeesetti.nextplayer.core.ui.components.NextTopAppBar
+import dev.anilbeesetti.nextplayer.core.ui.components.rememberRestorableFocusState
+import dev.anilbeesetti.nextplayer.core.ui.components.tvFocusRing
 import dev.anilbeesetti.nextplayer.core.ui.designsystem.NextIcons
 import dev.anilbeesetti.nextplayer.core.ui.extensions.copy
 import dev.anilbeesetti.nextplayer.core.ui.extensions.plus
@@ -76,34 +77,26 @@ import dev.anilbeesetti.nextplayer.feature.videopicker.composables.FolderItem
 import dev.anilbeesetti.nextplayer.feature.videopicker.composables.MediaView
 
 @Composable
-fun SearchRoute(
-    viewModel: SearchViewModel = hiltViewModel(),
-    onPlayVideo: (uri: Uri) -> Unit,
-    onFolderClick: (folderPath: String) -> Unit,
-    onNavigateUp: () -> Unit,
+fun SearchScreen(
+    viewModel: SearchViewModel,
 ) {
-    val uiState by viewModel.uiState.collectAsStateWithLifecycle(minActiveState = Lifecycle.State.RESUMED)
+    val state by viewModel.state.collectAsStateWithLifecycle(minActiveState = Lifecycle.State.RESUMED)
 
-    SearchScreen(
-        uiState = uiState,
-        onNavigateUp = onNavigateUp,
-        onFolderClick = onFolderClick,
-        onVideoClick = onPlayVideo,
-        onEvent = viewModel::onEvent,
+    SearchScreenContent(
+        state = state,
+        onAction = viewModel::onAction,
     )
 }
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-internal fun SearchScreen(
-    uiState: SearchUiState,
-    onNavigateUp: () -> Unit = {},
-    onFolderClick: (String) -> Unit = {},
-    onVideoClick: (Uri) -> Unit = {},
-    onEvent: (SearchUiEvent) -> Unit = {},
+internal fun SearchScreenContent(
+    state: SearchUiState,
+    onAction: (SearchUiEvent) -> Unit,
 ) {
     val focusRequester = remember { FocusRequester() }
     val keyboardController = LocalSoftwareKeyboardController.current
+    var isSearchFocused by remember { mutableStateOf(false) }
 
     LaunchedEffect(Unit) {
         focusRequester.requestFocus()
@@ -113,12 +106,14 @@ internal fun SearchScreen(
         topBar = {
             NextTopAppBar(
                 title = {
-                    OutlinedTextField(
-                        value = uiState.query,
-                        onValueChange = { onEvent(SearchUiEvent.OnQueryChange(it)) },
+                    NextOutlinedTextField(
+                        value = state.query,
+                        onValueChange = { onAction(SearchUiEvent.OnQueryChange(it)) },
                         modifier = Modifier
                             .fillMaxWidth()
-                            .focusRequester(focusRequester),
+                            .focusRequester(focusRequester)
+                            .onFocusChanged { isSearchFocused = it.hasFocus }
+                            .tvFocusRing(shape = CircleShape),
                         placeholder = {
                             Text(
                                 text = stringResource(R.string.search_videos_and_folders),
@@ -130,14 +125,14 @@ internal fun SearchScreen(
                         },
                         textStyle = MaterialTheme.typography.bodyLarge,
                         trailingIcon = {
-                            if (uiState.query.isNotEmpty()) {
-                                IconButton(onClick = { onEvent(SearchUiEvent.OnQueryChange("")) }) {
+                            if (state.query.isNotEmpty()) {
+                                IconButton(onClick = { onAction(SearchUiEvent.OnQueryChange("")) }) {
                                     Icon(
                                         imageVector = NextIcons.Close,
                                         contentDescription = stringResource(R.string.clear_history),
                                     )
                                 }
-                            } else if (uiState.isSearching) {
+                            } else if (state.isSearching) {
                                 CircularProgressIndicator(
                                     modifier = Modifier.size(24.dp),
                                     strokeWidth = 2.dp,
@@ -148,7 +143,7 @@ internal fun SearchScreen(
                         keyboardOptions = KeyboardOptions(imeAction = ImeAction.Search),
                         keyboardActions = KeyboardActions(
                             onSearch = {
-                                onEvent(SearchUiEvent.OnSearch(uiState.query))
+                                onAction(SearchUiEvent.OnSearch(state.query))
                                 keyboardController?.hide()
                             },
                         ),
@@ -162,7 +157,7 @@ internal fun SearchScreen(
                     )
                 },
                 navigationIcon = {
-                    FilledTonalIconButton(onClick = onNavigateUp) {
+                    FilledTonalIconButton(onClick = { onAction(SearchUiEvent.NavigateUp) }) {
                         Icon(
                             imageVector = NextIcons.ArrowBack,
                             contentDescription = stringResource(id = R.string.navigate_up),
@@ -186,25 +181,26 @@ internal fun SearchScreen(
                     .background(MaterialTheme.colorScheme.background),
             ) {
                 val updatedScaffoldPadding = scaffoldPadding.copy(top = 0.dp, start = 0.dp)
-                if (uiState.query.isBlank()) {
+                if (state.query.isBlank()) {
                     SuggestionsContent(
-                        searchHistory = uiState.searchHistory,
-                        popularFolders = uiState.popularFolders,
-                        preferences = uiState.preferences,
+                        searchHistory = state.searchHistory,
+                        popularFolders = state.popularFolders,
+                        preferences = state.preferences,
                         contentPadding = updatedScaffoldPadding,
-                        onHistoryItemClick = { onEvent(SearchUiEvent.OnHistoryItemClick(it)) },
-                        onRemoveHistoryItem = { onEvent(SearchUiEvent.OnRemoveHistoryItem(it)) },
-                        onClearHistory = { onEvent(SearchUiEvent.OnClearHistory) },
-                        onFolderClick = onFolderClick,
+                        onHistoryItemClick = { onAction(SearchUiEvent.OnHistoryItemClick(it)) },
+                        onRemoveHistoryItem = { onAction(SearchUiEvent.OnRemoveHistoryItem(it)) },
+                        onClearHistory = { onAction(SearchUiEvent.OnClearHistory) },
+                        onFolderClick = { onAction(SearchUiEvent.OpenFolder(it)) },
                     )
                 } else {
                     SearchResultsContent(
-                        searchResults = uiState.searchResults,
-                        preferences = uiState.preferences,
-                        isSearching = uiState.isSearching,
+                        searchResults = state.searchResults,
+                        preferences = state.preferences,
+                        isSearching = state.isSearching,
+                        autoFocus = !isSearchFocused,
                         contentPadding = updatedScaffoldPadding,
-                        onFolderClick = onFolderClick,
-                        onVideoClick = onVideoClick,
+                        onFolderClick = { onAction(SearchUiEvent.OpenFolder(it)) },
+                        onVideoClick = { onAction(SearchUiEvent.PlayVideo(it)) },
                     )
                 }
             }
@@ -364,11 +360,12 @@ private fun SearchResultsContent(
     searchResults: SearchResults,
     preferences: ApplicationPreferences,
     isSearching: Boolean,
+    autoFocus: Boolean,
     contentPadding: PaddingValues = PaddingValues(),
     onFolderClick: (String) -> Unit,
     onVideoClick: (Uri) -> Unit,
 ) {
-    var restoredFocusKey by rememberSaveable { mutableStateOf<String?>(null) }
+    val focusState = rememberRestorableFocusState()
     AnimatedVisibility(
         visible = isSearching,
         enter = fadeIn(),
@@ -418,8 +415,8 @@ private fun SearchResultsContent(
                     folders = searchResults.folders,
                 ),
                 preferences = preferences,
-                restoredFocusKey = restoredFocusKey,
-                onItemFocused = { restoredFocusKey = it },
+                focusState = focusState,
+                autoFocus = autoFocus,
                 onFolderClick = onFolderClick,
                 onVideoClick = onVideoClick,
                 showHeaders = true,
@@ -433,8 +430,9 @@ private fun SearchResultsContent(
 @Composable
 private fun SearchScreenEmptyPreview() {
     NextPlayerTheme {
-        SearchScreen(
-            uiState = SearchUiState(),
+        SearchScreenContent(
+            state = SearchUiState(),
+            onAction = {},
         )
     }
 }
@@ -443,8 +441,9 @@ private fun SearchScreenEmptyPreview() {
 @Composable
 private fun SearchScreenWithHistoryPreview() {
     NextPlayerTheme {
-        SearchScreen(
-            uiState = SearchUiState(
+        SearchScreenContent(
+            onAction = {},
+            state = SearchUiState(
                 searchHistory = listOf("avengers", "movie", "trailer"),
                 popularFolders = listOf(
                     Folder(
@@ -467,8 +466,9 @@ private fun SearchScreenWithHistoryPreview() {
 @Composable
 private fun SearchScreenWithResultsPreview() {
     NextPlayerTheme {
-        SearchScreen(
-            uiState = SearchUiState(
+        SearchScreenContent(
+            onAction = {},
+            state = SearchUiState(
                 query = "movie",
                 searchResults = SearchResults(
                     folders = listOf(
@@ -492,8 +492,9 @@ private fun SearchScreenWithResultsPreview() {
 @Composable
 private fun SearchScreenNoResultsPreview() {
     NextPlayerTheme {
-        SearchScreen(
-            uiState = SearchUiState(
+        SearchScreenContent(
+            onAction = {},
+            state = SearchUiState(
                 query = "xyz123",
                 searchResults = SearchResults(),
             ),

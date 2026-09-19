@@ -6,7 +6,7 @@ import androidx.compose.animation.scaleOut
 import androidx.compose.animation.slideInVertically
 import androidx.compose.animation.slideOutVertically
 import androidx.compose.animation.togetherWith
-import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
+import androidx.compose.runtime.SideEffect
 import androidx.navigation3.runtime.EntryProviderScope
 import androidx.navigation3.runtime.NavBackStack
 import androidx.navigation3.runtime.NavKey
@@ -17,7 +17,10 @@ import dev.anilbeesetti.nextplayer.feature.network.screens.addconnection.AddConn
 import dev.anilbeesetti.nextplayer.feature.network.screens.browse.NetworkBrowseScreen
 import dev.anilbeesetti.nextplayer.feature.network.screens.browse.NetworkBrowseViewModel
 import dev.anilbeesetti.nextplayer.feature.network.screens.list.NetworkScreen
+import dev.anilbeesetti.nextplayer.feature.network.screens.list.NetworkViewModel
 import kotlinx.serialization.Serializable
+import org.koin.compose.viewmodel.koinViewModel
+import org.koin.core.parameter.parametersOf
 
 @Serializable
 object NetworkRoute : NavKey
@@ -44,13 +47,18 @@ fun EntryProviderScope<NavKey>.networkEntry(
     onOpenStream: (Uri) -> Unit,
 ) {
     entry<NetworkRoute> {
-        NetworkScreen(
-            onAddConnection = onAddConnection,
-            onEditConnection = onEditConnection,
-            onOpenConnection = onOpenConnection,
-            onSettingsClick = onSettingsClick,
-            onOpenStream = onOpenStream,
+        val output = NetworkViewModel.Output(
+            addConnection = onAddConnection,
+            editConnection = onEditConnection,
+            openConnection = onOpenConnection,
+            openSettings = onSettingsClick,
+            openStream = onOpenStream,
         )
+        val viewModel = koinViewModel<NetworkViewModel>(
+            parameters = { parametersOf(output) },
+        )
+        SideEffect { viewModel.output = output }
+        NetworkScreen(viewModel = viewModel)
     }
 }
 
@@ -68,30 +76,44 @@ fun EntryProviderScope<NavKey>.addConnectionEntry(
             put(NavDisplay.PredictivePopTransitionKey) {
                 scaleIn(initialScale = 0.95f) togetherWith slideOutVertically { it }
             }
-        }
+        },
     ) { key ->
-        AddConnectionScreen(
-            onNavigateUp = onNavigateUp,
-            viewModel = hiltViewModel<AddConnectionViewModel, AddConnectionViewModel.Factory>(
-                creationCallback = { factory -> factory.create(key.connectionId) },
-            ),
+        val output = AddConnectionViewModel.Output(
+            navigateUp = onNavigateUp,
         )
+        val viewModel = koinViewModel<AddConnectionViewModel>(
+            parameters = {
+                parametersOf(
+                    AddConnectionViewModel.Input(connectionId = key.connectionId),
+                    output,
+                )
+            },
+        )
+        SideEffect { viewModel.output = output }
+        AddConnectionScreen(viewModel = viewModel)
     }
 }
 
 fun EntryProviderScope<NavKey>.networkBrowseEntry(
     onNavigateUp: () -> Unit,
-    onPlayVideo: (uri: Uri) -> Unit,
+    onPlayVideos: (uris: List<Uri>, startUri: Uri) -> Unit,
     onNavigateToFolder: (connectionId: Long, path: String) -> Unit,
 ) {
     entry<NetworkBrowseRoute> { key ->
-        NetworkBrowseScreen(
-            onNavigateUp = onNavigateUp,
-            onPlayVideo = onPlayVideo,
-            onNavigateToFolder = onNavigateToFolder,
-            viewModel = hiltViewModel<NetworkBrowseViewModel, NetworkBrowseViewModel.Factory>(
-                creationCallback = { factory -> factory.create(key.connectionId, key.path) },
-            ),
+        val output = NetworkBrowseViewModel.Output(
+            navigateUp = onNavigateUp,
+            playVideos = onPlayVideos,
+            openFolder = onNavigateToFolder,
         )
+        val viewModel = koinViewModel<NetworkBrowseViewModel>(
+            parameters = {
+                parametersOf(
+                    NetworkBrowseViewModel.Input(connectionId = key.connectionId, path = key.path),
+                    output,
+                )
+            },
+        )
+        SideEffect { viewModel.output = output }
+        NetworkBrowseScreen(viewModel = viewModel)
     }
 }

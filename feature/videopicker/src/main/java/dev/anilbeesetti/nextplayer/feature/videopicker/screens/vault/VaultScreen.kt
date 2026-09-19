@@ -1,6 +1,5 @@
 package dev.anilbeesetti.nextplayer.feature.videopicker.screens.vault
 
-import android.net.Uri
 import android.widget.Toast
 import androidx.activity.compose.BackHandler
 import androidx.compose.animation.AnimatedVisibility
@@ -8,6 +7,7 @@ import androidx.compose.animation.slideInVertically
 import androidx.compose.animation.slideOutVertically
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.focusGroup
 import androidx.compose.foundation.horizontalScroll
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -57,6 +57,7 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.focus.FocusRequester
 import androidx.compose.ui.focus.focusProperties
 import androidx.compose.ui.focus.focusRequester
+import androidx.compose.ui.focus.focusRestorer
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalLayoutDirection
 import androidx.compose.ui.res.stringResource
@@ -65,7 +66,6 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.tooling.preview.PreviewLightDark
 import androidx.compose.ui.unit.dp
-import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.compose.LocalLifecycleOwner
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
@@ -78,7 +78,8 @@ import dev.anilbeesetti.nextplayer.core.ui.R
 import dev.anilbeesetti.nextplayer.core.ui.components.CancelButton
 import dev.anilbeesetti.nextplayer.core.ui.components.NextDialog
 import dev.anilbeesetti.nextplayer.core.ui.components.NextTopAppBar
-import dev.anilbeesetti.nextplayer.core.ui.components.requestFocusUntilLanded
+import dev.anilbeesetti.nextplayer.core.ui.components.rememberRestorableFocusState
+import dev.anilbeesetti.nextplayer.core.ui.components.restorableFocusGroup
 import dev.anilbeesetti.nextplayer.core.ui.components.restorableFocusItem
 import dev.anilbeesetti.nextplayer.core.ui.components.thenIf
 import dev.anilbeesetti.nextplayer.core.ui.components.tvFocusRing
@@ -99,13 +100,10 @@ import dev.anilbeesetti.nextplayer.feature.videopicker.state.SelectionItem
 import dev.anilbeesetti.nextplayer.feature.videopicker.state.rememberSelectionManager
 
 @Composable
-fun VaultRoute(
-    viewModel: VaultViewModel = hiltViewModel(),
-    onPlayVideo: (uri: Uri) -> Unit,
-    onPlayVideos: (uris: List<Uri>) -> Unit,
-    onNavigateUp: () -> Unit,
+fun VaultScreen(
+    viewModel: VaultViewModel,
 ) {
-    val uiState by viewModel.uiState.collectAsStateWithLifecycle()
+    val state by viewModel.state.collectAsStateWithLifecycle()
     val context = LocalContext.current
     val lifecycleOwner = LocalLifecycleOwner.current
 
@@ -113,9 +111,6 @@ fun VaultRoute(
         lifecycleOwner.repeatOnLifecycle(Lifecycle.State.STARTED) {
             viewModel.events.collect { event ->
                 when (event) {
-                    is VaultEvent.PlayVideo -> onPlayVideo(event.uri)
-                    is VaultEvent.PlayVideos -> onPlayVideos(event.uris)
-
                     is VaultEvent.VideosRelocated -> {
                         val message = context.resources.getQuantityString(
                             R.plurals.videos_relocated_to_movies,
@@ -129,78 +124,69 @@ fun VaultRoute(
         }
     }
 
-    VaultScreen(
-        uiState = uiState,
+    VaultScreenContent(
+        state = state,
         onAction = viewModel::onAction,
-        onNavigateUp = onNavigateUp,
     )
 }
 
 @Composable
-internal fun VaultScreen(
-    uiState: VaultUiState,
+internal fun VaultScreenContent(
+    state: VaultUiState,
     onAction: (VaultAction) -> Unit,
-    onNavigateUp: () -> Unit,
 ) {
-    when (uiState.stage) {
+    when (state.stage) {
         VaultStage.LOADING -> CenterCircularProgressBar()
 
-        VaultStage.LOCKED -> VaultPinScreen(
+        VaultStage.LOCKED -> VaultPinContent(
             title = stringResource(R.string.enter_vault_pin),
             description = stringResource(R.string.enter_vault_pin_description),
-            pinErrorCount = uiState.pinErrorCount,
+            pinErrorCount = state.pinErrorCount,
             errorMessage = stringResource(R.string.incorrect_pin),
             onSubmit = { onAction(VaultAction.SubmitUnlockPin(it)) },
-            onBiometricAuthenticated = if (uiState.biometricEnabled) {
+            onBiometricAuthenticated = if (state.biometricEnabled) {
                 { onAction(VaultAction.BiometricAuthenticated) }
             } else {
                 null
             },
-            onNavigateUp = onNavigateUp,
+            onNavigateUp = { onAction(VaultAction.NavigateUp) },
         )
 
-        VaultStage.SET_PIN -> VaultPinScreen(
+        VaultStage.SET_PIN -> VaultPinContent(
             title = stringResource(R.string.set_vault_pin),
             description = stringResource(R.string.set_vault_pin_description),
-            pinErrorCount = uiState.setPinGeneration,
+            pinErrorCount = state.setPinGeneration,
             onSubmit = { onAction(VaultAction.SubmitNewPin(it)) },
-            onNavigateUp = onNavigateUp,
+            onNavigateUp = { onAction(VaultAction.NavigateUp) },
         )
 
-        VaultStage.CONFIRM_PIN -> VaultPinScreen(
+        VaultStage.CONFIRM_PIN -> VaultPinContent(
             title = stringResource(R.string.confirm_vault_pin),
             description = stringResource(R.string.confirm_vault_pin_description),
-            pinErrorCount = uiState.pinErrorCount,
+            pinErrorCount = state.pinErrorCount,
             errorMessage = stringResource(R.string.pins_do_not_match),
             onSubmit = { onAction(VaultAction.SubmitPinConfirmation(it)) },
-            onNavigateUp = onNavigateUp,
+            onNavigateUp = { onAction(VaultAction.NavigateUp) },
         )
 
         VaultStage.BIOMETRIC_SETUP -> VaultBiometricSetupDialog(
             onComplete = { onAction(VaultAction.CompleteBiometricSetup(it)) },
         )
 
-        VaultStage.HOW_TO_FIND_INFO -> {
-            HowToFindHiddenVideosDialog(
-                onDismiss = { onAction(VaultAction.DismissHowToFindInfo) },
-            )
-        }
-
-        VaultStage.UNLOCKED -> VaultGalleryScreen(
-            uiState = uiState,
+        VaultStage.UNLOCKED -> VaultGalleryContent(
+            state = state,
             onAction = onAction,
-            onNavigateUp = onNavigateUp,
         )
     }
 
-    if (uiState.isUnhiding) {
+    if (state.isUnhiding) {
         VaultProgressDialog(message = stringResource(R.string.unhiding_videos_in_progress))
     }
 }
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-private fun VaultPinScreen(
+private fun VaultPinContent(
     title: String,
     description: String,
     pinErrorCount: Int,
@@ -386,35 +372,15 @@ private fun PinEntryHeader(
     }
 }
 
-@Composable
-private fun HowToFindHiddenVideosDialog(
-    onDismiss: () -> Unit,
-) {
-    NextDialog(
-        onDismissRequest = onDismiss,
-        title = { Text(text = stringResource(R.string.how_to_find_hidden_videos_title)) },
-        content = { Text(text = stringResource(R.string.how_to_find_hidden_videos_description)) },
-        confirmButton = {
-            TextButton(onClick = onDismiss) {
-                Text(text = stringResource(R.string.got_it))
-            }
-        },
-    )
-}
-
 @OptIn(ExperimentalMaterial3Api::class, ExperimentalMaterial3ExpressiveApi::class)
 @Composable
-private fun VaultGalleryScreen(
-    uiState: VaultUiState,
+private fun VaultGalleryContent(
+    state: VaultUiState,
     onAction: (VaultAction) -> Unit,
-    onNavigateUp: () -> Unit,
 ) {
     val context = LocalContext.current
     val isTv = remember { context.isTelevision }
-    val firstActionFocusRequester = remember { FocusRequester() }
-    val firstItemRequester = remember { FocusRequester() }
-    val restoreRequester = remember { FocusRequester() }
-    var restoredFocusKey by rememberSaveable { mutableStateOf<String?>(null) }
+    val focusState = rememberRestorableFocusState()
     val selectionManager = rememberSelectionManager()
     var showSortMenu by rememberSaveable { mutableStateOf(false) }
     var showSettings by rememberSaveable { mutableStateOf(false) }
@@ -422,18 +388,7 @@ private fun VaultGalleryScreen(
     var showUnhideConfirmation by rememberSaveable { mutableStateOf(false) }
 
     val selectedCount = selectionManager.selectionItems.size
-    val totalCount = uiState.hiddenVideos.size
-
-    var hasRequestedInitialFocus by remember { mutableStateOf(false) }
-    if (isTv) {
-        LaunchedEffect(uiState.hiddenVideos.size) {
-            if (hasRequestedInitialFocus || uiState.hiddenVideos.isEmpty()) return@LaunchedEffect
-            val hasRestore = restoredFocusKey != null && uiState.hiddenVideos.any { it.uriString == restoredFocusKey }
-            // Prefer restoring the previously focused item; fall back to the first item.
-            val targets = if (hasRestore) listOf(restoreRequester, firstItemRequester) else listOf(firstItemRequester)
-            hasRequestedInitialFocus = targets.any { it.requestFocusUntilLanded() }
-        }
-    }
+    val totalCount = state.hiddenVideos.size
 
     BackHandler(enabled = selectionManager.isInSelectionMode) {
         selectionManager.exitSelectionMode()
@@ -474,7 +429,7 @@ private fun VaultGalleryScreen(
                         }
                     } else {
                         FilledTonalIconButton(
-                            onClick = onNavigateUp,
+                            onClick = { onAction(VaultAction.NavigateUp) },
                             modifier = Modifier.tvFocusRing(),
                         ) {
                             Icon(
@@ -489,7 +444,7 @@ private fun VaultGalleryScreen(
                         FilledTonalIconButton(
                             onClick = {
                                 if (selectedCount != totalCount) {
-                                    uiState.hiddenVideos.forEach { selectionManager.selectVideo(it) }
+                                    state.hiddenVideos.forEach { selectionManager.selectVideo(it) }
                                 } else {
                                     selectionManager.clearSelection()
                                 }
@@ -531,14 +486,14 @@ private fun VaultGalleryScreen(
         bottomBar = {
             VaultSelectionActionsSheet(
                 show = selectionManager.isInSelectionMode && selectionManager.selectionItems.isNotEmpty(),
-                firstActionFocusRequester = firstActionFocusRequester,
+                contentFocusRequester = focusState.requester,
                 onPlayAction = {
                     onAction(VaultAction.PlaySelected(selectionManager.selectionItems))
                     selectionManager.exitSelectionMode()
                 },
                 onInfoAction = {
                     val selected = selectionManager.selectionItems.firstOrNull()
-                    val video = uiState.hiddenVideos.find { it.uriString == (selected as? SelectionItem.Video)?.uriString }
+                    val video = state.hiddenVideos.find { it.uriString == (selected as? SelectionItem.Video)?.uriString }
                     if (video != null) onAction(VaultAction.ShowMediaInfo(video))
                     selectionManager.exitSelectionMode()
                 },
@@ -559,7 +514,7 @@ private fun VaultGalleryScreen(
         ) {
             val updatedPadding = padding.copy(top = 0.dp, start = 0.dp)
             when {
-                uiState.isLoading -> {
+                state.isLoading -> {
                     Box(
                         modifier = Modifier.fillMaxSize().padding(updatedPadding),
                         contentAlignment = Alignment.Center,
@@ -568,14 +523,14 @@ private fun VaultGalleryScreen(
                     }
                 }
 
-                uiState.hiddenVideos.isEmpty() -> {
+                state.hiddenVideos.isEmpty() -> {
                     VaultEmptyState(contentPadding = updatedPadding)
                 }
 
                 else -> {
                     LazyVerticalGrid(
-                        modifier = Modifier.fillMaxSize(),
-                        columns = if (uiState.preferences.mediaLayoutMode == MediaLayoutMode.GRID) {
+                        modifier = Modifier.fillMaxSize().restorableFocusGroup(focusState),
+                        columns = if (state.preferences.mediaLayoutMode == MediaLayoutMode.GRID) {
                             GridCells.Adaptive(minSize = 130.dp)
                         } else {
                             GridCells.Fixed(1)
@@ -588,31 +543,17 @@ private fun VaultGalleryScreen(
                         ),
                     ) {
                         itemsIndexed(
-                            items = uiState.hiddenVideos,
+                            items = state.hiddenVideos,
                             key = { _, video -> video.uriString },
-                        ) { index, video ->
+                        ) { _, video ->
                             val selected = selectionManager.isVideoSelected(video)
                             VideoItem(
                                 modifier = Modifier
                                     .padding(2.dp)
-                                    .thenIf(isTv && index == 0) { focusRequester(firstItemRequester) }
-                                    // Down from the last item reaches the selection action bar.
-                                    .thenIf(
-                                        isTv && selectionManager.isInSelectionMode &&
-                                            index == uiState.hiddenVideos.lastIndex,
-                                    ) {
-                                        focusProperties { down = firstActionFocusRequester }
-                                    }
-                                    .restorableFocusItem(
-                                        isTv = isTv,
-                                        key = video.uriString,
-                                        restoredKey = restoredFocusKey,
-                                        restoreRequester = restoreRequester,
-                                        onFocused = { restoredFocusKey = it },
-                                    ),
+                                    .restorableFocusItem(focusState, video.uriString),
                                 video = video,
                                 isRecentlyPlayedVideo = false,
-                                preferences = uiState.preferences,
+                                preferences = state.preferences,
                                 selected = selected,
                                 onClick = {
                                     if (selectionManager.isInSelectionMode) {
@@ -634,7 +575,7 @@ private fun VaultGalleryScreen(
 
     if (showSettings) {
         VaultSettingsDialog(
-            biometricEnabled = uiState.biometricEnabled,
+            biometricEnabled = state.biometricEnabled,
             onBiometricEnabledChange = { onAction(VaultAction.SetBiometricEnabled(it)) },
             onDismiss = { showSettings = false },
         )
@@ -642,7 +583,7 @@ private fun VaultGalleryScreen(
 
     if (showSortMenu) {
         VaultSortDialog(
-            sort = uiState.sort,
+            sort = state.sort,
             onDismiss = { showSortMenu = false },
             onSortSelected = {
                 onAction(VaultAction.UpdateSort(it))
@@ -707,7 +648,7 @@ private fun VaultGalleryScreen(
         )
     }
 
-    uiState.mediaInfo?.let { mediaInfo ->
+    state.mediaInfo?.let { mediaInfo ->
         MediaInfoDialog(
             mediaInfo = mediaInfo,
             onDismiss = { onAction(VaultAction.DismissMediaInfo) },
@@ -823,7 +764,7 @@ private fun VaultSortDialog(
 private fun VaultSelectionActionsSheet(
     modifier: Modifier = Modifier,
     show: Boolean,
-    firstActionFocusRequester: FocusRequester,
+    contentFocusRequester: FocusRequester,
     onPlayAction: () -> Unit,
     onInfoAction: () -> Unit,
     showInfoAction: Boolean,
@@ -832,6 +773,7 @@ private fun VaultSelectionActionsSheet(
 ) {
     val context = LocalContext.current
     val isTv = remember { context.isTelevision }
+    val firstActionFocusRequester = remember { FocusRequester() }
 
     AnimatedVisibility(
         modifier = modifier.padding(
@@ -857,6 +799,10 @@ private fun VaultSelectionActionsSheet(
                     )
                     .clip(shape)
                     .horizontalScroll(rememberScrollState())
+                    .thenIf(isTv) {
+                        focusRestorer(fallback = firstActionFocusRequester).focusGroup()
+                            .focusProperties { up = contentFocusRequester }
+                    }
                     .navigationBarsPadding()
                     .padding(
                         horizontal = 8.dp,
@@ -866,7 +812,7 @@ private fun VaultSelectionActionsSheet(
                 horizontalArrangement = Arrangement.SpaceEvenly,
             ) {
                 SelectionAction(
-                    modifier = Modifier.focusRequester(firstActionFocusRequester),
+                    modifier = Modifier.thenIf(isTv) { focusRequester(firstActionFocusRequester) },
                     isTv = isTv,
                     imageVector = NextIcons.Play,
                     title = stringResource(R.string.play),
@@ -899,9 +845,9 @@ private fun VaultSelectionActionsSheet(
 
 @PreviewLightDark
 @Composable
-private fun VaultPinScreenPreview() {
+private fun VaultPinContentPreview() {
     NextPlayerTheme {
-        VaultPinScreen(
+        VaultPinContent(
             title = stringResource(R.string.enter_vault_pin),
             description = stringResource(R.string.enter_vault_pin_description),
             pinErrorCount = 0,

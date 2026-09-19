@@ -22,8 +22,8 @@ import androidx.media3.common.Player.DISCONTINUITY_REASON_SEEK
 import androidx.media3.common.TrackSelectionParameters
 import androidx.media3.common.Tracks
 import androidx.media3.common.util.UnstableApi
-import androidx.media3.exoplayer.ExoPlayer
 import androidx.media3.exoplayer.ExoPlaybackException
+import androidx.media3.exoplayer.ExoPlayer
 import androidx.media3.exoplayer.analytics.AnalyticsListener
 import androidx.media3.exoplayer.source.DefaultMediaSourceFactory
 import androidx.media3.exoplayer.trackselection.DefaultTrackSelector
@@ -38,7 +38,6 @@ import coil3.ImageLoader
 import coil3.request.ImageRequest
 import com.google.common.util.concurrent.Futures
 import com.google.common.util.concurrent.ListenableFuture
-import dagger.hilt.android.AndroidEntryPoint
 import dev.anilbeesetti.nextplayer.core.common.Logger
 import dev.anilbeesetti.nextplayer.core.common.extensions.deleteFiles
 import dev.anilbeesetti.nextplayer.core.common.extensions.getFilenameFromUri
@@ -56,6 +55,7 @@ import dev.anilbeesetti.nextplayer.core.ui.R as coreUiR
 import dev.anilbeesetti.nextplayer.feature.player.PlayerActivity
 import dev.anilbeesetti.nextplayer.feature.player.R
 import dev.anilbeesetti.nextplayer.feature.player.extensions.addAdditionalSubtitleConfiguration
+import dev.anilbeesetti.nextplayer.feature.player.extensions.audioDecoderMode
 import dev.anilbeesetti.nextplayer.feature.player.extensions.audioTrackIndex
 import dev.anilbeesetti.nextplayer.feature.player.extensions.copy
 import dev.anilbeesetti.nextplayer.feature.player.extensions.getManuallySelectedTrackIndex
@@ -68,6 +68,7 @@ import dev.anilbeesetti.nextplayer.feature.player.extensions.subtitleSpeed
 import dev.anilbeesetti.nextplayer.feature.player.extensions.subtitleTrackIndex
 import dev.anilbeesetti.nextplayer.feature.player.extensions.switchTrack
 import dev.anilbeesetti.nextplayer.feature.player.extensions.uriToSubtitleConfiguration
+import dev.anilbeesetti.nextplayer.feature.player.extensions.videoDecoderMode
 import dev.anilbeesetti.nextplayer.feature.player.extensions.videoZoom
 import dev.anilbeesetti.nextplayer.feature.player.model.DecoderTrackType
 import io.github.anilbeesetti.nextlib.media3ext.ffdecoder.DecoderManager
@@ -76,7 +77,6 @@ import io.github.anilbeesetti.nextlib.media3ext.ffdecoder.NextRenderersFactory
 import io.github.anilbeesetti.nextlib.media3ext.renderer.subtitleDelayMilliseconds
 import io.github.anilbeesetti.nextlib.media3ext.renderer.subtitleSpeed
 import java.io.File
-import javax.inject.Inject
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
@@ -90,26 +90,22 @@ import kotlinx.coroutines.launch
 import kotlinx.coroutines.runBlocking
 import kotlinx.coroutines.supervisorScope
 import kotlinx.coroutines.withContext
+import org.koin.android.ext.android.inject
 
 @OptIn(UnstableApi::class)
-@AndroidEntryPoint
 class PlayerService : MediaSessionService() {
 
     private val serviceScope: CoroutineScope = CoroutineScope(Dispatchers.Main + SupervisorJob())
     private var mediaSession: MediaSession? = null
     private var artworkLoadJob: Job? = null
 
-    @Inject
-    lateinit var preferencesRepository: PreferencesRepository
+    private val preferencesRepository: PreferencesRepository by inject()
 
-    @Inject
-    lateinit var dataSourceFactory: NextDataSourceFactory
+    private val dataSourceFactory: NextDataSourceFactory by inject()
 
-    @Inject
-    lateinit var mediaRepository: MediaRepository
+    private val mediaRepository: MediaRepository by inject()
 
-    @Inject
-    lateinit var imageLoader: ImageLoader
+    private val imageLoader: ImageLoader by inject()
 
     private val playerPreferences: PlayerPreferences
         get() = preferencesRepository.playerPreferences.value
@@ -204,17 +200,7 @@ class PlayerService : MediaSessionService() {
         override fun onMediaItemTransition(mediaItem: MediaItem?, reason: Int) {
             super.onMediaItemTransition(mediaItem, reason)
             if (reason == Player.MEDIA_ITEM_TRANSITION_REASON_REPEAT) return
-            val player = mediaSession?.player as? ExoPlayer
-            val mediaIdentity = mediaItem?.let {
-                DecoderMediaIdentity(
-                    index = player?.currentMediaItemIndex ?: C.INDEX_UNSET,
-                    mediaId = it.mediaId,
-                    uri = it.localConfiguration?.uri?.toString(),
-                )
-            }
-            if (decoderRecoveryManager.onMediaItemChanged(mediaIdentity) && player != null) {
-                resetDecodersToAuto()
-            }
+            restoreDecoderChoices(mediaItem)
             isMediaItemReady = false
             loadArtworkForCurrentMediaItem()
             mediaItem?.mediaMetadata?.let { metadata ->
@@ -351,7 +337,7 @@ class PlayerService : MediaSessionService() {
                 (
                     playbackState == Player.STATE_IDLE &&
                         player?.mediaItemCount == 0
-                )
+                    )
             if (shouldResetPlaybackParameters) {
                 mediaSession?.player?.trackSelectionParameters = TrackSelectionParameters.DEFAULT
                 mediaSession?.player?.setPlaybackSpeed(playerPreferences.defaultPlaybackSpeed)
@@ -388,21 +374,26 @@ class PlayerService : MediaSessionService() {
             }
         }
 
-        override fun onRenderedFirstFrame() {
-            super.onRenderedFirstFrame()
-            val player = mediaSession?.player ?: return
+        override fun onEvents(player: Player, events: Player.Events) {
+            // Consecutive items can reuse the renderer without another first-frame callback.
+            if (player.playbackState != Player.STATE_READY ||
+                !events.containsAny(Player.EVENT_MEDIA_ITEM_TRANSITION, Player.EVENT_PLAYBACK_STATE_CHANGED)
+            ) {
+                return
+            }
             val currentMediaItem = player.currentMediaItem ?: return
+            val duration = player.duration.validDurationOrNull()
             // Update the media metadata duration so that it will be used later in position discontinuity handling
             player.replaceMediaItem(
                 player.currentMediaItemIndex,
-                currentMediaItem.copy(durationMs = player.duration.coerceAtLeast(0))
+                currentMediaItem.copy(durationMs = duration ?: 0),
             )
 
             serviceScope.launch {
                 mediaRepository.updateMediumLastPlayedTime(
                     uri = currentMediaItem.mediaId,
                     lastPlayedTime = System.currentTimeMillis(),
-                    duration = player.duration.validDurationOrNull(),
+                    duration = duration,
                 )
             }
         }
@@ -792,7 +783,9 @@ class PlayerService : MediaSessionService() {
                             excludeSubsList = externalSubs,
                         )
                     } ?: emptyList()
-                } else emptyList()
+                } else {
+                    emptyList()
+                }
 
                 val existingSubConfigurations = mediaItem.localConfiguration?.subtitleConfigurations ?: emptyList()
                 val subConfigurations = (localSubs + externalSubs).map { subtitleUri ->
@@ -833,6 +826,8 @@ class PlayerService : MediaSessionService() {
                                 subtitleTrackIndex = subtitleTrackIndex,
                                 subtitleDelayMilliseconds = subtitleDelay,
                                 subtitleSpeed = subtitleSpeed,
+                                videoDecoderMode = mediaItem.mediaMetadata.videoDecoderMode,
+                                audioDecoderMode = mediaItem.mediaMetadata.audioDecoderMode,
                             )
                         }.build(),
                     )
@@ -895,12 +890,25 @@ class PlayerService : MediaSessionService() {
             DecoderTrackType.VIDEO -> decoderManager.selectVideoDecoder(mode)
             DecoderTrackType.AUDIO -> decoderManager.selectAudioDecoder(mode)
         }
+        val player = mediaSession?.player
+        val mediaItem = player?.currentMediaItem
+        if (mediaItem != null) {
+            val updatedItem = when (trackType) {
+                DecoderTrackType.VIDEO -> mediaItem.copy(videoDecoderMode = mode)
+                DecoderTrackType.AUDIO -> mediaItem.copy(audioDecoderMode = mode)
+            }
+            player.replaceMediaItem(player.currentMediaItemIndex, updatedItem)
+        }
         publishDecoderState()
     }
 
-    private fun resetDecodersToAuto() {
-        selectDecoder(DecoderTrackType.VIDEO, DecoderMode.AUTO)
-        selectDecoder(DecoderTrackType.AUDIO, DecoderMode.AUTO)
+    private fun restoreDecoderChoices(mediaItem: MediaItem?) {
+        val videoMode = mediaItem?.mediaMetadata?.videoDecoderMode ?: DecoderMode.AUTO
+        val audioMode = mediaItem?.mediaMetadata?.audioDecoderMode ?: DecoderMode.AUTO
+        decoderRecoveryManager.onUserSelection(DecoderTrackType.VIDEO, videoMode)
+        decoderRecoveryManager.onUserSelection(DecoderTrackType.AUDIO, audioMode)
+        selectDecoder(DecoderTrackType.VIDEO, videoMode)
+        selectDecoder(DecoderTrackType.AUDIO, audioMode)
     }
 
     private fun DefaultTrackSelector.unmappedTrackCount(trackType: Int): Int {

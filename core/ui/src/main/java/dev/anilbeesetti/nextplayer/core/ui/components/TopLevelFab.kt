@@ -4,6 +4,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.compositionLocalOf
 import androidx.compose.runtime.rememberUpdatedState
+import androidx.compose.ui.focus.FocusRequester
 import androidx.compose.ui.graphics.vector.ImageVector
 
 object TopLevelFabKey {
@@ -16,6 +17,7 @@ object TopLevelFabKey {
 data class TopLevelFabState(
     val icon: ImageVector,
     val onClick: () -> Unit,
+    val upFocusRequester: FocusRequester = FocusRequester.Default,
 )
 
 val LocalTopLevelFabSetter = compositionLocalOf<(String, TopLevelFabState?) -> Unit> { { _, _ -> } }
@@ -35,13 +37,21 @@ fun BindTopLevelBottomBarVisible(visible: Boolean) {
 fun BindTopLevelFab(
     key: String,
     icon: ImageVector,
+    upFocusRequester: FocusRequester = FocusRequester.Default,
     onClick: () -> Unit,
 ) {
     val setter = LocalTopLevelFabSetter.current
     val currentOnClick = rememberUpdatedState(onClick)
 
-    DisposableEffect(key, icon, setter) {
-        setter(key, TopLevelFabState(icon) { currentOnClick.value() })
+    DisposableEffect(key, icon, upFocusRequester, setter) {
+        setter(
+            key,
+            TopLevelFabState(
+                icon = icon,
+                onClick = { currentOnClick.value() },
+                upFocusRequester = upFocusRequester,
+            ),
+        )
         onDispose { setter(key, null) }
     }
 }

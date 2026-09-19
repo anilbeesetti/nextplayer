@@ -5,13 +5,12 @@ import dev.anilbeesetti.nextplayer.core.database.entities.NetworkConnectionEntit
 import dev.anilbeesetti.nextplayer.core.model.NetworkAuthentication
 import dev.anilbeesetti.nextplayer.core.model.NetworkConnection
 import dev.anilbeesetti.nextplayer.core.model.NetworkProtocol
-import javax.inject.Inject
-import javax.inject.Singleton
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.map
+import org.koin.core.annotation.Single
 
-@Singleton
-class LocalNetworkConnectionRepository @Inject constructor(
+@Single
+class LocalNetworkConnectionRepository(
     private val networkConnectionDao: NetworkConnectionDao,
 ) : NetworkConnectionRepository {
 

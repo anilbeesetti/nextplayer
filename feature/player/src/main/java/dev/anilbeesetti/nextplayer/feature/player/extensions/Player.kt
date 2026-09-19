@@ -76,17 +76,22 @@ fun Player.addAdditionalSubtitleConfiguration(subtitle: MediaItem.SubtitleConfig
     val textTracks = currentTracks.groups.filter {
         it.type == C.TRACK_TYPE_TEXT && it.isSupported
     }
+    val position = currentPosition
 
     val updateMediaItem = currentMediaItemLocal
         .buildUpon()
         .setSubtitleConfigurations(existingSubConfigurations + listOf(subtitle))
         .build()
-        .copy(subtitleTrackIndex = textTracks.size)
+        .copy(positionMs = position, subtitleTrackIndex = textTracks.size)
 
     val index = currentMediaItemIndex
+    val exoPlayer = this as? ExoPlayer
+    val shuffleOrder = exoPlayer?.shuffleOrder
+    // Create a new source so Media3 loads the added subtitle; metadata carries decoder choices.
     addMediaItem(index + 1, updateMediaItem)
-    seekTo(index + 1, currentPosition)
+    seekTo(index + 1, position)
     removeMediaItem(index)
+    shuffleOrder?.let { exoPlayer.setShuffleOrder(it) }
 }
 
 @OptIn(UnstableApi::class)

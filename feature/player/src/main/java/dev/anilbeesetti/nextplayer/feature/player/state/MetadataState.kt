@@ -12,20 +12,25 @@ import androidx.media3.common.listen
 
 @Composable
 fun rememberMetadataState(player: Player): MetadataState {
-    val metadataState = remember { MetadataState(player) }
+    val metadataState = remember(player) { MetadataState(player) }
     LaunchedEffect(player) { metadataState.observe() }
     return metadataState
 }
 
 @Stable
 class MetadataState(private val player: Player) {
+    var mediaId: String? by mutableStateOf(null)
+        private set
+
     var title: String? by mutableStateOf(null)
         private set
 
     suspend fun observe() {
+        mediaId = player.currentMediaItem?.mediaId
         title = player.mediaMetadata.title?.toString()
         player.listen { events ->
             if (events.containsAny(Player.EVENT_MEDIA_METADATA_CHANGED, Player.EVENT_MEDIA_ITEM_TRANSITION)) {
+                mediaId = player.currentMediaItem?.mediaId
                 title = player.mediaMetadata.title?.toString()
             }
         }

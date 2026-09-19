@@ -321,9 +321,6 @@
     <string name="enter_vault_pin_description">छिपे हुए वीडियोज़ तक पहुंच करने के लिए अपना पिन डालें</string>
     <string name="pins_do_not_match">पिन मैच नहीं कर रहे हैं। फिर से कोशिश करें</string>
     <string name="incorrect_pin">गलत पिन</string>
-    <string name="how_to_find_hidden_videos_title">अपने छिपे हुए वीडियो कैसे ढूंढने हैं</string>
-    <string name="how_to_find_hidden_videos_description">छिपे हुए वीडियो आपके वॉल्ट में सुरक्षित रहते हैं। इसे फिर से खोलने के लिए, होम स्क्रीन के ऊपर \"NextPlayer\" टाइटल को दबाकर रखें और अपना पिन डालें।</string>
-    <string name="got_it">समझ गया</string>
     <string name="open_vault">वॉल्ट खोलें</string>
     <string name="vault_empty_title">कोई छिपा हुआ वीडियो नहीं</string>
     <string name="vault_empty_description">आपके छिपाए हुए वीडियो यहां दिखेंगे। किसी वीडियो को देर तक दबाकर रखें और उसे वॉल्ट में जोड़ने के लिए छिपाएं पर टैप करें।</string>

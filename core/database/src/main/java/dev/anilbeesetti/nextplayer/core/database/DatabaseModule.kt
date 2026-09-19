@@ -2,21 +2,15 @@ package dev.anilbeesetti.nextplayer.core.database
 
 import android.content.Context
 import androidx.room.Room
-import dagger.Module
-import dagger.Provides
-import dagger.hilt.InstallIn
-import dagger.hilt.android.qualifiers.ApplicationContext
-import dagger.hilt.components.SingletonComponent
-import javax.inject.Singleton
+import org.koin.core.annotation.Module
+import org.koin.core.annotation.Single
 
-@Module
-@InstallIn(SingletonComponent::class)
-object DatabaseModule {
+@Module(includes = [DaoModule::class])
+class DatabaseModule {
 
-    @Singleton
-    @Provides
+    @Single
     fun provideMediaDatabase(
-        @ApplicationContext context: Context,
+        context: Context,
     ): MediaDatabase = Room.databaseBuilder(
         context = context,
         klass = MediaDatabase::class.java,

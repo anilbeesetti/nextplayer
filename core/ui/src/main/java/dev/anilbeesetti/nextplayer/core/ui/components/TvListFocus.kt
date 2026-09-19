@@ -6,31 +6,44 @@ import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.focus.FocusRequester
+import androidx.compose.ui.focus.focusProperties
 import androidx.compose.ui.focus.focusRequester
+import androidx.compose.ui.focus.focusRestorer
 import androidx.compose.ui.platform.LocalContext
 import dev.anilbeesetti.nextplayer.core.common.extensions.isTelevision
-import kotlin.time.Duration.Companion.milliseconds
-import kotlinx.coroutines.delay
 
 @Composable
 fun rememberTvListFocusRequester(): FocusRequester = remember { FocusRequester() }
 
 /**
- * On Android TV, makes the decorated list a focus group and moves focus into it when it appears, so
- * D-pad users land on the content (the first item) rather than a top-bar action. No-op on touch.
+ * Owns initial focus and child restoration for a TV content region. Keep this after scroll
+ * modifiers so the region targets its interactive children, rather than the scroll container.
+ * Pass a requester only when another region needs to enter this one. No-op on touch devices.
  */
 @Composable
-fun Modifier.tvListFocus(focusRequester: FocusRequester): Modifier {
+fun Modifier.tvListFocus(
+    focusRequester: FocusRequester = rememberTvListFocusRequester(),
+): Modifier {
     val context = LocalContext.current
     val isTv = remember { context.isTelevision }
 
-    LaunchedEffect(isTv) {
+    LaunchedEffect(isTv, focusRequester) {
         if (!isTv) return@LaunchedEffect
-        repeat(times = 5) {
-            if (runCatching { focusRequester.requestFocus() }.isSuccess) return@LaunchedEffect
-            delay(50.milliseconds)
-        }
+        focusRequester.requestFocusUntilLanded()
     }
 
-    return if (isTv) this.focusRequester(focusRequester).focusGroup() else this
+    return if (isTv) {
+        this.focusRequester(focusRequester)
+            .focusRestorer()
+            .focusGroup()
+    } else {
+        this
+    }
+}
+
+@Composable
+fun Modifier.tvFocusDown(target: FocusRequester): Modifier {
+    val context = LocalContext.current
+    val isTv = remember { context.isTelevision }
+    return if (isTv) this.tvFocusRing(isTv).focusProperties { down = target } else this
 }

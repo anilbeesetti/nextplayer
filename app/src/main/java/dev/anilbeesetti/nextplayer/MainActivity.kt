@@ -5,31 +5,26 @@ import android.os.Bundle
 import androidx.activity.SystemBarStyle
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
-import androidx.activity.viewModels
 import androidx.compose.animation.AnimatedVisibility
-import androidx.compose.animation.core.LinearEasing
-import androidx.compose.animation.core.tween
+import androidx.compose.animation.expandHorizontally
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
-import androidx.compose.animation.slideInHorizontally
+import androidx.compose.animation.shrinkHorizontally
 import androidx.compose.animation.slideInVertically
-import androidx.compose.animation.slideOutHorizontally
 import androidx.compose.animation.slideOutVertically
-import androidx.compose.animation.togetherWith
+import androidx.compose.foundation.focusGroup
 import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.PaddingValues
-import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.WindowInsetsSides
+import androidx.compose.foundation.layout.calculateStartPadding
 import androidx.compose.foundation.layout.consumeWindowInsets
 import androidx.compose.foundation.layout.displayCutout
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.only
-import androidx.compose.foundation.layout.systemBars
-import androidx.compose.foundation.layout.union
-import androidx.compose.foundation.layout.windowInsetsPadding
+import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Surface
@@ -43,18 +38,27 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.runtime.snapshots.SnapshotStateMap
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.focus.FocusDirection
+import androidx.compose.ui.focus.FocusRequester
+import androidx.compose.ui.focus.focusProperties
+import androidx.compose.ui.focus.focusRequester
+import androidx.compose.ui.layout.onSizeChanged
+import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.platform.LocalDensity
+import androidx.compose.ui.platform.LocalLayoutDirection
 import androidx.compose.ui.unit.dp
 import androidx.core.splashscreen.SplashScreen.Companion.installSplashScreen
 import androidx.fragment.app.FragmentActivity
-import androidx.lifecycle.Lifecycle
-import androidx.lifecycle.lifecycleScope
-import androidx.lifecycle.repeatOnLifecycle
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import androidx.navigation3.runtime.NavEntryDecorator
+import androidx.navigation3.runtime.NavKey
 import androidx.navigation3.runtime.entryProvider
 import androidx.navigation3.ui.NavDisplay
 import androidx.window.core.layout.WindowSizeClass
 import com.google.accompanist.permissions.ExperimentalPermissionsApi
-import dagger.hilt.android.AndroidEntryPoint
+import dev.anilbeesetti.nextplayer.core.common.extensions.isTelevision
 import dev.anilbeesetti.nextplayer.core.common.service.system.SystemService
 import dev.anilbeesetti.nextplayer.core.media.services.MediaOperationsService
 import dev.anilbeesetti.nextplayer.core.model.ThemeConfig
@@ -68,51 +72,37 @@ import dev.anilbeesetti.nextplayer.navigation.NextNavigationBar
 import dev.anilbeesetti.nextplayer.navigation.NextNavigationRail
 import dev.anilbeesetti.nextplayer.navigation.TopLevelDestination
 import dev.anilbeesetti.nextplayer.navigation.TopLevelNavState
-import dev.anilbeesetti.nextplayer.navigation.isNavigationBetweenTopLevelDestinations
 import dev.anilbeesetti.nextplayer.navigation.mediaNavGraph
 import dev.anilbeesetti.nextplayer.navigation.moreNavGraph
+import dev.anilbeesetti.nextplayer.navigation.navigationTransition
 import dev.anilbeesetti.nextplayer.navigation.networkNavGraph
 import dev.anilbeesetti.nextplayer.navigation.playlistNavGraph
 import dev.anilbeesetti.nextplayer.navigation.rememberTopLevelNavState
 import dev.anilbeesetti.nextplayer.navigation.settingsNavGraph
-import kotlinx.coroutines.launch
-import javax.inject.Inject
+import org.koin.android.ext.android.inject
+import org.koin.androidx.viewmodel.ext.android.viewModel
 
-@AndroidEntryPoint
 class MainActivity : FragmentActivity() {
 
-    @Inject
-    lateinit var mediaOperationsService: MediaOperationsService
+    private val mediaOperationsService: MediaOperationsService by inject()
 
-    @Inject
-    lateinit var systemService: SystemService
+    private val systemService: SystemService by inject()
 
-    private val viewModel: MainViewModel by viewModels()
+    private val viewModel: MainViewModel by viewModel()
 
     @OptIn(ExperimentalPermissionsApi::class)
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         systemService.initialize(this@MainActivity)
         mediaOperationsService.initialize(this@MainActivity)
-        var uiState: MainActivityUiState by mutableStateOf(MainActivityUiState.Loading)
-
-        lifecycleScope.launch {
-            repeatOnLifecycle(Lifecycle.State.STARTED) {
-                viewModel.uiState.collect { state ->
-                    uiState = state
-                }
-            }
-        }
 
         installSplashScreen().setKeepOnScreenCondition {
-            when (uiState) {
-                MainActivityUiState.Loading -> true
-                is MainActivityUiState.Success -> false
-            }
+            viewModel.state.value is MainActivityUiState.Loading
         }
 
         setContent {
-            val shouldUseDarkTheme = shouldUseDarkTheme(uiState = uiState)
+            val state by viewModel.state.collectAsStateWithLifecycle()
+            val shouldUseDarkTheme = shouldUseDarkTheme(state = state)
 
             LaunchedEffect(shouldUseDarkTheme) {
                 enableEdgeToEdge(
@@ -131,8 +121,8 @@ class MainActivity : FragmentActivity() {
 
             NextPlayerTheme(
                 darkTheme = shouldUseDarkTheme,
-                highContrastDarkTheme = shouldUseHighContrastDarkTheme(uiState = uiState),
-                dynamicColor = shouldUseDynamicTheming(uiState = uiState),
+                highContrastDarkTheme = shouldUseHighContrastDarkTheme(state = state),
+                dynamicColor = shouldUseDynamicTheming(state = state),
             ) {
                 Surface(
                     modifier = Modifier.fillMaxSize(),
@@ -160,6 +150,20 @@ class MainActivity : FragmentActivity() {
                         fabStates = topLevelFabStates,
                         showBottomBar = showTopLevelBottomBar,
                     ) { layoutPaddingValues ->
+                        val railPadding = layoutPaddingValues.calculateStartPadding(LocalLayoutDirection.current)
+                        val navigationInsetsDecorator = remember(navState, railPadding) {
+                            NavEntryDecorator<NavKey> { entry ->
+                                // Reserve rail space per entry without resizing the animated display.
+                                Box(
+                                    Modifier.thenIf(navState.topLevelContentKeys.contains(entry.contentKey)) {
+                                        padding(start = railPadding)
+                                            .consumeWindowInsets(WindowInsets.displayCutout.only(WindowInsetsSides.Start))
+                                    },
+                                ) {
+                                    entry.Content()
+                                }
+                            }
+                        }
                         CompositionLocalProvider(
                             LocalNavigationBottomPadding provides layoutPaddingValues.calculateBottomPadding(),
                             LocalTopLevelBottomBarVisibleSetter provides { showTopLevelBottomBar = it },
@@ -172,77 +176,11 @@ class MainActivity : FragmentActivity() {
                             },
                         ) {
                             NavDisplay(
-                                entries = navState.rememberEntries(provider),
+                                entries = navState.rememberEntries(provider, navigationInsetsDecorator),
                                 onBack = { navState.goBack() },
-                                transitionSpec = {
-                                    if (navState.isNavigationBetweenTopLevelDestinations(initialState, targetState)) {
-                                        fadeIn(
-                                            animationSpec = tween(
-                                                durationMillis = 200,
-                                                easing = LinearEasing,
-                                            ),
-                                        ) togetherWith fadeOut(
-                                            animationSpec = tween(
-                                                durationMillis = 200,
-                                                easing = LinearEasing,
-                                            ),
-                                        )
-                                    } else {
-                                        slideInHorizontally(
-                                            initialOffsetX = { it },
-                                            animationSpec = tween(durationMillis = 200, easing = LinearEasing),
-                                        ) togetherWith slideOutHorizontally(
-                                            targetOffsetX = { fullOffset -> -(fullOffset * 0.3f).toInt() },
-                                            animationSpec = tween(durationMillis = 200, easing = LinearEasing),
-                                        )
-                                    }
-                                },
-                                popTransitionSpec = {
-                                    if (navState.isNavigationBetweenTopLevelDestinations(initialState, targetState)) {
-                                        fadeIn(
-                                            animationSpec = tween(
-                                                durationMillis = 200,
-                                                easing = LinearEasing,
-                                            ),
-                                        ) togetherWith fadeOut(
-                                            animationSpec = tween(
-                                                durationMillis = 200,
-                                                easing = LinearEasing,
-                                            ),
-                                        )
-                                    } else {
-                                        slideInHorizontally(
-                                            initialOffsetX = { fullOffset -> -(fullOffset * 0.3f).toInt() },
-                                            animationSpec = tween(durationMillis = 200, easing = LinearEasing),
-                                        ) togetherWith slideOutHorizontally(
-                                            targetOffsetX = { it },
-                                            animationSpec = tween(durationMillis = 200, easing = LinearEasing),
-                                        )
-                                    }
-                                },
-                                predictivePopTransitionSpec = {
-                                    if (navState.isNavigationBetweenTopLevelDestinations(initialState, targetState)) {
-                                        fadeIn(
-                                            animationSpec = tween(
-                                                durationMillis = 200,
-                                                easing = LinearEasing,
-                                            ),
-                                        ) togetherWith fadeOut(
-                                            animationSpec = tween(
-                                                durationMillis = 200,
-                                                easing = LinearEasing,
-                                            ),
-                                        )
-                                    } else {
-                                        slideInHorizontally(
-                                            initialOffsetX = { fullOffset -> -(fullOffset * 0.3f).toInt() },
-                                            animationSpec = tween(durationMillis = 200, easing = LinearEasing),
-                                        ) togetherWith slideOutHorizontally(
-                                            targetOffsetX = { it },
-                                            animationSpec = tween(durationMillis = 200, easing = LinearEasing),
-                                        )
-                                    }
-                                },
+                                transitionSpec = { navState.navigationTransition(initialState, targetState) },
+                                popTransitionSpec = { navState.navigationTransition(initialState, targetState) },
+                                predictivePopTransitionSpec = { navState.navigationTransition(initialState, targetState) },
                             )
                         }
                     }
@@ -261,6 +199,11 @@ fun NavigationLayout(
     windowSizeClass: WindowSizeClass = currentWindowAdaptiveInfoV2().windowSizeClass,
     content: @Composable (PaddingValues) -> Unit,
 ) {
+    val isTv = LocalContext.current.isTelevision
+    val density = LocalDensity.current
+    var railWidth by remember(density) { mutableStateOf(0.dp) }
+    val contentFocusRequester = remember { FocusRequester() }
+    val fabFocusRequester = remember { FocusRequester() }
     val showNavRail = windowSizeClass.isWidthAtLeastBreakpoint(WindowSizeClass.WIDTH_DP_MEDIUM_LOWER_BOUND)
     val showNavigation = state.currentStack.lastOrNull()?.let { state.topLevelContentKeys.contains(it) } == true
     val selectedFabState = state.destinations[state.selectedIndex].fabKey?.let(fabStates::get)
@@ -269,12 +212,7 @@ fun NavigationLayout(
         selectedFabState?.let { displayedFabState = it }
     }
 
-    Row(modifier = Modifier.fillMaxSize()) {
-        AnimatedVisibility(
-            visible = showNavRail && showNavigation,
-        ) {
-            NextNavigationRail(state = state)
-        }
+    Box(modifier = Modifier.fillMaxSize()) {
         Scaffold(
             modifier = modifier,
             bottomBar = {
@@ -286,7 +224,9 @@ fun NavigationLayout(
                     NextNavigationBar(
                         state = state,
                         fabState = displayedFabState,
-                        showFabOnly = showNavRail
+                        contentFocusRequester = contentFocusRequester,
+                        fabFocusRequester = fabFocusRequester,
+                        showFabOnly = showNavRail,
                     )
                 }
             },
@@ -296,27 +236,54 @@ fun NavigationLayout(
                 Box(
                     modifier = Modifier
                         .fillMaxWidth()
-                        .thenIf(showNavigation) {
-                            consumeWindowInsets(WindowInsets.displayCutout.only(WindowInsetsSides.Start))
-                        }
+                        .thenIf(isTv) {
+                            // The FAB sits outside screen content, whose full-height focus groups
+                            // overlap it. Enter the content explicitly instead of searching the rail.
+                            focusRequester(contentFocusRequester)
+                                .focusProperties {
+                                    onExit = {
+                                        if (requestedFocusDirection == FocusDirection.Down &&
+                                            showNavigation && showBottomBar && displayedFabState != null
+                                        ) {
+                                            fabFocusRequester.requestFocus()
+                                        }
+                                    }
+                                }
+                                .focusGroup()
+                        },
                 ) {
-                    content(it)
+                    content(
+                        PaddingValues(
+                            start = if (showNavRail) railWidth else 0.dp,
+                            bottom = it.calculateBottomPadding(),
+                        ),
+                    )
                 }
             },
         )
+        AnimatedVisibility(
+            visible = showNavRail && showNavigation,
+            enter = fadeIn() + expandHorizontally(expandFrom = Alignment.Start),
+            exit = fadeOut() + shrinkHorizontally(shrinkTowards = Alignment.Start),
+        ) {
+            NextNavigationRail(
+                state = state,
+                modifier = Modifier.onSizeChanged { railWidth = with(density) { it.width.toDp() } },
+            )
+        }
     }
 }
 
 /**
- * Returns `true` if dark theme should be used, as a function of the [uiState] and the
+ * Returns `true` if dark theme should be used, as a function of the [state] and the
  * current system context.
  */
 @Composable
 fun shouldUseDarkTheme(
-    uiState: MainActivityUiState,
-): Boolean = when (uiState) {
+    state: MainActivityUiState,
+): Boolean = when (state) {
     MainActivityUiState.Loading -> isSystemInDarkTheme()
-    is MainActivityUiState.Success -> when (uiState.preferences.themeConfig) {
+    is MainActivityUiState.Success -> when (state.preferences.themeConfig) {
         ThemeConfig.SYSTEM -> isSystemInDarkTheme()
         ThemeConfig.OFF -> false
         ThemeConfig.ON -> true
@@ -325,19 +292,19 @@ fun shouldUseDarkTheme(
 
 @Composable
 fun shouldUseHighContrastDarkTheme(
-    uiState: MainActivityUiState,
-): Boolean = when (uiState) {
+    state: MainActivityUiState,
+): Boolean = when (state) {
     MainActivityUiState.Loading -> false
-    is MainActivityUiState.Success -> uiState.preferences.useHighContrastDarkTheme
+    is MainActivityUiState.Success -> state.preferences.useHighContrastDarkTheme
 }
 
 /**
- * Returns `true` if the dynamic color is disabled, as a function of the [uiState].
+ * Returns `true` if the dynamic color is disabled, as a function of the [state].
  */
 @Composable
 fun shouldUseDynamicTheming(
-    uiState: MainActivityUiState,
-): Boolean = when (uiState) {
+    state: MainActivityUiState,
+): Boolean = when (state) {
     MainActivityUiState.Loading -> false
-    is MainActivityUiState.Success -> uiState.preferences.useDynamicColors
+    is MainActivityUiState.Success -> state.preferences.useDynamicColors
 }

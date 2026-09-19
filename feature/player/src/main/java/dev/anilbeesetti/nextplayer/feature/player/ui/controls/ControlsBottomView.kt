@@ -5,11 +5,13 @@ import androidx.compose.animation.core.animateDpAsState
 import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.horizontalScroll
 import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.WindowInsets
@@ -22,10 +24,14 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.systemBars
 import androidx.compose.foundation.layout.union
 import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.layout.widthIn
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.rounded.NavigateNext
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
+import androidx.compose.material3.LocalContentColor
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Slider
 import androidx.compose.material3.Text
@@ -34,11 +40,12 @@ import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
-import androidx.compose.runtime.saveable.rememberSaveable
+import androidx.compose.runtime.retain.retain
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.draw.drawWithCache
 import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.focus.onFocusChanged
 import androidx.compose.ui.geometry.CornerRadius
@@ -46,30 +53,40 @@ import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.geometry.Rect
 import androidx.compose.ui.geometry.RoundRect
 import androidx.compose.ui.geometry.Size
+import androidx.compose.ui.graphics.ClipOp
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.Path
 import androidx.compose.ui.graphics.drawscope.DrawScope
+import androidx.compose.ui.graphics.drawscope.clipPath
+import androidx.compose.ui.hapticfeedback.HapticFeedbackType
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.platform.LocalHapticFeedback
 import androidx.compose.ui.platform.LocalLayoutDirection
 import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.semantics.onClick
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.LayoutDirection
 import androidx.compose.ui.unit.dp
 import androidx.media3.common.Player
 import androidx.media3.common.util.UnstableApi
+import androidx.media3.extractor.metadata.Chapter
 import dev.anilbeesetti.nextplayer.core.common.extensions.isTelevision
 import dev.anilbeesetti.nextplayer.core.model.VideoContentScale
 import dev.anilbeesetti.nextplayer.core.ui.R
+import dev.anilbeesetti.nextplayer.core.ui.components.tvFocusRing
 import dev.anilbeesetti.nextplayer.core.ui.extensions.copy
 import dev.anilbeesetti.nextplayer.feature.player.LocalUseMaterialYouControls
 import dev.anilbeesetti.nextplayer.feature.player.buttons.LoopButton
 import dev.anilbeesetti.nextplayer.feature.player.buttons.PlayerButton
 import dev.anilbeesetti.nextplayer.feature.player.buttons.ShuffleButton
 import dev.anilbeesetti.nextplayer.feature.player.extensions.drawableRes
-import dev.anilbeesetti.nextplayer.feature.player.extensions.noRippleClickable
 import dev.anilbeesetti.nextplayer.feature.player.state.MediaPresentationState
+import dev.anilbeesetti.nextplayer.feature.player.state.currentChapterIndex
 import dev.anilbeesetti.nextplayer.feature.player.state.durationFormatted
 import dev.anilbeesetti.nextplayer.feature.player.state.pendingPositionFormatted
 import dev.anilbeesetti.nextplayer.feature.player.state.positionFormatted
+import dev.anilbeesetti.nextplayer.feature.player.ui.titleOrDefault
 
 @OptIn(UnstableApi::class)
 @Composable
@@ -77,6 +94,7 @@ fun ControlsBottomView(
     modifier: Modifier = Modifier,
     player: Player,
     mediaPresentationState: MediaPresentationState,
+    onChaptersClick: () -> Unit,
     controlsAlignment: Alignment.Horizontal,
     videoContentScale: VideoContentScale,
     isPipSupported: Boolean,
@@ -93,48 +111,65 @@ fun ControlsBottomView(
     val systemBarsPadding = WindowInsets.systemBars.union(WindowInsets.displayCutout).asPaddingValues()
     val context = LocalContext.current
     val isTv = remember { context.isTelevision }
+    val chapters = mediaPresentationState.chapters
+    val currentChapterIndex = mediaPresentationState.currentChapterIndex
     Column(
         modifier = modifier
             .padding(systemBarsPadding.copy(top = 0.dp))
-            .padding(horizontal = 8.dp)
+            .padding(horizontal = 16.dp)
             .padding(top = 16.dp)
             .padding(bottom = 16.dp.takeIf { systemBarsPadding.calculateBottomPadding() == 0.dp } ?: 0.dp),
-        verticalArrangement = Arrangement.spacedBy(4.dp)
+        verticalArrangement = Arrangement.spacedBy(4.dp),
     ) {
         Row(
-            modifier = Modifier.padding(horizontal = 8.dp),
             verticalAlignment = Alignment.CenterVertically,
+            horizontalArrangement = Arrangement.spacedBy(8.dp),
         ) {
-            var showPendingPosition by rememberSaveable { mutableStateOf(false) }
+            var showPendingPosition by retain { mutableStateOf(false) }
 
-            Row(
-                verticalAlignment = Alignment.CenterVertically,
-                modifier = if (isTv) {
-                    Modifier
-                } else {
-                    Modifier.noRippleClickable {
-                        showPendingPosition = !showPendingPosition
-                    }
-                },
-            ) {
+            PillButton(onClick = { showPendingPosition = !showPendingPosition }) {
                 Text(
-                    text = when (showPendingPosition) {
-                        true -> "-${mediaPresentationState.pendingPositionFormatted}"
-                        false -> mediaPresentationState.positionFormatted
+                    text = buildString {
+                        append(
+                            when (showPendingPosition) {
+                                true -> "-${mediaPresentationState.pendingPositionFormatted}"
+                                false -> mediaPresentationState.positionFormatted
+                            },
+                        )
+                        append(" / ")
+                        append(mediaPresentationState.durationFormatted)
                     },
-                    style = MaterialTheme.typography.bodyMedium,
-                    color = Color.White,
+                    style = MaterialTheme.typography.labelLarge,
                 )
-                Text(
-                    text = " / ",
-                    style = MaterialTheme.typography.bodyMedium,
-                    color = Color.White,
-                )
-                Text(
-                    text = mediaPresentationState.durationFormatted,
-                    style = MaterialTheme.typography.bodyMedium,
-                    color = Color.White,
-                )
+            }
+
+            if (chapters.isNotEmpty()) {
+                PillButton(
+                    enabled = player.isCurrentMediaItemSeekable,
+                    onClick = onChaptersClick,
+                    onClickLabel = stringResource(R.string.show_chapters),
+                    contentPadding = PaddingValues(vertical = 1.dp, horizontal = 8.dp).copy(end = 2.dp),
+                ) {
+                    Row(
+                        modifier = Modifier,
+                        verticalAlignment = Alignment.CenterVertically,
+                        horizontalArrangement = Arrangement.spacedBy(4.dp),
+                    ) {
+                        Text(
+                            text = chapters.getOrNull(currentChapterIndex)?.titleOrDefault(currentChapterIndex)
+                                ?: stringResource(R.string.chapters),
+                            modifier = Modifier.weight(1f, fill = false),
+                            style = MaterialTheme.typography.labelLarge,
+                            maxLines = 1,
+                            overflow = TextOverflow.Ellipsis,
+                        )
+                        Icon(
+                            imageVector = Icons.AutoMirrored.Rounded.NavigateNext,
+                            contentDescription = null,
+                            modifier = Modifier.size(16.dp),
+                        )
+                    }
+                }
             }
 
             Spacer(modifier = Modifier.weight(1f))
@@ -155,6 +190,7 @@ fun ControlsBottomView(
             modifier = seekBarModifier,
             position = mediaPresentationState.position.toFloat(),
             duration = mediaPresentationState.duration.toFloat(),
+            chapters = chapters,
             onSeek = { onSeek(it.toLong()) },
             onSeekFinished = { onSeekEnd() },
         )
@@ -163,7 +199,7 @@ fun ControlsBottomView(
                 .fillMaxWidth()
                 .horizontalScroll(rememberScrollState()),
             verticalAlignment = Alignment.CenterVertically,
-            horizontalArrangement = Arrangement.spacedBy(8.dp, alignment = controlsAlignment),
+            horizontalArrangement = Arrangement.spacedBy(0.dp, alignment = controlsAlignment),
         ) {
             PlayerButton(onClick = onLockControlsClick) {
                 Icon(
@@ -200,15 +236,62 @@ fun ControlsBottomView(
     }
 }
 
+@Composable
+fun PillButton(
+    modifier: Modifier = Modifier,
+    enabled: Boolean = true,
+    onClick: () -> Unit,
+    onClickLabel: String? = null,
+    contentPadding: PaddingValues = PaddingValues(horizontal = 8.dp, vertical = 1.dp),
+    content: @Composable () -> Unit,
+) {
+    val context = LocalContext.current
+    val isTv = remember { context.isTelevision }
+    Box(
+        modifier = modifier
+            .clip(CircleShape)
+            .background(Color.Black.copy(alpha = 0.2f))
+            .widthIn(max = 360.dp)
+            .padding(contentPadding)
+            .tvFocusRing(isTv)
+            .clickable(
+                enabled = enabled,
+                onClick = onClick,
+                onClickLabel = onClickLabel,
+            ),
+    ) {
+        CompositionLocalProvider(
+            value = LocalContentColor provides Color.White,
+            content = content,
+        )
+    }
+}
+
 @kotlin.OptIn(ExperimentalMaterial3Api::class)
 @Composable
-private fun PlayerSeekbar(
+internal fun PlayerSeekbar(
     modifier: Modifier = Modifier,
     position: Float,
     duration: Float,
+    chapters: List<Chapter>,
     onSeek: (Float) -> Unit,
     onSeekFinished: () -> Unit,
 ) {
+    val hapticFeedback = LocalHapticFeedback.current
+    var lastSeekChapterIndex by remember(chapters) { mutableStateOf<Int?>(null) }
+    val onValueChange: (Float) -> Unit = { value ->
+        val chapterIndex = chapters.currentChapterIndex(value.toLong())
+        val previousChapterIndex = lastSeekChapterIndex ?: chapters.currentChapterIndex(position.toLong())
+        if (chapterIndex != previousChapterIndex) {
+            hapticFeedback.performHapticFeedback(HapticFeedbackType.SegmentTick)
+        }
+        lastSeekChapterIndex = chapterIndex
+        onSeek(value)
+    }
+    val onValueChangeFinished = {
+        lastSeekChapterIndex = null
+        onSeekFinished()
+    }
     var isFocused by remember { mutableStateOf(false) }
     val focusModifier = modifier
         .fillMaxWidth()
@@ -218,19 +301,21 @@ private fun PlayerSeekbar(
             MaterialYouSlider(
                 modifier = focusModifier,
                 isFocused = isFocused,
+                chapters = chapters,
                 value = position,
                 valueRange = 0f..duration,
-                onValueChange = onSeek,
-                onValueChangeFinished = onSeekFinished,
+                onValueChange = onValueChange,
+                onValueChangeFinished = onValueChangeFinished,
             )
         } else {
             SimpleSlider(
                 modifier = focusModifier,
                 isFocused = isFocused,
+                chapters = chapters,
                 value = position,
                 valueRange = 0f..duration,
-                onValueChange = onSeek,
-                onValueChangeFinished = onSeekFinished,
+                onValueChange = onValueChange,
+                onValueChangeFinished = onValueChangeFinished,
             )
         }
     }
@@ -245,6 +330,7 @@ private fun MaterialYouSlider(
     onValueChange: (Float) -> Unit,
     onValueChangeFinished: () -> Unit,
     isFocused: Boolean = false,
+    chapters: List<Chapter> = emptyList(),
 ) {
     val primaryColor = MaterialTheme.colorScheme.primary
     val interactionSource = remember { MutableInteractionSource() }
@@ -267,7 +353,8 @@ private fun MaterialYouSlider(
             Canvas(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .height(trackHeight),
+                    .height(trackHeight)
+                    .chapterGaps(chapters, valueRange.endInclusive),
             ) {
                 val min = sliderState.valueRange.start
                 val max = sliderState.valueRange.endInclusive
@@ -366,6 +453,7 @@ private fun SimpleSlider(
     onValueChange: (Float) -> Unit,
     onValueChangeFinished: () -> Unit,
     isFocused: Boolean = false,
+    chapters: List<Chapter> = emptyList(),
 ) {
     val thumbSize by animateDpAsState(if (isFocused) 22.dp else 16.dp, label = "thumbSize")
     Slider(
@@ -376,7 +464,8 @@ private fun SimpleSlider(
         modifier = modifier.height(24.dp),
         thumb = {
             Box(
-                modifier = Modifier.size(thumbSize)
+                modifier = Modifier
+                    .size(thumbSize)
                     .shadow(4.dp, CircleShape)
                     .background(Color.White)
                     .then(
@@ -393,18 +482,35 @@ private fun SimpleSlider(
                 modifier = Modifier
                     .fillMaxWidth()
                     .height(4.dp)
+                    .chapterGaps(chapters, valueRange.endInclusive)
                     .clip(MaterialTheme.shapes.extraSmall)
-                    .background(Color.White.copy(0.5f))
+                    .background(Color.White.copy(0.5f)),
             ) {
                 if (valueRange.endInclusive > 0f) {
                     Box(
                         modifier = Modifier
                             .fillMaxWidth(value / valueRange.endInclusive)
                             .height(4.dp)
-                            .background(MaterialTheme.colorScheme.primary)
+                            .background(MaterialTheme.colorScheme.primary),
                     )
                 }
             }
-        }
+        },
     )
+}
+
+private fun Modifier.chapterGaps(chapters: List<Chapter>, duration: Float): Modifier = drawWithCache {
+    val gaps = Path()
+    if (duration > 0f) {
+        val halfGap = 1.5.dp.toPx()
+        chapters.forEach { chapter ->
+            if (chapter.startTimeMs > 0 && chapter.startTimeMs < duration) {
+                val x = size.width * (chapter.startTimeMs / duration)
+                gaps.addRect(Rect(x - halfGap, 0f, x + halfGap, size.height))
+            }
+        }
+    }
+    onDrawWithContent {
+        clipPath(gaps, ClipOp.Difference) { this@onDrawWithContent.drawContent() }
+    }
 }
