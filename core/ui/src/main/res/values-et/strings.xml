@@ -505,4 +505,9 @@
     <string name="audio_decoder_mode_not_supported">Heli dekodeerija pole toetatud: %1$s</string>
     <string name="no_supported_decoder">Selle meediumi jaoks ei leidu toetatud dekodeerijat.</string>
     <string name="trash_empty_description">Prügikasti visatavad videod saavad olema nähtavad siin. Võid neid nii taastada või lõplikult kustutada.</string>
+    <string name="open_audio">Ava kohalik helifail</string>
+    <string name="error_opening_audio">Selle helifaili avamine ei õnnestunud</string>
+    <string name="chapters">Peatükid</string>
+    <string name="chapter_number">%1$d. peatükk</string>
+    <string name="show_chapters">Näita peatükke</string>
 </resources>
