@@ -374,21 +374,26 @@ class PlayerService : MediaSessionService() {
             }
         }
 
-        override fun onRenderedFirstFrame() {
-            super.onRenderedFirstFrame()
-            val player = mediaSession?.player ?: return
+        override fun onEvents(player: Player, events: Player.Events) {
+            // Consecutive items can reuse the renderer without another first-frame callback.
+            if (player.playbackState != Player.STATE_READY ||
+                !events.containsAny(Player.EVENT_MEDIA_ITEM_TRANSITION, Player.EVENT_PLAYBACK_STATE_CHANGED)
+            ) {
+                return
+            }
             val currentMediaItem = player.currentMediaItem ?: return
+            val duration = player.duration.validDurationOrNull()
             // Update the media metadata duration so that it will be used later in position discontinuity handling
             player.replaceMediaItem(
                 player.currentMediaItemIndex,
-                currentMediaItem.copy(durationMs = player.duration.coerceAtLeast(0)),
+                currentMediaItem.copy(durationMs = duration ?: 0),
             )
 
             serviceScope.launch {
                 mediaRepository.updateMediumLastPlayedTime(
                     uri = currentMediaItem.mediaId,
                     lastPlayedTime = System.currentTimeMillis(),
-                    duration = player.duration.validDurationOrNull(),
+                    duration = duration,
                 )
             }
         }

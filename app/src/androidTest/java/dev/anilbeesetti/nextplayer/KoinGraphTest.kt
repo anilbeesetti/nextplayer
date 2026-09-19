@@ -86,7 +86,7 @@ class KoinGraphTest {
                 viewModel<TrashViewModel>(store, TrashViewModel.Output({}, {}))
                 viewModel<NetworkViewModel>(store, NetworkViewModel.Output({}, {}, {}, {}, {}))
                 viewModel<AddConnectionViewModel>(store, AddConnectionViewModel.Input(null), AddConnectionViewModel.Output({}))
-                viewModel<NetworkBrowseViewModel>(store, NetworkBrowseViewModel.Input(-1, "/"), NetworkBrowseViewModel.Output({}, {}, { _, _ -> }))
+                viewModel<NetworkBrowseViewModel>(store, NetworkBrowseViewModel.Input(-1, "/"), NetworkBrowseViewModel.Output({}, { _, _ -> }, { _, _ -> }))
                 viewModel<PlaylistListViewModel>(store, PlaylistListViewModel.Output({}, {}))
                 viewModel<PlaylistDetailViewModel>(store, PlaylistDetailViewModel.Input(-1), PlaylistDetailViewModel.Output({}, { _, _ -> }))
                 viewModel<SearchViewModel>(store, SearchViewModel.Output({}, {}, {}))
