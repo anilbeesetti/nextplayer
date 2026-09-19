@@ -22,7 +22,7 @@ internal fun NextButton(player: Player, modifier: Modifier = Modifier) {
 
     PlayerButton(
         modifier = modifier.size(48.dp),
-        isEnabled = state.isEnabled,
+        enabled = state.isEnabled,
         onClick = {
             state.onClick()
             controlsVisibilityState?.showControls()

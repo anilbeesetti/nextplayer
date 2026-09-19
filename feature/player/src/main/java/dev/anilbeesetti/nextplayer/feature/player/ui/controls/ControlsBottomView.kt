@@ -27,6 +27,8 @@ import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.layout.widthIn
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.foundation.text.BasicText
+import androidx.compose.foundation.text.TextAutoSize
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.rounded.NavigateNext
 import androidx.compose.material3.ExperimentalMaterial3Api
@@ -64,14 +66,16 @@ import androidx.compose.ui.platform.LocalHapticFeedback
 import androidx.compose.ui.platform.LocalLayoutDirection
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
-import androidx.compose.ui.semantics.onClick
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.LayoutDirection
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
 import androidx.media3.common.Player
 import androidx.media3.common.util.UnstableApi
 import androidx.media3.extractor.metadata.Chapter
 import dev.anilbeesetti.nextplayer.core.common.extensions.isTelevision
+import dev.anilbeesetti.nextplayer.core.common.extensions.round
 import dev.anilbeesetti.nextplayer.core.model.VideoContentScale
 import dev.anilbeesetti.nextplayer.core.ui.R
 import dev.anilbeesetti.nextplayer.core.ui.components.tvFocusRing
@@ -79,6 +83,7 @@ import dev.anilbeesetti.nextplayer.core.ui.extensions.copy
 import dev.anilbeesetti.nextplayer.feature.player.LocalUseMaterialYouControls
 import dev.anilbeesetti.nextplayer.feature.player.buttons.LoopButton
 import dev.anilbeesetti.nextplayer.feature.player.buttons.PlayerButton
+import dev.anilbeesetti.nextplayer.feature.player.buttons.PlayerButtonBlackAlpha
 import dev.anilbeesetti.nextplayer.feature.player.buttons.ShuffleButton
 import dev.anilbeesetti.nextplayer.feature.player.extensions.drawableRes
 import dev.anilbeesetti.nextplayer.feature.player.state.MediaPresentationState
@@ -86,6 +91,7 @@ import dev.anilbeesetti.nextplayer.feature.player.state.currentChapterIndex
 import dev.anilbeesetti.nextplayer.feature.player.state.durationFormatted
 import dev.anilbeesetti.nextplayer.feature.player.state.pendingPositionFormatted
 import dev.anilbeesetti.nextplayer.feature.player.state.positionFormatted
+import dev.anilbeesetti.nextplayer.feature.player.state.rememberPlaybackParametersState
 import dev.anilbeesetti.nextplayer.feature.player.ui.titleOrDefault
 
 @OptIn(UnstableApi::class)
@@ -103,6 +109,7 @@ fun ControlsBottomView(
     onVideoContentScaleLongClick: () -> Unit,
     onLockControlsClick: () -> Unit,
     onPictureInPictureClick: () -> Unit,
+    onPlaybackSpeedClick: () -> Unit,
     onRotateClick: () -> Unit,
     onPlayInBackgroundClick: () -> Unit,
     onSeek: (Long) -> Unit,
@@ -113,6 +120,7 @@ fun ControlsBottomView(
     val isTv = remember { context.isTelevision }
     val chapters = mediaPresentationState.chapters
     val currentChapterIndex = mediaPresentationState.currentChapterIndex
+    val playbackParametersState = rememberPlaybackParametersState(player)
     Column(
         modifier = modifier
             .padding(systemBarsPadding.copy(top = 0.dp))
@@ -122,12 +130,16 @@ fun ControlsBottomView(
         verticalArrangement = Arrangement.spacedBy(4.dp),
     ) {
         Row(
-            verticalAlignment = Alignment.CenterVertically,
+            verticalAlignment = Alignment.Bottom,
             horizontalArrangement = Arrangement.spacedBy(8.dp),
         ) {
             var showPendingPosition by retain { mutableStateOf(false) }
 
-            PillButton(onClick = { showPendingPosition = !showPendingPosition }) {
+            PlayerButton(
+                onClick = { showPendingPosition = !showPendingPosition },
+                containerColor = PlayerButtonBlackAlpha,
+                contentPadding = PaddingValues(horizontal = 8.dp, vertical = 1.dp)
+            ) {
                 Text(
                     text = buildString {
                         append(
@@ -144,10 +156,10 @@ fun ControlsBottomView(
             }
 
             if (chapters.isNotEmpty()) {
-                PillButton(
+                PlayerButton(
                     enabled = player.isCurrentMediaItemSeekable,
                     onClick = onChaptersClick,
-                    onClickLabel = stringResource(R.string.show_chapters),
+                    containerColor = PlayerButtonBlackAlpha,
                     contentPadding = PaddingValues(vertical = 1.dp, horizontal = 8.dp).copy(end = 2.dp),
                 ) {
                     Row(
@@ -173,16 +185,48 @@ fun ControlsBottomView(
             }
 
             Spacer(modifier = Modifier.weight(1f))
-            if (!isTv) {
+
+            Row(
+                horizontalArrangement = Arrangement.spacedBy(16.dp),
+                verticalAlignment = Alignment.CenterVertically,
+            ) {
                 PlayerButton(
-                    modifier = modifier.size(30.dp),
-                    onClick = onRotateClick,
+                    onClick = onPlaybackSpeedClick,
+                    containerColor = PlayerButtonBlackAlpha,
+                    contentPadding = PaddingValues(4.dp)
                 ) {
-                    Icon(
-                        painter = painterResource(R.drawable.ic_screen_rotation),
-                        contentDescription = null,
-                        modifier = Modifier.size(20.dp),
-                    )
+                    Box(
+                        modifier = Modifier.size(28.dp),
+                        contentAlignment = Alignment.Center
+                    ) {
+                        BasicText(
+                            text = playbackParametersState.speed.round(2).toString(),
+                            style = MaterialTheme.typography.labelLarge.copy(
+                                color = LocalContentColor.current,
+                                textAlign = TextAlign.Center
+                            ),
+                            maxLines = 1,
+                            autoSize = TextAutoSize.StepBased(
+                                maxFontSize = MaterialTheme.typography.labelLarge.fontSize,
+                                minFontSize = 6.sp,
+                                stepSize = 0.5.sp,
+                            ),
+                        )
+                    }
+                }
+
+                if (!isTv) {
+                    PlayerButton(
+                        onClick = onRotateClick,
+                        containerColor = PlayerButtonBlackAlpha,
+                        contentPadding = PaddingValues(8.dp)
+                    ) {
+                        Icon(
+                            painter = painterResource(R.drawable.ic_screen_rotation),
+                            contentDescription = null,
+                            modifier = Modifier.size(20.dp),
+                        )
+                    }
                 }
             }
         }
@@ -199,7 +243,7 @@ fun ControlsBottomView(
                 .fillMaxWidth()
                 .horizontalScroll(rememberScrollState()),
             verticalAlignment = Alignment.CenterVertically,
-            horizontalArrangement = Arrangement.spacedBy(0.dp, alignment = controlsAlignment),
+            horizontalArrangement = Arrangement.spacedBy(8.dp, alignment = controlsAlignment),
         ) {
             PlayerButton(onClick = onLockControlsClick) {
                 Icon(
@@ -236,38 +280,7 @@ fun ControlsBottomView(
     }
 }
 
-@Composable
-fun PillButton(
-    modifier: Modifier = Modifier,
-    enabled: Boolean = true,
-    onClick: () -> Unit,
-    onClickLabel: String? = null,
-    contentPadding: PaddingValues = PaddingValues(horizontal = 8.dp, vertical = 1.dp),
-    content: @Composable () -> Unit,
-) {
-    val context = LocalContext.current
-    val isTv = remember { context.isTelevision }
-    Box(
-        modifier = modifier
-            .clip(CircleShape)
-            .background(Color.Black.copy(alpha = 0.2f))
-            .widthIn(max = 360.dp)
-            .padding(contentPadding)
-            .tvFocusRing(isTv)
-            .clickable(
-                enabled = enabled,
-                onClick = onClick,
-                onClickLabel = onClickLabel,
-            ),
-    ) {
-        CompositionLocalProvider(
-            value = LocalContentColor provides Color.White,
-            content = content,
-        )
-    }
-}
-
-@kotlin.OptIn(ExperimentalMaterial3Api::class)
+@OptIn(ExperimentalMaterial3Api::class, UnstableApi::class)
 @Composable
 internal fun PlayerSeekbar(
     modifier: Modifier = Modifier,

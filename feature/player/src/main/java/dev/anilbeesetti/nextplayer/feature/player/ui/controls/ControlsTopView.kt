@@ -2,14 +2,19 @@ package dev.anilbeesetti.nextplayer.feature.player.ui.controls
 
 import androidx.annotation.OptIn
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.asPaddingValues
 import androidx.compose.foundation.layout.displayCutout
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.systemBars
 import androidx.compose.foundation.layout.union
+import androidx.compose.foundation.text.BasicText
+import androidx.compose.foundation.text.TextAutoSize
 import androidx.compose.material3.Icon
+import androidx.compose.material3.LocalContentColor
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -20,8 +25,10 @@ import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.semantics.contentDescription
 import androidx.compose.ui.semantics.semantics
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
 import androidx.media3.common.util.UnstableApi
 import dev.anilbeesetti.nextplayer.core.ui.R
 import dev.anilbeesetti.nextplayer.core.ui.extensions.copy
@@ -38,12 +45,10 @@ fun ControlsTopView(
     onDecoderClick: () -> Unit = {},
     onAudioClick: () -> Unit = {},
     onSubtitleClick: () -> Unit = {},
-    onPlaybackSpeedClick: () -> Unit = {},
     onPlaylistClick: () -> Unit = {},
     onBackClick: () -> Unit,
 ) {
     val systemBarsPadding = WindowInsets.systemBars.union(WindowInsets.displayCutout).asPaddingValues()
-    val videoDecoderLabel = videoDecoderMode?.labelRes?.let { stringResource(it) } ?: "-"
     val decoderDescription = stringResource(R.string.select_decoders)
     // Add top spacing only when the system bars don't already provide it (e.g. on TV / landscape).
     val extraTopPadding = if (systemBarsPadding.calculateTopPadding() == 0.dp) 16.dp else 0.dp
@@ -71,25 +76,25 @@ fun ControlsTopView(
             modifier = Modifier.weight(1f),
         )
 
-        Row(verticalAlignment = Alignment.CenterVertically) {
-            PlayerButton(
-                modifier = Modifier.semantics { contentDescription = decoderDescription },
-                onClick = onDecoderClick,
-            ) {
-                Text(
-                    text = videoDecoderLabel,
-                    style = MaterialTheme.typography.labelLarge,
-                )
+        Row(
+            verticalAlignment = Alignment.CenterVertically,
+            horizontalArrangement = Arrangement.spacedBy(8.dp),
+        ) {
+            videoDecoderMode?.labelRes?.let { videoDecoderLabel ->
+                PlayerButton(
+                    modifier = Modifier.semantics { contentDescription = decoderDescription },
+                    onClick = onDecoderClick,
+                ) {
+                    Text(
+                        text = stringResource(videoDecoderLabel),
+                        style = MaterialTheme.typography.labelLarge,
+                        maxLines = 1,
+                    )
+                }
             }
             PlayerButton(onClick = onPlaylistClick) {
                 Icon(
                     painter = painterResource(R.drawable.ic_playlist),
-                    contentDescription = null,
-                )
-            }
-            PlayerButton(onClick = onPlaybackSpeedClick) {
-                Icon(
-                    painter = painterResource(R.drawable.ic_speed),
                     contentDescription = null,
                 )
             }

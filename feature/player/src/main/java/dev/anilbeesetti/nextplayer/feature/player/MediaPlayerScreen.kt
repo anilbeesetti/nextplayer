@@ -395,10 +395,6 @@ fun MediaPlayerScreen(
                                         controlsVisibilityState.hideControls()
                                         overlayView = OverlayView.SUBTITLE_SELECTOR
                                     },
-                                    onPlaybackSpeedClick = {
-                                        controlsVisibilityState.hideControls()
-                                        overlayView = OverlayView.PLAYBACK_SPEED
-                                    },
                                     onPlaylistClick = {
                                         controlsVisibilityState.hideControls()
                                         overlayView = OverlayView.PLAYLIST
@@ -448,6 +444,10 @@ fun MediaPlayerScreen(
                                     },
                                     onSeek = seekGestureState::onSeek,
                                     onSeekEnd = seekGestureState::onSeekEnd,
+                                    onPlaybackSpeedClick = {
+                                        controlsVisibilityState.hideControls()
+                                        overlayView = OverlayView.PLAYBACK_SPEED
+                                    },
                                     onRotateClick = rotationState::rotate,
                                     onPlayInBackgroundClick = onPlayInBackgroundClick,
                                     onLockControlsClick = {
