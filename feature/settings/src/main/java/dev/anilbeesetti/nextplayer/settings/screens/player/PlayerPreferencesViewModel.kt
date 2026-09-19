@@ -11,7 +11,9 @@ import dev.anilbeesetti.nextplayer.core.model.ScreenOrientation
 import dev.anilbeesetti.nextplayer.core.ui.base.MviViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
-import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.SharingStarted
+import kotlinx.coroutines.flow.combine
+import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import org.koin.core.annotation.InjectedParam
@@ -32,15 +34,16 @@ class PlayerPreferencesViewModel(
             preferences = preferencesRepository.playerPreferences.value,
         ),
     )
-    override val state: StateFlow<PlayerPreferencesUiState> = stateInternal.asStateFlow()
-
-    init {
-        viewModelScope.launch {
-            preferencesRepository.playerPreferences.collect { preferences ->
-                stateInternal.update { it.copy(preferences = preferences) }
-            }
-        }
-    }
+    override val state: StateFlow<PlayerPreferencesUiState> = combine(
+        stateInternal,
+        preferencesRepository.playerPreferences,
+    ) { state, preferences ->
+        state.copy(preferences = preferences)
+    }.stateIn(
+        scope = viewModelScope,
+        started = SharingStarted.WhileSubscribed(stopTimeoutMillis = 5000L),
+        initialValue = stateInternal.value,
+    )
 
     override fun onAction(action: PlayerPreferencesUiEvent) {
         when (action) {

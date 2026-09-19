@@ -73,7 +73,7 @@ class PlayerActivity : ComponentActivity() {
     private val playlistRepository: PlaylistRepository by inject()
 
     private val viewModel: PlayerViewModel by viewModel()
-    val playerPreferences get() = viewModel.uiState.value.playerPreferences
+    val playerPreferences get() = viewModel.playerPreferences
 
     private val onWindowAttributesChangedListener = CopyOnWriteArrayList<Consumer<WindowManager.LayoutParams?>>()
 

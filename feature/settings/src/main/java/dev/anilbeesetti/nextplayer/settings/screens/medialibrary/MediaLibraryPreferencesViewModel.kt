@@ -4,10 +4,10 @@ import androidx.lifecycle.viewModelScope
 import dev.anilbeesetti.nextplayer.core.data.repository.PreferencesRepository
 import dev.anilbeesetti.nextplayer.core.model.ApplicationPreferences
 import dev.anilbeesetti.nextplayer.core.ui.base.MviViewModel
-import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
-import kotlinx.coroutines.flow.asStateFlow
-import kotlinx.coroutines.flow.update
+import kotlinx.coroutines.flow.map
+import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
 import org.koin.core.annotation.InjectedParam
 import org.koin.core.annotation.KoinViewModel
@@ -24,18 +24,13 @@ class MediaLibraryPreferencesViewModel(
         val openThumbnails: () -> Unit,
     )
 
-    private val stateInternal = MutableStateFlow(MediaLibraryPreferencesUiState())
-    override val state: StateFlow<MediaLibraryPreferencesUiState> = stateInternal.asStateFlow()
-
-    init {
-        viewModelScope.launch {
-            preferencesRepository.applicationPreferences.collect {
-                stateInternal.update { currentState ->
-                    currentState.copy(preferences = it)
-                }
-            }
-        }
-    }
+    override val state: StateFlow<MediaLibraryPreferencesUiState> = preferencesRepository.applicationPreferences
+        .map { MediaLibraryPreferencesUiState(preferences = it) }
+        .stateIn(
+            scope = viewModelScope,
+            started = SharingStarted.WhileSubscribed(stopTimeoutMillis = 5000L),
+            initialValue = MediaLibraryPreferencesUiState(preferencesRepository.applicationPreferences.value),
+        )
 
     override fun onAction(action: MediaLibraryPreferencesUiEvent) {
         when (action) {

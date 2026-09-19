@@ -8,10 +8,10 @@ import dev.anilbeesetti.nextplayer.core.media.extensions.clearAllCache
 import dev.anilbeesetti.nextplayer.core.model.ApplicationPreferences
 import dev.anilbeesetti.nextplayer.core.model.ThumbnailGenerationStrategy
 import dev.anilbeesetti.nextplayer.core.ui.base.MviViewModel
-import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
-import kotlinx.coroutines.flow.asStateFlow
-import kotlinx.coroutines.flow.update
+import kotlinx.coroutines.flow.map
+import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
 import org.koin.core.annotation.InjectedParam
 import org.koin.core.annotation.KoinViewModel
@@ -27,20 +27,13 @@ class ThumbnailPreferencesViewModel(
         val navigateUp: () -> Unit,
     )
 
-    private val stateInternal = MutableStateFlow(
-        ThumbnailPreferencesUiState(
-            preferences = preferencesRepository.applicationPreferences.value,
-        ),
-    )
-    override val state: StateFlow<ThumbnailPreferencesUiState> = stateInternal.asStateFlow()
-
-    init {
-        viewModelScope.launch {
-            preferencesRepository.applicationPreferences.collect { preferences ->
-                stateInternal.update { it.copy(preferences = preferences) }
-            }
-        }
-    }
+    override val state: StateFlow<ThumbnailPreferencesUiState> = preferencesRepository.applicationPreferences
+        .map { ThumbnailPreferencesUiState(preferences = it) }
+        .stateIn(
+            scope = viewModelScope,
+            started = SharingStarted.WhileSubscribed(stopTimeoutMillis = 5000L),
+            initialValue = ThumbnailPreferencesUiState(preferencesRepository.applicationPreferences.value),
+        )
 
     override fun onAction(action: ThumbnailPreferencesEvent) {
         when (action) {
@@ -53,7 +46,7 @@ class ThumbnailPreferencesViewModel(
 
     private fun updateStrategy(strategy: ThumbnailGenerationStrategy) {
         viewModelScope.launch {
-            val currentStrategy = state.value.preferences.thumbnailGenerationStrategy
+            val currentStrategy = preferencesRepository.applicationPreferences.value.thumbnailGenerationStrategy
             preferencesRepository.updateApplicationPreferences {
                 it.copy(thumbnailGenerationStrategy = strategy)
             }
@@ -66,7 +59,7 @@ class ThumbnailPreferencesViewModel(
 
     private fun updateFramePosition(position: Float) {
         viewModelScope.launch {
-            val currentPosition = state.value.preferences.thumbnailFramePosition
+            val currentPosition = preferencesRepository.applicationPreferences.value.thumbnailFramePosition
             preferencesRepository.updateApplicationPreferences {
                 it.copy(thumbnailFramePosition = position)
             }

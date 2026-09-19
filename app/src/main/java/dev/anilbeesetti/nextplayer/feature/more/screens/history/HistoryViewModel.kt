@@ -7,11 +7,13 @@ import dev.anilbeesetti.nextplayer.core.model.ApplicationPreferences
 import dev.anilbeesetti.nextplayer.core.model.Video
 import dev.anilbeesetti.nextplayer.core.ui.base.DataState
 import dev.anilbeesetti.nextplayer.core.ui.base.MviViewModel
-import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
-import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.catch
-import kotlinx.coroutines.flow.update
+import kotlinx.coroutines.flow.combine
+import kotlinx.coroutines.flow.map
+import kotlinx.coroutines.flow.onStart
+import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
 import org.koin.core.annotation.InjectedParam
 import org.koin.core.annotation.KoinViewModel
@@ -28,25 +30,19 @@ class HistoryViewModel(
         val playVideo: (String) -> Unit,
     )
 
-    private val stateInternal = MutableStateFlow(HistoryUiState())
-    override val state: StateFlow<HistoryUiState> = stateInternal.asStateFlow()
-
-    init {
-        viewModelScope.launch {
-            mediaRepository.observePlaybackHistory()
-                .catch { error ->
-                    stateInternal.update { it.copy(history = DataState.Error(error)) }
-                }
-                .collect { history ->
-                    stateInternal.update { it.copy(history = DataState.Success(history)) }
-                }
-        }
-        viewModelScope.launch {
-            preferencesRepository.applicationPreferences.collect { preferences ->
-                stateInternal.update { it.copy(preferences = preferences) }
-            }
-        }
-    }
+    override val state: StateFlow<HistoryUiState> = combine(
+        mediaRepository.observePlaybackHistory()
+            .map<List<Video>, DataState<List<Video>>> { DataState.Success(it) }
+            .onStart { emit(DataState.Loading) }
+            .catch { emit(DataState.Error(it)) },
+        preferencesRepository.applicationPreferences,
+    ) { history, preferences ->
+        HistoryUiState(history = history, preferences = preferences)
+    }.stateIn(
+        scope = viewModelScope,
+        started = SharingStarted.WhileSubscribed(stopTimeoutMillis = 5000L),
+        initialValue = HistoryUiState(),
+    )
 
     override fun onAction(action: HistoryAction) {
         when (action) {

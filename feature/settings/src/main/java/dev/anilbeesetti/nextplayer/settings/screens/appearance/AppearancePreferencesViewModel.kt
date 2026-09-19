@@ -8,7 +8,9 @@ import dev.anilbeesetti.nextplayer.core.model.ThemeConfig
 import dev.anilbeesetti.nextplayer.core.ui.base.MviViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
-import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.SharingStarted
+import kotlinx.coroutines.flow.combine
+import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import org.koin.core.annotation.InjectedParam
@@ -29,15 +31,16 @@ class AppearancePreferencesViewModel(
             preferences = preferencesRepository.applicationPreferences.value,
         ),
     )
-    override val state: StateFlow<AppearancePreferencesUiState> = stateInternal.asStateFlow()
-
-    init {
-        viewModelScope.launch {
-            preferencesRepository.applicationPreferences.collect { preferences ->
-                stateInternal.update { it.copy(preferences = preferences) }
-            }
-        }
-    }
+    override val state: StateFlow<AppearancePreferencesUiState> = combine(
+        stateInternal,
+        preferencesRepository.applicationPreferences,
+    ) { state, preferences ->
+        state.copy(preferences = preferences)
+    }.stateIn(
+        scope = viewModelScope,
+        started = SharingStarted.WhileSubscribed(stopTimeoutMillis = 5000L),
+        initialValue = stateInternal.value,
+    )
 
     override fun onAction(action: AppearancePreferencesEvent) {
         when (action) {

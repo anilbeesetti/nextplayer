@@ -11,7 +11,11 @@ import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.cancel
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.collect
+import kotlinx.coroutines.flow.flow
+import kotlinx.coroutines.launch
 import kotlinx.coroutines.test.StandardTestDispatcher
+import kotlinx.coroutines.test.advanceTimeBy
 import kotlinx.coroutines.test.resetMain
 import kotlinx.coroutines.test.runCurrent
 import kotlinx.coroutines.test.runTest
@@ -56,7 +60,8 @@ class HistoryViewModelTest {
     }
 
     @Test
-    fun `history and preferences update independently without a state subscriber`() = runTest(dispatcher) {
+    fun `history and preferences update independently while subscribed`() = runTest(dispatcher) {
+        backgroundScope.launch { viewModel.state.collect() }
         runCurrent()
         val updatedVideo = Video.sample.copy(nameWithExtension = "Updated.mp4")
         history.value = listOf(updatedVideo)
@@ -80,6 +85,7 @@ class HistoryViewModelTest {
             preferencesRepository = preferences,
             output = HistoryViewModel.Output(navigateUp = {}, playVideo = {}),
         )
+        backgroundScope.launch { viewModel.state.collect() }
         preferences.updateApplicationPreferences { it.copy(showExtensionField = true) }
         runCurrent()
         assertEquals(DataState.Loading, viewModel.state.value.history)
@@ -88,6 +94,7 @@ class HistoryViewModelTest {
 
     @Test
     fun `observers are cancelled with the view model`() = runTest(dispatcher) {
+        backgroundScope.launch { viewModel.state.collect() }
         runCurrent()
         assertEquals(1, history.subscriptionCount.value)
 
@@ -102,11 +109,60 @@ class HistoryViewModelTest {
     }
 
     @Test
-    fun `clear history action updates state without a state subscriber`() = runTest(dispatcher) {
-        runCurrent()
+    fun `clear history works without subscribers and is reflected on subscription`() = runTest(dispatcher) {
         viewModel.onAction(HistoryAction.ClearHistory)
         runCurrent()
+        assertTrue(history.value.isEmpty())
+        assertEquals(0, history.subscriptionCount.value)
+
+        backgroundScope.launch { viewModel.state.collect() }
+        runCurrent()
         assertEquals(DataState.Success(emptyList<Video>()), viewModel.state.value.history)
+    }
+
+    @Test
+    fun `collection stops five seconds after the last subscriber and restarts with current data`() = runTest(dispatcher) {
+        runCurrent()
+        assertEquals(0, history.subscriptionCount.value)
+        val subscriber = backgroundScope.launch { viewModel.state.collect() }
+        runCurrent()
+        assertEquals(1, history.subscriptionCount.value)
+
+        subscriber.cancel()
+        runCurrent()
+        advanceTimeBy(4999)
+        runCurrent()
+        assertEquals(1, history.subscriptionCount.value)
+        advanceTimeBy(1)
+        runCurrent()
+        assertEquals(0, history.subscriptionCount.value)
+
+        history.value = emptyList()
+        backgroundScope.launch { viewModel.state.collect() }
+        runCurrent()
+        assertEquals(1, history.subscriptionCount.value)
+        assertEquals(DataState.Success(emptyList<Video>()), viewModel.state.value.history)
+    }
+
+    @Test
+    fun `history errors do not stop preference updates`() = runTest(dispatcher) {
+        viewModel.viewModelScope.cancel()
+        val error = IllegalStateException("History unavailable")
+        viewModel = HistoryViewModel(
+            mediaRepository = object : MediaRepository by repository {
+                override fun observePlaybackHistory() = flow<List<Video>> { throw error }
+            },
+            preferencesRepository = preferences,
+            output = HistoryViewModel.Output(navigateUp = {}, playVideo = {}),
+        )
+        backgroundScope.launch { viewModel.state.collect() }
+        runCurrent()
+        assertEquals(DataState.Error(error), viewModel.state.value.history)
+
+        preferences.updateApplicationPreferences { it.copy(showExtensionField = true) }
+        runCurrent()
+        assertEquals(DataState.Error(error), viewModel.state.value.history)
+        assertTrue(viewModel.state.value.preferences.showExtensionField)
     }
 
     @Test

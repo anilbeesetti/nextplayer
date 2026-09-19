@@ -13,9 +13,9 @@ import dev.anilbeesetti.nextplayer.core.model.Video
 import dev.anilbeesetti.nextplayer.core.model.VideoContentScale
 import dev.anilbeesetti.nextplayer.feature.player.state.SubtitleOptionsEvent
 import dev.anilbeesetti.nextplayer.feature.player.state.VideoZoomEvent
-import kotlinx.coroutines.flow.MutableStateFlow
-import kotlinx.coroutines.flow.asStateFlow
-import kotlinx.coroutines.flow.update
+import kotlinx.coroutines.flow.SharingStarted
+import kotlinx.coroutines.flow.map
+import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
 import org.koin.core.annotation.KoinViewModel
 
@@ -28,20 +28,16 @@ class PlayerViewModel(
 
     var playWhenReady: Boolean = true
 
-    private val internalUiState = MutableStateFlow(
-        PlayerUiState(
-            playerPreferences = preferencesRepository.playerPreferences.value,
-        ),
-    )
-    val uiState = internalUiState.asStateFlow()
+    val playerPreferences: PlayerPreferences
+        get() = preferencesRepository.playerPreferences.value
 
-    init {
-        viewModelScope.launch {
-            preferencesRepository.playerPreferences.collect { prefs ->
-                internalUiState.update { it.copy(playerPreferences = prefs) }
-            }
-        }
-    }
+    val uiState = preferencesRepository.playerPreferences
+        .map { PlayerUiState(playerPreferences = it) }
+        .stateIn(
+            scope = viewModelScope,
+            started = SharingStarted.WhileSubscribed(stopTimeoutMillis = 5000L),
+            initialValue = PlayerUiState(playerPreferences = playerPreferences),
+        )
 
     suspend fun getPlaylistFromUri(uri: Uri): List<Video> {
         return getSortedPlaylistUseCase.invoke(uri)

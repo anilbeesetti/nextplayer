@@ -9,10 +9,10 @@ import dev.anilbeesetti.nextplayer.core.model.NetworkConnection
 import dev.anilbeesetti.nextplayer.core.ui.base.MviViewModel
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.NonCancellable
-import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
-import kotlinx.coroutines.flow.asStateFlow
-import kotlinx.coroutines.flow.update
+import kotlinx.coroutines.flow.map
+import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import org.koin.core.annotation.InjectedParam
@@ -38,16 +38,13 @@ class NetworkViewModel(
         val openStream: (Uri) -> Unit,
     )
 
-    private val stateInternal = MutableStateFlow(NetworkUiState())
-    override val state: StateFlow<NetworkUiState> = stateInternal.asStateFlow()
-
-    init {
-        viewModelScope.launch {
-            repository.getConnections().collect { connections ->
-                stateInternal.update { it.copy(connections = connections, isLoading = false) }
-            }
-        }
-    }
+    override val state: StateFlow<NetworkUiState> = repository.getConnections()
+        .map { NetworkUiState(connections = it, isLoading = false) }
+        .stateIn(
+            scope = viewModelScope,
+            started = SharingStarted.WhileSubscribed(stopTimeoutMillis = 5000L),
+            initialValue = NetworkUiState(),
+        )
 
     override fun onAction(action: NetworkAction) {
         when (action) {

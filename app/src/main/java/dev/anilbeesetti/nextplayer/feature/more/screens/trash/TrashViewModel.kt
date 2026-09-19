@@ -11,11 +11,13 @@ import dev.anilbeesetti.nextplayer.core.model.Video
 import dev.anilbeesetti.nextplayer.core.ui.base.DataState
 import dev.anilbeesetti.nextplayer.core.ui.base.MviViewModel
 import dev.anilbeesetti.nextplayer.feature.videopicker.state.SelectionItem
-import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
-import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.catch
-import kotlinx.coroutines.flow.update
+import kotlinx.coroutines.flow.combine
+import kotlinx.coroutines.flow.map
+import kotlinx.coroutines.flow.onStart
+import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
 import org.koin.core.annotation.InjectedParam
 import org.koin.core.annotation.KoinViewModel
@@ -33,25 +35,19 @@ class TrashViewModel(
         val playVideo: (String) -> Unit,
     )
 
-    private val stateInternal = MutableStateFlow(TrashUiState())
-    override val state: StateFlow<TrashUiState> = stateInternal.asStateFlow()
-
-    init {
-        viewModelScope.launch {
-            mediaRepository.observeTrashVideos()
-                .catch { error ->
-                    stateInternal.update { it.copy(videos = DataState.Error(error)) }
-                }
-                .collect { videos ->
-                    stateInternal.update { it.copy(videos = DataState.Success(videos)) }
-                }
-        }
-        viewModelScope.launch {
-            preferencesRepository.applicationPreferences.collect { preferences ->
-                stateInternal.update { it.copy(preferences = preferences) }
-            }
-        }
-    }
+    override val state: StateFlow<TrashUiState> = combine(
+        mediaRepository.observeTrashVideos()
+            .map<List<Video>, DataState<List<Video>>> { DataState.Success(it) }
+            .onStart { emit(DataState.Loading) }
+            .catch { emit(DataState.Error(it)) },
+        preferencesRepository.applicationPreferences,
+    ) { videos, preferences ->
+        TrashUiState(videos = videos, preferences = preferences)
+    }.stateIn(
+        scope = viewModelScope,
+        started = SharingStarted.WhileSubscribed(stopTimeoutMillis = 5000L),
+        initialValue = TrashUiState(),
+    )
 
     override fun onAction(action: TrashAction) {
         when (action) {

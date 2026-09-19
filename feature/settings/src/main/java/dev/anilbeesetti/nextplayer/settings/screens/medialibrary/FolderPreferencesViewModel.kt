@@ -7,10 +7,13 @@ import dev.anilbeesetti.nextplayer.core.model.ApplicationPreferences
 import dev.anilbeesetti.nextplayer.core.model.Folder
 import dev.anilbeesetti.nextplayer.core.ui.base.DataState
 import dev.anilbeesetti.nextplayer.core.ui.base.MviViewModel
-import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
-import kotlinx.coroutines.flow.asStateFlow
-import kotlinx.coroutines.flow.update
+import kotlinx.coroutines.flow.catch
+import kotlinx.coroutines.flow.combine
+import kotlinx.coroutines.flow.map
+import kotlinx.coroutines.flow.onStart
+import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
 import org.koin.core.annotation.InjectedParam
 import org.koin.core.annotation.KoinViewModel
@@ -26,30 +29,19 @@ class FolderPreferencesViewModel(
         val navigateUp: () -> Unit,
     )
 
-    private val stateInternal = MutableStateFlow(
-        FolderPreferencesUiState(
-            preferences = preferencesRepository.applicationPreferences.value,
-        ),
+    override val state: StateFlow<FolderPreferencesUiState> = combine(
+        mediaRepository.observeFolders()
+            .map<List<Folder>, DataState<List<Folder>>> { DataState.Success(it) }
+            .onStart { emit(DataState.Loading) }
+            .catch { emit(DataState.Error(it)) },
+        preferencesRepository.applicationPreferences,
+    ) { folders, preferences ->
+        FolderPreferencesUiState(foldersDataState = folders, preferences = preferences)
+    }.stateIn(
+        scope = viewModelScope,
+        started = SharingStarted.WhileSubscribed(stopTimeoutMillis = 5000L),
+        initialValue = FolderPreferencesUiState(preferences = preferencesRepository.applicationPreferences.value),
     )
-    override val state: StateFlow<FolderPreferencesUiState> = stateInternal.asStateFlow()
-
-    init {
-        viewModelScope.launch {
-            mediaRepository.observeFolders().collect {
-                stateInternal.update { currentState ->
-                    currentState.copy(foldersDataState = DataState.Success(it))
-                }
-            }
-        }
-
-        viewModelScope.launch {
-            preferencesRepository.applicationPreferences.collect { preferences ->
-                stateInternal.update { currentState ->
-                    currentState.copy(preferences = preferences)
-                }
-            }
-        }
-    }
 
     override fun onAction(action: FolderPreferencesUiEvent) {
         when (action) {
