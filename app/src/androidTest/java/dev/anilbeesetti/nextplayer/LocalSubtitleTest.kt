@@ -15,6 +15,8 @@ import androidx.test.ext.junit.runners.AndroidJUnit4
 import androidx.test.platform.app.InstrumentationRegistry
 import com.google.common.util.concurrent.ListenableFuture
 import dev.anilbeesetti.nextplayer.feature.player.extensions.audioDecoderMode
+import dev.anilbeesetti.nextplayer.feature.player.extensions.externalAudio
+import dev.anilbeesetti.nextplayer.feature.player.extensions.externalAudioIndex
 import dev.anilbeesetti.nextplayer.feature.player.extensions.switchTrack
 import dev.anilbeesetti.nextplayer.feature.player.extensions.videoDecoderMode
 import dev.anilbeesetti.nextplayer.feature.player.service.CustomCommands
@@ -35,7 +37,7 @@ class LocalSubtitleTest {
     private val instrumentation = InstrumentationRegistry.getInstrumentation()
 
     @Test
-    fun subtitlesAndDecoderChoicesSurviveReloadsAndPlaylistNavigation() {
+    fun localTracksAndDecoderChoicesSurviveReloadsAndPlaylistNavigation() {
         val context = instrumentation.targetContext
         val directory = File(context.cacheDir, "local-subtitle-test-${System.nanoTime()}").apply { mkdirs() }
 
@@ -69,6 +71,18 @@ class LocalSubtitleTest {
             await("initial playback ready") { player.playbackState == Player.STATE_READY }
             selectDecoder(player, CustomCommands.SET_VIDEO_DECODER_MODE, CustomCommands.VIDEO_DECODER_MODE_KEY, DecoderMode.HARDWARE)
             selectDecoder(player, CustomCommands.SET_AUDIO_DECODER_MODE, CustomCommands.AUDIO_DECODER_MODE_KEY, DecoderMode.SOFTWARE)
+            val audioUri = items.first().localConfiguration!!.uri
+            command(
+                player,
+                CustomCommands.ADD_AUDIO_TRACK,
+                Bundle().apply { putString(CustomCommands.AUDIO_TRACK_URI_KEY, audioUri.toString()) },
+            )
+            await("external audio selected") {
+                player.currentTracks.groups.any { it.mediaTrackGroup.externalAudioIndex == 0 && it.isSelected }
+            }
+            onMain {
+                assertEquals(listOf(audioUri), player.currentMediaItem?.mediaMetadata?.externalAudio)
+            }
             for ((index, playing) in listOf(false, true).withIndex()) {
                 val text = "Local subtitle $index"
                 val subtitleFile = File(directory, "$index.srt").apply {
@@ -95,6 +109,7 @@ class LocalSubtitleTest {
                     assertEquals(items.map { it.mediaId }, (0 until player.mediaItemCount).map { player.getMediaItemAt(it).mediaId })
                     assertEquals(DecoderMode.HARDWARE, player.currentMediaItem?.mediaMetadata?.videoDecoderMode)
                     assertEquals(DecoderMode.SOFTWARE, player.currentMediaItem?.mediaMetadata?.audioDecoderMode)
+                    assertEquals(listOf(audioUri), player.currentMediaItem?.mediaMetadata?.externalAudio)
                     assertEquals(playing, player.playWhenReady)
                     if (playing) {
                         assertTrue(player.currentPosition >= 5_000)

@@ -1,10 +1,26 @@
 package dev.anilbeesetti.nextplayer.feature.player.extensions
 
+import android.net.Uri
 import android.os.Bundle
+import androidx.core.net.toUri
 import androidx.media3.common.MediaItem
 import androidx.media3.common.MediaMetadata
 import dev.anilbeesetti.nextplayer.feature.player.service.decoderMode
 import io.github.anilbeesetti.nextlib.media3ext.ffdecoder.DecoderMode
+
+private const val MEDIA_METADATA_EXTERNAL_AUDIO_KEY = "external_audio"
+
+val MediaMetadata.externalAudio: List<Uri>
+    get() = extras?.getStringArrayList(MEDIA_METADATA_EXTERNAL_AUDIO_KEY)?.map { it.toUri() }.orEmpty()
+
+fun MediaItem.withExternalAudio(uris: List<Uri>): MediaItem = buildUpon()
+    .setMediaMetadata(
+        mediaMetadata.buildUpon().setExtras(
+            (mediaMetadata.extras?.let(::Bundle) ?: Bundle()).apply {
+                putStringArrayList(MEDIA_METADATA_EXTERNAL_AUDIO_KEY, ArrayList(uris.map { it.toString() }))
+            },
+        ).build(),
+    ).build()
 
 private const val MEDIA_METADATA_POSITION_KEY = "media_metadata_position"
 private const val MEDIA_METADATA_PLAYBACK_SPEED_KEY = "media_metadata_playback_speed"
