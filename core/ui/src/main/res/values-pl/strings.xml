@@ -524,4 +524,6 @@
     <string name="chapters">Rozdziały</string>
     <string name="chapter_number">Rozdział %1$d</string>
     <string name="show_chapters">Pokazuj rozdziały</string>
+    <string name="open_audio">Otwórz lokalny plik audio</string>
+    <string name="error_opening_audio">Nie można otworzyć tego pliku audio</string>
 </resources>
