@@ -18,7 +18,11 @@ import java.util.Date
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.collect
 import kotlinx.coroutines.flow.flowOf
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.test.TestScope
+import kotlinx.coroutines.test.UnconfinedTestDispatcher
 import kotlinx.coroutines.test.advanceUntilIdle
 import kotlinx.coroutines.test.runTest
 import org.junit.Assert.assertEquals
@@ -179,7 +183,7 @@ class NetworkBrowseViewModelTest {
         assertTrue(viewModel.state.value.preferences.showPlayedProgress)
     }
 
-    private fun viewModel(
+    private fun TestScope.viewModel(
         connectResult: Result<Unit> = Result.success(Unit),
         conn: NetworkConnection = connection(),
         path: String? = null,
@@ -198,7 +202,9 @@ class NetworkBrowseViewModelTest {
             clientFactory = factory,
             mediaRepository = mediaRepository,
             preferencesRepository = preferencesRepository,
-        )
+        ).also { viewModel ->
+            backgroundScope.launch(UnconfinedTestDispatcher(testScheduler)) { viewModel.state.collect() }
+        }
     }
 
     private fun connection() = NetworkConnection(

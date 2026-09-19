@@ -20,7 +20,12 @@ import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
-import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.SharingStarted
+import kotlinx.coroutines.flow.catch
+import kotlinx.coroutines.flow.combine
+import kotlinx.coroutines.flow.map
+import kotlinx.coroutines.flow.onStart
+import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import org.koin.core.annotation.InjectedParam
@@ -44,17 +49,19 @@ class PlaylistListViewModel(
     private var linkedCreationJob: Job? = null
 
     private val stateInternal = MutableStateFlow(PlaylistListUiState())
-    override val state: StateFlow<PlaylistListUiState> = stateInternal.asStateFlow()
-
-    init {
-        viewModelScope.launch {
-            playlistRepository.observePlaylists().collect { playlists ->
-                stateInternal.update {
-                    it.copy(playlistsDataState = DataState.Success(playlists))
-                }
-            }
-        }
-    }
+    override val state: StateFlow<PlaylistListUiState> = combine(
+        stateInternal,
+        playlistRepository.observePlaylists()
+            .map<List<PlaylistSummary>, DataState<List<PlaylistSummary>>> { DataState.Success(it) }
+            .onStart { emit(DataState.Loading) }
+            .catch { emit(DataState.Error(it)) },
+    ) { state, playlists ->
+        state.copy(playlistsDataState = playlists)
+    }.stateIn(
+        scope = viewModelScope,
+        started = SharingStarted.WhileSubscribed(stopTimeoutMillis = 5000L),
+        initialValue = stateInternal.value,
+    )
 
     override fun onAction(action: PlaylistUiAction) {
         when (action) {
@@ -206,7 +213,7 @@ class PlaylistListViewModel(
     }
 
     private fun save(block: suspend () -> Unit) {
-        if (state.value.saveActionState.isRunning) return
+        if (stateInternal.value.saveActionState.isRunning) return
         viewModelScope.launch {
             stateInternal.update { it.copy(saveActionState = ActionState.Running) }
             try {

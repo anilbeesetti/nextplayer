@@ -20,8 +20,10 @@ import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
-import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.combine
+import kotlinx.coroutines.flow.onStart
+import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import org.koin.core.annotation.InjectedParam
@@ -76,38 +78,37 @@ class NetworkBrowseViewModel(
     private var currentPath: String? = path
 
     private val stateInternal = MutableStateFlow(NetworkBrowseUiState())
-    override val state: StateFlow<NetworkBrowseUiState> = stateInternal.asStateFlow()
+    override val state: StateFlow<NetworkBrowseUiState> = combine(
+        stateInternal,
+        connection,
+        mediaRepository.observePlaybackHistory().onStart { emit(emptyList()) },
+        preferencesRepository.applicationPreferences,
+    ) { state, conn, history, preferences ->
+        val folderPrefix = currentPath?.trimEnd('/').orEmpty()
+        val playbackHistory = if (conn == null) {
+            emptyMap()
+        } else {
+            history.mapNotNull { video ->
+                val uri = video.uriString.toUri()
+                if (!NetworkUri.isNetworkUri(uri) || NetworkUri.connectionIdOf(uri) != connectionId) return@mapNotNull null
+                val filePath = NetworkUri.filePathOf(uri, conn.protocol)
+                if (uri != NetworkUri.build(conn, filePath)) return@mapNotNull null
+                if (folderPrefix.isNotEmpty() && !filePath.startsWith("$folderPrefix/")) return@mapNotNull null
+                filePath to video
+            }.toMap()
+        }
+        state.copy(
+            playbackHistory = playbackHistory,
+            recentlyPlayedPath = playbackHistory.maxByOrNull { it.value.lastPlayedAt?.time ?: Long.MIN_VALUE }?.key,
+            preferences = preferences,
+        )
+    }.stateIn(
+        scope = viewModelScope,
+        started = SharingStarted.WhileSubscribed(stopTimeoutMillis = 5000L),
+        initialValue = stateInternal.value,
+    )
 
     init {
-        viewModelScope.launch {
-            combine(connection, mediaRepository.observePlaybackHistory()) { conn, history ->
-                val folderPrefix = currentPath?.trimEnd('/').orEmpty()
-                if (conn == null) {
-                    emptyMap()
-                } else {
-                    history.mapNotNull { video ->
-                        val uri = video.uriString.toUri()
-                        if (!NetworkUri.isNetworkUri(uri) || NetworkUri.connectionIdOf(uri) != connectionId) return@mapNotNull null
-                        val filePath = NetworkUri.filePathOf(uri, conn.protocol)
-                        if (uri != NetworkUri.build(conn, filePath)) return@mapNotNull null
-                        if (folderPrefix.isNotEmpty() && !filePath.startsWith("$folderPrefix/")) return@mapNotNull null
-                        filePath to video
-                    }.toMap()
-                }
-            }.collect { playbackHistory ->
-                stateInternal.update {
-                    it.copy(
-                        playbackHistory = playbackHistory,
-                        recentlyPlayedPath = playbackHistory.maxByOrNull { it.value.lastPlayedAt?.time ?: Long.MIN_VALUE }?.key,
-                    )
-                }
-            }
-        }
-        viewModelScope.launch {
-            preferencesRepository.applicationPreferences.collect { preferences ->
-                stateInternal.update { it.copy(preferences = preferences) }
-            }
-        }
         connectAndLoad()
     }
 

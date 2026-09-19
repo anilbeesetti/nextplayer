@@ -38,11 +38,19 @@ import dev.anilbeesetti.nextplayer.core.ui.base.DataState
 import dev.anilbeesetti.nextplayer.core.ui.base.MviViewModel
 import dev.anilbeesetti.nextplayer.feature.videopicker.state.SelectionItem
 import java.io.File
+import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
-import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.SharingStarted
+import kotlinx.coroutines.flow.catch
+import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.first
+import kotlinx.coroutines.flow.flatMapLatest
+import kotlinx.coroutines.flow.flowOf
+import kotlinx.coroutines.flow.map
+import kotlinx.coroutines.flow.onStart
+import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import org.koin.core.annotation.InjectedParam
@@ -88,17 +96,50 @@ class MediaPickerViewModel(
             preferences = preferencesRepository.applicationPreferences.value,
         ),
     )
-    override val state: StateFlow<MediaPickerUiState> = stateInternal.asStateFlow()
+    private val hasStoragePermission = MutableStateFlow(
+        ContextCompat.checkSelfPermission(context, storagePermission) == PackageManager.PERMISSION_GRANTED,
+    )
 
-    private var mediaCollectJob: Job? = null
+    @OptIn(ExperimentalCoroutinesApi::class)
+    private val media = hasStoragePermission.flatMapLatest { granted ->
+        if (granted) {
+            getSortedMediaUseCase(folderPath)
+                .map<MediaHolder?, DataState<MediaHolder?>> { DataState.Success(it) }
+                .onStart { emit(DataState.Loading) }
+                .catch { emit(DataState.Error(it)) }
+        } else {
+            flowOf(DataState.Loading)
+        }
+    }
+
+    @OptIn(ExperimentalCoroutinesApi::class)
+    private val recentlyPlayedVideo = hasStoragePermission.flatMapLatest { granted ->
+        if (granted) getRecentlyPlayedVideoUseCase(folderPath).onStart { emit(null) } else flowOf(null)
+    }
+
+    override val state: StateFlow<MediaPickerUiState> = combine(
+        stateInternal,
+        media,
+        recentlyPlayedVideo,
+        preferencesRepository.applicationPreferences,
+        playlistRepository.observePlaylists().onStart { emit(emptyList()) },
+    ) { state, media, recentlyPlayed, preferences, playlists ->
+        state.copy(
+            mediaDataState = media,
+            recentlyPlayedVideo = recentlyPlayed,
+            preferences = preferences,
+            playlists = playlists.filter { it.type == PlaylistType.LOCAL },
+        )
+    }.stateIn(
+        scope = viewModelScope,
+        started = SharingStarted.WhileSubscribed(stopTimeoutMillis = 5000L),
+        initialValue = stateInternal.value,
+    )
+
     private var transferJob: Job? = null
 
     init {
-        if (ContextCompat.checkSelfPermission(context, storagePermission) == PackageManager.PERMISSION_GRANTED) {
-            startMediaCollection()
-        }
-        collectPreferences()
-        collectPlaylists()
+        if (hasStoragePermission.value) mediaSynchronizer.startSync()
     }
 
     override fun onAction(action: MediaPickerAction) {
@@ -135,50 +176,7 @@ class MediaPickerViewModel(
 
     private fun startMediaCollection() {
         mediaSynchronizer.startSync()
-        collectMedia()
-    }
-
-    private fun collectMedia() {
-        mediaCollectJob?.cancel()
-        stateInternal.update { currentState ->
-            currentState.copy(mediaDataState = DataState.Loading)
-        }
-        mediaCollectJob = viewModelScope.launch {
-            launch {
-                getSortedMediaUseCase(folderPath).collect { media ->
-                    stateInternal.update { it.copy(mediaDataState = DataState.Success(media)) }
-                }
-            }
-            launch {
-                getRecentlyPlayedVideoUseCase(folderPath).collect { recentlyPlayed ->
-                    stateInternal.update { it.copy(recentlyPlayedVideo = recentlyPlayed) }
-                }
-            }
-        }
-    }
-
-    private fun collectPreferences() {
-        viewModelScope.launch {
-            preferencesRepository.applicationPreferences.collect {
-                stateInternal.update { currentState ->
-                    currentState.copy(preferences = it)
-                }
-            }
-        }
-    }
-
-    private fun collectPlaylists() {
-        viewModelScope.launch {
-            playlistRepository.observePlaylists().collect { playlists ->
-                stateInternal.update {
-                    it.copy(
-                        playlists = playlists.filter { playlist ->
-                            playlist.type == PlaylistType.LOCAL
-                        },
-                    )
-                }
-            }
-        }
+        hasStoragePermission.value = true
     }
 
     private var pendingPlaylistVideos: List<Video> = emptyList()
@@ -472,7 +470,7 @@ class MediaPickerViewModel(
     }
 
     private suspend fun Set<SelectionItem>.toVideos(): List<Video> {
-        val preferences = stateInternal.value.preferences
+        val preferences = preferencesRepository.applicationPreferences.value
         return flatMap { selectionItem ->
             when (selectionItem) {
                 is SelectionItem.Video -> listOfNotNull(mediaRepository.getVideoByUri(selectionItem.uriString))

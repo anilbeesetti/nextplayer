@@ -20,7 +20,13 @@ import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
-import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.SharingStarted
+import kotlinx.coroutines.flow.catch
+import kotlinx.coroutines.flow.combine
+import kotlinx.coroutines.flow.map
+import kotlinx.coroutines.flow.onEach
+import kotlinx.coroutines.flow.onStart
+import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import org.koin.core.annotation.InjectedParam
@@ -46,24 +52,26 @@ class PlaylistDetailViewModel(
     )
 
     private val stateInternal = MutableStateFlow(PlaylistDetailUiState())
-    override val state: StateFlow<PlaylistDetailUiState> = stateInternal.asStateFlow()
-
-    private var refreshJob: Job? = null
-
-    init {
-        viewModelScope.launch {
-            observePlaylist(input.playlistId).collect { playlist ->
-                stateInternal.update { currentState ->
-                    currentState.copy(
-                        playlistDataState = DataState.Success(playlist),
-                        isReordering = currentState.isReordering &&
-                            playlist?.type == PlaylistType.LOCAL &&
-                            playlist.items.size > 1,
-                    )
+    override val state: StateFlow<PlaylistDetailUiState> = combine(
+        stateInternal,
+        observePlaylist(input.playlistId)
+            .onEach { playlist ->
+                if (playlist?.type != PlaylistType.LOCAL || playlist.items.size <= 1) {
+                    stateInternal.update { it.copy(isReordering = false) }
                 }
             }
-        }
-    }
+            .map<Playlist?, DataState<Playlist?>> { DataState.Success(it) }
+            .onStart { emit(DataState.Loading) }
+            .catch { emit(DataState.Error(it)) },
+    ) { state, playlist ->
+        state.copy(playlistDataState = playlist)
+    }.stateIn(
+        scope = viewModelScope,
+        started = SharingStarted.WhileSubscribed(stopTimeoutMillis = 5000L),
+        initialValue = stateInternal.value,
+    )
+
+    private var refreshJob: Job? = null
 
     override fun onAction(action: PlaylistDetailUiAction) {
         when (action) {
@@ -172,7 +180,7 @@ class PlaylistDetailViewModel(
         block: suspend () -> Unit,
         onSuccess: () -> Unit = {},
     ) {
-        if (state.value.updateActionState.isRunning) return
+        if (stateInternal.value.updateActionState.isRunning) return
         viewModelScope.launch {
             stateInternal.update { it.copy(updateActionState = ActionState.Running) }
             try {

@@ -14,8 +14,13 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
-import kotlinx.coroutines.flow.flowOf
+import kotlinx.coroutines.flow.collect
+import kotlinx.coroutines.launch
 import kotlinx.coroutines.test.StandardTestDispatcher
+import kotlinx.coroutines.test.TestScope
+import kotlinx.coroutines.test.UnconfinedTestDispatcher
+import kotlinx.coroutines.test.advanceTimeBy
+import kotlinx.coroutines.test.runCurrent
 import kotlinx.coroutines.test.advanceUntilIdle
 import kotlinx.coroutines.test.resetMain
 import kotlinx.coroutines.test.runTest
@@ -70,6 +75,7 @@ class VaultAuthenticationTest {
         assertEquals(VaultStage.SET_PIN, viewModel.state.value.stage)
         viewModel.onAction(VaultAction.SubmitNewPin("1234"))
         viewModel.onAction(VaultAction.BiometricAuthenticated)
+        runCurrent()
         assertEquals(VaultStage.CONFIRM_PIN, viewModel.state.value.stage)
         assertEquals(0, vaultRepository.observations)
     }
@@ -204,7 +210,38 @@ class VaultAuthenticationTest {
         assertEquals(VaultStage.UNLOCKED, reopened.state.value.stage)
     }
 
-    private fun createViewModel(hasPin: CompletableDeferred<Boolean> = CompletableDeferred(true)) = VaultViewModel(
+    @Test
+    fun `hidden videos require unlock and a subscriber and stop after five seconds`() = runTest(dispatcher.scheduler) {
+        val viewModel = createViewModel(subscribe = false)
+        runCurrent()
+        assertEquals(0, vaultRepository.videos.subscriptionCount.value)
+
+        val subscriber = backgroundScope.launch { viewModel.state.collect() }
+        runCurrent()
+        assertEquals(VaultStage.LOCKED, viewModel.state.value.stage)
+        assertEquals(0, vaultRepository.videos.subscriptionCount.value)
+        viewModel.onAction(VaultAction.SubmitUnlockPin("1234"))
+        runCurrent()
+        assertEquals(1, vaultRepository.videos.subscriptionCount.value)
+
+        subscriber.cancel()
+        runCurrent()
+        advanceTimeBy(5000)
+        runCurrent()
+        assertEquals(0, vaultRepository.videos.subscriptionCount.value)
+        vaultRepository.videos.value = emptyList()
+
+        backgroundScope.launch { viewModel.state.collect() }
+        runCurrent()
+        assertEquals(VaultStage.UNLOCKED, viewModel.state.value.stage)
+        assertEquals(1, vaultRepository.videos.subscriptionCount.value)
+        assertTrue(viewModel.state.value.hiddenVideos.isEmpty())
+    }
+
+    private fun TestScope.createViewModel(
+        hasPin: CompletableDeferred<Boolean> = CompletableDeferred(true),
+        subscribe: Boolean = true,
+    ) = VaultViewModel(
         output = VaultViewModel.Output(navigateUp = {}, playVideo = {}, playVideos = {}),
         vaultRepository = vaultRepository,
         vaultPinRepository = object : VaultPinRepository {
@@ -226,14 +263,19 @@ class VaultAuthenticationTest {
             override suspend fun updatePlayerPreferences(transform: suspend (PlayerPreferences) -> PlayerPreferences) = Unit
             override suspend fun resetPreferences() = Unit
         },
-    )
+    ).also { viewModel ->
+        if (subscribe) {
+            backgroundScope.launch(UnconfinedTestDispatcher(testScheduler)) { viewModel.state.collect() }
+        }
+    }
 
     private class FakeVaultRepository : VaultRepository {
         var observations = 0
+        val videos = MutableStateFlow(listOf(Video.sample))
 
         override fun observeHiddenVideos(): Flow<List<Video>> {
             observations++
-            return flowOf(listOf(Video.sample))
+            return videos
         }
 
         override suspend fun hideVideos(videos: List<Video>) = Unit

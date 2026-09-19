@@ -15,10 +15,13 @@ import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.FlowPreview
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
-import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.SharingStarted
+import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.debounce
 import kotlinx.coroutines.flow.flatMapLatest
-import kotlinx.coroutines.flow.update
+import kotlinx.coroutines.flow.map
+import kotlinx.coroutines.flow.onStart
+import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
 import org.koin.core.annotation.InjectedParam
 import org.koin.core.annotation.KoinViewModel
@@ -38,60 +41,36 @@ class SearchViewModel(
         val openFolder: (String) -> Unit,
     )
 
-    private val stateInternal = MutableStateFlow(SearchUiState())
-    override val state: StateFlow<SearchUiState> = stateInternal.asStateFlow()
-
     private val searchQuery = MutableStateFlow("")
 
-    init {
-        collectSearchHistory()
-        collectPopularFolders()
-        collectPreferences()
-        collectSearchResults()
-    }
-
-    private fun collectSearchHistory() {
-        viewModelScope.launch {
-            searchHistoryRepository.searchHistory.collect { history ->
-                stateInternal.update { it.copy(searchHistory = history) }
-            }
-        }
-    }
-
-    private fun collectPopularFolders() {
-        viewModelScope.launch {
-            getPopularFoldersUseCase(limit = 5).collect { folders ->
-                stateInternal.update { it.copy(popularFolders = folders) }
-            }
-        }
-    }
-
-    private fun collectPreferences() {
-        viewModelScope.launch {
-            preferencesRepository.applicationPreferences.collect { prefs ->
-                stateInternal.update { it.copy(preferences = prefs) }
-            }
-        }
-    }
-
     @OptIn(FlowPreview::class, ExperimentalCoroutinesApi::class)
-    private fun collectSearchResults() {
-        viewModelScope.launch {
-            searchQuery
-                .debounce(SEARCH_DEBOUNCE_MS)
-                .flatMapLatest { query ->
-                    searchMediaUseCase(query)
-                }
-                .collect { results ->
-                    stateInternal.update {
-                        it.copy(
-                            searchResults = results,
-                            isSearching = false,
-                        )
-                    }
-                }
+    private val searchResults = searchQuery
+        .debounce(SEARCH_DEBOUNCE_MS)
+        .flatMapLatest { query ->
+            searchMediaUseCase(query).map { query to it }
         }
-    }
+        .onStart { emit("" to SearchResults()) }
+
+    override val state: StateFlow<SearchUiState> = combine(
+        searchQuery,
+        searchResults,
+        searchHistoryRepository.searchHistory.onStart { emit(emptyList()) },
+        getPopularFoldersUseCase(limit = 5).onStart { emit(emptyList()) },
+        preferencesRepository.applicationPreferences,
+    ) { query, results, history, folders, preferences ->
+        SearchUiState(
+            query = query,
+            searchResults = results.second,
+            isSearching = query.isNotBlank() && query != results.first,
+            searchHistory = history,
+            popularFolders = folders,
+            preferences = preferences,
+        )
+    }.stateIn(
+        scope = viewModelScope,
+        started = SharingStarted.WhileSubscribed(stopTimeoutMillis = 5000L),
+        initialValue = SearchUiState(),
+    )
 
     override fun onAction(action: SearchUiEvent) {
         when (action) {
@@ -108,7 +87,6 @@ class SearchViewModel(
     }
 
     private fun onQueryChange(query: String) {
-        stateInternal.update { it.copy(query = query, isSearching = query.isNotBlank()) }
         searchQuery.value = query
     }
 
@@ -120,8 +98,7 @@ class SearchViewModel(
     }
 
     private fun onHistoryItemClick(query: String) {
-        stateInternal.update { it.copy(query = query, isSearching = true) }
-        searchQuery.value = query
+        onQueryChange(query)
         onSearch(query)
     }
 

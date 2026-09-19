@@ -14,12 +14,19 @@ import dev.anilbeesetti.nextplayer.core.model.Sort
 import dev.anilbeesetti.nextplayer.core.model.Video
 import dev.anilbeesetti.nextplayer.core.ui.base.MviViewModel
 import dev.anilbeesetti.nextplayer.feature.videopicker.state.SelectionItem
-import kotlinx.coroutines.Job
+import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
-import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.SharingStarted
+import kotlinx.coroutines.flow.combine
+import kotlinx.coroutines.flow.distinctUntilChanged
+import kotlinx.coroutines.flow.flatMapLatest
+import kotlinx.coroutines.flow.flowOf
+import kotlinx.coroutines.flow.map
+import kotlinx.coroutines.flow.onStart
 import kotlinx.coroutines.flow.receiveAsFlow
+import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import org.koin.core.annotation.InjectedParam
@@ -43,13 +50,45 @@ class VaultViewModel(
     )
 
     private val stateInternal = MutableStateFlow(VaultUiState())
-    override val state: StateFlow<VaultUiState> = stateInternal.asStateFlow()
+    private val sortOverride = MutableStateFlow<Sort?>(null)
+    private val vaultState = combine(
+        stateInternal,
+        sortOverride,
+        preferencesRepository.applicationPreferences,
+    ) { state, sort, preferences ->
+        state.copy(
+            preferences = preferences,
+            sort = sort ?: Sort(by = preferences.sortBy, order = preferences.sortOrder),
+        )
+    }
+
+    @OptIn(ExperimentalCoroutinesApi::class)
+    private val hiddenVideos = vaultState
+        .map { if (it.stage == VaultStage.UNLOCKED) it.sort else null }
+        .distinctUntilChanged()
+        .flatMapLatest { sort ->
+            if (sort == null) {
+                flowOf(emptyList())
+            } else {
+                getHiddenVideosUseCase(sort)
+                    .map<List<Video>, List<Video>?> { it }
+                    .onStart { emit(null) }
+            }
+        }
+
+    override val state: StateFlow<VaultUiState> = combine(vaultState, hiddenVideos) { state, videos ->
+        state.copy(
+            hiddenVideos = if (state.stage == VaultStage.UNLOCKED) videos.orEmpty() else emptyList(),
+            isLoading = state.stage == VaultStage.UNLOCKED && videos == null,
+        )
+    }.stateIn(
+        scope = viewModelScope,
+        started = SharingStarted.WhileSubscribed(stopTimeoutMillis = 5000L),
+        initialValue = stateInternal.value,
+    )
 
     private val eventsInternal = Channel<VaultEvent>()
     val events = eventsInternal.receiveAsFlow()
-
-    private var hiddenVideosJob: Job? = null
-    private var hasVaultSortOverride = false
 
     init {
         viewModelScope.launch {
@@ -60,21 +99,6 @@ class VaultViewModel(
                     stage = if (hasPin) VaultStage.LOCKED else VaultStage.SET_PIN,
                     biometricEnabled = biometricEnabled,
                 )
-            }
-        }
-        viewModelScope.launch {
-            preferencesRepository.applicationPreferences.collect { prefs ->
-                val inheritedSort = Sort(by = prefs.sortBy, order = prefs.sortOrder)
-                val shouldRefresh = !hasVaultSortOverride &&
-                    stateInternal.value.stage == VaultStage.UNLOCKED &&
-                    stateInternal.value.sort != inheritedSort
-                stateInternal.update {
-                    it.copy(
-                        preferences = prefs,
-                        sort = if (hasVaultSortOverride) it.sort else inheritedSort,
-                    )
-                }
-                if (shouldRefresh) collectHiddenVideos()
             }
         }
     }
@@ -102,11 +126,7 @@ class VaultViewModel(
     }
 
     private fun updateSort(sort: Sort) {
-        hasVaultSortOverride = true
-        val shouldRefresh = stateInternal.value.stage == VaultStage.UNLOCKED &&
-            stateInternal.value.sort != sort
-        stateInternal.update { it.copy(sort = sort) }
-        if (shouldRefresh) collectHiddenVideos()
+        sortOverride.value = sort
     }
 
     private fun submitNewPin(pin: String) {
@@ -169,17 +189,6 @@ class VaultViewModel(
 
     private fun unlockVault() {
         stateInternal.update { it.copy(stage = VaultStage.UNLOCKED, pinErrorCount = 0) }
-        collectHiddenVideos()
-    }
-
-    private fun collectHiddenVideos() {
-        hiddenVideosJob?.cancel()
-        hiddenVideosJob = viewModelScope.launch {
-            stateInternal.update { it.copy(isLoading = true) }
-            getHiddenVideosUseCase(stateInternal.value.sort).collect { videos ->
-                stateInternal.update { it.copy(hiddenVideos = videos, isLoading = false) }
-            }
-        }
     }
 
     private fun playVideo(video: Video) {
@@ -221,7 +230,7 @@ class VaultViewModel(
 
     private fun Set<SelectionItem>.toVideos(): List<Video> {
         val selectedUris = filterIsInstance<SelectionItem.Video>().map { it.uriString }.toSet()
-        return stateInternal.value.hiddenVideos.filter { it.uriString in selectedUris }
+        return state.value.hiddenVideos.filter { it.uriString in selectedUris }
     }
 }
 

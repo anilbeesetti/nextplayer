@@ -12,7 +12,11 @@ import dev.anilbeesetti.nextplayer.feature.playlist.FakeSystemService
 import java.net.InetSocketAddress
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
+import kotlinx.coroutines.flow.collect
+import kotlinx.coroutines.launch
 import kotlinx.coroutines.test.StandardTestDispatcher
+import kotlinx.coroutines.test.TestScope
+import kotlinx.coroutines.test.UnconfinedTestDispatcher
 import kotlinx.coroutines.test.advanceUntilIdle
 import kotlinx.coroutines.test.resetMain
 import kotlinx.coroutines.test.runTest
@@ -112,7 +116,7 @@ class PlaylistListViewModelTest {
         }
     }
 
-    private fun viewModel(openedIds: MutableList<Long>) = PlaylistListViewModel(
+    private fun TestScope.viewModel(openedIds: MutableList<Long>) = PlaylistListViewModel(
         playlistRepository = repository,
         m3uParser = M3UParser(context, Dispatchers.Unconfined),
         documentPermissionManager = M3UDocumentPermissionManager(context),
@@ -122,7 +126,9 @@ class PlaylistListViewModelTest {
             openPlaylist = openedIds::add,
             openSettings = {},
         ),
-    )
+    ).also { viewModel ->
+        backgroundScope.launch(UnconfinedTestDispatcher(testScheduler)) { viewModel.state.collect() }
+    }
 
     private fun playlistServer(): HttpServer =
         HttpServer.create(InetSocketAddress(0), 0).apply {
