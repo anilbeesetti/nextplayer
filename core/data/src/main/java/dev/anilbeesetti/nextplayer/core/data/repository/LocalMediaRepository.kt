@@ -28,6 +28,7 @@ import kotlinx.coroutines.async
 import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.combine
+import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.withContext
 import org.koin.core.annotation.Factory
@@ -37,14 +38,16 @@ class LocalMediaRepository(
     private val mediumStateDao: MediumStateDao,
     private val mediaService: MediaService,
     private val context: Context,
+    private val preferencesRepository: PreferencesRepository,
 ) : MediaRepository {
 
     override fun observeFolders(folderPath: String?): Flow<List<Folder>> {
         return combine(
             mediaService.observeFolders(folderPath),
             observeVideos(folderPath),
-        ) { mediaFolders, videos ->
-            val newVideosCountByFolderPath = videos.newVideosCountByParentPath()
+            preferencesRepository.applicationPreferences,
+        ) { mediaFolders, videos, preferences ->
+            val newVideosCountByFolderPath = videos.newVideosCountByParentPath(preferences.newVideoThresholdDays)
             mediaFolders.map { it.toFolder(newVideosCount = newVideosCountByFolderPath[it.path] ?: 0) }
         }
     }
@@ -61,7 +64,8 @@ class LocalMediaRepository(
 
     override suspend fun fetchFolders(folderPath: String?): List<Folder> {
         val mediaFolders = mediaService.fetchFolders(folderPath)
-        val newVideosCountByFolderPath = fetchVideos(folderPath).newVideosCountByParentPath()
+        val thresholdDays = preferencesRepository.applicationPreferences.first().newVideoThresholdDays
+        val newVideosCountByFolderPath = fetchVideos(folderPath).newVideosCountByParentPath(thresholdDays)
         return mediaFolders.map { it.toFolder(newVideosCount = newVideosCountByFolderPath[it.path] ?: 0) }
     }
 
@@ -257,3 +261,5 @@ private fun MediumStateEntity.toHistoryVideo(): Video {
  */
 private fun List<Video>.newVideosCountByParentPath(): Map<String, Int> =
     filter { it.isNew() }.groupingBy { it.parentPath }.eachCount()
+private fun List<Video>.newVideosCountByParentPath(thresholdDays: Int = 7): Map<String, Int> =
+    filter { it.isNew(thresholdDays = thresholdDays) }.groupingBy { it.parentPath }.eachCount()

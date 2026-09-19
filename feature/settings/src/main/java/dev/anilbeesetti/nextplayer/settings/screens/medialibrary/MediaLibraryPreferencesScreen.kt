@@ -4,6 +4,7 @@ import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.ExperimentalMaterial3Api
@@ -16,6 +17,7 @@ import androidx.compose.material3.Scaffold
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.res.pluralStringResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.tooling.preview.PreviewLightDark
 import androidx.compose.ui.unit.dp
@@ -26,12 +28,14 @@ import dev.anilbeesetti.nextplayer.core.ui.components.ClickablePreferenceItem
 import dev.anilbeesetti.nextplayer.core.ui.components.ListSectionTitle
 import dev.anilbeesetti.nextplayer.core.ui.components.NextTopAppBar
 import dev.anilbeesetti.nextplayer.core.ui.components.PreferenceSwitch
+import dev.anilbeesetti.nextplayer.core.ui.components.RadioTextButton
 import dev.anilbeesetti.nextplayer.core.ui.components.rememberRestorableFocusState
 import dev.anilbeesetti.nextplayer.core.ui.components.restorableFocusGroup
 import dev.anilbeesetti.nextplayer.core.ui.components.restorableFocusItem
 import dev.anilbeesetti.nextplayer.core.ui.components.tvFocusDown
 import dev.anilbeesetti.nextplayer.core.ui.designsystem.NextIcons
 import dev.anilbeesetti.nextplayer.core.ui.theme.NextPlayerTheme
+import dev.anilbeesetti.nextplayer.settings.composables.OptionsDialog
 
 @Composable
 fun MediaLibraryPreferencesScreen(
@@ -93,6 +97,23 @@ private fun MediaLibraryPreferencesScreenContent(
                     isChecked = preferences.markLastPlayedMedia,
                     onClick = { onAction(MediaLibraryPreferencesUiEvent.ToggleMarkLastPlayedMedia) },
                     isFirstItem = true,
+                    isLastItem = false,
+                )
+                ClickablePreferenceItem(
+                    modifier = Modifier.restorableFocusItem(focusState, "mark_new_media"),
+                    title = stringResource(id = R.string.mark_new_media),
+                    description = if (preferences.newVideoThresholdDays == 0) {
+                        stringResource(id = R.string.off)
+                    } else {
+                        pluralStringResource(
+                            id = R.plurals.days_count,
+                            preferences.newVideoThresholdDays,
+                            preferences.newVideoThresholdDays,
+                        )
+                    },
+                    icon = NextIcons.Update,
+                    onClick = { onAction(MediaLibraryPreferencesUiEvent.ShowNewVideoThresholdDialog(true)) },
+                    isFirstItem = false,
                     isLastItem = true,
                 )
             }
@@ -129,6 +150,29 @@ private fun MediaLibraryPreferencesScreenContent(
                     isFirstItem = true,
                     isLastItem = true,
                 )
+            }
+        }
+
+        if (state.showNewVideoThresholdDialog) {
+            val options = listOf(0, 1, 2, 3, 7, 14, 30)
+            OptionsDialog(
+                text = stringResource(id = R.string.mark_new_media),
+                onDismissClick = { onAction(MediaLibraryPreferencesUiEvent.ShowNewVideoThresholdDialog(false)) },
+            ) {
+                items(options) { days ->
+                    RadioTextButton(
+                        text = if (days == 0) {
+                            stringResource(id = R.string.off)
+                        } else {
+                            pluralStringResource(id = R.plurals.days_count, days, days)
+                        },
+                        selected = days == preferences.newVideoThresholdDays,
+                        onClick = {
+                            onAction(MediaLibraryPreferencesUiEvent.UpdateNewVideoThreshold(days))
+                            onAction(MediaLibraryPreferencesUiEvent.ShowNewVideoThresholdDialog(false))
+                        },
+                    )
+                }
             }
         }
     }

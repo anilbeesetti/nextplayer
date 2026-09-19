@@ -39,38 +39,35 @@ class GetFolderTreeMediaUseCase(
         ) { videos, preferences ->
             val included = videos.filterNot { it.parentPath in preferences.excludeFolders }
             val sort = Sort(by = preferences.sortBy, order = preferences.sortOrder)
+            val thresholdDays = preferences.newVideoThresholdDays
 
             if (folderPath != null) {
-                mediaUnder(folderPath, included, preferences.excludeFolders, sort)
+                mediaUnder(folderPath, included, preferences.excludeFolders, sort, thresholdDays)
             } else {
-                topLevelMedia(included, preferences.excludeFolders, sort)
+                topLevelMedia(included, preferences.excludeFolders, sort, thresholdDays)
             }
         }.flowOn(defaultDispatcher)
     }
 
-    /**
-     * The top level: one folder per storage volume that contains videos, or -- when only a single
-     * volume has videos -- that volume's contents shown directly (no volume wrapper).
-     */
-    private fun topLevelMedia(videos: List<Video>, excludedFolders: Collection<String>, sort: Sort): MediaHolder {
+    private fun topLevelMedia(videos: List<Video>, excludedFolders: Collection<String>, sort: Sort, thresholdDays: Int): MediaHolder {
         val volumeRoots = videos.mapNotNull { volumeRootOf(it.path) }.distinct()
         if (volumeRoots.size <= 1) {
             val root = volumeRoots.firstOrNull() ?: Environment.getExternalStorageDirectory().path
-            return mediaUnder(root, videos, excludedFolders, sort)
+            return mediaUnder(root, videos, excludedFolders, sort, thresholdDays)
         }
         val folders = volumeRoots
             .filterNot { it in excludedFolders }
-            .map { volumeRoot -> summarize(volumeRoot, videosUnder(volumeRoot, videos)) }
+            .map { volumeRoot -> summarize(volumeRoot, videosUnder(volumeRoot, videos), thresholdDays) }
         return MediaHolder(videos = emptyList(), folders = folders.sortedWith(sort.folderComparator()))
     }
 
     /** The videos directly inside [root] plus a [Folder] for each immediate subfolder with videos. */
-    private fun mediaUnder(root: String, videos: List<Video>, excludedFolders: Collection<String>, sort: Sort): MediaHolder {
+    private fun mediaUnder(root: String, videos: List<Video>, excludedFolders: Collection<String>, sort: Sort, thresholdDays: Int): MediaHolder {
         val descendants = videosUnder(root, videos)
         val directVideos = descendants.filter { it.parentPath == root }
         val folders = immediateChildFolders(root, descendants)
             .filterNot { it in excludedFolders }
-            .map { childPath -> summarize(childPath, videosUnder(childPath, descendants)) }
+            .map { childPath -> summarize(childPath, videosUnder(childPath, descendants), thresholdDays) }
 
         return MediaHolder(
             videos = directVideos.sortedWith(sort.videoComparator()),
@@ -79,7 +76,7 @@ class GetFolderTreeMediaUseCase(
     }
 
     /** Builds a [Folder] aggregating the stats of every video beneath [path]. */
-    private fun summarize(path: String, descendantVideos: List<Video>): Folder {
+    private fun summarize(path: String, descendantVideos: List<Video>, thresholdDays: Int): Folder {
         val file = File(path)
         return Folder(
             name = file.prettyName,
@@ -90,22 +87,22 @@ class GetFolderTreeMediaUseCase(
             totalDuration = descendantVideos.sumOf { it.duration },
             videosCount = descendantVideos.count { it.parentPath == path },
             foldersCount = immediateChildFolders(path, descendantVideos).size,
-            newVideosCount = descendantVideos.count { it.parentPath == path && it.isNew() },
+            newVideosCount = descendantVideos.count { it.isNew(thresholdDays = thresholdDays) },
         )
     }
 
     /** Distinct immediate subfolders of [path] that contain at least one of [videos] (which are all beneath [path]). */
     private fun immediateChildFolders(path: String, videos: List<Video>): List<String> {
-        val prefix = "$path/"
+        val prefix = path + File.separator
         return videos
             .filter { it.parentPath != path }
-            .map { prefix + it.parentPath.removePrefix(prefix).substringBefore('/') }
+            .map { prefix + it.parentPath.removePrefix(prefix).substringBefore(File.separator) }
             .distinct()
     }
 
     /** All videos located somewhere beneath [path]. */
     private fun videosUnder(path: String, videos: List<Video>): List<Video> {
-        val prefix = "$path/"
+        val prefix = path + File.separator
         return videos.filter { it.path.startsWith(prefix) }
     }
 

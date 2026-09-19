@@ -30,10 +30,11 @@ class GetFolderTreeMediaUseCaseTest {
         id: Long,
         addedDaysAgo: Long,
         watched: Boolean,
+        parent: String = folderPath,
     ) = Video(
         id = id,
-        path = "$folderPath/video_$id.mp4",
-        parentPath = folderPath,
+        path = "$parent/video_$id.mp4",
+        parentPath = parent,
         duration = 1000,
         uriString = "content://media/external/video/media/$id",
         nameWithExtension = "video_$id.mp4",
@@ -75,6 +76,41 @@ class GetFolderTreeMediaUseCaseTest {
 
         val moviesFolder = media.folders.first { it.path == folderPath }
         assertEquals(0, moviesFolder.newVideosCount)
+    }
+
+    @Test
+    fun folderNewVideosCount_includesNewVideosInNestedSubfolders() = runTest {
+        val nestedFolder = "$folderPath/Action"
+        mediaRepository.videos.addAll(
+            listOf(
+                video(id = 1, addedDaysAgo = 1, watched = false),
+                video(id = 2, addedDaysAgo = 2, watched = false, parent = nestedFolder),
+            ),
+        )
+
+        val media = getFolderTreeMediaUseCase(folderPath = null).first()
+
+        val moviesFolder = media.folders.first { it.path == folderPath }
+        assertEquals(1, moviesFolder.videosCount)
+        assertEquals(2, moviesFolder.newVideosCount)
+    }
+
+    @Test
+    fun folderNewVideosCount_respectsNewVideoThresholdPreference() = runTest {
+        preferencesRepository.updateApplicationPreferences {
+            it.copy(newVideoThresholdDays = 3)
+        }
+        mediaRepository.videos.addAll(
+            listOf(
+                video(id = 1, addedDaysAgo = 2, watched = false),
+                video(id = 2, addedDaysAgo = 5, watched = false),
+            ),
+        )
+
+        val media = getFolderTreeMediaUseCase(folderPath = null).first()
+
+        val moviesFolder = media.folders.first { it.path == folderPath }
+        assertEquals(1, moviesFolder.newVideosCount)
     }
 
     @Test

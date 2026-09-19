@@ -54,11 +54,9 @@ data class Video(
 fun List<Video>.recentPlayed(): Video? =
     filter { it.lastPlayedAt != null }.sortedByDescending { it.lastPlayedAt?.time }.firstOrNull()
 
-private const val NEW_VIDEO_THRESHOLD_MILLIS: Long = 7 * 24 * 60 * 60 * 1000L
-
-/** True if unplayed and added within the last 7 days. */
-fun Video.isNew(nowMillis: Long = System.currentTimeMillis()): Boolean {
+fun Video.isNew(nowMillis: Long = System.currentTimeMillis(), thresholdDays: Int = 7): Boolean {
     if (lastPlayedAt != null) return false
+    if (thresholdDays <= 0 || lastPlayedAt != null) return false
     val addedAtMillis = dateModified * 1000L
-    return nowMillis - addedAtMillis in 0..NEW_VIDEO_THRESHOLD_MILLIS
+    return nowMillis - addedAtMillis in 0..(thresholdDays * 24L * 60L * 60L * 1000L)
 }
