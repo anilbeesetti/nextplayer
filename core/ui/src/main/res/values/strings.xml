@@ -516,4 +516,7 @@
     <string name="decoder_mode_auto">Auto</string>
     <string name="settings_description">App preferences</string>
     <string name="more">More</string>
+    <string name="chapters">Chapters</string>
+    <string name="chapter_number">Chapter %1$d</string>
+    <string name="show_chapters">Show chapters</string>
 </resources>

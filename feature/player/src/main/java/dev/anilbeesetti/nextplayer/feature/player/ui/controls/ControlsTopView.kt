@@ -50,7 +50,7 @@ fun ControlsTopView(
     Row(
         modifier = modifier
             .padding(systemBarsPadding.copy(bottom = 0.dp))
-            .padding(horizontal = 8.dp)
+            .padding(horizontal = 16.dp)
             .padding(bottom = 16.dp)
             .padding(top = extraTopPadding),
         verticalAlignment = Alignment.CenterVertically,
@@ -71,10 +71,7 @@ fun ControlsTopView(
             modifier = Modifier.weight(1f),
         )
 
-        Row(
-            verticalAlignment = Alignment.CenterVertically,
-            horizontalArrangement = Arrangement.spacedBy(8.dp)
-        ) {
+        Row(verticalAlignment = Alignment.CenterVertically) {
             PlayerButton(
                 modifier = Modifier.semantics { contentDescription = decoderDescription },
                 onClick = onDecoderClick,
