@@ -521,4 +521,7 @@
     <string name="more">Więcej</string>
     <string name="trash_empty_title">Kosz jest pusty</string>
     <string name="trash_empty_description">Wideo przeniesione do kosza pojawią się w tym miejscu. Możesz je przywrócić lub trwale usunąć.</string>
+    <string name="chapters">Rozdziały</string>
+    <string name="chapter_number">Rozdział %1$d</string>
+    <string name="show_chapters">Pokazuj rozdziały</string>
 </resources>
