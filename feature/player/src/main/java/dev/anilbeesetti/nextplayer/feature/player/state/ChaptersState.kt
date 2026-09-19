@@ -1,5 +1,6 @@
 package dev.anilbeesetti.nextplayer.feature.player.state
 
+import androidx.annotation.OptIn
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
@@ -14,7 +15,7 @@ import androidx.media3.common.listen
 import androidx.media3.common.util.UnstableApi
 import androidx.media3.extractor.metadata.Chapter
 
-@androidx.annotation.OptIn(UnstableApi::class)
+@OptIn(UnstableApi::class)
 @Composable
 internal fun rememberChapters(player: Player): List<Chapter> {
     var chapters by remember(player) { mutableStateOf(player.readChapters()) }
@@ -35,14 +36,14 @@ internal fun rememberChapters(player: Player): List<Chapter> {
     return chapters
 }
 
-@androidx.annotation.OptIn(UnstableApi::class)
+@OptIn(UnstableApi::class)
 private fun Player.readChapters(): List<Chapter> {
     if (currentTimeline.isEmpty) return emptyList()
     val periodOffsetMs = currentTimeline.getPeriod(currentPeriodIndex, Timeline.Period()).positionInWindowMs
     return currentTracks.chapters(duration, periodOffsetMs)
 }
 
-@androidx.annotation.OptIn(UnstableApi::class)
+@OptIn(UnstableApi::class)
 internal fun Tracks.chapters(durationMs: Long, periodOffsetMs: Long = 0): List<Chapter> {
     if (durationMs <= 0) return emptyList()
     return groups.flatMap { group ->
@@ -67,6 +68,6 @@ internal fun Tracks.chapters(durationMs: Long, periodOffsetMs: Long = 0): List<C
     }.sortedBy { it.startTimeMs }.distinctBy { it.startTimeMs }
 }
 
-@androidx.annotation.OptIn(UnstableApi::class)
+@OptIn(UnstableApi::class)
 internal fun List<Chapter>.currentChapterIndex(positionMs: Long): Int =
     indexOfLast { it.startTimeMs <= positionMs }

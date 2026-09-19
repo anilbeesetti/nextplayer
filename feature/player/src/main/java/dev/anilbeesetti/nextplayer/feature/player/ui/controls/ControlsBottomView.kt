@@ -5,12 +5,15 @@ import androidx.compose.animation.core.animateDpAsState
 import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.horizontalScroll
 import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.asPaddingValues
 import androidx.compose.foundation.layout.displayCutout
@@ -29,6 +32,7 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.rounded.NavigateNext
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
+import androidx.compose.material3.LocalContentColor
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Slider
 import androidx.compose.material3.Surface
@@ -38,6 +42,7 @@ import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.retain.retain
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
@@ -116,85 +121,63 @@ fun ControlsBottomView(
     Column(
         modifier = modifier
             .padding(systemBarsPadding.copy(top = 0.dp))
-            .padding(horizontal = 8.dp)
+            .padding(horizontal = 16.dp)
             .padding(top = 16.dp)
             .padding(bottom = 16.dp.takeIf { systemBarsPadding.calculateBottomPadding() == 0.dp } ?: 0.dp),
         verticalArrangement = Arrangement.spacedBy(4.dp),
     ) {
         Row(
-            modifier = Modifier.padding(horizontal = 8.dp),
             verticalAlignment = Alignment.CenterVertically,
+            horizontalArrangement = Arrangement.spacedBy(8.dp)
         ) {
-            var showPendingPosition by rememberSaveable { mutableStateOf(false) }
+            var showPendingPosition by retain { mutableStateOf(false) }
 
-            Row(
-                verticalAlignment = Alignment.CenterVertically,
-                modifier = if (isTv) {
-                    Modifier
-                } else {
-                    Modifier.noRippleClickable {
-                        showPendingPosition = !showPendingPosition
-                    }
-                },
-            ) {
+            PillButton(onClick = { showPendingPosition = !showPendingPosition }) {
                 Text(
-                    text = when (showPendingPosition) {
-                        true -> "-${mediaPresentationState.pendingPositionFormatted}"
-                        false -> mediaPresentationState.positionFormatted
+                    text = buildString {
+                        append(
+                            when (showPendingPosition) {
+                                true -> "-${mediaPresentationState.pendingPositionFormatted}"
+                                false -> mediaPresentationState.positionFormatted
+                            },
+                        )
+                        append(" / ")
+                        append(mediaPresentationState.durationFormatted)
                     },
-                    style = MaterialTheme.typography.bodyMedium,
-                    color = Color.White,
-                )
-                Text(
-                    text = " / ",
-                    style = MaterialTheme.typography.bodyMedium,
-                    color = Color.White,
-                )
-                Text(
-                    text = mediaPresentationState.durationFormatted,
-                    style = MaterialTheme.typography.bodyMedium,
-                    color = Color.White,
+                    style = MaterialTheme.typography.labelLarge,
                 )
             }
 
-            Box(modifier = Modifier.weight(1f), contentAlignment = Alignment.CenterStart) {
-                if (chapters.isNotEmpty()) {
-                    val showChaptersLabel = stringResource(R.string.show_chapters)
-                    Surface(
-                        onClick = onChaptersClick,
-                        enabled = player.isCurrentMediaItemSeekable,
-                        shape = CircleShape,
-                        color = Color.White.copy(alpha = 0.15f),
-                        contentColor = Color.White,
-                        modifier = Modifier
-                            .widthIn(max = 360.dp)
-                            .padding(horizontal = 8.dp)
-                            .heightIn(min = 32.dp)
-                            .tvFocusRing(isTv)
-                            .semantics { onClick(label = showChaptersLabel, action = null) },
+            if (chapters.isNotEmpty()) {
+                PillButton(
+                    enabled = player.isCurrentMediaItemSeekable,
+                    onClick = onChaptersClick,
+                    onClickLabel = stringResource(R.string.show_chapters),
+                    contentPadding = PaddingValues(vertical = 1.dp, horizontal = 8.dp).copy(end = 2.dp),
+                ) {
+                    Row(
+                        modifier = Modifier,
+                        verticalAlignment = Alignment.CenterVertically,
+                        horizontalArrangement = Arrangement.spacedBy(4.dp),
                     ) {
-                        Row(
-                            modifier = Modifier.padding(horizontal = 12.dp),
-                            verticalAlignment = Alignment.CenterVertically,
-                            horizontalArrangement = Arrangement.spacedBy(4.dp),
-                        ) {
-                            Text(
-                                text = chapters.getOrNull(currentChapterIndex)?.titleOrDefault(currentChapterIndex)
-                                    ?: stringResource(R.string.chapters),
-                                modifier = Modifier.weight(1f, fill = false),
-                                style = MaterialTheme.typography.labelLarge,
-                                maxLines = 1,
-                                overflow = TextOverflow.Ellipsis,
-                            )
-                            Icon(
-                                imageVector = Icons.AutoMirrored.Rounded.NavigateNext,
-                                contentDescription = null,
-                                modifier = Modifier.size(20.dp),
-                            )
-                        }
+                        Text(
+                            text = chapters.getOrNull(currentChapterIndex)?.titleOrDefault(currentChapterIndex)
+                                ?: stringResource(R.string.chapters),
+                            modifier = Modifier.weight(1f, fill = false),
+                            style = MaterialTheme.typography.labelLarge,
+                            maxLines = 1,
+                            overflow = TextOverflow.Ellipsis,
+                        )
+                        Icon(
+                            imageVector = Icons.AutoMirrored.Rounded.NavigateNext,
+                            contentDescription = null,
+                            modifier = Modifier.size(16.dp),
+                        )
                     }
                 }
             }
+
+            Spacer(modifier = Modifier.weight(1f))
             if (!isTv) {
                 PlayerButton(
                     modifier = modifier.size(30.dp),
@@ -255,6 +238,37 @@ fun ControlsBottomView(
             LoopButton(player = player)
             ShuffleButton(player = player)
         }
+    }
+}
+
+@Composable
+fun PillButton(
+    modifier: Modifier = Modifier,
+    enabled: Boolean = true,
+    onClick: () -> Unit,
+    onClickLabel: String? = null,
+    contentPadding: PaddingValues = PaddingValues(horizontal = 8.dp, vertical = 1.dp),
+    content: @Composable () -> Unit,
+) {
+    val context = LocalContext.current
+    val isTv = remember { context.isTelevision }
+    Box(
+        modifier = modifier
+            .clip(CircleShape)
+            .background(Color.Black.copy(alpha = 0.2f))
+            .widthIn(max = 360.dp)
+            .padding(contentPadding)
+            .tvFocusRing(isTv)
+            .clickable(
+                enabled = enabled,
+                onClick = onClick,
+                onClickLabel = onClickLabel,
+            ),
+    ) {
+        CompositionLocalProvider(
+            value = LocalContentColor provides Color.White,
+            content = content,
+        )
     }
 }
 
@@ -455,7 +469,8 @@ private fun SimpleSlider(
         modifier = modifier.height(24.dp),
         thumb = {
             Box(
-                modifier = Modifier.size(thumbSize)
+                modifier = Modifier
+                    .size(thumbSize)
                     .shadow(4.dp, CircleShape)
                     .background(Color.White)
                     .then(
