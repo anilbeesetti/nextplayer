@@ -125,6 +125,7 @@ fun MediaPlayerScreen(
     playerPreferences: PlayerPreferences,
     modifier: Modifier = Modifier,
     onSelectSubtitleClick: () -> Unit,
+    onSelectAudioClick: () -> Unit,
     onBackClick: () -> Unit,
     onPlayInBackgroundClick: () -> Unit,
 ) {
@@ -529,6 +530,7 @@ fun MediaPlayerScreen(
                 onVideoDecoderModeSelected = decoderState::switchVideoTo,
                 onAudioDecoderModeSelected = decoderState::switchAudioTo,
                 onSelectSubtitleClick = onSelectSubtitleClick,
+                onSelectAudioClick = onSelectAudioClick,
                 onSubtitleOptionEvent = viewModel::onSubtitleOptionEvent,
                 onVideoContentScaleChanged = { videoZoomAndContentScaleState.onVideoContentScaleChanged(it) },
             )

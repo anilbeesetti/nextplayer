@@ -172,6 +172,15 @@ class LocalMediaRepository(
         )
     }
 
+    override suspend fun addExternalAudioToMedium(uri: String, audioUri: Uri) {
+        val stateEntity = mediumStateDao.get(uri) ?: MediumStateEntity(uriString = uri)
+        val audio = UriListConverter.fromStringToList(stateEntity.externalAudio)
+        if (audioUri in audio) return
+        mediumStateDao.upsert(
+            stateEntity.copy(externalAudio = UriListConverter.fromListToString(audio + audioUri)),
+        )
+    }
+
     override suspend fun addExternalSubtitleToMedium(uri: String, subtitleUri: Uri) {
         val stateEntity = mediumStateDao.get(uri) ?: MediumStateEntity(uriString = uri)
         val currentExternalSubs = UriListConverter.fromStringToList(stateEntity.externalSubs)

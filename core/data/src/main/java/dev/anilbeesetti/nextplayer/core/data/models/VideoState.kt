@@ -9,6 +9,7 @@ data class VideoState(
     val subtitleTrackIndex: Int?,
     val playbackSpeed: Float?,
     val externalSubs: List<Uri>,
+    val externalAudio: List<Uri> = emptyList(),
     val videoScale: Float,
     val subtitleDelayMilliseconds: Long,
     val subtitleSpeed: Float,

@@ -65,6 +65,26 @@ class MediaDatabaseMigrationTest {
         }
     }
 
+    @Test
+    fun migrate11To12_preservesPlaybackAndAddsEmptyAudio() {
+        helper.createDatabase("audio-migration", 11).apply {
+            execSQL(
+                "INSERT INTO media_state " +
+                    "(uri, playback_position, external_subs, video_scale, subtitle_delay, subtitle_speed) " +
+                    "VALUES ('content://video/one', 12345, 'file:///captions.srt', 1, 0, 1)",
+            )
+            close()
+        }
+        helper.runMigrationsAndValidate("audio-migration", 12, true, MediaDatabase.MIGRATION_11_12).use { db ->
+            db.query("SELECT playback_position, external_subs, external_audio FROM media_state").use { cursor ->
+                check(cursor.moveToFirst())
+                assertEquals(12345L, cursor.getLong(0))
+                assertEquals("file:///captions.srt", cursor.getString(1))
+                assertEquals("", cursor.getString(2))
+            }
+        }
+    }
+
     private companion object {
         const val TEST_DB = "migration-test"
     }
