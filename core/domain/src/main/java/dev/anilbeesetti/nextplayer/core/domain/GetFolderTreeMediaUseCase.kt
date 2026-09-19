@@ -1,20 +1,20 @@
 package dev.anilbeesetti.nextplayer.core.domain
 
 import android.os.Environment
-import dev.anilbeesetti.nextplayer.core.common.Dispatcher
-import dev.anilbeesetti.nextplayer.core.common.NextDispatchers
+import dev.anilbeesetti.nextplayer.core.common.di.DiQualifiers
 import dev.anilbeesetti.nextplayer.core.common.extensions.prettyName
 import dev.anilbeesetti.nextplayer.core.data.repository.MediaRepository
 import dev.anilbeesetti.nextplayer.core.data.repository.PreferencesRepository
 import dev.anilbeesetti.nextplayer.core.model.Folder
 import dev.anilbeesetti.nextplayer.core.model.Sort
 import dev.anilbeesetti.nextplayer.core.model.Video
+import java.io.File
 import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.flowOn
-import java.io.File
-import javax.inject.Inject
+import org.koin.core.annotation.Factory
+import org.koin.core.annotation.Named
 
 /**
  * Produces the hierarchical (tree) view of media for a folder.
@@ -24,10 +24,11 @@ import javax.inject.Inject
  * volumes: when more than one volume holds videos each volume is shown as a folder ("Internal
  * Storage", a USB drive, …); with a single volume its contents are shown directly.
  */
-class GetFolderTreeMediaUseCase @Inject constructor(
+@Factory
+class GetFolderTreeMediaUseCase(
     private val mediaRepository: MediaRepository,
     private val preferencesRepository: PreferencesRepository,
-    @Dispatcher(NextDispatchers.Default) private val defaultDispatcher: CoroutineDispatcher,
+    @Named(DiQualifiers.DEFAULT_DISPATCHER) private val defaultDispatcher: CoroutineDispatcher,
 ) {
 
     operator fun invoke(folderPath: String? = null): Flow<MediaHolder> {

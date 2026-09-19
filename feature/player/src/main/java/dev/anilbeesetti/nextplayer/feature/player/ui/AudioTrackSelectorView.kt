@@ -47,7 +47,7 @@ fun BoxScope.AudioTrackSelectorView(
     val context = LocalContext.current
     var audioNames by remember { mutableStateOf(emptyList<String>()) }
     LaunchedEffect(player, audioTracksState.tracks) {
-        val uris = player.mediaMetadata.externalAudio
+        val uris = player.currentMediaItem?.mediaMetadata?.externalAudio.orEmpty()
         audioNames = withContext(Dispatchers.IO) { uris.map { context.getFilenameFromUri(it) } }
     }
 

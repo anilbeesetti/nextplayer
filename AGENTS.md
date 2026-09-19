@@ -6,6 +6,8 @@ Next Player is a Kotlin/Jetpack Compose multi-module Android app. `app/` owns ap
 
 Kotlin sources are under each module's `src/main/java/`; resources are in `src/main/res/`. Place JVM and Robolectric tests in `src/test/`, and device tests in `src/androidTest/`. Release metadata and screenshots belong in `fastlane/metadata/`.
 
+Never add or modify files in `fastlane/` unless the user explicitly asks.
+
 ## Build, Test, and Development Commands
 
 Use the checked-in Gradle wrapper and JDK 17:

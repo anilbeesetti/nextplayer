@@ -1,19 +1,16 @@
 package dev.anilbeesetti.nextplayer
 
 import androidx.lifecycle.viewModelScope
-import dagger.hilt.android.lifecycle.HiltViewModel
 import dev.anilbeesetti.nextplayer.core.data.repository.PreferencesRepository
 import dev.anilbeesetti.nextplayer.core.model.ApplicationPreferences
 import dev.anilbeesetti.nextplayer.core.ui.base.MviViewModel
-import javax.inject.Inject
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 
-@HiltViewModel
-class MainViewModel @Inject constructor(
+class MainViewModel(
     private val preferencesRepository: PreferencesRepository,
 ) : MviViewModel<MainActivityUiState, Nothing>() {
 

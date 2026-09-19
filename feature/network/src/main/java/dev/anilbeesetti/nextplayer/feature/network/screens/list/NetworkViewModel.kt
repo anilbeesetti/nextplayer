@@ -2,10 +2,6 @@ package dev.anilbeesetti.nextplayer.feature.network.screens.list
 
 import android.net.Uri
 import androidx.lifecycle.viewModelScope
-import dagger.assisted.Assisted
-import dagger.assisted.AssistedFactory
-import dagger.assisted.AssistedInject
-import dagger.hilt.android.lifecycle.HiltViewModel
 import dev.anilbeesetti.nextplayer.core.data.repository.NetworkConnectionRepository
 import dev.anilbeesetti.nextplayer.core.media.network.keys.SshKeyStore
 import dev.anilbeesetti.nextplayer.core.model.NetworkAuthentication
@@ -19,17 +15,19 @@ import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
+import org.koin.core.annotation.InjectedParam
+import org.koin.core.annotation.KoinViewModel
 
 data class NetworkUiState(
     val connections: List<NetworkConnection> = emptyList(),
     val isLoading: Boolean = true,
 )
 
-@HiltViewModel(assistedFactory = NetworkViewModel.Factory::class)
-class NetworkViewModel @AssistedInject constructor(
+@KoinViewModel
+class NetworkViewModel(
     private val repository: NetworkConnectionRepository,
     private val sshKeyStore: SshKeyStore,
-    @Assisted internal var output: Output,
+    @InjectedParam internal var output: Output,
 ) : MviViewModel<NetworkUiState, NetworkAction>() {
 
     data class Output(
@@ -39,11 +37,6 @@ class NetworkViewModel @AssistedInject constructor(
         val openSettings: () -> Unit,
         val openStream: (Uri) -> Unit,
     )
-
-    @AssistedFactory
-    interface Factory {
-        fun create(output: Output): NetworkViewModel
-    }
 
     private val stateInternal = MutableStateFlow(NetworkUiState())
     override val state: StateFlow<NetworkUiState> = stateInternal.asStateFlow()

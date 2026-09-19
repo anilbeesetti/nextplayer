@@ -4,7 +4,9 @@ import androidx.activity.ComponentActivity
 import androidx.compose.foundation.focusGroup
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.calculateStartPadding
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.Button
 import androidx.compose.material3.Text
 import androidx.compose.runtime.mutableStateMapOf
@@ -12,6 +14,7 @@ import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.focus.focusRestorer
 import androidx.compose.ui.input.key.Key
+import androidx.compose.ui.platform.LocalLayoutDirection
 import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.semantics.SemanticsProperties
 import androidx.compose.ui.test.SemanticsMatcher
@@ -99,7 +102,7 @@ class NavigationLayoutFabFocusTest {
                     )
                 }
                 NavigationLayout(state = state, fabStates = fabs, showBottomBar = true) {
-                    Column(Modifier.fillMaxSize()) {
+                    Column(Modifier.fillMaxSize().padding(start = it.calculateStartPadding(LocalLayoutDirection.current))) {
                         Button(onClick = {}) { Text("Settings") }
                         Box(Modifier.fillMaxSize()) {
                             if (!empty) {

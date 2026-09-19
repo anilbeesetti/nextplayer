@@ -7,11 +7,10 @@ import dev.anilbeesetti.nextplayer.core.media.network.clients.WebDavClient
 import dev.anilbeesetti.nextplayer.core.media.network.keys.SshKeyStore
 import dev.anilbeesetti.nextplayer.core.model.NetworkConnection
 import dev.anilbeesetti.nextplayer.core.model.NetworkProtocol
-import javax.inject.Inject
-import javax.inject.Singleton
+import org.koin.core.annotation.Single
 
-@Singleton
-class DefaultNetworkClientFactory @Inject constructor(
+@Single
+class DefaultNetworkClientFactory(
     private val sshKeyStore: SshKeyStore,
 ) : NetworkClientFactory {
     override fun create(connection: NetworkConnection): NetworkClient = when (connection.protocol) {

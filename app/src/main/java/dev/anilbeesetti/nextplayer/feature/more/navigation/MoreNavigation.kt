@@ -1,7 +1,6 @@
 package dev.anilbeesetti.nextplayer.feature.more.navigation
 
 import androidx.compose.runtime.SideEffect
-import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.navigation3.runtime.EntryProviderScope
 import androidx.navigation3.runtime.NavBackStack
 import androidx.navigation3.runtime.NavKey
@@ -12,6 +11,8 @@ import dev.anilbeesetti.nextplayer.feature.more.screens.more.MoreViewModel
 import dev.anilbeesetti.nextplayer.feature.more.screens.trash.TrashScreen
 import dev.anilbeesetti.nextplayer.feature.more.screens.trash.TrashViewModel
 import kotlinx.serialization.Serializable
+import org.koin.compose.viewmodel.koinViewModel
+import org.koin.core.parameter.parametersOf
 
 @Serializable
 object MoreRoute : NavKey
@@ -37,8 +38,8 @@ fun EntryProviderScope<NavKey>.moreEntry(
             openTrash = onTrashClick,
             openVault = onVaultClick,
         )
-        val viewModel = hiltViewModel<MoreViewModel, MoreViewModel.Factory>(
-            creationCallback = { factory -> factory.create(output = output) },
+        val viewModel = koinViewModel<MoreViewModel>(
+            parameters = { parametersOf(output) },
         )
         SideEffect { viewModel.output = output }
         MoreScreen(viewModel = viewModel)
@@ -54,8 +55,8 @@ fun EntryProviderScope<NavKey>.historyEntry(
             navigateUp = onNavigateUp,
             playVideo = onPlayVideo,
         )
-        val viewModel = hiltViewModel<HistoryViewModel, HistoryViewModel.Factory>(
-            creationCallback = { factory -> factory.create(output = output) },
+        val viewModel = koinViewModel<HistoryViewModel>(
+            parameters = { parametersOf(output) },
         )
         SideEffect { viewModel.output = output }
         HistoryScreen(viewModel = viewModel)
@@ -71,8 +72,8 @@ fun EntryProviderScope<NavKey>.trashEntry(
             navigateUp = onNavigateUp,
             playVideo = onPlayVideo,
         )
-        val viewModel = hiltViewModel<TrashViewModel, TrashViewModel.Factory>(
-            creationCallback = { factory -> factory.create(output = output) },
+        val viewModel = koinViewModel<TrashViewModel>(
+            parameters = { parametersOf(output) },
         )
         SideEffect { viewModel.output = output }
         TrashScreen(viewModel = viewModel)

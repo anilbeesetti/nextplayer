@@ -3,16 +3,16 @@ package dev.anilbeesetti.nextplayer.core.data.playlist
 import android.content.Context
 import android.content.Intent
 import android.net.Uri
-import dagger.hilt.android.qualifiers.ApplicationContext
-import javax.inject.Inject
+import org.koin.core.annotation.Factory
 
 data class PersistedM3UGrant(
     val uri: Uri,
     val newlyPersisted: Boolean,
 )
 
-class M3UDocumentPermissionManager @Inject constructor(
-    @ApplicationContext private val context: Context,
+@Factory
+class M3UDocumentPermissionManager(
+    private val context: Context,
 ) {
     fun acquire(uri: Uri): Result<PersistedM3UGrant> = runCatching {
         val alreadyPersisted = context.contentResolver.persistedUriPermissions.any {

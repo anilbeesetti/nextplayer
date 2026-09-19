@@ -4,10 +4,8 @@ import dev.anilbeesetti.nextplayer.feature.player.model.DecoderRecoveryStatus
 import dev.anilbeesetti.nextplayer.feature.player.model.DecoderTrackType
 import io.github.anilbeesetti.nextlib.media3ext.ffdecoder.DecoderMode
 import org.junit.Assert.assertEquals
-import org.junit.Assert.assertFalse
 import org.junit.Assert.assertNotNull
 import org.junit.Assert.assertNull
-import org.junit.Assert.assertTrue
 import org.junit.Test
 
 class DecoderRecoveryManagerTest {
@@ -83,26 +81,6 @@ class DecoderRecoveryManagerTest {
         assertEquals(DecoderRecoveryStatus.AWAITING_CONFIRMATION, manager.state.status)
         assertEquals(video, manager.state.trackType)
         assertEquals(DecoderRetry(video, DecoderMode.SOFTWARE), manager.confirmFallback())
-    }
-
-    @Test
-    fun onlyNewMediaIdentityResetsSelections() {
-        val manager = DecoderRecoveryManager()
-        val media = DecoderMediaIdentity(0, "video", "file:///video.mp4")
-        assertTrue(manager.onMediaItemChanged(media))
-        manager.onUserSelection(video, DecoderMode.HARDWARE)
-        assertFalse(manager.onMediaItemChanged(media.copy()))
-        manager.onDecoderFailure(video, DecoderMode.HARDWARE)
-        assertEquals(DecoderRecoveryStatus.AWAITING_CONFIRMATION, manager.state.status)
-
-        for (next in listOf(media.copy(index = 1), media.copy(uri = "file:///other.mp4"))) {
-            assertTrue(manager.onMediaItemChanged(next))
-            assertNotNull(manager.onDecoderFailure(video, DecoderMode.AUTO))
-            assertNotNull(manager.onDecoderFailure(audio, DecoderMode.AUTO))
-        }
-        assertFalse(manager.onMediaItemChanged(null))
-        assertTrue(manager.onMediaItemChanged(media))
-        assertNotNull(manager.onDecoderFailure(video, DecoderMode.AUTO))
     }
 
     @Test

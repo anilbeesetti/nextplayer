@@ -1,10 +1,11 @@
 # Runtime decoder switching
 
 NextPlayer uses nextlib's `DecoderManager` on one `ExoPlayer`. Video and audio choices are
-independent and reset to `AUTO` for a new playlist item, but survive metadata updates.
+independent and stored in each `MediaItem`. New items default to `AUTO`; returning to an
+existing playlist item restores its saved choices. Metadata updates preserve those choices.
 The overlay offers HW (`HARDWARE`), SW+ (`SOFTWARE` MediaCodec), and SW (`FFMPEG`).
 Automatic selection stays internal; controls show the initialized decoder category and
-show “Decoders” while that category is unknown.
+show “-” while that category is unknown.
 
 ```kotlin
 val decoderManager = DecoderManager()
@@ -19,6 +20,20 @@ decoderManager.attach(player)
 MediaSession extras. `PlayerActivity` receives `onExtrasChanged` and passes the state to
 Compose, so a dialog or decoder label can update without a playback-state event. Existing
 session extras, such as skip-silence state, are preserved.
+
+`videoDecoderMode` and `audioDecoderMode` in media metadata store requested modes, including
+`AUTO`, rather than the active decoder category. The shared selection path updates them for
+both user selections and fallback retries. On media transitions the service restores the
+saved modes and starts fresh recovery attempts. Choices stay within the current playlist;
+they are not saved to the media database.
+
+Adding a local subtitle copies that metadata into a new item, inserts it after the current
+item, seeks to it, then removes the old item. This recreates only the current source, while
+preserving position, playback intent, and the original shuffle order. `replaceMediaItem`
+alone can reuse a source without loading new subtitle configurations. Resume metadata also
+uses the current playback position.
+Nextlib also restores active modes from successful decoder reuse evaluations: a renderer can be
+disabled and enabled again without initializing a new codec.
 
 NextPlayer owns fallback policy. Each track keeps a bounded queue of fallback modes;
 duplicate failures for the same attempt are ignored.
@@ -46,7 +61,7 @@ ANDROID_HOME=/path/to/sdk ./gradlew -PnextlibPath=../nextlib assembleDebug test 
 ```
 
 Without `nextlibPath`, Gradle uses the published version. Tests cover fallback exhaustion,
-confirmation, duplicate failures, independent attempts, media identity, and session-state
+confirmation, duplicate failures, independent attempts, per-item decoder choices, and session-state
 parsing. Device verification must also cover switching while paused/playing, actual decoder
 names, position continuity, independent audio/video choices, and fallback dialogs.
 

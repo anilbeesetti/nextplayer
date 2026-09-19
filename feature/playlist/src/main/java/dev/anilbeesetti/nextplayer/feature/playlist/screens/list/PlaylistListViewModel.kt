@@ -3,10 +3,6 @@ package dev.anilbeesetti.nextplayer.feature.playlist.screens.list
 import android.net.Uri
 import android.widget.Toast
 import androidx.lifecycle.viewModelScope
-import dagger.assisted.Assisted
-import dagger.assisted.AssistedFactory
-import dagger.assisted.AssistedInject
-import dagger.hilt.android.lifecycle.HiltViewModel
 import dev.anilbeesetti.nextplayer.core.common.service.system.SystemService
 import dev.anilbeesetti.nextplayer.core.data.playlist.M3UDocumentPermissionManager
 import dev.anilbeesetti.nextplayer.core.data.playlist.M3UParser
@@ -27,26 +23,23 @@ import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
+import org.koin.core.annotation.InjectedParam
+import org.koin.core.annotation.KoinViewModel
 
-@HiltViewModel(assistedFactory = PlaylistListViewModel.Factory::class)
-class PlaylistListViewModel @AssistedInject constructor(
+@KoinViewModel
+class PlaylistListViewModel(
     private val playlistRepository: PlaylistRepository,
     private val m3uParser: M3UParser,
     private val documentPermissionManager: M3UDocumentPermissionManager,
     private val mediaSynchronizer: MediaSynchronizer,
     private val systemService: SystemService,
-    @Assisted internal var output: Output,
+    @InjectedParam internal var output: Output,
 ) : MviViewModel<PlaylistListUiState, PlaylistUiAction>() {
 
     data class Output(
         val openPlaylist: (Long) -> Unit,
         val openSettings: () -> Unit,
     )
-
-    @AssistedFactory
-    interface Factory {
-        fun create(output: Output): PlaylistListViewModel
-    }
 
     private var linkedCreationJob: Job? = null
 

@@ -2,11 +2,7 @@ package dev.anilbeesetti.nextplayer.feature.network.screens.addconnection
 
 import android.net.Uri
 import androidx.lifecycle.viewModelScope
-import dagger.assisted.Assisted
-import dagger.assisted.AssistedFactory
-import dagger.assisted.AssistedInject
-import dagger.hilt.android.lifecycle.HiltViewModel
-import dev.anilbeesetti.nextplayer.core.common.di.ApplicationScope
+import dev.anilbeesetti.nextplayer.core.common.di.DiQualifiers
 import dev.anilbeesetti.nextplayer.core.data.repository.NetworkConnectionRepository
 import dev.anilbeesetti.nextplayer.core.media.network.NetworkClientFactory
 import dev.anilbeesetti.nextplayer.core.media.network.keys.SshKeyStore
@@ -28,6 +24,9 @@ import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.joinAll
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
+import org.koin.core.annotation.InjectedParam
+import org.koin.core.annotation.KoinViewModel
+import org.koin.core.annotation.Named
 
 data class SelectedPrivateKey(
     val stagedFileName: String,
@@ -73,24 +72,19 @@ sealed interface AddConnectionAction {
     data object Cancel : AddConnectionAction
 }
 
-@HiltViewModel(assistedFactory = AddConnectionViewModel.Factory::class)
-class AddConnectionViewModel @AssistedInject constructor(
-    @Assisted private val input: Input,
-    @Assisted internal var output: Output,
+@KoinViewModel
+class AddConnectionViewModel(
+    @InjectedParam private val input: Input,
+    @InjectedParam internal var output: Output,
     private val repository: NetworkConnectionRepository,
     private val clientFactory: NetworkClientFactory,
     private val sshKeyStore: SshKeyStore,
-    @ApplicationScope private val applicationScope: CoroutineScope,
+    @Named(DiQualifiers.APPLICATION_SCOPE) private val applicationScope: CoroutineScope,
 ) : MviViewModel<AddConnectionUiState, AddConnectionAction>() {
 
     data class Input(val connectionId: Long?)
     data class Output(val navigateUp: () -> Unit)
     private val connectionId = input.connectionId
-
-    @AssistedFactory
-    interface Factory {
-        fun create(input: Input, output: Output): AddConnectionViewModel
-    }
 
     private val stateInternal = MutableStateFlow(AddConnectionUiState(isEdit = connectionId != null))
     override val state: StateFlow<AddConnectionUiState> = stateInternal.asStateFlow()
