@@ -1,47 +1,10 @@
 package dev.anilbeesetti.nextplayer.feature.player.state
 
 import androidx.annotation.OptIn
-import androidx.compose.runtime.Composable
-import androidx.compose.runtime.LaunchedEffect
-import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
-import androidx.compose.runtime.setValue
 import androidx.media3.common.C
-import androidx.media3.common.Player
-import androidx.media3.common.Timeline
 import androidx.media3.common.Tracks
-import androidx.media3.common.listen
 import androidx.media3.common.util.UnstableApi
 import androidx.media3.extractor.metadata.Chapter
-
-@OptIn(UnstableApi::class)
-@Composable
-internal fun rememberChapters(player: Player): List<Chapter> {
-    var chapters by remember(player) { mutableStateOf(player.readChapters()) }
-    LaunchedEffect(player) {
-        chapters = player.readChapters()
-        player.listen { events ->
-            if (events.containsAny(
-                    Player.EVENT_TRACKS_CHANGED,
-                    Player.EVENT_TIMELINE_CHANGED,
-                    Player.EVENT_MEDIA_ITEM_TRANSITION,
-                    Player.EVENT_POSITION_DISCONTINUITY,
-                )
-            ) {
-                chapters = player.readChapters()
-            }
-        }
-    }
-    return chapters
-}
-
-@OptIn(UnstableApi::class)
-private fun Player.readChapters(): List<Chapter> {
-    if (currentTimeline.isEmpty) return emptyList()
-    val periodOffsetMs = currentTimeline.getPeriod(currentPeriodIndex, Timeline.Period()).positionInWindowMs
-    return currentTracks.chapters(duration, periodOffsetMs)
-}
 
 @OptIn(UnstableApi::class)
 internal fun Tracks.chapters(durationMs: Long, periodOffsetMs: Long = 0): List<Chapter> {

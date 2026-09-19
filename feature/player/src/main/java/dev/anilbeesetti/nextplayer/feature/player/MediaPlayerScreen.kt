@@ -87,9 +87,7 @@ import dev.anilbeesetti.nextplayer.feature.player.model.DecoderTrackType
 import dev.anilbeesetti.nextplayer.feature.player.model.labelRes
 import dev.anilbeesetti.nextplayer.feature.player.state.ControlsVisibilityState
 import dev.anilbeesetti.nextplayer.feature.player.state.VerticalGesture
-import dev.anilbeesetti.nextplayer.feature.player.state.currentChapterIndex
 import dev.anilbeesetti.nextplayer.feature.player.state.rememberBrightnessState
-import dev.anilbeesetti.nextplayer.feature.player.state.rememberChapters
 import dev.anilbeesetti.nextplayer.feature.player.state.rememberControlsVisibilityState
 import dev.anilbeesetti.nextplayer.feature.player.state.rememberDecoderState
 import dev.anilbeesetti.nextplayer.feature.player.state.rememberErrorState
@@ -137,8 +135,6 @@ fun MediaPlayerScreen(
     player ?: return
     val metadataState = rememberMetadataState(player)
     val mediaPresentationState = rememberMediaPresentationState(player)
-    val chapters = rememberChapters(player)
-    val currentChapterIndex = chapters.currentChapterIndex(mediaPresentationState.position)
     val controlsVisibilityState = rememberControlsVisibilityState(
         player = player,
         hideAfter = playerPreferences.controllerAutoHideTimeout.seconds,
@@ -435,8 +431,6 @@ fun MediaPlayerScreen(
                                 ControlsBottomView(
                                     player = player,
                                     mediaPresentationState = mediaPresentationState,
-                                    chapters = chapters,
-                                    currentChapterIndex = currentChapterIndex,
                                     onChaptersClick = {
                                         controlsVisibilityState.hideControls()
                                         overlayView = OverlayView.CHAPTERS
@@ -519,8 +513,8 @@ fun MediaPlayerScreen(
             OverlayShowView(
                 player = player,
                 overlayView = overlayView,
-                chapters = chapters,
-                currentChapterIndex = currentChapterIndex,
+                chapters = mediaPresentationState.chapters,
+                currentChapterIndex = mediaPresentationState.currentChapterIndex,
                 onChapterSelected = { chapter ->
                     if (player.isCurrentMediaItemSeekable) {
                         player.seekTo(chapter.startTimeMs)
