@@ -9,6 +9,8 @@ import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.aspectRatio
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
@@ -22,6 +24,8 @@ import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.ExperimentalMaterial3ExpressiveApi
 import androidx.compose.material3.FilledTonalIconButton
 import androidx.compose.material3.Icon
+import androidx.compose.material3.LinearProgressIndicator
+import androidx.compose.material3.ListItemDefaults
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
@@ -79,6 +83,16 @@ internal fun NetworkBrowseScreenContent(
                             imageVector = NextIcons.ArrowBack,
                             contentDescription = stringResource(R.string.navigate_up),
                         )
+                    }
+                },
+                actions = {
+                    if (!state.isLoading && state.error == null && state.files.any { !it.isDirectory }) {
+                        FilledTonalIconButton(
+                            onClick = { onAction(NetworkBrowseAction.PlayAll) },
+                            modifier = Modifier.tvFocusRing(),
+                        ) {
+                            Icon(NextIcons.Play, contentDescription = stringResource(R.string.play_all))
+                        }
                     }
                 },
             )
@@ -183,6 +197,11 @@ internal fun NetworkBrowseScreenContent(
                                     file = file,
                                     isFirstItem = index == 0,
                                     isLastItem = index == state.files.lastIndex,
+                                    isRecentlyPlayed = state.preferences.markLastPlayedMedia &&
+                                        (state.recentlyPlayedPath == file.path ||
+                                            (file.isDirectory && state.recentlyPlayedPath?.startsWith("${file.path.trimEnd('/')}/") == true)),
+                                    playedPercentage = state.playbackHistory[file.path]?.playedPercentage
+                                        ?.takeIf { state.preferences.showPlayedProgress },
                                     onClick = {
                                         if (file.isDirectory) onAction(NetworkBrowseAction.OpenFolder(file)) else onAction(NetworkBrowseAction.PlayVideo(file))
                                     },
@@ -202,6 +221,8 @@ private fun NetworkFileItem(
     file: NetworkFile,
     isFirstItem: Boolean,
     isLastItem: Boolean,
+    isRecentlyPlayed: Boolean,
+    playedPercentage: Float?,
     onClick: () -> Unit,
 ) {
     NextSegmentedListItem(
@@ -209,6 +230,10 @@ private fun NetworkFileItem(
         isFirstItem = isFirstItem,
         isLastItem = isLastItem,
         onClick = onClick,
+        colors = ListItemDefaults.segmentedColors(
+            contentColor = if (isRecentlyPlayed) MaterialTheme.colorScheme.primary else ListItemDefaults.segmentedColors().contentColor,
+            supportingContentColor = if (isRecentlyPlayed) MaterialTheme.colorScheme.primary else ListItemDefaults.segmentedColors().supportingContentColor,
+        ),
         leadingContent = {
             if (file.isDirectory) {
                 Box(modifier = Modifier.padding(horizontal = 8.dp)) {
@@ -236,6 +261,14 @@ private fun NetworkFileItem(
                         tint = MaterialTheme.colorScheme.surfaceColorAtElevation(100.dp),
                         modifier = Modifier.fillMaxSize(0.5f),
                     )
+                    if (playedPercentage != null) {
+                        LinearProgressIndicator(
+                            progress = { playedPercentage.coerceIn(0f, 1f) },
+                            modifier = Modifier.align(Alignment.BottomCenter).fillMaxWidth().height(4.dp),
+                            gapSize = 0.dp,
+                            drawStopIndicator = {},
+                        )
+                    }
                 }
             }
         },
@@ -266,7 +299,6 @@ private fun SupportingText(text: String) {
     Text(
         text = text,
         style = MaterialTheme.typography.bodySmall,
-        color = MaterialTheme.colorScheme.onSurfaceVariant,
     )
 }
 
