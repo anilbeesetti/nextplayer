@@ -508,4 +508,6 @@
     <string name="chapters">Κεφάλαια</string>
     <string name="chapter_number">Κεφάλαιο %1$d</string>
     <string name="show_chapters">Εμφάνιση κεφαλαίων</string>
+    <string name="open_audio">Άνοιγμα τοπικού ήχου</string>
+    <string name="error_opening_audio">Αδυναμία ανοίγματος αυτού του αρχείου ήχου</string>
 </resources>
