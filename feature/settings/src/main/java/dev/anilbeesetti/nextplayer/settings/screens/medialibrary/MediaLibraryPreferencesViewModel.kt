@@ -1,10 +1,6 @@
 package dev.anilbeesetti.nextplayer.settings.screens.medialibrary
 
 import androidx.lifecycle.viewModelScope
-import dagger.assisted.Assisted
-import dagger.assisted.AssistedFactory
-import dagger.assisted.AssistedInject
-import dagger.hilt.android.lifecycle.HiltViewModel
 import dev.anilbeesetti.nextplayer.core.data.repository.PreferencesRepository
 import dev.anilbeesetti.nextplayer.core.model.ApplicationPreferences
 import dev.anilbeesetti.nextplayer.core.ui.base.MviViewModel
@@ -13,11 +9,13 @@ import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
+import org.koin.core.annotation.InjectedParam
+import org.koin.core.annotation.KoinViewModel
 
-@HiltViewModel(assistedFactory = MediaLibraryPreferencesViewModel.Factory::class)
-class MediaLibraryPreferencesViewModel @AssistedInject constructor(
+@KoinViewModel
+class MediaLibraryPreferencesViewModel(
     private val preferencesRepository: PreferencesRepository,
-    @Assisted internal var output: Output,
+    @InjectedParam internal var output: Output,
 ) : MviViewModel<MediaLibraryPreferencesUiState, MediaLibraryPreferencesUiEvent>() {
 
     data class Output(
@@ -25,11 +23,6 @@ class MediaLibraryPreferencesViewModel @AssistedInject constructor(
         val openFolders: () -> Unit,
         val openThumbnails: () -> Unit,
     )
-
-    @AssistedFactory
-    interface Factory {
-        fun create(output: Output): MediaLibraryPreferencesViewModel
-    }
 
     private val stateInternal = MutableStateFlow(MediaLibraryPreferencesUiState())
     override val state: StateFlow<MediaLibraryPreferencesUiState> = stateInternal.asStateFlow()

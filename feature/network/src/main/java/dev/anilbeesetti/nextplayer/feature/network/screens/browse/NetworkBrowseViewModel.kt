@@ -3,10 +3,6 @@ package dev.anilbeesetti.nextplayer.feature.network.screens.browse
 import android.net.Uri
 import androidx.core.net.toUri
 import androidx.lifecycle.viewModelScope
-import dagger.assisted.Assisted
-import dagger.assisted.AssistedFactory
-import dagger.assisted.AssistedInject
-import dagger.hilt.android.lifecycle.HiltViewModel
 import dev.anilbeesetti.nextplayer.core.data.repository.MediaRepository
 import dev.anilbeesetti.nextplayer.core.data.repository.NetworkConnectionRepository
 import dev.anilbeesetti.nextplayer.core.data.repository.PreferencesRepository
@@ -28,6 +24,8 @@ import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
+import org.koin.core.annotation.InjectedParam
+import org.koin.core.annotation.KoinViewModel
 
 data class NetworkBrowseUiState(
     val title: String = "",
@@ -53,10 +51,10 @@ data class NetworkBrowseError(
  * Browses a single folder on a network connection. Each folder is its own navigation destination
  * (like the media picker), so back navigation returns to the already-loaded parent instantly.
  */
-@HiltViewModel(assistedFactory = NetworkBrowseViewModel.Factory::class)
-class NetworkBrowseViewModel @AssistedInject constructor(
-    @Assisted private val input: Input,
-    @Assisted internal var output: Output,
+@KoinViewModel
+class NetworkBrowseViewModel(
+    @InjectedParam private val input: Input,
+    @InjectedParam internal var output: Output,
     private val repository: NetworkConnectionRepository,
     private val clientFactory: NetworkClientFactory,
     mediaRepository: MediaRepository,
@@ -72,11 +70,6 @@ class NetworkBrowseViewModel @AssistedInject constructor(
 
     private val connectionId = input.connectionId
     private val path = input.path
-
-    @AssistedFactory
-    interface Factory {
-        fun create(input: Input, output: Output): NetworkBrowseViewModel
-    }
 
     private val connection = MutableStateFlow<NetworkConnection?>(null)
     private var client: NetworkClient? = null

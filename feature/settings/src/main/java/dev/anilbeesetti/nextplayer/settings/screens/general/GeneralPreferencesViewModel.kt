@@ -2,10 +2,6 @@ package dev.anilbeesetti.nextplayer.settings.screens.general
 
 import androidx.lifecycle.viewModelScope
 import coil3.ImageLoader
-import dagger.assisted.Assisted
-import dagger.assisted.AssistedFactory
-import dagger.assisted.AssistedInject
-import dagger.hilt.android.lifecycle.HiltViewModel
 import dev.anilbeesetti.nextplayer.core.data.repository.PreferencesRepository
 import dev.anilbeesetti.nextplayer.core.media.extensions.clearAllCache
 import dev.anilbeesetti.nextplayer.core.ui.base.MviViewModel
@@ -14,22 +10,19 @@ import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
+import org.koin.core.annotation.InjectedParam
+import org.koin.core.annotation.KoinViewModel
 
-@HiltViewModel(assistedFactory = GeneralPreferencesViewModel.Factory::class)
-class GeneralPreferencesViewModel @AssistedInject constructor(
+@KoinViewModel
+class GeneralPreferencesViewModel(
     private val preferencesRepository: PreferencesRepository,
     private val imageLoader: ImageLoader,
-    @Assisted internal var output: Output,
+    @InjectedParam internal var output: Output,
 ) : MviViewModel<GeneralPreferencesUiState, GeneralPreferencesUiEvent>() {
 
     data class Output(
         val navigateUp: () -> Unit,
     )
-
-    @AssistedFactory
-    interface Factory {
-        fun create(output: Output): GeneralPreferencesViewModel
-    }
 
     private val stateInternal = MutableStateFlow(GeneralPreferencesUiState())
     override val state: StateFlow<GeneralPreferencesUiState> = stateInternal.asStateFlow()

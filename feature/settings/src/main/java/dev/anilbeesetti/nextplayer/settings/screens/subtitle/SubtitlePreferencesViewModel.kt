@@ -2,10 +2,6 @@ package dev.anilbeesetti.nextplayer.settings.screens.subtitle
 
 import androidx.compose.runtime.Stable
 import androidx.lifecycle.viewModelScope
-import dagger.assisted.Assisted
-import dagger.assisted.AssistedFactory
-import dagger.assisted.AssistedInject
-import dagger.hilt.android.lifecycle.HiltViewModel
 import dev.anilbeesetti.nextplayer.core.data.repository.PreferencesRepository
 import dev.anilbeesetti.nextplayer.core.model.Font
 import dev.anilbeesetti.nextplayer.core.model.PlayerPreferences
@@ -15,21 +11,18 @@ import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
+import org.koin.core.annotation.InjectedParam
+import org.koin.core.annotation.KoinViewModel
 
-@HiltViewModel(assistedFactory = SubtitlePreferencesViewModel.Factory::class)
-class SubtitlePreferencesViewModel @AssistedInject constructor(
+@KoinViewModel
+class SubtitlePreferencesViewModel(
     private val preferencesRepository: PreferencesRepository,
-    @Assisted internal var output: Output,
+    @InjectedParam internal var output: Output,
 ) : MviViewModel<SubtitlePreferencesUiState, SubtitlePreferencesUiEvent>() {
 
     data class Output(
         val navigateUp: () -> Unit,
     )
-
-    @AssistedFactory
-    interface Factory {
-        fun create(output: Output): SubtitlePreferencesViewModel
-    }
 
     private val stateInternal = MutableStateFlow(
         SubtitlePreferencesUiState(

@@ -7,7 +7,6 @@ import androidx.compose.animation.slideInVertically
 import androidx.compose.animation.slideOutVertically
 import androidx.compose.animation.togetherWith
 import androidx.compose.runtime.SideEffect
-import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.navigation3.runtime.EntryProviderScope
 import androidx.navigation3.runtime.NavBackStack
 import androidx.navigation3.runtime.NavKey
@@ -20,6 +19,8 @@ import dev.anilbeesetti.nextplayer.feature.network.screens.browse.NetworkBrowseV
 import dev.anilbeesetti.nextplayer.feature.network.screens.list.NetworkScreen
 import dev.anilbeesetti.nextplayer.feature.network.screens.list.NetworkViewModel
 import kotlinx.serialization.Serializable
+import org.koin.compose.viewmodel.koinViewModel
+import org.koin.core.parameter.parametersOf
 
 @Serializable
 object NetworkRoute : NavKey
@@ -53,8 +54,8 @@ fun EntryProviderScope<NavKey>.networkEntry(
             openSettings = onSettingsClick,
             openStream = onOpenStream,
         )
-        val viewModel = hiltViewModel<NetworkViewModel, NetworkViewModel.Factory>(
-            creationCallback = { factory -> factory.create(output = output) },
+        val viewModel = koinViewModel<NetworkViewModel>(
+            parameters = { parametersOf(output) },
         )
         SideEffect { viewModel.output = output }
         NetworkScreen(viewModel = viewModel)
@@ -80,11 +81,11 @@ fun EntryProviderScope<NavKey>.addConnectionEntry(
         val output = AddConnectionViewModel.Output(
             navigateUp = onNavigateUp,
         )
-        val viewModel = hiltViewModel<AddConnectionViewModel, AddConnectionViewModel.Factory>(
-            creationCallback = { factory ->
-                factory.create(
-                    input = AddConnectionViewModel.Input(connectionId = key.connectionId),
-                    output = output,
+        val viewModel = koinViewModel<AddConnectionViewModel>(
+            parameters = {
+                parametersOf(
+                    AddConnectionViewModel.Input(connectionId = key.connectionId),
+                    output,
                 )
             },
         )
@@ -104,11 +105,11 @@ fun EntryProviderScope<NavKey>.networkBrowseEntry(
             playVideos = onPlayVideos,
             openFolder = onNavigateToFolder,
         )
-        val viewModel = hiltViewModel<NetworkBrowseViewModel, NetworkBrowseViewModel.Factory>(
-            creationCallback = { factory ->
-                factory.create(
-                    input = NetworkBrowseViewModel.Input(connectionId = key.connectionId, path = key.path),
-                    output = output,
+        val viewModel = koinViewModel<NetworkBrowseViewModel>(
+            parameters = {
+                parametersOf(
+                    NetworkBrowseViewModel.Input(connectionId = key.connectionId, path = key.path),
+                    output,
                 )
             },
         )

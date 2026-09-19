@@ -11,11 +11,12 @@ import dev.anilbeesetti.nextplayer.core.model.PlaylistItemRecord
 import dev.anilbeesetti.nextplayer.core.model.PlaylistRecord
 import dev.anilbeesetti.nextplayer.core.model.PlaylistSummary
 import dev.anilbeesetti.nextplayer.core.model.PlaylistType
-import javax.inject.Inject
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.map
+import org.koin.core.annotation.Single
 
-class LocalPlaylistRepository @Inject constructor(
+@Single
+class LocalPlaylistRepository(
     private val playlistDao: PlaylistDao,
 ) : PlaylistRepository {
 

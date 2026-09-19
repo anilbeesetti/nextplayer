@@ -7,19 +7,17 @@ import androidx.media3.datasource.DataSource
 import androidx.media3.datasource.DataSpec
 import androidx.media3.datasource.DefaultDataSource
 import androidx.media3.datasource.TransferListener
-import dagger.hilt.android.qualifiers.ApplicationContext
 import dev.anilbeesetti.nextplayer.core.media.network.NetworkUri
-import javax.inject.Inject
-import javax.inject.Singleton
+import org.koin.core.annotation.Single
 
 /**
  * The player's data source factory: Media3's own [DefaultDataSource] for local and http(s) media,
  * and [NetworkDataSource] for the `smb`/`ftp`/`sftp`/`webdav` schemes it doesn't handle.
  */
 @UnstableApi
-@Singleton
-class NextDataSourceFactory @Inject constructor(
-    @ApplicationContext private val context: Context,
+@Single
+class NextDataSourceFactory(
+    private val context: Context,
     private val sessions: NetworkSessions,
 ) : DataSource.Factory {
 

@@ -2,31 +2,23 @@ package dev.anilbeesetti.nextplayer.settings.screens.about
 
 import android.content.Context
 import android.os.Build
-import dagger.assisted.Assisted
-import dagger.assisted.AssistedFactory
-import dagger.assisted.AssistedInject
-import dagger.hilt.android.lifecycle.HiltViewModel
-import dagger.hilt.android.qualifiers.ApplicationContext
 import dev.anilbeesetti.nextplayer.core.ui.base.MviViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
+import org.koin.core.annotation.InjectedParam
+import org.koin.core.annotation.KoinViewModel
 
-@HiltViewModel(assistedFactory = AboutPreferencesViewModel.Factory::class)
-class AboutPreferencesViewModel @AssistedInject constructor(
-    @ApplicationContext context: Context,
-    @Assisted internal var output: Output,
+@KoinViewModel
+class AboutPreferencesViewModel(
+    context: Context,
+    @InjectedParam internal var output: Output,
 ) : MviViewModel<AboutPreferencesUiState, AboutPreferencesAction>() {
 
     data class Output(
         val navigateUp: () -> Unit,
         val openLibraries: () -> Unit,
     )
-
-    @AssistedFactory
-    interface Factory {
-        fun create(output: Output): AboutPreferencesViewModel
-    }
 
     private val stateInternal = MutableStateFlow(AboutPreferencesUiState(appVersion = context.appVersion()))
     override val state: StateFlow<AboutPreferencesUiState> = stateInternal.asStateFlow()
