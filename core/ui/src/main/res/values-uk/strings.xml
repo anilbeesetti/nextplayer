@@ -521,4 +521,9 @@
     <string name="use_sftp">Використовувати SFTP</string>
     <string name="settings_description">Налаштування застосунку</string>
     <string name="more">Більше</string>
+    <string name="open_audio">Відкрити локальне аудіо</string>
+    <string name="error_opening_audio">Неможливо відкрити цей аудіофайл</string>
+    <string name="chapters">Розділи</string>
+    <string name="chapter_number">Розділ %1$d</string>
+    <string name="show_chapters">Показати розділи</string>
 </resources>
