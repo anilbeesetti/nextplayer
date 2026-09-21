@@ -499,7 +499,7 @@ private fun SimpleSlider(
     )
 }
 
-private fun Modifier.chapterGaps(chapters: List<Chapter>, duration: Float): Modifier = drawWithCache {
+internal fun Modifier.chapterGaps(chapters: List<Chapter>, duration: Float): Modifier = drawWithCache {
     val gaps = Path()
     if (duration > 0f) {
         val halfGap = 1.5.dp.toPx()

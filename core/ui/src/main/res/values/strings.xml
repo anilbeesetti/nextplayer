@@ -327,6 +327,8 @@
     <string name="thumbnail_setting_change_confirmation">Changing this setting will clear the thumbnail cache. Thumbnails will be generated again when media list is opened. Continue?</string>
     <string name="material_you_controls">Material You controls</string>
     <string name="material_you_controls_description">Use material you style controls</string>
+    <string name="show_info_when_locked">Show info when locked</string>
+    <string name="show_info_when_locked_description">Show the title and playback progress when you tap the screen with controls locked</string>
 
     <!-- Vault -->
     <string name="hide">Hide</string>

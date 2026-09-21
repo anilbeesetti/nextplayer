@@ -109,6 +109,8 @@ import dev.anilbeesetti.nextplayer.feature.player.ui.SubtitleConfiguration
 import dev.anilbeesetti.nextplayer.feature.player.ui.VerticalProgressView
 import dev.anilbeesetti.nextplayer.feature.player.ui.controls.ControlsBottomView
 import dev.anilbeesetti.nextplayer.feature.player.ui.controls.ControlsTopView
+import dev.anilbeesetti.nextplayer.feature.player.ui.controls.LockedProgressView
+import dev.anilbeesetti.nextplayer.feature.player.ui.controls.LockedTitleView
 import kotlin.math.abs
 import kotlin.time.Duration.Companion.milliseconds
 import kotlin.time.Duration.Companion.seconds
@@ -352,24 +354,42 @@ fun MediaPlayerScreen(
                 }
 
                 if (controlsVisibilityState.controlsVisible && controlsVisibilityState.controlsLocked) {
+                    val showInfoWhenLocked = playerPreferences.showInfoWhenLocked
                     Column(
                         modifier = Modifier
                             .fillMaxSize()
                             .safeDrawingPadding()
                             .padding(top = 24.dp),
                     ) {
-                        PlayerButton(
-                            modifier = Modifier.thenIf(isTv) {
-                                focusRequester(unlockFocusRequester)
-                                    .onFocusChanged { isUnlockFocused = it.hasFocus }
-                            },
-                            containerColor = Color.Black.copy(0.5f),
-                            onClick = { controlsVisibilityState.unlockControls() },
+                        Row(
+                            modifier = Modifier.fillMaxWidth(),
+                            verticalAlignment = Alignment.CenterVertically,
+                            horizontalArrangement = Arrangement.spacedBy(8.dp),
                         ) {
-                            Icon(
-                                painter = painterResource(coreUiR.drawable.ic_lock),
-                                contentDescription = stringResource(coreUiR.string.controls_unlock),
-                            )
+                            PlayerButton(
+                                modifier = Modifier.thenIf(isTv) {
+                                    focusRequester(unlockFocusRequester)
+                                        .onFocusChanged { isUnlockFocused = it.hasFocus }
+                                },
+                                containerColor = Color.Black.copy(0.5f),
+                                onClick = { controlsVisibilityState.unlockControls() },
+                            ) {
+                                Icon(
+                                    painter = painterResource(coreUiR.drawable.ic_lock),
+                                    contentDescription = stringResource(coreUiR.string.controls_unlock),
+                                )
+                            }
+                            val title = metadataState.title
+                            if (showInfoWhenLocked && !title.isNullOrBlank()) {
+                                LockedTitleView(
+                                    modifier = Modifier.weight(1f, fill = false),
+                                    title = title,
+                                )
+                            }
+                        }
+                        if (showInfoWhenLocked) {
+                            Spacer(modifier = Modifier.weight(1f))
+                            LockedProgressView(mediaPresentationState = mediaPresentationState)
                         }
                     }
                 } else {
