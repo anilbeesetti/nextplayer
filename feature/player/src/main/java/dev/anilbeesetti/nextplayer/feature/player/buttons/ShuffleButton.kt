@@ -9,14 +9,17 @@ import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.media3.common.Player
 import androidx.media3.common.util.UnstableApi
+import androidx.media3.ui.compose.state.ShuffleButtonState
 import androidx.media3.ui.compose.state.rememberShuffleButtonState
 import dev.anilbeesetti.nextplayer.core.ui.R as coreUiR
 import dev.anilbeesetti.nextplayer.feature.player.LocalControlsVisibilityState
 
 @OptIn(UnstableApi::class)
 @Composable
-fun ShuffleButton(player: Player, modifier: Modifier = Modifier) {
-    val state = rememberShuffleButtonState(player)
+fun ShuffleButton(
+    modifier: Modifier = Modifier,
+    state: ShuffleButtonState,
+) {
     val controlsVisibilityState = LocalControlsVisibilityState.current
 
     PlayerButton(
@@ -35,17 +38,13 @@ fun ShuffleButton(player: Player, modifier: Modifier = Modifier) {
 }
 
 @Composable
-private fun shuffleModeIconPainter(shuffleOn: Boolean): Painter {
-    return when (shuffleOn) {
-        true -> painterResource(coreUiR.drawable.ic_shuffle_on)
-        false -> painterResource(coreUiR.drawable.ic_shuffle)
-    }
+private fun shuffleModeIconPainter(shuffleOn: Boolean): Painter = when (shuffleOn) {
+    true -> painterResource(coreUiR.drawable.ic_shuffle_on)
+    false -> painterResource(coreUiR.drawable.ic_shuffle)
 }
 
 @Composable
-private fun shuffleContentDescription(shuffleOn: Boolean): String {
-    return when (shuffleOn) {
-        true -> stringResource(coreUiR.string.shuffle_on)
-        false -> stringResource(coreUiR.string.shuffle_off)
-    }
+private fun shuffleContentDescription(shuffleOn: Boolean): String = when (shuffleOn) {
+    true -> stringResource(coreUiR.string.shuffle_on)
+    false -> stringResource(coreUiR.string.shuffle_off)
 }

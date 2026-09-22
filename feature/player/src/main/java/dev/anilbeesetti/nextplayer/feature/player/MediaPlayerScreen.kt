@@ -7,6 +7,7 @@ import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
 import androidx.compose.foundation.background
+import androidx.compose.foundation.focusGroup
 import androidx.compose.foundation.focusable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -68,6 +69,15 @@ import androidx.lifecycle.compose.LifecycleEventEffect
 import androidx.media3.common.Player
 import androidx.media3.common.util.UnstableApi
 import androidx.media3.session.MediaController
+import androidx.media3.ui.compose.state.NextButtonState
+import androidx.media3.ui.compose.state.PlayPauseButtonState
+import androidx.media3.ui.compose.state.PreviousButtonState
+import androidx.media3.ui.compose.state.rememberNextButtonState
+import androidx.media3.ui.compose.state.rememberPlayPauseButtonState
+import androidx.media3.ui.compose.state.rememberPreviousButtonState
+import androidx.media3.ui.compose.state.rememberProgressStateWithTickInterval
+import androidx.media3.ui.compose.state.rememberRepeatButtonState
+import androidx.media3.ui.compose.state.rememberShuffleButtonState
 import dev.anilbeesetti.nextplayer.core.common.extensions.isTelevision
 import dev.anilbeesetti.nextplayer.core.model.ControlButtonsPosition
 import dev.anilbeesetti.nextplayer.core.model.PlayerPreferences
@@ -88,12 +98,14 @@ import dev.anilbeesetti.nextplayer.feature.player.model.labelRes
 import dev.anilbeesetti.nextplayer.feature.player.state.ControlsVisibilityState
 import dev.anilbeesetti.nextplayer.feature.player.state.VerticalGesture
 import dev.anilbeesetti.nextplayer.feature.player.state.rememberBrightnessState
+import dev.anilbeesetti.nextplayer.feature.player.state.rememberChaptersState
 import dev.anilbeesetti.nextplayer.feature.player.state.rememberControlsVisibilityState
 import dev.anilbeesetti.nextplayer.feature.player.state.rememberDecoderState
 import dev.anilbeesetti.nextplayer.feature.player.state.rememberErrorState
 import dev.anilbeesetti.nextplayer.feature.player.state.rememberMediaPresentationState
 import dev.anilbeesetti.nextplayer.feature.player.state.rememberMetadataState
 import dev.anilbeesetti.nextplayer.feature.player.state.rememberPictureInPictureState
+import dev.anilbeesetti.nextplayer.feature.player.state.rememberPlaybackParametersState
 import dev.anilbeesetti.nextplayer.feature.player.state.rememberRotationState
 import dev.anilbeesetti.nextplayer.feature.player.state.rememberSeekGestureState
 import dev.anilbeesetti.nextplayer.feature.player.state.rememberTapGestureState
@@ -108,6 +120,7 @@ import dev.anilbeesetti.nextplayer.feature.player.ui.OverlayView
 import dev.anilbeesetti.nextplayer.feature.player.ui.SubtitleConfiguration
 import dev.anilbeesetti.nextplayer.feature.player.ui.VerticalProgressView
 import dev.anilbeesetti.nextplayer.feature.player.ui.controls.ControlsBottomView
+import dev.anilbeesetti.nextplayer.feature.player.ui.controls.ControlsMiddleView
 import dev.anilbeesetti.nextplayer.feature.player.ui.controls.ControlsTopView
 import kotlin.math.abs
 import kotlin.time.Duration.Companion.milliseconds
@@ -178,6 +191,9 @@ fun MediaPlayerScreen(
     )
     val errorState = rememberErrorState(player = player)
     val decoderState = rememberDecoderState(controller = player, state = decoderServiceState)
+    val playbackParametersState = rememberPlaybackParametersState(player)
+    val progressState = rememberProgressStateWithTickInterval(player, 1000)
+    val chaptersState = rememberChaptersState(player, progressState)
 
     LaunchedEffect(pictureInPictureState.isInPictureInPictureMode) {
         if (pictureInPictureState.isInPictureInPictureMode) {
@@ -409,12 +425,11 @@ fun MediaPlayerScreen(
                                 videoZoomAndContentScaleState.isZooming -> InfoView(info = "${(videoZoomAndContentScaleState.zoom * 100).toInt()}%")
                                 videoZoomAndContentScaleState.showContentScaleIndicator -> InfoView(info = stringResource(videoZoomAndContentScaleState.videoContentScale.nameRes()))
                                 controlsVisibilityState.controlsVisible -> ControlsMiddleView(
-                                    player = player,
-                                    playPauseModifier = Modifier.thenIf(isTv) {
-                                        focusRequester(playPauseFocusRequester)
-                                            .onFocusChanged { isPlayPauseFocused = it.hasFocus }
-                                    },
+                                    playPauseButtonState = rememberPlayPauseButtonState(player),
+                                    previousButtonState = rememberPreviousButtonState(player),
+                                    nextButtonState = rememberNextButtonState(player),
                                 )
+
                                 else -> Unit
                             }
                         },
@@ -426,8 +441,11 @@ fun MediaPlayerScreen(
                             ) {
                                 val context = LocalContext.current
                                 ControlsBottomView(
-                                    player = player,
-                                    mediaPresentationState = mediaPresentationState,
+                                    repeatButtonState = rememberRepeatButtonState(player),
+                                    shuffleButtonState = rememberShuffleButtonState(player),
+                                    progressState = progressState,
+                                    chaptersState = chaptersState,
+                                    playbackParametersState = playbackParametersState,
                                     onChaptersClick = {
                                         controlsVisibilityState.hideControls()
                                         overlayView = OverlayView.CHAPTERS
@@ -514,8 +532,8 @@ fun MediaPlayerScreen(
             OverlayShowView(
                 player = player,
                 overlayView = overlayView,
-                chapters = mediaPresentationState.chapters,
-                currentChapterIndex = mediaPresentationState.currentChapterIndex,
+                chapters = chaptersState.chapters,
+                currentChapterIndex = chaptersState.currentChapterIndex,
                 onChapterSelected = { chapter ->
                     if (player.isCurrentMediaItemSeekable) {
                         player.seekTo(chapter.startTimeMs)
@@ -571,10 +589,10 @@ fun MediaPlayerScreen(
 
     val allDecoderModesFailed = decoderRecoveryState.status == DecoderRecoveryStatus.FAILED
     val showPlayerError = allDecoderModesFailed ||
-        (
-            decoderRecoveryState.status == DecoderRecoveryStatus.NONE &&
-                errorState.playbackError != null
-            )
+            (
+                    decoderRecoveryState.status == DecoderRecoveryStatus.NONE &&
+                            errorState.playbackError != null
+                    )
     if (showPlayerError) {
         AlertDialog(
             onDismissRequest = { },
@@ -699,23 +717,6 @@ fun BoxScope.DpadSeekIndicator(
     }
 }
 
-@Composable
-fun ControlsMiddleView(
-    modifier: Modifier = Modifier,
-    player: Player,
-    playPauseModifier: Modifier = Modifier,
-) {
-    Row(
-        modifier = modifier.fillMaxWidth(),
-        horizontalArrangement = Arrangement.spacedBy(40.dp, alignment = Alignment.CenterHorizontally),
-        verticalAlignment = Alignment.CenterVertically,
-    ) {
-        PreviousButton(player = player)
-        PlayPauseButton(player = player, modifier = playPauseModifier)
-        NextButton(player = player)
-    }
-}
-
 @OptIn(UnstableApi::class)
 private fun handlePlayerKeyEvent(
     keyEvent: KeyEvent,
@@ -737,6 +738,7 @@ private fun handlePlayerKeyEvent(
                 if (controls.controlsVisible) controls.unlockControls() else controls.showControls()
                 true
             }
+
             else -> {
                 controls.showControls()
                 false
@@ -760,50 +762,60 @@ private fun handlePlayerKeyEvent(
             controls.showControls()
             true
         }
+
         Key.MediaPlay -> {
             player.play()
             controls.showControls()
             true
         }
+
         Key.MediaPause -> {
             player.pause()
             controls.showControls()
             true
         }
+
         Key.MediaFastForward -> {
             seekBy(seekIncrementMs)
             controls.showControls()
             true
         }
+
         Key.MediaRewind -> {
             seekBy(-seekIncrementMs)
             controls.showControls()
             true
         }
+
         Key.MediaNext -> {
             player.seekToNext()
             controls.showControls()
             true
         }
+
         Key.MediaPrevious -> {
             player.seekToPrevious()
             controls.showControls()
             true
         }
+
         Key.DirectionCenter, Key.Enter, Key.NumPadEnter -> {
             when {
                 !controls.controlsVisible -> {
                     controls.showControls()
                     true
                 }
+
                 isPlayPauseFocused -> {
                     togglePlayPause()
                     controls.showControls()
                     true
                 }
+
                 else -> false
             }
         }
+
         Key.DirectionLeft -> {
             if (!controls.controlsVisible) {
                 seekBy(-seekIncrementMs)
@@ -814,6 +826,7 @@ private fun handlePlayerKeyEvent(
                 false
             }
         }
+
         Key.DirectionRight -> {
             if (!controls.controlsVisible) {
                 seekBy(seekIncrementMs)
@@ -824,6 +837,7 @@ private fun handlePlayerKeyEvent(
                 false
             }
         }
+
         Key.DirectionUp, Key.DirectionDown -> {
             if (!controls.controlsVisible) {
                 controls.showControls()
@@ -833,6 +847,7 @@ private fun handlePlayerKeyEvent(
                 false
             }
         }
+
         else -> false
     }
 }

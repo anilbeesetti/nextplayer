@@ -10,14 +10,17 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import androidx.media3.common.Player
 import androidx.media3.common.util.UnstableApi
+import androidx.media3.ui.compose.state.PreviousButtonState
 import androidx.media3.ui.compose.state.rememberPreviousButtonState
 import dev.anilbeesetti.nextplayer.core.ui.R as coreUiR
 import dev.anilbeesetti.nextplayer.feature.player.LocalControlsVisibilityState
 
 @OptIn(UnstableApi::class)
 @Composable
-internal fun PreviousButton(player: Player, modifier: Modifier = Modifier) {
-    val state = rememberPreviousButtonState(player)
+internal fun PreviousButton(
+    modifier: Modifier = Modifier,
+    state: PreviousButtonState,
+) {
     val controlsVisibilityState = LocalControlsVisibilityState.current
 
     PlayerButton(

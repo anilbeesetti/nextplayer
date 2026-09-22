@@ -1,6 +1,7 @@
 package dev.anilbeesetti.nextplayer.feature.player.ui.controls
 
 import androidx.annotation.OptIn
+import androidx.compose.foundation.focusGroup
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Row
@@ -16,10 +17,15 @@ import androidx.compose.foundation.text.TextAutoSize
 import androidx.compose.material3.Icon
 import androidx.compose.material3.LocalContentColor
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.focus.FocusRequester
+import androidx.compose.ui.focus.focusProperties
+import androidx.compose.ui.focus.focusRequester
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
@@ -27,6 +33,7 @@ import androidx.compose.ui.semantics.contentDescription
 import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
+import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.media3.common.util.UnstableApi
@@ -42,12 +49,13 @@ fun ControlsTopView(
     modifier: Modifier = Modifier,
     title: String,
     videoDecoderMode: DecoderMode?,
+    onBackClick: () -> Unit = {},
     onDecoderClick: () -> Unit = {},
     onAudioClick: () -> Unit = {},
     onSubtitleClick: () -> Unit = {},
     onPlaylistClick: () -> Unit = {},
-    onBackClick: () -> Unit,
 ) {
+    val firstControlFocusRequester = remember { FocusRequester() }
     val systemBarsPadding = WindowInsets.systemBars.union(WindowInsets.displayCutout).asPaddingValues()
     val decoderDescription = stringResource(R.string.select_decoders)
     // Add top spacing only when the system bars don't already provide it (e.g. on TV / landscape).
@@ -57,7 +65,11 @@ fun ControlsTopView(
             .padding(systemBarsPadding.copy(bottom = 0.dp))
             .padding(horizontal = 16.dp)
             .padding(bottom = 16.dp)
-            .padding(top = extraTopPadding),
+            .padding(top = extraTopPadding)
+            .focusGroup()
+            .focusProperties {
+                onEnter = { firstControlFocusRequester.requestFocus() }
+            },
         verticalAlignment = Alignment.CenterVertically,
         horizontalArrangement = Arrangement.spacedBy(16.dp),
     ) {
@@ -80,17 +92,17 @@ fun ControlsTopView(
             verticalAlignment = Alignment.CenterVertically,
             horizontalArrangement = Arrangement.spacedBy(8.dp),
         ) {
-            videoDecoderMode?.labelRes?.let { videoDecoderLabel ->
-                PlayerButton(
-                    modifier = Modifier.semantics { contentDescription = decoderDescription },
-                    onClick = onDecoderClick,
-                ) {
-                    Text(
-                        text = stringResource(videoDecoderLabel),
-                        style = MaterialTheme.typography.labelLarge,
-                        maxLines = 1,
-                    )
-                }
+            PlayerButton(
+                modifier = Modifier
+                    .semantics { contentDescription = decoderDescription }
+                    .focusRequester(firstControlFocusRequester),
+                onClick = onDecoderClick,
+            ) {
+                Text(
+                    text = stringResource((videoDecoderMode ?: DecoderMode.HARDWARE).labelRes),
+                    style = MaterialTheme.typography.labelLarge,
+                    maxLines = 1,
+                )
             }
             PlayerButton(onClick = onPlaylistClick) {
                 Icon(
@@ -111,5 +123,17 @@ fun ControlsTopView(
                 )
             }
         }
+    }
+}
+
+@Preview
+@Composable
+private fun ControlsTopViewPreview() {
+    Surface {
+        ControlsTopView(
+            title = "Title",
+            videoDecoderMode = DecoderMode.HARDWARE,
+            onBackClick = {},
+        )
     }
 }
