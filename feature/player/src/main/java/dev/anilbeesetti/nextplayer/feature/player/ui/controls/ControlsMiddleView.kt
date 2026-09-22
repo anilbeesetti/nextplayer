@@ -33,15 +33,18 @@ fun ControlsMiddleView(
     Row(
         modifier = modifier
             .fillMaxWidth()
-            .focusGroup()
             .focusProperties {
                 onEnter = { playPauseFocusRequester.requestFocus() }
-            },
+            }
+            .focusGroup(),
         horizontalArrangement = Arrangement.spacedBy(40.dp, alignment = Alignment.CenterHorizontally),
         verticalAlignment = Alignment.CenterVertically,
     ) {
         PreviousButton(state = previousButtonState)
-        PlayPauseButton(state = playPauseButtonState, modifier = Modifier.focusRequester(playPauseFocusRequester))
+        PlayPauseButton(
+            state = playPauseButtonState,
+            modifier = Modifier.focusRequester(playPauseFocusRequester),
+        )
         NextButton(state = nextButtonState)
     }
 }

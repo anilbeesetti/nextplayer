@@ -228,10 +228,10 @@ fun MediaPlayerScreen(
     val context = LocalContext.current
     val isTv = remember { context.isTelevision }
     val rootFocusRequester = remember { FocusRequester() }
-    val playPauseFocusRequester = remember { FocusRequester() }
+    val middleControlsFocusRequester = remember { FocusRequester() }
     val seekBarFocusRequester = remember { FocusRequester() }
     val unlockFocusRequester = remember { FocusRequester() }
-    var isPlayPauseFocused by remember { mutableStateOf(false) }
+    var isMiddleControlsFocused by remember { mutableStateOf(false) }
     var isUnlockFocused by remember { mutableStateOf(false) }
     val seekIncrementMs = playerPreferences.seekIncrement.seconds.inWholeMilliseconds
 
@@ -243,8 +243,8 @@ fun MediaPlayerScreen(
                 return@LaunchedEffect
             }
             val locked = controlsVisibilityState.controlsLocked
-            val target = if (locked) unlockFocusRequester else playPauseFocusRequester
-            target.requestFocusUntilLanded(attempts = 20) { if (locked) isUnlockFocused else isPlayPauseFocused }
+            val target = if (locked) unlockFocusRequester else middleControlsFocusRequester
+            target.requestFocusUntilLanded(attempts = 20) { if (locked) isUnlockFocused else isMiddleControlsFocused }
         }
     }
 
@@ -288,7 +288,6 @@ fun MediaPlayerScreen(
                                             player = player,
                                             controls = controlsVisibilityState,
                                             seekIncrementMs = seekIncrementMs,
-                                            isPlayPauseFocused = isPlayPauseFocused,
                                             onDpadSeek = showDpadSeekFeedback,
                                         )
                                     }
@@ -428,6 +427,10 @@ fun MediaPlayerScreen(
                                     playPauseButtonState = rememberPlayPauseButtonState(player),
                                     previousButtonState = rememberPreviousButtonState(player),
                                     nextButtonState = rememberNextButtonState(player),
+                                    modifier = Modifier.thenIf(isTv) {
+                                        focusRequester(middleControlsFocusRequester)
+                                            .onFocusChanged { isMiddleControlsFocused = it.hasFocus }
+                                    },
                                 )
 
                                 else -> Unit
@@ -458,7 +461,7 @@ fun MediaPlayerScreen(
                                     isPipSupported = pictureInPictureState.isPipSupported,
                                     seekBarModifier = Modifier.thenIf(isTv) {
                                         focusRequester(seekBarFocusRequester)
-                                            .focusProperties { up = playPauseFocusRequester }
+                                            .focusProperties { up = middleControlsFocusRequester }
                                     },
                                     onSeek = seekGestureState::onSeek,
                                     onSeekEnd = seekGestureState::onSeekEnd,
@@ -723,7 +726,6 @@ private fun handlePlayerKeyEvent(
     player: Player,
     controls: ControlsVisibilityState,
     seekIncrementMs: Long,
-    isPlayPauseFocused: Boolean,
     onDpadSeek: (deltaMs: Long) -> Unit,
 ): Boolean {
     if (keyEvent.key == Key.Back && !controls.controlsLocked) {
@@ -800,20 +802,9 @@ private fun handlePlayerKeyEvent(
         }
 
         Key.DirectionCenter, Key.Enter, Key.NumPadEnter -> {
-            when {
-                !controls.controlsVisible -> {
-                    controls.showControls()
-                    true
-                }
-
-                isPlayPauseFocused -> {
-                    togglePlayPause()
-                    controls.showControls()
-                    true
-                }
-
-                else -> false
-            }
+            val controlsWereHidden = !controls.controlsVisible
+            controls.showControls()
+            controlsWereHidden
         }
 
         Key.DirectionLeft -> {
