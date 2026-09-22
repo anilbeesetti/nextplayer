@@ -2,6 +2,10 @@ package dev.anilbeesetti.nextplayer.feature.player.ui.controls
 
 import android.os.Looper
 import androidx.activity.ComponentActivity
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.input.key.Key
 import androidx.compose.ui.semantics.SemanticsProperties
@@ -133,6 +137,7 @@ class ControlsBottomViewTest {
         composeRule.setContent {
             NextPlayerTheme {
                 val progress = rememberProgressStateWithTickInterval(player)
+                var showRemainingTime by remember { mutableStateOf(false) }
                 ControlsBottomView(
                     progressState = progress,
                     chaptersState = rememberChaptersState(player, progress),
@@ -142,6 +147,8 @@ class ControlsBottomViewTest {
                     controlsAlignment = Alignment.Start,
                     videoContentScale = VideoContentScale.BEST_FIT,
                     isPipSupported = false,
+                    showRemainingTime = showRemainingTime,
+                    onToggleTimeDisplay = { showRemainingTime = !showRemainingTime },
                     onChaptersClick = {},
                     onVideoContentScaleClick = {},
                     onVideoContentScaleLongClick = {},

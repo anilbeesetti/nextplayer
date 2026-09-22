@@ -450,6 +450,8 @@ fun MediaPlayerScreen(
                                     },
                                     videoContentScale = videoZoomAndContentScaleState.videoContentScale,
                                     isPipSupported = pictureInPictureState.isPipSupported,
+                                    showRemainingTime = playerPreferences.showRemainingTime,
+                                    onToggleTimeDisplay = viewModel::toggleTimeDisplay,
                                     onSeek = seekGestureState::onSeek,
                                     onSeekEnd = seekGestureState::onSeekEnd,
                                     onPlaybackSpeedClick = {

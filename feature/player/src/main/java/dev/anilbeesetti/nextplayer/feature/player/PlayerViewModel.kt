@@ -71,6 +71,12 @@ class PlayerViewModel(
         }
     }
 
+    fun toggleTimeDisplay() {
+        viewModelScope.launch {
+            preferencesRepository.updatePlayerPreferences { it.copy(showRemainingTime = !it.showRemainingTime) }
+        }
+    }
+
     fun onVideoZoomEvent(event: VideoZoomEvent) {
         when (event) {
             is VideoZoomEvent.ContentScaleChanged -> {

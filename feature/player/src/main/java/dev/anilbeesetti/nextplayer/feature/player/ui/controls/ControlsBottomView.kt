@@ -29,10 +29,7 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.derivedStateOf
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
-import androidx.compose.runtime.retain.retain
-import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.focus.FocusRequester
@@ -79,6 +76,8 @@ fun ControlsBottomView(
     controlsAlignment: Alignment.Horizontal,
     videoContentScale: VideoContentScale,
     isPipSupported: Boolean,
+    showRemainingTime: Boolean,
+    onToggleTimeDisplay: () -> Unit,
     onChaptersClick: () -> Unit,
     onVideoContentScaleClick: () -> Unit,
     onVideoContentScaleLongClick: () -> Unit,
@@ -109,11 +108,9 @@ fun ControlsBottomView(
             verticalAlignment = Alignment.Bottom,
             horizontalArrangement = Arrangement.spacedBy(8.dp),
         ) {
-            var showPendingPosition by retain { mutableStateOf(false) }
-
             PlayerButton(
                 modifier = Modifier.focusRequester(timeButtonFocusRequester),
-                onClick = { showPendingPosition = !showPendingPosition },
+                onClick = onToggleTimeDisplay,
                 containerColor = PlayerButtonBlackAlpha,
                 contentPadding = PaddingValues(horizontal = 8.dp, vertical = 1.dp),
             ) {
@@ -125,7 +122,7 @@ fun ControlsBottomView(
                 }
                 Text(
                     text = buildString {
-                        val positionText = when (showPendingPosition) {
+                        val positionText = when (showRemainingTime) {
                             true -> if (progressState.durationMs != C.TIME_UNSET) {
                                 val remainingMs = timeTextPositionMs - progressState.durationMs
                                 getStringForTime(remainingMs)
