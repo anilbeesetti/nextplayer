@@ -26,6 +26,7 @@ import androidx.compose.material3.LocalContentColor
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.derivedStateOf
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -59,6 +60,8 @@ import dev.anilbeesetti.nextplayer.feature.player.extensions.drawableRes
 import dev.anilbeesetti.nextplayer.feature.player.state.ChaptersState
 import dev.anilbeesetti.nextplayer.feature.player.state.PlaybackParametersState
 import dev.anilbeesetti.nextplayer.feature.player.ui.titleOrDefault
+
+private const val MILLISECONDS_PER_SECOND = 1_000L
 
 @OptIn(UnstableApi::class)
 @Composable
@@ -106,17 +109,23 @@ fun ControlsBottomView(
                 containerColor = PlayerButtonBlackAlpha,
                 contentPadding = PaddingValues(horizontal = 8.dp, vertical = 1.dp),
             ) {
+                val timeTextPositionMs by remember(progressState) {
+                    derivedStateOf {
+                        val wholeSeconds = progressState.currentPositionMs / MILLISECONDS_PER_SECOND
+                        wholeSeconds * MILLISECONDS_PER_SECOND
+                    }
+                }
                 Text(
                     text = buildString {
                         val positionText = when (showPendingPosition) {
                             true -> if (progressState.durationMs != C.TIME_UNSET) {
-                                val remainingMs = progressState.currentPositionMs - progressState.durationMs
+                                val remainingMs = timeTextPositionMs - progressState.durationMs
                                 getStringForTime(remainingMs)
                             } else {
                                 getStringForTime(C.TIME_UNSET)
                             }
 
-                            false -> getStringForTime(progressState.currentPositionMs)
+                            false -> getStringForTime(timeTextPositionMs)
                         }
                         append(positionText)
                         append(" / ")

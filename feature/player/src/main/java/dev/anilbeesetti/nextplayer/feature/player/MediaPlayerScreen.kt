@@ -192,7 +192,7 @@ fun MediaPlayerScreen(
     val errorState = rememberErrorState(player = player)
     val decoderState = rememberDecoderState(controller = player, state = decoderServiceState)
     val playbackParametersState = rememberPlaybackParametersState(player)
-    val progressState = rememberProgressStateWithTickInterval(player, 1000)
+    val progressState = rememberProgressStateWithTickInterval(player)
     val chaptersState = rememberChaptersState(player, progressState)
 
     LaunchedEffect(pictureInPictureState.isInPictureInPictureMode) {
