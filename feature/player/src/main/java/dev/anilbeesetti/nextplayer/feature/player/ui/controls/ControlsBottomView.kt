@@ -1,6 +1,7 @@
 package dev.anilbeesetti.nextplayer.feature.player.ui.controls
 
 import androidx.annotation.OptIn
+import androidx.compose.foundation.focusGroup
 import androidx.compose.foundation.horizontalScroll
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -34,6 +35,9 @@ import androidx.compose.runtime.retain.retain
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.focus.FocusRequester
+import androidx.compose.ui.focus.focusProperties
+import androidx.compose.ui.focus.focusRequester
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
@@ -75,7 +79,6 @@ fun ControlsBottomView(
     controlsAlignment: Alignment.Horizontal,
     videoContentScale: VideoContentScale,
     isPipSupported: Boolean,
-    seekBarModifier: Modifier = Modifier,
     onChaptersClick: () -> Unit,
     onVideoContentScaleClick: () -> Unit,
     onVideoContentScaleLongClick: () -> Unit,
@@ -90,6 +93,7 @@ fun ControlsBottomView(
     val systemBarsPadding = WindowInsets.systemBars.union(WindowInsets.displayCutout).asPaddingValues()
     val context = LocalContext.current
     val isTv = remember { context.isTelevision }
+    val timeButtonFocusRequester = remember { FocusRequester() }
     Column(
         modifier = modifier
             .padding(systemBarsPadding.copy(top = 0.dp))
@@ -99,12 +103,16 @@ fun ControlsBottomView(
         verticalArrangement = Arrangement.spacedBy(4.dp),
     ) {
         Row(
+            modifier = Modifier
+                .focusProperties { onEnter = { timeButtonFocusRequester.requestFocus() } }
+                .focusGroup(),
             verticalAlignment = Alignment.Bottom,
             horizontalArrangement = Arrangement.spacedBy(8.dp),
         ) {
             var showPendingPosition by retain { mutableStateOf(false) }
 
             PlayerButton(
+                modifier = Modifier.focusRequester(timeButtonFocusRequester),
                 onClick = { showPendingPosition = !showPendingPosition },
                 containerColor = PlayerButtonBlackAlpha,
                 contentPadding = PaddingValues(horizontal = 8.dp, vertical = 1.dp),
@@ -211,7 +219,6 @@ fun ControlsBottomView(
             }
         }
         PlayerSeekbar(
-            modifier = seekBarModifier,
             position = progressState.currentPositionMs.toFloat(),
             duration = progressState.durationMs.toFloat(),
             chapters = chaptersState.chapters,

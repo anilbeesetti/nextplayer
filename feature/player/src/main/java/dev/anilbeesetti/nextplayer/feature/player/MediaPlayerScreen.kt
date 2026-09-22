@@ -7,7 +7,6 @@ import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
 import androidx.compose.foundation.background
-import androidx.compose.foundation.focusGroup
 import androidx.compose.foundation.focusable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -47,7 +46,6 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.rotate
 import androidx.compose.ui.focus.FocusRequester
-import androidx.compose.ui.focus.focusProperties
 import androidx.compose.ui.focus.focusRequester
 import androidx.compose.ui.focus.onFocusChanged
 import androidx.compose.ui.graphics.Color
@@ -69,9 +67,6 @@ import androidx.lifecycle.compose.LifecycleEventEffect
 import androidx.media3.common.Player
 import androidx.media3.common.util.UnstableApi
 import androidx.media3.session.MediaController
-import androidx.media3.ui.compose.state.NextButtonState
-import androidx.media3.ui.compose.state.PlayPauseButtonState
-import androidx.media3.ui.compose.state.PreviousButtonState
 import androidx.media3.ui.compose.state.rememberNextButtonState
 import androidx.media3.ui.compose.state.rememberPlayPauseButtonState
 import androidx.media3.ui.compose.state.rememberPreviousButtonState
@@ -85,10 +80,7 @@ import dev.anilbeesetti.nextplayer.core.ui.R as coreUiR
 import dev.anilbeesetti.nextplayer.core.ui.components.requestFocusUntilLanded
 import dev.anilbeesetti.nextplayer.core.ui.components.thenIf
 import dev.anilbeesetti.nextplayer.core.ui.extensions.copy
-import dev.anilbeesetti.nextplayer.feature.player.buttons.NextButton
-import dev.anilbeesetti.nextplayer.feature.player.buttons.PlayPauseButton
 import dev.anilbeesetti.nextplayer.feature.player.buttons.PlayerButton
-import dev.anilbeesetti.nextplayer.feature.player.buttons.PreviousButton
 import dev.anilbeesetti.nextplayer.feature.player.extensions.formatted
 import dev.anilbeesetti.nextplayer.feature.player.extensions.nameRes
 import dev.anilbeesetti.nextplayer.feature.player.model.DecoderRecoveryStatus
@@ -229,7 +221,6 @@ fun MediaPlayerScreen(
     val isTv = remember { context.isTelevision }
     val rootFocusRequester = remember { FocusRequester() }
     val middleControlsFocusRequester = remember { FocusRequester() }
-    val seekBarFocusRequester = remember { FocusRequester() }
     val unlockFocusRequester = remember { FocusRequester() }
     var isMiddleControlsFocused by remember { mutableStateOf(false) }
     var isUnlockFocused by remember { mutableStateOf(false) }
@@ -459,10 +450,6 @@ fun MediaPlayerScreen(
                                     },
                                     videoContentScale = videoZoomAndContentScaleState.videoContentScale,
                                     isPipSupported = pictureInPictureState.isPipSupported,
-                                    seekBarModifier = Modifier.thenIf(isTv) {
-                                        focusRequester(seekBarFocusRequester)
-                                            .focusProperties { up = middleControlsFocusRequester }
-                                    },
                                     onSeek = seekGestureState::onSeek,
                                     onSeekEnd = seekGestureState::onSeekEnd,
                                     onPlaybackSpeedClick = {
@@ -592,10 +579,10 @@ fun MediaPlayerScreen(
 
     val allDecoderModesFailed = decoderRecoveryState.status == DecoderRecoveryStatus.FAILED
     val showPlayerError = allDecoderModesFailed ||
-            (
-                    decoderRecoveryState.status == DecoderRecoveryStatus.NONE &&
-                            errorState.playbackError != null
-                    )
+        (
+            decoderRecoveryState.status == DecoderRecoveryStatus.NONE &&
+                errorState.playbackError != null
+            )
     if (showPlayerError) {
         AlertDialog(
             onDismissRequest = { },

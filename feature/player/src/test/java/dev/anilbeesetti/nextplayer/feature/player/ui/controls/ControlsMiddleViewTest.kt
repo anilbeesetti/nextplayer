@@ -3,9 +3,10 @@ package dev.anilbeesetti.nextplayer.feature.player.ui.controls
 import android.os.Looper
 import androidx.activity.ComponentActivity
 import androidx.compose.foundation.layout.Column
+import androidx.compose.material3.Button
+import androidx.compose.material3.Text
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.focus.FocusRequester
-import androidx.compose.ui.focus.focusProperties
 import androidx.compose.ui.focus.focusRequester
 import androidx.compose.ui.input.key.Key
 import androidx.compose.ui.platform.testTag
@@ -15,6 +16,7 @@ import androidx.compose.ui.test.onNodeWithContentDescription
 import androidx.compose.ui.test.onNodeWithTag
 import androidx.compose.ui.test.performKeyInput
 import androidx.compose.ui.test.pressKey
+import androidx.compose.ui.test.requestFocus
 import androidx.media3.common.Player
 import androidx.media3.common.SimpleBasePlayer
 import androidx.media3.ui.compose.state.rememberNextButtonState
@@ -40,12 +42,11 @@ class ControlsMiddleViewTest {
     val composeRule = createAndroidComposeRule<ComponentActivity>()
 
     @Test
-    fun enteringGroupFocusesPlayPauseIncludingReturnFromSeekbar() {
+    fun enteringGroupFocusesPlayPauseIncludingReturnFromAnotherControl() {
         val groupFocusRequester = FocusRequester()
-        val seekbarFocusRequester = FocusRequester()
         val player = composeRule.runOnIdle { TestPlayer() }
         try {
-            showControls(player, groupFocusRequester, seekbarFocusRequester)
+            showControls(player, groupFocusRequester)
             val playPause = composeRule.onNodeWithContentDescription(composeRule.activity.getString(R.string.play_pause))
             val next = composeRule.onNodeWithContentDescription(composeRule.activity.getString(R.string.player_controls_next))
 
@@ -54,10 +55,10 @@ class ControlsMiddleViewTest {
 
             playPause.performKeyInput { pressKey(Key.DirectionRight) }
             next.assertIsFocused()
-            composeRule.runOnIdle { seekbarFocusRequester.requestFocus() }
-            composeRule.onNodeWithTag("seekbar").assertIsFocused()
+            val otherControl = composeRule.onNodeWithTag("other-control")
+            otherControl.requestFocus().assertIsFocused()
 
-            composeRule.onNodeWithTag("seekbar").performKeyInput { pressKey(Key.DirectionUp) }
+            otherControl.performKeyInput { pressKey(Key.DirectionUp) }
             playPause.assertIsFocused()
         } finally {
             composeRule.runOnIdle { player.release() }
@@ -69,7 +70,7 @@ class ControlsMiddleViewTest {
         val groupFocusRequester = FocusRequester()
         val player = composeRule.runOnIdle { TestPlayer() }
         try {
-            showControls(player, groupFocusRequester, FocusRequester())
+            showControls(player, groupFocusRequester)
             val playPause = composeRule.onNodeWithContentDescription(composeRule.activity.getString(R.string.play_pause))
             val next = composeRule.onNodeWithContentDescription(composeRule.activity.getString(R.string.player_controls_next))
             val previous = composeRule.onNodeWithContentDescription(composeRule.activity.getString(R.string.player_controls_previous))
@@ -89,8 +90,7 @@ class ControlsMiddleViewTest {
                 assertFalse(player.playWhenReady)
             }
 
-            composeRule.runOnIdle { groupFocusRequester.requestFocus() }
-            playPause.performKeyInput { pressKey(Key.DirectionLeft) }
+            playPause.requestFocus().performKeyInput { pressKey(Key.DirectionLeft) }
             previous.assertIsFocused().performKeyInput { pressKey(Key.DirectionCenter) }
             composeRule.runOnIdle {
                 assertEquals(1, player.currentMediaItemIndex)
@@ -101,7 +101,7 @@ class ControlsMiddleViewTest {
         }
     }
 
-    private fun showControls(player: Player, groupFocusRequester: FocusRequester, seekbarFocusRequester: FocusRequester) {
+    private fun showControls(player: Player, groupFocusRequester: FocusRequester) {
         composeRule.setContent {
             NextPlayerTheme {
                 Column {
@@ -111,17 +111,12 @@ class ControlsMiddleViewTest {
                         previousButtonState = rememberPreviousButtonState(player),
                         nextButtonState = rememberNextButtonState(player),
                     )
-                    PlayerSeekbar(
-                        modifier = Modifier
-                            .testTag("seekbar")
-                            .focusRequester(seekbarFocusRequester)
-                            .focusProperties { up = groupFocusRequester },
-                        position = 0f,
-                        duration = 60_000f,
-                        chapters = emptyList(),
-                        onSeek = {},
-                        onSeekFinished = {},
-                    )
+                    Button(
+                        modifier = Modifier.testTag("other-control"),
+                        onClick = {},
+                    ) {
+                        Text("Other control")
+                    }
                 }
             }
         }

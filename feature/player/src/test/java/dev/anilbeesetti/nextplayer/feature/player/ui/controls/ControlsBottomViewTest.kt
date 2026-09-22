@@ -3,9 +3,6 @@ package dev.anilbeesetti.nextplayer.feature.player.ui.controls
 import android.os.Looper
 import androidx.activity.ComponentActivity
 import androidx.compose.ui.Alignment
-import androidx.compose.ui.Modifier
-import androidx.compose.ui.focus.FocusRequester
-import androidx.compose.ui.focus.focusRequester
 import androidx.compose.ui.input.key.Key
 import androidx.compose.ui.semantics.SemanticsProperties
 import androidx.compose.ui.test.SemanticsMatcher
@@ -16,6 +13,7 @@ import androidx.compose.ui.test.onNodeWithText
 import androidx.compose.ui.test.performKeyInput
 import androidx.compose.ui.test.performTouchInput
 import androidx.compose.ui.test.pressKey
+import androidx.compose.ui.test.requestFocus
 import androidx.media3.common.C
 import androidx.media3.common.Format
 import androidx.media3.common.Label
@@ -52,12 +50,10 @@ class ControlsBottomViewTest {
     @Test
     fun repeatedKeyboardSeeksAccumulateBelowOneSecondWhilePaused() {
         val player = composeRule.runOnIdle { TestPlayer() }
-        val seekbarFocusRequester = FocusRequester()
         try {
-            showControls(player, seekbarFocusRequester)
-            composeRule.runOnIdle { seekbarFocusRequester.requestFocus() }
+            showControls(player)
             val seekbar = composeRule.onNode(SemanticsMatcher.keyIsDefined(SemanticsProperties.ProgressBarRangeInfo))
-            seekbar.assertIsFocused()
+            seekbar.requestFocus().assertIsFocused()
 
             repeat(3) { index ->
                 seekbar.performKeyInput { pressKey(Key.DirectionRight) }
@@ -75,7 +71,7 @@ class ControlsBottomViewTest {
     fun pausedSeeksSelectChaptersAtExactSubsecondBoundaries() {
         val player = composeRule.runOnIdle { TestPlayer() }
         try {
-            showControls(player, FocusRequester())
+            showControls(player)
             composeRule.runOnIdle { player.seekTo(1_500) }
             composeRule.onNodeWithText("Second").assertExists()
 
@@ -94,7 +90,7 @@ class ControlsBottomViewTest {
     fun timeLabelChangesOnWholeSecondsAndSwitchesToRemainingTime() {
         val player = composeRule.runOnIdle { TestPlayer() }
         try {
-            showControls(player, FocusRequester())
+            showControls(player)
             composeRule.runOnIdle { player.seekTo(1_999) }
             composeRule.onNodeWithText("00:01 / 01:00").performTouchInput { click() }
             composeRule.onNodeWithText("-00:59 / 01:00").assertExists()
@@ -107,7 +103,33 @@ class ControlsBottomViewTest {
         }
     }
 
-    private fun showControls(player: Player, seekbarFocusRequester: FocusRequester) {
+    @Test
+    fun upFromSeekbarEntersTimeThenRightVisitsChaptersAndSpeed() {
+        val player = composeRule.runOnIdle { TestPlayer() }
+        try {
+            showControls(player)
+            val seekbar = composeRule.onNode(SemanticsMatcher.keyIsDefined(SemanticsProperties.ProgressBarRangeInfo))
+            seekbar.requestFocus().performKeyInput { pressKey(Key.DirectionUp) }
+            composeRule.onNodeWithText("00:00 / 01:00")
+                .assertIsFocused()
+                .performKeyInput { pressKey(Key.DirectionCenter) }
+            composeRule.onNodeWithText("-01:00 / 01:00")
+                .assertIsFocused()
+                .performKeyInput { pressKey(Key.DirectionRight) }
+            composeRule.onNodeWithText("Opening")
+                .assertIsFocused()
+                .performKeyInput { pressKey(Key.DirectionRight) }
+            composeRule.onNodeWithText("1.0")
+                .assertIsFocused()
+                .performKeyInput { pressKey(Key.DirectionDown) }
+            seekbar.assertIsFocused().performKeyInput { pressKey(Key.DirectionUp) }
+            composeRule.onNodeWithText("-01:00 / 01:00").assertIsFocused()
+        } finally {
+            composeRule.runOnIdle { player.release() }
+        }
+    }
+
+    private fun showControls(player: Player) {
         composeRule.setContent {
             NextPlayerTheme {
                 val progress = rememberProgressStateWithTickInterval(player)
@@ -120,7 +142,6 @@ class ControlsBottomViewTest {
                     controlsAlignment = Alignment.Start,
                     videoContentScale = VideoContentScale.BEST_FIT,
                     isPipSupported = false,
-                    seekBarModifier = Modifier.focusRequester(seekbarFocusRequester),
                     onChaptersClick = {},
                     onVideoContentScaleClick = {},
                     onVideoContentScaleLongClick = {},
