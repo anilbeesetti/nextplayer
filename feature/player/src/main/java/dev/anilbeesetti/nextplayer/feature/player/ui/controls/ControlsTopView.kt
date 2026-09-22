@@ -32,6 +32,7 @@ import androidx.compose.ui.unit.dp
 import androidx.media3.common.util.UnstableApi
 import dev.anilbeesetti.nextplayer.core.ui.R
 import dev.anilbeesetti.nextplayer.core.ui.extensions.copy
+import dev.anilbeesetti.nextplayer.core.ui.theme.NextPlayerTheme
 import dev.anilbeesetti.nextplayer.feature.player.buttons.PlayerButton
 import dev.anilbeesetti.nextplayer.feature.player.model.labelRes
 import io.github.anilbeesetti.nextlib.media3ext.ffdecoder.DecoderMode
@@ -122,11 +123,13 @@ fun ControlsTopView(
 @Preview
 @Composable
 private fun ControlsTopViewPreview() {
-    Surface {
-        ControlsTopView(
-            title = "Title",
-            videoDecoderMode = DecoderMode.HARDWARE,
-            onBackClick = {},
-        )
+    NextPlayerTheme(darkTheme = true) {
+        Surface {
+            ControlsTopView(
+                title = "Title",
+                videoDecoderMode = DecoderMode.HARDWARE,
+                onBackClick = {},
+            )
+        }
     }
 }

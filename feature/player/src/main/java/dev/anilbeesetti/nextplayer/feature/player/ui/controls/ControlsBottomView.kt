@@ -1,5 +1,6 @@
 package dev.anilbeesetti.nextplayer.feature.player.ui.controls
 
+import android.os.Looper
 import androidx.annotation.OptIn
 import androidx.compose.foundation.focusGroup
 import androidx.compose.foundation.horizontalScroll
@@ -25,6 +26,7 @@ import androidx.compose.material.icons.automirrored.rounded.NavigateNext
 import androidx.compose.material3.Icon
 import androidx.compose.material3.LocalContentColor
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.derivedStateOf
@@ -40,19 +42,26 @@ import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
+import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.media3.common.C
+import androidx.media3.common.Player
+import androidx.media3.common.SimpleBasePlayer
 import androidx.media3.common.util.UnstableApi
 import androidx.media3.common.util.Util.getStringForTime
 import androidx.media3.ui.compose.state.ProgressStateWithTickInterval
 import androidx.media3.ui.compose.state.RepeatButtonState
 import androidx.media3.ui.compose.state.ShuffleButtonState
+import androidx.media3.ui.compose.state.rememberProgressStateWithTickInterval
+import androidx.media3.ui.compose.state.rememberRepeatButtonState
+import androidx.media3.ui.compose.state.rememberShuffleButtonState
 import dev.anilbeesetti.nextplayer.core.common.extensions.isTelevision
 import dev.anilbeesetti.nextplayer.core.common.extensions.round
 import dev.anilbeesetti.nextplayer.core.model.VideoContentScale
 import dev.anilbeesetti.nextplayer.core.ui.R
 import dev.anilbeesetti.nextplayer.core.ui.extensions.copy
+import dev.anilbeesetti.nextplayer.core.ui.theme.NextPlayerTheme
 import dev.anilbeesetti.nextplayer.feature.player.buttons.LoopButton
 import dev.anilbeesetti.nextplayer.feature.player.buttons.PlayerButton
 import dev.anilbeesetti.nextplayer.feature.player.buttons.PlayerButtonBlackAlpha
@@ -60,6 +69,8 @@ import dev.anilbeesetti.nextplayer.feature.player.buttons.ShuffleButton
 import dev.anilbeesetti.nextplayer.feature.player.extensions.drawableRes
 import dev.anilbeesetti.nextplayer.feature.player.state.ChaptersState
 import dev.anilbeesetti.nextplayer.feature.player.state.PlaybackParametersState
+import dev.anilbeesetti.nextplayer.feature.player.state.rememberChaptersState
+import dev.anilbeesetti.nextplayer.feature.player.state.rememberPlaybackParametersState
 import dev.anilbeesetti.nextplayer.feature.player.ui.titleOrDefault
 
 private const val MILLISECONDS_PER_SECOND = 1_000L
@@ -260,6 +271,54 @@ fun ControlsBottomView(
             }
             LoopButton(state = repeatButtonState)
             ShuffleButton(state = shuffleButtonState)
+        }
+    }
+}
+
+@OptIn(UnstableApi::class)
+@Preview
+@Composable
+private fun ControlsBottomViewPreview() {
+    val player = remember {
+        object : SimpleBasePlayer(Looper.getMainLooper()) {
+            private val previewState = State.Builder()
+                .setAvailableCommands(
+                    Player.Commands.Builder()
+                        .addAll(Player.COMMAND_GET_TIMELINE, Player.COMMAND_GET_CURRENT_MEDIA_ITEM)
+                        .build(),
+                )
+                .setPlaylist(listOf(MediaItemData.Builder("preview").setDurationUs(120_000_000).build()))
+                .setContentPositionMs(30_000)
+                .build()
+
+            override fun getState(): State = previewState
+        }
+    }
+    val progressState = rememberProgressStateWithTickInterval(player)
+    NextPlayerTheme(darkTheme = true) {
+        Surface {
+            ControlsBottomView(
+                progressState = progressState,
+                chaptersState = rememberChaptersState(player, progressState),
+                repeatButtonState = rememberRepeatButtonState(player),
+                shuffleButtonState = rememberShuffleButtonState(player),
+                playbackParametersState = rememberPlaybackParametersState(player),
+                controlsAlignment = Alignment.Start,
+                videoContentScale = VideoContentScale.BEST_FIT,
+                isPipSupported = true,
+                showRemainingTime = false,
+                onToggleTimeDisplay = {},
+                onChaptersClick = {},
+                onVideoContentScaleClick = {},
+                onVideoContentScaleLongClick = {},
+                onLockControlsClick = {},
+                onPictureInPictureClick = {},
+                onPlaybackSpeedClick = {},
+                onRotateClick = {},
+                onPlayInBackgroundClick = {},
+                onSeek = {},
+                onSeekEnd = {},
+            )
         }
     }
 }
