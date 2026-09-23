@@ -83,23 +83,33 @@ class MediaStoreMediaService(
             replay = 1,
         )
 
-    override fun observeFolders(folderPath: String?): Flow<List<MediaFolder>> {
-        return mediaChanges
-            .map { fetchFolders(folderPath) }
-            .flowOn(Dispatchers.IO)
-            .distinctUntilChanged()
+    override fun observeFolders(folderPath: String?): Flow<List<MediaFolder>> = observeMedia {
+        fetchFolders(folderPath)
     }
 
-    override fun observeVideos(folderPath: String?): Flow<List<MediaVideo>> {
-        return mediaChanges
-            .map { fetchVideos(folderPath) }
-            .flowOn(Dispatchers.IO)
-            .distinctUntilChanged()
+    override fun observeVideos(folderPath: String?): Flow<List<MediaVideo>> = observeMedia {
+        fetchVideos(folderPath)
     }
 
-    override fun observeTrashVideos(): Flow<List<MediaVideo>> {
+    override fun observeTrashVideos(): Flow<List<MediaVideo>> = observeMedia {
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) queryTrashVideos() else emptyList()
+    }
+
+    private fun <T> observeMedia(query: suspend () -> List<T>): Flow<List<T>> {
         return mediaChanges
-            .map { if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) queryTrashVideos() else emptyList() }
+            .map {
+                try {
+                    query()
+                } catch (e: IllegalArgumentException) {
+                    // A volume can disappear before MediaProvider opens it. Handle each
+                    // notification separately so observers can recover when storage returns.
+                    if (e.message?.startsWith("Volume ") == true && e.message?.endsWith(" not found") == true) {
+                        emptyList()
+                    } else {
+                        throw e
+                    }
+                }
+            }
             .flowOn(Dispatchers.IO)
             .distinctUntilChanged()
     }
