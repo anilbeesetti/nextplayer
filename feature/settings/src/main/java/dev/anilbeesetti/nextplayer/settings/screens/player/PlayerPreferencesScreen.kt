@@ -98,6 +98,13 @@ private fun PlayerPreferencesScreenContent(
                     onClick = { onAction(PlayerPreferencesUiEvent.ToggleUseMaterialYouControls) },
                     isFirstItem = true,
                 )
+                PreferenceSwitch(
+                    title = stringResource(id = R.string.show_info_when_locked),
+                    description = stringResource(id = R.string.show_info_when_locked_description),
+                    icon = NextIcons.Lock,
+                    isChecked = state.preferences.showInfoWhenLocked,
+                    onClick = { onAction(PlayerPreferencesUiEvent.ToggleShowInfoWhenLocked) },
+                )
                 PreferenceSlider(
                     title = stringResource(R.string.controller_timeout),
                     description = stringResource(R.string.seconds, state.preferences.controllerAutoHideTimeout),

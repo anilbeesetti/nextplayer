@@ -58,6 +58,7 @@ class PlayerPreferencesViewModel(
             is PlayerPreferencesUiEvent.UpdateDefaultPlaybackSpeed -> updateDefaultPlaybackSpeed(action.value)
             is PlayerPreferencesUiEvent.UpdateControlAutoHideTimeout -> updateControlAutoHideTimeout(action.value)
             is PlayerPreferencesUiEvent.ToggleUseMaterialYouControls -> toggleUseMaterialYouControls()
+            is PlayerPreferencesUiEvent.ToggleShowInfoWhenLocked -> toggleShowInfoWhenLocked()
         }
     }
 
@@ -156,6 +157,14 @@ class PlayerPreferencesViewModel(
             }
         }
     }
+
+    private fun toggleShowInfoWhenLocked() {
+        viewModelScope.launch {
+            preferencesRepository.updatePlayerPreferences {
+                it.copy(showInfoWhenLocked = !it.showInfoWhenLocked)
+            }
+        }
+    }
 }
 
 @Stable
@@ -185,4 +194,5 @@ sealed interface PlayerPreferencesUiEvent {
     data class UpdateDefaultPlaybackSpeed(val value: Float) : PlayerPreferencesUiEvent
     data class UpdateControlAutoHideTimeout(val value: Int) : PlayerPreferencesUiEvent
     data object ToggleUseMaterialYouControls : PlayerPreferencesUiEvent
+    data object ToggleShowInfoWhenLocked : PlayerPreferencesUiEvent
 }
