@@ -101,6 +101,7 @@ class PlayerActivity : ComponentActivity() {
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+        isIntentNew = savedInstanceState?.getBoolean("isIntentNew", true) ?: true
         enableEdgeToEdge(
             statusBarStyle = SystemBarStyle.dark(Color.TRANSPARENT),
             navigationBarStyle = SystemBarStyle.dark(Color.TRANSPARENT),
@@ -241,12 +242,20 @@ class PlayerActivity : ComponentActivity() {
     }
 
     private fun startPlayback() {
+        val player = mediaController ?: return
+        if (!isIntentNew && (player.currentMediaItem == null || player.playbackState == Player.STATE_ENDED)) {
+            // Completion can happen while the activity's playback listener is detached.
+            isPlaybackFinished = true
+            finishAndStopPlayerSession()
+            return
+        }
         val uri = intent.data ?: return
 
-        val returningFromBackground = !isIntentNew && mediaController?.currentMediaItem != null
+        val returningFromBackground = !isIntentNew
         val isNewUriTheCurrentMediaItem = mediaController?.currentMediaItem?.localConfiguration?.uri.toString() == uri.toString()
         val hasExplicitPlaylist = intent.hasExtra(PlayerApi.API_PLAYLIST) ||
             intent.hasExtra(PlaylistPlaybackContract.EXTRA_PLAYLIST_ID)
+        isIntentNew = false
 
         if (shouldResumeExistingPlayback(
                 returningFromBackground = returningFromBackground,
@@ -258,8 +267,6 @@ class PlayerActivity : ComponentActivity() {
             mediaController?.playWhenReady = viewModel.playWhenReady
             return
         }
-
-        isIntentNew = false
 
         playbackRequestJob?.cancel()
         playbackRequestJob = lifecycleScope.launch {
@@ -411,6 +418,11 @@ class PlayerActivity : ComponentActivity() {
     override fun onDestroy() {
         playbackRequestJob?.cancel()
         super.onDestroy()
+    }
+
+    override fun onSaveInstanceState(outState: Bundle) {
+        outState.putBoolean("isIntentNew", isIntentNew)
+        super.onSaveInstanceState(outState)
     }
 
     private fun updateKeepScreenOnFlag() {
