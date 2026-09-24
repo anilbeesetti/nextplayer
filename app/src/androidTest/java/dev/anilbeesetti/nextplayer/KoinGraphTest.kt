@@ -80,7 +80,7 @@ class KoinGraphTest {
             val secondStore = ViewModelStore()
             try {
                 viewModel<MainViewModel>(store)
-                viewModel<PlayerViewModel>(store)
+                viewModel<PlayerViewModel>(store, PlayerViewModel.Output({}, {}, {}, {}, {}, {}, {}))
                 viewModel<HistoryViewModel>(store, HistoryViewModel.Output({}, {}))
                 viewModel<MoreViewModel>(store, MoreViewModel.Output({}, {}, {}, {}, {}))
                 viewModel<TrashViewModel>(store, TrashViewModel.Output({}, {}))
