@@ -19,9 +19,6 @@ import androidx.compose.ui.test.pressKey
 import androidx.compose.ui.test.requestFocus
 import androidx.media3.common.Player
 import androidx.media3.common.SimpleBasePlayer
-import androidx.media3.ui.compose.state.rememberNextButtonState
-import androidx.media3.ui.compose.state.rememberPlayPauseButtonState
-import androidx.media3.ui.compose.state.rememberPreviousButtonState
 import com.google.common.util.concurrent.Futures
 import com.google.common.util.concurrent.ListenableFuture
 import dev.anilbeesetti.nextplayer.core.ui.R
@@ -107,9 +104,7 @@ class ControlsMiddleViewTest {
                 Column {
                     ControlsMiddleView(
                         modifier = Modifier.focusRequester(groupFocusRequester),
-                        playPauseButtonState = rememberPlayPauseButtonState(player),
-                        previousButtonState = rememberPreviousButtonState(player),
-                        nextButtonState = rememberNextButtonState(player),
+                        player = player,
                     )
                     Button(
                         modifier = Modifier.testTag("other-control"),

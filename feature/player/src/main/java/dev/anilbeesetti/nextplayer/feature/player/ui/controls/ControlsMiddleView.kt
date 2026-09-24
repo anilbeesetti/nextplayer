@@ -15,25 +15,19 @@ import androidx.compose.ui.focus.focusProperties
 import androidx.compose.ui.focus.focusRequester
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
+import androidx.media3.common.Player
 import androidx.media3.common.util.UnstableApi
-import androidx.media3.ui.compose.state.NextButtonState
-import androidx.media3.ui.compose.state.PlayPauseButtonState
-import androidx.media3.ui.compose.state.PreviousButtonState
-import androidx.media3.ui.compose.state.rememberNextButtonState
-import androidx.media3.ui.compose.state.rememberPlayPauseButtonState
-import androidx.media3.ui.compose.state.rememberPreviousButtonState
 import dev.anilbeesetti.nextplayer.core.ui.theme.NextPlayerTheme
 import dev.anilbeesetti.nextplayer.feature.player.buttons.NextButton
 import dev.anilbeesetti.nextplayer.feature.player.buttons.PlayPauseButton
 import dev.anilbeesetti.nextplayer.feature.player.buttons.PreviousButton
+import dev.anilbeesetti.nextplayer.feature.player.ui.preview.rememberPreviewPlayer
 
 @OptIn(UnstableApi::class)
 @Composable
 fun ControlsMiddleView(
     modifier: Modifier = Modifier,
-    playPauseButtonState: PlayPauseButtonState,
-    previousButtonState: PreviousButtonState,
-    nextButtonState: NextButtonState,
+    player: Player?,
 ) {
     val playPauseFocusRequester = remember { FocusRequester() }
     Row(
@@ -46,12 +40,12 @@ fun ControlsMiddleView(
         horizontalArrangement = Arrangement.spacedBy(40.dp, alignment = Alignment.CenterHorizontally),
         verticalAlignment = Alignment.CenterVertically,
     ) {
-        PreviousButton(state = previousButtonState)
+        PreviousButton(player = player)
         PlayPauseButton(
-            state = playPauseButtonState,
+            player = player,
             modifier = Modifier.focusRequester(playPauseFocusRequester),
         )
-        NextButton(state = nextButtonState)
+        NextButton(player = player)
     }
 }
 
@@ -62,9 +56,7 @@ private fun ControlsMiddleViewPreview() {
     NextPlayerTheme(darkTheme = true) {
         Surface {
             ControlsMiddleView(
-                playPauseButtonState = rememberPlayPauseButtonState(null),
-                previousButtonState = rememberPreviousButtonState(null),
-                nextButtonState = rememberNextButtonState(null),
+                player = rememberPreviewPlayer(),
             )
         }
     }

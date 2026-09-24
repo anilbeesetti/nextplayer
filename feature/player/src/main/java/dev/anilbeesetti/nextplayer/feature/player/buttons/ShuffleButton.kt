@@ -9,7 +9,6 @@ import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.media3.common.Player
 import androidx.media3.common.util.UnstableApi
-import androidx.media3.ui.compose.state.ShuffleButtonState
 import androidx.media3.ui.compose.state.rememberShuffleButtonState
 import dev.anilbeesetti.nextplayer.core.ui.R as coreUiR
 import dev.anilbeesetti.nextplayer.feature.player.LocalControlsVisibilityState
@@ -18,8 +17,9 @@ import dev.anilbeesetti.nextplayer.feature.player.LocalControlsVisibilityState
 @Composable
 fun ShuffleButton(
     modifier: Modifier = Modifier,
-    state: ShuffleButtonState,
+    player: Player?,
 ) {
+    val state = rememberShuffleButtonState(player)
     val controlsVisibilityState = LocalControlsVisibilityState.current
 
     PlayerButton(

@@ -29,14 +29,11 @@ import androidx.media3.common.TrackGroup
 import androidx.media3.common.Tracks
 import androidx.media3.extractor.metadata.Chapter
 import androidx.media3.ui.compose.state.rememberProgressStateWithTickInterval
-import androidx.media3.ui.compose.state.rememberRepeatButtonState
-import androidx.media3.ui.compose.state.rememberShuffleButtonState
 import com.google.common.util.concurrent.Futures
 import com.google.common.util.concurrent.ListenableFuture
 import dev.anilbeesetti.nextplayer.core.model.VideoContentScale
 import dev.anilbeesetti.nextplayer.core.ui.theme.NextPlayerTheme
 import dev.anilbeesetti.nextplayer.feature.player.state.rememberChaptersState
-import dev.anilbeesetti.nextplayer.feature.player.state.rememberPlaybackParametersState
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertFalse
 import org.junit.Rule
@@ -139,11 +136,9 @@ class ControlsBottomViewTest {
                 val progress = rememberProgressStateWithTickInterval(player)
                 var showRemainingTime by remember { mutableStateOf(false) }
                 ControlsBottomView(
+                    player = player,
                     progressState = progress,
                     chaptersState = rememberChaptersState(player, progress),
-                    repeatButtonState = rememberRepeatButtonState(player),
-                    shuffleButtonState = rememberShuffleButtonState(player),
-                    playbackParametersState = rememberPlaybackParametersState(player),
                     controlsAlignment = Alignment.Start,
                     videoContentScale = VideoContentScale.BEST_FIT,
                     isPipSupported = false,
@@ -155,7 +150,6 @@ class ControlsBottomViewTest {
                     onLockControlsClick = {},
                     onPictureInPictureClick = {},
                     onPlaybackSpeedClick = {},
-                    onRotateClick = {},
                     onPlayInBackgroundClick = {},
                     onSeek = player::seekTo,
                     onSeekEnd = {},
@@ -186,6 +180,7 @@ class ControlsBottomViewTest {
                         Player.COMMAND_GET_TRACKS,
                         Player.COMMAND_GET_CURRENT_MEDIA_ITEM,
                         Player.COMMAND_SEEK_IN_CURRENT_MEDIA_ITEM,
+                        Player.COMMAND_SET_SPEED_AND_PITCH,
                     )
                     .build(),
             )

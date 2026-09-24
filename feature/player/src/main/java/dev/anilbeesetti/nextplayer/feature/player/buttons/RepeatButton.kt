@@ -9,7 +9,6 @@ import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.media3.common.Player
 import androidx.media3.common.util.UnstableApi
-import androidx.media3.ui.compose.state.RepeatButtonState
 import androidx.media3.ui.compose.state.rememberRepeatButtonState
 import dev.anilbeesetti.nextplayer.core.ui.R as coreUiR
 import dev.anilbeesetti.nextplayer.feature.player.LocalControlsVisibilityState
@@ -18,8 +17,9 @@ import dev.anilbeesetti.nextplayer.feature.player.LocalControlsVisibilityState
 @Composable
 fun LoopButton(
     modifier: Modifier = Modifier,
-    state: RepeatButtonState,
+    player: Player?,
 ) {
+    val state = rememberRepeatButtonState(player)
     val controlsVisibilityState = LocalControlsVisibilityState.current
 
     PlayerButton(

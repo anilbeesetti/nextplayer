@@ -1,11 +1,9 @@
 package dev.anilbeesetti.nextplayer.feature.player.ui.controls
 
-import android.os.Looper
 import androidx.annotation.OptIn
 import androidx.compose.foundation.focusGroup
 import androidx.compose.foundation.horizontalScroll
 import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
@@ -19,12 +17,9 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.systemBars
 import androidx.compose.foundation.layout.union
 import androidx.compose.foundation.rememberScrollState
-import androidx.compose.foundation.text.BasicText
-import androidx.compose.foundation.text.TextAutoSize
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.rounded.NavigateNext
 import androidx.compose.material3.Icon
-import androidx.compose.material3.LocalContentColor
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
@@ -40,37 +35,30 @@ import androidx.compose.ui.focus.focusRequester
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
-import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.unit.sp
 import androidx.media3.common.C
 import androidx.media3.common.Player
-import androidx.media3.common.SimpleBasePlayer
 import androidx.media3.common.util.UnstableApi
 import androidx.media3.common.util.Util.getStringForTime
 import androidx.media3.ui.compose.state.ProgressStateWithTickInterval
-import androidx.media3.ui.compose.state.RepeatButtonState
-import androidx.media3.ui.compose.state.ShuffleButtonState
 import androidx.media3.ui.compose.state.rememberProgressStateWithTickInterval
-import androidx.media3.ui.compose.state.rememberRepeatButtonState
-import androidx.media3.ui.compose.state.rememberShuffleButtonState
 import dev.anilbeesetti.nextplayer.core.common.extensions.isTelevision
-import dev.anilbeesetti.nextplayer.core.common.extensions.round
 import dev.anilbeesetti.nextplayer.core.model.VideoContentScale
 import dev.anilbeesetti.nextplayer.core.ui.R
 import dev.anilbeesetti.nextplayer.core.ui.extensions.copy
 import dev.anilbeesetti.nextplayer.core.ui.theme.NextPlayerTheme
 import dev.anilbeesetti.nextplayer.feature.player.buttons.LoopButton
+import dev.anilbeesetti.nextplayer.feature.player.buttons.PlaybackSpeedButton
 import dev.anilbeesetti.nextplayer.feature.player.buttons.PlayerButton
 import dev.anilbeesetti.nextplayer.feature.player.buttons.PlayerButtonBlackAlpha
+import dev.anilbeesetti.nextplayer.feature.player.buttons.RotateButton
 import dev.anilbeesetti.nextplayer.feature.player.buttons.ShuffleButton
 import dev.anilbeesetti.nextplayer.feature.player.extensions.drawableRes
 import dev.anilbeesetti.nextplayer.feature.player.state.ChaptersState
-import dev.anilbeesetti.nextplayer.feature.player.state.PlaybackParametersState
 import dev.anilbeesetti.nextplayer.feature.player.state.rememberChaptersState
-import dev.anilbeesetti.nextplayer.feature.player.state.rememberPlaybackParametersState
+import dev.anilbeesetti.nextplayer.feature.player.ui.preview.rememberPreviewPlayer
 import dev.anilbeesetti.nextplayer.feature.player.ui.titleOrDefault
 
 private const val MILLISECONDS_PER_SECOND = 1_000L
@@ -79,11 +67,9 @@ private const val MILLISECONDS_PER_SECOND = 1_000L
 @Composable
 fun ControlsBottomView(
     modifier: Modifier = Modifier,
+    player: Player?,
     progressState: ProgressStateWithTickInterval,
     chaptersState: ChaptersState,
-    repeatButtonState: RepeatButtonState,
-    shuffleButtonState: ShuffleButtonState,
-    playbackParametersState: PlaybackParametersState,
     controlsAlignment: Alignment.Horizontal,
     videoContentScale: VideoContentScale,
     isPipSupported: Boolean,
@@ -95,7 +81,6 @@ fun ControlsBottomView(
     onLockControlsClick: () -> Unit,
     onPictureInPictureClick: () -> Unit,
     onPlaybackSpeedClick: () -> Unit,
-    onRotateClick: () -> Unit,
     onPlayInBackgroundClick: () -> Unit,
     onSeek: (Long) -> Unit,
     onSeekEnd: () -> Unit,
@@ -186,43 +171,13 @@ fun ControlsBottomView(
                 horizontalArrangement = Arrangement.spacedBy(16.dp),
                 verticalAlignment = Alignment.CenterVertically,
             ) {
-                PlayerButton(
+                PlaybackSpeedButton(
+                    player = player,
                     onClick = onPlaybackSpeedClick,
-                    containerColor = PlayerButtonBlackAlpha,
-                    contentPadding = PaddingValues(4.dp),
-                ) {
-                    Box(
-                        modifier = Modifier.size(28.dp),
-                        contentAlignment = Alignment.Center,
-                    ) {
-                        BasicText(
-                            text = playbackParametersState.speed.round(2).toString(),
-                            style = MaterialTheme.typography.labelLarge.copy(
-                                color = LocalContentColor.current,
-                                textAlign = TextAlign.Center,
-                            ),
-                            maxLines = 1,
-                            autoSize = TextAutoSize.StepBased(
-                                maxFontSize = MaterialTheme.typography.labelLarge.fontSize,
-                                minFontSize = 6.sp,
-                                stepSize = 0.5.sp,
-                            ),
-                        )
-                    }
-                }
+                )
 
                 if (!isTv) {
-                    PlayerButton(
-                        onClick = onRotateClick,
-                        containerColor = PlayerButtonBlackAlpha,
-                        contentPadding = PaddingValues(8.dp),
-                    ) {
-                        Icon(
-                            painter = painterResource(R.drawable.ic_screen_rotation),
-                            contentDescription = null,
-                            modifier = Modifier.size(20.dp),
-                        )
-                    }
+                    RotateButton()
                 }
             }
         }
@@ -269,8 +224,8 @@ fun ControlsBottomView(
                     contentDescription = null,
                 )
             }
-            LoopButton(state = repeatButtonState)
-            ShuffleButton(state = shuffleButtonState)
+            LoopButton(player = player)
+            ShuffleButton(player = player)
         }
     }
 }
@@ -279,30 +234,14 @@ fun ControlsBottomView(
 @Preview
 @Composable
 private fun ControlsBottomViewPreview() {
-    val player = remember {
-        object : SimpleBasePlayer(Looper.getMainLooper()) {
-            private val previewState = State.Builder()
-                .setAvailableCommands(
-                    Player.Commands.Builder()
-                        .addAll(Player.COMMAND_GET_TIMELINE, Player.COMMAND_GET_CURRENT_MEDIA_ITEM)
-                        .build(),
-                )
-                .setPlaylist(listOf(MediaItemData.Builder("preview").setDurationUs(120_000_000).build()))
-                .setContentPositionMs(30_000)
-                .build()
-
-            override fun getState(): State = previewState
-        }
-    }
+    val player = rememberPreviewPlayer()
     val progressState = rememberProgressStateWithTickInterval(player)
     NextPlayerTheme(darkTheme = true) {
         Surface {
             ControlsBottomView(
+                player = player,
                 progressState = progressState,
                 chaptersState = rememberChaptersState(player, progressState),
-                repeatButtonState = rememberRepeatButtonState(player),
-                shuffleButtonState = rememberShuffleButtonState(player),
-                playbackParametersState = rememberPlaybackParametersState(player),
                 controlsAlignment = Alignment.Start,
                 videoContentScale = VideoContentScale.BEST_FIT,
                 isPipSupported = true,
@@ -314,7 +253,6 @@ private fun ControlsBottomViewPreview() {
                 onLockControlsClick = {},
                 onPictureInPictureClick = {},
                 onPlaybackSpeedClick = {},
-                onRotateClick = {},
                 onPlayInBackgroundClick = {},
                 onSeek = {},
                 onSeekEnd = {},

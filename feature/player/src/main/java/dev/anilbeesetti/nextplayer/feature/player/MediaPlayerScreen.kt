@@ -67,12 +67,7 @@ import androidx.lifecycle.compose.LifecycleEventEffect
 import androidx.media3.common.Player
 import androidx.media3.common.util.UnstableApi
 import androidx.media3.session.MediaController
-import androidx.media3.ui.compose.state.rememberNextButtonState
-import androidx.media3.ui.compose.state.rememberPlayPauseButtonState
-import androidx.media3.ui.compose.state.rememberPreviousButtonState
 import androidx.media3.ui.compose.state.rememberProgressStateWithTickInterval
-import androidx.media3.ui.compose.state.rememberRepeatButtonState
-import androidx.media3.ui.compose.state.rememberShuffleButtonState
 import dev.anilbeesetti.nextplayer.core.common.extensions.isTelevision
 import dev.anilbeesetti.nextplayer.core.model.ControlButtonsPosition
 import dev.anilbeesetti.nextplayer.core.model.PlayerPreferences
@@ -88,6 +83,7 @@ import dev.anilbeesetti.nextplayer.feature.player.model.DecoderServiceState
 import dev.anilbeesetti.nextplayer.feature.player.model.DecoderTrackType
 import dev.anilbeesetti.nextplayer.feature.player.model.labelRes
 import dev.anilbeesetti.nextplayer.feature.player.state.ControlsVisibilityState
+import dev.anilbeesetti.nextplayer.feature.player.state.PlayerOrientationEffect
 import dev.anilbeesetti.nextplayer.feature.player.state.VerticalGesture
 import dev.anilbeesetti.nextplayer.feature.player.state.rememberBrightnessState
 import dev.anilbeesetti.nextplayer.feature.player.state.rememberChaptersState
@@ -97,8 +93,6 @@ import dev.anilbeesetti.nextplayer.feature.player.state.rememberErrorState
 import dev.anilbeesetti.nextplayer.feature.player.state.rememberMediaPresentationState
 import dev.anilbeesetti.nextplayer.feature.player.state.rememberMetadataState
 import dev.anilbeesetti.nextplayer.feature.player.state.rememberPictureInPictureState
-import dev.anilbeesetti.nextplayer.feature.player.state.rememberPlaybackParametersState
-import dev.anilbeesetti.nextplayer.feature.player.state.rememberRotationState
 import dev.anilbeesetti.nextplayer.feature.player.state.rememberSeekGestureState
 import dev.anilbeesetti.nextplayer.feature.player.state.rememberTapGestureState
 import dev.anilbeesetti.nextplayer.feature.player.state.rememberVideoZoomAndContentScaleState
@@ -177,13 +171,12 @@ fun MediaPlayerScreen(
         volumeGestureSensitivity = playerPreferences.volumeGestureSensitivity,
         brightnessGestureSensitivity = playerPreferences.brightnessGestureSensitivity,
     )
-    val rotationState = rememberRotationState(
+    PlayerOrientationEffect(
         player = player,
         screenOrientation = playerPreferences.playerScreenOrientation,
     )
     val errorState = rememberErrorState(player = player)
     val decoderState = rememberDecoderState(controller = player, state = decoderServiceState)
-    val playbackParametersState = rememberPlaybackParametersState(player)
     val progressState = rememberProgressStateWithTickInterval(player)
     val chaptersState = rememberChaptersState(player, progressState)
 
@@ -415,9 +408,7 @@ fun MediaPlayerScreen(
                                 videoZoomAndContentScaleState.isZooming -> InfoView(info = "${(videoZoomAndContentScaleState.zoom * 100).toInt()}%")
                                 videoZoomAndContentScaleState.showContentScaleIndicator -> InfoView(info = stringResource(videoZoomAndContentScaleState.videoContentScale.nameRes()))
                                 controlsVisibilityState.controlsVisible -> ControlsMiddleView(
-                                    playPauseButtonState = rememberPlayPauseButtonState(player),
-                                    previousButtonState = rememberPreviousButtonState(player),
-                                    nextButtonState = rememberNextButtonState(player),
+                                    player = player,
                                     modifier = Modifier.thenIf(isTv) {
                                         focusRequester(middleControlsFocusRequester)
                                             .onFocusChanged { isMiddleControlsFocused = it.hasFocus }
@@ -435,11 +426,9 @@ fun MediaPlayerScreen(
                             ) {
                                 val context = LocalContext.current
                                 ControlsBottomView(
-                                    repeatButtonState = rememberRepeatButtonState(player),
-                                    shuffleButtonState = rememberShuffleButtonState(player),
+                                    player = player,
                                     progressState = progressState,
                                     chaptersState = chaptersState,
-                                    playbackParametersState = playbackParametersState,
                                     onChaptersClick = {
                                         controlsVisibilityState.hideControls()
                                         overlayView = OverlayView.CHAPTERS
@@ -458,7 +447,6 @@ fun MediaPlayerScreen(
                                         controlsVisibilityState.hideControls()
                                         overlayView = OverlayView.PLAYBACK_SPEED
                                     },
-                                    onRotateClick = rotationState::rotate,
                                     onPlayInBackgroundClick = onPlayInBackgroundClick,
                                     onLockControlsClick = {
                                         controlsVisibilityState.showControls()
