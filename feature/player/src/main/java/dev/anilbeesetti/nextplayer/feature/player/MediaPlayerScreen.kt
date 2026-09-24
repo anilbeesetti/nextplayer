@@ -64,13 +64,13 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.compose.LifecycleEventEffect
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.media3.common.Player
 import androidx.media3.common.util.UnstableApi
 import androidx.media3.session.MediaController
 import androidx.media3.ui.compose.state.rememberProgressStateWithTickInterval
 import dev.anilbeesetti.nextplayer.core.common.extensions.isTelevision
 import dev.anilbeesetti.nextplayer.core.model.ControlButtonsPosition
-import dev.anilbeesetti.nextplayer.core.model.PlayerPreferences
 import dev.anilbeesetti.nextplayer.core.ui.R as coreUiR
 import dev.anilbeesetti.nextplayer.core.ui.components.requestFocusUntilLanded
 import dev.anilbeesetti.nextplayer.core.ui.components.thenIf
@@ -79,7 +79,6 @@ import dev.anilbeesetti.nextplayer.feature.player.buttons.PlayerButton
 import dev.anilbeesetti.nextplayer.feature.player.extensions.formatted
 import dev.anilbeesetti.nextplayer.feature.player.extensions.nameRes
 import dev.anilbeesetti.nextplayer.feature.player.model.DecoderRecoveryStatus
-import dev.anilbeesetti.nextplayer.feature.player.model.DecoderServiceState
 import dev.anilbeesetti.nextplayer.feature.player.model.DecoderTrackType
 import dev.anilbeesetti.nextplayer.feature.player.model.labelRes
 import dev.anilbeesetti.nextplayer.feature.player.state.ControlsVisibilityState
@@ -88,7 +87,6 @@ import dev.anilbeesetti.nextplayer.feature.player.state.VerticalGesture
 import dev.anilbeesetti.nextplayer.feature.player.state.rememberBrightnessState
 import dev.anilbeesetti.nextplayer.feature.player.state.rememberChaptersState
 import dev.anilbeesetti.nextplayer.feature.player.state.rememberControlsVisibilityState
-import dev.anilbeesetti.nextplayer.feature.player.state.rememberDecoderState
 import dev.anilbeesetti.nextplayer.feature.player.state.rememberErrorState
 import dev.anilbeesetti.nextplayer.feature.player.state.rememberMediaPresentationState
 import dev.anilbeesetti.nextplayer.feature.player.state.rememberMetadataState
@@ -114,20 +112,19 @@ import kotlin.time.Duration.Companion.seconds
 import kotlinx.coroutines.delay
 
 val LocalControlsVisibilityState = compositionLocalOf<ControlsVisibilityState?> { null }
+val LocalUseMaterialYouControls = compositionLocalOf { false }
 
 @OptIn(UnstableApi::class)
 @Composable
 fun MediaPlayerScreen(
-    decoderServiceState: DecoderServiceState,
-    player: MediaController?,
     viewModel: PlayerViewModel,
-    playerPreferences: PlayerPreferences,
+    player: MediaController?,
     modifier: Modifier = Modifier,
-    onSelectSubtitleClick: () -> Unit,
-    onSelectAudioClick: () -> Unit,
-    onBackClick: () -> Unit,
-    onPlayInBackgroundClick: () -> Unit,
 ) {
+    val state by viewModel.state.collectAsStateWithLifecycle()
+    val playerPreferences = state.playerPreferences
+    val decoderServiceState = state.decoderServiceState
+    val onBackClick = { viewModel.onAction(PlayerAction.NavigateUp) }
     val volumeState = rememberVolumeState(
         player = player,
         showVolumePanelIfHeadsetIsOn = playerPreferences.showSystemVolumePanel,
@@ -160,7 +157,7 @@ fun MediaPlayerScreen(
         initialContentScale = playerPreferences.playerVideoZoom,
         enableZoomGesture = playerPreferences.useZoomControls,
         enablePanGesture = playerPreferences.enablePanGesture,
-        onEvent = viewModel::onVideoZoomEvent,
+        onEvent = { viewModel.onAction(PlayerAction.OnVideoZoomEvent(it)) },
     )
     val brightnessState = rememberBrightnessState()
     val volumeAndBrightnessGestureState = rememberVolumeAndBrightnessGestureState(
@@ -176,7 +173,6 @@ fun MediaPlayerScreen(
         screenOrientation = playerPreferences.playerScreenOrientation,
     )
     val errorState = rememberErrorState(player = player)
-    val decoderState = rememberDecoderState(controller = player, state = decoderServiceState)
     val progressState = rememberProgressStateWithTickInterval(player)
     val chaptersState = rememberChaptersState(player, progressState)
 
@@ -200,7 +196,7 @@ fun MediaPlayerScreen(
 
     LaunchedEffect(brightnessState.currentBrightness) {
         if (playerPreferences.rememberPlayerBrightness) {
-            viewModel.updatePlayerBrightness(brightnessState.currentBrightness)
+            viewModel.onAction(PlayerAction.UpdatePlayerBrightness(brightnessState.currentBrightness))
         }
     }
 
@@ -252,7 +248,10 @@ fun MediaPlayerScreen(
         dpadSeekTick++
     }
 
-    CompositionLocalProvider(LocalControlsVisibilityState provides controlsVisibilityState) {
+    CompositionLocalProvider(
+        LocalControlsVisibilityState provides controlsVisibilityState,
+        LocalUseMaterialYouControls provides playerPreferences.useMaterialYouControls,
+    ) {
         Box {
             Box(
                 modifier = modifier
@@ -381,7 +380,7 @@ fun MediaPlayerScreen(
                             ) {
                                 ControlsTopView(
                                     title = metadataState.title ?: "",
-                                    videoDecoderMode = decoderState.videoMode,
+                                    videoDecoderMode = decoderServiceState.videoMode,
                                     onDecoderClick = {
                                         controlsVisibilityState.hideControls()
                                         overlayView = OverlayView.DECODER_SELECTOR
@@ -440,14 +439,14 @@ fun MediaPlayerScreen(
                                     videoContentScale = videoZoomAndContentScaleState.videoContentScale,
                                     isPipSupported = pictureInPictureState.isPipSupported,
                                     showRemainingTime = playerPreferences.showRemainingTime,
-                                    onToggleTimeDisplay = viewModel::toggleTimeDisplay,
+                                    onToggleTimeDisplay = { viewModel.onAction(PlayerAction.ToggleTimeDisplay) },
                                     onSeek = seekGestureState::onSeek,
                                     onSeekEnd = seekGestureState::onSeekEnd,
                                     onPlaybackSpeedClick = {
                                         controlsVisibilityState.hideControls()
                                         overlayView = OverlayView.PLAYBACK_SPEED
                                     },
-                                    onPlayInBackgroundClick = onPlayInBackgroundClick,
+                                    onPlayInBackgroundClick = { viewModel.onAction(PlayerAction.PlayInBackground) },
                                     onLockControlsClick = {
                                         controlsVisibilityState.showControls()
                                         controlsVisibilityState.lockControls()
@@ -521,21 +520,21 @@ fun MediaPlayerScreen(
                         controlsVisibilityState.showControls()
                     }
                 },
-                videoDecoderMode = decoderState.videoMode,
-                audioDecoderMode = decoderState.audioMode,
+                videoDecoderMode = decoderServiceState.videoMode,
+                audioDecoderMode = decoderServiceState.audioMode,
                 videoContentScale = videoZoomAndContentScaleState.videoContentScale,
                 onDismiss = { overlayView = null },
-                onVideoDecoderModeSelected = decoderState::switchVideoTo,
-                onAudioDecoderModeSelected = decoderState::switchAudioTo,
-                onSelectSubtitleClick = onSelectSubtitleClick,
-                onSelectAudioClick = onSelectAudioClick,
-                onSubtitleOptionEvent = viewModel::onSubtitleOptionEvent,
+                onVideoDecoderModeSelected = { viewModel.onAction(PlayerAction.SetVideoDecoderMode(it)) },
+                onAudioDecoderModeSelected = { viewModel.onAction(PlayerAction.SetAudioDecoderMode(it)) },
+                onSelectSubtitleClick = { viewModel.onAction(PlayerAction.SelectSubtitle) },
+                onSelectAudioClick = { viewModel.onAction(PlayerAction.SelectAudio) },
+                onSubtitleOptionEvent = { viewModel.onAction(PlayerAction.OnSubtitleOptionEvent(it)) },
                 onVideoContentScaleChanged = { videoZoomAndContentScaleState.onVideoContentScaleChanged(it) },
             )
         }
     }
 
-    val decoderRecoveryState = decoderState.recoveryState
+    val decoderRecoveryState = decoderServiceState.recoveryState
     val unsupportedMode = decoderRecoveryState.unsupportedMode
     val recoveryTrackType = decoderRecoveryState.trackType
     if (
@@ -560,7 +559,7 @@ fun MediaPlayerScreen(
                 )
             },
             confirmButton = {
-                TextButton(onClick = decoderState::tryFallback) {
+                TextButton(onClick = { viewModel.onAction(PlayerAction.TryDecoderFallback) }) {
                     Text(text = stringResource(coreUiR.string.okay))
                 }
             },
