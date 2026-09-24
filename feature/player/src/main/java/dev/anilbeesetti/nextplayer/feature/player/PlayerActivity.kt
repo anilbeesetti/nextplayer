@@ -1,11 +1,9 @@
 package dev.anilbeesetti.nextplayer.feature.player
 
 import android.annotation.SuppressLint
-import android.content.ComponentName
 import android.content.Intent
 import android.graphics.Color
 import android.net.Uri
-import android.os.Build
 import android.os.Bundle
 import android.view.WindowManager
 import android.widget.Toast
@@ -14,13 +12,13 @@ import androidx.activity.SystemBarStyle
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
 import androidx.compose.runtime.CompositionLocalProvider
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.compositionLocalOf
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
+import androidx.compose.runtime.snapshotFlow
 import androidx.core.util.Consumer
-import androidx.lifecycle.compose.LifecycleStartEffect
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.lifecycleScope
 import androidx.media3.common.C
@@ -29,8 +27,6 @@ import androidx.media3.common.MediaMetadata
 import androidx.media3.common.MimeTypes
 import androidx.media3.common.Player
 import androidx.media3.session.MediaController
-import androidx.media3.session.SessionToken
-import com.google.common.util.concurrent.ListenableFuture
 import dev.anilbeesetti.nextplayer.core.common.extensions.getInitialDirectoryUri
 import dev.anilbeesetti.nextplayer.core.common.extensions.getMediaContentUri
 import dev.anilbeesetti.nextplayer.core.common.service.registerForSuspendActivityResult
@@ -41,11 +37,11 @@ import dev.anilbeesetti.nextplayer.feature.player.extensions.OpenDocumentAtIniti
 import dev.anilbeesetti.nextplayer.feature.player.extensions.setExtras
 import dev.anilbeesetti.nextplayer.feature.player.extensions.uriToSubtitleConfiguration
 import dev.anilbeesetti.nextplayer.feature.player.model.DecoderServiceState
-import dev.anilbeesetti.nextplayer.feature.player.service.PlayerService
 import dev.anilbeesetti.nextplayer.feature.player.service.addAudioTrack
 import dev.anilbeesetti.nextplayer.feature.player.service.addSubtitleTrack
 import dev.anilbeesetti.nextplayer.feature.player.service.decoderServiceState
 import dev.anilbeesetti.nextplayer.feature.player.service.stopPlayerSession
+import dev.anilbeesetti.nextplayer.feature.player.state.rememberMediaController
 import dev.anilbeesetti.nextplayer.feature.player.utils.PlayerApi
 import dev.anilbeesetti.nextplayer.feature.player.utils.PlaylistPlaybackContract
 import dev.anilbeesetti.nextplayer.feature.player.utils.toMediaQueue
@@ -53,7 +49,8 @@ import java.util.concurrent.CopyOnWriteArrayList
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.ensureActive
-import kotlinx.coroutines.guava.await
+import kotlinx.coroutines.flow.filterNotNull
+import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import org.koin.android.ext.android.inject
@@ -84,8 +81,7 @@ class PlayerActivity : ComponentActivity() {
     /**
      * Player
      */
-    private var controllerFuture: ListenableFuture<MediaController>? = null
-    private var mediaController: MediaController? = null
+    private var mediaController by mutableStateOf<MediaController?>(null)
     private var decoderServiceState by mutableStateOf(DecoderServiceState())
     private lateinit var playerApi: PlayerApi
     private var playbackRequestJob: Job? = null
@@ -106,20 +102,20 @@ class PlayerActivity : ComponentActivity() {
             navigationBarStyle = SystemBarStyle.dark(Color.TRANSPARENT),
         )
 
+        playerApi = PlayerApi(this)
         setContent {
             val uiState by viewModel.uiState.collectAsStateWithLifecycle()
-            var player by remember { mutableStateOf<MediaController?>(null) }
-
-            LifecycleStartEffect(Unit) {
-                maybeInitControllerFuture()
-                lifecycleScope.launch {
-                    player = controllerFuture?.await()
-                    decoderServiceState = player?.sessionExtras?.decoderServiceState() ?: DecoderServiceState()
-                }
-
-                onStopOrDispose {
-                    player = null
-                }
+            val player = rememberMediaController(
+                onBeforeRelease = ::onControllerStopped,
+                onExtrasChanged = { extras -> decoderServiceState = extras.decoderServiceState() },
+            )
+            LaunchedEffect(player) {
+                if (player == null || !player.isConnected) return@LaunchedEffect
+                mediaController = player
+                decoderServiceState = player.sessionExtras.decoderServiceState()
+                player.addListener(playbackStateListener)
+                updateKeepScreenOnFlag()
+                startPlayback()
             }
 
             CompositionLocalProvider(LocalUseMaterialYouControls provides (uiState.playerPreferences?.useMaterialYouControls == true)) {
@@ -149,8 +145,7 @@ class PlayerActivity : ComponentActivity() {
                                     ),
                                 ) ?: return@launch
                                 contentResolver.takePersistableUriPermission(uri, Intent.FLAG_GRANT_READ_URI_PERMISSION)
-                                maybeInitControllerFuture()
-                                controllerFuture?.await()?.addSubtitleTrack(uri)
+                                snapshotFlow { mediaController }.filterNotNull().first().addSubtitleTrack(uri)
                             }
                         },
                         onSelectAudioClick = {
@@ -167,8 +162,8 @@ class PlayerActivity : ComponentActivity() {
                                 ) ?: return@launch
                                 try {
                                     contentResolver.takePersistableUriPermission(uri, Intent.FLAG_GRANT_READ_URI_PERMISSION)
-                                    maybeInitControllerFuture()
-                                    if (controllerFuture?.await()?.addAudioTrack(uri) != true) {
+                                    val controller = snapshotFlow { mediaController }.filterNotNull().first()
+                                    if (!controller.addAudioTrack(uri)) {
                                         Toast.makeText(this@PlayerActivity, coreUiR.string.error_opening_audio, Toast.LENGTH_LONG).show()
                                     }
                                 } catch (_: SecurityException) {
@@ -186,58 +181,24 @@ class PlayerActivity : ComponentActivity() {
             }
         }
 
-        playerApi = PlayerApi(this)
     }
 
-    override fun onStart() {
-        super.onStart()
-        lifecycleScope.launch {
-            maybeInitControllerFuture()
-            mediaController = controllerFuture?.await()
-
-            mediaController?.run {
-                updateKeepScreenOnFlag()
-                addListener(playbackStateListener)
-                startPlayback()
-            }
-        }
-    }
-
-    override fun onStop() {
+    private fun onControllerStopped() {
+        playbackRequestJob?.cancel()
         mediaController?.run {
             viewModel.playWhenReady = playWhenReady
             removeListener(playbackStateListener)
-        }
-        val shouldPlayInBackground = playInBackground || playerPreferences?.autoBackgroundPlay == true
-        if (subtitleFileSuspendLauncher.isAwaitingResult || audioFileSuspendLauncher.isAwaitingResult || !shouldPlayInBackground) {
-            mediaController?.pause()
-        }
-
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.N && isInPictureInPictureMode) {
-            finish()
-            if (!shouldPlayInBackground) {
-                mediaController?.stopPlayerSession()
+            val shouldPlayInBackground = playInBackground || playerPreferences?.autoBackgroundPlay == true
+            if (subtitleFileSuspendLauncher.isAwaitingResult || audioFileSuspendLauncher.isAwaitingResult || !shouldPlayInBackground) {
+                pause()
+            }
+            if (isInPictureInPictureMode) {
+                finish()
+                if (!shouldPlayInBackground) stopPlayerSession()
             }
         }
-
-        controllerFuture?.run {
-            MediaController.releaseFuture(this)
-            controllerFuture = null
-        }
-        super.onStop()
-    }
-
-    private fun maybeInitControllerFuture() {
-        if (controllerFuture == null) {
-            val sessionToken = SessionToken(applicationContext, ComponentName(applicationContext, PlayerService::class.java))
-            controllerFuture = MediaController.Builder(applicationContext, sessionToken)
-                .setListener(object : MediaController.Listener {
-                    override fun onExtrasChanged(controller: MediaController, extras: Bundle) {
-                        decoderServiceState = extras.decoderServiceState()
-                    }
-                })
-                .buildAsync()
-        }
+        mediaController = null
+        updateKeepScreenOnFlag()
     }
 
     private fun startPlayback() {
