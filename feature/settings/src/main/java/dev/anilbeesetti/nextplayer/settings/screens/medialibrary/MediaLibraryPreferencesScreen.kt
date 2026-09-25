@@ -119,9 +119,7 @@ private fun MediaLibraryPreferencesScreenContent(
                 PreferenceSwitch(
                     modifier = Modifier.restorableFocusItem(focusState, "watch_history"),
                     title = stringResource(id = R.string.watch_history),
-                    description = stringResource(
-                        id = if (preferences.isHistoryPaused) R.string.watch_history_paused else R.string.watch_history_desc,
-                    ),
+                    description = stringResource(id = R.string.watch_history_desc),
                     icon = NextIcons.History,
                     isChecked = !preferences.isHistoryPaused,
                     onClick = { onAction(MediaLibraryPreferencesUiEvent.ToggleWatchHistory) },
@@ -129,8 +127,8 @@ private fun MediaLibraryPreferencesScreenContent(
                 )
                 PreferenceSwitch(
                     modifier = Modifier.restorableFocusItem(focusState, "network_watch_history"),
-                    title = stringResource(id = R.string.include_network_watch_history),
-                    description = stringResource(id = R.string.include_network_watch_history_desc),
+                    title = stringResource(id = R.string.network_watch_history),
+                    description = stringResource(id = R.string.network_watch_history_desc),
                     icon = NextIcons.Network,
                     enabled = !preferences.isHistoryPaused,
                     isChecked = preferences.includeNetworkWatchHistory,

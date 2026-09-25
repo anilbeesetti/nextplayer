@@ -90,7 +90,7 @@ internal fun HistoryScreenContent(
                         ) {
                             DropdownMenuItem(
                                 text = {
-                                    Text(stringResource(if (state.preferences.isHistoryPaused) R.string.resume_history else R.string.pause_history))
+                                    Text(stringResource(if (state.preferences.isHistoryPaused) R.string.resume_history else R.string.turn_off_watch_history))
                                 },
                                 onClick = {
                                     menuExpanded = false
