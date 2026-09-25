@@ -110,6 +110,21 @@ class HistoryViewModelTest {
     }
 
     @Test
+    fun `pause and resume history update preferences without clearing history`() = runTest(dispatcher) {
+        runCurrent()
+        viewModel.onAction(HistoryAction.ToggleHistoryPaused)
+        runCurrent()
+        assertTrue(preferences.applicationPreferences.value.isHistoryPaused)
+        assertTrue(viewModel.state.value.preferences.isHistoryPaused)
+        assertEquals(DataState.Success(listOf(Video.sample)), viewModel.state.value.history)
+
+        viewModel.onAction(HistoryAction.ToggleHistoryPaused)
+        runCurrent()
+        assertFalse(preferences.applicationPreferences.value.isHistoryPaused)
+        assertFalse(viewModel.state.value.preferences.isHistoryPaused)
+    }
+
+    @Test
     fun `actions use the current route output`() {
         var oldOutputCalled = false
         var navigatedUp = false

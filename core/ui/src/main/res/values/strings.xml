@@ -304,6 +304,12 @@
     <string name="recent_searches">Recent searches</string>
     <string name="popular_folders">Popular folders</string>
     <string name="clear_history">Clear history</string>
+    <string name="turn_off_watch_history">Turn off watch history</string>
+    <string name="resume_history">Resume history</string>
+    <string name="watch_history">Watch history</string>
+    <string name="watch_history_desc">Keep a record of videos you watch</string>
+    <string name="network_watch_history">Network watch history</string>
+    <string name="network_watch_history_desc">Include video played over the network in watch history.</string>
     <string name="clear_all">Clear all</string>
     <string name="clear_history_confirmation">Remove all watched videos from history?</string>
     <string name="no_results_found">No results found</string>
