@@ -15,13 +15,16 @@ import dev.anilbeesetti.nextplayer.feature.player.LocalControlsVisibilityState
 
 @OptIn(UnstableApi::class)
 @Composable
-fun LoopButton(player: Player, modifier: Modifier = Modifier) {
+fun LoopButton(
+    modifier: Modifier = Modifier,
+    player: Player?,
+) {
     val state = rememberRepeatButtonState(player)
     val controlsVisibilityState = LocalControlsVisibilityState.current
 
     PlayerButton(
         modifier = modifier,
-        isEnabled = state.isEnabled,
+        enabled = state.isEnabled,
         onClick = {
             state.onClick()
             controlsVisibilityState?.showControls()
@@ -35,19 +38,15 @@ fun LoopButton(player: Player, modifier: Modifier = Modifier) {
 }
 
 @Composable
-private fun repeatModeIconPainter(repeatMode: @Player.RepeatMode Int): Painter {
-    return when (repeatMode) {
-        Player.REPEAT_MODE_OFF -> painterResource(coreUiR.drawable.ic_loop_off)
-        Player.REPEAT_MODE_ONE -> painterResource(coreUiR.drawable.ic_loop_one)
-        else -> painterResource(coreUiR.drawable.ic_loop_all)
-    }
+private fun repeatModeIconPainter(repeatMode: @Player.RepeatMode Int): Painter = when (repeatMode) {
+    Player.REPEAT_MODE_OFF -> painterResource(coreUiR.drawable.ic_loop_off)
+    Player.REPEAT_MODE_ONE -> painterResource(coreUiR.drawable.ic_loop_one)
+    else -> painterResource(coreUiR.drawable.ic_loop_all)
 }
 
 @Composable
-private fun repeatModeContentDescription(repeatMode: @Player.RepeatMode Int): String {
-    return when (repeatMode) {
-        Player.REPEAT_MODE_OFF -> stringResource(coreUiR.string.loop_mode_off)
-        Player.REPEAT_MODE_ONE -> stringResource(coreUiR.string.loop_mode_one)
-        else -> stringResource(coreUiR.string.loop_mode_all)
-    }
+private fun repeatModeContentDescription(repeatMode: @Player.RepeatMode Int): String = when (repeatMode) {
+    Player.REPEAT_MODE_OFF -> stringResource(coreUiR.string.loop_mode_off)
+    Player.REPEAT_MODE_ONE -> stringResource(coreUiR.string.loop_mode_one)
+    else -> stringResource(coreUiR.string.loop_mode_all)
 }

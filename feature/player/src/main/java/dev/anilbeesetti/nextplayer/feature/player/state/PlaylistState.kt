@@ -3,76 +3,88 @@ package dev.anilbeesetti.nextplayer.feature.player.state
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
+import androidx.media3.common.C
 import androidx.media3.common.MediaItem
+import androidx.media3.common.MediaMetadata
 import androidx.media3.common.Player
-import androidx.media3.common.listen
+import androidx.media3.common.Timeline
 import androidx.media3.common.util.UnstableApi
+import androidx.media3.ui.compose.state.observeState
 
 @UnstableApi
 @Composable
 fun rememberPlaylistState(player: Player): PlaylistState {
-    val playlistState = remember { PlaylistState(player) }
+    val playlistState = remember(player) { PlaylistState(player) }
     LaunchedEffect(player) { playlistState.observe() }
     return playlistState
 }
 
-class PlaylistState(
-    private val player: Player,
-) {
-    var playlist: List<MediaItem> by mutableStateOf(emptyList())
+@UnstableApi
+class PlaylistState(private val player: Player?) {
+    private var canGetTimeline: Boolean = false
+    private var canGetMetadata: Boolean = false
+
+    var timeline: Timeline by mutableStateOf(Timeline.EMPTY)
         private set
 
-    var currentMediaItemIndex: Int by mutableStateOf(0)
+    var currentMediaItemIndex by mutableIntStateOf(C.INDEX_UNSET)
         private set
+
+    val mediaItemCount: Int
+        get() = if (canGetTimeline) timeline.windowCount else 0
+
+    var playlistMetadata: MediaMetadata by mutableStateOf(MediaMetadata.EMPTY)
+        private set
+
+
+    private val playerStateObserver =
+        player?.observeState(
+            Player.EVENT_TIMELINE_CHANGED,
+            Player.EVENT_POSITION_DISCONTINUITY,
+            Player.EVENT_PLAYLIST_METADATA_CHANGED,
+            Player.EVENT_AVAILABLE_COMMANDS_CHANGED,
+        ) { player ->
+            canGetTimeline = player.isCommandAvailable(Player.COMMAND_GET_TIMELINE)
+            canGetMetadata = player.isCommandAvailable(Player.COMMAND_GET_METADATA)
+
+            playlistMetadata = if (canGetMetadata) player.playlistMetadata else MediaMetadata.EMPTY
+            timeline = if (canGetTimeline) player.currentTimeline else Timeline.EMPTY
+            currentMediaItemIndex = if (canGetTimeline) player.currentMediaItemIndex else C.INDEX_UNSET
+        }
 
     suspend fun observe() {
-        updatePlaylist()
-        updateCurrentIndex()
-
-        player.listen { events ->
-            if (events.containsAny(Player.EVENT_MEDIA_ITEM_TRANSITION, Player.EVENT_TIMELINE_CHANGED)) {
-                updatePlaylist()
-            }
-            if (events.contains(Player.EVENT_MEDIA_ITEM_TRANSITION)) {
-                updateCurrentIndex()
-            }
-        }
+        playerStateObserver?.observe()
     }
 
     fun moveItem(fromIndex: Int, toIndex: Int) {
         if (fromIndex == toIndex) return
-        if (fromIndex !in playlist.indices || toIndex !in playlist.indices) return
+        if (fromIndex !in 0 until timeline.windowCount || toIndex >= timeline.windowCount) return
 
-        player.moveMediaItem(fromIndex, toIndex)
-        updatePlaylist()
-        updateCurrentIndex()
+        player?.moveMediaItem(fromIndex, toIndex)
     }
 
     fun removeItem(index: Int) {
-        if (index !in playlist.indices) return
-        if (playlist.size <= 1) return // Don't remove the last item
+        if (index !in 0 until timeline.windowCount) return
+        if (timeline.windowCount <= 1) return // Don't remove the last item
 
-        player.removeMediaItem(index)
-        updatePlaylist()
-        updateCurrentIndex()
+        player?.removeMediaItem(index)
     }
 
     fun seekToItem(index: Int) {
-        if (index !in playlist.indices) return
-        if (player.currentMediaItemIndex == index) return
-        player.seekToDefaultPosition(index)
-        updateCurrentIndex()
+        if (index !in 0 until timeline.windowCount) return
+        if (player?.currentMediaItemIndex == index) return
+        player?.seekToDefaultPosition(index)
     }
 
-    private fun updatePlaylist() {
-        val items = (0 until player.mediaItemCount).map { player.getMediaItemAt(it) }
-        playlist = items
-    }
-
-    private fun updateCurrentIndex() {
-        currentMediaItemIndex = player.currentMediaItemIndex
+    fun getMediaItemAt(index: Int): MediaItem {
+        if (!canGetTimeline || index < 0 || index >= timeline.windowCount) {
+            throw IndexOutOfBoundsException()
+        }
+        val window = Timeline.Window()
+        return timeline.getWindow(index, window).mediaItem
     }
 }
