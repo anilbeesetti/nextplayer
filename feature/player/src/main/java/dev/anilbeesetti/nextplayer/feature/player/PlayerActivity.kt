@@ -112,6 +112,7 @@ class PlayerActivity : ComponentActivity() {
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+        isIntentNew = savedInstanceState?.getBoolean("isIntentNew", true) ?: true
         enableEdgeToEdge(
             statusBarStyle = SystemBarStyle.dark(Color.TRANSPARENT),
             navigationBarStyle = SystemBarStyle.dark(Color.TRANSPARENT),
@@ -227,15 +228,23 @@ class PlayerActivity : ComponentActivity() {
     }
 
     private fun startPlayback() {
-        val uri = intent.data ?: return
         val controller = mediaController ?: return
+        if (!isIntentNew && (controller.currentMediaItem == null || controller.playbackState == Player.STATE_ENDED)) {
+            // Completion can happen while the activity's playback listener is detached.
+            isPlaybackFinished = true
+            finishAndStopPlayerSession()
+            return
+        }
+        val uri = intent.data ?: return
 
+        val returningFromBackground = !isIntentNew
         val currentUri = controller.currentMediaItem?.localConfiguration?.uri
         val hasExplicitPlaylist = intent.hasExtra(PlayerApi.API_PLAYLIST) ||
             intent.hasExtra(PlaylistPlaybackContract.EXTRA_PLAYLIST_ID)
+        isIntentNew = false
 
         if (shouldResumeExistingPlayback(
-                returningFromBackground = !isIntentNew && controller.currentMediaItem != null,
+                returningFromBackground = returningFromBackground,
                 isRequestedUriCurrent = currentUri.toString() == uri.toString(),
                 hasExplicitPlaylist = hasExplicitPlaylist,
             )
@@ -244,8 +253,6 @@ class PlayerActivity : ComponentActivity() {
             controller.playWhenReady = viewModel.state.value.playWhenReady
             return
         }
-
-        isIntentNew = false
 
         playbackRequestJob?.cancel()
         playbackRequestJob = lifecycleScope.launch {
@@ -356,6 +363,11 @@ class PlayerActivity : ComponentActivity() {
             isIntentNew = true
             startPlayback()
         }
+    }
+
+    override fun onSaveInstanceState(outState: Bundle) {
+        outState.putBoolean("isIntentNew", isIntentNew)
+        super.onSaveInstanceState(outState)
     }
 
     private fun updateKeepScreenOnFlag() {
