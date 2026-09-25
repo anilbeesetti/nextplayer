@@ -2,13 +2,14 @@ package dev.anilbeesetti.nextplayer.feature.videopicker.navigation
 
 import android.net.Uri
 import androidx.compose.runtime.SideEffect
-import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.navigation3.runtime.EntryProviderScope
 import androidx.navigation3.runtime.NavBackStack
 import androidx.navigation3.runtime.NavKey
 import dev.anilbeesetti.nextplayer.feature.videopicker.screens.search.SearchScreen
 import dev.anilbeesetti.nextplayer.feature.videopicker.screens.search.SearchViewModel
 import kotlinx.serialization.Serializable
+import org.koin.compose.viewmodel.koinViewModel
+import org.koin.core.parameter.parametersOf
 
 @Serializable
 object SearchRoute : NavKey
@@ -28,8 +29,8 @@ fun EntryProviderScope<NavKey>.searchEntry(
             navigateUp = onNavigateUp,
             openFolder = onFolderClick,
         )
-        val viewModel = hiltViewModel<SearchViewModel, SearchViewModel.Factory>(
-            creationCallback = { factory -> factory.create(output = output) },
+        val viewModel = koinViewModel<SearchViewModel>(
+            parameters = { parametersOf(output) },
         )
         SideEffect { viewModel.output = output }
         SearchScreen(viewModel = viewModel)

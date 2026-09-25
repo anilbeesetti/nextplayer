@@ -1,10 +1,6 @@
 package dev.anilbeesetti.nextplayer.settings.screens.medialibrary
 
 import androidx.lifecycle.viewModelScope
-import dagger.assisted.Assisted
-import dagger.assisted.AssistedFactory
-import dagger.assisted.AssistedInject
-import dagger.hilt.android.lifecycle.HiltViewModel
 import dev.anilbeesetti.nextplayer.core.data.repository.MediaRepository
 import dev.anilbeesetti.nextplayer.core.data.repository.PreferencesRepository
 import dev.anilbeesetti.nextplayer.core.model.ApplicationPreferences
@@ -16,22 +12,19 @@ import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
+import org.koin.core.annotation.InjectedParam
+import org.koin.core.annotation.KoinViewModel
 
-@HiltViewModel(assistedFactory = FolderPreferencesViewModel.Factory::class)
-class FolderPreferencesViewModel @AssistedInject constructor(
+@KoinViewModel
+class FolderPreferencesViewModel(
     mediaRepository: MediaRepository,
     private val preferencesRepository: PreferencesRepository,
-    @Assisted internal var output: Output,
+    @InjectedParam internal var output: Output,
 ) : MviViewModel<FolderPreferencesUiState, FolderPreferencesUiEvent>() {
 
     data class Output(
         val navigateUp: () -> Unit,
     )
-
-    @AssistedFactory
-    interface Factory {
-        fun create(output: Output): FolderPreferencesViewModel
-    }
 
     private val stateInternal = MutableStateFlow(
         FolderPreferencesUiState(

@@ -2,9 +2,7 @@ package dev.anilbeesetti.nextplayer.feature.player
 
 import android.net.Uri
 import androidx.compose.runtime.Stable
-import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import dagger.hilt.android.lifecycle.HiltViewModel
 import dev.anilbeesetti.nextplayer.core.data.repository.MediaRepository
 import dev.anilbeesetti.nextplayer.core.data.repository.PreferencesRepository
 import dev.anilbeesetti.nextplayer.core.domain.GetSortedPlaylistUseCase
@@ -12,35 +10,68 @@ import dev.anilbeesetti.nextplayer.core.model.LoopMode
 import dev.anilbeesetti.nextplayer.core.model.PlayerPreferences
 import dev.anilbeesetti.nextplayer.core.model.Video
 import dev.anilbeesetti.nextplayer.core.model.VideoContentScale
+import dev.anilbeesetti.nextplayer.core.ui.base.MviViewModel
+import dev.anilbeesetti.nextplayer.feature.player.model.DecoderServiceState
 import dev.anilbeesetti.nextplayer.feature.player.state.SubtitleOptionsEvent
 import dev.anilbeesetti.nextplayer.feature.player.state.VideoZoomEvent
-import javax.inject.Inject
+import io.github.anilbeesetti.nextlib.media3ext.ffdecoder.DecoderMode
 import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
+import org.koin.core.annotation.InjectedParam
+import org.koin.core.annotation.KoinViewModel
 
-@HiltViewModel
-class PlayerViewModel @Inject constructor(
+@KoinViewModel
+class PlayerViewModel(
     private val mediaRepository: MediaRepository,
     private val preferencesRepository: PreferencesRepository,
     private val getSortedPlaylistUseCase: GetSortedPlaylistUseCase,
-) : ViewModel() {
+    @InjectedParam internal var output: Output,
+) : MviViewModel<PlayerUiState, PlayerAction>() {
 
-    var playWhenReady: Boolean = true
+    data class Output(
+        val navigateUp: () -> Unit,
+        val selectSubtitle: () -> Unit,
+        val selectAudio: () -> Unit,
+        val playInBackground: () -> Unit,
+        val setVideoDecoderMode: (DecoderMode) -> Unit,
+        val setAudioDecoderMode: (DecoderMode) -> Unit,
+        val tryDecoderFallback: () -> Unit,
+    )
 
-    private val internalUiState = MutableStateFlow(
+    private val stateInternal = MutableStateFlow(
         PlayerUiState(
             playerPreferences = preferencesRepository.playerPreferences.value,
         ),
     )
-    val uiState = internalUiState.asStateFlow()
+    override val state: StateFlow<PlayerUiState> = stateInternal.asStateFlow()
 
     init {
         viewModelScope.launch {
             preferencesRepository.playerPreferences.collect { prefs ->
-                internalUiState.update { it.copy(playerPreferences = prefs) }
+                stateInternal.update { it.copy(playerPreferences = prefs) }
             }
+        }
+    }
+
+    override fun onAction(action: PlayerAction) {
+        when (action) {
+            is PlayerAction.NavigateUp -> output.navigateUp()
+            is PlayerAction.SelectSubtitle -> output.selectSubtitle()
+            is PlayerAction.SelectAudio -> output.selectAudio()
+            is PlayerAction.PlayInBackground -> output.playInBackground()
+            is PlayerAction.SetVideoDecoderMode -> output.setVideoDecoderMode(action.mode)
+            is PlayerAction.SetAudioDecoderMode -> output.setAudioDecoderMode(action.mode)
+            is PlayerAction.TryDecoderFallback -> output.tryDecoderFallback()
+            is PlayerAction.UpdateDecoderServiceState -> stateInternal.update { it.copy(decoderServiceState = action.state) }
+            is PlayerAction.UpdatePlayWhenReady -> stateInternal.update { it.copy(playWhenReady = action.playWhenReady) }
+            is PlayerAction.UpdatePlayerBrightness -> updatePlayerBrightness(action.value)
+            is PlayerAction.SetLoopMode -> setLoopMode(action.loopMode)
+            is PlayerAction.ToggleTimeDisplay -> toggleTimeDisplay()
+            is PlayerAction.OnVideoZoomEvent -> onVideoZoomEvent(action.event)
+            is PlayerAction.OnSubtitleOptionEvent -> onSubtitleOptionEvent(action.event)
         }
     }
 
@@ -48,31 +79,37 @@ class PlayerViewModel @Inject constructor(
         return getSortedPlaylistUseCase.invoke(uri)
     }
 
-    fun updateVideoZoom(uri: String, zoom: Float) {
+    private fun updateVideoZoom(uri: String, zoom: Float) {
         viewModelScope.launch {
             mediaRepository.updateMediumZoom(uri, zoom)
         }
     }
 
-    fun updatePlayerBrightness(value: Float) {
+    private fun updatePlayerBrightness(value: Float) {
         viewModelScope.launch {
             preferencesRepository.updatePlayerPreferences { it.copy(playerBrightness = value) }
         }
     }
 
-    fun updateVideoContentScale(contentScale: VideoContentScale) {
+    private fun updateVideoContentScale(contentScale: VideoContentScale) {
         viewModelScope.launch {
             preferencesRepository.updatePlayerPreferences { it.copy(playerVideoZoom = contentScale) }
         }
     }
 
-    fun setLoopMode(loopMode: LoopMode) {
+    private fun setLoopMode(loopMode: LoopMode) {
         viewModelScope.launch {
             preferencesRepository.updatePlayerPreferences { it.copy(loopMode = loopMode) }
         }
     }
 
-    fun onVideoZoomEvent(event: VideoZoomEvent) {
+    private fun toggleTimeDisplay() {
+        viewModelScope.launch {
+            preferencesRepository.updatePlayerPreferences { it.copy(showRemainingTime = !it.showRemainingTime) }
+        }
+    }
+
+    private fun onVideoZoomEvent(event: VideoZoomEvent) {
         when (event) {
             is VideoZoomEvent.ContentScaleChanged -> {
                 updateVideoContentScale(event.contentScale)
@@ -83,7 +120,7 @@ class PlayerViewModel @Inject constructor(
         }
     }
 
-    fun onSubtitleOptionEvent(event: SubtitleOptionsEvent) {
+    private fun onSubtitleOptionEvent(event: SubtitleOptionsEvent) {
         when (event) {
             is SubtitleOptionsEvent.DelayChanged -> {
                 updateSubtitleDelay(event.mediaItem.mediaId, event.delay)
@@ -109,7 +146,24 @@ class PlayerViewModel @Inject constructor(
 
 @Stable
 data class PlayerUiState(
-    val playerPreferences: PlayerPreferences? = null,
+    val playerPreferences: PlayerPreferences = PlayerPreferences(),
+    val playWhenReady: Boolean = true,
+    val decoderServiceState: DecoderServiceState = DecoderServiceState(),
 )
 
-sealed interface PlayerEvent
+sealed interface PlayerAction {
+    data object NavigateUp : PlayerAction
+    data object SelectSubtitle : PlayerAction
+    data object SelectAudio : PlayerAction
+    data object PlayInBackground : PlayerAction
+    data class SetVideoDecoderMode(val mode: DecoderMode) : PlayerAction
+    data class SetAudioDecoderMode(val mode: DecoderMode) : PlayerAction
+    data object TryDecoderFallback : PlayerAction
+    data class UpdateDecoderServiceState(val state: DecoderServiceState) : PlayerAction
+    data class UpdatePlayWhenReady(val playWhenReady: Boolean) : PlayerAction
+    data class UpdatePlayerBrightness(val value: Float) : PlayerAction
+    data class SetLoopMode(val loopMode: LoopMode) : PlayerAction
+    data object ToggleTimeDisplay : PlayerAction
+    data class OnVideoZoomEvent(val event: VideoZoomEvent) : PlayerAction
+    data class OnSubtitleOptionEvent(val event: SubtitleOptionsEvent) : PlayerAction
+}

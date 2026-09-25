@@ -22,8 +22,8 @@ import androidx.media3.common.Player.DISCONTINUITY_REASON_SEEK
 import androidx.media3.common.TrackSelectionParameters
 import androidx.media3.common.Tracks
 import androidx.media3.common.util.UnstableApi
-import androidx.media3.exoplayer.ExoPlayer
 import androidx.media3.exoplayer.ExoPlaybackException
+import androidx.media3.exoplayer.ExoPlayer
 import androidx.media3.exoplayer.analytics.AnalyticsListener
 import androidx.media3.exoplayer.source.DefaultMediaSourceFactory
 import androidx.media3.exoplayer.trackselection.DefaultTrackSelector
@@ -38,7 +38,6 @@ import coil3.ImageLoader
 import coil3.request.ImageRequest
 import com.google.common.util.concurrent.Futures
 import com.google.common.util.concurrent.ListenableFuture
-import dagger.hilt.android.AndroidEntryPoint
 import dev.anilbeesetti.nextplayer.core.common.Logger
 import dev.anilbeesetti.nextplayer.core.common.extensions.deleteFiles
 import dev.anilbeesetti.nextplayer.core.common.extensions.getFilenameFromUri
@@ -59,6 +58,8 @@ import dev.anilbeesetti.nextplayer.feature.player.extensions.addAdditionalSubtit
 import dev.anilbeesetti.nextplayer.feature.player.extensions.audioDecoderMode
 import dev.anilbeesetti.nextplayer.feature.player.extensions.audioTrackIndex
 import dev.anilbeesetti.nextplayer.feature.player.extensions.copy
+import dev.anilbeesetti.nextplayer.feature.player.extensions.externalAudio
+import dev.anilbeesetti.nextplayer.feature.player.extensions.externalAudioIndex
 import dev.anilbeesetti.nextplayer.feature.player.extensions.getManuallySelectedTrackIndex
 import dev.anilbeesetti.nextplayer.feature.player.extensions.playbackSpeed
 import dev.anilbeesetti.nextplayer.feature.player.extensions.positionMs
@@ -71,14 +72,15 @@ import dev.anilbeesetti.nextplayer.feature.player.extensions.switchTrack
 import dev.anilbeesetti.nextplayer.feature.player.extensions.uriToSubtitleConfiguration
 import dev.anilbeesetti.nextplayer.feature.player.extensions.videoDecoderMode
 import dev.anilbeesetti.nextplayer.feature.player.extensions.videoZoom
+import dev.anilbeesetti.nextplayer.feature.player.extensions.withExternalAudio
 import dev.anilbeesetti.nextplayer.feature.player.model.DecoderTrackType
 import io.github.anilbeesetti.nextlib.media3ext.ffdecoder.DecoderManager
 import io.github.anilbeesetti.nextlib.media3ext.ffdecoder.DecoderMode
 import io.github.anilbeesetti.nextlib.media3ext.ffdecoder.NextRenderersFactory
 import io.github.anilbeesetti.nextlib.media3ext.renderer.subtitleDelayMilliseconds
 import io.github.anilbeesetti.nextlib.media3ext.renderer.subtitleSpeed
+import io.github.anilbeesetti.nextlib.mediainfo.MediaInfoBuilder
 import java.io.File
-import javax.inject.Inject
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
@@ -92,26 +94,22 @@ import kotlinx.coroutines.launch
 import kotlinx.coroutines.runBlocking
 import kotlinx.coroutines.supervisorScope
 import kotlinx.coroutines.withContext
+import org.koin.android.ext.android.inject
 
 @OptIn(UnstableApi::class)
-@AndroidEntryPoint
 class PlayerService : MediaSessionService() {
 
     private val serviceScope: CoroutineScope = CoroutineScope(Dispatchers.Main + SupervisorJob())
     private var mediaSession: MediaSession? = null
     private var artworkLoadJob: Job? = null
 
-    @Inject
-    lateinit var preferencesRepository: PreferencesRepository
+    private val preferencesRepository: PreferencesRepository by inject()
 
-    @Inject
-    lateinit var dataSourceFactory: NextDataSourceFactory
+    private val dataSourceFactory: NextDataSourceFactory by inject()
 
-    @Inject
-    lateinit var mediaRepository: MediaRepository
+    private val mediaRepository: MediaRepository by inject()
 
-    @Inject
-    lateinit var imageLoader: ImageLoader
+    private val imageLoader: ImageLoader by inject()
 
     private val playerPreferences: PlayerPreferences
         get() = preferencesRepository.playerPreferences.value
@@ -119,6 +117,7 @@ class PlayerService : MediaSessionService() {
     private val customCommands = CustomCommands.asSessionCommands()
 
     private var isMediaItemReady = false
+    private var pendingAudioSelection: Pair<String, Uri>? = null
 
     private var loudnessEnhancer: LoudnessEnhancer? = null
     private var currentVolumeGain: Int = 0
@@ -272,8 +271,17 @@ class PlayerService : MediaSessionService() {
             if (!isMediaItemReady && tracks.groups.isNotEmpty()) {
                 isMediaItemReady = true
 
+                val player = mediaSession?.player ?: return
+                val pending = pendingAudioSelection
+                pendingAudioSelection = null
+                if (pending != null && pending.first == player.currentMediaItem?.mediaId) {
+                    val audioIndex = player.currentMediaItem?.mediaMetadata?.externalAudio.orEmpty().indexOf(pending.second)
+                    val trackIndex = tracks.groups.filter { it.type == C.TRACK_TYPE_AUDIO }
+                        .indexOfFirst { it.mediaTrackGroup.externalAudioIndex == audioIndex }
+                    if (audioIndex >= 0 && trackIndex >= 0) player.switchTrack(C.TRACK_TYPE_AUDIO, trackIndex)
+                }
                 if (!playerPreferences.rememberSelections) return
-                mediaSession?.player?.mediaMetadata?.audioTrackIndex?.let {
+                mediaSession?.player?.mediaMetadata?.audioTrackIndex?.takeIf { pending == null }?.let {
                     mediaSession?.player?.switchTrack(C.TRACK_TYPE_AUDIO, it)
                 }
                 mediaSession?.player?.mediaMetadata?.subtitleTrackIndex?.let {
@@ -343,7 +351,7 @@ class PlayerService : MediaSessionService() {
                 (
                     playbackState == Player.STATE_IDLE &&
                         player?.mediaItemCount == 0
-                )
+                    )
             if (shouldResetPlaybackParameters) {
                 mediaSession?.player?.trackSelectionParameters = TrackSelectionParameters.DEFAULT
                 mediaSession?.player?.setPlaybackSpeed(playerPreferences.defaultPlaybackSpeed)
@@ -380,21 +388,26 @@ class PlayerService : MediaSessionService() {
             }
         }
 
-        override fun onRenderedFirstFrame() {
-            super.onRenderedFirstFrame()
-            val player = mediaSession?.player ?: return
+        override fun onEvents(player: Player, events: Player.Events) {
+            // Consecutive items can reuse the renderer without another first-frame callback.
+            if (player.playbackState != Player.STATE_READY ||
+                !events.containsAny(Player.EVENT_MEDIA_ITEM_TRANSITION, Player.EVENT_PLAYBACK_STATE_CHANGED)
+            ) {
+                return
+            }
             val currentMediaItem = player.currentMediaItem ?: return
+            val duration = player.duration.validDurationOrNull()
             // Update the media metadata duration so that it will be used later in position discontinuity handling
             player.replaceMediaItem(
                 player.currentMediaItemIndex,
-                currentMediaItem.copy(durationMs = player.duration.coerceAtLeast(0))
+                currentMediaItem.copy(durationMs = duration ?: 0),
             )
 
             serviceScope.launch {
                 mediaRepository.updateMediumLastPlayedTime(
                     uri = currentMediaItem.mediaId,
                     lastPlayedTime = System.currentTimeMillis(),
-                    duration = player.duration.validDurationOrNull(),
+                    duration = duration,
                 )
             }
         }
@@ -528,6 +541,43 @@ class PlayerService : MediaSessionService() {
                         )
                         player.addAdditionalSubtitleConfiguration(newSubConfiguration)
                     }
+                    return@future SessionResult(SessionResult.RESULT_SUCCESS)
+                }
+
+                CustomCommands.ADD_AUDIO_TRACK -> {
+                    val uri = args.getString(CustomCommands.AUDIO_TRACK_URI_KEY)?.toUri()
+                        ?.takeIf { it.scheme == ContentResolver.SCHEME_CONTENT || it.scheme == ContentResolver.SCHEME_FILE }
+                        ?: return@future SessionResult(SessionError.ERROR_BAD_VALUE)
+                    val player = session.player
+                    val mediaItem = player.currentMediaItem
+                        ?: return@future SessionResult(SessionError.ERROR_INVALID_STATE)
+                    val hasAudio = withContext(Dispatchers.IO) {
+                        runCatching {
+                            contentResolver.openFileDescriptor(uri, "r")?.use { descriptor ->
+                                MediaInfoBuilder().from(descriptor).build()?.let { info ->
+                                    try {
+                                        info.audioStreams.isNotEmpty()
+                                    } finally {
+                                        info.release()
+                                    }
+                                }
+                            } == true
+                        }.getOrDefault(false)
+                    }
+                    if (!hasAudio) return@future SessionResult(SessionError.ERROR_BAD_VALUE)
+                    if (player.currentMediaItem?.mediaId != mediaItem.mediaId) {
+                        return@future SessionResult(SessionError.ERROR_INVALID_STATE)
+                    }
+                    mediaRepository.addExternalAudioToMedium(mediaItem.mediaId, uri)
+                    val currentItem = player.currentMediaItem?.takeIf { it.mediaId == mediaItem.mediaId }
+                        ?: return@future SessionResult(SessionError.ERROR_INVALID_STATE)
+                    val audio = (currentItem.mediaMetadata.externalAudio + uri).distinct()
+                    pendingAudioSelection = currentItem.mediaId to uri
+                    val updatedItem = currentItem.withExternalAudio(audio).copy(positionMs = player.currentPosition)
+                    val index = player.currentMediaItemIndex
+                    player.addMediaItem(index + 1, updatedItem)
+                    player.seekTo(index + 1, player.currentPosition)
+                    player.removeMediaItem(index)
                     return@future SessionResult(SessionResult.RESULT_SUCCESS)
                 }
 
@@ -684,7 +734,9 @@ class PlayerService : MediaSessionService() {
             .setRenderersFactory(renderersFactory)
             .setTrackSelector(trackSelector)
             .setMediaSourceFactory(
-                DefaultMediaSourceFactory(applicationContext).setDataSourceFactory(dataSourceFactory),
+                ExternalAudioMediaSourceFactory(
+                    DefaultMediaSourceFactory(applicationContext).setDataSourceFactory(dataSourceFactory),
+                ),
             )
             .setAudioAttributes(
                 AudioAttributes.Builder()
@@ -777,6 +829,13 @@ class PlayerService : MediaSessionService() {
                 val videoState = mediaRepository.getVideoState(uri = mediaItem.mediaId)
 
                 val externalSubs = videoState?.externalSubs ?: emptyList()
+                val savedAudio = videoState?.externalAudio.orEmpty()
+                val externalAudio = withContext(Dispatchers.IO) {
+                    savedAudio.filter { uri ->
+                        runCatching { contentResolver.openAssetFileDescriptor(uri, "r")?.use { true } == true }
+                            .getOrDefault(false)
+                    }
+                }
                 val localSubs = if (!isNetwork) {
                     (videoState?.path ?: getPath(uri))?.let {
                         File(it).getLocalSubtitles(
@@ -784,7 +843,9 @@ class PlayerService : MediaSessionService() {
                             excludeSubsList = externalSubs,
                         )
                     } ?: emptyList()
-                } else emptyList()
+                } else {
+                    emptyList()
+                }
 
                 val existingSubConfigurations = mediaItem.localConfiguration?.subtitleConfigurations ?: emptyList()
                 val subConfigurations = (localSubs + externalSubs).map { subtitleUri ->
@@ -821,7 +882,7 @@ class PlayerService : MediaSessionService() {
                                 positionMs = positionMs,
                                 videoScale = videoScale,
                                 playbackSpeed = playbackSpeed,
-                                audioTrackIndex = audioTrackIndex,
+                                audioTrackIndex = audioTrackIndex.takeIf { externalAudio == savedAudio },
                                 subtitleTrackIndex = subtitleTrackIndex,
                                 subtitleDelayMilliseconds = subtitleDelay,
                                 subtitleSpeed = subtitleSpeed,
@@ -830,7 +891,7 @@ class PlayerService : MediaSessionService() {
                             )
                         }.build(),
                     )
-                }.build()
+                }.build().withExternalAudio(externalAudio)
             }
         }.awaitAll()
     }

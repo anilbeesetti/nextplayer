@@ -33,6 +33,7 @@ import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.TextStyle
+import androidx.compose.ui.text.style.LineBreak
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.tooling.preview.PreviewLightDark
@@ -138,7 +139,7 @@ fun VideoListItem(
             Text(
                 text = if (preferences.showExtensionField) video.nameWithExtension else video.displayName,
                 maxLines = 2,
-                style = MaterialTheme.typography.titleMedium,
+                style = MaterialTheme.typography.titleMedium.copy(lineBreak = LineBreak.Heading),
                 overflow = TextOverflow.Ellipsis,
             )
         },
@@ -224,7 +225,7 @@ fun VideoGridItem(
                 Text(
                     text = if (preferences.showExtensionField) video.nameWithExtension else video.displayName,
                     maxLines = 2,
-                    style = textStyle,
+                    style = textStyle.copy(lineBreak = LineBreak.Heading),
                     overflow = TextOverflow.Ellipsis,
                     textAlign = TextAlign.Center,
                     color = if (isRecentlyPlayedVideo && preferences.markLastPlayedMedia) {

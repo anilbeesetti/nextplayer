@@ -2,17 +2,15 @@ package dev.anilbeesetti.nextplayer.core.data.repository
 
 import android.content.Context
 import androidx.core.content.edit
-import dagger.hilt.android.qualifiers.ApplicationContext
 import java.security.MessageDigest
 import java.security.SecureRandom
-import javax.inject.Inject
-import javax.inject.Singleton
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
+import org.koin.core.annotation.Single
 
-@Singleton
-class LocalVaultPinRepository @Inject constructor(
-    @ApplicationContext private val context: Context,
+@Single
+class LocalVaultPinRepository(
+    private val context: Context,
 ) : VaultPinRepository {
 
     private val preferences by lazy {

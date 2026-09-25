@@ -1,11 +1,12 @@
 package dev.anilbeesetti.nextplayer.core.data.repository
 
 import dev.anilbeesetti.nextplayer.core.datastore.datasource.SearchHistoryDataSource
-import javax.inject.Inject
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.map
+import org.koin.core.annotation.Single
 
-class LocalSearchHistoryRepository @Inject constructor(
+@Single
+class LocalSearchHistoryRepository(
     private val searchHistoryDataSource: SearchHistoryDataSource,
 ) : SearchHistoryRepository {
 

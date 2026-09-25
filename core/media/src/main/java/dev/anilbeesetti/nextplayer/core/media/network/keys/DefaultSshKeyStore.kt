@@ -3,20 +3,18 @@ package dev.anilbeesetti.nextplayer.core.media.network.keys
 import android.content.Context
 import android.net.Uri
 import android.provider.OpenableColumns
-import dagger.hilt.android.qualifiers.ApplicationContext
 import java.io.File
 import java.io.FileNotFoundException
 import java.io.InputStream
-import javax.inject.Inject
-import javax.inject.Singleton
 import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.NonCancellable
 import kotlinx.coroutines.withContext
+import org.koin.core.annotation.Single
 
-@Singleton
-class DefaultSshKeyStore @Inject constructor(
-    @ApplicationContext context: Context,
+@Single
+class DefaultSshKeyStore(
+    context: Context,
 ) : SshKeyStore {
 
     private val contentResolver = context.contentResolver

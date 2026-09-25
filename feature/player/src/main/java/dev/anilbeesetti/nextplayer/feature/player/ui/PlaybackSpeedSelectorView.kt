@@ -37,6 +37,7 @@ import androidx.compose.ui.unit.dp
 import androidx.media3.common.Player
 import androidx.media3.common.util.UnstableApi
 import dev.anilbeesetti.nextplayer.core.common.extensions.round
+import dev.anilbeesetti.nextplayer.core.common.extensions.toString
 import dev.anilbeesetti.nextplayer.core.ui.R
 import dev.anilbeesetti.nextplayer.core.ui.components.NextSwitch
 import dev.anilbeesetti.nextplayer.feature.player.state.rememberPlaybackParametersState
@@ -63,9 +64,9 @@ fun BoxScope.PlaybackSpeedSelectorView(
                 .padding(horizontal = 24.dp),
             verticalArrangement = Arrangement.spacedBy(8.dp),
         ) {
-            val minValue = 0.2f
-            val maxValue = 4.0f
-            val stepSize = 0.1f
+            val minValue = 0.25f
+            val maxValue = 8.0f
+            val stepSize = 0.05f
             val steps = ((maxValue - minValue) / stepSize).toInt() - 1
             Row(
                 verticalAlignment = Alignment.CenterVertically,
@@ -84,7 +85,7 @@ fun BoxScope.PlaybackSpeedSelectorView(
                 }
 
                 Text(
-                    text = playbackParametersState.speed.round(2).toString(),
+                    text = playbackParametersState.speed.toString(2),
                     style = MaterialTheme.typography.titleMedium,
                     textAlign = TextAlign.Center,
                     modifier = Modifier.weight(1f),
@@ -128,7 +129,7 @@ fun BoxScope.PlaybackSpeedSelectorView(
                 verticalArrangement = Arrangement.spacedBy(8.dp),
             ) {
                 listOf(
-                    0.2f, 0.5f, 0.75f, 1.0f, 1.5f, 2.0f, 2.5f, 3.0f, 3.5f, 4.0f,
+                    0.25f, 0.5f, 0.75f, 1.0f, 1.25f, 1.5f, 1.75f, 2.0f, 2.5f, 3.0f, 4.0f, 5.0f, 6.0f, 7.0f, 8.0f
                 ).forEach { speed ->
                     Box(
                         modifier = Modifier
@@ -147,8 +148,8 @@ fun BoxScope.PlaybackSpeedSelectorView(
                         contentAlignment = Alignment.Center,
                     ) {
                         Text(
-                            text = speed.toString(),
-                            style = MaterialTheme.typography.bodyMedium,
+                            text = "${speed}x",
+                            style = MaterialTheme.typography.labelLarge,
                             color = MaterialTheme.colorScheme.primary,
                         )
                     }

@@ -3,10 +3,6 @@ package dev.anilbeesetti.nextplayer.feature.videopicker.screens.search
 import android.net.Uri
 import androidx.compose.runtime.Stable
 import androidx.lifecycle.viewModelScope
-import dagger.assisted.Assisted
-import dagger.assisted.AssistedFactory
-import dagger.assisted.AssistedInject
-import dagger.hilt.android.lifecycle.HiltViewModel
 import dev.anilbeesetti.nextplayer.core.data.repository.PreferencesRepository
 import dev.anilbeesetti.nextplayer.core.data.repository.SearchHistoryRepository
 import dev.anilbeesetti.nextplayer.core.domain.GetPopularFoldersUseCase
@@ -24,14 +20,16 @@ import kotlinx.coroutines.flow.debounce
 import kotlinx.coroutines.flow.flatMapLatest
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
+import org.koin.core.annotation.InjectedParam
+import org.koin.core.annotation.KoinViewModel
 
-@HiltViewModel(assistedFactory = SearchViewModel.Factory::class)
-class SearchViewModel @AssistedInject constructor(
+@KoinViewModel
+class SearchViewModel(
     private val searchMediaUseCase: SearchMediaUseCase,
     private val getPopularFoldersUseCase: GetPopularFoldersUseCase,
     private val searchHistoryRepository: SearchHistoryRepository,
     private val preferencesRepository: PreferencesRepository,
-    @Assisted internal var output: Output,
+    @InjectedParam internal var output: Output,
 ) : MviViewModel<SearchUiState, SearchUiEvent>() {
 
     data class Output(
@@ -39,11 +37,6 @@ class SearchViewModel @AssistedInject constructor(
         val playVideo: (Uri) -> Unit,
         val openFolder: (String) -> Unit,
     )
-
-    @AssistedFactory
-    interface Factory {
-        fun create(output: Output): SearchViewModel
-    }
 
     private val stateInternal = MutableStateFlow(SearchUiState())
     override val state: StateFlow<SearchUiState> = stateInternal.asStateFlow()

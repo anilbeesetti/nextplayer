@@ -3,7 +3,6 @@ package dev.anilbeesetti.nextplayer.core.data.repository
 import android.content.Context
 import android.net.Uri
 import androidx.core.net.toUri
-import dagger.hilt.android.qualifiers.ApplicationContext
 import dev.anilbeesetti.nextplayer.core.common.Utils
 import dev.anilbeesetti.nextplayer.core.common.extensions.mapAsync
 import dev.anilbeesetti.nextplayer.core.data.mappers.toAudioStreamInfo
@@ -23,7 +22,7 @@ import dev.anilbeesetti.nextplayer.core.model.MediaInfo
 import dev.anilbeesetti.nextplayer.core.model.Video
 import io.github.anilbeesetti.nextlib.mediainfo.MediaInfoBuilder
 import java.util.Date
-import javax.inject.Inject
+
 import kotlin.math.absoluteValue
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.async
@@ -33,12 +32,14 @@ import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.withContext
+import org.koin.core.annotation.Factory
 
-class LocalMediaRepository @Inject constructor(
+@Factory
+class LocalMediaRepository(
     private val mediumStateDao: MediumStateDao,
     private val mediaService: MediaService,
     private val appPreferencesDataSource: AppPreferencesDataSource,
-    @ApplicationContext private val context: Context,
+    private val context: Context,
 ) : MediaRepository {
 
     override fun observeFolders(folderPath: String?): Flow<List<Folder>> {
@@ -143,6 +144,15 @@ class LocalMediaRepository @Inject constructor(
 
     override suspend fun updateMediumZoom(uri: String, zoom: Float) {
         mediumStateDao.update(uri) { it.copy(videoScale = zoom) }
+    }
+
+    override suspend fun addExternalAudioToMedium(uri: String, audioUri: Uri) {
+        val stateEntity = mediumStateDao.get(uri) ?: MediumStateEntity(uriString = uri)
+        val audio = UriListConverter.fromStringToList(stateEntity.externalAudio)
+        if (audioUri in audio) return
+        mediumStateDao.upsert(
+            stateEntity.copy(externalAudio = UriListConverter.fromListToString(audio + audioUri)),
+        )
     }
 
     override suspend fun addExternalSubtitleToMedium(uri: String, subtitleUri: Uri) {

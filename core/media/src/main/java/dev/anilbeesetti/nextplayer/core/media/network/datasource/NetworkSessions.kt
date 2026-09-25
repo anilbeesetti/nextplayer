@@ -6,13 +6,12 @@ import dev.anilbeesetti.nextplayer.core.media.network.NetworkClientFactory
 import dev.anilbeesetti.nextplayer.core.media.network.NetworkConnectionResolver
 import dev.anilbeesetti.nextplayer.core.media.network.NetworkUri
 import dev.anilbeesetti.nextplayer.core.model.NetworkConnection
-import javax.inject.Inject
-import javax.inject.Singleton
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
+import org.koin.core.annotation.Single
 
 /** A connected client and the path to read on it. */
 class NetworkTarget(
@@ -28,8 +27,8 @@ class NetworkTarget(
  * that connection — the player opens a fresh source on each seek, and each one asks the client for
  * its own stream at an offset.
  */
-@Singleton
-class NetworkSessions @Inject constructor(
+@Single
+class NetworkSessions(
     private val resolver: NetworkConnectionResolver,
     private val clientFactory: NetworkClientFactory,
 ) {

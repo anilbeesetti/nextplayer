@@ -39,6 +39,7 @@ import androidx.compose.ui.platform.LocalHapticFeedback
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.LineBreak
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
@@ -76,9 +77,9 @@ fun BoxScope.PlaylistView(
 
     // Auto-scroll to current item when playlist opens
     LaunchedEffect(show) {
-        if (show && playlistState.playlist.isNotEmpty()) {
+        if (show && playlistState.timeline.windowCount != 0) {
             val currentIndex = playlistState.currentMediaItemIndex
-            if (currentIndex in playlistState.playlist.indices) {
+            if (currentIndex < playlistState.mediaItemCount) {
                 lazyListState.scrollToItem(currentIndex)
             }
         }
@@ -89,7 +90,7 @@ fun BoxScope.PlaylistView(
         show = show,
         title = stringResource(R.string.now_playing),
     ) {
-        if (playlistState.playlist.isEmpty()) {
+        if (playlistState.mediaItemCount == 0) {
             // Empty state
             EmptyPlaylistView()
         } else {
@@ -99,10 +100,11 @@ fun BoxScope.PlaylistView(
                 contentPadding = PaddingValues(8.dp),
                 verticalArrangement = Arrangement.spacedBy(0.dp),
             ) {
-                itemsIndexed(
-                    items = playlistState.playlist,
-                    key = { _, item -> item.mediaId },
-                ) { index, mediaItem ->
+                items(
+                    count = playlistState.mediaItemCount,
+                    key = { index -> playlistState.getMediaItemAt(index).mediaId },
+                ) { index ->
+                    val mediaItem = playlistState.getMediaItemAt(index)
                     ReorderableItem(
                         state = reorderableLazyListState,
                         key = mediaItem.mediaId,
@@ -111,9 +113,9 @@ fun BoxScope.PlaylistView(
                         PlaylistItemView(
                             mediaItem = mediaItem,
                             isFirstItem = index == 0,
-                            isLastItem = index == playlistState.playlist.lastIndex,
+                            isLastItem = index == playlistState.mediaItemCount - 1,
                             isCurrentItem = isCurrentItem,
-                            canDelete = playlistState.playlist.size > 1,
+                            canDelete = playlistState.mediaItemCount > 1,
                             onClick = { playlistState.seekToItem(index) },
                             onDelete = { playlistState.removeItem(index) },
                         )
@@ -190,7 +192,7 @@ private fun ReorderableCollectionItemScope.PlaylistItemView(
             Text(
                 text = mediaItem.mediaMetadata.title?.toString() ?: stringResource(R.string.unknown),
                 maxLines = 2,
-                style = MaterialTheme.typography.titleSmall,
+                style = MaterialTheme.typography.titleSmall.copy(lineBreak = LineBreak.Heading),
                 overflow = TextOverflow.Ellipsis,
             )
         },

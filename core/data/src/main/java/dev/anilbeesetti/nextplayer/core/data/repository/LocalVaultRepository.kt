@@ -9,7 +9,6 @@ import android.provider.MediaStore
 import android.webkit.MimeTypeMap
 import androidx.core.content.FileProvider
 import androidx.core.net.toUri
-import dagger.hilt.android.qualifiers.ApplicationContext
 import dev.anilbeesetti.nextplayer.core.common.Logger
 import dev.anilbeesetti.nextplayer.core.common.Utils
 import dev.anilbeesetti.nextplayer.core.data.mappers.toAudioStreamInfo
@@ -23,8 +22,6 @@ import dev.anilbeesetti.nextplayer.core.model.Video
 import io.github.anilbeesetti.nextlib.mediainfo.MediaInfoBuilder
 import java.io.File
 import java.util.UUID
-import javax.inject.Inject
-import javax.inject.Singleton
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.NonCancellable
@@ -36,12 +33,13 @@ import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
 import kotlinx.coroutines.withContext
+import org.koin.core.annotation.Single
 
-@Singleton
-class LocalVaultRepository @Inject constructor(
+@Single
+class LocalVaultRepository(
     private val hiddenVideoDao: HiddenVideoDao,
     private val mediaOperationsService: MediaOperationsService,
-    @ApplicationContext private val context: Context,
+    private val context: Context,
 ) : VaultRepository {
 
     private val vaultMutationMutex = Mutex()

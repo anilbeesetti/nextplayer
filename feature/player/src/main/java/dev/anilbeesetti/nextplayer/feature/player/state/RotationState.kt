@@ -1,87 +1,44 @@
 package dev.anilbeesetti.nextplayer.feature.player.state
 
+import android.app.Activity
 import android.content.pm.ActivityInfo
 import android.content.res.Configuration
-import androidx.activity.ComponentActivity
 import androidx.activity.compose.LocalActivity
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.DisposableEffect
-import androidx.compose.runtime.DisposableEffectResult
-import androidx.compose.runtime.DisposableEffectScope
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.Stable
-import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.remember
-import androidx.compose.runtime.setValue
-import androidx.core.util.Consumer
 import androidx.media3.common.Player
 import androidx.media3.common.listen
 import androidx.media3.common.util.UnstableApi
 import dev.anilbeesetti.nextplayer.core.model.ScreenOrientation
 import dev.anilbeesetti.nextplayer.feature.player.extensions.isPortrait
 
-@UnstableApi
 @Composable
-fun rememberRotationState(
-    player: Player,
-    screenOrientation: ScreenOrientation,
-): RotationState {
-    val activity = LocalActivity.current as ComponentActivity
-    val rotationState = remember {
-        RotationState(
-            activity = activity,
-            player = player,
-            screenOrientation = screenOrientation,
-        )
-    }
-    DisposableEffect(activity) {
-        rotationState.handleListeners(this)
-    }
-    LaunchedEffect(player) { rotationState.observe() }
-    return rotationState
+fun rememberRotationState(): RotationState? {
+    val activity = LocalActivity.current ?: return null
+    return remember(activity) { RotationState(activity) }
 }
 
 @Stable
-class RotationState(
-    private val activity: ComponentActivity,
-    private val player: Player,
-    private val screenOrientation: ScreenOrientation,
-) {
-    var currentRequestedOrientation: Int by mutableIntStateOf(activity.requestedOrientation)
-        private set
-
+class RotationState(private val activity: Activity) {
     fun rotate() {
         activity.requestedOrientation = when (activity.resources.configuration.orientation) {
             Configuration.ORIENTATION_LANDSCAPE -> ActivityInfo.SCREEN_ORIENTATION_SENSOR_PORTRAIT
             else -> ActivityInfo.SCREEN_ORIENTATION_SENSOR_LANDSCAPE
         }
     }
+}
 
-    fun handleListeners(disposableEffectScope: DisposableEffectScope): DisposableEffectResult = with(disposableEffectScope) {
-        val configurationChangedListener: Consumer<Configuration> = Consumer {
-            currentRequestedOrientation = activity.requestedOrientation
-        }
-
-        activity.addOnConfigurationChangedListener(configurationChangedListener)
-
-        onDispose {
-            activity.removeOnConfigurationChangedListener(configurationChangedListener)
-        }
-    }
-
-    suspend fun observe() {
-        setOrientation()
-        player.listen { events ->
-            if (events.contains(Player.EVENT_VIDEO_SIZE_CHANGED)) {
-                if (screenOrientation == ScreenOrientation.VIDEO_ORIENTATION) {
-                    activity.requestedOrientation = getVideoBasedOrientation()
-                }
-            }
-        }
-    }
-
-    private fun setOrientation() {
+/** Applies player-wide orientation policy even when the rotate button is hidden or controls are locked. */
+@UnstableApi
+@Composable
+fun PlayerOrientationEffect(
+    player: Player,
+    screenOrientation: ScreenOrientation,
+) {
+    val activity = LocalActivity.current ?: return
+    LaunchedEffect(activity, player, screenOrientation) {
         if (activity.requestedOrientation == ActivityInfo.SCREEN_ORIENTATION_UNSPECIFIED) {
             activity.requestedOrientation = when (screenOrientation) {
                 ScreenOrientation.AUTOMATIC -> ActivityInfo.SCREEN_ORIENTATION_SENSOR
@@ -89,14 +46,20 @@ class RotationState(
                 ScreenOrientation.LANDSCAPE_REVERSE -> ActivityInfo.SCREEN_ORIENTATION_REVERSE_LANDSCAPE
                 ScreenOrientation.LANDSCAPE_AUTO -> ActivityInfo.SCREEN_ORIENTATION_SENSOR_LANDSCAPE
                 ScreenOrientation.PORTRAIT -> ActivityInfo.SCREEN_ORIENTATION_SENSOR_PORTRAIT
-                ScreenOrientation.VIDEO_ORIENTATION -> getVideoBasedOrientation()
+                ScreenOrientation.VIDEO_ORIENTATION -> activity.videoBasedOrientation(player)
+            }
+        }
+        player.listen { events ->
+            if (screenOrientation == ScreenOrientation.VIDEO_ORIENTATION && events.contains(Player.EVENT_VIDEO_SIZE_CHANGED)) {
+                activity.requestedOrientation = activity.videoBasedOrientation(player)
             }
         }
     }
+}
 
-    private fun getVideoBasedOrientation() = when {
-        player.videoSize.width == 0 || player.videoSize.height == 0 -> activity.requestedOrientation
-        player.videoSize.isPortrait -> ActivityInfo.SCREEN_ORIENTATION_SENSOR_PORTRAIT
-        else -> ActivityInfo.SCREEN_ORIENTATION_SENSOR_LANDSCAPE
-    }
+@UnstableApi
+private fun Activity.videoBasedOrientation(player: Player) = when {
+    player.videoSize.width == 0 || player.videoSize.height == 0 -> requestedOrientation
+    player.videoSize.isPortrait -> ActivityInfo.SCREEN_ORIENTATION_SENSOR_PORTRAIT
+    else -> ActivityInfo.SCREEN_ORIENTATION_SENSOR_LANDSCAPE
 }

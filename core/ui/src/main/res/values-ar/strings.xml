@@ -537,4 +537,9 @@
     <string name="more">المزيد</string>
     <string name="trash_empty_title">سلة المهملات فارغة</string>
     <string name="trash_empty_description">مقاطع الفيديو التي تنقلها إلى سلة المهملات ستظهر هنا. يمكنك استعادتها أو حذفها نهائياً.</string>
+    <string name="open_audio">فتح الصوت المحلي</string>
+    <string name="error_opening_audio">لا يمكن فتح ملف الصوت هذا</string>
+    <string name="chapters">الفصول</string>
+    <string name="chapter_number">الفصل %1$d</string>
+    <string name="show_chapters">عرض الفصول</string>
 </resources>

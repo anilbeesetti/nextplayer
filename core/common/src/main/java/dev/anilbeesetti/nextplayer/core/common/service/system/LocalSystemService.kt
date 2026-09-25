@@ -6,15 +6,13 @@ import android.net.Uri
 import android.widget.Toast
 import androidx.activity.ComponentActivity
 import androidx.activity.result.contract.ActivityResultContracts
-import dagger.hilt.android.qualifiers.ApplicationContext
 import dev.anilbeesetti.nextplayer.core.common.service.SuspendActivityResultLauncher
 import dev.anilbeesetti.nextplayer.core.common.service.registerForSuspendActivityResult
-import javax.inject.Inject
-import javax.inject.Singleton
+import org.koin.core.annotation.Single
 
-@Singleton
-class LocalSystemService @Inject constructor(
-    @ApplicationContext private val context: Context,
+@Single
+class LocalSystemService(
+    private val context: Context,
 ) : SystemService {
     private var pickDocumentTreeLauncher: SuspendActivityResultLauncher<Uri?, Uri?>? = null
 

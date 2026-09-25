@@ -6,6 +6,7 @@ import androidx.compose.foundation.layout.BoxScope
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.media3.common.Player
+import androidx.media3.extractor.metadata.Chapter
 import dev.anilbeesetti.nextplayer.core.model.VideoContentScale
 import dev.anilbeesetti.nextplayer.feature.player.extensions.noRippleClickable
 import dev.anilbeesetti.nextplayer.feature.player.state.SubtitleOptionsEvent
@@ -18,10 +19,14 @@ fun BoxScope.OverlayShowView(
     videoDecoderMode: DecoderMode?,
     audioDecoderMode: DecoderMode?,
     videoContentScale: VideoContentScale,
+    chapters: List<Chapter>,
+    currentChapterIndex: Int,
+    onChapterSelected: (Chapter) -> Unit,
     onDismiss: () -> Unit = {},
     onVideoDecoderModeSelected: (DecoderMode) -> Unit = {},
     onAudioDecoderModeSelected: (DecoderMode) -> Unit = {},
     onSelectSubtitleClick: () -> Unit = {},
+    onSelectAudioClick: () -> Unit = {},
     onSubtitleOptionEvent: (SubtitleOptionsEvent) -> Unit = {},
     onVideoContentScaleChanged: (VideoContentScale) -> Unit = {},
 ) {
@@ -40,6 +45,7 @@ fun BoxScope.OverlayShowView(
     AudioTrackSelectorView(
         show = overlayView == OverlayView.AUDIO_SELECTOR,
         player = player,
+        onSelectAudioClick = onSelectAudioClick,
         onDismiss = onDismiss,
     )
 
@@ -75,6 +81,13 @@ fun BoxScope.OverlayShowView(
         show = overlayView == OverlayView.PLAYLIST,
         player = player,
     )
+
+    ChaptersView(
+        show = overlayView == OverlayView.CHAPTERS,
+        chapters = chapters,
+        currentChapterIndex = currentChapterIndex,
+        onChapterSelected = onChapterSelected,
+    )
 }
 
 val Configuration.isPortrait: Boolean
@@ -87,4 +100,5 @@ enum class OverlayView {
     PLAYBACK_SPEED,
     VIDEO_CONTENT_SCALE,
     PLAYLIST,
+    CHAPTERS,
 }

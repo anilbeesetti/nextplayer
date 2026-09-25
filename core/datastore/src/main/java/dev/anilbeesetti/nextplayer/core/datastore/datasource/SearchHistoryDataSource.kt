@@ -2,12 +2,15 @@ package dev.anilbeesetti.nextplayer.core.datastore.datasource
 
 import androidx.datastore.core.DataStore
 import dev.anilbeesetti.nextplayer.core.common.Logger
+import dev.anilbeesetti.nextplayer.core.common.di.DiQualifiers
 import dev.anilbeesetti.nextplayer.core.model.SearchHistory
-import javax.inject.Inject
 import kotlinx.coroutines.flow.Flow
+import org.koin.core.annotation.Factory
+import org.koin.core.annotation.Named
 
-class SearchHistoryDataSource @Inject constructor(
-    private val searchHistoryDataStore: DataStore<SearchHistory>,
+@Factory(binds = [])
+class SearchHistoryDataSource(
+    @Named(DiQualifiers.SEARCH_HISTORY) private val searchHistoryDataStore: DataStore<SearchHistory>,
 ) {
 
     companion object {

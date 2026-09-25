@@ -5,12 +5,13 @@ import dev.anilbeesetti.nextplayer.core.data.repository.PlaylistRepository
 import dev.anilbeesetti.nextplayer.core.model.Playlist
 import dev.anilbeesetti.nextplayer.core.model.PlaylistItem
 import dev.anilbeesetti.nextplayer.core.model.PlaylistType
-import javax.inject.Inject
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.distinctUntilChanged
+import org.koin.core.annotation.Factory
 
-class ObservePlaylistUseCase @Inject constructor(
+@Factory
+class ObservePlaylistUseCase(
     private val playlistRepository: PlaylistRepository,
     private val mediaRepository: MediaRepository,
 ) {
