@@ -112,6 +112,33 @@ private fun MediaLibraryPreferencesScreenContent(
                 )
             }
 
+            ListSectionTitle(text = stringResource(id = R.string.history))
+            Column(
+                verticalArrangement = Arrangement.spacedBy(ListItemDefaults.SegmentedGap),
+            ) {
+                PreferenceSwitch(
+                    modifier = Modifier.restorableFocusItem(focusState, "watch_history"),
+                    title = stringResource(id = R.string.watch_history),
+                    description = stringResource(
+                        id = if (preferences.isHistoryPaused) R.string.watch_history_paused else R.string.watch_history_desc,
+                    ),
+                    icon = NextIcons.History,
+                    isChecked = !preferences.isHistoryPaused,
+                    onClick = { onAction(MediaLibraryPreferencesUiEvent.ToggleWatchHistory) },
+                    isFirstItem = true,
+                )
+                PreferenceSwitch(
+                    modifier = Modifier.restorableFocusItem(focusState, "network_watch_history"),
+                    title = stringResource(id = R.string.include_network_watch_history),
+                    description = stringResource(id = R.string.include_network_watch_history_desc),
+                    icon = NextIcons.Network,
+                    enabled = !preferences.isHistoryPaused,
+                    isChecked = preferences.includeNetworkWatchHistory,
+                    onClick = { onAction(MediaLibraryPreferencesUiEvent.ToggleIncludeNetworkWatchHistory) },
+                    isLastItem = true,
+                )
+            }
+
             ListSectionTitle(text = stringResource(id = R.string.thumbnail))
             Column(
                 verticalArrangement = Arrangement.spacedBy(ListItemDefaults.SegmentedGap),

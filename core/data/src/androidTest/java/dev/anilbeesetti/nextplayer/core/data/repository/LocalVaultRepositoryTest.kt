@@ -4,10 +4,13 @@ import android.content.Context
 import android.net.Uri
 import androidx.activity.ComponentActivity
 import androidx.core.net.toUri
+import androidx.room.Room
 import androidx.test.core.app.ApplicationProvider
 import androidx.test.ext.junit.runners.AndroidJUnit4
+import dev.anilbeesetti.nextplayer.core.database.MediaDatabase
 import dev.anilbeesetti.nextplayer.core.database.dao.HiddenVideoDao
 import dev.anilbeesetti.nextplayer.core.database.entities.HiddenVideoEntity
+import dev.anilbeesetti.nextplayer.core.database.entities.MediumStateEntity
 import dev.anilbeesetti.nextplayer.core.media.services.MediaOperationsService
 import dev.anilbeesetti.nextplayer.core.media.services.TransferEvent
 import dev.anilbeesetti.nextplayer.core.media.services.TransferMode
@@ -24,15 +27,32 @@ import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.runBlocking
 import kotlinx.coroutines.withTimeout
+import org.junit.After
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertFalse
 import org.junit.Assert.assertNotEquals
+import org.junit.Assert.assertNull
 import org.junit.Assert.assertTrue
+import org.junit.Before
 import org.junit.Test
 import org.junit.runner.RunWith
 
 @RunWith(AndroidJUnit4::class)
 class LocalVaultRepositoryTest {
+    private lateinit var database: MediaDatabase
+
+    @Before
+    fun setUp() {
+        database = Room.inMemoryDatabaseBuilder(
+            ApplicationProvider.getApplicationContext(),
+            MediaDatabase::class.java,
+        ).build()
+    }
+
+    @After
+    fun tearDown() {
+        database.close()
+    }
 
     @Test
     fun hideVideosKeepsSourceWhenDatabaseInsertFails() = runBlocking {
@@ -43,6 +63,7 @@ class LocalVaultRepositoryTest {
         val mediaOperations = MovingMediaOperationsService()
         val repository = LocalVaultRepository(
             hiddenVideoDao = FailingInsertHiddenVideoDao,
+            mediumStateDao = database.mediumStateDao(),
             mediaOperationsService = mediaOperations,
             context = context,
         )
@@ -85,6 +106,7 @@ class LocalVaultRepositoryTest {
         val dao = RecordingHiddenVideoDao()
         val repository = LocalVaultRepository(
             hiddenVideoDao = dao,
+            mediumStateDao = database.mediumStateDao(),
             mediaOperationsService = MovingMediaOperationsService(),
             context = context,
         )
@@ -117,6 +139,7 @@ class LocalVaultRepositoryTest {
         val dao = RecordingHiddenVideoDao()
         val repository = LocalVaultRepository(
             hiddenVideoDao = dao,
+            mediumStateDao = database.mediumStateDao(),
             mediaOperationsService = MovingMediaOperationsService(moveSucceeds = false),
             context = context,
         )
@@ -138,7 +161,7 @@ class LocalVaultRepositoryTest {
             .apply { writeText("original video") }
         val dao = CommitThenCancelHiddenVideoDao()
         val mediaOperations = MovingMediaOperationsService()
-        val repository = LocalVaultRepository(dao, mediaOperations, context)
+        val repository = LocalVaultRepository(dao, database.mediumStateDao(), mediaOperations, context)
 
         try {
             val result = runCatching { repository.hideVideos(listOf(videoFor(sourceFile))) }
@@ -160,6 +183,7 @@ class LocalVaultRepositoryTest {
         val dao = RecordingHiddenVideoDao()
         val repository = LocalVaultRepository(
             hiddenVideoDao = dao,
+            mediumStateDao = database.mediumStateDao(),
             mediaOperationsService = MovingMediaOperationsService(moveException = CancellationException("cancelled")),
             context = context,
         )
@@ -186,6 +210,7 @@ class LocalVaultRepositoryTest {
         val dao = RecordingHiddenVideoDao()
         val repository = LocalVaultRepository(
             hiddenVideoDao = dao,
+            mediumStateDao = database.mediumStateDao(),
             mediaOperationsService = MovingMediaOperationsService(
                 moveExceptionAfterCommit = CancellationException("cancelled"),
             ),
@@ -220,9 +245,12 @@ class LocalVaultRepositoryTest {
         val dao = RecordingHiddenVideoDao()
         val repository = LocalVaultRepository(
             hiddenVideoDao = dao,
+            mediumStateDao = database.mediumStateDao(),
             mediaOperationsService = MovingMediaOperationsService(maxSuccessfulMoves = 1),
             context = context,
         )
+        database.mediumStateDao().upsert(MediumStateEntity(uriString = firstSource.toUri().toString(), lastPlayedTime = 100, playbackPosition = 40))
+        database.mediumStateDao().upsert(MediumStateEntity(uriString = secondSource.toUri().toString(), lastPlayedTime = 200))
 
         try {
             repository.hideVideos(listOf(videoFor(firstSource), videoFor(secondSource)))
@@ -234,6 +262,9 @@ class LocalVaultRepositoryTest {
                 File(dao.entities.getValue(1L).vaultPath).exists(),
             )
             assertTrue("The later uncommitted source must remain", secondSource.exists())
+            assertNull(database.mediumStateDao().get(firstSource.toUri().toString())?.lastPlayedTime)
+            assertEquals(40L, database.mediumStateDao().get(firstSource.toUri().toString())?.playbackPosition)
+            assertEquals(200L, database.mediumStateDao().get(secondSource.toUri().toString())?.lastPlayedTime)
         } finally {
             firstSource.delete()
             secondSource.delete()
@@ -252,6 +283,7 @@ class LocalVaultRepositoryTest {
         val dao = RecordingHiddenVideoDao()
         val repository = LocalVaultRepository(
             hiddenVideoDao = dao,
+            mediumStateDao = database.mediumStateDao(),
             mediaOperationsService = MovingMediaOperationsService(deleteDestinationBeforeReturn = true),
             context = context,
         )
@@ -275,7 +307,7 @@ class LocalVaultRepositoryTest {
         ).apply { writeText("original video") }
         val dao = RecordingHiddenVideoDao()
         val mediaOperations = PausedMovingMediaOperationsService()
-        val repository = LocalVaultRepository(dao, mediaOperations, context)
+        val repository = LocalVaultRepository(dao, database.mediumStateDao(), mediaOperations, context)
 
         try {
             val hideJob = launch(start = CoroutineStart.UNDISPATCHED) {
@@ -307,7 +339,7 @@ class LocalVaultRepositoryTest {
         ).apply { writeText("original video") }
         val dao = RecordingHiddenVideoDao()
         val mediaOperations = PausedMovingMediaOperationsService()
-        val repository = LocalVaultRepository(dao, mediaOperations, context)
+        val repository = LocalVaultRepository(dao, database.mediumStateDao(), mediaOperations, context)
 
         try {
             val hideJob = launch(start = CoroutineStart.UNDISPATCHED) {

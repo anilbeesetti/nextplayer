@@ -16,6 +16,7 @@ import dev.anilbeesetti.nextplayer.core.database.converter.UriListConverter
 import dev.anilbeesetti.nextplayer.core.database.dao.MediumStateDao
 import dev.anilbeesetti.nextplayer.core.database.entities.MediumStateEntity
 import dev.anilbeesetti.nextplayer.core.datastore.datasource.AppPreferencesDataSource
+import dev.anilbeesetti.nextplayer.core.media.network.NetworkUri
 import dev.anilbeesetti.nextplayer.core.media.services.MediaService
 import dev.anilbeesetti.nextplayer.core.model.Folder
 import dev.anilbeesetti.nextplayer.core.model.MediaInfo
@@ -73,7 +74,7 @@ class LocalMediaRepository(
         return combine(mediaService.observeVideos(), mediumStateDao.getAll()) { mediaVideos, mediumStates ->
             val videosByUri = mediaVideos.associateBy { it.uri.toString() }
             mediumStates
-                .filter { it.lastPlayedTime != null }
+                .filter { it.lastPlayedTime != null && !it.uriString.toUri().isVaultUri() }
                 .sortedByDescending { it.lastPlayedTime }
                 .map { state ->
                     videosByUri[state.uriString]?.toVideo(state) ?: state.toHistoryVideo()
@@ -117,10 +118,16 @@ class LocalMediaRepository(
     }
 
     override suspend fun updateMediumLastPlayedTime(uri: String, lastPlayedTime: Long, duration: Long?) {
-        val isHistoryPaused = appPreferencesDataSource.preferences.first().isHistoryPaused
+        val preferences = appPreferencesDataSource.preferences.first()
+        val mediaUri = uri.toUri()
+        val recordHistory = !preferences.isHistoryPaused &&
+            !mediaUri.isVaultUri() &&
+            (preferences.includeNetworkWatchHistory ||
+                !NetworkUri.isNetworkUri(mediaUri) ||
+                NetworkUri.connectionIdOf(mediaUri) == null)
         mediumStateDao.update(uri) { state ->
             state.copy(
-                lastPlayedTime = if (isHistoryPaused) state.lastPlayedTime else lastPlayedTime,
+                lastPlayedTime = if (recordHistory) lastPlayedTime else state.lastPlayedTime,
                 duration = duration ?: state.duration,
             )
         }
@@ -168,6 +175,14 @@ class LocalMediaRepository(
 
     override suspend fun updateSubtitleSpeed(uri: String, speed: Float) {
         mediumStateDao.update(uri) { it.copy(subtitleSpeed = speed) }
+    }
+
+    private fun Uri.isVaultUri(): Boolean {
+        if (scheme != "content" || authority != "${context.packageName}.fileprovider") return false
+        val segments = pathSegments
+        val root = segments.firstOrNull()
+        return root == "vault" ||
+            segments.getOrNull(1) == "vault" && (root == "external_files_path" || root == "files_path")
     }
 }
 

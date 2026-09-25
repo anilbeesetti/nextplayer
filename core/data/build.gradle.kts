@@ -46,6 +46,8 @@ dependencies {
     testImplementation(libs.androidx.room.runtime)
     testImplementation(libs.robolectric)
     testImplementation(libs.kotlinx.coroutines.test)
+    androidTestImplementation(libs.androidx.activity.ktx)
     androidTestImplementation(libs.androidx.test.ext)
+    androidTestImplementation(libs.androidx.room.runtime)
     androidTestImplementation(libs.androidx.test.espresso.core)
 }

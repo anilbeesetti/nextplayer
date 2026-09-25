@@ -306,6 +306,11 @@
     <string name="clear_history">Clear history</string>
     <string name="pause_history">Pause history</string>
     <string name="resume_history">Resume history</string>
+    <string name="watch_history">Watch history</string>
+    <string name="watch_history_desc">Keep a record of videos you watch</string>
+    <string name="watch_history_paused">Watch history is paused</string>
+    <string name="include_network_watch_history">Include network watch history</string>
+    <string name="include_network_watch_history_desc">Include videos played from saved network connections in watch history</string>
     <string name="clear_all">Clear all</string>
     <string name="clear_history_confirmation">Remove all watched videos from history?</string>
     <string name="no_results_found">No results found</string>
