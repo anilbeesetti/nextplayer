@@ -44,6 +44,8 @@ class MediaLibraryPreferencesViewModel(
             is MediaLibraryPreferencesUiEvent.OpenThumbnails -> output.openThumbnails()
 
             is MediaLibraryPreferencesUiEvent.ToggleMarkLastPlayedMedia -> toggleMarkLastPlayedMedia()
+            is MediaLibraryPreferencesUiEvent.ToggleWatchHistory -> toggleWatchHistory()
+            is MediaLibraryPreferencesUiEvent.ToggleIncludeNetworkWatchHistory -> toggleIncludeNetworkWatchHistory()
         }
     }
 
@@ -51,6 +53,22 @@ class MediaLibraryPreferencesViewModel(
         viewModelScope.launch {
             preferencesRepository.updateApplicationPreferences {
                 it.copy(markLastPlayedMedia = !it.markLastPlayedMedia)
+            }
+        }
+    }
+
+    private fun toggleWatchHistory() {
+        viewModelScope.launch {
+            preferencesRepository.updateApplicationPreferences {
+                it.copy(isHistoryPaused = !it.isHistoryPaused)
+            }
+        }
+    }
+
+    private fun toggleIncludeNetworkWatchHistory() {
+        viewModelScope.launch {
+            preferencesRepository.updateApplicationPreferences {
+                it.copy(includeNetworkWatchHistory = !it.includeNetworkWatchHistory)
             }
         }
     }
@@ -66,4 +84,6 @@ sealed interface MediaLibraryPreferencesUiEvent {
     data object OpenThumbnails : MediaLibraryPreferencesUiEvent
 
     data object ToggleMarkLastPlayedMedia : MediaLibraryPreferencesUiEvent
+    data object ToggleWatchHistory : MediaLibraryPreferencesUiEvent
+    data object ToggleIncludeNetworkWatchHistory : MediaLibraryPreferencesUiEvent
 }

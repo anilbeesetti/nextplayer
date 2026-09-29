@@ -42,8 +42,12 @@ dependencies {
     implementation(libs.koin.annotations)
 
     testImplementation(libs.junit4)
+    testImplementation(libs.androidx.datastore.core)
+    testImplementation(libs.androidx.room.runtime)
     testImplementation(libs.robolectric)
     testImplementation(libs.kotlinx.coroutines.test)
+    androidTestImplementation(libs.androidx.activity.ktx)
     androidTestImplementation(libs.androidx.test.ext)
+    androidTestImplementation(libs.androidx.room.runtime)
     androidTestImplementation(libs.androidx.test.espresso.core)
 }

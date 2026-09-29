@@ -15,6 +15,7 @@ import dev.anilbeesetti.nextplayer.core.data.mappers.toAudioStreamInfo
 import dev.anilbeesetti.nextplayer.core.data.mappers.toSubtitleStreamInfo
 import dev.anilbeesetti.nextplayer.core.data.mappers.toVideoStreamInfo
 import dev.anilbeesetti.nextplayer.core.database.dao.HiddenVideoDao
+import dev.anilbeesetti.nextplayer.core.database.dao.MediumStateDao
 import dev.anilbeesetti.nextplayer.core.database.entities.HiddenVideoEntity
 import dev.anilbeesetti.nextplayer.core.media.services.MediaOperationsService
 import dev.anilbeesetti.nextplayer.core.model.MediaInfo
@@ -38,6 +39,7 @@ import org.koin.core.annotation.Single
 @Single
 class LocalVaultRepository(
     private val hiddenVideoDao: HiddenVideoDao,
+    private val mediumStateDao: MediumStateDao,
     private val mediaOperationsService: MediaOperationsService,
     private val context: Context,
 ) : VaultRepository {
@@ -129,16 +131,19 @@ class LocalVaultRepository(
         moveResult: Result<Map<Uri, File?>>,
     ) {
         val movedFiles = moveResult.getOrNull()
-        val failedRowIds = reservations.mapNotNull { reservation ->
+        val (committed, failed) = reservations.partition { reservation ->
             // If moving threw, the destination is the only evidence that a move committed.
-            val committed = reservation.destination.exists() &&
+            reservation.destination.exists() &&
                 (movedFiles == null || movedFiles[reservation.sourceUri] == reservation.destination)
-            reservation.rowId.takeUnless { committed }
         }
-        if (failedRowIds.isEmpty()) return
         withContext(NonCancellable) {
-            runCatching { hiddenVideoDao.deleteByIds(failedRowIds) }
-                .onFailure { logCleanupFailure("delete failed hide reservations", it) }
+            if (failed.isNotEmpty()) {
+                runCatching { hiddenVideoDao.deleteByIds(failed.map { it.rowId }) }
+                    .onFailure { logCleanupFailure("delete failed hide reservations", it) }
+            }
+            if (committed.isNotEmpty()) {
+                mediumStateDao.clearLastPlayedTimes(committed.map { it.sourceUri.toString() })
+            }
         }
     }
 
