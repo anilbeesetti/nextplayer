@@ -521,4 +521,9 @@
     <string name="more">Ещё</string>
     <string name="trash_empty_title">Корзина пуста</string>
     <string name="trash_empty_description">Здесь будут появляться видео, перемещённые в корзину. Вы можете восстановить их или удалить навсегда.</string>
+    <string name="open_audio">Открыть локальный аудиофайл</string>
+    <string name="error_opening_audio">Не удалось открыть этот аудиофайл</string>
+    <string name="chapters">Главы</string>
+    <string name="chapter_number">Глава %1$d</string>
+    <string name="show_chapters">Показать главы</string>
 </resources>

@@ -4,6 +4,7 @@ import android.Manifest
 import android.app.Application
 import android.content.pm.PackageManager
 import androidx.activity.ComponentActivity
+import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
@@ -20,16 +21,23 @@ import androidx.compose.ui.test.performKeyInput
 import androidx.compose.ui.test.performTouchInput
 import androidx.compose.ui.test.pressKey
 import androidx.compose.ui.test.requestFocus
+import androidx.core.net.toUri
 import androidx.lifecycle.Lifecycle
 import androidx.test.core.app.ApplicationProvider
 import androidx.test.ext.junit.runners.AndroidJUnit4
 import dev.anilbeesetti.nextplayer.core.domain.MediaHolder
+import dev.anilbeesetti.nextplayer.core.model.ApplicationPreferences
+import dev.anilbeesetti.nextplayer.core.model.Folder
+import dev.anilbeesetti.nextplayer.core.model.MediaViewMode
 import dev.anilbeesetti.nextplayer.core.model.PlaylistSummary
 import dev.anilbeesetti.nextplayer.core.model.PlaylistType
 import dev.anilbeesetti.nextplayer.core.model.Video
 import dev.anilbeesetti.nextplayer.core.ui.R
 import dev.anilbeesetti.nextplayer.core.ui.base.DataState
+import dev.anilbeesetti.nextplayer.core.ui.components.LocalTopLevelFabSetter
+import dev.anilbeesetti.nextplayer.core.ui.components.TopLevelFabState
 import dev.anilbeesetti.nextplayer.core.ui.theme.NextPlayerTheme
+import org.junit.Assert.assertEquals
 import org.junit.Assert.assertTrue
 import org.junit.Rule
 import org.junit.Test
@@ -43,6 +51,67 @@ class MediaPickerScreenTest {
 
     @get:Rule
     val composeRule = createAndroidComposeRule<ComponentActivity>()
+
+    @Test
+    fun rootResumeFabUsesAutomaticPlaylistInEveryViewMode() {
+        assertResumeFabUsesAutomaticPlaylist(folderName = null)
+    }
+
+    @Test
+    fun folderResumeFabUsesAutomaticPlaylistInEveryViewMode() {
+        assertResumeFabUsesAutomaticPlaylist(folderName = "Movies")
+    }
+
+    private fun assertResumeFabUsesAutomaticPlaylist(folderName: String?) {
+        val application = ApplicationProvider.getApplicationContext<Application>()
+        shadowOf(application).grantPermissions(Manifest.permission.READ_MEDIA_VIDEO)
+        val actions = mutableListOf<MediaPickerAction>()
+        val video = Video.sample.copy(uriString = "content://media/external/video/media/2")
+        var viewMode by mutableStateOf(MediaViewMode.FOLDERS)
+        var rootFab: TopLevelFabState? = null
+        val setFab: (String, TopLevelFabState?) -> Unit = { _, fab -> rootFab = fab }
+        composeRule.setContent {
+            CompositionLocalProvider(LocalTopLevelFabSetter provides setFab) {
+                NextPlayerTheme {
+                    MediaPickerScreenContent(
+                        state = MediaPickerUiState(
+                            folderName = folderName,
+                            recentlyPlayedVideo = video,
+                            preferences = ApplicationPreferences(mediaViewMode = viewMode),
+                            mediaDataState = DataState.Success(
+                                MediaHolder(
+                                    videos = if (folderName == null && viewMode != MediaViewMode.VIDEOS) {
+                                        emptyList()
+                                    } else {
+                                        listOf(Video.sample.copy(uriString = "content://media/external/video/media/1"), video)
+                                    },
+                                    folders = listOf(Folder(name = "Movies", path = "/Movies", dateModified = 0)),
+                                ),
+                            ),
+                        ),
+                        onAction = actions::add,
+                    )
+                }
+            }
+        }
+
+        for (mode in MediaViewMode.entries) {
+            composeRule.runOnIdle {
+                viewMode = mode
+                actions.clear()
+            }
+            if (folderName == null) {
+                composeRule.runOnIdle { checkNotNull(rootFab).onClick() }
+            } else {
+                composeRule.onNodeWithContentDescription("Play").performClick()
+            }
+            // A single-video launch lets the player build the sorted queue; an explicit
+            // one-item PlaySelectedItems queue disables that behavior.
+            composeRule.runOnIdle {
+                assertEquals("Resume in $mode", listOf(MediaPickerAction.OnPlayVideo(video.uriString.toUri())), actions)
+            }
+        }
+    }
 
     @Test
     @Config(qualifiers = "w960dp-h540dp-land-television")

@@ -79,8 +79,8 @@ fun MediaView(
             MediaLayoutMode.GRID -> 2.dp
         }
         val maxWidth = this.maxWidth - (contentHorizontalPadding * 2) - itemSpacing
-        val maxFolders = (maxWidth / folderMinWidth).toInt()
-        val maxVideos = (maxWidth / videoMinWidth).toInt()
+        val maxFolders = (maxWidth / folderMinWidth).toInt().coerceAtLeast(1)
+        val maxVideos = (maxWidth / videoMinWidth).toInt().coerceAtLeast(1)
         val spans = when (preferences.mediaLayoutMode) {
             MediaLayoutMode.LIST -> 1
             MediaLayoutMode.GRID -> lcm(maxFolders, maxVideos)

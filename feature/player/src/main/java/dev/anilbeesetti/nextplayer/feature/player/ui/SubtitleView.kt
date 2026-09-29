@@ -55,7 +55,7 @@ fun SubtitleView(
             }
         },
         update = { subtitleView ->
-            subtitleView.setCues(cuesState.cues)
+            subtitleView.setCues(cuesState.currentCues?.cues)
             if (isInPictureInPictureMode) {
                 subtitleView.setFractionalTextSize(SubtitleView.DEFAULT_TEXT_SIZE_FRACTION)
             } else {

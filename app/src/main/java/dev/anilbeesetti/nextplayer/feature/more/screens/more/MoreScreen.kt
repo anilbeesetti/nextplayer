@@ -32,6 +32,7 @@ import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.focus.FocusDirection
 import androidx.compose.ui.focus.FocusRequester
 import androidx.compose.ui.focus.focusProperties
 import androidx.compose.ui.focus.focusRequester
@@ -200,7 +201,15 @@ private fun HistorySection(
         }
         LazyRow(
             // The screen owns initial focus; this region restores a video only when entered.
-            modifier = Modifier.restorableFocusGroup(historyFocusState, ready = false),
+            modifier = Modifier
+                .focusProperties {
+                    onExit = {
+                        if (isTv && requestedFocusDirection == FocusDirection.Up) {
+                            historyButtonFocusRequester.requestFocus()
+                        }
+                    }
+                }
+                .restorableFocusGroup(historyFocusState, ready = false),
             horizontalArrangement = Arrangement.spacedBy(2.dp),
         ) {
             items(history, key = { it.uriString }) { video ->
@@ -211,8 +220,7 @@ private fun HistorySection(
                     preferences = preferences,
                     modifier = Modifier
                         .width(140.dp)
-                        .restorableFocusItem(historyFocusState, video.uriString)
-                        .focusProperties { if (isTv) up = historyButtonFocusRequester },
+                        .restorableFocusItem(historyFocusState, video.uriString),
                     onClick = { onVideoClick(video) },
                 )
             }

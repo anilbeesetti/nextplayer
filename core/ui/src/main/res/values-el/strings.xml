@@ -505,4 +505,9 @@
     <string name="more">Περισσότερα</string>
     <string name="trash_empty_title">Ο κάδος είναι άδειος</string>
     <string name="trash_empty_description">Τα βίντεο που μετακινείτε στον κάδο απορριμμάτων θα εμφανίζονται εδώ. Μπορείτε να τα επαναφέρετε ή να τα διαγράψετε οριστικά.</string>
+    <string name="chapters">Κεφάλαια</string>
+    <string name="chapter_number">Κεφάλαιο %1$d</string>
+    <string name="show_chapters">Εμφάνιση κεφαλαίων</string>
+    <string name="open_audio">Άνοιγμα τοπικού ήχου</string>
+    <string name="error_opening_audio">Αδυναμία ανοίγματος αυτού του αρχείου ήχου</string>
 </resources>

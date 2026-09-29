@@ -15,13 +15,16 @@ import dev.anilbeesetti.nextplayer.feature.player.LocalControlsVisibilityState
 
 @OptIn(UnstableApi::class)
 @Composable
-fun ShuffleButton(player: Player, modifier: Modifier = Modifier) {
+fun ShuffleButton(
+    modifier: Modifier = Modifier,
+    player: Player?,
+) {
     val state = rememberShuffleButtonState(player)
     val controlsVisibilityState = LocalControlsVisibilityState.current
 
     PlayerButton(
         modifier = modifier,
-        isEnabled = state.isEnabled,
+        enabled = state.isEnabled,
         onClick = {
             state.onClick()
             controlsVisibilityState?.showControls()
@@ -35,17 +38,13 @@ fun ShuffleButton(player: Player, modifier: Modifier = Modifier) {
 }
 
 @Composable
-private fun shuffleModeIconPainter(shuffleOn: Boolean): Painter {
-    return when (shuffleOn) {
-        true -> painterResource(coreUiR.drawable.ic_shuffle_on)
-        false -> painterResource(coreUiR.drawable.ic_shuffle)
-    }
+private fun shuffleModeIconPainter(shuffleOn: Boolean): Painter = when (shuffleOn) {
+    true -> painterResource(coreUiR.drawable.ic_shuffle_on)
+    false -> painterResource(coreUiR.drawable.ic_shuffle)
 }
 
 @Composable
-private fun shuffleContentDescription(shuffleOn: Boolean): String {
-    return when (shuffleOn) {
-        true -> stringResource(coreUiR.string.shuffle_on)
-        false -> stringResource(coreUiR.string.shuffle_off)
-    }
+private fun shuffleContentDescription(shuffleOn: Boolean): String = when (shuffleOn) {
+    true -> stringResource(coreUiR.string.shuffle_on)
+    false -> stringResource(coreUiR.string.shuffle_off)
 }

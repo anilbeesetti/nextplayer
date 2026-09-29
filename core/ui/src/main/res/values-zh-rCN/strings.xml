@@ -461,8 +461,8 @@
     <string name="choose_playlist_type">创建播放列表</string>
     <string name="decoder_mode_auto">自动</string>
     <string name="no_supported_decoder">没有支持此媒体的解码器可用</string>
-    <string name="audio_decoder_mode_not_supported">不支持 %1$s 音频解码器</string>
-    <string name="video_decoder_mode_not_supported">不支持 %1$s 视频解码器</string>
+    <string name="audio_decoder_mode_not_supported">不支持%1$s音频解码器</string>
+    <string name="video_decoder_mode_not_supported">不支持%1$s视频解码器</string>
     <string name="decoder_app_software_description">自带的 FFmpeg 软件解码器</string>
     <string name="decoder_system_software_description">仅 Android 软件 MediaCodec 解码器</string>
     <string name="decoder_hardware_description">仅硬件 MediaCodec 解码器</string>
@@ -497,4 +497,9 @@
     <string name="clear_history_confirmation">从历史移除所有观看过的视频吗？</string>
     <string name="trash_empty_description">您移动到回收站的视频会在此显示。您可以将其恢复或永久删除。</string>
     <string name="trash_empty_title">回收站为空</string>
+    <string name="open_audio">打开本地音频</string>
+    <string name="error_opening_audio">无法打开此音频文件</string>
+    <string name="show_chapters">显示章节</string>
+    <string name="chapters">章节</string>
+    <string name="chapter_number">第 %1$d 章</string>
 </resources>

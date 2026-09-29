@@ -497,4 +497,9 @@
     <string name="use_sftp">使用 SFTP</string>
     <string name="settings_description">應用程式設定</string>
     <string name="more">更多</string>
+    <string name="open_audio">開啟本機音訊</string>
+    <string name="error_opening_audio">無法開啟音訊檔案</string>
+    <string name="chapters">章節</string>
+    <string name="chapter_number">章節 %1$d</string>
+    <string name="show_chapters">顯示章節</string>
 </resources>
