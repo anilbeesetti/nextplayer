@@ -24,7 +24,9 @@ import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.material3.surfaceColorAtElevation
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.produceState
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -52,6 +54,8 @@ import dev.anilbeesetti.nextplayer.core.ui.R
 import dev.anilbeesetti.nextplayer.core.ui.components.NextSegmentedListItem
 import dev.anilbeesetti.nextplayer.core.ui.designsystem.NextIcons
 import dev.anilbeesetti.nextplayer.core.ui.theme.NextPlayerTheme
+import kotlinx.coroutines.delay
+import kotlin.time.Duration.Companion.seconds
 
 @Composable
 fun VideoItem(
@@ -256,6 +260,17 @@ private fun ThumbnailView(
 ) {
     val context = LocalContext.current
     val isLocalVideo = remember(video.uriString) { video.isLocalUri() }
+    val isNew by produceState(
+        initialValue = video.isNew(thresholdDays = preferences.newVideoThresholdDays),
+        key1 = video.dateAdded,
+        key2 = video.lastPlayedAt,
+        key3 = preferences.newVideoThresholdDays,
+    ) {
+        while (value) {
+            delay(60.seconds)
+            value = video.isNew(thresholdDays = preferences.newVideoThresholdDays)
+        }
+    }
     Box(
         modifier = modifier
             .clip(MaterialTheme.shapes.small)
@@ -294,7 +309,7 @@ private fun ThumbnailView(
             )
         }
 
-        if (video.isNew()) {
+        if (isNew) {
             InfoChip(
                 text = stringResource(R.string.new_label),
                 modifier = Modifier

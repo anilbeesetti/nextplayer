@@ -41,7 +41,7 @@ class GetFolderTreeMediaUseCaseTest {
         width = 1920,
         height = 1080,
         size = 1000,
-        dateModified = (now - addedDaysAgo * oneDayMillis) / 1000L,
+        dateAdded = (now - addedDaysAgo * oneDayMillis) / 1000L,
         lastPlayedAt = if (watched) Date(now) else null,
     )
 

@@ -4,7 +4,6 @@ import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.ExperimentalMaterial3Api
@@ -27,15 +26,15 @@ import dev.anilbeesetti.nextplayer.core.ui.R
 import dev.anilbeesetti.nextplayer.core.ui.components.ClickablePreferenceItem
 import dev.anilbeesetti.nextplayer.core.ui.components.ListSectionTitle
 import dev.anilbeesetti.nextplayer.core.ui.components.NextTopAppBar
+import dev.anilbeesetti.nextplayer.core.ui.components.PreferenceSlider
 import dev.anilbeesetti.nextplayer.core.ui.components.PreferenceSwitch
-import dev.anilbeesetti.nextplayer.core.ui.components.RadioTextButton
 import dev.anilbeesetti.nextplayer.core.ui.components.rememberRestorableFocusState
 import dev.anilbeesetti.nextplayer.core.ui.components.restorableFocusGroup
 import dev.anilbeesetti.nextplayer.core.ui.components.restorableFocusItem
 import dev.anilbeesetti.nextplayer.core.ui.components.tvFocusDown
 import dev.anilbeesetti.nextplayer.core.ui.designsystem.NextIcons
 import dev.anilbeesetti.nextplayer.core.ui.theme.NextPlayerTheme
-import dev.anilbeesetti.nextplayer.settings.composables.OptionsDialog
+import kotlin.math.roundToInt
 
 @Composable
 fun MediaLibraryPreferencesScreen(
@@ -99,7 +98,7 @@ private fun MediaLibraryPreferencesScreenContent(
                     isFirstItem = true,
                     isLastItem = false,
                 )
-                ClickablePreferenceItem(
+                PreferenceSlider(
                     modifier = Modifier.restorableFocusItem(focusState, "mark_new_media"),
                     title = stringResource(id = R.string.mark_new_media),
                     description = if (preferences.newVideoThresholdDays == 0) {
@@ -112,8 +111,12 @@ private fun MediaLibraryPreferencesScreenContent(
                         )
                     },
                     icon = NextIcons.Update,
-                    onClick = { onAction(MediaLibraryPreferencesUiEvent.ShowNewVideoThresholdDialog(true)) },
-                    isFirstItem = false,
+                    value = preferences.newVideoThresholdDays.toFloat(),
+                    valueRange = 0f..30f,
+                    steps = 29,
+                    onValueChange = {
+                        onAction(MediaLibraryPreferencesUiEvent.UpdateNewVideoThreshold(it.roundToInt()))
+                    },
                     isLastItem = true,
                 )
             }
@@ -153,28 +156,6 @@ private fun MediaLibraryPreferencesScreenContent(
             }
         }
 
-        if (state.showNewVideoThresholdDialog) {
-            val options = listOf(0, 1, 2, 3, 7, 14, 30)
-            OptionsDialog(
-                text = stringResource(id = R.string.mark_new_media),
-                onDismissClick = { onAction(MediaLibraryPreferencesUiEvent.ShowNewVideoThresholdDialog(false)) },
-            ) {
-                items(options) { days ->
-                    RadioTextButton(
-                        text = if (days == 0) {
-                            stringResource(id = R.string.off)
-                        } else {
-                            pluralStringResource(id = R.plurals.days_count, days, days)
-                        },
-                        selected = days == preferences.newVideoThresholdDays,
-                        onClick = {
-                            onAction(MediaLibraryPreferencesUiEvent.UpdateNewVideoThreshold(days))
-                            onAction(MediaLibraryPreferencesUiEvent.ShowNewVideoThresholdDialog(false))
-                        },
-                    )
-                }
-            }
-        }
     }
 }
 

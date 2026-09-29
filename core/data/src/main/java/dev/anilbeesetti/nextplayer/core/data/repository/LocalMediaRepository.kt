@@ -19,7 +19,6 @@ import dev.anilbeesetti.nextplayer.core.media.services.MediaService
 import dev.anilbeesetti.nextplayer.core.model.Folder
 import dev.anilbeesetti.nextplayer.core.model.MediaInfo
 import dev.anilbeesetti.nextplayer.core.model.Video
-import dev.anilbeesetti.nextplayer.core.model.isNew
 import io.github.anilbeesetti.nextlib.mediainfo.MediaInfoBuilder
 import java.util.Date
 import kotlin.math.absoluteValue
@@ -28,7 +27,6 @@ import kotlinx.coroutines.async
 import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.combine
-import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.withContext
 import org.koin.core.annotation.Factory
@@ -38,17 +36,11 @@ class LocalMediaRepository(
     private val mediumStateDao: MediumStateDao,
     private val mediaService: MediaService,
     private val context: Context,
-    private val preferencesRepository: PreferencesRepository,
 ) : MediaRepository {
 
     override fun observeFolders(folderPath: String?): Flow<List<Folder>> {
-        return combine(
-            mediaService.observeFolders(folderPath),
-            observeVideos(folderPath),
-            preferencesRepository.applicationPreferences,
-        ) { mediaFolders, videos, preferences ->
-            val newVideosCountByFolderPath = videos.newVideosCountByParentPath(preferences.newVideoThresholdDays)
-            mediaFolders.map { it.toFolder(newVideosCount = newVideosCountByFolderPath[it.path] ?: 0) }
+        return mediaService.observeFolders(folderPath).map { mediaFolders ->
+            mediaFolders.map { it.toFolder() }
         }
     }
 
@@ -63,10 +55,7 @@ class LocalMediaRepository(
     }
 
     override suspend fun fetchFolders(folderPath: String?): List<Folder> {
-        val mediaFolders = mediaService.fetchFolders(folderPath)
-        val thresholdDays = preferencesRepository.applicationPreferences.first().newVideoThresholdDays
-        val newVideosCountByFolderPath = fetchVideos(folderPath).newVideosCountByParentPath(thresholdDays)
-        return mediaFolders.map { it.toFolder(newVideosCount = newVideosCountByFolderPath[it.path] ?: 0) }
+        return mediaService.fetchFolders(folderPath).map { it.toFolder() }
     }
 
     override suspend fun fetchVideos(folderPath: String?): List<Video> {
@@ -246,12 +235,3 @@ private fun MediumStateEntity.toHistoryVideo(): Video {
         lastPlayedAt = lastPlayedTime?.let(::Date),
     )
 }
-
-/**
- * Groups videos that are still "new" (see [isNew]) by their parent folder path, so a folder's
- * new-videos count can be looked up without re-scanning the whole video list per folder.
- */
-private fun List<Video>.newVideosCountByParentPath(): Map<String, Int> =
-    filter { it.isNew() }.groupingBy { it.parentPath }.eachCount()
-private fun List<Video>.newVideosCountByParentPath(thresholdDays: Int = 7): Map<String, Int> =
-    filter { it.isNew(thresholdDays = thresholdDays) }.groupingBy { it.parentPath }.eachCount()

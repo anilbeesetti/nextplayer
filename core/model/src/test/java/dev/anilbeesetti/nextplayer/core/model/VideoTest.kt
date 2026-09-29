@@ -24,7 +24,7 @@ class VideoTest {
     @Test
     fun unwatchedVideoAddedRecentlyIsNew() {
         val video = Video.sample.copy(
-            dateModified = (now - 3 * oneDayMillis) / 1000L,
+            dateAdded = (now - 3 * oneDayMillis) / 1000L,
             lastPlayedAt = null,
         )
 
@@ -34,7 +34,7 @@ class VideoTest {
     @Test
     fun unwatchedVideoAddedOverAWeekAgoIsNotNew() {
         val video = Video.sample.copy(
-            dateModified = (now - 8 * oneDayMillis) / 1000L,
+            dateAdded = (now - 8 * oneDayMillis) / 1000L,
             lastPlayedAt = null,
         )
 
@@ -44,10 +44,27 @@ class VideoTest {
     @Test
     fun watchedVideoIsNeverNewEvenIfRecentlyAdded() {
         val video = Video.sample.copy(
-            dateModified = now / 1000L,
+            dateAdded = now / 1000L,
             lastPlayedAt = Date(now),
         )
 
         assertFalse(video.isNew(nowMillis = now))
+    }
+
+    @Test
+    fun recentlyModifiedOldVideoIsNotNew() {
+        val video = Video.sample.copy(
+            dateModified = now / 1000L,
+            dateAdded = (now - 8 * oneDayMillis) / 1000L,
+        )
+
+        assertFalse(video.isNew(nowMillis = now))
+    }
+
+    @Test
+    fun zeroThresholdDisablesNewBadge() {
+        val video = Video.sample.copy(dateAdded = now / 1000L)
+
+        assertFalse(video.isNew(nowMillis = now, thresholdDays = 0))
     }
 }

@@ -9,9 +9,11 @@ import androidx.compose.foundation.layout.FlowRow
 import androidx.compose.foundation.layout.IntrinsicSize
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.aspectRatio
+import androidx.compose.foundation.layout.defaultMinSize
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material3.ExperimentalMaterial3ExpressiveApi
@@ -46,9 +48,6 @@ import dev.anilbeesetti.nextplayer.core.ui.R
 import dev.anilbeesetti.nextplayer.core.ui.components.NextSegmentedListItem
 import dev.anilbeesetti.nextplayer.core.ui.theme.NextPlayerTheme
 
-/** Folder thumbnails are small, so the new-videos count badge is capped at this display cap. */
-private const val NEW_VIDEOS_COUNT_DISPLAY_CAP = 9
-
 @Composable
 fun FolderItem(
     folder: Folder,
@@ -73,6 +72,7 @@ fun FolderItem(
             onClick = onClick,
             onLongClick = onLongClick,
         )
+
         MediaLayoutMode.GRID -> FolderGridItem(
             folder = folder,
             isRecentlyPlayedFolder = isRecentlyPlayedFolder,
@@ -181,13 +181,13 @@ private fun FolderListItem(
                     if (folder.videosCount > 0) {
                         InfoChip(
                             text = "${folder.videosCount} " +
-                                stringResource(id = R.string.video.takeIf { folder.videosCount == 1 } ?: R.string.videos),
+                                    stringResource(id = R.string.video.takeIf { folder.videosCount == 1 } ?: R.string.videos),
                         )
                     }
                     if (folder.foldersCount > 0) {
                         InfoChip(
                             text = "${folder.foldersCount} " +
-                                stringResource(id = R.string.folder.takeIf { folder.foldersCount == 1 } ?: R.string.folders),
+                                    stringResource(id = R.string.folder.takeIf { folder.foldersCount == 1 } ?: R.string.folders),
                         )
                     }
                     if (preferences.showSizeField) {
@@ -265,7 +265,9 @@ private fun FolderGridItem(
                     if (folder.newVideosCount > 0) {
                         NewVideosCountBadge(
                             count = folder.newVideosCount,
-                            modifier = Modifier.align(Alignment.TopEnd),
+                            modifier = Modifier
+                                .align(Alignment.TopEnd)
+                                .offset(x = 4.dp),
                         )
                     }
                 }
@@ -320,7 +322,7 @@ private fun FolderGridItem(
     )
 }
 
-/** Circular badge showing the number of new videos inside a folder. */
+/** Rounded badge showing the full number of new videos inside a folder. */
 @Composable
 private fun NewVideosCountBadge(
     count: Int,
@@ -328,23 +330,20 @@ private fun NewVideosCountBadge(
 ) {
     require(count > 0) { "NewVideosCountBadge should only be shown for a positive count, was $count" }
 
-    val displayText = if (count > NEW_VIDEOS_COUNT_DISPLAY_CAP) {
-        stringResource(R.string.new_videos_count_overflow)
-    } else {
-        count.toString()
-    }
     val description = pluralStringResource(R.plurals.new_videos_count, count, count)
 
     Box(
         modifier = modifier
-            .size(20.dp)
+            .defaultMinSize(minWidth = 20.dp)
+            .height(20.dp)
             .clip(CircleShape)
             .background(MaterialTheme.colorScheme.primary)
-            .semantics { contentDescription = description },
+            .semantics { contentDescription = description }
+            .padding(horizontal = 6.dp),
         contentAlignment = Alignment.Center,
     ) {
         Text(
-            text = displayText,
+            text = count.toString(),
             style = MaterialTheme.typography.labelSmall.copy(fontWeight = FontWeight.Bold, fontSize = 10.sp),
             color = MaterialTheme.colorScheme.onPrimary,
             maxLines = 1,
