@@ -518,7 +518,17 @@
     <string name="decoder_mode_auto">Auto</string>
     <string name="settings_description">App preferences</string>
     <string name="more">More</string>
+    <string name="new_label">NEW</string>
+    <plurals name="new_videos_count">
+        <item quantity="one">%1$d new video</item>
+        <item quantity="other">%1$d new videos</item>
+    </plurals>
     <string name="chapters">Chapters</string>
     <string name="chapter_number">Chapter %1$d</string>
     <string name="show_chapters">Show chapters</string>
+    <string name="mark_new_media">Mark newly added media as new</string>
+    <plurals name="days_count">
+        <item quantity="one">%1$d day</item>
+        <item quantity="other">%1$d days</item>
+    </plurals>
 </resources>

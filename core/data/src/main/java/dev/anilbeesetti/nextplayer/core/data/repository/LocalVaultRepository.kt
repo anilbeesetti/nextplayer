@@ -302,6 +302,7 @@ class LocalVaultRepository(
             height = height,
             size = size,
             dateModified = hiddenAt,
+            dateAdded = hiddenAt / 1000L,
             formattedDuration = Utils.formatDurationMillis(duration),
             formattedFileSize = Utils.formatFileSize(size),
         )

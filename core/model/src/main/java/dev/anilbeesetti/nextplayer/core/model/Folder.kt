@@ -11,6 +11,7 @@ data class Folder(
     val totalDuration: Long = 0,
     val videosCount: Int = 0,
     val foldersCount: Int = 0,
+    val newVideosCount: Int = 0,
 ) : Serializable {
     companion object {
         val sample = Folder(

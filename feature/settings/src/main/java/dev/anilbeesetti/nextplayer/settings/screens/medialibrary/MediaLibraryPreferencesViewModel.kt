@@ -44,6 +44,7 @@ class MediaLibraryPreferencesViewModel(
             is MediaLibraryPreferencesUiEvent.OpenThumbnails -> output.openThumbnails()
 
             is MediaLibraryPreferencesUiEvent.ToggleMarkLastPlayedMedia -> toggleMarkLastPlayedMedia()
+            is MediaLibraryPreferencesUiEvent.UpdateNewVideoThreshold -> updateNewVideoThreshold(action.days)
         }
     }
 
@@ -51,6 +52,14 @@ class MediaLibraryPreferencesViewModel(
         viewModelScope.launch {
             preferencesRepository.updateApplicationPreferences {
                 it.copy(markLastPlayedMedia = !it.markLastPlayedMedia)
+            }
+        }
+    }
+
+    private fun updateNewVideoThreshold(days: Int) {
+        viewModelScope.launch {
+            preferencesRepository.updateApplicationPreferences {
+                it.copy(newVideoThresholdDays = days.coerceIn(0, 30))
             }
         }
     }
@@ -66,4 +75,5 @@ sealed interface MediaLibraryPreferencesUiEvent {
     data object OpenThumbnails : MediaLibraryPreferencesUiEvent
 
     data object ToggleMarkLastPlayedMedia : MediaLibraryPreferencesUiEvent
+    data class UpdateNewVideoThreshold(val days: Int) : MediaLibraryPreferencesUiEvent
 }

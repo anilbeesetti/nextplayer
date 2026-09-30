@@ -16,6 +16,7 @@ import androidx.compose.material3.Scaffold
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.res.pluralStringResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.tooling.preview.PreviewLightDark
 import androidx.compose.ui.unit.dp
@@ -25,6 +26,7 @@ import dev.anilbeesetti.nextplayer.core.ui.R
 import dev.anilbeesetti.nextplayer.core.ui.components.ClickablePreferenceItem
 import dev.anilbeesetti.nextplayer.core.ui.components.ListSectionTitle
 import dev.anilbeesetti.nextplayer.core.ui.components.NextTopAppBar
+import dev.anilbeesetti.nextplayer.core.ui.components.PreferenceSlider
 import dev.anilbeesetti.nextplayer.core.ui.components.PreferenceSwitch
 import dev.anilbeesetti.nextplayer.core.ui.components.rememberRestorableFocusState
 import dev.anilbeesetti.nextplayer.core.ui.components.restorableFocusGroup
@@ -32,6 +34,7 @@ import dev.anilbeesetti.nextplayer.core.ui.components.restorableFocusItem
 import dev.anilbeesetti.nextplayer.core.ui.components.tvFocusDown
 import dev.anilbeesetti.nextplayer.core.ui.designsystem.NextIcons
 import dev.anilbeesetti.nextplayer.core.ui.theme.NextPlayerTheme
+import kotlin.math.roundToInt
 
 @Composable
 fun MediaLibraryPreferencesScreen(
@@ -93,6 +96,27 @@ private fun MediaLibraryPreferencesScreenContent(
                     isChecked = preferences.markLastPlayedMedia,
                     onClick = { onAction(MediaLibraryPreferencesUiEvent.ToggleMarkLastPlayedMedia) },
                     isFirstItem = true,
+                    isLastItem = false,
+                )
+                PreferenceSlider(
+                    modifier = Modifier.restorableFocusItem(focusState, "mark_new_media"),
+                    title = stringResource(id = R.string.mark_new_media),
+                    description = if (preferences.newVideoThresholdDays == 0) {
+                        stringResource(id = R.string.off)
+                    } else {
+                        pluralStringResource(
+                            id = R.plurals.days_count,
+                            preferences.newVideoThresholdDays,
+                            preferences.newVideoThresholdDays,
+                        )
+                    },
+                    icon = NextIcons.Update,
+                    value = preferences.newVideoThresholdDays.toFloat(),
+                    valueRange = 0f..30f,
+                    steps = 29,
+                    onValueChange = {
+                        onAction(MediaLibraryPreferencesUiEvent.UpdateNewVideoThreshold(it.roundToInt()))
+                    },
                     isLastItem = true,
                 )
             }
@@ -131,6 +155,7 @@ private fun MediaLibraryPreferencesScreenContent(
                 )
             }
         }
+
     }
 }
 

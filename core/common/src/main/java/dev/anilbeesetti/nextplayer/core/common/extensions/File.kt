@@ -2,7 +2,6 @@ package dev.anilbeesetti.nextplayer.core.common.extensions
 
 import android.content.Context
 import android.net.Uri
-import android.os.Environment
 import androidx.core.net.toUri
 import java.io.File
 import kotlinx.coroutines.Dispatchers
@@ -60,4 +59,4 @@ fun File.deleteFiles() {
 }
 
 val File.prettyName: String
-    get() = this.name.takeIf { this.path != Environment.getExternalStorageDirectory()?.path } ?: "Internal Storage"
+    get() = name.takeIf { parent != "/storage/emulated" } ?: "Internal Storage"

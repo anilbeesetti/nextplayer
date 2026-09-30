@@ -1,10 +1,13 @@
 package dev.anilbeesetti.nextplayer.core.domain
 
 import dev.anilbeesetti.nextplayer.core.common.di.DiQualifiers
+import dev.anilbeesetti.nextplayer.core.common.extensions.prettyName
 import dev.anilbeesetti.nextplayer.core.data.repository.MediaRepository
 import dev.anilbeesetti.nextplayer.core.data.repository.PreferencesRepository
 import dev.anilbeesetti.nextplayer.core.model.Folder
 import dev.anilbeesetti.nextplayer.core.model.Sort
+import dev.anilbeesetti.nextplayer.core.model.isNew
+import java.io.File
 import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.combine
@@ -21,16 +24,33 @@ class GetSortedFoldersUseCase(
 
     operator fun invoke(folderPath: String? = null): Flow<List<Folder>> {
         return combine(
-            mediaRepository.observeFolders(folderPath),
+            mediaRepository.observeVideos(folderPath),
             preferencesRepository.applicationPreferences,
-        ) { folders, preferences ->
-
-            val nonExcludedDirectories = folders.filter {
-                it.path !in preferences.excludeFolders
-            }
+            newVideoClock(),
+        ) { videos, preferences, nowMillis ->
+            val folders = videos
+                .groupBy { it.parentPath }
+                .map { (path, folderVideos) ->
+                    Folder(
+                        name = File(path).prettyName,
+                        path = path,
+                        parentPath = File(path).parent,
+                        dateModified = folderVideos.maxOfOrNull { it.dateModified } ?: 0L,
+                        totalSize = folderVideos.sumOf { it.size },
+                        totalDuration = folderVideos.sumOf { it.duration },
+                        videosCount = folderVideos.size,
+                        newVideosCount = folderVideos.count {
+                            it.isNew(
+                                nowMillis = nowMillis,
+                                thresholdDays = preferences.newVideoThresholdDays,
+                            )
+                        },
+                    )
+                }
+                .filterNot { it.path in preferences.excludeFolders }
 
             val sort = Sort(by = preferences.sortBy, order = preferences.sortOrder)
-            nonExcludedDirectories.sortedWith(sort.folderComparator())
+            folders.sortedWith(sort.folderComparator())
         }.flowOn(defaultDispatcher)
     }
 }

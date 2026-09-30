@@ -17,6 +17,7 @@ internal fun MediaVideo.toVideo(mediaState: MediumStateEntity? = null) = Video(
     nameWithExtension = title,
     parentPath = parentPath,
     dateModified = dateModified,
+    dateAdded = dateAdded,
     formattedDuration = Utils.formatDurationMillis(duration),
     formattedFileSize = Utils.formatFileSize(size),
     playbackPosition = mediaState?.playbackPosition,
