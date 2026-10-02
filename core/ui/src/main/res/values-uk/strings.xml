@@ -526,4 +526,18 @@
     <string name="chapters">Розділи</string>
     <string name="chapter_number">Розділ %1$d</string>
     <string name="show_chapters">Показати розділи</string>
+    <string name="new_label">НОВЕ</string>
+    <plurals name="new_videos_count">
+        <item quantity="one">%1$d нове відео</item>
+        <item quantity="few">%1$d нові відео</item>
+        <item quantity="many">%1$d нових відео</item>
+        <item quantity="other">%1$d нових відео</item>
+    </plurals>
+    <string name="mark_new_media">Позначати нещодавно додані медіафайли як нові</string>
+    <plurals name="days_count">
+        <item quantity="one">%1$d день</item>
+        <item quantity="few">%1$d дні</item>
+        <item quantity="many">%1$d днів</item>
+        <item quantity="other">%1$d днів</item>
+    </plurals>
 </resources>
