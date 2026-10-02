@@ -510,4 +510,14 @@
     <string name="chapters">Peatükid</string>
     <string name="chapter_number">%1$d. peatükk</string>
     <string name="show_chapters">Näita peatükke</string>
+    <string name="new_label">UUS</string>
+    <plurals name="new_videos_count">
+        <item quantity="one">%1$d uus video</item>
+        <item quantity="other">%1$d uut videot</item>
+    </plurals>
+    <string name="mark_new_media">Märgi hiljuti lisatud meedium uueks</string>
+    <plurals name="days_count">
+        <item quantity="one">%1$d päev</item>
+        <item quantity="other">%1$d päeva</item>
+    </plurals>
 </resources>

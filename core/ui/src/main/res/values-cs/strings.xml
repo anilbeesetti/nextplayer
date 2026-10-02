@@ -422,7 +422,7 @@
         <item quantity="other">%d videí byly přidány do playlistu.</item>
     </plurals>
     <string name="playlist_selection_read_failed">Nešlo číst vybrané videa. Zkuste to znovu.</string>
-    <string name="playlist_selection_empty">Žádné lokální videa nebyly nalezeny ve výběru.</string>
+    <string name="playlist_selection_empty">Žádné místní videa nebyly nalezeny ve výběru.</string>
     <string name="playlist_update_failed">Nešlo aktualizovat playlist. Zkuste to znovu.</string>
     <string name="playlist_delete_failed">Nešlo odstranit playlist. Zkuste to znovu.</string>
     <string name="already_in_playlist">Vybrané videa jsou už v tomto playlistu.</string>
@@ -446,10 +446,10 @@
     <string name="remove_video">Odebrat video</string>
     <string name="play_all">Přehrát vše</string>
     <string name="playlist_actions">Možnosti playlistu</string>
-    <string name="local_playlist">Lokální</string>
+    <string name="local_playlist">Místní</string>
     <string name="delete_playlist_confirmation">Odstranit \"%1$s\" a jeho uložené pořadí?</string>
     <string name="delete_playlist">Odstranit playlist</string>
-    <string name="no_playlists_description">Vytvořte lokální playlist nebo přidejte M3U zdroj pro začínání sledování.</string>
+    <string name="no_playlists_description">Vytvořte místní playlist nebo přidejte M3U zdroj pro začínání sledování.</string>
     <string name="no_playlists_title">Zatím žádné playlisty</string>
     <string name="saving_playlist">Ukládání playlistu…</string>
     <string name="name_required">Zadejte název playlistu.</string>
@@ -471,7 +471,7 @@
     <string name="audio_decoder_mode_not_supported">%1$s dekodér zvuku není podporován</string>
     <string name="no_supported_decoder">Žádný podporovaný dekodér není dostupný pro tento soubor.</string>
     <string name="choose_playlist_type">Vytvořit playlist</string>
-    <string name="create_local_playlist">Vytvořit lokální playlist</string>
+    <string name="create_local_playlist">Vytvořit místní playlist</string>
     <string name="add_m3u_url_playlist">Přidat M3U playlist ze URL</string>
     <string name="add_m3u_file_playlist">Přidat M3U playlist ze souboru</string>
     <string name="decoder_mode_auto">Automatický</string>
@@ -513,4 +513,9 @@
     <string name="vault_biometric_description">Použít váš otisk prstu nebo tvář pro odemykání. Váš PIN pro sejf bude stále dostupný.</string>
     <string name="system_volume_panel_desc">Zobrazit systémový panel hlasitosti při nastavování hlasitosti se sluchátkáma</string>
     <string name="system_volume_panel">Systémový panel hlasitosti</string>
+    <string name="open_audio">Otevřít místní zvukový soubor</string>
+    <string name="error_opening_audio">Nelze otevřít tento zvukový soubor</string>
+    <string name="chapters">Kapitoly</string>
+    <string name="chapter_number">Kapitola %1$d</string>
+    <string name="show_chapters">Zobrazit kapitoly</string>
 </resources>
