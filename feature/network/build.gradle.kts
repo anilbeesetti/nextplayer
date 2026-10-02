@@ -51,6 +51,7 @@ dependencies {
     implementation(libs.androidx.navigation3.ui)
     implementation(libs.androidx.lifecycle.runtime.ktx)
     implementation(libs.androidx.lifecycle.runtimeCompose)
+    implementation(libs.accompanist.permissions)
 
     // Koin
     implementation(libs.koin.core)
