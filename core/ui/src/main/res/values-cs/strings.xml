@@ -518,4 +518,18 @@
     <string name="chapters">Kapitoly</string>
     <string name="chapter_number">Kapitola %1$d</string>
     <string name="show_chapters">Zobrazit kapitoly</string>
+    <plurals name="days_count">
+        <item quantity="one">%1$d den</item>
+        <item quantity="few">%1$d dny</item>
+        <item quantity="many">%1$d dnů</item>
+        <item quantity="other">%1$d dnů</item>
+    </plurals>
+    <string name="mark_new_media">Označit nově-přidané videa jako nové</string>
+    <plurals name="new_videos_count">
+        <item quantity="one">Jedno nové video</item>
+        <item quantity="few">%1$d nové videa</item>
+        <item quantity="many">%1$d nových videích</item>
+        <item quantity="other">%1$d nových videích</item>
+    </plurals>
+    <string name="new_label">NOVÉ</string>
 </resources>
