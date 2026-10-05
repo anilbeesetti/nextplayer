@@ -502,4 +502,12 @@
     <string name="chapters">章節</string>
     <string name="chapter_number">章節 %1$d</string>
     <string name="show_chapters">顯示章節</string>
+    <string name="mark_new_media">標記新加入的媒體</string>
+    <plurals name="days_count">
+        <item quantity="other">%1$d 天</item>
+    </plurals>
+    <string name="new_label">新</string>
+    <plurals name="new_videos_count">
+        <item quantity="other">%1$d 部新影片</item>
+    </plurals>
 </resources>
