@@ -114,7 +114,7 @@ class MediaStoreMediaServiceTest {
             failure?.let { throw it }
             if (returnNull) return null
             return MatrixCursor(projection).apply {
-                video?.let { addRow(arrayOf<Any>(1L, it.path, it.name, 100L, 1080, 1920, it.length(), 1L)) }
+                video?.let { addRow(arrayOf<Any>(1L, it.path, it.name, 100L, 1080, 1920, it.length(), 1L, 2L)) }
             }
         }
 

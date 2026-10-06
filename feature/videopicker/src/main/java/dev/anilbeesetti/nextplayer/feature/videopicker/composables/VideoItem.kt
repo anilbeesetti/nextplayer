@@ -24,7 +24,9 @@ import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.material3.surfaceColorAtElevation
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.produceState
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -32,6 +34,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.style.LineBreak
 import androidx.compose.ui.text.style.TextAlign
@@ -46,9 +49,13 @@ import coil3.request.crossfade
 import dev.anilbeesetti.nextplayer.core.model.ApplicationPreferences
 import dev.anilbeesetti.nextplayer.core.model.MediaLayoutMode
 import dev.anilbeesetti.nextplayer.core.model.Video
+import dev.anilbeesetti.nextplayer.core.model.isNew
+import dev.anilbeesetti.nextplayer.core.ui.R
 import dev.anilbeesetti.nextplayer.core.ui.components.NextSegmentedListItem
 import dev.anilbeesetti.nextplayer.core.ui.designsystem.NextIcons
 import dev.anilbeesetti.nextplayer.core.ui.theme.NextPlayerTheme
+import kotlinx.coroutines.delay
+import kotlin.time.Duration.Companion.seconds
 
 @Composable
 fun VideoItem(
@@ -239,11 +246,7 @@ fun VideoGridItem(
     )
 }
 
-/**
- * A thumbnail is produced by decoding the video itself, so Coil has to read the whole source
- * before it can extract a frame. For a remote video that means downloading the entire file just
- * to draw a list item, so those fall back to the placeholder icon.
- */
+/** True if the video is local. Remote videos avoid full download and use a placeholder. */
 private fun Video.isLocalUri(): Boolean {
     val scheme = uriString.toUri().scheme
     return scheme.equals("content", ignoreCase = true) || scheme.equals("file", ignoreCase = true)
@@ -257,6 +260,17 @@ private fun ThumbnailView(
 ) {
     val context = LocalContext.current
     val isLocalVideo = remember(video.uriString) { video.isLocalUri() }
+    val isNew by produceState(
+        initialValue = video.isNew(thresholdDays = preferences.newVideoThresholdDays),
+        key1 = video.dateAdded,
+        key2 = video.lastPlayedAt,
+        key3 = preferences.newVideoThresholdDays,
+    ) {
+        while (value) {
+            delay(60.seconds)
+            value = video.isNew(thresholdDays = preferences.newVideoThresholdDays)
+        }
+    }
     Box(
         modifier = modifier
             .clip(MaterialTheme.shapes.small)
@@ -291,6 +305,18 @@ private fun ThumbnailView(
                     .align(Alignment.BottomEnd),
                 backgroundColor = Color.Black.copy(alpha = 0.6f),
                 contentColor = Color.White,
+                shape = MaterialTheme.shapes.extraSmall,
+            )
+        }
+
+        if (isNew) {
+            InfoChip(
+                text = stringResource(R.string.new_label),
+                modifier = Modifier
+                    .padding(5.dp)
+                    .align(Alignment.TopStart),
+                backgroundColor = MaterialTheme.colorScheme.primary,
+                contentColor = MaterialTheme.colorScheme.onPrimary,
                 shape = MaterialTheme.shapes.extraSmall,
             )
         }

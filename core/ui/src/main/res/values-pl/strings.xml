@@ -526,4 +526,18 @@
     <string name="show_chapters">Pokazuj rozdziały</string>
     <string name="open_audio">Otwórz lokalny plik audio</string>
     <string name="error_opening_audio">Nie można otworzyć tego pliku audio</string>
+    <string name="new_label">Nowe</string>
+    <plurals name="new_videos_count">
+        <item quantity="one">%1$d nowe wideo</item>
+        <item quantity="few">%1$d nowe wideo</item>
+        <item quantity="many">%1$d nowych wideo</item>
+        <item quantity="other">%1$d nowych wideo</item>
+    </plurals>
+    <string name="mark_new_media">Oznacz nowo dodane pliki multimedialne jako nowe</string>
+    <plurals name="days_count">
+        <item quantity="one">%1$d dzień</item>
+        <item quantity="few">%1$d dni</item>
+        <item quantity="many">%1$d dni</item>
+        <item quantity="other">%1$d dni</item>
+    </plurals>
 </resources>

@@ -46,6 +46,7 @@ class MediaLibraryPreferencesViewModel(
             is MediaLibraryPreferencesUiEvent.ToggleMarkLastPlayedMedia -> toggleMarkLastPlayedMedia()
             is MediaLibraryPreferencesUiEvent.ToggleWatchHistory -> toggleWatchHistory()
             is MediaLibraryPreferencesUiEvent.ToggleIncludeNetworkWatchHistory -> toggleIncludeNetworkWatchHistory()
+            is MediaLibraryPreferencesUiEvent.UpdateNewVideoThreshold -> updateNewVideoThreshold(action.days)
         }
     }
 
@@ -72,6 +73,14 @@ class MediaLibraryPreferencesViewModel(
             }
         }
     }
+
+    private fun updateNewVideoThreshold(days: Int) {
+        viewModelScope.launch {
+            preferencesRepository.updateApplicationPreferences {
+                it.copy(newVideoThresholdDays = days.coerceIn(0, 30))
+            }
+        }
+    }
 }
 
 data class MediaLibraryPreferencesUiState(
@@ -86,4 +95,5 @@ sealed interface MediaLibraryPreferencesUiEvent {
     data object ToggleMarkLastPlayedMedia : MediaLibraryPreferencesUiEvent
     data object ToggleWatchHistory : MediaLibraryPreferencesUiEvent
     data object ToggleIncludeNetworkWatchHistory : MediaLibraryPreferencesUiEvent
+    data class UpdateNewVideoThreshold(val days: Int) : MediaLibraryPreferencesUiEvent
 }

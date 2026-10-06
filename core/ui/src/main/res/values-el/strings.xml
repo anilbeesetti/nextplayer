@@ -510,4 +510,14 @@
     <string name="show_chapters">Εμφάνιση κεφαλαίων</string>
     <string name="open_audio">Άνοιγμα τοπικού ήχου</string>
     <string name="error_opening_audio">Αδυναμία ανοίγματος αυτού του αρχείου ήχου</string>
+    <string name="mark_new_media">Επισήμανση των νέων μέσων που προστέθηκαν ως νέα</string>
+    <plurals name="days_count">
+        <item quantity="one">%1$d ημέρα</item>
+        <item quantity="other">%1$d ημέρες</item>
+    </plurals>
+    <string name="new_label">ΝΕΑ</string>
+    <plurals name="new_videos_count">
+        <item quantity="one">%1$d νέο βίντεο</item>
+        <item quantity="other">%1$d νέα βίντεο</item>
+    </plurals>
 </resources>

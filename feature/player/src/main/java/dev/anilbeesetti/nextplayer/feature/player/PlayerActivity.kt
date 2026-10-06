@@ -60,7 +60,9 @@ internal fun shouldResumeExistingPlayback(
     returningFromBackground: Boolean,
     isRequestedUriCurrent: Boolean,
     hasExplicitPlaylist: Boolean,
-): Boolean = returningFromBackground || (isRequestedUriCurrent && !hasExplicitPlaylist)
+    hasNextMediaItem: Boolean,
+): Boolean = returningFromBackground ||
+    (isRequestedUriCurrent && !hasExplicitPlaylist && hasNextMediaItem)
 
 @SuppressLint("UnsafeOptInUsageError")
 class PlayerActivity : ComponentActivity() {
@@ -247,6 +249,7 @@ class PlayerActivity : ComponentActivity() {
                 returningFromBackground = returningFromBackground,
                 isRequestedUriCurrent = currentUri.toString() == uri.toString(),
                 hasExplicitPlaylist = hasExplicitPlaylist,
+                hasNextMediaItem = controller.hasNextMediaItem(),
             )
         ) {
             controller.prepare()

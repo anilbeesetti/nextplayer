@@ -542,4 +542,22 @@
     <string name="chapters">الفصول</string>
     <string name="chapter_number">الفصل %1$d</string>
     <string name="show_chapters">عرض الفصول</string>
+    <string name="new_label">جديد</string>
+    <plurals name="new_videos_count">
+        <item quantity="zero">%1$d فيديو جديد</item>
+        <item quantity="one">%1$d فيديو جديد</item>
+        <item quantity="two">%1$d فيديو جديدان</item>
+        <item quantity="few">%1$d فيديوهات جديدة</item>
+        <item quantity="many">%1$d فيديو جديدًا</item>
+        <item quantity="other">%1$d فيديو جديد</item>
+    </plurals>
+    <string name="mark_new_media">وضع علامة على الوسائط المضافة حديثًا كجديدة</string>
+    <plurals name="days_count">
+        <item quantity="zero">%1$d يوم</item>
+        <item quantity="one">%1$d يوم</item>
+        <item quantity="two">%1$d يومان</item>
+        <item quantity="few">%1$d أيام</item>
+        <item quantity="many">%1$d يومًا</item>
+        <item quantity="other">%1$d يوم</item>
+    </plurals>
 </resources>

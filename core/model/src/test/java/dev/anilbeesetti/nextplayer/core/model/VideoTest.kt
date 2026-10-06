@@ -1,9 +1,15 @@
 package dev.anilbeesetti.nextplayer.core.model
 
+import java.util.Date
 import org.junit.Assert.assertEquals
+import org.junit.Assert.assertFalse
+import org.junit.Assert.assertTrue
 import org.junit.Test
 
 class VideoTest {
+
+    private val now = 1_700_000_000_000L
+    private val oneDayMillis = 24 * 60 * 60 * 1000L
 
     @Test
     fun finishedVideoHasFullPlayedPercentage() {
@@ -13,5 +19,52 @@ class VideoTest {
         )
 
         assertEquals(1f, video.playedPercentage)
+    }
+
+    @Test
+    fun unwatchedVideoAddedRecentlyIsNew() {
+        val video = Video.sample.copy(
+            dateAdded = (now - 3 * oneDayMillis) / 1000L,
+            lastPlayedAt = null,
+        )
+
+        assertTrue(video.isNew(nowMillis = now))
+    }
+
+    @Test
+    fun unwatchedVideoAddedOverAWeekAgoIsNotNew() {
+        val video = Video.sample.copy(
+            dateAdded = (now - 8 * oneDayMillis) / 1000L,
+            lastPlayedAt = null,
+        )
+
+        assertFalse(video.isNew(nowMillis = now))
+    }
+
+    @Test
+    fun watchedVideoIsNeverNewEvenIfRecentlyAdded() {
+        val video = Video.sample.copy(
+            dateAdded = now / 1000L,
+            lastPlayedAt = Date(now),
+        )
+
+        assertFalse(video.isNew(nowMillis = now))
+    }
+
+    @Test
+    fun recentlyModifiedOldVideoIsNotNew() {
+        val video = Video.sample.copy(
+            dateModified = now / 1000L,
+            dateAdded = (now - 8 * oneDayMillis) / 1000L,
+        )
+
+        assertFalse(video.isNew(nowMillis = now))
+    }
+
+    @Test
+    fun zeroThresholdDisablesNewBadge() {
+        val video = Video.sample.copy(dateAdded = now / 1000L)
+
+        assertFalse(video.isNew(nowMillis = now, thresholdDays = 0))
     }
 }

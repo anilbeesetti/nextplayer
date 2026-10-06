@@ -13,17 +13,31 @@ class PlayerActivityTest {
                 returningFromBackground = false,
                 isRequestedUriCurrent = true,
                 hasExplicitPlaylist = true,
+                hasNextMediaItem = true,
             ),
         )
     }
 
     @Test
-    fun currentUriWithoutExplicitPlaylistResumesExistingPlayback() {
+    fun currentUriWithNextItemResumesExistingPlaylist() {
         assertTrue(
             shouldResumeExistingPlayback(
                 returningFromBackground = false,
                 isRequestedUriCurrent = true,
                 hasExplicitPlaylist = false,
+                hasNextMediaItem = true,
+            ),
+        )
+    }
+
+    @Test
+    fun currentUriWithoutNextItemRebuildsAutomaticPlaylist() {
+        assertFalse(
+            shouldResumeExistingPlayback(
+                returningFromBackground = false,
+                isRequestedUriCurrent = true,
+                hasExplicitPlaylist = false,
+                hasNextMediaItem = false,
             ),
         )
     }
@@ -35,7 +49,9 @@ class PlayerActivityTest {
                 returningFromBackground = true,
                 isRequestedUriCurrent = true,
                 hasExplicitPlaylist = true,
+                hasNextMediaItem = false,
             ),
         )
     }
+
 }

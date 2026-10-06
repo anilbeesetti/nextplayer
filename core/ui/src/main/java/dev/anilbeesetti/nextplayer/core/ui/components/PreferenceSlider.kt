@@ -30,6 +30,7 @@ fun PreferenceSlider(
     isLastItem: Boolean = false,
     value: Float,
     valueRange: ClosedFloatingPointRange<Float> = 0f..1f,
+    steps: Int = 0,
     onValueChange: (Float) -> Unit,
     onValueChangeFinished: () -> Unit = {},
     onReset: (() -> Unit)? = null,
@@ -87,6 +88,7 @@ fun PreferenceSlider(
                     enabled = enabled,
                     value = value,
                     valueRange = valueRange,
+                    steps = steps,
                     onValueChange = onValueChange,
                     onValueChangeFinished = onValueChangeFinished,
                 )
