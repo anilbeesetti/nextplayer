@@ -54,10 +54,11 @@ class HistoryViewModel(
             is HistoryAction.PlayVideo -> output.playVideo(action.uri)
 
             is HistoryAction.ClearHistory -> clearHistory()
-            is HistoryAction.ToggleHistoryPaused -> viewModelScope.launch {
+            is HistoryAction.SetHistoryEnabled -> viewModelScope.launch {
                 preferencesRepository.updateApplicationPreferences {
-                    it.copy(isHistoryPaused = !it.isHistoryPaused)
+                    it.copy(isHistoryPaused = !action.enabled)
                 }
+                if (!action.enabled) mediaRepository.clearPlaybackHistory()
             }
         }
     }
@@ -77,5 +78,5 @@ sealed interface HistoryAction {
     data class PlayVideo(val uri: String) : HistoryAction
 
     data object ClearHistory : HistoryAction
-    data object ToggleHistoryPaused : HistoryAction
+    data class SetHistoryEnabled(val enabled: Boolean) : HistoryAction
 }

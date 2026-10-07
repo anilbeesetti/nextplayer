@@ -16,6 +16,8 @@ import kotlinx.coroutines.test.resetMain
 import kotlinx.coroutines.test.runCurrent
 import kotlinx.coroutines.test.runTest
 import kotlinx.coroutines.test.setMain
+import dev.anilbeesetti.nextplayer.settings.screens.medialibrary.MediaLibraryPreferencesViewModel
+import dev.anilbeesetti.nextplayer.settings.screens.medialibrary.MediaLibraryPreferencesUiEvent
 import org.junit.After
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertFalse
@@ -110,18 +112,44 @@ class HistoryViewModelTest {
     }
 
     @Test
-    fun `pause and resume history update preferences without clearing history`() = runTest(dispatcher) {
+    fun `turning off history clears it and turning on preserves new entries`() = runTest(dispatcher) {
         runCurrent()
-        viewModel.onAction(HistoryAction.ToggleHistoryPaused)
+        viewModel.onAction(HistoryAction.SetHistoryEnabled(false))
         runCurrent()
         assertTrue(preferences.applicationPreferences.value.isHistoryPaused)
         assertTrue(viewModel.state.value.preferences.isHistoryPaused)
-        assertEquals(DataState.Success(listOf(Video.sample)), viewModel.state.value.history)
+        assertEquals(DataState.Success(emptyList<Video>()), viewModel.state.value.history)
 
-        viewModel.onAction(HistoryAction.ToggleHistoryPaused)
+        history.value = listOf(Video.sample)
+        viewModel.onAction(HistoryAction.SetHistoryEnabled(true))
         runCurrent()
         assertFalse(preferences.applicationPreferences.value.isHistoryPaused)
         assertFalse(viewModel.state.value.preferences.isHistoryPaused)
+        assertEquals(DataState.Success(listOf(Video.sample)), viewModel.state.value.history)
+    }
+
+    @Test
+    fun `media library settings also clear history only when turning it off`() = runTest(dispatcher) {
+        val settingsViewModel = MediaLibraryPreferencesViewModel(
+            preferencesRepository = preferences,
+            mediaRepository = repository,
+            output = MediaLibraryPreferencesViewModel.Output(navigateUp = {}, openFolders = {}, openThumbnails = {}),
+        )
+        try {
+            runCurrent()
+            settingsViewModel.onAction(MediaLibraryPreferencesUiEvent.SetWatchHistoryEnabled(false))
+            runCurrent()
+            assertTrue(preferences.applicationPreferences.value.isHistoryPaused)
+            assertEquals(emptyList<Video>(), history.value)
+
+            history.value = listOf(Video.sample)
+            settingsViewModel.onAction(MediaLibraryPreferencesUiEvent.SetWatchHistoryEnabled(true))
+            runCurrent()
+            assertFalse(preferences.applicationPreferences.value.isHistoryPaused)
+            assertEquals(listOf(Video.sample), history.value)
+        } finally {
+            settingsViewModel.viewModelScope.cancel()
+        }
     }
 
     @Test

@@ -305,7 +305,11 @@
     <string name="popular_folders">Popular folders</string>
     <string name="clear_history">Clear history</string>
     <string name="turn_off_watch_history">Turn off watch history</string>
-    <string name="resume_history">Resume history</string>
+    <string name="turn_on_watch_history">Turn on watch history</string>
+    <string name="turn_off_watch_history_confirmation">Turning off watch history will clear your watch history and stop recording videos you watch.</string>
+    <string name="turn_on_watch_history_confirmation">Start recording videos you watch in your watch history?</string>
+    <string name="watch_history_turned_off">Watch history is turned off</string>
+    <string name="no_watch_history">No watch history</string>
     <string name="watch_history">Watch history</string>
     <string name="watch_history_desc">Keep a record of videos you watch</string>
     <string name="network_watch_history">Network watch history</string>

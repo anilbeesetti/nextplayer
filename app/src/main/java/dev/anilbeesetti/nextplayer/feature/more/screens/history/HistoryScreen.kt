@@ -3,14 +3,20 @@ package dev.anilbeesetti.nextplayer.feature.more.screens.history
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.itemsIndexed
+import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.DropdownMenu
 import androidx.compose.material3.DropdownMenuItem
+import androidx.compose.material3.ExperimentalMaterial3ExpressiveApi
 import androidx.compose.material3.FilledTonalIconButton
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
@@ -23,6 +29,9 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
+import androidx.compose.runtime.saveable.rememberSaveable
+import androidx.compose.ui.Alignment
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.res.stringResource
@@ -32,6 +41,7 @@ import dev.anilbeesetti.nextplayer.core.ui.R
 import dev.anilbeesetti.nextplayer.core.ui.base.DataState
 import dev.anilbeesetti.nextplayer.core.ui.components.NextDialog
 import dev.anilbeesetti.nextplayer.core.ui.components.NextTopAppBar
+import dev.anilbeesetti.nextplayer.core.ui.components.WatchHistoryConfirmationDialog
 import dev.anilbeesetti.nextplayer.core.ui.components.tvFocusRing
 import dev.anilbeesetti.nextplayer.core.ui.designsystem.NextIcons
 import dev.anilbeesetti.nextplayer.core.ui.extensions.copy
@@ -55,7 +65,8 @@ internal fun HistoryScreenContent(
     state: HistoryUiState,
     onAction: (HistoryAction) -> Unit,
 ) {
-    var showClearConfirmation by remember { mutableStateOf(false) }
+    var showClearConfirmation by rememberSaveable { mutableStateOf(false) }
+    var enableHistoryConfirmation by rememberSaveable { mutableStateOf<Boolean?>(null) }
     var menuExpanded by remember { mutableStateOf(false) }
 
     Scaffold(
@@ -90,11 +101,11 @@ internal fun HistoryScreenContent(
                         ) {
                             DropdownMenuItem(
                                 text = {
-                                    Text(stringResource(if (state.preferences.isHistoryPaused) R.string.resume_history else R.string.turn_off_watch_history))
+                                    Text(stringResource(if (state.preferences.isHistoryPaused) R.string.turn_on_watch_history else R.string.turn_off_watch_history))
                                 },
                                 onClick = {
                                     menuExpanded = false
-                                    onAction(HistoryAction.ToggleHistoryPaused)
+                                    enableHistoryConfirmation = state.preferences.isHistoryPaused
                                 },
                             )
                             DropdownMenuItem(
@@ -119,30 +130,49 @@ internal fun HistoryScreenContent(
                 .clip(RoundedCornerShape(topStart = 24.dp, topEnd = 24.dp))
                 .background(MaterialTheme.colorScheme.background),
         ) {
-            when (val history = state.history) {
-                is DataState.Loading -> CenterCircularProgressBar()
-                is DataState.Error -> Text(
-                    text = history.value.message.orEmpty(),
-                    modifier = Modifier.padding(16.dp),
-                    color = MaterialTheme.colorScheme.error,
-                )
-                is DataState.Success -> LazyColumn(
-                    contentPadding = PaddingValues(8.dp),
-                    verticalArrangement = Arrangement.spacedBy(2.dp),
-                ) {
-                    itemsIndexed(history.value, key = { _, video -> video.uriString }) { index, video ->
-                        VideoListItem(
-                            video = video,
-                            isRecentlyPlayedVideo = false,
-                            preferences = state.preferences,
-                            isFirstItem = index == 0,
-                            isLastItem = index == history.value.lastIndex,
-                            onClick = { onAction(HistoryAction.PlayVideo(video.uriString)) },
-                        )
+            if (state.preferences.isHistoryPaused) {
+                HistoryEmptyState(isHistoryOff = true)
+            } else {
+                when (val history = state.history) {
+                    is DataState.Loading -> CenterCircularProgressBar()
+                    is DataState.Error -> Text(
+                        text = history.value.message.orEmpty(),
+                        modifier = Modifier.padding(16.dp),
+                        color = MaterialTheme.colorScheme.error,
+                    )
+                    is DataState.Success -> if (history.value.isEmpty()) {
+                        HistoryEmptyState(isHistoryOff = false)
+                    } else {
+                        LazyColumn(
+                            contentPadding = PaddingValues(8.dp),
+                            verticalArrangement = Arrangement.spacedBy(2.dp),
+                        ) {
+                            itemsIndexed(history.value, key = { _, video -> video.uriString }) { index, video ->
+                                VideoListItem(
+                                    video = video,
+                                    isRecentlyPlayedVideo = false,
+                                    preferences = state.preferences,
+                                    isFirstItem = index == 0,
+                                    isLastItem = index == history.value.lastIndex,
+                                    onClick = { onAction(HistoryAction.PlayVideo(video.uriString)) },
+                                )
+                            }
+                        }
                     }
                 }
             }
         }
+    }
+
+    enableHistoryConfirmation?.let { enableHistory ->
+        WatchHistoryConfirmationDialog(
+            enableHistory = enableHistory,
+            onConfirm = {
+                onAction(HistoryAction.SetHistoryEnabled(enableHistory))
+                enableHistoryConfirmation = null
+            },
+            onDismiss = { enableHistoryConfirmation = null },
+        )
     }
 
     if (showClearConfirmation) {
@@ -165,6 +195,40 @@ internal fun HistoryScreenContent(
                 }
             },
             content = { Text(stringResource(R.string.clear_history_confirmation)) },
+        )
+    }
+}
+
+@OptIn(ExperimentalMaterial3ExpressiveApi::class)
+@Composable
+private fun HistoryEmptyState(isHistoryOff: Boolean) {
+    Column(
+        modifier = Modifier
+            .fillMaxSize()
+            .verticalScroll(rememberScrollState())
+            .padding(horizontal = 24.dp, vertical = 40.dp),
+        verticalArrangement = Arrangement.Center,
+        horizontalAlignment = Alignment.CenterHorizontally,
+    ) {
+        Box(
+            modifier = Modifier
+                .clip(MaterialTheme.shapes.large)
+                .background(MaterialTheme.colorScheme.surfaceContainerHigh)
+                .padding(24.dp),
+            contentAlignment = Alignment.Center,
+        ) {
+            Icon(
+                imageVector = NextIcons.History,
+                contentDescription = null,
+                tint = MaterialTheme.colorScheme.onSurfaceVariant,
+                modifier = Modifier.size(40.dp),
+            )
+        }
+        Spacer(modifier = Modifier.size(16.dp))
+        Text(
+            text = stringResource(if (isHistoryOff) R.string.watch_history_turned_off else R.string.no_watch_history),
+            style = MaterialTheme.typography.titleLargeEmphasized,
+            textAlign = TextAlign.Center,
         )
     }
 }
