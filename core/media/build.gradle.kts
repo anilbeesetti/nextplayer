@@ -37,6 +37,7 @@ dependencies {
 
     // Network protocols + local streaming proxy
     implementation(libs.smbj)
+    implementation(libs.smbj.rpc)
     implementation(libs.commons.net)
     implementation(libs.sshj)
     implementation(libs.bouncycastle.provider)
@@ -54,6 +55,7 @@ dependencies {
     implementation(libs.koin.annotations)
 
     testImplementation(libs.junit4)
+    testImplementation(libs.mockito.core)
     testImplementation(libs.robolectric)
     testImplementation(libs.kotlinx.coroutines.test)
     androidTestImplementation(libs.androidx.test.ext)
