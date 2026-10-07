@@ -40,6 +40,8 @@
     <string name="quick_settings">Quick Settings</string>
     <string name="autoplay_settings">Autoplay</string>
     <string name="autoplay_settings_description">Automatically play the next video in the current folder</string>
+    <string name="tunneled_playback">Tunneled playback</string>
+    <string name="tunneled_playback_description">Use tunneled playback when supported by the device and media. May improve Dolby Vision and HDR10+ playback on Android TVs. Applies to new playback sessions.</string>
     <string name="pip_settings">Picture in Picture Mode</string>
     <string name="pip_settings_description">Automatically switch to miniature player when tapping Home Button</string>
     <string name="remember_brightness_level">Remember brightness level</string>
