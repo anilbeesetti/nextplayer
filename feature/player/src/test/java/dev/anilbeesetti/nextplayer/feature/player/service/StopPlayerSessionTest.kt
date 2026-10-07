@@ -1,5 +1,6 @@
 package dev.anilbeesetti.nextplayer.feature.player.service
 
+import android.content.Intent
 import android.os.Bundle
 import android.os.Looper
 import androidx.media3.common.MediaItem
@@ -34,7 +35,7 @@ class StopPlayerSessionTest {
     @Test
     fun stoppingSessionSavesLatestPositionBeforeClearingMedia() {
         val saved = mutableListOf<Pair<String, Long>>()
-        withSession(savePosition = { uri, position -> saved += uri to position }) { player, session, callback ->
+        withSession(savePosition = { uri, position -> saved += uri to position }) { player, session, callback, _ ->
             // Closing PiP sends this command after playback has advanced from its last saved position.
             player.setMediaItem(MediaItem.Builder().setMediaId(VIDEO_URI).setUri(VIDEO_URI).build())
             player.seekTo(120_000)
@@ -57,7 +58,7 @@ class StopPlayerSessionTest {
             saveStarted.complete(Unit)
             finishSave.await()
             saved += uri to position
-        }) { player, session, callback ->
+        }) { player, session, callback, service ->
             player.setMediaItem(MediaItem.Builder().setMediaId(VIDEO_URI).setUri(VIDEO_URI).build())
             player.seekTo(120_000)
 
@@ -66,6 +67,7 @@ class StopPlayerSessionTest {
 
             assertTrue(saveStarted.isCompleted)
             assertFalse(result.isDone)
+            assertFalse(shadowOf(service).isStoppedBySelf)
             assertEquals(1, player.mediaItemCount)
             assertTrue(saved.isEmpty())
 
@@ -75,12 +77,13 @@ class StopPlayerSessionTest {
             assertEquals(listOf(VIDEO_URI to 120_000L), saved)
             assertEquals(0, player.mediaItemCount)
             assertEquals(SessionResult.RESULT_SUCCESS, result.get().resultCode)
+            assertTrue(shadowOf(service).isStoppedBySelf)
         }
     }
 
     @Test
     fun stoppingEmptySessionDoesNotWritePosition() {
-        withSession(savePosition = { _, _ -> throw AssertionError("An empty queue has no position to save") }) { player, session, callback ->
+        withSession(savePosition = { _, _ -> throw AssertionError("An empty queue has no position to save") }) { player, session, callback, _ ->
             val result = callback.onCustomCommand(session, controllerInfo(), CustomCommands.STOP_PLAYER_SESSION.sessionCommand, Bundle.EMPTY)
             shadowOf(Looper.getMainLooper()).idle()
 
@@ -89,9 +92,35 @@ class StopPlayerSessionTest {
         }
     }
 
+    @Test
+    fun removingPausedPipTaskWaitsForPositionPersistence() {
+        val finishSave = CompletableDeferred<Unit>()
+        val saved = mutableListOf<Pair<String, Long>>()
+        withSession(savePosition = { uri, position ->
+            finishSave.await()
+            saved += uri to position
+        }) { player, _, _, service ->
+            player.setMediaItem(MediaItem.Builder().setMediaId(VIDEO_URI).setUri(VIDEO_URI).build())
+            player.seekTo(120_000)
+            player.pause()
+
+            service.onTaskRemoved(Intent())
+            shadowOf(Looper.getMainLooper()).idle()
+
+            assertFalse(shadowOf(service).isStoppedBySelf)
+            assertEquals(1, player.mediaItemCount)
+
+            finishSave.complete(Unit)
+            shadowOf(Looper.getMainLooper()).idle()
+
+            assertEquals(listOf(VIDEO_URI to 120_000L), saved)
+            assertTrue(shadowOf(service).isStoppedBySelf)
+        }
+    }
+
     private fun withSession(
         savePosition: suspend (String, Long) -> Unit,
-        check: (ExoPlayer, MediaSession, MediaSession.Callback) -> Unit,
+        check: (ExoPlayer, MediaSession, MediaSession.Callback, PlayerService) -> Unit,
     ) {
         startKoin {
             modules(
@@ -111,7 +140,7 @@ class StopPlayerSessionTest {
         val callback = PlayerService::class.java.getDeclaredField("mediaSessionCallback")
             .apply { isAccessible = true }.get(service) as MediaSession.Callback
         try {
-            check(player, session, callback)
+            check(player, session, callback, service)
         } finally {
             session.release()
             player.release()
