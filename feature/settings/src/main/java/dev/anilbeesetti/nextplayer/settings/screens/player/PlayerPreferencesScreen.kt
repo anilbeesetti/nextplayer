@@ -100,10 +100,14 @@ private fun PlayerPreferencesScreenContent(
                 )
                 PreferenceSlider(
                     title = stringResource(R.string.controller_timeout),
-                    description = stringResource(R.string.seconds, state.preferences.controllerAutoHideTimeout),
+                    description = if (state.preferences.controllerAutoHideTimeout == 0) {
+                        stringResource(R.string.off)
+                    } else {
+                        stringResource(R.string.seconds, state.preferences.controllerAutoHideTimeout)
+                    },
                     icon = NextIcons.Timer,
                     value = state.preferences.controllerAutoHideTimeout.toFloat(),
-                    valueRange = 1.0f..60.0f,
+                    valueRange = 0.0f..600.0f,
                     onValueChange = { onAction(PlayerPreferencesUiEvent.UpdateControlAutoHideTimeout(it.toInt())) },
                     onReset = { onAction(PlayerPreferencesUiEvent.UpdateControlAutoHideTimeout(PlayerPreferences.DEFAULT_CONTROLLER_AUTO_HIDE_TIMEOUT)) },
                     isLastItem = true,

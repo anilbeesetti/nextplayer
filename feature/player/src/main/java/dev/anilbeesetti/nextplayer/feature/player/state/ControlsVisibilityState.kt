@@ -91,6 +91,7 @@ class ControlsVisibilityState(
 
     private fun autoHideControls(duration: Duration = hideAfter) {
         autoHideControlsJob?.cancel()
+        if (duration <= Duration.ZERO) return
         autoHideControlsJob = scope.launch {
             delay(duration)
             if (player.isPlaying) {
