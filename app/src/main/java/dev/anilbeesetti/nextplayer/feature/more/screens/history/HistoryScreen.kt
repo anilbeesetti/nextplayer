@@ -3,12 +3,9 @@ package dev.anilbeesetti.nextplayer.feature.more.screens.history
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
-import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.foundation.rememberScrollState
@@ -16,7 +13,6 @@ import androidx.compose.foundation.verticalScroll
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.DropdownMenu
 import androidx.compose.material3.DropdownMenuItem
-import androidx.compose.material3.ExperimentalMaterial3ExpressiveApi
 import androidx.compose.material3.FilledTonalIconButton
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
@@ -30,8 +26,6 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.runtime.saveable.rememberSaveable
-import androidx.compose.ui.Alignment
-import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.res.stringResource
@@ -45,6 +39,7 @@ import dev.anilbeesetti.nextplayer.core.ui.components.WatchHistoryConfirmationDi
 import dev.anilbeesetti.nextplayer.core.ui.components.tvFocusRing
 import dev.anilbeesetti.nextplayer.core.ui.designsystem.NextIcons
 import dev.anilbeesetti.nextplayer.core.ui.extensions.copy
+import dev.anilbeesetti.nextplayer.feature.more.components.HistoryEmptyState
 import dev.anilbeesetti.nextplayer.feature.videopicker.composables.CenterCircularProgressBar
 import dev.anilbeesetti.nextplayer.feature.videopicker.composables.VideoListItem
 
@@ -131,7 +126,10 @@ internal fun HistoryScreenContent(
                 .background(MaterialTheme.colorScheme.background),
         ) {
             if (state.preferences.isHistoryPaused) {
-                HistoryEmptyState(isHistoryOff = true)
+                HistoryEmptyState(
+                    isHistoryOff = true,
+                    modifier = Modifier.fillMaxSize().verticalScroll(rememberScrollState()),
+                )
             } else {
                 when (val history = state.history) {
                     is DataState.Loading -> CenterCircularProgressBar()
@@ -141,7 +139,10 @@ internal fun HistoryScreenContent(
                         color = MaterialTheme.colorScheme.error,
                     )
                     is DataState.Success -> if (history.value.isEmpty()) {
-                        HistoryEmptyState(isHistoryOff = false)
+                        HistoryEmptyState(
+                            isHistoryOff = false,
+                            modifier = Modifier.fillMaxSize().verticalScroll(rememberScrollState()),
+                        )
                     } else {
                         LazyColumn(
                             contentPadding = PaddingValues(8.dp),
@@ -195,40 +196,6 @@ internal fun HistoryScreenContent(
                 }
             },
             content = { Text(stringResource(R.string.clear_history_confirmation)) },
-        )
-    }
-}
-
-@OptIn(ExperimentalMaterial3ExpressiveApi::class)
-@Composable
-private fun HistoryEmptyState(isHistoryOff: Boolean) {
-    Column(
-        modifier = Modifier
-            .fillMaxSize()
-            .verticalScroll(rememberScrollState())
-            .padding(horizontal = 24.dp, vertical = 40.dp),
-        verticalArrangement = Arrangement.Center,
-        horizontalAlignment = Alignment.CenterHorizontally,
-    ) {
-        Box(
-            modifier = Modifier
-                .clip(MaterialTheme.shapes.large)
-                .background(MaterialTheme.colorScheme.surfaceContainerHigh)
-                .padding(24.dp),
-            contentAlignment = Alignment.Center,
-        ) {
-            Icon(
-                imageVector = NextIcons.History,
-                contentDescription = null,
-                tint = MaterialTheme.colorScheme.onSurfaceVariant,
-                modifier = Modifier.size(40.dp),
-            )
-        }
-        Spacer(modifier = Modifier.size(16.dp))
-        Text(
-            text = stringResource(if (isHistoryOff) R.string.watch_history_turned_off else R.string.no_watch_history),
-            style = MaterialTheme.typography.titleLargeEmphasized,
-            textAlign = TextAlign.Center,
         )
     }
 }

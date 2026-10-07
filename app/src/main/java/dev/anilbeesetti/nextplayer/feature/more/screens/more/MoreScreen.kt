@@ -47,6 +47,7 @@ import dev.anilbeesetti.nextplayer.core.media.services.MediaOperationsService
 import dev.anilbeesetti.nextplayer.core.model.ApplicationPreferences
 import dev.anilbeesetti.nextplayer.core.model.Video
 import dev.anilbeesetti.nextplayer.core.ui.R
+import dev.anilbeesetti.nextplayer.core.ui.base.DataState
 import dev.anilbeesetti.nextplayer.core.ui.components.BindTopLevelFab
 import dev.anilbeesetti.nextplayer.core.ui.components.LocalNavigationBottomPadding
 import dev.anilbeesetti.nextplayer.core.ui.components.NextTopAppBar
@@ -59,6 +60,7 @@ import dev.anilbeesetti.nextplayer.core.ui.components.tvFocusRing
 import dev.anilbeesetti.nextplayer.core.ui.components.tvListFocus
 import dev.anilbeesetti.nextplayer.core.ui.designsystem.NextIcons
 import dev.anilbeesetti.nextplayer.core.ui.extensions.copy
+import dev.anilbeesetti.nextplayer.feature.more.components.HistoryEmptyState
 import dev.anilbeesetti.nextplayer.feature.videopicker.composables.VideoGridItem
 
 @Composable
@@ -155,7 +157,7 @@ internal fun MoreScreenContent(
                     }
                 }
                 HistorySection(
-                    history = state.history.result.orEmpty().take(10),
+                    history = state.history,
                     preferences = state.preferences,
                     onMoreClick = { onAction(MoreAction.OpenHistory) },
                     onVideoClick = { onAction(MoreAction.PlayVideo(it.uriString)) },
@@ -167,11 +169,12 @@ internal fun MoreScreenContent(
 
 @Composable
 private fun HistorySection(
-    history: List<Video>,
+    history: DataState<List<Video>>,
     preferences: ApplicationPreferences,
     onMoreClick: () -> Unit,
     onVideoClick: (Video) -> Unit,
 ) {
+    val videos = history.result.orEmpty().take(10)
     val isTv = LocalContext.current.isTelevision
     val historyButtonFocusRequester = remember { FocusRequester() }
     val historyFocusState = rememberRestorableFocusState()
@@ -192,36 +195,48 @@ private fun HistorySection(
                 onClick = onMoreClick,
                 modifier = Modifier
                     .focusRequester(historyButtonFocusRequester)
-                    .focusProperties { if (isTv && history.isNotEmpty()) down = historyFocusState.requester }
+                    .focusProperties { if (isTv && !preferences.isHistoryPaused && videos.isNotEmpty()) down = historyFocusState.requester }
                     .tvFocusRing(),
             ) {
                 Icon(imageVector = NextIcons.ArrowForward, contentDescription = stringResource(R.string.history))
             }
         }
-        LazyRow(
-            // The screen owns initial focus; this region restores a video only when entered.
-            modifier = Modifier
-                .focusProperties {
-                    onExit = {
-                        if (isTv && requestedFocusDirection == FocusDirection.Up) {
-                            historyButtonFocusRequester.requestFocus()
+        when {
+            preferences.isHistoryPaused -> HistoryEmptyState(
+                isHistoryOff = true,
+                modifier = Modifier.fillMaxWidth(),
+            )
+            history is DataState.Success && videos.isEmpty() -> HistoryEmptyState(
+                isHistoryOff = false,
+                modifier = Modifier.fillMaxWidth(),
+            )
+            else -> {
+                LazyRow(
+                    // The screen owns initial focus; this region restores a video only when entered.
+                    modifier = Modifier
+                        .focusProperties {
+                            onExit = {
+                                if (isTv && requestedFocusDirection == FocusDirection.Up) {
+                                    historyButtonFocusRequester.requestFocus()
+                                }
+                            }
                         }
+                        .restorableFocusGroup(historyFocusState, ready = false),
+                    horizontalArrangement = Arrangement.spacedBy(2.dp),
+                ) {
+                    items(videos, key = { it.uriString }) { video ->
+                        VideoGridItem(
+                            video = video,
+                            isRecentlyPlayedVideo = false,
+                            textStyle = MaterialTheme.typography.bodySmall,
+                            preferences = preferences,
+                            modifier = Modifier
+                                .width(140.dp)
+                                .restorableFocusItem(historyFocusState, video.uriString),
+                            onClick = { onVideoClick(video) },
+                        )
                     }
                 }
-                .restorableFocusGroup(historyFocusState, ready = false),
-            horizontalArrangement = Arrangement.spacedBy(2.dp),
-        ) {
-            items(history, key = { it.uriString }) { video ->
-                VideoGridItem(
-                    video = video,
-                    isRecentlyPlayedVideo = false,
-                    textStyle = MaterialTheme.typography.bodySmall,
-                    preferences = preferences,
-                    modifier = Modifier
-                        .width(140.dp)
-                        .restorableFocusItem(historyFocusState, video.uriString),
-                    onClick = { onVideoClick(video) },
-                )
             }
         }
     }
@@ -230,5 +245,5 @@ private fun HistorySection(
 @Preview
 @Composable
 private fun MoreScreenContentPreview() {
-    MoreScreenContent(state = MoreUiState(), onAction = {})
+    MoreScreenContent(state = MoreUiState(history = DataState.Success(emptyList())), onAction = {})
 }
