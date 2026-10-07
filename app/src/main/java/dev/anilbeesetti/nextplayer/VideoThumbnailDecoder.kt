@@ -95,10 +95,17 @@ class VideoThumbnailDecoder(
         val rawBitmap = MediaMetadataRetriever().use { nativeRetriever ->
             MediaThumbnailRetriever().use { ffmpegRetriever ->
                 nativeRetriever.setDataSource(source)
-                ffmpegRetriever.setDataSource(source)
+                val fallbackRetriever = try {
+                    ffmpegRetriever.setDataSource(source)
+                    ffmpegRetriever
+                } catch (_: IllegalArgumentException) {
+                    // FFmpeg can fail to reopen a trashed MediaStore descriptor even
+                    // when the native retriever can read it. Keep native decoding available.
+                    null
+                }
 
                 // First, try to get embedded picture (album art/metadata thumbnail)
-                val embeddedPicture = nativeRetriever.embeddedPicture ?: ffmpegRetriever.getEmbeddedPicture()
+                val embeddedPicture = nativeRetriever.embeddedPicture ?: fallbackRetriever?.getEmbeddedPicture()
                 val embeddedPictureBitmap = embeddedPicture?.let { pictureBytes ->
                     BitmapFactory.decodeByteArray(pictureBytes, 0, pictureBytes.size)
                 }
@@ -111,19 +118,19 @@ class VideoThumbnailDecoder(
 
                 return@use when (strategy) {
                     is ThumbnailStrategy.FirstFrame -> {
-                        nativeRetriever.getFrameAtTime(0) ?: ffmpegRetriever.getFrameAtTime(0)
+                        nativeRetriever.getFrameAtTime(0) ?: fallbackRetriever?.getFrameAtTime(0)
                     }
 
                     is ThumbnailStrategy.FrameAtPercentage -> {
                         val timeUs = (videoDuration * strategy.percentage * 1000).toLong()
-                        nativeRetriever.getFrameAtTime(timeUs) ?: ffmpegRetriever.getFrameAtTime(timeUs)
+                        nativeRetriever.getFrameAtTime(timeUs) ?: fallbackRetriever?.getFrameAtTime(timeUs)
                     }
 
                     is ThumbnailStrategy.Hybrid -> {
                         val firstFrame = nativeRetriever.getFrameAtTime(0)
                         if (firstFrame == null || isSolidColor(firstFrame)) {
                             val timeUs = (videoDuration * strategy.percentage * 1000).toLong()
-                            nativeRetriever.getFrameAtTime(timeUs) ?: ffmpegRetriever.getFrameAtTime(timeUs)
+                            nativeRetriever.getFrameAtTime(timeUs) ?: fallbackRetriever?.getFrameAtTime(timeUs)
                         } else {
                             firstFrame
                         }
@@ -176,7 +183,9 @@ class VideoThumbnailDecoder(
         val metadata = source.metadata
         when {
             metadata is ContentMetadata -> {
-                setDataSource(options.context, metadata.uri.toAndroidUri())
+                // MediaStore can grant URI access to trashed videos while their paths
+                // are inaccessible. Reuse the descriptor Coil already opened.
+                setDataSource(metadata.assetFileDescriptor.parcelFileDescriptor)
             }
 
             source.fileSystem === FileSystem.SYSTEM -> {
