@@ -14,7 +14,7 @@ internal fun MediaVideo.toVideo(mediaState: MediumStateEntity? = null) = Video(
     width = width,
     path = path,
     size = size,
-    nameWithExtension = title,
+    nameWithExtension = displayName,
     parentPath = parentPath,
     dateModified = dateModified,
     dateAdded = dateAdded,
