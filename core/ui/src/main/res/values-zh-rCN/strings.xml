@@ -510,4 +510,16 @@
     <plurals name="days_count">
         <item quantity="other">%1$d 天</item>
     </plurals>
+    <string name="turn_off_watch_history">关闭观看历史</string>
+    <string name="turn_on_watch_history">开启观看历史</string>
+    <string name="turn_off_watch_history_confirmation">关闭观看历史会清除观看历史并停止记录看过的视频</string>
+    <string name="turn_on_watch_history_confirmation">开始在观看历史中记录看过的视频吗？</string>
+    <string name="watch_history_turned_off">已关闭观看历史</string>
+    <string name="no_watch_history">没有观看历史</string>
+    <string name="watch_history">观看历史</string>
+    <string name="watch_history_desc">记录看过的视频</string>
+    <string name="network_watch_history">网络观看历史</string>
+    <string name="network_watch_history_desc">在观看历史中包括通过网络播放的视频</string>
+    <string name="tunneled_playback">隧道式播放</string>
+    <string name="tunneled_playback_description">设备和媒体支持时使用隧道式播放。可能改善 Android 电视上杜比视界和 HDR10+ 的播放效果。仅应用于新的播放会话。</string>
 </resources>
