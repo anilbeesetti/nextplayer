@@ -58,8 +58,8 @@ import dev.anilbeesetti.nextplayer.core.ui.components.tvFocusRing
 import dev.anilbeesetti.nextplayer.core.ui.designsystem.NextIcons
 
 /**
- * Default path per protocol: SMB expects a bare share name (no leading slash), while FTP and WebDAV
- * are rooted at "/".
+ * Default path per protocol: SMB starts with an empty share name and also accepts `/` to browse
+ * the server's shares, while FTP and WebDAV are rooted at "/".
  */
 private fun defaultPathFor(protocol: NetworkProtocol): String =
     if (protocol == NetworkProtocol.SMB) "" else "/"

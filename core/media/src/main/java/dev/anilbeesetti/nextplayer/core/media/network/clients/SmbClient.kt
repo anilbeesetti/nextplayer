@@ -10,6 +10,11 @@ import com.hierynomus.smbj.auth.AuthenticationContext
 import com.hierynomus.smbj.connection.Connection
 import com.hierynomus.smbj.session.Session
 import com.hierynomus.smbj.share.DiskShare
+import com.hierynomus.smbj.share.PipeShare
+import com.rapid7.client.dcerpc.Interface
+import com.rapid7.client.dcerpc.mssrvs.ServerService
+import com.rapid7.client.dcerpc.transport.SMBTransport
+import com.rapid7.helper.smbj.share.NamedPipe
 import dev.anilbeesetti.nextplayer.core.media.network.NetworkClient
 import dev.anilbeesetti.nextplayer.core.model.NetworkConnection
 import dev.anilbeesetti.nextplayer.core.model.NetworkFile
@@ -20,23 +25,31 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 
 /**
- * SMB2/3 client backed by smbj. [NetworkConnection.path] holds only the share name; browse paths
- * are relative to the share root.
+ * SMB2/3 client backed by smbj. [NetworkConnection.path] holds a share name or `/` to browse
+ * the server's disk shares. Server-root browse paths include the share as their first segment;
+ * paths for a named-share connection remain relative to that share.
  */
-class SmbClient(private val connection: NetworkConnection) : NetworkClient {
+class SmbClient internal constructor(
+    private val connection: NetworkConnection,
+    private val createClient: (SmbConfig) -> SMBClient,
+    private val listShares: (Session) -> List<NetworkFile>,
+) : NetworkClient {
+
+    constructor(connection: NetworkConnection) : this(connection, ::SMBClient, ::listSmbShares)
 
     private var client: SMBClient? = null
     private var smbConnection: Connection? = null
     private var session: Session? = null
 
     private val shareName: String get() = connection.path.trim('/')
+    private val isServerRoot: Boolean get() = connection.path == "/"
 
     override val rootPath: String = ""
 
     override suspend fun connect(): Result<Unit> = withContext(Dispatchers.IO) {
         runCatching {
-            require(shareName.isNotEmpty() && !shareName.contains('/')) {
-                "Path must be just the share name (e.g. Media), without any folders."
+            require(isServerRoot || (shareName.isNotEmpty() && !shareName.contains('/'))) {
+                "Path must be / or just the share name (e.g. Media), without any folders."
             }
             // Disable signing/encryption: avoids Key.getEncoded() crashes on Android.
             val config = SmbConfig.builder()
@@ -58,25 +71,38 @@ class SmbClient(private val connection: NetworkConnection) : NetworkClient {
                 .withWriteBufferSize(8 * 1024 * 1024)
                 .build()
 
-            val smbClient = SMBClient(config)
-            val conn = smbClient.connect(connection.host, connection.effectivePort)
-            val authContext = if (connection.isAnonymous) {
-                AuthenticationContext.anonymous()
-            } else {
-                AuthenticationContext(connection.username, connection.password.toCharArray(), null)
-            }
-            val sess = conn.authenticate(authContext)
-            // Verify the share is reachable and a disk share.
-            (sess.connectShare(shareName) as? DiskShare)?.use { it.list("") }
-                ?: error("Share '$shareName' is not a disk share")
-
+            val smbClient = createClient(config)
             client = smbClient
-            smbConnection = conn
-            session = sess
+            try {
+                val conn = smbClient.connect(connection.host, connection.effectivePort)
+                smbConnection = conn
+                val authContext = if (connection.isAnonymous) {
+                    AuthenticationContext.anonymous()
+                } else {
+                    AuthenticationContext(connection.username, connection.password.toCharArray(), null)
+                }
+                val sess = conn.authenticate(authContext)
+                session = sess
+                if (isServerRoot) {
+                    // Test enumeration as well as authentication before saving a server root.
+                    listShares(sess)
+                } else {
+                    (sess.connectShare(shareName) as? DiskShare)?.use { it.list("") }
+                        ?: error("Share '$shareName' is not a disk share")
+                }
+            } catch (error: Throwable) {
+                closeResources()
+                throw error
+            }
+            Unit
         }
     }
 
     override suspend fun disconnect() = withContext(Dispatchers.IO) {
+        closeResources()
+    }
+
+    private fun closeResources() {
         runCatching { session?.close() }
         runCatching { smbConnection?.close() }
         runCatching { client?.close() }
@@ -91,8 +117,10 @@ class SmbClient(private val connection: NetworkConnection) : NetworkClient {
         runCatching {
             val sess = session ?: error("Not connected")
             val relative = path.trim('/')
-            (sess.connectShare(shareName) as DiskShare).use { share ->
-                share.list(smbPath(relative)).mapNotNull { info ->
+            if (isServerRoot && relative.isEmpty()) return@runCatching listShares(sess)
+            val (selectedShare, sharePath) = shareAndPath(path)
+            (sess.connectShare(selectedShare) as DiskShare).use { share ->
+                share.list(smbPath(sharePath)).mapNotNull { info ->
                     val name = info.fileName
                     if (name == "." || name == ".." || name.endsWith("$")) return@mapNotNull null
                     val isDirectory = info.fileAttributes and 0x10L != 0L // FILE_ATTRIBUTE_DIRECTORY
@@ -111,8 +139,9 @@ class SmbClient(private val connection: NetworkConnection) : NetworkClient {
     override suspend fun fileSize(path: String): Long = withContext(Dispatchers.IO) {
         runCatching {
             val sess = session ?: error("Not connected")
-            (sess.connectShare(shareName) as DiskShare).use { share ->
-                openReadFile(share, path).use { it.fileInformation.standardInformation.endOfFile }
+            val (selectedShare, sharePath) = shareAndPath(path)
+            (sess.connectShare(selectedShare) as DiskShare).use { share ->
+                openReadFile(share, sharePath).use { it.fileInformation.standardInformation.endOfFile }
             }
         }.getOrDefault(-1L)
     }
@@ -120,8 +149,14 @@ class SmbClient(private val connection: NetworkConnection) : NetworkClient {
     override suspend fun openStream(path: String, offset: Long): InputStream = withContext(Dispatchers.IO) {
         if (!isConnected()) connect().getOrThrow()
         val sess = session ?: error("Not connected")
-        val share = sess.connectShare(shareName) as DiskShare
-        val file = openReadFile(share, path)
+        val (selectedShare, sharePath) = shareAndPath(path)
+        val share = sess.connectShare(selectedShare) as DiskShare
+        val file = try {
+            openReadFile(share, sharePath)
+        } catch (error: Throwable) {
+            runCatching { share.close() }
+            throw error
+        }
 
         val rawStream = object : InputStream() {
             private var position = offset
@@ -157,4 +192,22 @@ class SmbClient(private val connection: NetworkConnection) : NetworkClient {
     )
 
     private fun smbPath(relative: String): String = relative.replace('/', '\\')
+
+    private fun shareAndPath(path: String): Pair<String, String> {
+        val relative = path.trim('/')
+        if (!isServerRoot) return shareName to relative
+        require(relative.isNotEmpty()) { "Select a share before opening a file." }
+        return relative.substringBefore('/') to relative.substringAfter('/', "")
+    }
 }
+
+private fun listSmbShares(session: Session): List<NetworkFile> =
+    (session.connectShare("IPC$") as PipeShare).use { share ->
+        NamedPipe(session, share, "srvsvc").use { pipe ->
+            val transport = SMBTransport(pipe)
+            transport.bind(Interface.SRVSVC_V3_0, Interface.NDR_32BIT_V2)
+            ServerService(transport).shares1
+                .filter { it.type and 0xFFFF == 0 && !it.netName.endsWith("$") }
+                .map { NetworkFile(name = it.netName, path = it.netName, isDirectory = true) }
+        }
+    }

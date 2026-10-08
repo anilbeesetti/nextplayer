@@ -41,6 +41,8 @@ robolectric = "4.16.1"
 nextlib = "1.11.1-0.16.0"
 universalChardet = "2.5.0"
 smbj = "0.14.0"
+smbjRpc = "0.12.13"
+mockito = "5.14.2"
 commonsNet = "3.13.0"
 sardineAndroid = "0.9"
 
@@ -106,6 +108,8 @@ kotlinx-serialization-json = { group = "org.jetbrains.kotlinx", name = "kotlinx-
 reorderable = { module = "sh.calvin.reorderable:reorderable", version.ref = "reorderable" }
 robolectric = { module = "org.robolectric:robolectric", version.ref = "robolectric" }
 smbj = { group = "com.hierynomus", name = "smbj", version.ref = "smbj" }
+smbj-rpc = { group = "com.rapid7.client", name = "dcerpc", version.ref = "smbjRpc" }
+mockito-core = { group = "org.mockito", name = "mockito-core", version.ref = "mockito" }
 sshj = { group = "com.hierynomus", name = "sshj", version.ref = "sshj" }
 bouncycastle-provider = { group = "org.bouncycastle", name = "bcprov-jdk18on", version.ref = "bouncyCastle" }
 commons-net = { group = "commons-net", name = "commons-net", version.ref = "commonsNet" }

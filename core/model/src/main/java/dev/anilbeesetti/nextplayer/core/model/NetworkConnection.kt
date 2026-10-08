@@ -17,9 +17,9 @@ enum class NetworkAuthentication {
 /**
  * A saved connection to a network location (SMB share, FTP, SFTP, or WebDAV server).
  *
- * [path] is the protocol-specific root: the share name for SMB, or the base directory for FTP,
- * SFTP, and WebDAV. Imported SSH keys remain in app-private storage and are referenced by their
- * generated [privateKeyFileName].
+ * [path] is the protocol-specific root: a share name or `/` (server root) for SMB, or the base
+ * directory for FTP, SFTP, and WebDAV. Imported SSH keys remain in app-private storage and are
+ * referenced by their generated [privateKeyFileName].
  */
 data class NetworkConnection(
     val id: Long = 0,
