@@ -49,6 +49,7 @@ class PlayerPreferencesViewModel(
             is PlayerPreferencesUiEvent.ShowDialog -> showDialog(action.value)
             is PlayerPreferencesUiEvent.UpdatePlaybackResume -> updatePlaybackResume(action.resume)
             is PlayerPreferencesUiEvent.ToggleAutoplay -> toggleAutoplay()
+            is PlayerPreferencesUiEvent.ToggleTunneledPlayback -> toggleTunneledPlayback()
             is PlayerPreferencesUiEvent.ToggleAutoPip -> toggleAutoPip()
             is PlayerPreferencesUiEvent.ToggleAutoBackgroundPlay -> toggleAutoBackgroundPlay()
             is PlayerPreferencesUiEvent.ToggleRememberBrightnessLevel -> toggleRememberBrightnessLevel()
@@ -89,6 +90,14 @@ class PlayerPreferencesViewModel(
         viewModelScope.launch {
             preferencesRepository.updatePlayerPreferences {
                 it.copy(autoPip = !it.autoPip)
+            }
+        }
+    }
+
+    private fun toggleTunneledPlayback() {
+        viewModelScope.launch {
+            preferencesRepository.updatePlayerPreferences {
+                it.copy(enableTunneledPlayback = !it.enableTunneledPlayback)
             }
         }
     }
@@ -176,6 +185,7 @@ sealed interface PlayerPreferencesUiEvent {
     data class ShowDialog(val value: PlayerPreferenceDialog?) : PlayerPreferencesUiEvent
     data class UpdatePlaybackResume(val resume: Resume) : PlayerPreferencesUiEvent
     data object ToggleAutoplay : PlayerPreferencesUiEvent
+    data object ToggleTunneledPlayback : PlayerPreferencesUiEvent
     data object ToggleAutoPip : PlayerPreferencesUiEvent
     data object ToggleAutoBackgroundPlay : PlayerPreferencesUiEvent
     data object ToggleRememberBrightnessLevel : PlayerPreferencesUiEvent

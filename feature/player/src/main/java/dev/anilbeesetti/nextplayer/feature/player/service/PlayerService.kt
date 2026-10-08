@@ -713,6 +713,7 @@ class PlayerService : MediaSessionService() {
         trackSelector = DefaultTrackSelector(applicationContext).apply {
             setParameters(
                 buildUponParameters()
+                    .setTunnelingEnabled(playerPreferences.enableTunneledPlayback)
                     .setPreferredAudioLanguage(playerPreferences.preferredAudioLanguage)
                     .setPreferredTextLanguage(playerPreferences.preferredSubtitleLanguage),
             )

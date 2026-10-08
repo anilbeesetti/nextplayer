@@ -159,6 +159,13 @@ private fun PlayerPreferencesScreenContent(
                     isChecked = state.preferences.autoplay,
                     onClick = { onAction(PlayerPreferencesUiEvent.ToggleAutoplay) },
                 )
+                PreferenceSwitch(
+                    title = stringResource(id = R.string.tunneled_playback),
+                    description = stringResource(id = R.string.tunneled_playback_description),
+                    icon = NextIcons.Decoder,
+                    isChecked = state.preferences.enableTunneledPlayback,
+                    onClick = { onAction(PlayerPreferencesUiEvent.ToggleTunneledPlayback) },
+                )
                 if (LocalContext.current.isPipFeatureSupported) {
                     PreferenceSwitch(
                         title = stringResource(id = R.string.pip_settings),
