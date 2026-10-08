@@ -540,4 +540,16 @@
         <item quantity="many">%1$d dni</item>
         <item quantity="other">%1$d dni</item>
     </plurals>
+    <string name="tunneled_playback">Odtwarzanie tunelowe</string>
+    <string name="tunneled_playback_description">Jeśli urządzenie i pliki multimedialne obsługują odtwarzanie tunelowane, należy z niego korzystać. Może to poprawić jakość odtwarzania formatów Dolby Vision i HDR10+ na telewizorach z systemem Android TV. Dotyczy nowych sesji odtwarzania.</string>
+    <string name="turn_off_watch_history">Wyłącz historię odtwarzania</string>
+    <string name="turn_on_watch_history">Włącz historię odtwarzania</string>
+    <string name="turn_off_watch_history_confirmation">Wyłączenie historii odtwarzania spowoduje wyczyszczenie historii odtwarzania i wstrzymanie zapisywania wideo, które oglądasz.</string>
+    <string name="turn_on_watch_history_confirmation">Czy chcesz zacząć zapisywać wideo, które oglądasz, w historii odtwarzania?</string>
+    <string name="watch_history_turned_off">Historia odtwarzania jest wyłączona</string>
+    <string name="no_watch_history">Brak historii odtwarzania</string>
+    <string name="watch_history">Historia odtwarzania</string>
+    <string name="watch_history_desc">Prowadź rejestr obejrzanych wideo</string>
+    <string name="network_watch_history">Historia przeglądania sieci</string>
+    <string name="network_watch_history_desc">Dodawaj odtworzone przez sieć wideo do historii odtwarzania.</string>
 </resources>
