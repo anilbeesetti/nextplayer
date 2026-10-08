@@ -526,4 +526,30 @@
     <string name="chapters">Главы</string>
     <string name="chapter_number">Глава %1$d</string>
     <string name="show_chapters">Показать главы</string>
+    <string name="tunneled_playback">Туннельное воспроизведение</string>
+    <string name="tunneled_playback_description">Использовать туннельное воспроизведение, если оно поддерживается устройством и медиафайлом. Может улучшить воспроизведение Dolby Vision и HDR10+ на Android TV. Применяется к новым сеансам воспроизведения.</string>
+    <string name="turn_off_watch_history">Отключить историю просмотра</string>
+    <string name="turn_on_watch_history">Включить историю просмотра</string>
+    <string name="turn_off_watch_history_confirmation">Отключение очистит историю просмотра и остановит сохранение просмотренных видео.</string>
+    <string name="turn_on_watch_history_confirmation">Начать сохранение просмотренных видео в историю?</string>
+    <string name="watch_history_turned_off">История просмотра отключена</string>
+    <string name="no_watch_history">История просмотра пуста</string>
+    <string name="watch_history">История просмотра</string>
+    <string name="watch_history_desc">Сохранять список просмотренных видео</string>
+    <string name="network_watch_history">История просмотра по сети</string>
+    <string name="network_watch_history_desc">Включать видео, воспроизведённые по сети, в историю просмотра.</string>
+    <string name="new_label">НОВОЕ</string>
+    <plurals name="new_videos_count">
+        <item quantity="one">%1$d новое видео</item>
+        <item quantity="few">%1$d новых видео</item>
+        <item quantity="many">%1$d новых видео</item>
+        <item quantity="other">%1$d новых видео</item>
+    </plurals>
+    <string name="mark_new_media">Помечать недавно добавленные медиафайлы как новые</string>
+    <plurals name="days_count">
+        <item quantity="one">%1$d день</item>
+        <item quantity="few">%1$d дня</item>
+        <item quantity="many">%1$d дней</item>
+        <item quantity="other">%1$d дней</item>
+    </plurals>
 </resources>
