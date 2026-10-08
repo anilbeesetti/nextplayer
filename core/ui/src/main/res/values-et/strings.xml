@@ -520,4 +520,16 @@
         <item quantity="one">%1$d päev</item>
         <item quantity="other">%1$d päeva</item>
     </plurals>
+    <string name="tunneled_playback">Tunneldatud taasesitus</string>
+    <string name="tunneled_playback_description">Kui seade ja meedium seda toetavad, siis kasuta tunneldatud taasesitust. See võib parandada Dolby Vision ja HDR10+ taasesitust Android TV seadmetes. Kehtib uute taasesituse sessioonide puhul.</string>
+    <string name="turn_off_watch_history">Lülita vaatamiste ajalugu välja</string>
+    <string name="turn_on_watch_history">Lülita vaatamiste ajalugu sisse</string>
+    <string name="turn_off_watch_history_confirmation">Vaatamiste ajaloo väljalülitamisel kustub senine ajalugu ja enam ei märgita üles videoid, mida vaatad.</string>
+    <string name="turn_on_watch_history_confirmation">Kas hakkad ajalukku üles tähendama videoid, mida vaatad?</string>
+    <string name="watch_history_turned_off">Vaatamiste ajalugu on lülitatud välja</string>
+    <string name="no_watch_history">Vaatamiste ajalugu puudub</string>
+    <string name="watch_history">Vaatamiste ajalugu</string>
+    <string name="watch_history_desc">Sinu vaadatud videote nimed tähendatakse üles</string>
+    <string name="network_watch_history">Võrgust vaatamiste ajalugu</string>
+    <string name="network_watch_history_desc">Märgi üles ka sinu poolt võrgust vaadatud videote nimed.</string>
 </resources>
