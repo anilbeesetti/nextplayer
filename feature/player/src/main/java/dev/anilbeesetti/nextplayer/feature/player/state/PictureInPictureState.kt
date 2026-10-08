@@ -152,7 +152,10 @@ class PictureInPictureState(
         val eventListener = object : PictureInPictureDelegate.OnPictureInPictureEventListener {
             override fun onPictureInPictureEvent(event: PictureInPictureDelegate.Event, config: Configuration?) {
                 when (event) {
-                    PictureInPictureDelegate.Event.ENTER_ANIMATION_START -> onEnterPictureInPictureMode(pipBroadcastReceiver)
+                    // Animation callbacks require API 35; ENTERED also covers older devices.
+                    PictureInPictureDelegate.Event.ENTER_ANIMATION_START,
+                    PictureInPictureDelegate.Event.ENTERED,
+                    -> onEnterPictureInPictureMode(pipBroadcastReceiver)
                     PictureInPictureDelegate.Event.EXITED -> onExitPictureInPictureMode(pipBroadcastReceiver)
                     else -> Unit
                 }
@@ -181,6 +184,7 @@ class PictureInPictureState(
     }
 
     private fun onEnterPictureInPictureMode(receiver: BroadcastReceiver) {
+        if (isInPictureInPictureMode) return
         isInPictureInPictureMode = true
         ContextCompat.registerReceiver(
             activity,
