@@ -530,4 +530,16 @@
         <item quantity="many">%1$d días</item>
         <item quantity="other">%1$d días</item>
     </plurals>
+    <string name="tunneled_playback">Reproducción tunelizada</string>
+    <string name="tunneled_playback_description">Usar reproducción tunelizada cuando el dispositivo y el contenido lo admitan. Puede mejorar la reproducción de Dolby Vision y HDR10+ en Android TV. Se aplica a las nuevas reproducciones.</string>
+    <string name="turn_off_watch_history">Desactivar el historial de reproducciones</string>
+    <string name="turn_on_watch_history">Activar el historial de reproducciones</string>
+    <string name="turn_off_watch_history_confirmation">Desactivar el historial de reproducciones borrará tu historial actual y dejará de registrar los videos que veas.</string>
+    <string name="turn_on_watch_history_confirmation">¿Quieres empezar a registrar los videos que ves en tu historial de reproducciones?</string>
+    <string name="watch_history_turned_off">El historial de reproducciones está desactivado</string>
+    <string name="no_watch_history">Sin historial de reproducciones</string>
+    <string name="watch_history">Historial de reproducciones</string>
+    <string name="watch_history_desc">Guardar un registro de los videos que ves</string>
+    <string name="network_watch_history">Historial de reproducciones en red</string>
+    <string name="network_watch_history_desc">Incluir en el historial los videos reproducidos en red.</string>
 </resources>
