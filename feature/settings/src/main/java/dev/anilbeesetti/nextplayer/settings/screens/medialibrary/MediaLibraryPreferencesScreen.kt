@@ -15,6 +15,9 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.saveable.rememberSaveable
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.pluralStringResource
 import androidx.compose.ui.res.stringResource
@@ -27,6 +30,7 @@ import dev.anilbeesetti.nextplayer.core.ui.components.ClickablePreferenceItem
 import dev.anilbeesetti.nextplayer.core.ui.components.ListSectionTitle
 import dev.anilbeesetti.nextplayer.core.ui.components.NextTopAppBar
 import dev.anilbeesetti.nextplayer.core.ui.components.PreferenceSlider
+import dev.anilbeesetti.nextplayer.core.ui.components.WatchHistoryConfirmationDialog
 import dev.anilbeesetti.nextplayer.core.ui.components.PreferenceSwitch
 import dev.anilbeesetti.nextplayer.core.ui.components.rememberRestorableFocusState
 import dev.anilbeesetti.nextplayer.core.ui.components.restorableFocusGroup
@@ -55,6 +59,7 @@ private fun MediaLibraryPreferencesScreenContent(
     onAction: (MediaLibraryPreferencesUiEvent) -> Unit,
 ) {
     val preferences = state.preferences
+    var enableHistoryConfirmation by rememberSaveable { mutableStateOf<Boolean?>(null) }
 
     val focusState = rememberRestorableFocusState()
 
@@ -136,6 +141,31 @@ private fun MediaLibraryPreferencesScreenContent(
                 )
             }
 
+            ListSectionTitle(text = stringResource(id = R.string.history))
+            Column(
+                verticalArrangement = Arrangement.spacedBy(ListItemDefaults.SegmentedGap),
+            ) {
+                PreferenceSwitch(
+                    modifier = Modifier.restorableFocusItem(focusState, "watch_history"),
+                    title = stringResource(id = R.string.watch_history),
+                    description = stringResource(id = R.string.watch_history_desc),
+                    icon = NextIcons.History,
+                    isChecked = !preferences.isHistoryPaused,
+                    onClick = { enableHistoryConfirmation = preferences.isHistoryPaused },
+                    isFirstItem = true,
+                )
+                PreferenceSwitch(
+                    modifier = Modifier.restorableFocusItem(focusState, "network_watch_history"),
+                    title = stringResource(id = R.string.network_watch_history),
+                    description = stringResource(id = R.string.network_watch_history_desc),
+                    icon = NextIcons.Network,
+                    enabled = !preferences.isHistoryPaused,
+                    isChecked = preferences.includeNetworkWatchHistory,
+                    onClick = { onAction(MediaLibraryPreferencesUiEvent.ToggleIncludeNetworkWatchHistory) },
+                    isLastItem = true,
+                )
+            }
+
             ListSectionTitle(text = stringResource(id = R.string.thumbnail))
             Column(
                 verticalArrangement = Arrangement.spacedBy(ListItemDefaults.SegmentedGap),
@@ -156,6 +186,17 @@ private fun MediaLibraryPreferencesScreenContent(
             }
         }
 
+    }
+
+    enableHistoryConfirmation?.let { enableHistory ->
+        WatchHistoryConfirmationDialog(
+            enableHistory = enableHistory,
+            onConfirm = {
+                onAction(MediaLibraryPreferencesUiEvent.SetWatchHistoryEnabled(enableHistory))
+                enableHistoryConfirmation = null
+            },
+            onDismiss = { enableHistoryConfirmation = null },
+        )
     }
 }
 

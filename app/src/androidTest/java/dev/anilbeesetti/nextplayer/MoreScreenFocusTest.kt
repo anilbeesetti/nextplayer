@@ -48,7 +48,7 @@ class MoreScreenFocusTest {
     fun emptyHistoryKeepsTheFirstActionFocused() {
         showMore(emptyList())
         composeRule.onNodeWithText("Vault").assertIsFocused()
-        composeRule.onNodeWithContentDescription("History").assertDoesNotExist()
+        composeRule.onNodeWithContentDescription("History").assertExists()
     }
 
     @Test

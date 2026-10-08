@@ -1,6 +1,7 @@
 package dev.anilbeesetti.nextplayer.settings.screens.medialibrary
 
 import androidx.lifecycle.viewModelScope
+import dev.anilbeesetti.nextplayer.core.data.repository.MediaRepository
 import dev.anilbeesetti.nextplayer.core.data.repository.PreferencesRepository
 import dev.anilbeesetti.nextplayer.core.model.ApplicationPreferences
 import dev.anilbeesetti.nextplayer.core.ui.base.MviViewModel
@@ -15,6 +16,7 @@ import org.koin.core.annotation.KoinViewModel
 @KoinViewModel
 class MediaLibraryPreferencesViewModel(
     private val preferencesRepository: PreferencesRepository,
+    private val mediaRepository: MediaRepository,
     @InjectedParam internal var output: Output,
 ) : MviViewModel<MediaLibraryPreferencesUiState, MediaLibraryPreferencesUiEvent>() {
 
@@ -44,6 +46,8 @@ class MediaLibraryPreferencesViewModel(
             is MediaLibraryPreferencesUiEvent.OpenThumbnails -> output.openThumbnails()
 
             is MediaLibraryPreferencesUiEvent.ToggleMarkLastPlayedMedia -> toggleMarkLastPlayedMedia()
+            is MediaLibraryPreferencesUiEvent.SetWatchHistoryEnabled -> setWatchHistoryEnabled(action.enabled)
+            is MediaLibraryPreferencesUiEvent.ToggleIncludeNetworkWatchHistory -> toggleIncludeNetworkWatchHistory()
             is MediaLibraryPreferencesUiEvent.UpdateNewVideoThreshold -> updateNewVideoThreshold(action.days)
         }
     }
@@ -52,6 +56,23 @@ class MediaLibraryPreferencesViewModel(
         viewModelScope.launch {
             preferencesRepository.updateApplicationPreferences {
                 it.copy(markLastPlayedMedia = !it.markLastPlayedMedia)
+            }
+        }
+    }
+
+    private fun setWatchHistoryEnabled(enabled: Boolean) {
+        viewModelScope.launch {
+            preferencesRepository.updateApplicationPreferences {
+                it.copy(isHistoryPaused = !enabled)
+            }
+            if (!enabled) mediaRepository.clearPlaybackHistory()
+        }
+    }
+
+    private fun toggleIncludeNetworkWatchHistory() {
+        viewModelScope.launch {
+            preferencesRepository.updateApplicationPreferences {
+                it.copy(includeNetworkWatchHistory = !it.includeNetworkWatchHistory)
             }
         }
     }
@@ -75,5 +96,7 @@ sealed interface MediaLibraryPreferencesUiEvent {
     data object OpenThumbnails : MediaLibraryPreferencesUiEvent
 
     data object ToggleMarkLastPlayedMedia : MediaLibraryPreferencesUiEvent
+    data class SetWatchHistoryEnabled(val enabled: Boolean) : MediaLibraryPreferencesUiEvent
+    data object ToggleIncludeNetworkWatchHistory : MediaLibraryPreferencesUiEvent
     data class UpdateNewVideoThreshold(val days: Int) : MediaLibraryPreferencesUiEvent
 }
