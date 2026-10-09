@@ -540,4 +540,16 @@
         <item quantity="many">%1$d днів</item>
         <item quantity="other">%1$d днів</item>
     </plurals>
+    <string name="tunneled_playback">Тунельне відтворення</string>
+    <string name="tunneled_playback_description">Використовуйте відтворення через тунель, якщо пристрій і медіафайл підтримують цю функцію. Це може покращити відтворення Dolby Vision і HDR10+ на телевізорах Android TV. Застосовується до нових сеансів відтворення.</string>
+    <string name="turn_off_watch_history">Вимкнути історію переглядів</string>
+    <string name="turn_on_watch_history">Увімкнути історію переглядів</string>
+    <string name="turn_off_watch_history_confirmation">Якщо вимкнути історію переглядів, її буде очищено, а відео, які ви дивитеся, більше не записуватимуться.</string>
+    <string name="turn_on_watch_history_confirmation">Почати записувати відео, які ви переглядаєте, в історію переглядів?</string>
+    <string name="watch_history_turned_off">Історію переглядів вимкнено</string>
+    <string name="no_watch_history">Немає історії переглядів</string>
+    <string name="watch_history">Історія переглядів</string>
+    <string name="watch_history_desc">Ведіть облік відео, які ви переглядаєте</string>
+    <string name="network_watch_history">Історія переглядів у мережі</string>
+    <string name="network_watch_history_desc">Додавати відео, відтворені через мережу, до історії переглядів.</string>
 </resources>
