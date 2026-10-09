@@ -10,6 +10,8 @@ import androidx.media3.session.MediaController
 import androidx.media3.session.SessionToken
 import androidx.test.ext.junit.runners.AndroidJUnit4
 import androidx.test.platform.app.InstrumentationRegistry
+import androidx.test.runner.lifecycle.ActivityLifecycleMonitorRegistry
+import androidx.test.runner.lifecycle.Stage
 import com.google.common.util.concurrent.ListenableFuture
 import dev.anilbeesetti.nextplayer.core.data.repository.PreferencesRepository
 import dev.anilbeesetti.nextplayer.core.model.LoopMode
@@ -101,12 +103,18 @@ class PlaylistCompletionTest {
         var activity: PlayerActivity? = null
         var player: MediaController? = null
         try {
-            activity = instrumentation.startActivitySync(
-                Intent(context, PlayerActivity::class.java)
-                    .addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
-                    .setData(uris[0])
-                    .putParcelableArrayListExtra(PlayerApi.API_PLAYLIST, ArrayList(uris)),
-            ) as PlayerActivity
+            val intent = Intent(context, PlayerActivity::class.java)
+                .addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
+                .setData(uris[0])
+                .putParcelableArrayListExtra(PlayerApi.API_PLAYLIST, ArrayList(uris))
+            onMain { context.startActivity(intent) }
+            await("player activity to resume") {
+                activity = ActivityLifecycleMonitorRegistry.getInstance()
+                    .getActivitiesInStage(Stage.RESUMED)
+                    .filterIsInstance<PlayerActivity>()
+                    .firstOrNull()
+                activity != null
+            }
             lateinit var future: ListenableFuture<MediaController>
             onMain {
                 future = MediaController.Builder(context, SessionToken(context, ComponentName(context, PlayerService::class.java))).buildAsync()
@@ -114,10 +122,14 @@ class PlaylistCompletionTest {
             val controller = future.get(30, TimeUnit.SECONDS)
             player = controller
             await("explicit playlist playback") { controller.isPlaying && controller.mediaItemCount == 2 }
-            check(activity, controller, uris)
+            check(requireNotNull(activity), controller, uris)
         } finally {
-            onMain { activity?.finish() }
-            await("activity cleanup") { activity == null || activity.isDestroyed }
+            onMain {
+                Stage.entries.flatMap { ActivityLifecycleMonitorRegistry.getInstance().getActivitiesInStage(it) }
+                    .filterIsInstance<PlayerActivity>()
+                    .forEach { it.finish() }
+            }
+            await("activity cleanup") { activity?.isDestroyed != false }
             onMain {
                 player?.stop()
                 player?.clearMediaItems()
