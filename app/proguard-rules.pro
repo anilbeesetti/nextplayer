@@ -51,3 +51,4 @@
 -dontwarn org.conscrypt.**
 -dontwarn org.ietf.jgss.**
 -dontwarn org.openjsse.**
+-dontwarn java.rmi.UnmarshalException
