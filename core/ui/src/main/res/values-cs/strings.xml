@@ -269,7 +269,7 @@
     <string name="no_results_found">Žádné výseldky nenalezeny</string>
     <string name="search_results">Výsledky hledání</string>
     <string name="now_playing">Právě hraje</string>
-    <string name="no_videos_in_queue">Žádné videa v frontě</string>
+    <string name="no_videos_in_queue">Žádné videa ve frontě</string>
     <string name="remove">Odebrat</string>
     <string name="unknown">Neznámé</string>
     <string name="search">Hledat</string>
@@ -532,4 +532,15 @@
         <item quantity="other">%1$d nových videích</item>
     </plurals>
     <string name="new_label">NOVÉ</string>
+    <string name="tunneled_playback">Tunelované přehrávání</string>
+    <string name="tunneled_playback_description">Použít tunelované přehrávání podle podpory zařízení a videa. Možná zlepší přehrávání Dolby Vision a HDR10+ obsahu na Android televizích. Použije se pro nové přehrávací relace.</string>
+    <string name="network_watch_history_desc">Zaznamenat i videa přehrané přes síť ve historii sledování.</string>
+    <string name="network_watch_history">Síťová historie sledování</string>
+    <string name="watch_history">Historie sledování</string>
+    <string name="no_watch_history">Žádná historie sledování</string>
+    <string name="watch_history_turned_off">Historie sledování je vypnuta</string>
+    <string name="turn_on_watch_history_confirmation">Začít zaznamenávat zhlédnuté videa ve historii sledování?</string>
+    <string name="turn_off_watch_history_confirmation">Vypnutím historie sledování vymaže historii sledování a přestane zaznamenávat zhlédnuté videa.</string>
+    <string name="turn_on_watch_history">Zapnout historii sledování</string>
+    <string name="turn_off_watch_history">Vypnout historii sledování</string>
 </resources>
