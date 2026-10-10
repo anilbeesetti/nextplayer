@@ -16,6 +16,11 @@ data class ApplicationPreferences(
     val mediaViewMode: MediaViewMode = MediaViewMode.FOLDERS,
     val mediaLayoutMode: MediaLayoutMode = MediaLayoutMode.LIST,
 
+    // Network browser
+    val networkSortBy: Sort.By = Sort.By.TITLE,
+    val networkSortOrder: Sort.Order = Sort.Order.ASCENDING,
+    val networkMediaLayoutMode: MediaLayoutMode = MediaLayoutMode.LIST,
+
     // Fields
     val showDurationField: Boolean = true,
     val showFolderDurationField: Boolean = true,
