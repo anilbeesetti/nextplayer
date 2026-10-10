@@ -1,5 +1,6 @@
 package dev.anilbeesetti.nextplayer
 
+import android.content.Intent
 import android.graphics.Color
 import android.os.Bundle
 import androidx.activity.SystemBarStyle
@@ -76,6 +77,7 @@ import dev.anilbeesetti.nextplayer.navigation.mediaNavGraph
 import dev.anilbeesetti.nextplayer.navigation.moreNavGraph
 import dev.anilbeesetti.nextplayer.navigation.navigationTransition
 import dev.anilbeesetti.nextplayer.navigation.networkNavGraph
+import dev.anilbeesetti.nextplayer.navigation.openPlaylist
 import dev.anilbeesetti.nextplayer.navigation.playlistNavGraph
 import dev.anilbeesetti.nextplayer.navigation.rememberTopLevelNavState
 import dev.anilbeesetti.nextplayer.navigation.settingsNavGraph
@@ -90,9 +92,20 @@ class MainActivity : FragmentActivity() {
 
     private val viewModel: MainViewModel by viewModel()
 
+    private var pendingPlaylistId by mutableStateOf<Long?>(null)
+
+    override fun onNewIntent(intent: Intent) {
+        super.onNewIntent(intent)
+        setIntent(intent)
+        pendingPlaylistId = PlaylistShortcut.playlistId(intent)
+    }
+
     @OptIn(ExperimentalPermissionsApi::class)
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+        if (savedInstanceState == null) {
+            pendingPlaylistId = PlaylistShortcut.playlistId(intent)
+        }
         systemService.initialize(this@MainActivity)
         mediaOperationsService.initialize(this@MainActivity)
 
@@ -129,6 +142,13 @@ class MainActivity : FragmentActivity() {
                     color = MaterialTheme.colorScheme.surfaceContainer,
                 ) {
                     val navState = rememberTopLevelNavState()
+
+                    LaunchedEffect(pendingPlaylistId) {
+                        pendingPlaylistId?.let { playlistId ->
+                            navState.openPlaylist(playlistId)
+                            pendingPlaylistId = null
+                        }
+                    }
 
                     val mediaStack = navState.backStacks.getValue(TopLevelDestination.MEDIA.route)
                     val playlistStack = navState.backStacks.getValue(TopLevelDestination.PLAYLISTS.route)

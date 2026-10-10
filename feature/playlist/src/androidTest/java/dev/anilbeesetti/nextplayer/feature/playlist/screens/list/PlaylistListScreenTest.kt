@@ -129,6 +129,41 @@ class PlaylistListScreenTest {
     }
 
     @Test
+    fun shortcutActionUsesTheSelectedPlaylist() {
+        val playlist = playlistSummary()
+        var selectedPlaylist: PlaylistSummary? = null
+        composeRule.setContent {
+            NextPlayerTheme {
+                PlaylistListScreenContent(
+                    state = PlaylistListUiState(playlistsDataState = DataState.Success(listOf(playlist))),
+                    onAddToHomeScreen = { selectedPlaylist = it },
+                )
+            }
+        }
+
+        composeRule.onNodeWithContentDescription("Playlist actions").performClick()
+        composeRule.onNodeWithText("Add to home screen").performClick()
+
+        composeRule.runOnIdle { assertEquals(playlist, selectedPlaylist) }
+        composeRule.onAllNodesWithText("Add to home screen").assertCountEquals(0)
+    }
+
+    @Test
+    fun unsupportedLaunchersDoNotOfferShortcutAction() {
+        composeRule.setContent {
+            NextPlayerTheme {
+                PlaylistListScreenContent(
+                    state = PlaylistListUiState(playlistsDataState = DataState.Success(listOf(playlistSummary()))),
+                )
+            }
+        }
+
+        composeRule.onNodeWithContentDescription("Playlist actions").performClick()
+
+        composeRule.onAllNodesWithText("Add to home screen").assertCountEquals(0)
+    }
+
+    @Test
     fun deleteDialogEmitsDeleteAction() {
         val playlist = playlistSummary()
         val actions = mutableListOf<PlaylistUiAction>()

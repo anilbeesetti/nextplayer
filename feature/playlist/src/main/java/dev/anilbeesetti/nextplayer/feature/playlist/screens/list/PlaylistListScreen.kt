@@ -62,6 +62,7 @@ import dev.anilbeesetti.nextplayer.core.ui.extensions.copy
 @Composable
 fun PlaylistListScreen(
     viewModel: PlaylistListViewModel,
+    onAddToHomeScreen: ((PlaylistSummary) -> Unit)? = null,
 ) {
     val state by viewModel.state.collectAsStateWithLifecycle()
 
@@ -70,6 +71,7 @@ fun PlaylistListScreen(
     PlaylistListScreenContent(
         state = state,
         onAction = viewModel::onAction,
+        onAddToHomeScreen = onAddToHomeScreen,
     )
 }
 
@@ -77,6 +79,7 @@ fun PlaylistListScreen(
 internal fun PlaylistListScreenContent(
     state: PlaylistListUiState,
     onAction: (PlaylistUiAction) -> Unit = {},
+    onAddToHomeScreen: ((PlaylistSummary) -> Unit)? = null,
 ) {
     val openM3UFileLauncher = rememberLauncherForActivityResult(ActivityResultContracts.OpenDocument()) { uri ->
         uri?.let { onAction(PlaylistUiAction.CreateM3UFile(it)) }
@@ -151,6 +154,7 @@ internal fun PlaylistListScreenContent(
                                     onClick = { onAction(PlaylistUiAction.OnPlaylistClick(playlist)) },
                                     onRename = { onAction(PlaylistUiAction.ShowRenameDialogFor(playlist)) },
                                     onDelete = { onAction(PlaylistUiAction.ShowDeleteDialogFor(playlist)) },
+                                    onAddToHomeScreen = onAddToHomeScreen?.let { { it(playlist) } },
                                 )
                             }
                         }
@@ -415,6 +419,7 @@ private fun PlaylistRow(
     onClick: () -> Unit,
     onRename: () -> Unit,
     onDelete: () -> Unit,
+    onAddToHomeScreen: (() -> Unit)?,
 ) {
     var menuExpanded by rememberSaveable { mutableStateOf(false) }
     val videoCount = pluralStringResource(
@@ -465,6 +470,16 @@ private fun PlaylistRow(
                     expanded = menuExpanded,
                     onDismissRequest = { menuExpanded = false },
                 ) {
+                    onAddToHomeScreen?.let { addShortcut ->
+                        DropdownMenuItem(
+                            text = { Text(stringResource(R.string.add_to_home_screen)) },
+                            leadingIcon = { Icon(NextIcons.Home, contentDescription = null) },
+                            onClick = {
+                                menuExpanded = false
+                                addShortcut()
+                            },
+                        )
+                    }
                     DropdownMenuItem(
                         text = { Text(stringResource(R.string.rename_playlist)) },
                         leadingIcon = { Icon(NextIcons.Edit, contentDescription = null) },
