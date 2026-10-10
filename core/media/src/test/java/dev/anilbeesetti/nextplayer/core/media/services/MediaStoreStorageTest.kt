@@ -55,6 +55,7 @@ class MediaStoreStorageTest {
     @Before
     fun setUp() {
         Scanner.paths.clear()
+        Scanner.failure = null
         ShadowContentResolver.registerProviderInternal("media", provider)
     }
 
@@ -87,7 +88,9 @@ class MediaStoreStorageTest {
     @Test
     fun `mount and removal update videos and folders without video-table notifications`() = runBlocking {
         for (folders in listOf(false, true)) {
+            Scanner.paths.clear()
             provider.video = null
+            provider.requiredScanPath = usb.path
             val emissions = Channel<List<*>>(Channel.UNLIMITED)
             val flow = if (folders) service.observeFolders() else service.observeVideos()
             val collector = launch { flow.collect { emissions.send(it) } }
@@ -97,6 +100,7 @@ class MediaStoreStorageTest {
                     provider.video = video
                     sendStorageBroadcast(Intent.ACTION_MEDIA_MOUNTED)
                     assertEquals(1, emissions.receive().size)
+                    assertTrue(Scanner.paths.contains(usb.path))
                     provider.video = null
                     sendStorageBroadcast(Intent.ACTION_MEDIA_UNMOUNTED)
                     assertEquals(emptyList<Any>(), emissions.receive())
@@ -107,6 +111,30 @@ class MediaStoreStorageTest {
             } finally {
                 collector.cancelAndJoin()
             }
+        }
+    }
+
+    @Test
+    fun `a failed storage scan does not stop library updates`() = runBlocking {
+        mountUsb()
+        Scanner.failure = SecurityException("Drive became inaccessible")
+        provider.video = video
+        val emissions = Channel<List<MediaVideo>>(Channel.UNLIMITED)
+        val collector = launch { service.observeVideos().collect { emissions.send(it) } }
+        try {
+            withTimeout(5_000) {
+                assertEquals(video.path, emissions.receive().single().path)
+                provider.video = null
+                sendStorageBroadcast(Intent.ACTION_MEDIA_UNMOUNTED)
+                assertEquals(emptyList<MediaVideo>(), emissions.receive())
+                Scanner.failure = null
+                provider.video = video
+                provider.requiredScanPath = usb.path
+                sendStorageBroadcast(Intent.ACTION_MEDIA_MOUNTED)
+                assertEquals(video.path, emissions.receive().single().path)
+            }
+        } finally {
+            collector.cancelAndJoin()
         }
     }
 
@@ -128,10 +156,12 @@ class MediaStoreStorageTest {
     class Scanner {
         companion object {
             val paths: MutableList<String> = Collections.synchronizedList(mutableListOf())
+            var failure: RuntimeException? = null
 
             @JvmStatic
             @Implementation
             fun scanFile(context: Context, paths: Array<String>, mimeTypes: Array<String>?, callback: MediaScannerConnection.OnScanCompletedListener?) {
+                failure?.let { throw it }
                 paths.forEach {
                     this.paths.add(it)
                     callback?.onScanCompleted(it, null)

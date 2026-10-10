@@ -1,19 +1,28 @@
 package dev.anilbeesetti.nextplayer.core.media.services
 
+import android.content.BroadcastReceiver
 import android.content.ContentUris
 import android.content.Context
+import android.content.Intent
+import android.content.IntentFilter
 import android.database.ContentObserver
 import android.database.Cursor
 import android.net.Uri
 import android.os.Build
 import android.os.Bundle
+import android.os.Environment
 import android.provider.MediaStore
+import android.util.Log
 import androidx.annotation.RequiresApi
+import androidx.core.content.ContextCompat
 import dev.anilbeesetti.nextplayer.core.common.di.DiQualifiers
 import dev.anilbeesetti.nextplayer.core.common.extensions.VIDEO_COLLECTION_URI
+import dev.anilbeesetti.nextplayer.core.common.extensions.getStorageVolumes
 import dev.anilbeesetti.nextplayer.core.common.extensions.prettyName
+import dev.anilbeesetti.nextplayer.core.common.extensions.scanStorage
 import java.io.File
 import kotlin.time.Duration.Companion.milliseconds
+import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.FlowPreview
@@ -26,6 +35,7 @@ import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.flow.flowOn
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.shareIn
+import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import org.koin.core.annotation.Named
 import org.koin.core.annotation.Single
@@ -68,14 +78,54 @@ class MediaStoreMediaService(
      */
     @OptIn(FlowPreview::class)
     private val mediaChanges: Flow<Unit> = callbackFlow {
+        fun scanVolumes(roots: List<File>) = launch(Dispatchers.IO) {
+            for (root in roots) {
+                try {
+                    context.scanStorage(root.path)
+                } catch (e: CancellationException) {
+                    throw e
+                } catch (e: Exception) {
+                    // The drive may have been removed or become inaccessible during the scan.
+                    Log.w("MediaStoreMediaService", "Unable to scan storage volume", e)
+                }
+            }
+            trySend(Unit)
+        }
+
         val observer = object : ContentObserver(null) {
             override fun onChange(selfChange: Boolean) {
                 trySend(Unit)
             }
         }
+        val storageReceiver = object : BroadcastReceiver() {
+            override fun onReceive(context: Context, intent: Intent) {
+                trySend(Unit)
+                if (intent.action == Intent.ACTION_MEDIA_MOUNTED) {
+                    intent.data?.path?.let { scanVolumes(listOf(File(it))) }
+                }
+            }
+        }
+        val storageFilter = IntentFilter().apply {
+            addAction(Intent.ACTION_MEDIA_MOUNTED)
+            addAction(Intent.ACTION_MEDIA_UNMOUNTED)
+            addAction(Intent.ACTION_MEDIA_EJECT)
+            addAction(Intent.ACTION_MEDIA_REMOVED)
+            addAction(Intent.ACTION_MEDIA_BAD_REMOVAL)
+            addAction(Intent.ACTION_MEDIA_SCANNER_FINISHED)
+            addDataScheme("file")
+        }
+        // These are protected system broadcasts. MediaProvider can run under its own UID,
+        // so the receiver must also accept broadcasts from outside the application's UID.
+        ContextCompat.registerReceiver(context, storageReceiver, storageFilter, ContextCompat.RECEIVER_EXPORTED)
         context.contentResolver.registerContentObserver(VIDEO_COLLECTION_URI, true, observer)
         trySend(Unit)
-        awaitClose { context.contentResolver.unregisterContentObserver(observer) }
+        // Index already connected removable storage when opening the library. The primary
+        // volume is indexed by Android and does not need another scan on each subscription.
+        scanVolumes(context.getStorageVolumes().filter { it != Environment.getExternalStorageDirectory() })
+        awaitClose {
+            context.contentResolver.unregisterContentObserver(observer)
+            context.unregisterReceiver(storageReceiver)
+        }
     }
         .debounce(OBSERVER_DEBOUNCE_MS.milliseconds)
         .shareIn(
