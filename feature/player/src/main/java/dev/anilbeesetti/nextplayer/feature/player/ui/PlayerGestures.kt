@@ -54,6 +54,7 @@ fun PlayerGestures(
                     )
                 }
                 .pointerInput(
+                    seekGestureState,
                     controlsVisibilityState.controlsLocked,
                     pictureInPictureState.isInPictureInPictureMode,
                 ) {

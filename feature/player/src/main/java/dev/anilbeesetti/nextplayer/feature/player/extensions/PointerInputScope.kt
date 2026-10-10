@@ -18,6 +18,7 @@ import androidx.compose.ui.input.pointer.PointerInputScope
 import androidx.compose.ui.input.pointer.positionChange
 import androidx.compose.ui.input.pointer.positionChanged
 import kotlin.math.abs
+import kotlinx.coroutines.CancellationException
 
 /**
  * Detects custom transform gestures including pan, zoom, and rotation gestures.
@@ -163,16 +164,22 @@ suspend fun PointerInputScope.detectCustomHorizontalDragGestures(
         }
         if (drag != null && currentEvent.changes.count { it.pressed } == 1) {
             onDragStart.invoke(drag.position)
-            onHorizontalDrag(drag, overSlop)
-            if (
-                horizontalDrag(drag.id) {
-                    onHorizontalDrag(it, it.positionChange().x)
-                    it.consume()
+            try {
+                onHorizontalDrag(drag, overSlop)
+                if (
+                    horizontalDrag(drag.id) {
+                        onHorizontalDrag(it, it.positionChange().x)
+                        it.consume()
+                    }
+                ) {
+                    onDragEnd()
+                } else {
+                    onDragCancel()
                 }
-            ) {
-                onDragEnd()
-            } else {
+            } catch (e: CancellationException) {
+                // Restarting/removing pointerInput cancels the coroutine without a pointer up.
                 onDragCancel()
+                throw e
             }
         }
     }

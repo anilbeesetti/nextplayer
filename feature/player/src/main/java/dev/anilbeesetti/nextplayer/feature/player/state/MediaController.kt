@@ -14,6 +14,7 @@ import androidx.lifecycle.compose.LifecycleStartEffect
 import androidx.media3.common.util.UnstableApi
 import androidx.media3.session.MediaController
 import androidx.media3.session.SessionToken
+import dev.anilbeesetti.nextplayer.feature.player.extensions.setIsScrubbingModeEnabled
 import dev.anilbeesetti.nextplayer.feature.player.service.PlayerService
 import kotlinx.coroutines.guava.await
 import kotlinx.coroutines.launch
@@ -44,6 +45,8 @@ fun rememberMediaController(
         onStopOrDispose {
             connection.cancel()
             try {
+                // The service outlives these controls; clear suppression while still connected.
+                mediaController?.setIsScrubbingModeEnabled(false)
                 currentOnBeforeRelease()
             } finally {
                 mediaController = null
