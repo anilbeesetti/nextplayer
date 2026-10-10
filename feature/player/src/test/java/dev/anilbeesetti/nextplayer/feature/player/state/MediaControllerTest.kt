@@ -3,6 +3,7 @@ package dev.anilbeesetti.nextplayer.feature.player.state
 import android.app.Application
 import android.content.ComponentName
 import android.content.Intent
+import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.SideEffect
@@ -16,6 +17,12 @@ import androidx.media3.exoplayer.ExoPlayer
 import androidx.media3.session.MediaController
 import androidx.media3.session.MediaSession
 import androidx.media3.session.MediaSessionService
+import androidx.media3.session.SessionCommand
+import androidx.media3.session.SessionResult
+import com.google.common.util.concurrent.Futures
+import com.google.common.util.concurrent.ListenableFuture
+import dev.anilbeesetti.nextplayer.feature.player.extensions.setIsScrubbingModeEnabled
+import dev.anilbeesetti.nextplayer.feature.player.service.CustomCommands
 import dev.anilbeesetti.nextplayer.feature.player.service.PlayerService
 import org.junit.Assert.assertFalse
 import org.junit.Assert.assertNotSame
@@ -39,7 +46,7 @@ class MediaControllerTest {
     @Test
     fun controllerReconnectsOnStartAndReleasesOnStopOrCompositionDisposal() {
         val player = composeRule.runOnIdle { ExoPlayer.Builder(composeRule.activity).build() }
-        val session = composeRule.runOnIdle { MediaSession.Builder(composeRule.activity, player).build() }
+        val session = composeRule.runOnIdle { scrubbingSession(player) }
         val service = composeRule.runOnIdle { bindSessionService(session) }
         val owner = TestLifecycleOwner()
         val visible = mutableStateOf(true)
@@ -62,27 +69,33 @@ class MediaControllerTest {
             composeRule.waitForIdle()
             composeRule.waitUntil { controller != null }
             val first = composeRule.runOnIdle { requireNotNull(controller).also { it.play() } }
+            composeRule.runOnIdle { first.setIsScrubbingModeEnabled(true) }
             composeRule.runOnIdle {
                 assertTrue(player.playWhenReady)
+                assertTrue(player.isScrubbingModeEnabled)
                 owner.registry.currentState = Lifecycle.State.CREATED
             }
             composeRule.runOnIdle {
                 assertNull(controller)
                 assertFalse(first.isConnected)
                 assertFalse(player.playWhenReady)
+                assertFalse(player.isScrubbingModeEnabled)
                 owner.registry.currentState = Lifecycle.State.STARTED
             }
             composeRule.waitForIdle()
             composeRule.waitUntil { controller != null }
             val second = composeRule.runOnIdle { requireNotNull(controller) }
+            composeRule.runOnIdle { second.setIsScrubbingModeEnabled(true) }
             composeRule.runOnIdle {
                 assertNotSame(first, second)
                 assertTrue(second.isConnected)
+                assertTrue(player.isScrubbingModeEnabled)
                 visible.value = false
             }
             composeRule.runOnIdle {
                 assertNull(controller)
                 assertFalse(second.isConnected)
+                assertFalse(player.isScrubbingModeEnabled)
             }
         } finally {
             composeRule.runOnIdle {
@@ -93,6 +106,29 @@ class MediaControllerTest {
             }
         }
     }
+
+    private fun scrubbingSession(player: ExoPlayer): MediaSession = MediaSession.Builder(composeRule.activity, player)
+        .setCallback(object : MediaSession.Callback {
+            override fun onConnect(session: MediaSession, controller: MediaSession.ControllerInfo): MediaSession.ConnectionResult =
+                MediaSession.ConnectionResult.AcceptedResultBuilder(session)
+                    .setAvailableSessionCommands(
+                        MediaSession.ConnectionResult.DEFAULT_SESSION_COMMANDS.buildUpon()
+                            .add(CustomCommands.SET_IS_SCRUBBING_MODE_ENABLED.sessionCommand)
+                            .build(),
+                    )
+                    .build()
+
+            override fun onCustomCommand(
+                session: MediaSession,
+                controller: MediaSession.ControllerInfo,
+                customCommand: SessionCommand,
+                args: Bundle,
+            ): ListenableFuture<SessionResult> {
+                player.setIsScrubbingModeEnabled(args.getBoolean(CustomCommands.IS_SCRUBBING_MODE_ENABLED_KEY))
+                return Futures.immediateFuture(SessionResult(SessionResult.RESULT_SUCCESS))
+            }
+        })
+        .build()
 
     @Test
     fun connectionCompletingAfterStopIsReleasedWithoutBeingPublished() {
