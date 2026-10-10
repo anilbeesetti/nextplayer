@@ -22,7 +22,7 @@ import dev.anilbeesetti.nextplayer.core.database.entities.PlaylistItemEntity
         PlaylistEntity::class,
         PlaylistItemEntity::class,
     ],
-    version = 12,
+    version = 13,
     exportSchema = true,
 )
 abstract class MediaDatabase : RoomDatabase() {
@@ -37,6 +37,17 @@ abstract class MediaDatabase : RoomDatabase() {
 
     companion object {
         const val DATABASE_NAME = "media_db"
+
+        val MIGRATION_12_13 = object : Migration(12, 13) {
+            override fun migrate(db: SupportSQLiteDatabase) {
+                // Older vault records did not save the original dates. Leave them unknown (0)
+                // instead of treating the time they were hidden or restored as their added date.
+                db.execSQL("ALTER TABLE `hidden_video` ADD COLUMN `date_added` INTEGER NOT NULL DEFAULT 0")
+                db.execSQL("ALTER TABLE `hidden_video` ADD COLUMN `date_modified` INTEGER NOT NULL DEFAULT 0")
+                db.execSQL("ALTER TABLE `media_state` ADD COLUMN `original_date_added` INTEGER")
+                db.execSQL("ALTER TABLE `media_state` ADD COLUMN `original_date_modified` INTEGER")
+            }
+        }
 
         val MIGRATION_1_2 = object : Migration(1, 2) {
             override fun migrate(db: SupportSQLiteDatabase) {
