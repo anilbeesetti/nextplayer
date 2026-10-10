@@ -1,0 +1,20 @@
+Next Player issue #1972 verification — 2026-10-10
+Source commit: a545711eee0c796fac87cc2ad88dd659007ae7d4
+
+./gradlew assembleDebug test ktlintCheck --max-workers=4: PASS
+JUnit XML totals: 288 tests, 0 failures, 0 errors, 0 skipped.
+Direct ktlint 1.0.1 check of changed Kotlin sources: PASS.
+
+Device: disposable Pixel 2 AVD, Android 8.1/API 27, x86, 480x800, software emulation.
+MainActivityPlaylistShortcutTest: PASS (1 test).
+PlaylistListScreenTest: PASS (8 tests).
+
+Manual flow: create Daily rituals from a local sample clip; open playlist menu;
+choose Add to home screen; accept launcher Add Automatically confirmation.
+Launcher shows Daily rituals. Android shortcut service records pinned playlist_3
+with OPEN_PLAYLIST intent, explicit MainActivity, flags 0x34000000, and playlist_id=3.
+Force-stop the app and tap the pinned icon: Daily rituals detail opens directly,
+with Shortcut-demo and the Play button visible. No application crash logs.
+
+API 30 emulator validation was blocked by repeated Android system process restarts
+and watchdog timeouts during software-emulated startup.
