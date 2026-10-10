@@ -42,6 +42,7 @@ dependencies {
     implementation(libs.koin.annotations)
 
     testImplementation(libs.junit4)
+    testImplementation(libs.androidx.activity.ktx)
     testImplementation(libs.androidx.datastore.core)
     testImplementation(libs.androidx.room.runtime)
     testImplementation(libs.robolectric)

@@ -15,6 +15,7 @@ import dev.anilbeesetti.nextplayer.core.media.services.MediaOperationsService
 import dev.anilbeesetti.nextplayer.core.media.services.TransferEvent
 import dev.anilbeesetti.nextplayer.core.media.services.TransferMode
 import dev.anilbeesetti.nextplayer.core.model.Video
+import dev.anilbeesetti.nextplayer.core.model.isNew
 import java.io.File
 import java.util.UUID
 import kotlinx.coroutines.CancellationException
@@ -52,6 +53,29 @@ class LocalVaultRepositoryTest {
     @After
     fun tearDown() {
         database.close()
+    }
+
+    @Test
+    fun hideVideosPreservesOriginalDatesAfterRepositoryRecreation() = runBlocking {
+        val context = ApplicationProvider.getApplicationContext<Context>()
+        val sourceFile = File(context.cacheDir, "vault-dates-${UUID.randomUUID()}.mp4")
+            .apply { writeText("original video") }
+        val dao = database.hiddenVideoDao()
+        val original = videoFor(sourceFile).copy(dateAdded = 1_600_000_000L, dateModified = 1_600_000_100L)
+        val repository = LocalVaultRepository(dao, database.mediumStateDao(), MovingMediaOperationsService(), context)
+
+        try {
+            repository.hideVideos(listOf(original))
+            val recreatedRepository = LocalVaultRepository(dao, database.mediumStateDao(), MovingMediaOperationsService(), context)
+            val hiddenVideo = recreatedRepository.observeHiddenVideos().first().single()
+
+            assertEquals(original.dateAdded, hiddenVideo.dateAdded)
+            assertEquals(original.dateModified, hiddenVideo.dateModified)
+            assertFalse(hiddenVideo.isNew())
+        } finally {
+            sourceFile.delete()
+            dao.getAll().first().forEach { File(it.vaultPath).delete() }
+        }
     }
 
     @Test
