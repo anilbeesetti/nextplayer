@@ -14,8 +14,9 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
-import androidx.compose.foundation.lazy.LazyColumn
-import androidx.compose.foundation.lazy.itemsIndexed
+import androidx.compose.foundation.lazy.grid.GridCells
+import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
+import androidx.compose.foundation.lazy.grid.itemsIndexed
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.selection.SelectionContainer
 import androidx.compose.material3.Button
@@ -28,11 +29,15 @@ import androidx.compose.material3.LinearProgressIndicator
 import androidx.compose.material3.ListItemDefaults
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
+import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.material3.surfaceColorAtElevation
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.saveable.rememberSaveable
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -45,8 +50,11 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import dev.anilbeesetti.nextplayer.core.common.Utils
+import dev.anilbeesetti.nextplayer.core.model.MediaLayoutMode
 import dev.anilbeesetti.nextplayer.core.model.NetworkFile
+import dev.anilbeesetti.nextplayer.core.model.Sort
 import dev.anilbeesetti.nextplayer.core.ui.R
+import dev.anilbeesetti.nextplayer.core.ui.components.MediaQuickSettingsDialog
 import dev.anilbeesetti.nextplayer.core.ui.components.NextSegmentedListItem
 import dev.anilbeesetti.nextplayer.core.ui.components.NextTopAppBar
 import dev.anilbeesetti.nextplayer.core.ui.components.tvFocusRing
@@ -73,6 +81,9 @@ internal fun NetworkBrowseScreenContent(
     state: NetworkBrowseUiState,
     onAction: (NetworkBrowseAction) -> Unit,
 ) {
+    var showQuickSettings by rememberSaveable { mutableStateOf(false) }
+    val isGrid = state.preferences.networkMediaLayoutMode == MediaLayoutMode.GRID
+
     Scaffold(
         topBar = {
             NextTopAppBar(
@@ -86,6 +97,13 @@ internal fun NetworkBrowseScreenContent(
                     }
                 },
                 actions = {
+                    FilledTonalIconButton(
+                        onClick = { showQuickSettings = true },
+                        modifier = Modifier.tvFocusRing(),
+                    ) {
+                        Icon(NextIcons.Sensitivity, contentDescription = stringResource(R.string.quick_settings))
+                    }
+
                     if (!state.isLoading && state.error == null && state.files.any { !it.isDirectory }) {
                         FilledTonalIconButton(
                             onClick = { onAction(NetworkBrowseAction.PlayAll) },
@@ -177,7 +195,8 @@ internal fun NetworkBrowseScreenContent(
                             )
                         }
                     } else {
-                        LazyColumn(
+                        LazyVerticalGrid(
+                            columns = if (isGrid) GridCells.Adaptive(160.dp) else GridCells.Fixed(1),
                             modifier = Modifier
                                 .fillMaxSize()
                                 .tvListFocus(),
@@ -187,7 +206,8 @@ internal fun NetworkBrowseScreenContent(
                                 top = 8.dp,
                                 bottom = scaffoldPadding.calculateBottomPadding() + 16.dp,
                             ),
-                            verticalArrangement = Arrangement.spacedBy(2.dp),
+                            verticalArrangement = Arrangement.spacedBy(if (isGrid) 8.dp else 2.dp),
+                            horizontalArrangement = Arrangement.spacedBy(8.dp),
                         ) {
                             itemsIndexed(
                                 items = state.files,
@@ -195,11 +215,14 @@ internal fun NetworkBrowseScreenContent(
                             ) { index, file ->
                                 NetworkFileItem(
                                     file = file,
+                                    isGrid = isGrid,
                                     isFirstItem = index == 0,
                                     isLastItem = index == state.files.lastIndex,
                                     isRecentlyPlayed = state.preferences.markLastPlayedMedia &&
-                                        (state.recentlyPlayedPath == file.path ||
-                                            (file.isDirectory && state.recentlyPlayedPath?.startsWith("${file.path.trimEnd('/')}/") == true)),
+                                        (
+                                            state.recentlyPlayedPath == file.path ||
+                                                (file.isDirectory && state.recentlyPlayedPath?.startsWith("${file.path.trimEnd('/')}/") == true)
+                                            ),
                                     playedPercentage = state.playbackHistory[file.path]?.playedPercentage
                                         ?.takeIf { state.preferences.showPlayedProgress },
                                     onClick = {
@@ -213,18 +236,52 @@ internal fun NetworkBrowseScreenContent(
             }
         }
     }
+    if (showQuickSettings) {
+        MediaQuickSettingsDialog(
+            layoutMode = state.preferences.networkMediaLayoutMode,
+            sort = Sort(state.preferences.networkSortBy, state.preferences.networkSortOrder),
+            sortOptions = listOf(Sort.By.TITLE, Sort.By.DATE, Sort.By.SIZE),
+            onDismiss = { showQuickSettings = false },
+            onConfirm = { layout, sort -> onAction(NetworkBrowseAction.UpdateQuickSettings(layout, sort)) },
+        )
+    }
 }
 
 @OptIn(ExperimentalMaterial3ExpressiveApi::class)
 @Composable
 private fun NetworkFileItem(
     file: NetworkFile,
+    isGrid: Boolean,
     isFirstItem: Boolean,
     isLastItem: Boolean,
     isRecentlyPlayed: Boolean,
     playedPercentage: Float?,
     onClick: () -> Unit,
 ) {
+    if (isGrid) {
+        Surface(
+            onClick = onClick,
+            shape = MaterialTheme.shapes.large,
+            color = MaterialTheme.colorScheme.surfaceContainer,
+            modifier = Modifier.tvFocusRing(),
+        ) {
+            Column(modifier = Modifier.padding(8.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
+                NetworkFileThumbnail(file, playedPercentage, isGrid = true)
+                Text(
+                    text = file.name,
+                    maxLines = 2,
+                    style = MaterialTheme.typography.titleMedium,
+                    color = if (isRecentlyPlayed) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.onSurface,
+                    overflow = TextOverflow.Ellipsis,
+                )
+                when {
+                    !file.isDirectory && file.size > 0 -> SupportingText(Utils.formatFileSize(file.size))
+                    file.isDirectory -> file.modified?.let { SupportingText(formatModifiedDate(it)) }
+                }
+            }
+        }
+        return
+    }
     NextSegmentedListItem(
         contentPadding = PaddingValues(8.dp),
         isFirstItem = isFirstItem,
@@ -235,42 +292,7 @@ private fun NetworkFileItem(
             supportingContentColor = if (isRecentlyPlayed) MaterialTheme.colorScheme.primary else ListItemDefaults.segmentedColors().supportingContentColor,
         ),
         leadingContent = {
-            if (file.isDirectory) {
-                Box(modifier = Modifier.padding(horizontal = 8.dp)) {
-                    Icon(
-                        imageVector = ImageVector.vectorResource(id = R.drawable.folder_thumb),
-                        contentDescription = null,
-                        tint = MaterialTheme.colorScheme.surfaceContainerHigh,
-                        modifier = Modifier
-                            .width(72.dp)
-                            .aspectRatio(20 / 17f),
-                    )
-                }
-            } else {
-                Box(
-                    modifier = Modifier
-                        .width(86.dp)
-                        .clip(MaterialTheme.shapes.small)
-                        .background(MaterialTheme.colorScheme.surfaceColorAtElevation(1.dp))
-                        .aspectRatio(16f / 10f),
-                    contentAlignment = Alignment.Center,
-                ) {
-                    Icon(
-                        imageVector = NextIcons.Video,
-                        contentDescription = null,
-                        tint = MaterialTheme.colorScheme.surfaceColorAtElevation(100.dp),
-                        modifier = Modifier.fillMaxSize(0.5f),
-                    )
-                    if (playedPercentage != null) {
-                        LinearProgressIndicator(
-                            progress = { playedPercentage.coerceIn(0f, 1f) },
-                            modifier = Modifier.align(Alignment.BottomCenter).fillMaxWidth().height(4.dp),
-                            gapSize = 0.dp,
-                            drawStopIndicator = {},
-                        )
-                    }
-                }
-            }
+            NetworkFileThumbnail(file, playedPercentage, isGrid = false)
         },
         content = {
             Text(
@@ -292,6 +314,49 @@ private fun NetworkFileItem(
             else -> null
         },
     )
+}
+
+@Composable
+private fun NetworkFileThumbnail(file: NetworkFile, playedPercentage: Float?, isGrid: Boolean) {
+    if (file.isDirectory) {
+        Box(
+            modifier = if (isGrid) Modifier.fillMaxWidth().aspectRatio(16f / 10f) else Modifier.padding(horizontal = 8.dp),
+            contentAlignment = Alignment.Center,
+        ) {
+            Icon(
+                imageVector = ImageVector.vectorResource(id = R.drawable.folder_thumb),
+                contentDescription = null,
+                tint = MaterialTheme.colorScheme.surfaceContainerHigh,
+                modifier = Modifier
+                    .then(if (isGrid) Modifier.fillMaxSize(0.7f) else Modifier.width(72.dp))
+                    .aspectRatio(20 / 17f),
+            )
+        }
+    } else {
+        Box(
+            modifier = Modifier
+                .then(if (isGrid) Modifier.fillMaxWidth() else Modifier.width(86.dp))
+                .clip(MaterialTheme.shapes.small)
+                .background(MaterialTheme.colorScheme.surfaceColorAtElevation(1.dp))
+                .aspectRatio(16f / 10f),
+            contentAlignment = Alignment.Center,
+        ) {
+            Icon(
+                imageVector = NextIcons.Video,
+                contentDescription = null,
+                tint = MaterialTheme.colorScheme.surfaceColorAtElevation(100.dp),
+                modifier = Modifier.fillMaxSize(0.5f),
+            )
+            if (playedPercentage != null) {
+                LinearProgressIndicator(
+                    progress = { playedPercentage.coerceIn(0f, 1f) },
+                    modifier = Modifier.align(Alignment.BottomCenter).fillMaxWidth().height(4.dp),
+                    gapSize = 0.dp,
+                    drawStopIndicator = {},
+                )
+            }
+        }
+    }
 }
 
 @Composable

@@ -1,14 +1,10 @@
 package dev.anilbeesetti.nextplayer.feature.videopicker.composables
 
-import androidx.compose.foundation.horizontalScroll
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.ExperimentalLayoutApi
 import androidx.compose.foundation.layout.FlowRow
-import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.wrapContentHeight
@@ -37,12 +33,12 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import dev.anilbeesetti.nextplayer.core.model.ApplicationPreferences
-import dev.anilbeesetti.nextplayer.core.model.MediaLayoutMode
 import dev.anilbeesetti.nextplayer.core.model.MediaViewMode
 import dev.anilbeesetti.nextplayer.core.model.Sort
 import dev.anilbeesetti.nextplayer.core.ui.R
 import dev.anilbeesetti.nextplayer.core.ui.components.CancelButton
 import dev.anilbeesetti.nextplayer.core.ui.components.DoneButton
+import dev.anilbeesetti.nextplayer.core.ui.components.MediaLayoutAndSortSettings
 import dev.anilbeesetti.nextplayer.core.ui.components.NextDialog
 import dev.anilbeesetti.nextplayer.core.ui.designsystem.NextIcons
 import dev.anilbeesetti.nextplayer.feature.videopicker.extensions.name
@@ -84,55 +80,12 @@ fun QuickSettingsDialog(
                         }
                     }
                 }
-                DialogSectionTitle(text = stringResource(R.string.media_layout))
-                SingleChoiceSegmentedButtonRow(
-                    modifier = Modifier.fillMaxWidth(),
-                ) {
-                    MediaLayoutMode.entries.forEachIndexed { index, layoutMode ->
-                        SegmentedButton(
-                            selected = preferences.mediaLayoutMode == layoutMode,
-                            onClick = { preferences = preferences.copy(mediaLayoutMode = layoutMode) },
-                            shape = SegmentedButtonDefaults.itemShape(index = index, count = MediaLayoutMode.entries.size),
-                            colors = SegmentedButtonDefaults.colors(
-                                activeContentColor = MaterialTheme.colorScheme.primary,
-                                activeBorderColor = MaterialTheme.colorScheme.primary,
-                            ),
-                        ) {
-                            Text(text = layoutMode.name())
-                        }
-                    }
-                }
-                HorizontalDivider(modifier = Modifier.padding(top = 16.dp))
-                DialogSectionTitle(text = stringResource(R.string.sort))
-                SortOptions(
-                    selectedSortBy = preferences.sortBy,
-                    onOptionSelected = { preferences = preferences.copy(sortBy = it) },
+                MediaLayoutAndSortSettings(
+                    layoutMode = preferences.mediaLayoutMode,
+                    sort = Sort(preferences.sortBy, preferences.sortOrder),
+                    onLayoutModeChange = { preferences = preferences.copy(mediaLayoutMode = it) },
+                    onSortChange = { preferences = preferences.copy(sortBy = it.by, sortOrder = it.order) },
                 )
-                Spacer(modifier = Modifier.height(8.dp))
-                SingleChoiceSegmentedButtonRow(
-                    modifier = Modifier.fillMaxWidth(),
-                ) {
-                    Sort.Order.entries.forEachIndexed { index, sortOrder ->
-                        SegmentedButton(
-                            selected = preferences.sortOrder == sortOrder,
-                            onClick = { preferences = preferences.copy(sortOrder = sortOrder) },
-                            shape = SegmentedButtonDefaults.itemShape(index = index, count = Sort.Order.entries.size),
-                            colors = SegmentedButtonDefaults.colors(
-                                activeContentColor = MaterialTheme.colorScheme.primary,
-                                activeBorderColor = MaterialTheme.colorScheme.primary,
-                            ),
-                            icon = {
-                                Icon(
-                                    imageVector = if (sortOrder == Sort.Order.ASCENDING) NextIcons.ArrowUpward else NextIcons.ArrowDownward,
-                                    contentDescription = stringResource(R.string.ascending),
-                                    modifier = Modifier.size(FilterChipDefaults.IconSize),
-                                )
-                            },
-                        ) {
-                            Text(text = sortOrder.name(sortBy = preferences.sortBy))
-                        }
-                    }
-                }
                 HorizontalDivider(modifier = Modifier.padding(top = 16.dp))
                 DialogSectionTitle(text = stringResource(R.string.fields))
                 FlowRow(
@@ -227,51 +180,6 @@ fun FieldChip(
         ),
         modifier = modifier,
     )
-}
-
-@Composable
-private fun SortOptions(
-    selectedSortBy: Sort.By,
-    onOptionSelected: (Sort.By) -> Unit,
-    modifier: Modifier = Modifier,
-) {
-    Row(
-        horizontalArrangement = Arrangement.SpaceBetween,
-        modifier = modifier
-            .fillMaxWidth()
-            .horizontalScroll(rememberScrollState()),
-    ) {
-        TextIconToggleButton(
-            text = stringResource(id = R.string.title),
-            icon = NextIcons.Title,
-            isSelected = selectedSortBy == Sort.By.TITLE,
-            onClick = { onOptionSelected(Sort.By.TITLE) },
-        )
-        TextIconToggleButton(
-            text = stringResource(id = R.string.duration),
-            icon = NextIcons.Length,
-            isSelected = selectedSortBy == Sort.By.LENGTH,
-            onClick = { onOptionSelected(Sort.By.LENGTH) },
-        )
-        TextIconToggleButton(
-            text = stringResource(id = R.string.date),
-            icon = NextIcons.Calendar,
-            isSelected = selectedSortBy == Sort.By.DATE,
-            onClick = { onOptionSelected(Sort.By.DATE) },
-        )
-        TextIconToggleButton(
-            text = stringResource(id = R.string.size),
-            icon = NextIcons.Size,
-            isSelected = selectedSortBy == Sort.By.SIZE,
-            onClick = { onOptionSelected(Sort.By.SIZE) },
-        )
-        TextIconToggleButton(
-            text = stringResource(id = R.string.location),
-            icon = NextIcons.Location,
-            isSelected = selectedSortBy == Sort.By.PATH,
-            onClick = { onOptionSelected(Sort.By.PATH) },
-        )
-    }
 }
 
 @Composable

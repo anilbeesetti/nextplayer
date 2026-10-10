@@ -12,8 +12,10 @@ import dev.anilbeesetti.nextplayer.core.media.network.NetworkUri
 import dev.anilbeesetti.nextplayer.core.media.network.isNetworkVideoFile
 import dev.anilbeesetti.nextplayer.core.media.network.sftp.HostKeyMismatch
 import dev.anilbeesetti.nextplayer.core.model.ApplicationPreferences
+import dev.anilbeesetti.nextplayer.core.model.MediaLayoutMode
 import dev.anilbeesetti.nextplayer.core.model.NetworkConnection
 import dev.anilbeesetti.nextplayer.core.model.NetworkFile
+import dev.anilbeesetti.nextplayer.core.model.Sort
 import dev.anilbeesetti.nextplayer.core.model.Video
 import dev.anilbeesetti.nextplayer.core.ui.base.MviViewModel
 import kotlinx.coroutines.CoroutineScope
@@ -58,7 +60,7 @@ class NetworkBrowseViewModel(
     private val repository: NetworkConnectionRepository,
     private val clientFactory: NetworkClientFactory,
     mediaRepository: MediaRepository,
-    preferencesRepository: PreferencesRepository,
+    private val preferencesRepository: PreferencesRepository,
 ) : MviViewModel<NetworkBrowseUiState, NetworkBrowseAction>() {
 
     data class Input(val connectionId: Long, val path: String?)
@@ -105,7 +107,12 @@ class NetworkBrowseViewModel(
         }
         viewModelScope.launch {
             preferencesRepository.applicationPreferences.collect { preferences ->
-                stateInternal.update { it.copy(preferences = preferences) }
+                stateInternal.update {
+                    it.copy(
+                        preferences = preferences,
+                        files = it.files.sortedWith(Sort(preferences.networkSortBy, preferences.networkSortOrder).networkFileComparator()),
+                    )
+                }
             }
         }
         connectAndLoad()
@@ -155,11 +162,11 @@ class NetworkBrowseViewModel(
                 onSuccess = { files ->
                     val visible = files
                         .filter { it.isDirectory || isNetworkVideoFile(it.name) }
-                        .sortedWith(compareByDescending<NetworkFile> { it.isDirectory }.thenBy { it.name.lowercase() })
+
                     stateInternal.update {
                         it.copy(
                             title = title(conn),
-                            files = visible,
+                            files = visible.sortedWith(Sort(it.preferences.networkSortBy, it.preferences.networkSortOrder).networkFileComparator()),
                             isLoading = false,
                         )
                     }
@@ -180,6 +187,15 @@ class NetworkBrowseViewModel(
             is NetworkBrowseAction.NavigateUp -> output.navigateUp()
             is NetworkBrowseAction.OpenFolder -> output.openFolder(connectionId, action.file.path)
 
+            is NetworkBrowseAction.UpdateQuickSettings -> viewModelScope.launch {
+                preferencesRepository.updateApplicationPreferences {
+                    it.copy(
+                        networkMediaLayoutMode = action.layoutMode,
+                        networkSortBy = action.sort.by,
+                        networkSortOrder = action.sort.order,
+                    )
+                }
+            }
             is NetworkBrowseAction.Retry -> retry()
             is NetworkBrowseAction.PlayVideo -> playVideo(action.file)
             is NetworkBrowseAction.PlayAll -> stateInternal.value.files.firstOrNull { !it.isDirectory }?.let(::playVideo)
@@ -208,6 +224,7 @@ sealed interface NetworkBrowseAction {
     data object NavigateUp : NetworkBrowseAction
     data class OpenFolder(val file: NetworkFile) : NetworkBrowseAction
 
+    data class UpdateQuickSettings(val layoutMode: MediaLayoutMode, val sort: Sort) : NetworkBrowseAction
     data object Retry : NetworkBrowseAction
     data class PlayVideo(val file: NetworkFile) : NetworkBrowseAction
     data object PlayAll : NetworkBrowseAction
