@@ -4,10 +4,13 @@ import android.text.format.DateFormat
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.BoxWithConstraints
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.IntrinsicSize
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.aspectRatio
+import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
@@ -15,8 +18,10 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.grid.GridCells
+import androidx.compose.foundation.lazy.grid.GridItemSpan
 import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
 import androidx.compose.foundation.lazy.grid.itemsIndexed
+import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.selection.SelectionContainer
 import androidx.compose.material3.Button
@@ -29,7 +34,6 @@ import androidx.compose.material3.LinearProgressIndicator
 import androidx.compose.material3.ListItemDefaults
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
-import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.material3.surfaceColorAtElevation
 import androidx.compose.runtime.Composable
@@ -42,14 +46,18 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.vector.ImageVector
+import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.res.vectorResource
+import androidx.compose.ui.text.style.LineBreak
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.min
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import dev.anilbeesetti.nextplayer.core.common.Utils
+import dev.anilbeesetti.nextplayer.core.common.extensions.isTelevision
 import dev.anilbeesetti.nextplayer.core.model.MediaLayoutMode
 import dev.anilbeesetti.nextplayer.core.model.NetworkFile
 import dev.anilbeesetti.nextplayer.core.model.Sort
@@ -83,6 +91,8 @@ internal fun NetworkBrowseScreenContent(
 ) {
     var showQuickSettings by rememberSaveable { mutableStateOf(false) }
     val isGrid = state.preferences.networkMediaLayoutMode == MediaLayoutMode.GRID
+    val context = LocalContext.current
+    val isTv = remember { context.isTelevision }
 
     Scaffold(
         topBar = {
@@ -186,7 +196,18 @@ internal fun NetworkBrowseScreenContent(
                     .clip(RoundedCornerShape(topStart = 24.dp, topEnd = 24.dp))
                     .background(MaterialTheme.colorScheme.background)
 
-                Box(modifier = containerModifier) {
+                BoxWithConstraints(modifier = containerModifier) {
+                    val horizontalPadding = 8.dp
+                    val itemSpacing = 2.dp
+                    val availableWidth = maxWidth - horizontalPadding * 2 - itemSpacing
+                    val folderMinWidth = if (isTv) 160.dp else 90.dp
+                    val videoMinWidth = if (isTv) 240.dp else 130.dp
+                    val folderColumns = if (isGrid) (availableWidth / folderMinWidth).toInt().coerceAtLeast(1) else 1
+                    val videoColumns = if (isGrid) (availableWidth / videoMinWidth).toInt().coerceAtLeast(1) else 1
+                    // A common column count lets folder and video tiles have different widths.
+                    val columns = folderColumns * videoColumns
+                    val folderCount = state.files.count { it.isDirectory }
+
                     if (state.files.isEmpty()) {
                         Box(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
                             Text(
@@ -196,28 +217,29 @@ internal fun NetworkBrowseScreenContent(
                         }
                     } else {
                         LazyVerticalGrid(
-                            columns = if (isGrid) GridCells.Adaptive(160.dp) else GridCells.Fixed(1),
+                            columns = GridCells.Fixed(columns),
                             modifier = Modifier
                                 .fillMaxSize()
                                 .tvListFocus(),
                             contentPadding = PaddingValues(
-                                start = 8.dp,
-                                end = 8.dp,
+                                start = horizontalPadding,
+                                end = horizontalPadding,
                                 top = 8.dp,
                                 bottom = scaffoldPadding.calculateBottomPadding() + 16.dp,
                             ),
-                            verticalArrangement = Arrangement.spacedBy(if (isGrid) 8.dp else 2.dp),
-                            horizontalArrangement = Arrangement.spacedBy(8.dp),
+                            verticalArrangement = Arrangement.spacedBy(itemSpacing),
+                            horizontalArrangement = Arrangement.spacedBy(itemSpacing),
                         ) {
                             itemsIndexed(
                                 items = state.files,
                                 key = { _, file -> file.path },
+                                span = { _, file -> GridItemSpan(if (file.isDirectory) videoColumns else folderColumns) },
                             ) { index, file ->
                                 NetworkFileItem(
                                     file = file,
                                     isGrid = isGrid,
-                                    isFirstItem = index == 0,
-                                    isLastItem = index == state.files.lastIndex,
+                                    isFirstItem = index == 0 || (isGrid && index == folderCount),
+                                    isLastItem = index == state.files.lastIndex || (isGrid && index == folderCount - 1),
                                     isRecentlyPlayed = state.preferences.markLastPlayedMedia &&
                                         (
                                             state.recentlyPlayedPath == file.path ||
@@ -258,31 +280,8 @@ private fun NetworkFileItem(
     playedPercentage: Float?,
     onClick: () -> Unit,
 ) {
-    if (isGrid) {
-        Surface(
-            onClick = onClick,
-            shape = MaterialTheme.shapes.large,
-            color = MaterialTheme.colorScheme.surfaceContainer,
-            modifier = Modifier.tvFocusRing(),
-        ) {
-            Column(modifier = Modifier.padding(8.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
-                NetworkFileThumbnail(file, playedPercentage, isGrid = true)
-                Text(
-                    text = file.name,
-                    maxLines = 2,
-                    style = MaterialTheme.typography.titleMedium,
-                    color = if (isRecentlyPlayed) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.onSurface,
-                    overflow = TextOverflow.Ellipsis,
-                )
-                when {
-                    !file.isDirectory && file.size > 0 -> SupportingText(Utils.formatFileSize(file.size))
-                    file.isDirectory -> file.modified?.let { SupportingText(formatModifiedDate(it)) }
-                }
-            }
-        }
-        return
-    }
     NextSegmentedListItem(
+        modifier = if (isGrid) Modifier.width(IntrinsicSize.Min) else Modifier,
         contentPadding = PaddingValues(8.dp),
         isFirstItem = isFirstItem,
         isLastItem = isLastItem,
@@ -291,19 +290,39 @@ private fun NetworkFileItem(
             contentColor = if (isRecentlyPlayed) MaterialTheme.colorScheme.primary else ListItemDefaults.segmentedColors().contentColor,
             supportingContentColor = if (isRecentlyPlayed) MaterialTheme.colorScheme.primary else ListItemDefaults.segmentedColors().supportingContentColor,
         ),
-        leadingContent = {
-            NetworkFileThumbnail(file, playedPercentage, isGrid = false)
+        leadingContent = if (isGrid) {
+            null
+        } else {
+            { NetworkFileThumbnail(file, playedPercentage, isGrid = false) }
         },
         content = {
-            Text(
-                text = file.name,
-                maxLines = 2,
-                style = MaterialTheme.typography.titleMedium,
-                overflow = TextOverflow.Ellipsis,
-            )
+            if (isGrid) {
+                Column(
+                    modifier = Modifier.fillMaxWidth(),
+                    verticalArrangement = Arrangement.spacedBy(8.dp),
+                    horizontalAlignment = Alignment.CenterHorizontally,
+                ) {
+                    NetworkFileThumbnail(file, playedPercentage, isGrid = true)
+                    Text(
+                        text = file.name,
+                        maxLines = 2,
+                        style = MaterialTheme.typography.titleMedium.copy(lineBreak = LineBreak.Heading),
+                        overflow = TextOverflow.Ellipsis,
+                        textAlign = TextAlign.Center,
+                    )
+                }
+            } else {
+                Text(
+                    text = file.name,
+                    maxLines = 2,
+                    style = MaterialTheme.typography.titleMedium,
+                    overflow = TextOverflow.Ellipsis,
+                )
+            }
         },
         // Secondary line: size for videos, last-modified date for folders.
         supportingContent = when {
+            isGrid -> null
             !file.isDirectory && file.size > 0 -> {
                 { SupportingText(Utils.formatFileSize(file.size)) }
             }
@@ -320,7 +339,7 @@ private fun NetworkFileItem(
 private fun NetworkFileThumbnail(file: NetworkFile, playedPercentage: Float?, isGrid: Boolean) {
     if (file.isDirectory) {
         Box(
-            modifier = if (isGrid) Modifier.fillMaxWidth().aspectRatio(16f / 10f) else Modifier.padding(horizontal = 8.dp),
+            modifier = if (isGrid) Modifier else Modifier.padding(horizontal = 8.dp),
             contentAlignment = Alignment.Center,
         ) {
             Icon(
@@ -328,7 +347,7 @@ private fun NetworkFileThumbnail(file: NetworkFile, playedPercentage: Float?, is
                 contentDescription = null,
                 tint = MaterialTheme.colorScheme.surfaceContainerHigh,
                 modifier = Modifier
-                    .then(if (isGrid) Modifier.fillMaxSize(0.7f) else Modifier.width(72.dp))
+                    .width(if (isGrid) min(90.dp, LocalConfiguration.current.screenWidthDp.dp * 0.3f) else 72.dp)
                     .aspectRatio(20 / 17f),
             )
         }
@@ -348,12 +367,27 @@ private fun NetworkFileThumbnail(file: NetworkFile, playedPercentage: Float?, is
                 modifier = Modifier.fillMaxSize(0.5f),
             )
             if (playedPercentage != null) {
-                LinearProgressIndicator(
-                    progress = { playedPercentage.coerceIn(0f, 1f) },
-                    modifier = Modifier.align(Alignment.BottomCenter).fillMaxWidth().height(4.dp),
-                    gapSize = 0.dp,
-                    drawStopIndicator = {},
-                )
+                if (isGrid) {
+                    Box(
+                        modifier = Modifier.height(4.dp).fillMaxWidth().align(Alignment.BottomCenter),
+                    ) {
+                        Box(modifier = Modifier.fillMaxSize().background(MaterialTheme.colorScheme.secondaryContainer))
+                        Box(
+                            modifier = Modifier
+                                .fillMaxWidth(playedPercentage.coerceIn(0f, 1f))
+                                .fillMaxHeight()
+                                .clip(CircleShape)
+                                .background(MaterialTheme.colorScheme.primary),
+                        )
+                    }
+                } else {
+                    LinearProgressIndicator(
+                        progress = { playedPercentage.coerceIn(0f, 1f) },
+                        modifier = Modifier.align(Alignment.BottomCenter).fillMaxWidth().height(4.dp),
+                        gapSize = 0.dp,
+                        drawStopIndicator = {},
+                    )
+                }
             }
         }
     }
