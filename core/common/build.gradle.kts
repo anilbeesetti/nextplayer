@@ -37,6 +37,7 @@ dependencies {
     implementation(libs.koin.annotations)
 
     testImplementation(libs.junit4)
+    testImplementation(libs.robolectric)
     androidTestImplementation(libs.androidx.test.ext)
     androidTestImplementation(libs.androidx.test.espresso.core)
 }
