@@ -7,6 +7,7 @@ import dev.anilbeesetti.nextplayer.core.data.repository.VaultRepository
 import dev.anilbeesetti.nextplayer.core.domain.GetHiddenVideosUseCase
 import dev.anilbeesetti.nextplayer.core.model.ApplicationPreferences
 import dev.anilbeesetti.nextplayer.core.model.MediaInfo
+import dev.anilbeesetti.nextplayer.core.model.MediaLayoutMode
 import dev.anilbeesetti.nextplayer.core.model.PlayerPreferences
 import dev.anilbeesetti.nextplayer.core.model.Sort
 import dev.anilbeesetti.nextplayer.core.model.Video
@@ -172,6 +173,29 @@ class VaultSortingTest {
                 listOf("Alpha.mp4", "Bravo.mp4", "Zebra.mp4"),
                 viewModel.state.value.hiddenVideos.map { it.nameWithExtension },
             )
+        }
+
+    @Test
+    fun `quick settings change layout and vault sort while preserving application sort and fields`() =
+        runTest(testDispatcher.scheduler) {
+            val preferencesRepository = FakePreferencesRepository(
+                ApplicationPreferences(sortBy = titleAscending.by, sortOrder = titleAscending.order, showSizeField = true),
+            )
+            val viewModel = createViewModel(preferencesRepository)
+            viewModel.onAction(VaultAction.SubmitUnlockPin("1234"))
+            advanceUntilIdle()
+
+            viewModel.onAction(VaultAction.UpdateQuickSettings(MediaLayoutMode.GRID, sizeAscending))
+            advanceUntilIdle()
+
+            assertEquals(sizeAscending, viewModel.state.value.sort)
+            assertEquals(listOf("Zebra.mp4", "Alpha.mp4", "Bravo.mp4"), viewModel.state.value.hiddenVideos.map { it.nameWithExtension })
+            assertEquals(MediaLayoutMode.GRID, viewModel.state.value.preferences.mediaLayoutMode)
+            assertEquals(
+                ApplicationPreferences(sortBy = titleAscending.by, sortOrder = titleAscending.order, showSizeField = true, mediaLayoutMode = MediaLayoutMode.GRID),
+                preferencesRepository.applicationPreferences.value,
+            )
+            assertEquals(1, preferencesRepository.applicationUpdateCount)
         }
 
     private fun createViewModel(preferencesRepository: FakePreferencesRepository): VaultViewModel {

@@ -76,6 +76,7 @@ import dev.anilbeesetti.nextplayer.core.model.Sort
 import dev.anilbeesetti.nextplayer.core.model.Video
 import dev.anilbeesetti.nextplayer.core.ui.R
 import dev.anilbeesetti.nextplayer.core.ui.components.CancelButton
+import dev.anilbeesetti.nextplayer.core.ui.components.MediaQuickSettingsDialog
 import dev.anilbeesetti.nextplayer.core.ui.components.NextDialog
 import dev.anilbeesetti.nextplayer.core.ui.components.NextTopAppBar
 import dev.anilbeesetti.nextplayer.core.ui.components.rememberRestorableFocusState
@@ -382,7 +383,7 @@ private fun VaultGalleryContent(
     val isTv = remember { context.isTelevision }
     val focusState = rememberRestorableFocusState()
     val selectionManager = rememberSelectionManager()
-    var showSortMenu by rememberSaveable { mutableStateOf(false) }
+    var showQuickSettings by rememberSaveable { mutableStateOf(false) }
     var showSettings by rememberSaveable { mutableStateOf(false) }
     var showDeleteConfirmation by rememberSaveable { mutableStateOf(false) }
     var showUnhideConfirmation by rememberSaveable { mutableStateOf(false) }
@@ -462,12 +463,12 @@ private fun VaultGalleryContent(
                         }
                     } else {
                         IconButton(
-                            onClick = { showSortMenu = true },
+                            onClick = { showQuickSettings = true },
                             modifier = Modifier.tvFocusRing(),
                         ) {
                             Icon(
                                 imageVector = NextIcons.Sensitivity,
-                                contentDescription = stringResource(R.string.sort_by),
+                                contentDescription = stringResource(R.string.quick_settings),
                             )
                         }
                         IconButton(
@@ -581,14 +582,14 @@ private fun VaultGalleryContent(
         )
     }
 
-    if (showSortMenu) {
-        VaultSortDialog(
+    if (showQuickSettings) {
+        MediaQuickSettingsDialog(
+            layoutMode = state.preferences.mediaLayoutMode,
             sort = state.sort,
-            onDismiss = { showSortMenu = false },
-            onSortSelected = {
-                onAction(VaultAction.UpdateSort(it))
-                showSortMenu = false
-            },
+            sortOptions = listOf(Sort.By.TITLE, Sort.By.LENGTH, Sort.By.DATE, Sort.By.SIZE),
+            dateLabel = R.string.date_hidden,
+            onDismiss = { showQuickSettings = false },
+            onConfirm = { layout, sort -> onAction(VaultAction.UpdateQuickSettings(layout, sort)) },
         )
     }
 
@@ -695,68 +696,6 @@ private fun VaultEmptyState(contentPadding: PaddingValues) {
             textAlign = TextAlign.Center,
         )
     }
-}
-
-@Composable
-private fun VaultSortDialog(
-    sort: Sort,
-    onDismiss: () -> Unit,
-    onSortSelected: (Sort) -> Unit,
-) {
-    val options = listOf(
-        Sort.By.TITLE to stringResource(R.string.name),
-        Sort.By.DATE to stringResource(R.string.date_hidden),
-        Sort.By.SIZE to stringResource(R.string.size),
-        Sort.By.LENGTH to stringResource(R.string.duration),
-    )
-    NextDialog(
-        onDismissRequest = onDismiss,
-        title = { Text(text = stringResource(R.string.sort_by)) },
-        content = {
-            Column {
-                options.forEach { (by, label) ->
-                    val selected = sort.by == by
-                    Row(
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .clip(MaterialTheme.shapes.medium)
-                            .clickable {
-                                val newOrder = if (selected) {
-                                    if (sort.order == Sort.Order.ASCENDING) Sort.Order.DESCENDING else Sort.Order.ASCENDING
-                                } else {
-                                    sort.order
-                                }
-                                onSortSelected(Sort(by = by, order = newOrder))
-                            }
-                            .padding(vertical = 12.dp, horizontal = 8.dp),
-                        verticalAlignment = Alignment.CenterVertically,
-                    ) {
-                        Icon(
-                            imageVector = if (selected) NextIcons.CheckBox else NextIcons.CheckBoxOutline,
-                            contentDescription = null,
-                            tint = if (selected) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.onSurfaceVariant,
-                        )
-                        Spacer(modifier = Modifier.size(12.dp))
-                        Text(text = label)
-                        if (selected) {
-                            Spacer(modifier = Modifier.size(8.dp))
-                            Icon(
-                                imageVector = if (sort.order == Sort.Order.ASCENDING) NextIcons.ArrowUpward else NextIcons.ArrowDownward,
-                                contentDescription = null,
-                                tint = MaterialTheme.colorScheme.primary,
-                                modifier = Modifier.size(16.dp),
-                            )
-                        }
-                    }
-                }
-            }
-        },
-        confirmButton = {
-            TextButton(onClick = onDismiss) {
-                Text(text = stringResource(R.string.done))
-            }
-        },
-    )
 }
 
 @OptIn(ExperimentalMaterial3ExpressiveApi::class)
