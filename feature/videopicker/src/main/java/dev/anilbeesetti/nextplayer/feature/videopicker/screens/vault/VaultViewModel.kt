@@ -10,6 +10,7 @@ import dev.anilbeesetti.nextplayer.core.data.repository.VaultRepository
 import dev.anilbeesetti.nextplayer.core.domain.GetHiddenVideosUseCase
 import dev.anilbeesetti.nextplayer.core.model.ApplicationPreferences
 import dev.anilbeesetti.nextplayer.core.model.MediaInfo
+import dev.anilbeesetti.nextplayer.core.model.MediaLayoutMode
 import dev.anilbeesetti.nextplayer.core.model.Sort
 import dev.anilbeesetti.nextplayer.core.model.Video
 import dev.anilbeesetti.nextplayer.core.ui.base.MviViewModel
@@ -98,6 +99,14 @@ class VaultViewModel(
             is VaultAction.ShowMediaInfo -> showMediaInfo(action.video)
             is VaultAction.DismissMediaInfo -> stateInternal.update { it.copy(mediaInfo = null) }
             is VaultAction.UpdateSort -> updateSort(action.sort)
+            is VaultAction.UpdateQuickSettings -> {
+                updateSort(action.sort)
+                viewModelScope.launch {
+                    preferencesRepository.updateApplicationPreferences {
+                        it.copy(mediaLayoutMode = action.layoutMode)
+                    }
+                }
+            }
         }
     }
 
@@ -265,6 +274,7 @@ sealed interface VaultAction {
     data class ShowMediaInfo(val video: Video) : VaultAction
     data object DismissMediaInfo : VaultAction
     data class UpdateSort(val sort: Sort) : VaultAction
+    data class UpdateQuickSettings(val layoutMode: MediaLayoutMode, val sort: Sort) : VaultAction
 }
 
 sealed interface VaultEvent {
