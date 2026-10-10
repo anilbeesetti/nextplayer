@@ -505,6 +505,8 @@
     <string name="empty_playlist_title">This playlist is empty</string>
     <string name="empty_playlist_description">Select videos in Home and choose Add to playlist.</string>
     <string name="playlist_unavailable">This playlist is no longer available.</string>
+    <string name="add_to_home_screen">Add to home screen</string>
+    <string name="playlist_shortcut_failed">Couldn\'t add the playlist shortcut. Try again.</string>
     <string name="search_playlist">Search playlist</string>
     <string name="close_search">Close search</string>
     <string name="no_matching_videos">No matching videos</string>
