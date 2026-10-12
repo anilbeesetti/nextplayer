@@ -41,6 +41,7 @@ jobs:
             :app:assembleDebug \
             :feature:player:testDebugUnitTest \
             :feature:music:testDebugUnitTest \
+            :feature:videopicker:testDebugUnitTest \
             :core:ui:testDebugUnitTest \
             ktlintCheck \
             > build.log 2>&1
