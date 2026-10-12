@@ -2,7 +2,7 @@
 
 Date: 2026-10-12
 Branch: `arena/f311a343-graviton` (based on `70bf4c7`)
-Verified head: `388c3e2` — Gradle exit `0`, 62 unit tests run / 0 failed, ktlint clean.
+Verified: Gradle exit `0`, 62 unit tests run / 0 failed, ktlint clean (Arena Verify run 38263982662, commit `79f38fd`).
 
 Scope honoured: UI/UX and playback-control interactions only. No player engine, engine abstraction or
 playback-architecture change was made; the existing Media3 session, queue, repository and navigation
