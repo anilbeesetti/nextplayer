@@ -39,6 +39,9 @@ jobs:
           set +e
           ./gradlew --no-daemon --stacktrace \
             :app:assembleDebug \
+            :app:lintDebug \
+            :feature:settings:lintDebug \
+            :feature:videopicker:lintDebug \
             :feature:player:testDebugUnitTest \
             :feature:music:testDebugUnitTest \
             :feature:videopicker:testDebugUnitTest \
