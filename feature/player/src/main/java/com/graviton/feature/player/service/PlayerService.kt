@@ -14,7 +14,6 @@ import androidx.media3.common.C
 import androidx.media3.common.MediaItem
 import androidx.media3.common.MediaMetadata
 import androidx.media3.common.PlaybackException
-import androidx.media3.common.PlaybackParameters
 import androidx.media3.common.Player
 import androidx.media3.common.Player.DISCONTINUITY_REASON_AUTO_TRANSITION
 import androidx.media3.common.Player.DISCONTINUITY_REASON_REMOVE
@@ -270,28 +269,11 @@ class PlayerService : MediaLibraryService() {
             )
         }
 
-        override fun onPlaybackParametersChanged(playbackParameters: PlaybackParameters) {
-            super.onPlaybackParametersChanged(playbackParameters)
-            val player = mediaSession?.player ?: return
-            val currentMediaItem = player.currentMediaItem ?: return
-            val playbackSpeed = playbackParameters.speed
-
-            serviceScope.launch {
-                mediaRepository.updateMediumPlaybackSpeed(
-                    uri = currentMediaItem.mediaId,
-                    playbackSpeed = playbackSpeed,
-                )
-            }
-            // Do not replace the currently rendered item just to persist speed. Replacing a
-            // current item can tear down its decoder/surface during a seek or 2x gesture.
-        }
-
         override fun onPlaybackStateChanged(playbackState: Int) {
             super.onPlaybackStateChanged(playbackState)
 
             if (playbackState == Player.STATE_ENDED || playbackState == Player.STATE_IDLE) {
                 mediaSession?.player?.trackSelectionParameters = TrackSelectionParameters.DEFAULT
-                mediaSession?.player?.setPlaybackSpeed(playerPreferences.defaultPlaybackSpeed)
             }
 
             if (playbackState == Player.STATE_READY) {

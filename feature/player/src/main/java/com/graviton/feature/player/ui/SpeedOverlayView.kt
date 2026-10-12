@@ -46,17 +46,20 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.graviton.core.ui.theme.GravitonTheme
 import com.graviton.feature.player.state.HoldSpeedGesture
+import kotlin.math.abs
 
 /**
- * Compact floating hold-speed indicator shown during the temporary speed-boost gesture.
+ * Compact floating indicator for the temporary speed boost (for example `2×`).
  *
- * Shown only while the finger is held. Speed text jumps immediately when the
- * hold-swipe selects a new preset (for example `2` + `×`).
+ * It is shown only while the hold is active AND the speed the player is actually playing at matches
+ * [boostSpeed]. [observedSpeed] comes from the player's own speed, so the badge never claims a boost
+ * that has not been applied yet, and it hides as soon as the boost has been undone.
  */
 @Composable
 fun BoxScope.SpeedOverlayView(
     modifier: Modifier = Modifier,
-    speed: Float,
+    observedSpeed: Float,
+    boostSpeed: Float,
     isLongPressActive: Boolean = false,
     controlsVisible: Boolean = false,
 ) {
@@ -68,10 +71,13 @@ fun BoxScope.SpeedOverlayView(
         isPortrait -> 64.dp
         else -> 32.dp
     }
-    val speedString = remember(speed) { HoldSpeedGesture.formatOverlaySpeed(speed) }
+    // The text shows the boost, not the live speed: during the exit fade the badge must keep reading
+    // "2×" rather than flicking to the restored speed. Visibility is what depends on the live speed.
+    val speedString = remember(boostSpeed) { HoldSpeedGesture.formatOverlaySpeed(boostSpeed) }
+    val isBoostApplied = isLongPressActive && abs(observedSpeed - boostSpeed) <= SPEED_MATCH_TOLERANCE
 
     AnimatedVisibility(
-        visible = isLongPressActive,
+        visible = isBoostApplied,
         enter = fadeIn(tween(durationMillis = 100, easing = LinearOutSlowInEasing)),
         exit = fadeOut(tween(durationMillis = 300, easing = FastOutSlowInEasing)),
         modifier = modifier
@@ -135,7 +141,7 @@ fun BoxScope.SpeedOverlayView(
                             color = MaterialTheme.colorScheme.onSurface,
                         )
                         Text(
-                            text = "x",
+                            text = "\u00D7",
                             fontSize = 12.sp,
                             fontWeight = FontWeight.Bold,
                             modifier = Modifier.padding(start = 1.dp),
@@ -154,13 +160,16 @@ fun BoxScope.SpeedOverlayView(
     }
 }
 
+private const val SPEED_MATCH_TOLERANCE = 0.01f
+
 @Preview
 @Composable
 private fun SpeedOverlayViewPreview() {
     GravitonTheme(darkTheme = true) {
         Box(modifier = Modifier.fillMaxSize()) {
             SpeedOverlayView(
-                speed = 2.0f,
+                observedSpeed = 2.0f,
+                boostSpeed = 2.0f,
                 isLongPressActive = true,
             )
         }

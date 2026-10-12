@@ -9,7 +9,6 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.geometry.Offset
-import androidx.compose.ui.input.pointer.PointerInputChange
 import androidx.compose.ui.unit.IntSize
 import kotlin.time.Duration.Companion.seconds
 import kotlinx.coroutines.CoroutineScope
@@ -78,14 +77,14 @@ class VolumeAndBrightnessGestureState(
         startBrightnessPercentage = brightnessState.brightnessPercentage
     }
 
-    fun onDrag(change: PointerInputChange, dragAmount: Float) {
+    /** Updates the volume or brightness for a drag that is now at [positionY]. */
+    fun onDrag(positionY: Float) {
         val activeGesture = activeGesture ?: return
-        if (change.isConsumed) return
 
         when (activeGesture) {
             VerticalGesture.VOLUME -> {
                 val maxVolumePercentage = volumeState.maxVolumePercentage
-                val volumeChange = (startingY - change.position.y) * (volumeGestureSensitivity / 10)
+                val volumeChange = (startingY - positionY) * (volumeGestureSensitivity / 10)
                 val newVolume = startVolumePercentage + volumeChange.toInt()
                 volumeChangePercentage = (newVolume - startVolumePercentage).coerceIn(
                     minimumValue = 0 - startVolumePercentage,
@@ -96,7 +95,7 @@ class VolumeAndBrightnessGestureState(
             }
 
             VerticalGesture.BRIGHTNESS -> {
-                val brightnessChange = (startingY - change.position.y) * (brightnessGestureSensitivity / 10)
+                val brightnessChange = (startingY - positionY) * (brightnessGestureSensitivity / 10)
                 val newBrightness = startBrightnessPercentage + brightnessChange.toInt()
                 brightnessChangePercentage = (newBrightness - startBrightnessPercentage).coerceIn(
                     minimumValue = 0 - startBrightnessPercentage,

@@ -21,7 +21,6 @@ import androidx.compose.ui.hapticfeedback.HapticFeedbackType
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalHapticFeedback
 import androidx.compose.ui.platform.LocalViewConfiguration
-import androidx.compose.ui.unit.dp
 import com.graviton.core.common.extensions.isTelevision
 import com.graviton.core.ui.components.tvFocusRing
 import com.graviton.feature.player.LocalUseMaterialYouControls
@@ -72,9 +71,17 @@ fun PlayerButton(
                     }
                 }
 
-                is PressInteraction.Release, is PressInteraction.Cancel -> {
+                is PressInteraction.Release -> {
                     if (didHoldSpeed) holdSpeedController.endHold()
                     if (!suppressClick) onClick()
+                    suppressClick = false
+                    didHoldSpeed = false
+                }
+
+                // A cancelled press (the finger slid off the button, or the gesture was taken over)
+                // ends any boost it started but is never a click.
+                is PressInteraction.Cancel -> {
+                    if (didHoldSpeed) holdSpeedController.endHold()
                     suppressClick = false
                     didHoldSpeed = false
                 }

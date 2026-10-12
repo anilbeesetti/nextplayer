@@ -26,24 +26,20 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.safeDrawingPadding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.systemBars
-import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.compositionLocalOf
-import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableLongStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.saveable.rememberSaveable
-import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.focus.FocusRequester
@@ -85,7 +81,6 @@ import com.graviton.feature.player.buttons.NextButton
 import com.graviton.feature.player.buttons.PlayPauseButton
 import com.graviton.feature.player.buttons.PlayerButton
 import com.graviton.feature.player.buttons.PreviousButton
-import com.graviton.feature.player.extensions.formatted
 import com.graviton.feature.player.extensions.nameRes
 import com.graviton.feature.player.state.ControlsVisibilityState
 import com.graviton.feature.player.state.LocalHoldSpeedController
@@ -98,6 +93,7 @@ import com.graviton.feature.player.state.rememberLongPressSeekState
 import com.graviton.feature.player.state.rememberMediaPresentationState
 import com.graviton.feature.player.state.rememberMetadataState
 import com.graviton.feature.player.state.rememberPictureInPictureState
+import com.graviton.feature.player.state.rememberPlaybackParametersState
 import com.graviton.feature.player.state.realBufferedPercentage
 import com.graviton.feature.player.state.rememberPlaybackDiagnosticsState
 import com.graviton.feature.player.state.rememberRotationState
@@ -120,7 +116,6 @@ import com.graviton.feature.player.ui.SubtitleConfiguration
 import com.graviton.feature.player.ui.VerticalProgressView
 import com.graviton.feature.player.ui.controls.ControlsBottomView
 import com.graviton.feature.player.ui.controls.ControlsTopView
-import kotlin.time.Duration.Companion.milliseconds
 import kotlin.time.Duration.Companion.seconds
 import kotlinx.coroutines.delay
 
@@ -154,6 +149,8 @@ fun MediaPlayerScreen(
         player = player,
         hideAfter = playerPreferences.controllerAutoHideTimeout.seconds,
     )
+    // The speed the player is really playing at, used to show the boost overlay only when it is applied.
+    val playbackParametersState = rememberPlaybackParametersState(player)
     val tapGestureState = rememberTapGestureState(
         player = player,
         doubleTapGesture = playerPreferences.doubleTapGesture,
@@ -587,6 +584,9 @@ fun MediaPlayerScreen(
                     ""
                 },
                 onDismiss = { overlayView = null },
+                onPlaybackSpeedSelected = { speed ->
+                    player.currentMediaItem?.mediaId?.let { viewModel.updatePlaybackSpeed(it, speed) }
+                },
                 onOverlayViewChange = { overlayView = it },
                 onSelectSubtitleClick = onSelectSubtitleClick,
                 onSubtitleOptionEvent = viewModel::onSubtitleOptionEvent,
@@ -628,7 +628,8 @@ fun MediaPlayerScreen(
             )
 
             SpeedOverlayView(
-                speed = tapGestureState.activeLongPressSpeed,
+                observedSpeed = playbackParametersState.speed,
+                boostSpeed = tapGestureState.activeLongPressSpeed,
                 isLongPressActive = tapGestureState.isLongPressGestureInAction,
                 controlsVisible = controlsVisibilityState.controlsVisible,
             )

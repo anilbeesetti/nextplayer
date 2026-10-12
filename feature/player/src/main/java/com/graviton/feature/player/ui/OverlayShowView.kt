@@ -61,6 +61,7 @@ fun BoxScope.OverlayShowView(
     chapterCountLabel: String,
     cutSegmentLabel: String,
     onDismiss: () -> Unit = {},
+    onPlaybackSpeedSelected: (Float) -> Unit = {},
     onOverlayViewChange: (OverlayView) -> Unit = {},
     onSelectSubtitleClick: () -> Unit = {},
     onSubtitleOptionEvent: (SubtitleOptionsEvent) -> Unit = {},
@@ -104,6 +105,7 @@ fun BoxScope.OverlayShowView(
     PlaybackSpeedSelectorView(
         show = overlayView == OverlayView.PLAYBACK_SPEED,
         player = player,
+        onSpeedSelected = onPlaybackSpeedSelected,
     )
 
     // Configuring the hold-to-boost speed is not the same action as changing the current playback

@@ -31,10 +31,11 @@ data class PlayerPreferences(
     val longPressControlsSpeed: Float = 2.0f,
 
     /**
-     * What a long press on the video surface does. Holding a side of the video seeks by default;
-     * [LongPressGesture.SPEED_BOOST] keeps the original hold-to-play-faster behaviour available.
+     * What a long press on the video surface does. The default is a temporary speed boost to
+     * [longPressControlsSpeed]; the previously selected speed is restored on release. [LongPressGesture.SEEK]
+     * is still available in settings for hold-to-seek.
      */
-    val longPressGesture: LongPressGesture = LongPressGesture.SEEK,
+    val longPressGesture: LongPressGesture = LongPressGesture.SPEED_BOOST,
     val seekIncrement: Int = DEFAULT_SEEK_INCREMENT,
     val seekSensitivity: Float = DEFAULT_SEEK_SENSITIVITY,
     val volumeGestureSensitivity: Float = DEFAULT_VOLUME_GESTURE_SENSITIVITY,

@@ -96,6 +96,16 @@ class PlayerViewModel @Inject constructor(
         }
     }
 
+    /**
+     * Stores the speed the user chose for [mediaId]. Only deliberate selections are stored: temporary
+     * speed changes such as the long-press boost are not, so they cannot become the remembered speed.
+     */
+    fun updatePlaybackSpeed(mediaId: String, speed: Float) {
+        viewModelScope.launch {
+            mediaRepository.updateMediumPlaybackSpeed(uri = mediaId, playbackSpeed = speed)
+        }
+    }
+
     fun updatePlayerBrightness(value: Float) {
         viewModelScope.launch {
             preferencesRepository.updatePlayerPreferences { it.copy(playerBrightness = value) }
