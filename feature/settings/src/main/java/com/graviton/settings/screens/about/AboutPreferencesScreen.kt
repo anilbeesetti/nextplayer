@@ -71,6 +71,7 @@ fun AboutPreferencesScreen(
     onNavigateUp: () -> Unit,
 ) {
     val context = LocalContext.current
+    val copiedToClipboardMessage = stringResource(id = R.string.copied_to_clipboard)
     val clipboard = LocalClipboard.current
     val scope = rememberCoroutineScope()
 
@@ -128,7 +129,7 @@ fun AboutPreferencesScreen(
                     onClick = {
                         scope.launch {
                             clipboard.setClipEntry(ClipEntry(ClipData.newPlainText("text", UPI_ID)))
-                            Toast.makeText(context, context.getString(R.string.copied_to_clipboard), Toast.LENGTH_SHORT).show()
+                            Toast.makeText(context, copiedToClipboardMessage, Toast.LENGTH_SHORT).show()
                         }
                     },
                     isLastItem = true,
