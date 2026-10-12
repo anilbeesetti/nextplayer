@@ -2,8 +2,8 @@ package com.graviton.feature.music
 
 import android.content.Intent
 import androidx.compose.animation.AnimatedVisibility
-import androidx.compose.animation.core.Animatable
 import androidx.compose.animation.core.Spring
+import androidx.compose.animation.core.animate
 import androidx.compose.animation.core.spring
 import androidx.compose.animation.expandVertically
 import androidx.compose.animation.fadeIn
@@ -37,6 +37,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.Stable
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableFloatStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
@@ -292,14 +293,37 @@ fun MiniPlayerReopenButton(
     }
 }
 
-/** Fraction of the bar's height that has to be pulled down before a release dismisses it. */
-private const val DISMISS_DISTANCE_FRACTION = 0.42f
+/**
+ * When a swipe on the mini player counts as a dismissal.
+ *
+ * Kept as pure arithmetic so the thresholds can be tested without a display: a swipe dismisses when
+ * it either travels most of the bar's height, or is thrown quickly enough after a short travel — the
+ * second rule is what makes a quick flick work, and its minimum travel is what keeps a stray tap
+ * from dismissing the bar.
+ */
+object MiniPlayerDismissGesture {
+    /** Fraction of the bar's height that has to be pulled down before a release dismisses it. */
+    const val DISTANCE_FRACTION = 0.42f
 
-/** A flick faster than this dismisses the bar even without covering the full distance. */
-private const val DISMISS_VELOCITY_DP_PER_SECOND = 900f
+    /** A flick faster than this dismisses the bar even without covering the full distance. */
+    const val VELOCITY_DP_PER_SECOND = 900f
 
-/** A release this far down still counts as a flick, so a stray tap cannot dismiss the bar. */
-private const val FLICK_MIN_TRAVEL_FRACTION = 0.10f
+    /** A throw this far down still counts as a flick, so a stray tap cannot dismiss the bar. */
+    const val FLICK_MIN_TRAVEL_FRACTION = 0.10f
+
+    fun shouldDismiss(
+        offsetPx: Float,
+        heightPx: Float,
+        velocityPxPerSecond: Float,
+        velocityThresholdPxPerSecond: Float = VELOCITY_DP_PER_SECOND,
+    ): Boolean {
+        if (heightPx <= 0f) return false
+        val pulledFarEnough = offsetPx > heightPx * DISTANCE_FRACTION
+        val flickedFastEnough = velocityPxPerSecond > velocityThresholdPxPerSecond &&
+            offsetPx > heightPx * FLICK_MIN_TRAVEL_FRACTION
+        return pulledFarEnough || flickedFastEnough
+    }
+}
 
 /**
  * Vertical swipe-to-dismiss for the mini player.
@@ -307,8 +331,8 @@ private const val FLICK_MIN_TRAVEL_FRACTION = 0.10f
  * The gesture only claims the pointer after a downward touch slop, so taps reach the row's buttons
  * and horizontal drags remain available to anything underneath. While the finger is down the content
  * follows it one-to-one and fades with the distance travelled; on release it either springs back to
- * rest or is dismissed, depending on how far and how fast the finger moved. Upward drags are never
- * consumed, so pulling up still scrolls the content behind the bar.
+ * rest ([MiniPlayerDismissGesture] decides which) with a low-bounce spring, or is dismissed.
+ * Upward drags are never consumed, so pulling up still scrolls the content behind the bar.
  */
 @Composable
 private fun MiniPlayerSwipeToDismiss(
@@ -317,9 +341,11 @@ private fun MiniPlayerSwipeToDismiss(
     content: @Composable () -> Unit,
 ) {
     val scope = rememberCoroutineScope()
-    val offsetY = remember { Animatable(0f) }
+    // A plain animated state, not an Animatable: pointer input runs in a restricted coroutine scope
+    // that may not call suspend functions belonging to other scopes.
+    val offsetY = remember { mutableFloatStateOf(0f) }
     val velocityThreshold = with(LocalDensity.current) {
-        DISMISS_VELOCITY_DP_PER_SECOND.dp.toPx()
+        MiniPlayerDismissGesture.VELOCITY_DP_PER_SECOND.dp.toPx()
     }
 
     Box(
@@ -327,7 +353,7 @@ private fun MiniPlayerSwipeToDismiss(
             .graphicsLayer {
                 translationY = offsetY.value
                 // Subtle fading: the bar is fully opaque until it starts travelling, and it never
-                // fades so far that it disappears before the dismissal animation runs.
+                // fades so far that it would vanish before the dismissal animation runs.
                 val travelled = if (size.height > 0f) offsetY.value / size.height else 0f
                 alpha = (1f - travelled * 0.55f).coerceIn(0.45f, 1f)
             }
@@ -350,40 +376,43 @@ private fun MiniPlayerSwipeToDismiss(
                             travelled += dragY
                             when {
                                 travelled >= viewConfiguration.touchSlop -> claimed = true
-                                // Upwards is somebody else's gesture.
+                                // Upwards is somebody else's gesture: leave it unconsumed.
                                 travelled <= -viewConfiguration.touchSlop -> break
                             }
                         }
 
                         if (claimed) {
                             change.consume()
-                            offsetY.snapTo((offsetY.value + dragY).coerceAtLeast(0f))
+                            offsetY.value = (offsetY.value + dragY).coerceAtLeast(0f)
                         }
                         if (!change.pressed) break
                     }
 
-                    if (claimed) {
-                        val heightPx = size.height.toFloat()
-                        val velocity = tracker.calculateVelocity().y
-                        val pulledFarEnough = offsetY.value > heightPx * DISMISS_DISTANCE_FRACTION
-                        val flickedFastEnough = velocity > velocityThreshold &&
-                            offsetY.value > heightPx * FLICK_MIN_TRAVEL_FRACTION
+                    if (!claimed) return@awaitEachGesture
 
-                        if (pulledFarEnough || flickedFastEnough) {
-                            onDismiss()
-                            // The bar is animated out by the caller; resetting here keeps the next
-                            // time it is opened free of a stale offset.
-                            offsetY.snapTo(0f)
-                        } else {
-                            scope.launch {
-                                offsetY.animateTo(
-                                    targetValue = 0f,
-                                    animationSpec = spring(
-                                        dampingRatio = Spring.DampingRatioLowBouncy,
-                                        stiffness = Spring.StiffnessMediumLow,
-                                    ),
-                                )
-                            }
+                    val dismiss = MiniPlayerDismissGesture.shouldDismiss(
+                        offsetPx = offsetY.value,
+                        heightPx = size.height.toFloat(),
+                        velocityPxPerSecond = tracker.calculateVelocity().y,
+                        velocityThresholdPxPerSecond = velocityThreshold,
+                    )
+
+                    if (dismiss) {
+                        // The bar is animated out by the caller; resetting here keeps the next time
+                        // it is opened free of a stale offset.
+                        offsetY.value = 0f
+                        onDismiss()
+                    } else {
+                        // Not far enough: settle back with a gentle spring, no snap.
+                        scope.launch {
+                            animate(
+                                initialValue = offsetY.value,
+                                targetValue = 0f,
+                                animationSpec = spring(
+                                    dampingRatio = Spring.DampingRatioLowBouncy,
+                                    stiffness = Spring.StiffnessMediumLow,
+                                ),
+                            ) { value, _ -> offsetY.value = value }
                         }
                     }
                 }
