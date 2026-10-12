@@ -67,11 +67,16 @@ android {
         abi {
             //noinspection WrongGradleMethod
             val isBuildingBundle = gradle.startParameter.taskNames.any { it.lowercase().contains("bundle") }
+            val armv7Release = providers.gradleProperty("armv7Release").map(String::toBoolean).getOrElse(false)
 
             isEnable = !isBuildingBundle
             reset()
-            include("armeabi-v7a", "arm64-v8a", "x86", "x86_64")
-            isUniversalApk = true
+            if (armv7Release) {
+                include("armeabi-v7a")
+            } else {
+                include("armeabi-v7a", "arm64-v8a", "x86", "x86_64")
+            }
+            isUniversalApk = !armv7Release
         }
     }
 
