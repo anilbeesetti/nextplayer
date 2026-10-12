@@ -1,0 +1,55 @@
+name: Arena Verify
+
+# Temporary verification workflow used by the Arena agent session working on
+# `arena/*` branches. It compiles the touched modules, runs their unit tests and
+# publishes a compact digest of any failure through check annotations and a
+# commit comment, because the sandbox the agent runs in cannot reach Maven or
+# the Android SDK.
+on:
+  push:
+    branches: [ "arena/**" ]
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  verify:
+    name: Compile & test
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v4
+
+      - name: Set up JDK 17
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: "17"
+          cache: gradle
+
+      - name: Grant execute permission for gradlew
+        run: chmod +x ./gradlew
+
+      - name: Compile and test
+        id: gradle
+        continue-on-error: true
+        run: |
+          set +e
+          ./gradlew --no-daemon --stacktrace \
+            :feature:player:compileDebugKotlin \
+            :feature:player:testDebugUnitTest \
+            :feature:music:compileDebugKotlin \
+            :core:ui:compileDebugKotlin \
+            > build.log 2>&1
+          status=$?
+          echo "status=$status" >> "$GITHUB_OUTPUT"
+          echo "gradle exit status: $status"
+
+      - name: Publish failure digest
+        if: always()
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          python3 .github/scripts/arena_verify_digest.py "${{ steps.gradle.outputs.status }}"
