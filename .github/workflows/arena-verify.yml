@@ -38,10 +38,11 @@ jobs:
         run: |
           set +e
           ./gradlew --no-daemon --stacktrace \
-            :feature:player:compileDebugKotlin \
+            :app:assembleDebug \
             :feature:player:testDebugUnitTest \
-            :feature:music:compileDebugKotlin \
-            :core:ui:compileDebugKotlin \
+            :feature:music:testDebugUnitTest \
+            :core:ui:testDebugUnitTest \
+            ktlintCheck \
             > build.log 2>&1
           status=$?
           echo "status=$status" >> "$GITHUB_OUTPUT"

@@ -376,7 +376,7 @@ fun MediaPlayerScreen(
                 BufferingIndicator(
                     visible = mediaPresentationState.isBuffering || isResolving,
                     progress = if (isResolving) null else realBufferedPercentage?.let { it / 100f },
-                    label = if (isResolving) stringResource(R.string.loading) else stringResource(R.string.state_buffering),
+                    label = if (isResolving) stringResource(coreUiR.string.loading) else stringResource(coreUiR.string.state_buffering),
                     // Lift the pill out of the way of the play/pause row when controls are shown.
                     modifier = Modifier
                         .align(Alignment.Center)
