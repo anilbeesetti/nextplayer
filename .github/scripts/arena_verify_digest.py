@@ -11,6 +11,7 @@ import json
 import os
 import subprocess
 import sys
+import xml.etree.ElementTree as ElementTree
 
 LOG = "build.log"
 MAX_ANNOTATIONS = 40
@@ -37,6 +38,35 @@ def read_lines() -> list[str]:
             return handle.read().splitlines()
     except FileNotFoundError:
         return []
+
+
+def test_summary() -> tuple[dict[str, int], list[str]]:
+    """Totals and failing test names from the JUnit XML reports Gradle produced.
+
+    The repositories still set `Test.ignoreFailures = true`, so a zero exit status
+    does not by itself prove that every unit test passed. These reports do.
+    """
+    totals = {"tests": 0, "failures": 0, "errors": 0, "skipped": 0}
+    failing: list[str] = []
+    for root, dirs, files in os.walk("."):
+        dirs[:] = [name for name in dirs if name not in {".git", ".gradle", "node_modules"}]
+        if os.sep + os.path.join("build", "test-results") not in root + os.sep:
+            continue
+        for name in files:
+            if not name.endswith(".xml"):
+                continue
+            try:
+                tree = ElementTree.parse(os.path.join(root, name))
+            except ElementTree.ParseError:
+                continue
+            for suite in tree.iter("testsuite"):
+                for key in totals:
+                    totals[key] += int(suite.get(key, 0) or 0)
+            for case in tree.iter("testcase"):
+                if case.find("failure") is None and case.find("error") is None:
+                    continue
+                failing.append(f"{case.get('classname', '?')}.{case.get('name', '?')}")
+    return totals, failing
 
 
 def escape(message: str) -> str:
@@ -80,7 +110,21 @@ def main() -> int:
     for line in digest[:MAX_ANNOTATIONS]:
         print(f"::error ::{escape(line[:900])}")
 
-    body_lines = ["### Arena Verify digest", "", f"Gradle exit status: `{status}`", "", "```"]
+    totals, failing = test_summary()
+    for name in failing[:MAX_ANNOTATIONS]:
+        print(f"::error ::unit test failed: {escape(name)}")
+
+    ran = totals["tests"]
+    summary = (
+        f"Unit tests: {ran} run, {totals['failures']} failed, "
+        f"{totals['errors']} errored, {totals['skipped']} skipped"
+    )
+    print(summary)
+
+    body_lines = ["### Arena Verify digest", "", f"Gradle exit status: `{status}`", "", summary]
+    if failing:
+        body_lines += ["", "Failing tests:"] + [f"- `{name}`" for name in failing[:MAX_ANNOTATIONS]]
+    body_lines += ["", "```"]
     body_lines.extend(line[:1200] for line in lines[-COMMENT_TAIL_LINES:])
     body_lines.append("```")
     emit_comment("\n".join(body_lines)[:COMMENT_LIMIT])
