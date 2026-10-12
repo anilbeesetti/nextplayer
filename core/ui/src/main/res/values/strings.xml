@@ -150,6 +150,9 @@
     <string name="fast_playback_speed">%.1fx speed</string>
     <string name="long_press_gesture">Long press gesture</string>
     <string name="long_press_gesture_desc">Long press to play at %.1fx speed</string>
+    <string name="long_press_gesture_seek_desc">Hold the left or right side of the video to seek</string>
+    <string name="long_press_action_seek">Seek forwards and backwards</string>
+    <string name="long_press_action_speed">Speed up playback</string>
     <string name="best_fit">Best fit</string>
     <string name="stretch">Stretch</string>
     <string name="crop">Crop</string>
@@ -632,6 +635,8 @@
     <string name="tutorial_brightness_desc">Change the screen brightness.</string>
     <string name="tutorial_long_press">Press and hold</string>
     <string name="tutorial_long_press_desc">Play at a faster speed while you keep holding.</string>
+    <string name="tutorial_long_press_seek">Hold a side to seek</string>
+    <string name="tutorial_long_press_seek_desc">Keep holding the left or right side to rewind or fast-forward.</string>
     <string name="tutorial_zoom">Pinch</string>
     <string name="tutorial_zoom_desc">Zoom the video, then drag to pan around it.</string>
     <string name="tutorial_rotate">Rotate button</string>
@@ -725,6 +730,8 @@
     <string name="frequency_hz">%1$d Hz</string>
     <string name="frequency_khz">%1$s kHz</string>
     <string name="mini_player_expand">Open now playing</string>
+    <string name="mini_player_dismiss">Hide the mini player</string>
+    <string name="mini_player_reopen">Show the mini player</string>
     <string name="previous">Previous</string>
     <string name="next">Next</string>
 
@@ -787,6 +794,9 @@
     <string name="video_thumbnail_description">Video thumbnail</string>
     <string name="forward_seek_description">Forward seek indicator</string>
     <string name="rewind_seek_description">Rewind seek indicator</string>
+    <string name="seek_seconds_forward">+%1$s seconds</string>
+    <string name="seek_seconds_backward">\u2212%1$s seconds</string>
+    <string name="seek_target_position">%1$s</string>
     <string name="current_speed_description">Current playback speed</string>
     <string name="value_slider_icon_description">Value slider icon</string>
 

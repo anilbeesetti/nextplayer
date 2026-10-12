@@ -29,6 +29,12 @@ data class PlayerPreferences(
     val doubleTapGesture: DoubleTapGesture = DoubleTapGesture.BOTH,
     val useLongPressControls: Boolean = true,
     val longPressControlsSpeed: Float = 2.0f,
+
+    /**
+     * What a long press on the video surface does. Holding a side of the video seeks by default;
+     * [LongPressGesture.SPEED_BOOST] keeps the original hold-to-play-faster behaviour available.
+     */
+    val longPressGesture: LongPressGesture = LongPressGesture.SEEK,
     val seekIncrement: Int = DEFAULT_SEEK_INCREMENT,
     val seekSensitivity: Float = DEFAULT_SEEK_SENSITIVITY,
     val volumeGestureSensitivity: Float = DEFAULT_VOLUME_GESTURE_SENSITIVITY,

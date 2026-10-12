@@ -24,6 +24,7 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableFloatStateOf
+import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
@@ -35,6 +36,7 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.graviton.core.common.extensions.round
 import com.graviton.core.common.extensions.toString
 import com.graviton.core.model.DoubleTapGesture
+import com.graviton.core.model.LongPressGesture
 import com.graviton.core.model.PlayerPreferences
 import com.graviton.core.ui.R
 import com.graviton.core.ui.components.ListSectionTitle
@@ -208,11 +210,17 @@ private fun GesturePreferencesContent(
                 )
                 PreferenceSwitchWithDivider(
                     title = stringResource(id = R.string.long_press_gesture),
-                    description = stringResource(id = R.string.long_press_gesture_desc, uiState.preferences.longPressControlsSpeed),
+                    description = when (uiState.preferences.longPressGesture) {
+                        LongPressGesture.SPEED_BOOST -> stringResource(
+                            id = R.string.long_press_gesture_desc,
+                            uiState.preferences.longPressControlsSpeed,
+                        )
+                        else -> stringResource(id = R.string.long_press_gesture_seek_desc)
+                    },
                     icon = NextIcons.Tap,
                     isChecked = uiState.preferences.useLongPressControls,
                     onChecked = { onEvent(GesturePreferencesUiEvent.ToggleUseLongPressControls) },
-                    onClick = { onEvent(GesturePreferencesUiEvent.ShowDialog(GesturePreferenceDialog.LongPressControlsSpeedDialog)) },
+                    onClick = { onEvent(GesturePreferencesUiEvent.ShowDialog(GesturePreferenceDialog.LongPressDialog)) },
                 )
                 PreferenceSlider(
                     title = stringResource(R.string.seek_increment),
@@ -255,7 +263,10 @@ private fun GesturePreferencesContent(
                     }
                 }
 
-                GesturePreferenceDialog.LongPressControlsSpeedDialog -> {
+                GesturePreferenceDialog.LongPressDialog -> {
+                    var longPressGesture by remember {
+                        mutableStateOf(uiState.preferences.longPressGesture)
+                    }
                     var longPressControlsSpeed by remember {
                         mutableFloatStateOf(uiState.preferences.longPressControlsSpeed)
                     }
@@ -263,24 +274,38 @@ private fun GesturePreferencesContent(
                     NextDialogWithDoneAndCancelButtons(
                         title = stringResource(R.string.long_press_gesture),
                         onDoneClick = {
-                            onEvent(GesturePreferencesUiEvent.UpdateLongPressControlsSpeed(longPressControlsSpeed))
+                            onEvent(GesturePreferencesUiEvent.UpdateLongPressGesture(longPressGesture))
+                            if (longPressGesture == LongPressGesture.SPEED_BOOST) {
+                                onEvent(GesturePreferencesUiEvent.UpdateLongPressControlsSpeed(longPressControlsSpeed))
+                            }
                             onEvent(GesturePreferencesUiEvent.ShowDialog(null))
                         },
                         onDismissClick = { onEvent(GesturePreferencesUiEvent.ShowDialog(null)) },
                         content = {
-                            Text(
-                                text = "$longPressControlsSpeed",
-                                modifier = Modifier
-                                    .fillMaxWidth()
-                                    .padding(vertical = 20.dp),
-                                textAlign = TextAlign.Center,
-                                style = MaterialTheme.typography.titleMedium,
-                            )
-                            Slider(
-                                value = longPressControlsSpeed,
-                                onValueChange = { longPressControlsSpeed = it.round(1) },
-                                valueRange = 0.2f..4.0f,
-                            )
+                            LongPressGesture.entries.forEach { gesture ->
+                                RadioTextButton(
+                                    text = gesture.name(),
+                                    selected = gesture == longPressGesture,
+                                    onClick = { longPressGesture = gesture },
+                                )
+                            }
+                            // The hold speed is only meaningful for the speed boost action, so the
+                            // slider appears with it instead of sitting permanently in the list.
+                            if (longPressGesture == LongPressGesture.SPEED_BOOST) {
+                                Text(
+                                    text = "$longPressControlsSpeed",
+                                    modifier = Modifier
+                                        .fillMaxWidth()
+                                        .padding(vertical = 20.dp),
+                                    textAlign = TextAlign.Center,
+                                    style = MaterialTheme.typography.titleMedium,
+                                )
+                                Slider(
+                                    value = longPressControlsSpeed,
+                                    onValueChange = { longPressControlsSpeed = it.round(1) },
+                                    valueRange = 0.2f..4.0f,
+                                )
+                            }
                         },
                     )
                 }

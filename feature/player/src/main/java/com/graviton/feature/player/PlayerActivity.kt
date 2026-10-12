@@ -422,18 +422,20 @@ class PlayerActivity : ComponentActivity() {
             isResolving.value = true
             try {
                 val extracted = resolveStream(url)
+                // The title, artist and artwork the extractor resolved travel with the media item
+                // itself: the session has no way to read them from the stream URL.
                 controller.setMediaItem(
                     MediaItem.Builder()
                         .setUri(extracted.playableUrl.toUri())
                         .setMediaId(extracted.playableUrl)
+                        .setMediaMetadata(
+                            MediaMetadata.Builder().apply {
+                                setTitle(extracted.title ?: if (::playerApi.isInitialized) playerApi.title else null)
+                                extracted.uploader?.let(::setArtist)
+                                extracted.thumbnailUrl?.let { setArtworkUri(it.toUri()) }
+                            }.build(),
+                        )
                         .build(),
-                )
-                setMediaMetadata(
-                    MediaMetadata.Builder().apply {
-                        setTitle(extracted.title ?: if (::playerApi.isInitialized) playerApi.title else null)
-                        extracted.uploader?.let(::setArtist)
-                        extracted.thumbnailUrl?.let { setArtworkUri(it.toUri()) }
-                    }.build()
                 )
                 controller.playWhenReady = true
                 controller.prepare()

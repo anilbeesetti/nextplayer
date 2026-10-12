@@ -2,7 +2,6 @@ package com.graviton.feature.player.buttons
 
 import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.interaction.PressInteraction
-import androidx.compose.foundation.layout.size
 import androidx.compose.material.ripple.RippleAlpha
 import androidx.compose.material3.ExperimentalMaterial3ExpressiveApi
 import androidx.compose.material3.FilledTonalIconButton
@@ -87,7 +86,9 @@ fun PlayerButton(
         FilledTonalIconButton(
             onClick = {},
             enabled = isEnabled,
-            modifier = modifier.size(40.dp).tvFocusRing(isTv),
+            // No explicit size: the filled tonal icon button is already a 40dp container and
+            // carries the Material 3 minimum touch target, which an explicit size would clamp.
+            modifier = modifier.tvFocusRing(isTv),
             interactionSource = interactionSource,
             content = content
         )

@@ -7,6 +7,7 @@ import dagger.hilt.android.lifecycle.HiltViewModel
 import com.graviton.core.common.extensions.round
 import com.graviton.core.data.repository.PreferencesRepository
 import com.graviton.core.model.DoubleTapGesture
+import com.graviton.core.model.LongPressGesture
 import com.graviton.core.model.PlayerPreferences
 import javax.inject.Inject
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -45,6 +46,7 @@ class GesturePreferencesViewModel @Inject constructor(
             GesturePreferencesUiEvent.ToggleUseSeekControls -> toggleUseSeekControls()
             GesturePreferencesUiEvent.ToggleUseZoomControls -> toggleUseZoomControls()
             GesturePreferencesUiEvent.ToggleEnablePanGesture -> toggleEnablePanGesture()
+            is GesturePreferencesUiEvent.UpdateLongPressGesture -> updateLongPressGesture(event.gesture)
             is GesturePreferencesUiEvent.UpdateLongPressControlsSpeed -> updateLongPressControlsSpeed(event.value)
             is GesturePreferencesUiEvent.UpdateSeekIncrement -> updateSeekIncrement(event.value)
             is GesturePreferencesUiEvent.UpdateSeekSensitivity -> updateSeekSensitivity(event.value)
@@ -129,6 +131,14 @@ class GesturePreferencesViewModel @Inject constructor(
         }
     }
 
+    private fun updateLongPressGesture(gesture: LongPressGesture) {
+        viewModelScope.launch {
+            preferencesRepository.updatePlayerPreferences {
+                it.copy(longPressGesture = gesture, useLongPressControls = gesture != LongPressGesture.NONE)
+            }
+        }
+    }
+
     private fun updateLongPressControlsSpeed(value: Float) {
         viewModelScope.launch {
             preferencesRepository.updatePlayerPreferences { it.copy(longPressControlsSpeed = value) }
@@ -176,12 +186,13 @@ data class GesturePreferencesUiState(
 
 sealed interface GesturePreferenceDialog {
     data object DoubleTapDialog : GesturePreferenceDialog
-    data object LongPressControlsSpeedDialog : GesturePreferenceDialog
+    data object LongPressDialog : GesturePreferenceDialog
 }
 
 sealed interface GesturePreferencesUiEvent {
     data class ShowDialog(val value: GesturePreferenceDialog?) : GesturePreferencesUiEvent
     data class UpdateDoubleTapGesture(val gesture: DoubleTapGesture) : GesturePreferencesUiEvent
+    data class UpdateLongPressGesture(val gesture: LongPressGesture) : GesturePreferencesUiEvent
     data object ToggleUseLongPressControls : GesturePreferencesUiEvent
     data object ToggleDoubleTapGesture : GesturePreferencesUiEvent
     data object ToggleEnableBrightnessSwipeGesture : GesturePreferencesUiEvent
