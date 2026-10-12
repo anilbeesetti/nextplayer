@@ -35,6 +35,14 @@ class HoldSeekTest {
     }
 
     @Test
+    fun aFewSecondsOfHoldingCoverATensOfSecondsOfMedia() {
+        // 10s + 0.8s at 3x, 0.8s at 5x, 0.8s at 10x and 0.6s at 20x.
+        val delta = HoldSeek.deltaAt(elapsedMs = 3_000L, incrementMs = increment)
+
+        assertTrue("expected tens of seconds, got ${delta}ms", delta in 25_000L..60_000L)
+    }
+
+    @Test
     fun eachRampStepAddsMoreThanThePreviousOne() {
         val firstStep = HoldSeek.deltaAt(HoldSeek.STEP_DURATION_MS, increment) -
             HoldSeek.deltaAt(0L, increment)

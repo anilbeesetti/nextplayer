@@ -7,8 +7,8 @@ package com.graviton.feature.player.state
  * is the same ±N seconds the user configured for double taps. From there the gesture accelerates:
  * every [STEP_DURATION_MS] the rate steps up through [RATES] (media seconds per second of holding)
  * until it settles at the last entry, which is the ceiling the gesture is allowed to reach. Holding
- * for a full five seconds therefore covers roughly three minutes of media without ever turning into
- * an uncontrolled jump.
+ * for five seconds therefore covers roughly two minutes of media, and the cap keeps even an
+ * extremely long hold at [MAX_DELTA_MS].
  *
  * Everything here is pure arithmetic: the gesture state calls [deltaAt] with the elapsed hold time
  * on every tick, so the displayed amount stays a function of how long the finger has been down
@@ -35,7 +35,8 @@ object HoldSeek {
         var step = 0
         while (remaining > 0L) {
             val span = minOf(remaining, STEP_DURATION_MS)
-            delta += RATES[step.coerceAtMost(RATES.lastIndex)] * span / 1000f
+            // media seconds per hold second, applied over `span` milliseconds
+            delta += RATES[step.coerceAtMost(RATES.lastIndex)] * span
             remaining -= span
             step++
         }
