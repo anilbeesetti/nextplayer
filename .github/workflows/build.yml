@@ -1,402 +1,44 @@
-name: Build & Sign Release APK
-
+name: Build APK
 on:
   push:
-    tags:
-      - "v*"
-  workflow_dispatch:
-    inputs:
-      release_tag:
-        description: "Release tag, e.g. v1.0.0"
-        required: true
-        default: "v1.0.0"
-
-permissions:
-  contents: write
+    branches: [main]
+  pull_request:
+    branches: [main]
+  push:
+    tags: ['v*']
 
 jobs:
-  build-release:
-    name: Build Signed Release APK
-    runs-on: ubuntu-24.04
-
+  build:
+    runs-on: ubuntu-latest
     steps:
-      # ---------------------------------------------------------
-      # Checkout
-      # ---------------------------------------------------------
-      - name: Checkout Repository
-        uses: actions/checkout@v4
-
-      # ---------------------------------------------------------
-      # Java
-      # ---------------------------------------------------------
-      - name: Set up JDK 17
-        uses: actions/setup-java@v4
+      - uses: actions/checkout@v4
+      - uses: actions/setup-java@v4
         with:
-          distribution: temurin
-          java-version: "17"
-          cache: gradle
-
-      # ---------------------------------------------------------
-      # Make Gradle executable
-      # ---------------------------------------------------------
-      - name: Grant execute permission for gradlew
-        run: chmod +x ./gradlew
-
-      # ---------------------------------------------------------
-      # Decode & Validate Keystore
-      # ---------------------------------------------------------
-      - name: Decode Android keystore
-        env:
-          KEYSTORE_BASE64: ${{ secrets.ANDROID_KEYSTORE_BASE64 }}
-          KEYSTORE_PASSWORD: ${{ secrets.ANDROID_KEYSTORE_PASSWORD }}
-          KEY_ALIAS: ${{ secrets.ANDROID_KEY_ALIAS }}
-          KEY_PASSWORD: ${{ secrets.ANDROID_KEY_PASSWORD }}
-        run: |
-          echo "============================================"
-          echo "Validating secrets..."
-          echo "============================================"
-
-          # Check all secrets exist
-          if [ -z "$KEYSTORE_BASE64" ]; then
-            echo "::error::ANDROID_KEYSTORE_BASE64 is missing"
-            exit 1
-          fi
-
-          if [ -z "$KEYSTORE_PASSWORD" ]; then
-            echo "::error::ANDROID_KEYSTORE_PASSWORD is missing"
-            exit 1
-          fi
-
-          if [ -z "$KEY_ALIAS" ]; then
-            echo "::error::ANDROID_KEY_ALIAS is missing"
-            exit 1
-          fi
-
-          if [ -z "$KEY_PASSWORD" ]; then
-            echo "::error::ANDROID_KEY_PASSWORD is missing"
-            exit 1
-          fi
-
-          echo "✅ All secrets present"
-
-          # Decode keystore
-          mkdir -p "$RUNNER_TEMP/signing"
-
-          echo "$KEYSTORE_BASE64" | base64 --decode \
-            > "$RUNNER_TEMP/signing/release.keystore"
-
-          # Check file was created and is not empty
-          if [ ! -s "$RUNNER_TEMP/signing/release.keystore" ]; then
-            echo "::error::Keystore file is empty after decoding."
-            echo "::error::Re-encode with: base64 -w 0 your.keystore"
-            exit 1
-          fi
-
-          KEYSTORE_SIZE=$(wc -c < "$RUNNER_TEMP/signing/release.keystore")
-          echo "✅ Keystore decoded: $KEYSTORE_SIZE bytes"
-
-          # Validate keystore with keytool
-          echo "============================================"
-          echo "Validating keystore with keytool..."
-          echo "============================================"
-
-          keytool -list \
-            -keystore "$RUNNER_TEMP/signing/release.keystore" \
-            -storepass "$KEYSTORE_PASSWORD" \
-            -alias "$KEY_ALIAS" \
-            -v 2>&1 | head -20 || {
-              echo "::error::Keystore validation failed!"
-              echo "::error::Check ANDROID_KEYSTORE_PASSWORD and ANDROID_KEY_ALIAS"
-              exit 1
-            }
-
-          echo "✅ Keystore validated successfully"
-
-      # ---------------------------------------------------------
-      # Build release APK
-      # ---------------------------------------------------------
-      - name: Build Release APK
-        run: ./gradlew clean assembleRelease --stacktrace
-
-      # ---------------------------------------------------------
-      # List all produced APKs
-      # ---------------------------------------------------------
-      - name: List produced APKs
-        run: |
-          echo "============================================"
-          echo "All APK files found:"
-          echo "============================================"
-          find . -type f -name "*.apk" -print
-          echo "============================================"
-
-      # ---------------------------------------------------------
-      # Find build tools
-      # ---------------------------------------------------------
-      - name: Find Android build tools
-        id: build_tools
-        run: |
-          BUILD_TOOLS=$(find "$ANDROID_HOME/build-tools" \
-            -maxdepth 1 \
-            -mindepth 1 \
-            -type d \
-            | sort -V \
-            | tail -n 1)
-
-          if [ -z "$BUILD_TOOLS" ]; then
-            echo "::error::Android build tools not found."
-            exit 1
-          fi
-
-          echo "✅ Build tools found: $BUILD_TOOLS"
-          echo "path=$BUILD_TOOLS" >> "$GITHUB_OUTPUT"
-
-          # List apksigner version
-          "$BUILD_TOOLS/apksigner" version
-
-      # ---------------------------------------------------------
-      # Zipalign & Sign each APK
-      # ---------------------------------------------------------
-      - name: Zipalign and Sign APKs
-        id: sign
-        env:
-          KEYSTORE_PASSWORD: ${{ secrets.ANDROID_KEYSTORE_PASSWORD }}
-          KEY_ALIAS: ${{ secrets.ANDROID_KEY_ALIAS }}
-          KEY_PASSWORD: ${{ secrets.ANDROID_KEY_PASSWORD }}
-        run: |
-          ZIPALIGN="${{ steps.build_tools.outputs.path }}/zipalign"
-          APKSIGNER="${{ steps.build_tools.outputs.path }}/apksigner"
-          KEYSTORE="$RUNNER_TEMP/signing/release.keystore"
-
-          mkdir -p release/signed
-
-          # Find all unsigned release APKs
-          APKS=$(find . \
-            -type f \
-            -name "*-release-unsigned.apk" \
-            ! -path "*/release/signed/*")
-
-          # Fallback to any release APK
-          if [ -z "$APKS" ]; then
-            APKS=$(find . \
-              -type f \
-              -name "*-release.apk" \
-              ! -path "*/release/signed/*")
-          fi
-
-          if [ -z "$APKS" ]; then
-            echo "::error::No release APKs found to sign."
-            exit 1
-          fi
-
-          echo "============================================"
-          echo "APKs to sign:"
-          echo "$APKS"
-          echo "============================================"
-
-          FIRST_SIGNED=""
-          COUNT=0
-
-          for APK in $APKS; do
-            FILENAME=$(basename "$APK" | sed 's/-unsigned//')
-            ALIGNED="release/signed/${FILENAME%.apk}-aligned.apk"
-            SIGNED="release/signed/$FILENAME"
-
-            echo ""
-            echo "--- Processing: $APK ---"
-
-            # Zipalign
-            echo "Running zipalign..."
-            "$ZIPALIGN" -v -p 4 "$APK" "$ALIGNED"
-
-            if [ ! -f "$ALIGNED" ]; then
-              echo "::error::Zipalign failed for $APK"
-              exit 1
-            fi
-
-            # Sign with verbose output for debugging
-            echo "Running apksigner..."
-            "$APKSIGNER" sign \
-              --ks "$KEYSTORE" \
-              --ks-pass "pass:$KEYSTORE_PASSWORD" \
-              --ks-key-alias "$KEY_ALIAS" \
-              --key-pass "pass:$KEY_PASSWORD" \
-              --out "$SIGNED" \
-              --v1-signing-enabled true \
-              --v2-signing-enabled true \
-              --v3-signing-enabled true \
-              "$ALIGNED"
-
-            if [ $? -ne 0 ]; then
-              echo "::error::apksigner failed for $APK"
-              echo "::error::Check your keystore password and key alias"
-              exit 1
-            fi
-
-            # Verify
-            echo "Verifying signature..."
-            "$APKSIGNER" verify --verbose "$SIGNED" 2>&1 | head -10
-
-            echo "✅ Signed: $SIGNED"
-
-            # Cleanup aligned
-            rm -f "$ALIGNED"
-
-            COUNT=$((COUNT + 1))
-            if [ -z "$FIRST_SIGNED" ]; then
-              FIRST_SIGNED="$SIGNED"
-            fi
-          done
-
-          echo ""
-          echo "✅ Successfully signed $COUNT APK(s)"
-
-          echo "first_apk=$FIRST_SIGNED" >> "$GITHUB_OUTPUT"
-          echo "signed_dir=release/signed" >> "$GITHUB_OUTPUT"
-          echo "count=$COUNT" >> "$GITHUB_OUTPUT"
-
-      # ---------------------------------------------------------
-      # List signed APKs
-      # ---------------------------------------------------------
-      - name: List signed APKs
-        run: |
-          echo "============================================"
-          echo "Signed APKs:"
-          echo "============================================"
-          find release/signed -type f -name "*.apk" -print
-          echo "============================================"
-
-      # ---------------------------------------------------------
-      # Get APK info & Create SHA256
-      # ---------------------------------------------------------
-      - name: Get APK information
-        id: apk_info
-        run: |
-          APK="${{ steps.sign.outputs.first_apk }}"
-
-          if [ ! -f "$APK" ]; then
-            echo "::error::Signed APK not found at: $APK"
-            exit 1
-          fi
-
-          SIZE=$(du -h "$APK" | cut -f1)
-          SHA256_LINE=$(sha256sum "$APK")
-          SHA256=$(echo "$SHA256_LINE" | cut -d' ' -f1)
-
-          # Create checksum for each signed APK
-          for APK_FILE in release/signed/*.apk; do
-            sha256sum "$APK_FILE" > "${APK_FILE}.sha256"
-            echo "Created checksum: ${APK_FILE}.sha256"
-          done
-
-          echo "apk=$APK"         >> "$GITHUB_OUTPUT"
-          echo "size=$SIZE"       >> "$GITHUB_OUTPUT"
-          echo "sha256=$SHA256"   >> "$GITHUB_OUTPUT"
-
-          echo "APK: $APK"
-          echo "Size: $SIZE"
-          echo "SHA256: $SHA256"
-
-      # ---------------------------------------------------------
-      # Determine release tag
-      # ---------------------------------------------------------
-      - name: Determine release tag
-        id: release_tag
-        env:
-          EVENT_NAME: ${{ github.event_name }}
-          PUSH_TAG: ${{ github.ref_name }}
-          INPUT_TAG: ${{ inputs.release_tag }}
-        run: |
-          if [ "$EVENT_NAME" = "push" ]; then
-            TAG="$PUSH_TAG"
-          else
-            TAG="$INPUT_TAG"
-          fi
-
-          if [[ ! "$TAG" =~ ^v[0-9]+\.[0-9]+\.[0-9]+(-[a-zA-Z0-9]+)?$ ]]; then
-            echo "::error::Invalid tag format '$TAG'. Expected: v1.2.3"
-            exit 1
-          fi
-
-          echo "tag=$TAG" >> "$GITHUB_OUTPUT"
-          echo "Release tag: $TAG"
-
-      # ---------------------------------------------------------
-      # Upload artifact
-      # ---------------------------------------------------------
-      - name: Upload Signed APKs
+          distribution: 'temurin'
+          java-version: '17'
+      - name: Setup Android SDK
+        uses: android-actions/setup-android@v3
+      - name: Build Debug APK
+        run: ./gradlew assembleDebug --stacktrace
+      - name: Upload APK
         uses: actions/upload-artifact@v4
         with:
-          name: signed-apks
-          path: release/signed/
-          if-no-files-found: error
-          retention-days: 30
+          name: graviton-debug-apk
+          path: app/build/outputs/apk/debug/app-debug.apk
 
-      # ---------------------------------------------------------
-      # Create GitHub Release
-      # ---------------------------------------------------------
-      - name: Create GitHub Release
+  release:
+    if: startsWith(github.ref, 'refs/tags/v')
+    needs: build
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/download-artifact@v4
+        with:
+          name: graviton-debug-apk
+      - name: Create Release
         uses: softprops/action-gh-release@v2
         with:
-          tag_name: ${{ steps.release_tag.outputs.tag }}
-          name: Graviton ${{ steps.release_tag.outputs.tag }}
+          files: app-debug.apk
           generate_release_notes: true
-          files: release/signed/*
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-
-      # ---------------------------------------------------------
-      # Summary
-      # ---------------------------------------------------------
-      - name: Write build summary
-        run: |
-          TAG="${{ steps.release_tag.outputs.tag }}"
-          SIZE="${{ steps.apk_info.outputs.size }}"
-          SHA256="${{ steps.apk_info.outputs.sha256 }}"
-          COUNT="${{ steps.sign.outputs.count }}"
-
-          {
-            echo "# 🚀 Graviton Android Release"
-            echo ""
-            echo "## ✅ Build Status"
-            echo ""
-            echo "| Property | Value |"
-            echo "|---|---|"
-            echo "| Build | ✅ Successful |"
-            echo "| Release | \`$TAG\` |"
-            echo "| APKs Signed | $COUNT |"
-            echo "| APK Size | $SIZE |"
-            echo "| Java | 17 |"
-            echo "| Runner | Ubuntu 24.04 |"
-            echo ""
-            echo "## 🔐 Signing"
-            echo ""
-            echo "✅ APKs signed with apksigner"
-            echo ""
-            echo "✅ v1, v2, v3 signing enabled"
-            echo ""
-            echo "## 🔒 SHA-256"
-            echo ""
-            echo "\`$SHA256\`"
-            echo ""
-            echo "## 📦 Downloads"
-            echo ""
-            echo "- **GitHub Release:** [Open Release](https://github.com/${{ github.repository }}/releases/tag/$TAG)"
-            echo "- **Artifacts:** Available in Actions run artifacts"
-            echo ""
-            echo "## ℹ️ Build Information"
-            echo ""
-            echo "- Repository: \`${{ github.repository }}\`"
-            echo "- Commit: \`${{ github.sha }}\`"
-            echo "- Tag: \`$TAG\`"
-            echo "- Workflow: \`${{ github.workflow }}\`"
-            echo ""
-            echo "---"
-            echo "Generated automatically by GitHub Actions."
-          } >> "$GITHUB_STEP_SUMMARY"
-
-      # ---------------------------------------------------------
-      # Cleanup keystore
-      # ---------------------------------------------------------
-      - name: Cleanup signing files
-        if: always()
-        run: rm -rf "$RUNNER_TEMP/signing"
