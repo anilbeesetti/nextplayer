@@ -1,0 +1,147 @@
+name: Signed ARMv7 release APK
+
+on:
+  push:
+    tags: ['v*']
+  workflow_dispatch:
+    inputs:
+      release_tag:
+        description: 'Existing version tag to build (e.g. v1.0.0)'
+        required: true
+        type: string
+
+permissions:
+  contents: write
+
+jobs:
+  release:
+    runs-on: ubuntu-24.04
+    steps:
+      - name: Validate release tag
+        id: tag
+        env:
+          TAG: ${{ github.event_name == 'workflow_dispatch' && inputs.release_tag || github.ref_name }}
+        run: |
+          if [[ ! "$TAG" =~ ^v[0-9]+\.[0-9]+\.[0-9]+([.-][0-9A-Za-z.-]+)?$ ]]; then
+            echo '::error::Expected a version tag such as v1.2.3'
+            exit 1
+          fi
+          echo "value=$TAG" >> "$GITHUB_OUTPUT"
+
+      - name: Checkout release tag
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ steps.tag.outputs.value }}
+          persist-credentials: false
+
+      - name: Set up JDK 17
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '17'
+          cache: gradle
+
+      - name: Validate signing secrets and decode keystore
+        env:
+          KEYSTORE_BASE64: ${{ secrets.ANDROID_KEYSTORE_BASE64 }}
+          KEYSTORE_PASSWORD: ${{ secrets.ANDROID_KEYSTORE_PASSWORD }}
+          KEY_ALIAS: ${{ secrets.ANDROID_KEY_ALIAS }}
+          KEY_PASSWORD: ${{ secrets.ANDROID_KEY_PASSWORD }}
+        run: |
+          set -euo pipefail
+          for name in KEYSTORE_BASE64 KEYSTORE_PASSWORD KEY_ALIAS KEY_PASSWORD; do
+            if [[ -z "${!name}" ]]; then
+              echo "::error::Missing signing secret for $name"
+              exit 1
+            fi
+          done
+          umask 077
+          mkdir -p "$RUNNER_TEMP/graviton-signing"
+          printf '%s' "$KEYSTORE_BASE64" | base64 --decode > "$RUNNER_TEMP/graviton-signing/release.keystore"
+          test -s "$RUNNER_TEMP/graviton-signing/release.keystore"
+          keytool -list -keystore "$RUNNER_TEMP/graviton-signing/release.keystore" \
+            -storepass:env KEYSTORE_PASSWORD -alias "$KEY_ALIAS" > /dev/null
+
+      - name: Build ARMv7 release split
+        run: ./gradlew :app:assembleRelease -Parmv7Release=true
+
+      - name: Zipalign, verify ABI and sign
+        id: apk
+        env:
+          KEYSTORE_PASSWORD: ${{ secrets.ANDROID_KEYSTORE_PASSWORD }}
+          KEY_ALIAS: ${{ secrets.ANDROID_KEY_ALIAS }}
+          KEY_PASSWORD: ${{ secrets.ANDROID_KEY_PASSWORD }}
+        run: |
+          set -euo pipefail
+          tools=$(find "$ANDROID_HOME/build-tools" -mindepth 1 -maxdepth 1 -type d | sort -V | tail -n 1)
+          test -x "$tools/zipalign" && test -x "$tools/apksigner"
+          apk_dir=app/build/outputs/apk/release
+          apk="$apk_dir/app-armeabi-v7a-release-unsigned.apk"
+          test -s "$apk"
+          mapfile -t apks < <(find "$apk_dir" -maxdepth 1 -type f -name '*.apk')
+          if (( ${#apks[@]} != 1 )); then
+            echo '::error::Expected exactly one release APK (armeabi-v7a split)'
+            exit 1
+          fi
+          mapfile -t abis < <(unzip -Z1 "$apk" | sed -nE 's@^lib/([^/]+)/[^/]+\.so$@\1@p' | sort -u)
+          if (( ${#abis[@]} != 1 )) || [[ "${abis[0]:-}" != armeabi-v7a ]]; then
+            echo "::error::Native library ABIs do not match armeabi-v7a: ${abis[*]:-none}"
+            exit 1
+          fi
+          mkdir -p release/armv7
+          output=release/armv7/graviton-armeabi-v7a-${{ steps.tag.outputs.value }}.apk
+          "$tools/zipalign" -f -p 4 "$apk" "$RUNNER_TEMP/graviton-signing/aligned.apk"
+          "$tools/zipalign" -c -p 4 "$RUNNER_TEMP/graviton-signing/aligned.apk"
+          "$tools/apksigner" sign --ks "$RUNNER_TEMP/graviton-signing/release.keystore" \
+            --ks-key-alias "$KEY_ALIAS" --ks-pass env:KEYSTORE_PASSWORD \
+            --key-pass env:KEY_PASSWORD --out "$output" "$RUNNER_TEMP/graviton-signing/aligned.apk"
+          "$tools/apksigner" verify --verbose "$output"
+          mapfile -t signed_abis < <(unzip -Z1 "$output" | sed -nE 's@^lib/([^/]+)/[^/]+\.so$@\1@p' | sort -u)
+          [[ "${signed_abis[*]}" == armeabi-v7a ]] || { echo '::error::Signed APK ABI verification failed'; exit 1; }
+          (cd release/armv7 && sha256sum "$(basename "$output")" > "$(basename "$output").sha256")
+          echo "path=$output" >> "$GITHUB_OUTPUT"
+          echo "checksum=$output.sha256" >> "$GITHUB_OUTPUT"
+          echo "hash=$(sha256sum "$output" | cut -d ' ' -f 1)" >> "$GITHUB_OUTPUT"
+
+      - name: Upload APK and checksum
+        uses: actions/upload-artifact@v4
+        with:
+          name: graviton-armeabi-v7a-${{ steps.tag.outputs.value }}
+          path: |
+            ${{ steps.apk.outputs.path }}
+            ${{ steps.apk.outputs.checksum }}
+          if-no-files-found: error
+
+      - name: Publish GitHub Release
+        env:
+          GH_TOKEN: ${{ github.token }}
+          TAG: ${{ steps.tag.outputs.value }}
+          APK: ${{ steps.apk.outputs.path }}
+          CHECKSUM: ${{ steps.apk.outputs.checksum }}
+        run: |
+          set -euo pipefail
+          if gh release view "$TAG" > /dev/null 2>&1; then
+            gh release upload "$TAG" "$APK" "$CHECKSUM" --clobber
+          else
+            gh release create "$TAG" "$APK" "$CHECKSUM" --title "Graviton $TAG" --generate-notes --verify-tag
+          fi
+
+      - name: Job summary
+        if: success()
+        env:
+          TAG: ${{ steps.tag.outputs.value }}
+          APK: ${{ steps.apk.outputs.path }}
+          HASH: ${{ steps.apk.outputs.hash }}
+        run: |
+          {
+            echo '## Signed ARMv7 release'
+            echo "- Tag: \`$TAG\`"
+            echo "- APK: \`$(basename "$APK")\` (armeabi-v7a native libraries only)"
+            echo '- Signature: verified with apksigner'
+            echo "- SHA-256: \`$HASH\`"
+            echo "- Release: https://github.com/$GITHUB_REPOSITORY/releases/tag/$TAG"
+          } >> "$GITHUB_STEP_SUMMARY"
+
+      - name: Remove temporary signing files
+        if: always()
+        run: rm -rf "$RUNNER_TEMP/graviton-signing"
