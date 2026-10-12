@@ -26,9 +26,11 @@ import androidx.media3.ui.compose.modifiers.resizeWithContentScale
 import androidx.media3.ui.compose.state.rememberPresentationState
 import coil3.compose.AsyncImage
 import coil3.request.ImageRequest
+import com.graviton.core.model.LongPressGesture
 import com.graviton.core.ui.R
 import com.graviton.feature.player.extensions.toContentScale
 import com.graviton.feature.player.state.ControlsVisibilityState
+import com.graviton.feature.player.state.LongPressSeekState
 import com.graviton.feature.player.state.MediaContentType
 import com.graviton.feature.player.state.PictureInPictureState
 import com.graviton.feature.player.state.SeekGestureState
@@ -66,6 +68,9 @@ fun PlayerContentFrame(
     pictureInPictureState: PictureInPictureState,
     controlsVisibilityState: ControlsVisibilityState,
     tapGestureState: TapGestureState,
+    longPressSeekState: LongPressSeekState,
+    longPressAction: LongPressGesture,
+    seekIncrementMs: Long,
     seekGestureState: SeekGestureState,
     videoZoomAndContentScaleState: VideoZoomAndContentScaleState,
     volumeAndBrightnessGestureState: VolumeAndBrightnessGestureState,
@@ -130,6 +135,9 @@ fun PlayerContentFrame(
     PlayerGestures(
         controlsVisibilityState = controlsVisibilityState,
         tapGestureState = tapGestureState,
+        longPressSeekState = longPressSeekState,
+        longPressAction = longPressAction,
+        seekIncrementMs = seekIncrementMs,
         pictureInPictureState = pictureInPictureState,
         seekGestureState = seekGestureState,
         videoZoomAndContentScaleState = videoZoomAndContentScaleState,

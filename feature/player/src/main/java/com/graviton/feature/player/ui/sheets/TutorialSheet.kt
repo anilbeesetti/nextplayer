@@ -27,7 +27,9 @@ import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import com.graviton.core.model.DoubleTapGesture
+import com.graviton.core.model.LongPressGesture
 import com.graviton.core.model.PlayerPreferences
+import com.graviton.core.model.longPressAction
 import com.graviton.core.ui.R
 import com.graviton.core.ui.designsystem.NextIcons
 import com.graviton.feature.player.ui.OverlayView
@@ -67,8 +69,16 @@ fun BoxScope.TutorialSheet(
         if (playerPreferences.enableBrightnessSwipeGesture) {
             add(TutorialEntry(NextIcons.Brightness, R.string.tutorial_brightness, R.string.tutorial_brightness_desc))
         }
-        if (playerPreferences.useLongPressControls) {
-            add(TutorialEntry(NextIcons.Speed, R.string.tutorial_long_press, R.string.tutorial_long_press_desc))
+        when (playerPreferences.longPressAction) {
+            LongPressGesture.SEEK -> add(
+                TutorialEntry(NextIcons.Fast, R.string.tutorial_long_press_seek, R.string.tutorial_long_press_seek_desc),
+            )
+
+            LongPressGesture.SPEED_BOOST -> add(
+                TutorialEntry(NextIcons.Speed, R.string.tutorial_long_press, R.string.tutorial_long_press_desc),
+            )
+
+            LongPressGesture.NONE -> Unit
         }
         if (playerPreferences.useZoomControls) {
             add(TutorialEntry(NextIcons.Pinch, R.string.tutorial_zoom, R.string.tutorial_zoom_desc))

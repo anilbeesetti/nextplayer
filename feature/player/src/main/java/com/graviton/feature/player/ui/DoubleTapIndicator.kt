@@ -1,194 +1,140 @@
 package com.graviton.feature.player.ui
 
+import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.core.Animatable
+import androidx.compose.animation.core.FastOutSlowInEasing
+import androidx.compose.animation.core.LinearOutSlowInEasing
 import androidx.compose.animation.core.tween
-import androidx.compose.foundation.background
-import androidx.compose.foundation.indication
+import androidx.compose.animation.fadeIn
+import androidx.compose.animation.fadeOut
+import androidx.compose.animation.scaleIn
+import androidx.compose.animation.scaleOut
+import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.layout.Box
-import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.size
-import androidx.compose.material3.Icon
+import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.Text
-import androidx.compose.material3.ripple
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
-import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.clip
-import androidx.compose.ui.draw.rotate
-import androidx.compose.ui.geometry.Size
+import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.graphics.Outline
-import androidx.compose.ui.graphics.Path
-import androidx.compose.ui.graphics.Shape
-import androidx.compose.ui.graphics.graphicsLayer
-import androidx.compose.ui.res.painterResource
-import androidx.compose.ui.tooling.preview.Preview
-import androidx.compose.ui.unit.Density
-import androidx.compose.ui.unit.LayoutDirection
+import androidx.compose.ui.graphics.drawscope.Stroke
+import androidx.compose.ui.semantics.clearAndSetSemantics
 import androidx.compose.ui.unit.dp
-import com.graviton.core.model.DoubleTapGesture
-import com.graviton.core.ui.R
-import com.graviton.core.ui.theme.GravitonTheme
 import com.graviton.feature.player.state.TapGestureState
-import kotlin.time.Duration.Companion.milliseconds
+import kotlin.math.max
 
+/**
+ * The seek amount and the ripple that a burst of double taps leaves behind.
+ *
+ * The feedback is anchored to where the user actually tapped — the ripple grows from that point and
+ * the card appears on the matching side of the screen, away from the subtitles — instead of sliding
+ * the whole picture sideways the way the old implementation did.
+ *
+ * The values shown are captured while the burst is live and kept afterwards, so the exit animation
+ * still has something to fade out. [TapGestureState.seekMillis] dropping back to zero (the burst
+ * timeout) is what ends the feedback; it deliberately does not clear the captured values.
+ */
 @Composable
 fun DoubleTapIndicator(modifier: Modifier = Modifier, tapGestureState: TapGestureState) {
-    if (tapGestureState.seekMillis == 0L) return
-    Box(
-        modifier = modifier.fillMaxSize(),
-        contentAlignment = if (tapGestureState.seekMillis > 0) Alignment.CenterEnd else Alignment.CenterStart,
-    ) {
-        Box(
-            modifier = Modifier
-                .fillMaxHeight()
-                .fillMaxWidth(
-                    fraction = when (tapGestureState.doubleTapGesture) {
-                        DoubleTapGesture.PLAY_PAUSE -> 0f
-                        DoubleTapGesture.FAST_FORWARD_AND_REWIND -> 0.5f
-                        DoubleTapGesture.BOTH -> 0.35f
-                        DoubleTapGesture.NONE -> 0f
-                    },
-                )
-                .clip(if (tapGestureState.seekMillis > 0) RightSideOvalShape() else LeftSideOvalShape())
-                .background(Color.White.copy(0.2f))
-                .indication(tapGestureState.interactionSource, ripple()),
-            contentAlignment = Alignment.Center,
+    var deltaMs by remember { mutableStateOf(0L) }
+    var targetPositionMs by remember { mutableStateOf(0L) }
+    var tapOffset by remember { mutableStateOf<Offset?>(null) }
+
+    LaunchedEffect(tapGestureState.doubleTapCount) {
+        if (tapGestureState.doubleTapCount == 0) return@LaunchedEffect
+        if (tapGestureState.seekMillis == 0L) return@LaunchedEffect
+        deltaMs = tapGestureState.seekMillis
+        targetPositionMs = tapGestureState.seekTargetPositionMs
+        tapOffset = tapGestureState.lastDoubleTapOffset
+    }
+
+    val isSeeking = tapGestureState.seekMillis != 0L && deltaMs != 0L
+
+    Box(modifier = modifier.fillMaxSize()) {
+        DoubleTapRipple(
+            center = tapOffset,
+            rippleKey = tapGestureState.doubleTapCount,
+            modifier = Modifier.fillMaxSize(),
+        )
+
+        AnimatedVisibility(
+            visible = isSeeking,
+            modifier = Modifier.align(
+                if (deltaMs > 0) Alignment.CenterEnd else Alignment.CenterStart,
+            ),
+            enter = fadeIn(animationSpec = tween(120)) + scaleIn(
+                animationSpec = tween(180, easing = FastOutSlowInEasing),
+                initialScale = 0.92f,
+            ),
+            exit = fadeOut(animationSpec = tween(220)) + scaleOut(
+                animationSpec = tween(220, easing = FastOutSlowInEasing),
+                targetScale = 0.96f,
+            ),
         ) {
-            Column(
-                horizontalAlignment = Alignment.CenterHorizontally,
-            ) {
-                DoubleTapSeekTriangles(isForward = tapGestureState.seekMillis > 0)
-                Text(
-                    text = "${tapGestureState.seekMillis.milliseconds.inWholeSeconds} seconds",
-                    style = MaterialTheme.typography.labelMedium,
-                    color = Color.White,
-                )
-            }
+            SeekFeedbackCard(
+                deltaMs = deltaMs,
+                targetPositionMs = targetPositionMs,
+                // Inset from the edge and lifted off the middle, so the card stays clear of the
+                // screen edges, the system gesture areas and the subtitle band.
+                modifier = Modifier.padding(
+                    start = 24.dp,
+                    end = 24.dp,
+                    top = 72.dp,
+                    bottom = 96.dp,
+                ),
+            )
         }
     }
 }
 
+/**
+ * A radial highlight around the tapped point, restarting on every tap in the burst. It is drawn,
+ * not composed per tap, so a rapid burst costs one small canvas.
+ */
 @Composable
-private fun DoubleTapSeekTriangles(
-    isForward: Boolean,
+private fun DoubleTapRipple(
+    center: Offset?,
+    rippleKey: Int,
     modifier: Modifier = Modifier,
 ) {
-    val animationDuration = 750L
+    val progress = remember { Animatable(0f) }
 
-    val alpha1 = remember { Animatable(0f) }
-    val alpha2 = remember { Animatable(0f) }
-    val alpha3 = remember { Animatable(0f) }
-
-    LaunchedEffect(animationDuration) {
-        while (true) {
-            alpha1.animateTo(1f, animationSpec = tween((animationDuration / 5).toInt()))
-            alpha2.animateTo(1f, animationSpec = tween((animationDuration / 5).toInt()))
-            alpha3.animateTo(1f, animationSpec = tween((animationDuration / 5).toInt()))
-            alpha1.animateTo(0f, animationSpec = tween((animationDuration / 5).toInt()))
-            alpha2.animateTo(0f, animationSpec = tween((animationDuration / 5).toInt()))
-            alpha3.animateTo(0f, animationSpec = tween((animationDuration / 5).toInt()))
-        }
+    LaunchedEffect(rippleKey) {
+        if (rippleKey == 0) return@LaunchedEffect
+        progress.snapTo(0f)
+        progress.animateTo(
+            targetValue = 1f,
+            animationSpec = tween(durationMillis = 650, easing = LinearOutSlowInEasing),
+        )
     }
 
-    val rotation = if (isForward) 0f else 180f
-    Row(
-        verticalAlignment = Alignment.CenterVertically,
-        modifier = modifier.rotate(rotation),
-    ) {
-        DoubleTapArrow(alpha1.value)
-        DoubleTapArrow(alpha2.value)
-        DoubleTapArrow(alpha3.value)
-    }
-}
+    if (center == null) return
+    val rippleColor = MaterialTheme.colorScheme.primary
 
-private class RightSideOvalShape : Shape {
-    override fun createOutline(
-        size: Size,
-        layoutDirection: LayoutDirection,
-        density: Density,
-    ): Outline {
-        val path = Path().apply {
-            moveTo(size.width, size.height)
-            lineTo(size.width, 0f)
-            lineTo(size.width * 0.1f, 0f)
-            cubicTo(
-                size.width * 0.1f,
-                0f,
-                -size.width * 0.1f,
-                size.height / 2,
-                size.width * 0.1f,
-                size.height,
-            )
-            close()
-        }
-        return Outline.Generic(path)
-    }
-}
+    Canvas(modifier = modifier.clearAndSetSemantics { }) {
+        val current = progress.value
+        if (current >= 1f) return@Canvas
 
-private class LeftSideOvalShape : Shape {
-    override fun createOutline(
-        size: Size,
-        layoutDirection: LayoutDirection,
-        density: Density,
-    ): Outline {
-        val path = Path().apply {
-            moveTo(0f, 0f)
-            lineTo(size.width * 0.9f, 0f)
-            cubicTo(
-                size.width * 0.9f,
-                0f,
-                size.width * 1.1f,
-                size.height / 2,
-                size.width * 0.9f,
-                size.height,
-            )
-            lineTo(0f, size.height)
-            close()
-        }
-        return Outline.Generic(path)
-    }
-}
+        val radius = max(28.dp.toPx(), 40.dp.toPx() + 120.dp.toPx() * current)
+        val fade = (1f - current).coerceIn(0f, 1f)
 
-@Composable
-private fun DoubleTapArrow(alpha: Float) {
-    Icon(
-        painter = painterResource(R.drawable.ic_play),
-        contentDescription = stringResource(com.graviton.core.ui.R.string.forward_seek_description),
-        modifier = Modifier
-            .size(20.dp)
-            .graphicsLayer { this.alpha = alpha },
-        tint = Color.White,
-    )
-}
-
-@Preview
-@Composable
-private fun OvalShapePreview() {
-    GravitonTheme {
-        Row(modifier = Modifier.fillMaxWidth()) {
-            Box(
-                modifier = Modifier
-                    .fillMaxHeight()
-                    .weight(1f)
-                    .clip(LeftSideOvalShape())
-                    .background(Color.Blue),
-            ) {}
-            Box(
-                modifier = Modifier
-                    .fillMaxHeight()
-                    .weight(1f)
-                    .clip(RightSideOvalShape())
-                    .background(Color.Blue),
-            ) {}
-        }
+        drawCircle(
+            color = rippleColor.copy(alpha = 0.22f * fade),
+            radius = radius,
+            center = center,
+        )
+        drawCircle(
+            color = Color.White.copy(alpha = 0.30f * fade),
+            radius = radius,
+            center = center,
+            style = Stroke(width = 2.dp.toPx()),
+        )
     }
 }

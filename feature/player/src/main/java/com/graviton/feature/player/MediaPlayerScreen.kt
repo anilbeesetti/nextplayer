@@ -4,8 +4,11 @@ import android.widget.Toast
 import androidx.activity.compose.BackHandler
 import androidx.annotation.OptIn
 import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.animation.core.FastOutSlowInEasing
+import androidx.compose.animation.core.tween
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
+import androidx.compose.animation.slideInVertically
 import androidx.compose.foundation.background
 import androidx.compose.foundation.focusable
 import androidx.compose.foundation.layout.Arrangement
@@ -71,8 +74,10 @@ import androidx.media3.common.util.UnstableApi
 import com.graviton.core.common.extensions.isTelevision
 import com.graviton.core.model.ControlButtonsPosition
 import com.graviton.core.model.PlayerPreferences
+import com.graviton.core.model.longPressAction
 import com.graviton.core.ui.R as coreUiR
 import com.graviton.core.ui.components.BufferingIndicator
+import com.graviton.core.ui.components.BufferingIndicatorKind
 import com.graviton.core.ui.components.requestFocusUntilLanded
 import com.graviton.core.ui.components.thenIf
 import com.graviton.core.ui.extensions.copy
@@ -90,6 +95,7 @@ import com.graviton.feature.player.state.rememberBrightnessState
 import com.graviton.feature.player.state.rememberControlsVisibilityState
 import com.graviton.feature.player.state.rememberCutSegmentState
 import com.graviton.feature.player.state.rememberErrorState
+import com.graviton.feature.player.state.rememberLongPressSeekState
 import com.graviton.feature.player.state.rememberMediaPresentationState
 import com.graviton.feature.player.state.rememberMetadataState
 import com.graviton.feature.player.state.rememberPictureInPictureState
@@ -106,6 +112,7 @@ import com.graviton.feature.player.state.rememberVolumeState
 import com.graviton.feature.player.state.seekAmountFormatted
 import com.graviton.feature.player.state.seekToPositionFormated
 import com.graviton.feature.player.ui.DoubleTapIndicator
+import com.graviton.feature.player.ui.LongPressSeekIndicator
 import com.graviton.feature.player.ui.OverlayShowView
 import com.graviton.feature.player.ui.OverlayView
 import com.graviton.feature.player.ui.SpeedOverlayView
@@ -155,6 +162,7 @@ fun MediaPlayerScreen(
         useLongPressGesture = playerPreferences.useLongPressControls,
         longPressSpeed = playerPreferences.longPressControlsSpeed,
     )
+    val longPressSeekState = rememberLongPressSeekState(player = player)
     val seekGestureState = rememberSeekGestureState(
         player = player,
         sensitivity = playerPreferences.seekSensitivity,
@@ -195,8 +203,10 @@ fun MediaPlayerScreen(
         }
     }
 
-    LaunchedEffect(tapGestureState.isLongPressGestureInAction) {
-        if (tapGestureState.isLongPressGestureInAction) {
+    // Both hold gestures (hold-to-seek and hold-for-speed) take the controls out of the way for as
+    // long as the finger stays down.
+    LaunchedEffect(tapGestureState.isLongPressGestureInAction, longPressSeekState.isActive) {
+        if (tapGestureState.isLongPressGestureInAction || longPressSeekState.isActive) {
             controlsVisibilityState.hideControls()
         }
     }
@@ -327,6 +337,9 @@ fun MediaPlayerScreen(
                     pictureInPictureState = pictureInPictureState,
                     controlsVisibilityState = controlsVisibilityState,
                     tapGestureState = tapGestureState,
+                    longPressSeekState = longPressSeekState,
+                    longPressAction = playerPreferences.longPressAction,
+                    seekIncrementMs = seekIncrementMs,
                     seekGestureState = seekGestureState,
                     videoZoomAndContentScaleState = videoZoomAndContentScaleState,
                     volumeAndBrightnessGestureState = volumeAndBrightnessGestureState,
@@ -342,8 +355,8 @@ fun MediaPlayerScreen(
 
                 AnimatedVisibility(
                     visible = controlsVisibilityState.controlsVisible && !controlsVisibilityState.controlsLocked,
-                    enter = fadeIn(),
-                    exit = fadeOut(),
+                    enter = fadeIn(animationSpec = tween(200)),
+                    exit = fadeOut(animationSpec = tween(200)),
                 ) {
                     // Glass UI keeps the video visible behind the floating control strips: the scrim
                     // fades to transparent in the middle instead of dimming the whole frame.
@@ -374,9 +387,15 @@ fun MediaPlayerScreen(
                 // player's buffered position over a known duration is actually measurable.
                 val realBufferedPercentage = mediaPresentationState.realBufferedPercentage
                 BufferingIndicator(
-                    visible = mediaPresentationState.isBuffering || isResolving,
+                    // An error is reported by its own dialog: a spinner must never survive it.
+                    visible = (mediaPresentationState.isBuffering || isResolving) && errorState.error == null,
                     progress = if (isResolving) null else realBufferedPercentage?.let { it / 100f },
                     label = if (isResolving) stringResource(coreUiR.string.loading) else stringResource(coreUiR.string.state_buffering),
+                    kind = if (isResolving) {
+                        BufferingIndicatorKind.INITIAL_LOADING
+                    } else {
+                        BufferingIndicatorKind.BUFFERING
+                    },
                     // Lift the pill out of the way of the play/pause row when controls are shown.
                     modifier = Modifier
                         .align(Alignment.Center)
@@ -390,6 +409,8 @@ fun MediaPlayerScreen(
                 )
 
                 DoubleTapIndicator(tapGestureState = tapGestureState)
+
+                LongPressSeekIndicator(longPressSeekState = longPressSeekState)
 
                 DpadSeekIndicator(
                     visible = dpadSeekActive && dpadSeekOffsetMs != 0L,
@@ -423,8 +444,11 @@ fun MediaPlayerScreen(
                         topView = {
                             AnimatedVisibility(
                                 visible = controlsVisibilityState.controlsVisible,
-                                enter = fadeIn(),
-                                exit = fadeOut(),
+                                enter = fadeIn(animationSpec = tween(180)) + slideInVertically(
+                                    animationSpec = tween(220, easing = FastOutSlowInEasing),
+                                    initialOffsetY = { -it / 10 },
+                                ),
+                                exit = fadeOut(animationSpec = tween(140)),
                             ) {
                                 ControlsTopView(
                                     title = metadataState.title ?: "",
@@ -456,8 +480,11 @@ fun MediaPlayerScreen(
                         bottomView = {
                             AnimatedVisibility(
                                 visible = controlsVisibilityState.controlsVisible && !controlsVisibilityState.controlsLocked,
-                                enter = fadeIn(),
-                                exit = fadeOut(),
+                                enter = fadeIn(animationSpec = tween(180)) + slideInVertically(
+                                    animationSpec = tween(220, easing = FastOutSlowInEasing),
+                                    initialOffsetY = { it / 10 },
+                                ),
+                                exit = fadeOut(animationSpec = tween(140)),
                             ) {
                                 val context = LocalContext.current
                                 ControlsBottomView(
@@ -620,15 +647,28 @@ fun MediaPlayerScreen(
                 Text(text = error.message ?: stringResource(coreUiR.string.unknown_error))
             },
             confirmButton = {
-                if (player.hasNextMediaItem()) {
+                Row(horizontalArrangement = Arrangement.spacedBy(4.dp)) {
+                    // Retry is always offered: a network stall is usually transient, so the user
+                    // does not have to leave the player to get playback going again.
                     TextButton(
                         onClick = {
                             errorState.dismiss()
-                            player.seekToNext()
+                            player.prepare()
                             player.play()
                         },
                     ) {
-                        Text(text = stringResource(coreUiR.string.play_next_video))
+                        Text(text = stringResource(coreUiR.string.retry))
+                    }
+                    if (player.hasNextMediaItem()) {
+                        TextButton(
+                            onClick = {
+                                errorState.dismiss()
+                                player.seekToNext()
+                                player.play()
+                            },
+                        ) {
+                            Text(text = stringResource(coreUiR.string.play_next_video))
+                        }
                     }
                 }
             },

@@ -5,6 +5,7 @@ import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.BoxWithConstraints
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -15,11 +16,13 @@ import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.platform.LocalHapticFeedback
 import androidx.compose.ui.unit.dp
+import com.graviton.core.model.LongPressGesture
 import com.graviton.feature.player.extensions.detectCustomHorizontalDragGestures
 import com.graviton.feature.player.extensions.detectCustomTransformGestures
 import com.graviton.feature.player.extensions.detectCustomVerticalDragGestures
 import com.graviton.feature.player.state.ControlsVisibilityState
 import com.graviton.feature.player.state.HoldSpeedGesture
+import com.graviton.feature.player.state.LongPressSeekState
 import com.graviton.feature.player.state.PictureInPictureState
 import com.graviton.feature.player.state.SeekGestureState
 import com.graviton.feature.player.state.TapGestureState
@@ -31,6 +34,9 @@ fun PlayerGestures(
     modifier: Modifier = Modifier,
     controlsVisibilityState: ControlsVisibilityState,
     tapGestureState: TapGestureState,
+    longPressSeekState: LongPressSeekState,
+    longPressAction: LongPressGesture,
+    seekIncrementMs: Long,
     pictureInPictureState: PictureInPictureState,
     seekGestureState: SeekGestureState,
     videoZoomAndContentScaleState: VideoZoomAndContentScaleState,
@@ -40,11 +46,22 @@ fun PlayerGestures(
     var wasHolding by remember { mutableStateOf(false) }
     val swipeThresholdPx = with(LocalDensity.current) { HoldSpeedGesture.SWIPE_THRESHOLD_DP.dp.toPx() }
 
+    // One tick per acceleration step, so the rising seek speed is felt as well as seen.
+    LaunchedEffect(longPressSeekState.tier) {
+        if (longPressSeekState.isActive && longPressSeekState.tier > 0) {
+            haptic.performHapticFeedback(HapticFeedbackType.TextHandleMove)
+        }
+    }
+
     BoxWithConstraints {
         Box(
             modifier = modifier
                 .fillMaxSize()
-                .pointerInput(pictureInPictureState.isInPictureInPictureMode) {
+                .pointerInput(
+                    controlsVisibilityState.controlsLocked,
+                    pictureInPictureState.isInPictureInPictureMode,
+                    longPressAction,
+                ) {
                     if (pictureInPictureState.isInPictureInPictureMode) return@pointerInput
 
                     detectTapGestures(
@@ -62,18 +79,36 @@ fun PlayerGestures(
                             tapGestureState.handleDoubleTap(offset = it, size = size)
                         },
                         onPress = {
-                            // tryAwaitRelease() also returns false on cancel, so the speed is
-                            // restored even when the gesture is stolen by a drag or by PiP.
+                            // tryAwaitRelease() also returns false on cancel, so the seek and the
+                            // speed are completed even when the gesture is stolen by a drag or PiP.
                             tryAwaitRelease()
-                            wasHolding = tapGestureState.isLongPressGestureInAction
+                            wasHolding = tapGestureState.isLongPressGestureInAction ||
+                                longPressSeekState.isActive
                             tapGestureState.handleOnLongPressRelease()
+                            longPressSeekState.stop()
                         },
-                        onLongPress = {
+                        onLongPress = { offset ->
                             if (controlsVisibilityState.controlsLocked) return@detectTapGestures
-                            // Long press only ever boosts the speed. It never opens a menu.
-                            tapGestureState.handleLongPress(offset = it)
-                            if (tapGestureState.isLongPressGestureInAction) {
-                                haptic.performHapticFeedback(HapticFeedbackType.LongPress)
+                            when (longPressAction) {
+                                LongPressGesture.SEEK -> {
+                                    val started = longPressSeekState.start(
+                                        x = offset.x,
+                                        width = size.width,
+                                        incrementMs = seekIncrementMs,
+                                    )
+                                    if (started) {
+                                        haptic.performHapticFeedback(HapticFeedbackType.LongPress)
+                                    }
+                                }
+
+                                LongPressGesture.SPEED_BOOST -> {
+                                    tapGestureState.handleLongPress(offset = offset)
+                                    if (tapGestureState.isLongPressGestureInAction) {
+                                        haptic.performHapticFeedback(HapticFeedbackType.LongPress)
+                                    }
+                                }
+
+                                LongPressGesture.NONE -> Unit
                             }
                         },
                     )
@@ -88,7 +123,8 @@ fun PlayerGestures(
 
                     detectCustomHorizontalDragGestures(
                         onDragStart = { offset ->
-                            if (!tapGestureState.isLongPressGestureInAction) {
+                            // A hold gesture owns the finger: it must not become a scrub.
+                            if (!tapGestureState.isLongPressGestureInAction && !longPressSeekState.isActive) {
                                 seekGestureState.onDragStart(offset)
                             }
                         },
@@ -103,17 +139,20 @@ fun PlayerGestures(
                                     haptic.performHapticFeedback(HapticFeedbackType.TextHandleMove)
                                 }
                                 change.consume()
+                            } else if (longPressSeekState.isActive) {
+                                // The hold owns the horizontal axis while it runs.
+                                change.consume()
                             } else {
                                 seekGestureState.onDrag(change, dragAmount)
                             }
                         },
                         onDragCancel = {
-                            if (!tapGestureState.isLongPressGestureInAction) {
+                            if (!tapGestureState.isLongPressGestureInAction && !longPressSeekState.isActive) {
                                 seekGestureState.onDragEnd()
                             }
                         },
                         onDragEnd = {
-                            if (!tapGestureState.isLongPressGestureInAction) {
+                            if (!tapGestureState.isLongPressGestureInAction && !longPressSeekState.isActive) {
                                 seekGestureState.onDragEnd()
                             }
                         },
@@ -128,24 +167,24 @@ fun PlayerGestures(
 
                     detectCustomVerticalDragGestures(
                         onDragStart = { offset ->
-                            if (!tapGestureState.isLongPressGestureInAction) {
+                            if (!tapGestureState.isLongPressGestureInAction && !longPressSeekState.isActive) {
                                 volumeAndBrightnessGestureState.onDragStart(offset, size)
                             }
                         },
                         onVerticalDrag = { change, dragAmount ->
-                            if (tapGestureState.isLongPressGestureInAction) {
+                            if (tapGestureState.isLongPressGestureInAction || longPressSeekState.isActive) {
                                 change.consume()
                             } else {
                                 volumeAndBrightnessGestureState.onDrag(change, dragAmount)
                             }
                         },
                         onDragCancel = {
-                            if (!tapGestureState.isLongPressGestureInAction) {
+                            if (!tapGestureState.isLongPressGestureInAction && !longPressSeekState.isActive) {
                                 volumeAndBrightnessGestureState.onDragEnd()
                             }
                         },
                         onDragEnd = {
-                            if (!tapGestureState.isLongPressGestureInAction) {
+                            if (!tapGestureState.isLongPressGestureInAction && !longPressSeekState.isActive) {
                                 volumeAndBrightnessGestureState.onDragEnd()
                             }
                         },
@@ -160,7 +199,9 @@ fun PlayerGestures(
 
                     detectCustomTransformGestures(
                         onGesture = { _, panChange, zoomChange, _ ->
-                            if (tapGestureState.isLongPressGestureInAction) return@detectCustomTransformGestures
+                            if (tapGestureState.isLongPressGestureInAction || longPressSeekState.isActive) {
+                                return@detectCustomTransformGestures
+                            }
                             videoZoomAndContentScaleState.onZoomPanGesture(
                                 constraints = this@BoxWithConstraints.constraints,
                                 panChange = panChange,

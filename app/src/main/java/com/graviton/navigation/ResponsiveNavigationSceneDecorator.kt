@@ -4,7 +4,9 @@ import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.WindowInsetsSides
 import androidx.compose.foundation.layout.consumeWindowInsets
+import androidx.compose.foundation.layout.navigationBarsPadding
 import androidx.compose.foundation.layout.only
+import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.NavigationRailDefaults
 import androidx.compose.material3.adaptive.currentWindowAdaptiveInfoV2
 import androidx.compose.material3.adaptive.navigationsuite.NavigationSuiteScaffoldLayout
@@ -15,10 +17,14 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberUpdatedState
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.unit.dp
 import androidx.navigation3.scene.Scene
 import androidx.navigation3.scene.SceneDecoratorStrategy
 import androidx.window.core.layout.WindowSizeClass
+import com.graviton.feature.music.MiniPlayerReopenButton
+import com.graviton.feature.music.MiniPlayerVisibilityState
 import com.graviton.feature.music.NowPlayingMiniBar
+import com.graviton.feature.music.rememberMiniPlayerVisibilityState
 
 /**
  * Wraps a [Scene] so that top-level destinations are shown alongside the app's navigation UI: a
@@ -42,6 +48,7 @@ import com.graviton.feature.music.NowPlayingMiniBar
 class ResponsiveNavigationScene<T : Any>(
     private val scene: Scene<T>,
     private val windowSizeClass: WindowSizeClass,
+    private val miniPlayerVisibility: MiniPlayerVisibilityState,
     private val isTopLevel: (contentKey: Any) -> Boolean,
     private val navBarContent: @Composable () -> Unit,
     private val navRailContent: @Composable () -> Unit,
@@ -66,7 +73,17 @@ class ResponsiveNavigationScene<T : Any>(
         } else if (!showNavigation()) {
             Box {
                 scene.content()
-                NowPlayingMiniBar(modifier = Modifier.align(Alignment.BottomCenter))
+                NowPlayingMiniBar(
+                    visibilityState = miniPlayerVisibility,
+                    modifier = Modifier.align(Alignment.BottomCenter),
+                )
+                MiniPlayerReopenButton(
+                    visibilityState = miniPlayerVisibility,
+                    modifier = Modifier
+                        .align(Alignment.BottomEnd)
+                        .navigationBarsPadding()
+                        .padding(16.dp),
+                )
             }
         } else {
             val navLayoutType = when {
@@ -85,7 +102,7 @@ class ResponsiveNavigationScene<T : Any>(
                         // read as one bottom surface, and the bar's own insets keep both clear of
                         // the system navigation.
                         NavigationSuiteType.NavigationBar -> Column {
-                            NowPlayingMiniBar()
+                            NowPlayingMiniBar(visibilityState = miniPlayerVisibility)
                             navBarContent()
                         }
 
@@ -108,8 +125,22 @@ class ResponsiveNavigationScene<T : Any>(
                     // With a rail there is no bottom bar to attach to, so the mini bar anchors to
                     // the bottom of the content pane instead.
                     if (navLayoutType == NavigationSuiteType.NavigationRail) {
-                        NowPlayingMiniBar(modifier = Modifier.align(Alignment.BottomCenter))
+                        NowPlayingMiniBar(
+                            visibilityState = miniPlayerVisibility,
+                            modifier = Modifier.align(Alignment.BottomCenter),
+                        )
                     }
+                    // The way back to a hidden mini player. On phones it floats above the bottom
+                    // bar; with a rail it sits in the corner of the content pane.
+                    MiniPlayerReopenButton(
+                        visibilityState = miniPlayerVisibility,
+                        modifier = Modifier
+                            .align(Alignment.BottomEnd)
+                            .padding(
+                                end = 16.dp,
+                                bottom = if (navLayoutType == NavigationSuiteType.NavigationBar) 96.dp else 16.dp,
+                            ),
+                    )
                 }
             }
         }
@@ -128,12 +159,16 @@ fun <T : Any> rememberResponsiveNavigationSceneDecoratorStrategy(
     val currentNavRail by rememberUpdatedState(navRail)
     val currentIsTopLevel by rememberUpdatedState(isTopLevel)
     val currentShowNavigation by rememberUpdatedState(showNavigation)
+    // Owned here rather than by the bar so that hiding it survives navigation, and so that every
+    // layout branch (bar, rail, no navigation) shares the same hidden/visible state.
+    val miniPlayerVisibility = rememberMiniPlayerVisibilityState()
 
     return remember(windowSizeClass) {
         SceneDecoratorStrategy { scene ->
             ResponsiveNavigationScene(
                 scene = scene,
                 windowSizeClass = windowSizeClass,
+                miniPlayerVisibility = miniPlayerVisibility,
                 isTopLevel = { currentIsTopLevel(it) },
                 navBarContent = { currentNavBar() },
                 navRailContent = { currentNavRail() },
