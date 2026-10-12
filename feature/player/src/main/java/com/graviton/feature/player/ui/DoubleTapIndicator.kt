@@ -13,6 +13,7 @@ import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.safeDrawingPadding
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
@@ -28,7 +29,11 @@ import androidx.compose.ui.graphics.drawscope.Stroke
 import androidx.compose.ui.semantics.clearAndSetSemantics
 import androidx.compose.ui.unit.dp
 import com.graviton.feature.player.state.TapGestureState
+import kotlinx.coroutines.delay
 import kotlin.math.max
+
+/** How long the amount stays on screen after the last tap of a burst. */
+private const val INDICATOR_DWELL_MS = 1_300L
 
 /**
  * The seek amount and the ripple that a burst of double taps leaves behind.
@@ -38,24 +43,33 @@ import kotlin.math.max
  * the whole picture sideways the way the old implementation did.
  *
  * The values shown are captured while the burst is live and kept afterwards, so the exit animation
- * still has something to fade out. [TapGestureState.seekMillis] dropping back to zero (the burst
- * timeout) is what ends the feedback; it deliberately does not clear the captured values.
+ * still has something to fade out. The card outlives the burst window on purpose
+ * ([INDICATOR_DWELL_MS] after the last tap), so the final amount can actually be read; a further
+ * tap restarts the dwell instead of flickering the card.
  */
 @Composable
 fun DoubleTapIndicator(modifier: Modifier = Modifier, tapGestureState: TapGestureState) {
     var deltaMs by remember { mutableStateOf(0L) }
     var targetPositionMs by remember { mutableStateOf(0L) }
     var tapOffset by remember { mutableStateOf<Offset?>(null) }
+    var isVisible by remember { mutableStateOf(false) }
 
     LaunchedEffect(tapGestureState.doubleTapCount) {
-        if (tapGestureState.doubleTapCount == 0) return@LaunchedEffect
-        if (tapGestureState.seekMillis == 0L) return@LaunchedEffect
-        deltaMs = tapGestureState.seekMillis
+        val count = tapGestureState.doubleTapCount
+        if (count == 0) return@LaunchedEffect
+        val seekMillis = tapGestureState.seekMillis
+        // A burst that was clamped to nothing (already at the edge) has no amount to show.
+        if (seekMillis == 0L) return@LaunchedEffect
+
+        deltaMs = seekMillis
         targetPositionMs = tapGestureState.seekTargetPositionMs
         tapOffset = tapGestureState.lastDoubleTapOffset
-    }
+        isVisible = true
 
-    val isSeeking = tapGestureState.seekMillis != 0L && deltaMs != 0L
+        delay(INDICATOR_DWELL_MS)
+        // Only the tap that started this effect may hide the card; a newer one owns it now.
+        if (tapGestureState.doubleTapCount == count) isVisible = false
+    }
 
     Box(modifier = modifier.fillMaxSize()) {
         DoubleTapRipple(
@@ -65,7 +79,7 @@ fun DoubleTapIndicator(modifier: Modifier = Modifier, tapGestureState: TapGestur
         )
 
         AnimatedVisibility(
-            visible = isSeeking,
+            visible = isVisible,
             modifier = Modifier.align(
                 if (deltaMs > 0) Alignment.CenterEnd else Alignment.CenterStart,
             ),
@@ -83,12 +97,11 @@ fun DoubleTapIndicator(modifier: Modifier = Modifier, tapGestureState: TapGestur
                 targetPositionMs = targetPositionMs,
                 // Inset from the edge and lifted off the middle, so the card stays clear of the
                 // screen edges, the system gesture areas and the subtitle band.
-                modifier = Modifier.padding(
-                    start = 24.dp,
-                    end = 24.dp,
-                    top = 72.dp,
-                    bottom = 96.dp,
-                ),
+                modifier = Modifier
+                    // Clear of display cutouts and the system bars, then lifted further so the
+                    // card never lands on the control strips or the subtitle band.
+                    .safeDrawingPadding()
+                    .padding(start = 24.dp, end = 24.dp, top = 48.dp, bottom = 64.dp),
             )
         }
     }

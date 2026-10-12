@@ -130,16 +130,15 @@ class ResponsiveNavigationScene<T : Any>(
                             modifier = Modifier.align(Alignment.BottomCenter),
                         )
                     }
-                    // The way back to a hidden mini player. On phones it floats above the bottom
-                    // bar; with a rail it sits in the corner of the content pane.
+                    // The way back to a hidden mini player, in the corner of the content pane.
+                    // The scaffold already places the content beside the navigation suite; the
+                    // system bar inset is added here for the layouts that do not consume it.
                     MiniPlayerReopenButton(
                         visibilityState = miniPlayerVisibility,
                         modifier = Modifier
                             .align(Alignment.BottomEnd)
-                            .padding(
-                                end = 16.dp,
-                                bottom = if (navLayoutType == NavigationSuiteType.NavigationBar) 96.dp else 16.dp,
-                            ),
+                            .navigationBarsPadding()
+                            .padding(16.dp),
                     )
                 }
             }

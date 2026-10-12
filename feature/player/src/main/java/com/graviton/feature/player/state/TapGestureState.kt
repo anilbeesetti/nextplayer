@@ -91,9 +91,6 @@ class TapGestureState(
     fun handleDoubleTap(offset: Offset, size: IntSize) {
         if (!player.isCurrentMediaItemSeekable) return
 
-        lastDoubleTapOffset = offset
-        doubleTapCount++
-
         val region = DoubleTapSeek.regionFor(offset.x, size.width.toFloat())
         val action = when (doubleTapGesture) {
             DoubleTapGesture.FAST_FORWARD_AND_REWIND -> when (region) {
@@ -113,6 +110,13 @@ class TapGestureState(
             DoubleTapGesture.NONE -> return
         }
 
+        // The gesture is off (or the middle of the video is unbound): nothing is shown and nothing
+        // is touched, so a disabled double tap cannot flash feedback either.
+        if (action == DoubleTapAction.NONE) return
+
+        lastDoubleTapOffset = offset
+        doubleTapCount++
+
         when (action) {
             DoubleTapAction.SEEK_BACKWARD -> seekByBurst(direction = -1)
             DoubleTapAction.SEEK_FORWARD -> seekByBurst(direction = 1)
@@ -120,7 +124,7 @@ class TapGestureState(
                 true -> player.pause()
                 false -> player.play()
             }
-            DoubleTapAction.NONE -> return
+            DoubleTapAction.NONE -> Unit
         }
         resetDoubleTapSeekState()
     }

@@ -46,7 +46,6 @@ import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.rotate
 import androidx.compose.ui.focus.FocusRequester
 import androidx.compose.ui.focus.focusProperties
 import androidx.compose.ui.focus.focusRequester
@@ -115,12 +114,12 @@ import com.graviton.feature.player.ui.DoubleTapIndicator
 import com.graviton.feature.player.ui.LongPressSeekIndicator
 import com.graviton.feature.player.ui.OverlayShowView
 import com.graviton.feature.player.ui.OverlayView
+import com.graviton.feature.player.ui.SeekFeedbackCard
 import com.graviton.feature.player.ui.SpeedOverlayView
 import com.graviton.feature.player.ui.SubtitleConfiguration
 import com.graviton.feature.player.ui.VerticalProgressView
 import com.graviton.feature.player.ui.controls.ControlsBottomView
 import com.graviton.feature.player.ui.controls.ControlsTopView
-import kotlin.math.abs
 import kotlin.time.Duration.Companion.milliseconds
 import kotlin.time.Duration.Companion.seconds
 import kotlinx.coroutines.delay
@@ -717,6 +716,8 @@ fun InfoView(
 /**
  * Shows the cumulative amount skipped by repeated D-pad left/right seeks while the controls are
  * hidden, along with the resulting position. Fades out shortly after the last seek.
+ *
+ * It reuses the same card as the touch gestures, so a seek looks identical however it was started.
  */
 @Composable
 fun BoxScope.DpadSeekIndicator(
@@ -730,38 +731,7 @@ fun BoxScope.DpadSeekIndicator(
         enter = fadeIn(),
         exit = fadeOut(),
     ) {
-        Surface(
-            shape = RoundedCornerShape(16.dp),
-            color = Color.Black.copy(alpha = 0.6f),
-        ) {
-            Row(
-                modifier = Modifier.padding(horizontal = 20.dp, vertical = 12.dp),
-                verticalAlignment = Alignment.CenterVertically,
-                horizontalArrangement = Arrangement.spacedBy(12.dp),
-            ) {
-                Icon(
-                    painter = painterResource(coreUiR.drawable.ic_fast),
-                    contentDescription = if (offsetMs >= 0) stringResource(coreUiR.string.forward_seek_description) else stringResource(coreUiR.string.rewind_seek_description),
-                    tint = Color.White,
-                    modifier = Modifier
-                        .size(28.dp)
-                        .rotate(if (offsetMs < 0) 180f else 0f),
-                )
-                Column(horizontalAlignment = Alignment.CenterHorizontally) {
-                    Text(
-                        text = "${if (offsetMs >= 0) "+" else "-"}${abs(offsetMs).milliseconds.inWholeSeconds}s",
-                        style = MaterialTheme.typography.titleLarge,
-                        fontWeight = FontWeight.Bold,
-                        color = Color.White,
-                    )
-                    Text(
-                        text = positionMs.milliseconds.formatted(),
-                        style = MaterialTheme.typography.bodyMedium,
-                        color = Color.White.copy(alpha = 0.8f),
-                    )
-                }
-            }
-        }
+        SeekFeedbackCard(deltaMs = offsetMs, targetPositionMs = positionMs)
     }
 }
 

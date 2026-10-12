@@ -10,6 +10,7 @@ import androidx.compose.animation.scaleOut
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.safeDrawingPadding
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -47,12 +48,11 @@ fun LongPressSeekIndicator(modifier: Modifier = Modifier, longPressSeekState: Lo
             SeekFeedbackCard(
                 deltaMs = longPressSeekState.accumulatedMs,
                 targetPositionMs = longPressSeekState.targetPositionMs,
-                modifier = Modifier.padding(
-                    start = 20.dp,
-                    end = 20.dp,
-                    top = 72.dp,
-                    bottom = 96.dp,
-                ),
+                modifier = Modifier
+                    // Clear of display cutouts and the system bars, then lifted further so the
+                    // card never lands on the control strips or the subtitle band.
+                    .safeDrawingPadding()
+                    .padding(start = 20.dp, end = 20.dp, top = 48.dp, bottom = 64.dp),
             )
         }
     }

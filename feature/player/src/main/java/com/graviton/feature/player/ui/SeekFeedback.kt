@@ -25,10 +25,12 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.rotate
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import com.graviton.core.ui.R
+import com.graviton.core.ui.components.rememberReduceMotion
 import com.graviton.core.ui.designsystem.NextIcons
 import com.graviton.feature.player.extensions.formatted
 import kotlin.math.abs
@@ -39,6 +41,9 @@ private const val CHEVRON_COUNT = 3
 
 /** One acceleration step; the chevrons take this long to travel once. */
 private const val CHEVRON_PERIOD_MS = 900
+
+/** The phase the chevrons hold when the system asks for reduced motion. */
+private const val STATIC_CHEVRON_PHASE = 0.35f
 
 /**
  * A translucent Material 3 surface carrying the seek feedback: animated directional chevrons, the
@@ -65,7 +70,10 @@ fun SeekFeedbackCard(
         shadowElevation = 0.dp,
     ) {
         Column(
-            modifier = Modifier.padding(horizontal = 18.dp, vertical = 12.dp),
+            modifier = Modifier
+                .padding(horizontal = 18.dp, vertical = 12.dp)
+                // Read as one announcement: "+10 seconds, 1:24" rather than two nodes.
+                .semantics(mergeDescendants = true) {},
             horizontalAlignment = Alignment.CenterHorizontally,
             verticalArrangement = Arrangement.spacedBy(2.dp),
         ) {
@@ -94,22 +102,29 @@ fun SeekFeedbackCard(
  * moved — the direction is legible even in a single frame.
  */
 @Composable
-fun SeekChevrons(
+private fun SeekChevrons(
     forward: Boolean,
     modifier: Modifier = Modifier,
     tint: Color = Color.White,
     iconSize: Dp = 18.dp,
 ) {
-    val transition = rememberInfiniteTransition(label = "SeekChevrons")
-    val phase by transition.animateFloat(
-        initialValue = 0f,
-        targetValue = 1f,
-        animationSpec = infiniteRepeatable(
-            animation = tween(durationMillis = CHEVRON_PERIOD_MS, easing = LinearEasing),
-            repeatMode = RepeatMode.Restart,
-        ),
-        label = "ChevronPhase",
-    )
+    val reduceMotion = rememberReduceMotion()
+    val phase = if (reduceMotion) {
+        // Held still: the arrows keep their direction, they just stop travelling.
+        STATIC_CHEVRON_PHASE
+    } else {
+        val transition = rememberInfiniteTransition(label = "SeekChevrons")
+        val animatedPhase by transition.animateFloat(
+            initialValue = 0f,
+            targetValue = 1f,
+            animationSpec = infiniteRepeatable(
+                animation = tween(durationMillis = CHEVRON_PERIOD_MS, easing = LinearEasing),
+                repeatMode = RepeatMode.Restart,
+            ),
+            label = "ChevronPhase",
+        )
+        animatedPhase
+    }
 
     Row(
         modifier = modifier.rotate(if (forward) 0f else 180f),
@@ -132,7 +147,7 @@ fun SeekChevrons(
 
 /** A readable, localised seek amount: `+10 seconds` while seeking forward, `−10 seconds` back. */
 @Composable
-fun seekDeltaLabel(deltaMs: Long): String {
+private fun seekDeltaLabel(deltaMs: Long): String {
     val seconds = abs(deltaMs).milliseconds.inWholeSeconds
     return if (deltaMs >= 0) {
         stringResource(R.string.seek_seconds_forward, seconds)
