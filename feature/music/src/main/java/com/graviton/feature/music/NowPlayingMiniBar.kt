@@ -398,9 +398,9 @@ private fun MiniPlayerSwipeToDismiss(
                     )
 
                     if (dismiss) {
-                        // The bar is animated out by the caller; resetting here keeps the next time
-                        // it is opened free of a stale offset.
-                        offsetY.value = 0f
+                        // The offset is deliberately left where the finger put it: the caller's
+                        // exit animation then continues out of the screen from there. The offset
+                        // state is discarded with the content when that animation finishes.
                         onDismiss()
                     } else {
                         // Not far enough: settle back with a gentle spring, no snap.
