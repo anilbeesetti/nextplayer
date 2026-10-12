@@ -107,6 +107,7 @@ import com.graviton.core.ui.components.CancelButton
 import com.graviton.core.ui.components.DoneButton
 import com.graviton.core.ui.components.NextDialog
 import com.graviton.core.ui.components.NextTopAppBar
+import com.graviton.core.ui.components.requestFocusUntilLanded
 import com.graviton.core.ui.components.tvFocusRing
 import com.graviton.core.ui.composables.PermissionMissingView
 import com.graviton.core.ui.designsystem.NextIcons
@@ -163,14 +164,21 @@ internal fun MediaPickerScreen(
     var restoredFocusKey by rememberSaveable { mutableStateOf<String?>(null) }
     val hasMedia = (uiState.mediaDataState as? DataState.Success)?.value
         ?.let { it.folders.isNotEmpty() || it.videos.isNotEmpty() } == true
+    val permissionState = rememberPermissionState(permission = storagePermission)
+    val showEmptyState = permissionState.status.isGranted &&
+        uiState.mediaDataState is DataState.Success && !hasMedia
 
-    // On TV, pressing down from any top-bar button lands on the first list item.
-    val topBarDownModifier = if (isTv && hasMedia) {
+    // On TV, pressing down from any top-bar button lands on the first list item or empty-state action.
+    val topBarDownModifier = if (isTv && permissionState.status.isGranted && (hasMedia || showEmptyState)) {
         Modifier.focusProperties { down = firstItemFocusRequester }
     } else {
         Modifier
     }
-    val permissionState = rememberPermissionState(permission = storagePermission)
+    LaunchedEffect(isTv, showEmptyState) {
+        if (isTv && showEmptyState) {
+            firstItemFocusRequester.requestFocusUntilLanded(attempts = 20)
+        }
+    }
     var wasPermissionGranted by remember { mutableStateOf(permissionState.status.isGranted) }
 
     LaunchedEffect(permissionState.status.isGranted) {
@@ -226,6 +234,7 @@ internal fun MediaPickerScreen(
                     if (selectionManager.isInSelectionMode) {
                         Row(
                             modifier = Modifier
+                                .defaultMinSize(minHeight = 48.dp)
                                 .clip(CircleShape)
                                 .background(MaterialTheme.colorScheme.secondaryContainer)
                                 .clickable { selectionManager.exitSelectionMode() }
@@ -488,7 +497,12 @@ internal fun MediaPickerScreen(
                     )
                     val mediaHolder = uiState.mediaDataState.value
                     if (mediaHolder == null || mediaHolder.folders.isEmpty() && mediaHolder.videos.isEmpty()) {
-                        NoVideosFound(contentPadding = updatedScaffoldPadding)
+                        NoVideosFound(
+                            contentPadding = updatedScaffoldPadding,
+                            onOpenLocalVideo = { selectVideoFileLauncher.launch("video/*") },
+                            onOpenNetworkStream = { showUrlDialog = true },
+                            firstActionFocusRequester = firstItemFocusRequester.takeIf { isTv },
+                        )
                     } else {
                         MediaView(
                             recentlyPlayedVideo = uiState.recentlyPlayedVideo,
@@ -633,10 +647,16 @@ private fun MediaLoadError(
             fontWeight = FontWeight.Bold,
         )
         Text(
-            text = error?.message ?: stringResource(R.string.unknown_error),
+            text = error?.message?.takeIf { it.isNotBlank() }
+                ?: stringResource(R.string.unknown_error),
             style = MaterialTheme.typography.bodyMedium,
             color = MaterialTheme.colorScheme.onSurfaceVariant,
-            modifier = Modifier.padding(top = 8.dp),
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(top = 8.dp),
+            textAlign = TextAlign.Center,
+            maxLines = 4,
+            overflow = TextOverflow.Ellipsis,
         )
         TextButton(onClick = onRetry, modifier = Modifier.padding(top = 8.dp)) {
             Text(stringResource(R.string.retry))
