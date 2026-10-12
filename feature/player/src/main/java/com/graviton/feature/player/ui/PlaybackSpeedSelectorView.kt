@@ -47,9 +47,15 @@ fun BoxScope.PlaybackSpeedSelectorView(
     modifier: Modifier = Modifier,
     show: Boolean,
     player: Player,
+    onSpeedSelected: (Float) -> Unit = {},
 ) {
     val hapticFeedback = LocalHapticFeedback.current
     val playbackParametersState = rememberPlaybackParametersState(player)
+    // Every change made here is a deliberate choice, so it is the one path that is remembered.
+    val selectSpeed: (Float) -> Unit = { speed ->
+        playbackParametersState.setPlaybackSpeed(speed)
+        onSpeedSelected(speed)
+    }
 
     OverlayView(
         modifier = modifier,
@@ -74,7 +80,7 @@ fun BoxScope.PlaybackSpeedSelectorView(
                     onClick = {
                         val newSpeed =
                             (playbackParametersState.speed - stepSize).coerceAtLeast(minValue)
-                        playbackParametersState.setPlaybackSpeed(newSpeed)
+                        selectSpeed(newSpeed)
                     },
                 ) {
                     Icon(
@@ -93,7 +99,7 @@ fun BoxScope.PlaybackSpeedSelectorView(
                 FilledTonalIconButton(
                     onClick = {
                         val newSpeed = (playbackParametersState.speed + stepSize).coerceAtMost(maxValue)
-                        playbackParametersState.setPlaybackSpeed(newSpeed)
+                        selectSpeed(newSpeed)
                     },
                 ) {
                     Icon(
@@ -111,11 +117,11 @@ fun BoxScope.PlaybackSpeedSelectorView(
                     steps = steps,
                     onValueChange = {
                         hapticFeedback.performHapticFeedback(HapticFeedbackType.TextHandleMove)
-                        playbackParametersState.setPlaybackSpeed(it)
+                        selectSpeed(it)
                     },
                     modifier = Modifier.weight(1f),
                 )
-                IconButton(onClick = { playbackParametersState.setPlaybackSpeed(1f) }) {
+                IconButton(onClick = { selectSpeed(1f) }) {
                     Icon(
                         painter = painterResource(R.drawable.ic_reset),
                         contentDescription = stringResource(R.string.reset),
@@ -138,7 +144,7 @@ fun BoxScope.PlaybackSpeedSelectorView(
                                 color = LocalContentColor.current,
                                 shape = CircleShape,
                             )
-                            .clickable { playbackParametersState.setPlaybackSpeed(speed) }
+                            .clickable { selectSpeed(speed) }
                             .padding(
                                 horizontal = 8.dp,
                                 vertical = 8.dp,

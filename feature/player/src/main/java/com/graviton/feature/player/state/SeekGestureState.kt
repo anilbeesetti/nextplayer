@@ -8,7 +8,6 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.geometry.Offset
-import androidx.compose.ui.input.pointer.PointerInputChange
 import androidx.media3.common.C
 import androidx.media3.common.Player
 import androidx.media3.common.util.UnstableApi
@@ -87,16 +86,19 @@ class SeekGestureState(
         player.setIsScrubbingModeEnabled(true)
     }
 
+    /**
+     * Moves the scrub position for a drag that is now at [positionX]. [dragAmount] is the change since
+     * the previous report; it is used only to stop at the ends of the media.
+     */
     @OptIn(UnstableApi::class)
-    fun onDrag(change: PointerInputChange, dragAmount: Float) {
+    fun onDrag(positionX: Float, dragAmount: Float) {
         if (seekStartPosition == null) return
         if (player.duration == C.TIME_UNSET) return
         if (!player.isCurrentMediaItemSeekable) return
         if (player.currentPosition <= 0L && dragAmount < 0) return
         if (player.currentPosition >= player.duration && dragAmount > 0) return
-        if (change.isConsumed) return
 
-        val newPosition = seekStartPosition!! + ((change.position.x - seekStartX) * (sensitivity * 100)).toInt()
+        val newPosition = seekStartPosition!! + ((positionX - seekStartX) * (sensitivity * 100)).toInt()
         seekAmount = (newPosition - seekStartPosition!!).coerceIn(
             minimumValue = 0 - seekStartPosition!!,
             maximumValue = player.duration - seekStartPosition!!,

@@ -80,13 +80,11 @@ class TapGestureState(
     var activeLongPressSpeed by mutableStateOf(2.0f)
 
     private var resetJob: Job? = null
-    private var restoredSpeed: Float = player.playbackParameters.speed
     private var holdStartX = 0f
     private var holdStartSpeed = 2.0f
 
-    /** Position the current burst measured from, or null when no burst is in progress. */
-    private var burstAnchorPositionMs: Long? = null
-    private var burstDirection = 0
+    private val burst = DoubleTapBurst()
+    private val speedBoost = TemporarySpeedBoost(applySpeed = { player.setPlaybackSpeed(it) })
 
     fun handleDoubleTap(offset: Offset, size: IntSize) {
         if (!player.isCurrentMediaItemSeekable) return
@@ -130,28 +128,18 @@ class TapGestureState(
     }
 
     /**
-     * Adds one increment to the current burst and seeks to the accumulated target.
-     *
-     * The burst keeps the position it started from, so tapping three times forward lands three
-     * increments ahead of that position. Turning around mid-burst re-anchors at the current
-     * position instead of replaying the whole burst in the other direction.
+     * Adds one increment to the current burst and seeks to the accumulated target. The burst rules
+     * (anchoring, re-anchoring on a turn, clamping) live in [DoubleTapBurst].
      */
     private fun seekByBurst(direction: Int) {
         val position = player.currentPosition.coerceAtLeast(0L)
-        if (burstAnchorPositionMs == null || burstDirection != direction) {
-            burstAnchorPositionMs = position
-            burstDirection = direction
-            seekMillis = 0L
-        }
-
-        val anchor = burstAnchorPositionMs ?: position
-        val target = DoubleTapSeek.targetFor(
-            anchorPositionMs = anchor,
-            accumulatedMs = seekMillis + direction * seekIncrementMillis,
+        val target = burst.step(
+            direction = direction,
+            incrementMs = seekIncrementMillis,
+            positionMs = position,
             durationMs = player.duration,
         )
-
-        seekMillis = target - anchor
+        seekMillis = burst.offsetMs
         seekTargetPositionMs = target
         player.seekTo(target)
     }
@@ -175,12 +163,10 @@ class TapGestureState(
         if (isLongPressGestureInAction) return true
 
         isLongPressGestureInAction = true
-        // Captured before the boost so a release always restores the user's real speed, even if
-        // the hold is interrupted by a media item transition.
-        restoredSpeed = player.playbackParameters.speed
         holdStartSpeed = longPressSpeed
         activeLongPressSpeed = longPressSpeed
-        player.setPlaybackSpeed(activeLongPressSpeed)
+        // The speed the user selected is captured here, so a release restores it rather than 1x.
+        speedBoost.start(currentSpeed = player.playbackParameters.speed, boostSpeed = longPressSpeed)
         return true
     }
 
@@ -202,7 +188,7 @@ class TapGestureState(
         if (nextSpeed == activeLongPressSpeed) return false
 
         activeLongPressSpeed = nextSpeed
-        player.setPlaybackSpeed(nextSpeed)
+        speedBoost.changeSpeed(nextSpeed)
         return true
     }
 
@@ -210,15 +196,14 @@ class TapGestureState(
         if (!isLongPressGestureInAction) return
 
         isLongPressGestureInAction = false
-        player.setPlaybackSpeed(restoredSpeed)
+        speedBoost.stop()
     }
 
     private fun resetDoubleTapSeekState() {
         resetJob?.cancel()
         resetJob = coroutineScope.launch {
             delay(DoubleTapSeek.BURST_TIMEOUT_MS)
-            burstAnchorPositionMs = null
-            burstDirection = 0
+            burst.reset()
             seekMillis = 0L
         }
     }
