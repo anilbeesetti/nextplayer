@@ -22,7 +22,7 @@ class AppearancePreferencesGlassUiTest {
         val viewModel = AppearancePreferencesViewModel(repository)
         advanceUntilIdle()
 
-        assertFalse(viewModel.uiState.value.preferences.glassUiEnabled)
+        assertFalse(viewModel.uiState.value.preferences.useGlassUi)
     }
 
     @Test
@@ -34,13 +34,13 @@ class AppearancePreferencesGlassUiTest {
         viewModel.onEvent(AppearancePreferencesEvent.ToggleGlassUi)
         advanceUntilIdle()
 
-        assertTrue(viewModel.uiState.value.preferences.glassUiEnabled)
-        assertTrue(repository.applicationPreferences.value.glassUiEnabled)
+        assertTrue(viewModel.uiState.value.preferences.useGlassUi)
+        assertTrue(repository.applicationPreferences.value.useGlassUi)
 
         viewModel.onEvent(AppearancePreferencesEvent.ToggleGlassUi)
         advanceUntilIdle()
 
-        assertFalse(viewModel.uiState.value.preferences.glassUiEnabled)
-        assertFalse(repository.applicationPreferences.value.glassUiEnabled)
+        assertFalse(viewModel.uiState.value.preferences.useGlassUi)
+        assertFalse(repository.applicationPreferences.value.useGlassUi)
     }
 }
