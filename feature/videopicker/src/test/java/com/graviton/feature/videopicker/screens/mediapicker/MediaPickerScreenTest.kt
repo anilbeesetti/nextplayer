@@ -3,6 +3,7 @@ package com.graviton.feature.videopicker.screens.mediapicker
 import android.Manifest
 import android.app.Application
 import androidx.activity.ComponentActivity
+import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.ui.test.assertIsDisplayed
 import androidx.compose.ui.test.junit4.v2.createAndroidComposeRule
 import androidx.compose.ui.test.onNodeWithText
@@ -10,9 +11,10 @@ import androidx.compose.ui.test.performClick
 import androidx.lifecycle.Lifecycle
 import androidx.test.core.app.ApplicationProvider
 import androidx.test.ext.junit.runners.AndroidJUnit4
-import com.graviton.core.ui.R
 import com.graviton.core.model.PlaylistSummary
+import com.graviton.core.ui.R
 import com.graviton.core.ui.theme.GravitonTheme
+import com.graviton.feature.videopicker.composables.NoVideosFound
 import com.graviton.feature.videopicker.state.SelectionItem
 import com.graviton.feature.videopicker.state.SelectionManager
 import org.junit.Assert.assertFalse
@@ -44,6 +46,29 @@ class MediaPickerScreenTest {
         }
 
         composeRule.onNodeWithText(permissionMessage).assertIsDisplayed()
+    }
+
+    @Test
+    fun emptyStateOffersLocalAndNetworkVideoActions() {
+        val context = ApplicationProvider.getApplicationContext<android.content.Context>()
+        var openedLocalVideo = false
+        var openedNetworkStream = false
+
+        composeRule.setContent {
+            GravitonTheme {
+                NoVideosFound(
+                    contentPadding = PaddingValues(),
+                    onOpenLocalVideo = { openedLocalVideo = true },
+                    onOpenNetworkStream = { openedNetworkStream = true },
+                )
+            }
+        }
+
+        composeRule.onNodeWithText(context.getString(R.string.open_local_video)).performClick()
+        composeRule.onNodeWithText(context.getString(R.string.open_network_stream)).performClick()
+
+        assertTrue(openedLocalVideo)
+        assertTrue(openedNetworkStream)
     }
 
     @Test

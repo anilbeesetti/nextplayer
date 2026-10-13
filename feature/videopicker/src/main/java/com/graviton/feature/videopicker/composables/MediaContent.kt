@@ -7,19 +7,27 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.widthIn
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.ExperimentalMaterial3ExpressiveApi
+import androidx.compose.material3.FilledTonalButton
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.focus.FocusRequester
+import androidx.compose.ui.focus.focusRequester
 import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
@@ -43,7 +51,18 @@ fun CenterCircularProgressBar(modifier: Modifier = Modifier) {
 
 @OptIn(ExperimentalMaterial3ExpressiveApi::class)
 @Composable
-fun NoVideosFound(contentPadding: PaddingValues) {
+fun NoVideosFound(
+    contentPadding: PaddingValues,
+    onOpenLocalVideo: () -> Unit,
+    onOpenNetworkStream: () -> Unit,
+    firstActionFocusRequester: FocusRequester? = null,
+) {
+    val firstActionFocusModifier = if (firstActionFocusRequester != null) {
+        Modifier.focusRequester(firstActionFocusRequester)
+    } else {
+        Modifier
+    }
+
     Column(
         modifier = Modifier
             .fillMaxSize()
@@ -75,5 +94,36 @@ fun NoVideosFound(contentPadding: PaddingValues) {
             text = stringResource(id = R.string.no_videos_found),
             style = MaterialTheme.typography.titleLargeEmphasized,
         )
+        Spacer(modifier = Modifier.height(24.dp))
+        FilledTonalButton(
+            onClick = onOpenLocalVideo,
+            modifier = firstActionFocusModifier
+                .widthIn(max = 280.dp)
+                .fillMaxWidth()
+                .heightIn(min = 48.dp),
+        ) {
+            Icon(
+                imageVector = NextIcons.FileOpen,
+                contentDescription = null,
+                modifier = Modifier.size(18.dp),
+            )
+            Spacer(modifier = Modifier.size(8.dp))
+            Text(text = stringResource(id = R.string.open_local_video))
+        }
+        TextButton(
+            onClick = onOpenNetworkStream,
+            modifier = Modifier
+                .widthIn(max = 280.dp)
+                .fillMaxWidth()
+                .heightIn(min = 48.dp),
+        ) {
+            Icon(
+                imageVector = NextIcons.Link,
+                contentDescription = null,
+                modifier = Modifier.size(18.dp),
+            )
+            Spacer(modifier = Modifier.size(8.dp))
+            Text(text = stringResource(id = R.string.open_network_stream))
+        }
     }
 }
