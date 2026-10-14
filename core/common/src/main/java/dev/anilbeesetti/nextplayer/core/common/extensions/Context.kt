@@ -13,6 +13,7 @@ import android.media.MediaScannerConnection
 import android.net.Uri
 import android.os.Build
 import android.os.Environment
+import android.os.storage.StorageManager
 import android.provider.DocumentsContract
 import android.provider.MediaStore
 import android.provider.OpenableColumns
@@ -445,12 +446,27 @@ suspend fun ContentResolver.deleteMedia(
     }
 }
 
-fun Context.getStorageVolumes() = try {
-    getExternalFilesDirs(null)?.mapNotNull {
-        File(it.path.substringBefore("/Android")).takeIf { file -> file.exists() }
-    } ?: listOf(Environment.getExternalStorageDirectory())
-} catch (e: Exception) {
-    listOf(Environment.getExternalStorageDirectory())
+fun Context.getStorageVolumes(): List<File> {
+    // USB OTG volumes do not necessarily support app-specific external directories.
+    // On Android 11+, use the public volume roots instead of deriving them from those directories.
+    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) {
+        try {
+            val volumes = getSystemService(StorageManager::class.java)?.storageVolumes
+                ?.filter { it.state == Environment.MEDIA_MOUNTED || it.state == Environment.MEDIA_MOUNTED_READ_ONLY }
+                ?.mapNotNull { it.directory }
+                ?.distinct()
+            if (!volumes.isNullOrEmpty()) return volumes
+        } catch (e: Exception) {
+            // Keep the legacy fallback for devices whose StorageManager is unavailable.
+        }
+    }
+    return try {
+        getExternalFilesDirs(null)?.mapNotNull { directory ->
+            directory?.let { File(it.path.substringBefore("/Android")) }?.takeIf { it.exists() }
+        }?.distinct()?.takeIf { it.isNotEmpty() } ?: listOf(Environment.getExternalStorageDirectory())
+    } catch (e: Exception) {
+        listOf(Environment.getExternalStorageDirectory())
+    }
 }
 
 fun Context.appIcon(): Bitmap? {
