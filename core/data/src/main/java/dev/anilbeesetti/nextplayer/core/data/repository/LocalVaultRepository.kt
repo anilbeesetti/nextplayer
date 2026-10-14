@@ -110,6 +110,8 @@ class LocalVaultRepository(
             width = width,
             height = height,
             hiddenAt = System.currentTimeMillis(),
+            dateAdded = dateAdded,
+            dateModified = dateModified,
         )
     }
 
@@ -183,7 +185,7 @@ class LocalVaultRepository(
      * directly into shared storage. On older versions the exact original path is restored via the
      * `DATA` column; on newer ones the folder is expressed as a `RELATIVE_PATH`.
      */
-    private fun restoreToMediaStore(entity: HiddenVideoEntity): Boolean? {
+    private suspend fun restoreToMediaStore(entity: HiddenVideoEntity): Boolean? {
         val vaultFile = File(entity.vaultPath)
         if (!vaultFile.exists()) return null
 
@@ -194,6 +196,15 @@ class LocalVaultRepository(
             resolver.openOutputStream(inserted.uri)?.use { output ->
                 vaultFile.inputStream().use { it.copyTo(output) }
             } ?: error("Unable to open output stream for ${inserted.uri}")
+
+            // DATE_ADDED is read-only on modern Android. Save the original dates before
+            // publishing the restored row so a vault move does not reset its age in the library.
+            mediumStateDao.update(inserted.uri.toString()) { state ->
+                state.copy(
+                    originalDateAdded = entity.dateAdded,
+                    originalDateModified = entity.dateModified,
+                )
+            }
 
             if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
                 resolver.update(
@@ -206,7 +217,11 @@ class LocalVaultRepository(
             vaultFile.delete()
             inserted.relocated
         } catch (e: Exception) {
-            resolver.delete(inserted.uri, null, null) // roll back the partially-written entry
+            withContext(NonCancellable) {
+                resolver.delete(inserted.uri, null, null) // roll back the partially-written entry
+                mediumStateDao.delete(listOf(inserted.uri.toString()))
+            }
+            if (e is CancellationException) throw e
             null
         }
     }
@@ -306,8 +321,8 @@ class LocalVaultRepository(
             width = width,
             height = height,
             size = size,
-            dateModified = hiddenAt,
-            dateAdded = hiddenAt / 1000L,
+            dateModified = dateModified,
+            dateAdded = dateAdded,
             formattedDuration = Utils.formatDurationMillis(duration),
             formattedFileSize = Utils.formatFileSize(size),
         )

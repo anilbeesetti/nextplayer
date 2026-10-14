@@ -31,4 +31,8 @@ data class HiddenVideoEntity(
     val height: Int = 0,
     @ColumnInfo(name = "hidden_at")
     val hiddenAt: Long = System.currentTimeMillis(),
+    @ColumnInfo(name = "date_added", defaultValue = "0")
+    val dateAdded: Long = 0,
+    @ColumnInfo(name = "date_modified", defaultValue = "0")
+    val dateModified: Long = 0,
 )
