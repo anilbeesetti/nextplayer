@@ -4,6 +4,7 @@ import androidx.room.testing.MigrationTestHelper
 import androidx.test.ext.junit.runners.AndroidJUnit4
 import androidx.test.platform.app.InstrumentationRegistry
 import org.junit.Assert.assertEquals
+import org.junit.Assert.assertTrue
 import org.junit.Rule
 import org.junit.Test
 import org.junit.runner.RunWith
@@ -81,6 +82,55 @@ class MediaDatabaseMigrationTest {
                 assertEquals(12345L, cursor.getLong(0))
                 assertEquals("file:///captions.srt", cursor.getString(1))
                 assertEquals("", cursor.getString(2))
+            }
+        }
+    }
+
+    @Test
+    fun migrate12To13_removesVideoSpeedAndPreservesOtherState() {
+        helper.createDatabase("speed-migration", 12).apply {
+            execSQL(
+                """
+                INSERT INTO media_state (
+                    uri, playback_position, audio_track_index, subtitle_track_index, playback_speed,
+                    last_played_time, duration, external_subs, external_audio, video_scale,
+                    subtitle_delay, subtitle_speed
+                ) VALUES (
+                    'content://video/one', 12345, 2, 3, 1.75, 67890, 90000,
+                    'file:///captions.srt', 'file:///audio.aac', 1.5, 250, 0.75
+                )
+                """.trimIndent(),
+            )
+            execSQL(
+                """
+                INSERT INTO media_state (
+                    uri, playback_position, external_subs, video_scale, subtitle_delay, subtitle_speed
+                ) VALUES ('content://video/two', 0, '', 1, 0, 1)
+                """.trimIndent(),
+            )
+            close()
+        }
+        helper.runMigrationsAndValidate("speed-migration", 13, true, MediaDatabase.MIGRATION_12_13).use { db ->
+            db.query("SELECT * FROM media_state ORDER BY uri").use { cursor ->
+                assertEquals(2, cursor.count)
+                assertEquals(-1, cursor.getColumnIndex("playback_speed"))
+                check(cursor.moveToFirst())
+                assertEquals("content://video/one", cursor.getString(cursor.getColumnIndexOrThrow("uri")))
+                assertEquals(12345L, cursor.getLong(cursor.getColumnIndexOrThrow("playback_position")))
+                assertEquals(2, cursor.getInt(cursor.getColumnIndexOrThrow("audio_track_index")))
+                assertEquals(3, cursor.getInt(cursor.getColumnIndexOrThrow("subtitle_track_index")))
+                assertEquals(67890L, cursor.getLong(cursor.getColumnIndexOrThrow("last_played_time")))
+                assertEquals(90000L, cursor.getLong(cursor.getColumnIndexOrThrow("duration")))
+                assertEquals("file:///captions.srt", cursor.getString(cursor.getColumnIndexOrThrow("external_subs")))
+                assertEquals("file:///audio.aac", cursor.getString(cursor.getColumnIndexOrThrow("external_audio")))
+                assertEquals(1.5f, cursor.getFloat(cursor.getColumnIndexOrThrow("video_scale")))
+                assertEquals(250L, cursor.getLong(cursor.getColumnIndexOrThrow("subtitle_delay")))
+                assertEquals(0.75f, cursor.getFloat(cursor.getColumnIndexOrThrow("subtitle_speed")))
+                check(cursor.moveToNext())
+                assertEquals("content://video/two", cursor.getString(cursor.getColumnIndexOrThrow("uri")))
+                assertTrue(cursor.isNull(cursor.getColumnIndexOrThrow("audio_track_index")))
+                assertTrue(cursor.isNull(cursor.getColumnIndexOrThrow("last_played_time")))
+                assertEquals("", cursor.getString(cursor.getColumnIndexOrThrow("external_audio")))
             }
         }
     }
