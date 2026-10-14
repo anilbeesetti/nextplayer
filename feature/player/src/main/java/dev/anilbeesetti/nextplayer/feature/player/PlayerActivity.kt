@@ -43,6 +43,7 @@ import dev.anilbeesetti.nextplayer.feature.player.service.tryDecoderFallback
 import dev.anilbeesetti.nextplayer.feature.player.state.rememberMediaController
 import dev.anilbeesetti.nextplayer.feature.player.utils.PlayerApi
 import dev.anilbeesetti.nextplayer.feature.player.utils.PlaylistPlaybackContract
+import dev.anilbeesetti.nextplayer.feature.player.utils.asExplicitPlaylistItem
 import dev.anilbeesetti.nextplayer.feature.player.utils.toMediaQueue
 import java.util.concurrent.CopyOnWriteArrayList
 import kotlinx.coroutines.Dispatchers
@@ -294,7 +295,8 @@ class PlayerActivity : ComponentActivity() {
         }
 
         val mediaContentUri = getMediaContentUri(uri)
-        val playlist = playerApi.getPlaylist().takeIf { it.isNotEmpty() }
+        val explicitPlaylist = playerApi.getPlaylist()
+        val playlist = explicitPlaylist.takeIf { it.isNotEmpty() }
             ?: mediaContentUri?.let { mediaUri ->
                 viewModel.getPlaylistFromUri(mediaUri)
                     .map { it.uriString }
@@ -330,7 +332,9 @@ class PlayerActivity : ComponentActivity() {
                     }
                     setSubtitleConfigurations(apiSubs)
                 }
-            }.build()
+            }.build().let { item ->
+                if (explicitPlaylist.isNotEmpty()) item.asExplicitPlaylistItem() else item
+            }
         }
 
         withContext(Dispatchers.Main) {
