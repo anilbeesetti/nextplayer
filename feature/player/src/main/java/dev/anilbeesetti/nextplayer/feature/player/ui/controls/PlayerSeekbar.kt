@@ -17,9 +17,11 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Slider
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.CompositionLocalProvider
+import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberUpdatedState
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -57,8 +59,11 @@ internal fun PlayerSeekbar(
     onSeekFinished: () -> Unit,
 ) {
     val hapticFeedback = LocalHapticFeedback.current
+    val currentOnSeekFinished by rememberUpdatedState(onSeekFinished)
+    var isScrubbing by remember { mutableStateOf(false) }
     var lastSeekChapterIndex by remember(chapters) { mutableStateOf<Int?>(null) }
     val onValueChange: (Float) -> Unit = { value ->
+        isScrubbing = true
         val chapterIndex = chapters.currentChapterIndex(value.toLong())
         val previousChapterIndex = lastSeekChapterIndex ?: chapters.currentChapterIndex(position.toLong())
         if (chapterIndex != previousChapterIndex) {
@@ -69,14 +74,25 @@ internal fun PlayerSeekbar(
     }
     val onValueChangeFinished = {
         lastSeekChapterIndex = null
-        onSeekFinished()
+        if (isScrubbing) {
+            isScrubbing = false
+            currentOnSeekFinished()
+        }
+    }
+    val useMaterialYouControls = LocalUseMaterialYouControls.current
+    DisposableEffect(useMaterialYouControls) {
+        // Controls can disappear or change style before a pointer/key release reaches the slider.
+        onDispose { onValueChangeFinished() }
     }
     var isFocused by remember { mutableStateOf(false) }
     val focusModifier = modifier
         .fillMaxWidth()
-        .onFocusChanged { isFocused = it.isFocused }
+        .onFocusChanged {
+            if (isFocused && !it.isFocused) onValueChangeFinished()
+            isFocused = it.isFocused
+        }
     CompositionLocalProvider(LocalLayoutDirection provides LayoutDirection.Ltr) {
-        if (LocalUseMaterialYouControls.current) {
+        if (useMaterialYouControls) {
             MaterialYouSlider(
                 modifier = focusModifier,
                 isFocused = isFocused,

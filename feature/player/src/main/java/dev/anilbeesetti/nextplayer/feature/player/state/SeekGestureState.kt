@@ -2,6 +2,7 @@ package dev.anilbeesetti.nextplayer.feature.player.state
 
 import androidx.annotation.OptIn
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.Stable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -24,12 +25,15 @@ fun rememberSeekGestureState(
     sensitivity: Float = 0.5f,
     enableSeekGesture: Boolean,
 ): SeekGestureState {
-    val seekGestureState = remember {
+    val seekGestureState = remember(player, sensitivity, enableSeekGesture) {
         SeekGestureState(
             player = player,
             sensitivity = sensitivity,
             enableSeekGesture = enableSeekGesture,
         )
+    }
+    DisposableEffect(seekGestureState) {
+        onDispose { seekGestureState.onSeekEnd() }
     }
     return seekGestureState
 }
@@ -110,7 +114,7 @@ class SeekGestureState(
     }
 
     private fun reset() {
-        player.setIsScrubbingModeEnabled(false)
+        if (isSeeking) player.setIsScrubbingModeEnabled(false)
         isSeeking = false
         seekStartPosition = null
         seekAmount = null
