@@ -89,6 +89,63 @@ class NetworkBrowseScreenTest {
         assertTrue(videoBounds.first().top > folderBounds.first().bottom)
     }
 
+    @Test
+    @Config(qualifiers = "w400dp-h800dp")
+    fun `video section starts below an incomplete folder grid row`() {
+        val secondVideo = NetworkFile("Another.mp4", "another.mp4", false)
+        showScreen(MediaLayoutMode.GRID, listOf(folder, video, secondVideo))
+
+        val folderHeader = composeRule.onNodeWithText("Folders (1)").assertIsDisplayed().fetchSemanticsNode().boundsInRoot
+        val videoHeader = composeRule.onNodeWithText("Videos (2)").assertIsDisplayed().fetchSemanticsNode().boundsInRoot
+        val folderBounds = composeRule.onNode(hasText(folder.name) and hasClickAction()).fetchSemanticsNode().boundsInRoot
+        val videoBounds = composeRule.onNode(hasText(video.name) and hasClickAction()).fetchSemanticsNode().boundsInRoot
+        val secondVideoBounds = composeRule.onNode(hasText(secondVideo.name) and hasClickAction()).fetchSemanticsNode().boundsInRoot
+
+        assertTrue(folderHeader.bottom <= folderBounds.top)
+        assertTrue(folderBounds.bottom < videoHeader.top)
+        assertTrue(videoHeader.bottom <= videoBounds.top)
+        assertEquals(videoBounds.top, secondVideoBounds.top)
+    }
+
+    @Test
+    fun `list layout also shows counted folder and video sections`() {
+        showScreen()
+
+        val folderHeader = composeRule.onNodeWithText("Folders (1)").assertIsDisplayed().fetchSemanticsNode().boundsInRoot
+        val videoHeader = composeRule.onNodeWithText("Videos (1)").assertIsDisplayed().fetchSemanticsNode().boundsInRoot
+        val folderBounds = composeRule.onNode(hasText(folder.name) and hasClickAction()).fetchSemanticsNode().boundsInRoot
+        val videoBounds = composeRule.onNode(hasText(video.name) and hasClickAction()).fetchSemanticsNode().boundsInRoot
+
+        assertTrue(folderHeader.bottom <= folderBounds.top)
+        assertTrue(folderBounds.bottom < videoHeader.top)
+        assertTrue(videoHeader.bottom <= videoBounds.top)
+    }
+
+    @Test
+    fun `folders only shows its count without an empty video section`() {
+        showScreen(MediaLayoutMode.GRID, listOf(folder))
+
+        composeRule.onNodeWithText("Folders (1)").assertIsDisplayed()
+        composeRule.onNodeWithText("Videos (0)").assertDoesNotExist()
+    }
+
+    @Test
+    fun `videos only shows its count without an empty folder section`() {
+        showScreen(MediaLayoutMode.GRID, listOf(video))
+
+        composeRule.onNodeWithText("Videos (1)").assertIsDisplayed()
+        composeRule.onNodeWithText("Folders (0)").assertDoesNotExist()
+    }
+
+    @Test
+    fun `empty folder keeps the empty state without section headings`() {
+        showScreen(files = emptyList())
+
+        composeRule.onNodeWithText("This folder is empty").assertIsDisplayed()
+        composeRule.onNodeWithText("Folders (0)").assertDoesNotExist()
+        composeRule.onNodeWithText("Videos (0)").assertDoesNotExist()
+    }
+
     private fun showScreen(
         layout: MediaLayoutMode = MediaLayoutMode.LIST,
         files: List<NetworkFile> = listOf(folder, video),

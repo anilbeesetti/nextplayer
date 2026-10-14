@@ -62,6 +62,7 @@ import dev.anilbeesetti.nextplayer.core.model.MediaLayoutMode
 import dev.anilbeesetti.nextplayer.core.model.NetworkFile
 import dev.anilbeesetti.nextplayer.core.model.Sort
 import dev.anilbeesetti.nextplayer.core.ui.R
+import dev.anilbeesetti.nextplayer.core.ui.components.ListSectionTitle
 import dev.anilbeesetti.nextplayer.core.ui.components.MediaQuickSettingsDialog
 import dev.anilbeesetti.nextplayer.core.ui.components.NextSegmentedListItem
 import dev.anilbeesetti.nextplayer.core.ui.components.NextTopAppBar
@@ -206,7 +207,7 @@ internal fun NetworkBrowseScreenContent(
                     val videoColumns = if (isGrid) (availableWidth / videoMinWidth).toInt().coerceAtLeast(1) else 1
                     // A common column count lets folder and video tiles have different widths.
                     val columns = folderColumns * videoColumns
-                    val folderCount = state.files.count { it.isDirectory }
+                    val (folders, videos) = state.files.partition { it.isDirectory }
 
                     if (state.files.isEmpty()) {
                         Box(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
@@ -230,27 +231,34 @@ internal fun NetworkBrowseScreenContent(
                             verticalArrangement = Arrangement.spacedBy(itemSpacing),
                             horizontalArrangement = Arrangement.spacedBy(itemSpacing),
                         ) {
-                            itemsIndexed(
-                                items = state.files,
-                                key = { _, file -> file.path },
-                                span = { _, file -> GridItemSpan(if (file.isDirectory) videoColumns else folderColumns) },
-                            ) { index, file ->
-                                NetworkFileItem(
-                                    file = file,
-                                    isGrid = isGrid,
-                                    isFirstItem = index == 0 || (isGrid && index == folderCount),
-                                    isLastItem = index == state.files.lastIndex || (isGrid && index == folderCount - 1),
-                                    isRecentlyPlayed = state.preferences.markLastPlayedMedia &&
-                                        (
-                                            state.recentlyPlayedPath == file.path ||
-                                                (file.isDirectory && state.recentlyPlayedPath?.startsWith("${file.path.trimEnd('/')}/") == true)
-                                            ),
-                                    playedPercentage = state.playbackHistory[file.path]?.playedPercentage
-                                        ?.takeIf { state.preferences.showPlayedProgress },
-                                    onClick = {
-                                        if (file.isDirectory) onAction(NetworkBrowseAction.OpenFolder(file)) else onAction(NetworkBrowseAction.PlayVideo(file))
-                                    },
-                                )
+                            listOf(R.string.folders to folders, R.string.videos to videos).forEach { (title, files) ->
+                                if (files.isNotEmpty()) {
+                                    item(span = { GridItemSpan(maxLineSpan) }) {
+                                        ListSectionTitle(text = stringResource(title) + " (${files.size})")
+                                    }
+                                    itemsIndexed(
+                                        items = files,
+                                        key = { _, file -> file.path },
+                                        span = { _, file -> GridItemSpan(if (file.isDirectory) videoColumns else folderColumns) },
+                                    ) { index, file ->
+                                        NetworkFileItem(
+                                            file = file,
+                                            isGrid = isGrid,
+                                            isFirstItem = index == 0,
+                                            isLastItem = index == files.lastIndex,
+                                            isRecentlyPlayed = state.preferences.markLastPlayedMedia &&
+                                                (
+                                                    state.recentlyPlayedPath == file.path ||
+                                                        (file.isDirectory && state.recentlyPlayedPath?.startsWith("${file.path.trimEnd('/')}/") == true)
+                                                    ),
+                                            playedPercentage = state.playbackHistory[file.path]?.playedPercentage
+                                                ?.takeIf { state.preferences.showPlayedProgress },
+                                            onClick = {
+                                                if (file.isDirectory) onAction(NetworkBrowseAction.OpenFolder(file)) else onAction(NetworkBrowseAction.PlayVideo(file))
+                                            },
+                                        )
+                                    }
+                                }
                             }
                         }
                     }
