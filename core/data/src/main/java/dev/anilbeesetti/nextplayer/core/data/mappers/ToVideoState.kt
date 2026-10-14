@@ -10,7 +10,6 @@ fun MediumStateEntity.toVideoState(): VideoState {
         position = playbackPosition.takeIf { it != 0L },
         audioTrackIndex = audioTrackIndex,
         subtitleTrackIndex = subtitleTrackIndex,
-        playbackSpeed = playbackSpeed,
         externalSubs = UriListConverter.fromStringToList(externalSubs),
         externalAudio = UriListConverter.fromStringToList(externalAudio),
         videoScale = videoScale,

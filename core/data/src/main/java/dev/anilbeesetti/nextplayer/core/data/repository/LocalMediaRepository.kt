@@ -137,10 +137,6 @@ class LocalMediaRepository(
         mediumStateDao.update(uri) { it.copy(playbackPosition = position) }
     }
 
-    override suspend fun updateMediumPlaybackSpeed(uri: String, playbackSpeed: Float) {
-        mediumStateDao.update(uri) { it.copy(playbackSpeed = playbackSpeed) }
-    }
-
     override suspend fun updateMediumAudioTrack(uri: String, audioTrackIndex: Int) {
         mediumStateDao.update(uri) { it.copy(audioTrackIndex = audioTrackIndex) }
     }

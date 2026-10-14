@@ -69,9 +69,6 @@ class FakeMediaRepository : MediaRepository {
     override suspend fun updateMediumPosition(uri: String, position: Long) {
     }
 
-    override suspend fun updateMediumPlaybackSpeed(uri: String, playbackSpeed: Float) {
-    }
-
     override suspend fun updateMediumAudioTrack(uri: String, audioTrackIndex: Int) {
     }
 

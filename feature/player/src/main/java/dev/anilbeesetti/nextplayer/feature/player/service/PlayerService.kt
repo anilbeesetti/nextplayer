@@ -14,7 +14,6 @@ import androidx.media3.common.MediaItem
 import androidx.media3.common.MediaMetadata
 import androidx.media3.common.MimeTypes
 import androidx.media3.common.PlaybackException
-import androidx.media3.common.PlaybackParameters
 import androidx.media3.common.Player
 import androidx.media3.common.Player.DISCONTINUITY_REASON_AUTO_TRANSITION
 import androidx.media3.common.Player.DISCONTINUITY_REASON_REMOVE
@@ -62,7 +61,6 @@ import dev.anilbeesetti.nextplayer.feature.player.extensions.copy
 import dev.anilbeesetti.nextplayer.feature.player.extensions.externalAudio
 import dev.anilbeesetti.nextplayer.feature.player.extensions.externalAudioIndex
 import dev.anilbeesetti.nextplayer.feature.player.extensions.getManuallySelectedTrackIndex
-import dev.anilbeesetti.nextplayer.feature.player.extensions.playbackSpeed
 import dev.anilbeesetti.nextplayer.feature.player.extensions.positionMs
 import dev.anilbeesetti.nextplayer.feature.player.extensions.setExtras
 import dev.anilbeesetti.nextplayer.feature.player.extensions.setIsScrubbingModeEnabled
@@ -219,7 +217,6 @@ class PlayerService : MediaSessionService() {
             loadArtworkForCurrentMediaItem()
             mediaItem?.mediaMetadata?.let { metadata ->
                 mediaSession?.player?.run {
-                    setPlaybackSpeed(metadata.playbackSpeed ?: playerPreferences.defaultPlaybackSpeed)
                     playerSpecificSubtitleDelayMilliseconds = metadata.subtitleDelayMilliseconds ?: 0L
                     playerSpecificSubtitleSpeed = metadata.subtitleSpeed ?: 1f
                 }
@@ -334,36 +331,17 @@ class PlayerService : MediaSessionService() {
             )
         }
 
-        override fun onPlaybackParametersChanged(playbackParameters: PlaybackParameters) {
-            super.onPlaybackParametersChanged(playbackParameters)
-            val player = mediaSession?.player ?: return
-            val currentMediaItem = player.currentMediaItem ?: return
-            val playbackSpeed = playbackParameters.speed
-
-            serviceScope.launch {
-                mediaRepository.updateMediumPlaybackSpeed(
-                    uri = currentMediaItem.mediaId,
-                    playbackSpeed = playbackSpeed,
-                )
-            }
-            player.replaceMediaItem(
-                player.currentMediaItemIndex,
-                currentMediaItem.copy(playbackSpeed = playbackSpeed),
-            )
-        }
-
         override fun onPlaybackStateChanged(playbackState: Int) {
             super.onPlaybackStateChanged(playbackState)
 
             val player = mediaSession?.player
-            val shouldResetPlaybackParameters = playbackState == Player.STATE_ENDED ||
+            val shouldResetTrackSelectionParameters = playbackState == Player.STATE_ENDED ||
                 (
                     playbackState == Player.STATE_IDLE &&
                         player?.mediaItemCount == 0
                     )
-            if (shouldResetPlaybackParameters) {
+            if (shouldResetTrackSelectionParameters) {
                 mediaSession?.player?.trackSelectionParameters = TrackSelectionParameters.DEFAULT
-                mediaSession?.player?.setPlaybackSpeed(playerPreferences.defaultPlaybackSpeed)
             }
         }
 
@@ -746,6 +724,7 @@ class PlayerService : MediaSessionService() {
             .setHandleAudioBecomingNoisy(playerPreferences.pauseOnHeadsetDisconnect)
             .build()
             .also {
+                it.setPlaybackSpeed(playerPreferences.defaultPlaybackSpeed)
                 it.addListener(playbackStateListener)
                 it.pauseAtEndOfMediaItems = !playerPreferences.autoplay
                 it.repeatMode = when (playerPreferences.loopMode) {
@@ -878,7 +857,6 @@ class PlayerService : MediaSessionService() {
                 val title = mediaItem.mediaMetadata.title ?: video?.nameWithExtension ?: getFilenameFromUri(uri)
                 val positionMs = mediaItem.mediaMetadata.positionMs ?: videoState?.position
                 val videoScale = mediaItem.mediaMetadata.videoZoom ?: videoState?.videoScale
-                val playbackSpeed = mediaItem.mediaMetadata.playbackSpeed ?: videoState?.playbackSpeed
                 val audioTrackIndex = mediaItem.mediaMetadata.audioTrackIndex ?: videoState?.audioTrackIndex
                 val subtitleTrackIndex = mediaItem.mediaMetadata.subtitleTrackIndex ?: videoState?.subtitleTrackIndex
                 val subtitleDelay = mediaItem.mediaMetadata.subtitleDelayMilliseconds ?: videoState?.subtitleDelayMilliseconds
@@ -893,7 +871,6 @@ class PlayerService : MediaSessionService() {
                             setExtras(
                                 positionMs = positionMs,
                                 videoScale = videoScale,
-                                playbackSpeed = playbackSpeed,
                                 audioTrackIndex = audioTrackIndex.takeIf { externalAudio == savedAudio },
                                 subtitleTrackIndex = subtitleTrackIndex,
                                 subtitleDelayMilliseconds = subtitleDelay,
