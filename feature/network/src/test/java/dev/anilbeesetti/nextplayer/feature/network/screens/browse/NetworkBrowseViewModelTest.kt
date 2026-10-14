@@ -8,9 +8,11 @@ import dev.anilbeesetti.nextplayer.core.media.network.NetworkClient
 import dev.anilbeesetti.nextplayer.core.media.network.NetworkClientFactory
 import dev.anilbeesetti.nextplayer.core.media.network.NetworkUri
 import dev.anilbeesetti.nextplayer.core.media.network.sftp.HostKeyMismatch
+import dev.anilbeesetti.nextplayer.core.model.MediaLayoutMode
 import dev.anilbeesetti.nextplayer.core.model.NetworkConnection
 import dev.anilbeesetti.nextplayer.core.model.NetworkFile
 import dev.anilbeesetti.nextplayer.core.model.NetworkProtocol
+import dev.anilbeesetti.nextplayer.core.model.Sort
 import dev.anilbeesetti.nextplayer.core.model.Video
 import dev.anilbeesetti.nextplayer.feature.network.MainDispatcherRule
 import java.io.InputStream
@@ -179,6 +181,48 @@ class NetworkBrowseViewModelTest {
         assertTrue(viewModel.state.value.preferences.showPlayedProgress)
     }
 
+    @Test
+    fun `quick settings persist and reorder loaded files and playback without a network reload`() =
+        runTest(mainDispatcherRule.testDispatcher) {
+            val preferences = FakePreferencesRepository()
+            val conn = connection().copy(protocol = NetworkProtocol.WEBDAV)
+            val small = NetworkFile("Small.mp4", "small.mp4", false, size = 10)
+            val large = NetworkFile("Large.mp4", "large.mp4", false, size = 100)
+            val folder = NetworkFile("Folder", "folder", true)
+            var loads = 0
+            val requests = mutableListOf<Pair<List<Uri>, Uri>>()
+            val viewModel = viewModel(
+                conn = conn,
+                files = listOf(small, folder, large, NetworkFile("Notes.txt", "notes.txt", false)),
+                preferencesRepository = preferences,
+                onListFiles = { loads++ },
+                onPlayVideos = { uris, startUri -> requests.add(uris to startUri) },
+            )
+            advanceUntilIdle()
+
+            viewModel.onAction(NetworkBrowseAction.UpdateQuickSettings(MediaLayoutMode.GRID, Sort(Sort.By.SIZE, Sort.Order.ASCENDING)))
+            advanceUntilIdle()
+
+            assertEquals(listOf(folder, small, large), viewModel.state.value.files)
+            assertEquals(MediaLayoutMode.GRID, preferences.applicationPreferences.value.networkMediaLayoutMode)
+            assertEquals(Sort.By.SIZE, preferences.applicationPreferences.value.networkSortBy)
+            assertEquals(Sort.By.TITLE, preferences.applicationPreferences.value.sortBy)
+            assertEquals(MediaLayoutMode.LIST, preferences.applicationPreferences.value.mediaLayoutMode)
+            viewModel.onAction(NetworkBrowseAction.PlayAll)
+            val queue = listOf(small, large).map { NetworkUri.build(conn, it.path) }
+            assertEquals(listOf(queue to queue.first()), requests)
+
+            preferences.updateApplicationPreferences { it.copy(networkSortOrder = Sort.Order.DESCENDING) }
+            advanceUntilIdle()
+            assertEquals(listOf(folder, large, small), viewModel.state.value.files)
+            assertEquals(1, loads)
+
+            val reopened = viewModel(conn = conn, files = listOf(small, large, folder), preferencesRepository = preferences)
+            advanceUntilIdle()
+            assertEquals(listOf(folder, large, small), reopened.state.value.files)
+            assertEquals(MediaLayoutMode.GRID, reopened.state.value.preferences.networkMediaLayoutMode)
+        }
+
     private fun viewModel(
         connectResult: Result<Unit> = Result.success(Unit),
         conn: NetworkConnection = connection(),
@@ -188,8 +232,9 @@ class NetworkBrowseViewModelTest {
         preferencesRepository: FakePreferencesRepository = FakePreferencesRepository(),
         onPlayVideos: (List<Uri>, Uri) -> Unit = { _, _ -> },
         connectionDelayMillis: Long = 0,
+        onListFiles: () -> Unit = {},
     ): NetworkBrowseViewModel {
-        val client = FakeNetworkClient(connectResult, files)
+        val client = FakeNetworkClient(connectResult, files, onListFiles)
         val factory = NetworkClientFactory { client }
         return NetworkBrowseViewModel(
             input = NetworkBrowseViewModel.Input(connectionId = conn.id, path = path),
@@ -230,6 +275,7 @@ private class FakeRepository(
 private class FakeNetworkClient(
     private val connectResult: Result<Unit>,
     private val files: List<NetworkFile>,
+    private val onListFiles: () -> Unit,
 ) : NetworkClient {
     override val rootPath: String = "/"
 
@@ -239,7 +285,10 @@ private class FakeNetworkClient(
 
     override fun isConnected(): Boolean = false
 
-    override suspend fun listFiles(path: String): Result<List<NetworkFile>> = Result.success(files)
+    override suspend fun listFiles(path: String): Result<List<NetworkFile>> {
+        onListFiles()
+        return Result.success(files)
+    }
 
     override suspend fun fileSize(path: String): Long = error("Not used")
 

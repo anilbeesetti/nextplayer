@@ -1,4 +1,4 @@
-package dev.anilbeesetti.nextplayer.feature.videopicker.composables
+package dev.anilbeesetti.nextplayer.core.ui.components
 
 import androidx.compose.foundation.Indication
 import androidx.compose.foundation.clickable

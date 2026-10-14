@@ -120,6 +120,26 @@ data class Sort(
         }
     }
 
+    fun networkFileComparator(): Comparator<NetworkFile> {
+        val nameComparator = Comparator<NetworkFile> { first, second ->
+            stringComparator.compare(first.name.lowercase(), second.name.lowercase())
+        }
+        val comparator = when (by) {
+            By.TITLE, By.LENGTH -> nameComparator
+            By.PATH -> Comparator<NetworkFile> { first, second ->
+                stringComparator.compare(first.path.lowercase(), second.path.lowercase())
+            }
+            By.SIZE -> compareBy<NetworkFile> { it.size }.then(nameComparator)
+            By.DATE -> compareBy<NetworkFile> { it.modified ?: 0L }.then(nameComparator)
+        }.thenBy { it.path }
+        val orderedComparator = when (order) {
+            Order.ASCENDING -> comparator
+            Order.DESCENDING -> comparator.reversedCompat()
+        }
+        // Keep folders first regardless of the selected sort direction.
+        return compareByDescending<NetworkFile> { it.isDirectory }.then(orderedComparator)
+    }
+
     private fun getChunk(string: String, length: Int, marker: Int): String {
         var current = marker
         val chunk = StringBuilder()
