@@ -3,9 +3,7 @@ package dev.anilbeesetti.nextplayer.feature.player.extensions
 import android.content.ContentResolver
 import android.content.Context
 import android.net.Uri
-import android.os.Build
 import android.os.Bundle
-import android.os.Parcelable
 import androidx.media3.common.C
 import androidx.media3.common.MediaItem
 import androidx.media3.common.MimeTypes
@@ -57,11 +55,10 @@ suspend fun Context.uriToSubtitleConfiguration(
     }.build()
 }
 
+/** Accept the documented Uri[] and legacy clients sending an ArrayList<Uri>. */
 @Suppress("DEPRECATION")
-fun Bundle.getParcelableUriArray(key: String): ArrayList<out Parcelable>? {
-    return if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
-        getParcelableArrayList(key, Uri::class.java)
-    } else {
-        getParcelableArrayList(key)
-    }
+fun Bundle.getParcelableUriArray(key: String): List<Uri>? = when (val value = get(key)) {
+    is Array<*> -> value.map { it as? Uri }.let { uris -> uris.filterNotNull() }
+    is ArrayList<*> -> value.filterIsInstance<Uri>()
+    else -> null
 }

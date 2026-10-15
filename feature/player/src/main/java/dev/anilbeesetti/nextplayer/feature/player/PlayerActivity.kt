@@ -80,7 +80,7 @@ class PlayerActivity : ComponentActivity() {
     private var isIntentNew: Boolean = true
 
     private var mediaController by mutableStateOf<MediaController?>(null)
-    private lateinit var playerApi: PlayerApi
+    private var playerApi by mutableStateOf(PlayerApi(Intent()))
     private var playbackRequestJob: Job? = null
 
     private val playbackStateListener = object : Player.Listener {
@@ -358,6 +358,7 @@ class PlayerActivity : ComponentActivity() {
                 duration = mediaController?.duration ?: C.TIME_UNSET,
                 position = mediaController?.currentPosition ?: C.TIME_UNSET,
             )
+            result.data = mediaController?.currentMediaItem?.localConfiguration?.uri ?: intent.data
             setResult(RESULT_OK, result)
         }
         super.finish()
@@ -366,7 +367,11 @@ class PlayerActivity : ComponentActivity() {
     override fun onNewIntent(intent: Intent) {
         super.onNewIntent(intent)
         if (intent.data != null) {
+            playbackRequestJob?.cancel()
             setIntent(intent)
+            playerApi = PlayerApi(intent)
+            isPlaybackFinished = false
+            playInBackground = false
             isIntentNew = true
             startPlayback()
         }

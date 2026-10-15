@@ -2,19 +2,20 @@ package dev.anilbeesetti.nextplayer.feature.player.utils
 
 import android.content.Intent
 import android.net.Uri
-import androidx.media3.common.C
 import dev.anilbeesetti.nextplayer.feature.player.PlayerActivity
 import dev.anilbeesetti.nextplayer.feature.player.extensions.getParcelableUriArray
 import dev.anilbeesetti.nextplayer.feature.player.model.Subtitle
 
-class PlayerApi(val activity: PlayerActivity) {
+class PlayerApi(private val intent: Intent) {
 
-    private val extras = activity.intent.extras
-    val isApiAccess: Boolean get() = extras != null
+    constructor(activity: PlayerActivity) : this(activity.intent)
+
+    private val extras = intent.extras
+    val isApiAccess: Boolean get() = extras?.keySet()?.any { it in API_KEYS } == true
     val hasPosition: Boolean get() = extras?.containsKey(API_POSITION) == true
     val hasTitle: Boolean get() = extras?.containsKey(API_TITLE) == true
-    val shouldReturnResult: Boolean get() = extras?.containsKey(API_RETURN_RESULT) == true
-    val position: Int? get() = if (hasPosition) extras?.getInt(API_POSITION) else null
+    val shouldReturnResult: Boolean get() = extras?.getBoolean(API_RETURN_RESULT) == true
+    val position: Int? get() = (if (hasPosition) extras?.getInt(API_POSITION) else null)?.takeIf { it >= 0 }
     val title: String? get() = if (hasTitle) extras?.getString(API_TITLE) else null
 
     fun getSubs(): List<Subtitle> {
@@ -24,35 +25,27 @@ class PlayerApi(val activity: PlayerActivity) {
         val subs = extras.getParcelableUriArray(API_SUBS) ?: return emptyList()
         val subsName = extras.getStringArray(API_SUBS_NAME)
 
-        val subsEnable = extras.getParcelableUriArray(API_SUBS_ENABLE)
-        val defaultSub = if (!subsEnable.isNullOrEmpty()) subsEnable[0] as Uri else null
-
-        return subs.mapIndexed { index, parcelable ->
-            val subtitleUri = parcelable as Uri
-            val subtitleName = subsName?.let { if (it.size > index) it[index] else null }
+        val enabled = extras.getParcelableUriArray(API_SUBS_ENABLE).orEmpty()
+        return subs.mapIndexed { index, subtitleUri ->
             Subtitle(
-                name = subtitleName,
+                name = subsName?.getOrNull(index),
                 uri = subtitleUri,
-                isSelected = subtitleUri == defaultSub,
+                isSelected = subtitleUri in enabled,
             )
         }
     }
 
-    fun getPlaylist(): List<String> {
-        if (extras == null) return emptyList()
-        if (!extras.containsKey(API_PLAYLIST)) return emptyList()
-        val playlist = extras.getParcelableUriArray(API_PLAYLIST) ?: return emptyList()
-        return playlist.map { (it as Uri).toString() }
-    }
+    fun getPlaylist(): List<String> = extras?.getParcelableUriArray(API_PLAYLIST)
+        ?.map(Uri::toString).orEmpty()
 
     fun getResult(isPlaybackFinished: Boolean, duration: Long, position: Long): Intent {
-        return Intent(API_RESULT_INTENT).apply {
+        return Intent(API_RESULT_INTENT, intent.data).apply {
             if (isPlaybackFinished) {
                 putExtra(API_END_BY, API_END_BY_COMPLETION)
             } else {
                 putExtra(API_END_BY, API_END_BY_USER)
-                if (duration != C.TIME_UNSET) putExtra(API_DURATION, duration.toInt())
-                if (position != C.TIME_UNSET) putExtra(API_POSITION, position.toInt())
+                if (duration >= 0) putExtra(API_DURATION, duration.coerceAtMost(Int.MAX_VALUE.toLong()).toInt())
+                if (position >= 0) putExtra(API_POSITION, position.coerceAtMost(Int.MAX_VALUE.toLong()).toInt())
             }
         }
     }
@@ -69,6 +62,11 @@ class PlayerApi(val activity: PlayerActivity) {
         const val API_PLAYLIST = "video_list"
 
         const val API_RESULT_INTENT = "com.mxtech.intent.result.VIEW"
+
+        private val API_KEYS = setOf(
+            API_TITLE, API_POSITION, API_RETURN_RESULT, API_SUBS, API_SUBS_ENABLE,
+            API_SUBS_NAME, API_PLAYLIST,
+        )
 
         private const val API_END_BY_USER = "user"
         private const val API_END_BY_COMPLETION = "playback_completion"
