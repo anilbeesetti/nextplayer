@@ -26,7 +26,6 @@ import androidx.media3.common.util.UnstableApi
 import androidx.media3.exoplayer.ExoPlaybackException
 import androidx.media3.exoplayer.ExoPlayer
 import androidx.media3.exoplayer.analytics.AnalyticsListener
-import androidx.media3.exoplayer.source.DefaultMediaSourceFactory
 import androidx.media3.exoplayer.trackselection.DefaultTrackSelector
 import androidx.media3.session.CommandButton
 import androidx.media3.session.CommandButton.ICON_UNDEFINED
@@ -75,6 +74,7 @@ import dev.anilbeesetti.nextplayer.feature.player.extensions.videoDecoderMode
 import dev.anilbeesetti.nextplayer.feature.player.extensions.videoZoom
 import dev.anilbeesetti.nextplayer.feature.player.extensions.withExternalAudio
 import dev.anilbeesetti.nextplayer.feature.player.model.DecoderTrackType
+import dev.anilbeesetti.nextplayer.feature.player.utils.hasApiPosition
 import dev.anilbeesetti.nextplayer.feature.player.utils.isExplicitPlaylistItem
 import io.github.anilbeesetti.nextlib.media3ext.ffdecoder.DecoderManager
 import io.github.anilbeesetti.nextlib.media3ext.ffdecoder.DecoderMode
@@ -224,7 +224,7 @@ class PlayerService : MediaSessionService() {
                     playerSpecificSubtitleSpeed = metadata.subtitleSpeed ?: 1f
                 }
 
-                metadata.positionMs?.takeIf { playerPreferences.resume == Resume.YES }?.let {
+                metadata.positionMs?.takeIf { mediaItem.hasApiPosition || playerPreferences.resume == Resume.YES }?.let {
                     mediaSession?.player?.seekTo(it)
                 }
             }
@@ -733,7 +733,7 @@ class PlayerService : MediaSessionService() {
             .setTrackSelector(trackSelector)
             .setMediaSourceFactory(
                 ExternalAudioMediaSourceFactory(
-                    DefaultMediaSourceFactory(applicationContext).setDataSourceFactory(dataSourceFactory),
+                    ApiMediaSourceFactory(applicationContext, dataSourceFactory),
                 ),
             )
             .setAudioAttributes(

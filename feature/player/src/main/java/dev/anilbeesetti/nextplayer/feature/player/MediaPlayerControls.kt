@@ -61,6 +61,7 @@ internal fun MediaPlayerControls(
     isPipSupported: Boolean,
     onPictureInPictureClick: () -> Unit,
     modifier: Modifier = Modifier,
+    dpadUpDown: Int? = null,
 ) {
     val playerPreferences = state.playerPreferences
     val metadataState = rememberMetadataState(player)
@@ -71,6 +72,7 @@ internal fun MediaPlayerControls(
         player = player,
         controls = controlsVisibilityState,
         seekIncrementMs = playerPreferences.seekIncrement.seconds.inWholeMilliseconds,
+        dpadUpDown = dpadUpDown,
     )
     var overlayView by remember { mutableStateOf<OverlayView?>(null) }
     LaunchedEffect(metadataState.mediaId) {

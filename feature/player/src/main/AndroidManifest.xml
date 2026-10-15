@@ -10,7 +10,7 @@
             android:name=".PlayerActivity"
             android:configChanges="orientation|screenSize|smallestScreenSize|screenLayout|uiMode|keyboard|keyboardHidden|navigation"
             android:exported="true"
-            android:launchMode="singleTask"
+            android:launchMode="singleTop"
             android:supportsPictureInPicture="true"
             android:resizeableActivity="true"
             android:theme="@style/NextPlayer"
