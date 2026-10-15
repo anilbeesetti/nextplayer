@@ -77,7 +77,7 @@ fun PlayerContentFrame(
             configuration = subtitleConfiguration,
         )
 
-        if (presentationState.coverSurface) {
+        if (videoVisible && presentationState.coverSurface) {
             ShutterView()
         }
     }

@@ -24,6 +24,26 @@ class PlayerApiTest {
     private fun api(intent: Intent) = PlayerApi(intent)
 
     @Test
+    fun intentMimeTypeOnlyAppliesToTheRequestedVideoInAMixedPlaylist() {
+        val api = api(Intent(Intent.ACTION_VIEW).setDataAndType(video, "video/mp4"))
+        val items = api.createMediaItems(listOf(video.toString(), "https://host/stream.m3u8"), 0, emptyList())
+        assertEquals("video/mp4", items[0].localConfiguration!!.mimeType)
+        assertNull(items[1].localConfiguration!!.mimeType)
+    }
+
+    @Test
+    fun repeatedPlaylistUrisKeepTheirIndividualNames() {
+        val api = api(
+            Intent(Intent.ACTION_VIEW, video).putExtra("video_list", arrayOf(video, video))
+                .putExtra("video_list.name", arrayOf("First play", "Encore")),
+        )
+        assertEquals(
+            listOf("First play", "Encore"),
+            api.createMediaItems(api.getPlaylist(), 0, emptyList()).map { it.mediaMetadata.title },
+        )
+    }
+
+    @Test
     fun falseReturnResultDoesNotRequestCallback() {
         assertFalse(api(Intent().putExtra("return_result", false)).shouldReturnResult)
         assertTrue(api(Intent().putExtra("return_result", true)).shouldReturnResult)

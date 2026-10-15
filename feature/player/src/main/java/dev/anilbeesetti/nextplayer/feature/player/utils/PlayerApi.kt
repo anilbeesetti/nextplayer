@@ -23,7 +23,6 @@ class PlayerApi(private val intent: Intent) {
     val sticky: Boolean? get() = boolean("sticky")
     val videoVisible: Boolean get() = boolean("video") ?: true
     val suppressErrorMessage: Boolean get() = boolean("suppress_error_message") == true
-    val secureUri: Boolean get() = boolean("secure_uri") == true
     val dpadUpDown: Int? get() = (value("keys.dpad_up_down") as? Int)?.takeIf { it in 0..1 }
     val orientation: Int? get() = (value("orientation") as? Int)?.takeIf { it in ORIENTATIONS }
     val videoContentScale: VideoContentScale?
@@ -85,6 +84,9 @@ class PlayerApi(private val intent: Intent) {
         subtitles: List<MediaItem.SubtitleConfiguration>,
     ): List<MediaItem> {
         val suppliedUris = extras?.getParcelableUriArray(API_PLAYLIST).orEmpty()
+        val suppliedIndices = suppliedUris.withIndex()
+            .groupBy({ it.value?.toString() }, { it.index })
+            .mapValues { ArrayDeque(it.value) }
         val names = value("video_list.name") as? Array<*>
         val headers = Bundle().apply {
             val entries = value("headers") as? Array<*> ?: return@apply
@@ -100,7 +102,7 @@ class PlayerApi(private val intent: Intent) {
             }
         }
         return playlist.mapIndexed { index, uri ->
-            val suppliedIndex = suppliedUris.indexOfFirst { it?.toString() == uri }
+            val suppliedIndex = suppliedIndices[uri]?.removeFirstOrNull() ?: -1
             val itemTitle = if (suppliedIndex >= 0 && names != null) {
                 names.getOrNull(suppliedIndex) as? String
             } else {
@@ -109,7 +111,7 @@ class PlayerApi(private val intent: Intent) {
             MediaItem.Builder()
                 .setUri(uri)
                 .setMediaId(uri)
-                .setMimeType(intent.type?.takeUnless { it.endsWith("/*") })
+                .setMimeType(intent.type?.takeIf { index == selectedIndex }?.takeUnless { it.endsWith("/*") })
                 .setMediaMetadata(
                     MediaMetadata.Builder().setTitle(itemTitle).setExtras(
                         positionMs = position?.toLong()?.takeIf { index == selectedIndex },
@@ -122,7 +124,6 @@ class PlayerApi(private val intent: Intent) {
                         Bundle().apply {
                             putBundle(API_HEADERS_KEY, headers)
                             if (index == selectedIndex && hasPosition) putBoolean(API_POSITION_KEY, true)
-                            if (secureUri) putBoolean(API_SECURE_URI_KEY, true)
                         },
                     ).build(),
                 )
@@ -175,7 +176,6 @@ class PlayerApi(private val intent: Intent) {
 
 private const val API_HEADERS_KEY = "dev.anilbeesetti.nextplayer.api.HEADERS"
 private const val API_POSITION_KEY = "dev.anilbeesetti.nextplayer.api.POSITION"
-private const val API_SECURE_URI_KEY = "dev.anilbeesetti.nextplayer.api.SECURE_URI"
 
 internal val MediaItem.apiHeaders: Map<String, String>
     get() = requestMetadata.extras?.getBundle(API_HEADERS_KEY)?.let { headers ->
@@ -184,6 +184,3 @@ internal val MediaItem.apiHeaders: Map<String, String>
 
 internal val MediaItem.hasApiPosition: Boolean
     get() = requestMetadata.extras?.getBoolean(API_POSITION_KEY) == true
-
-internal val MediaItem.hasSecureUri: Boolean
-    get() = requestMetadata.extras?.getBoolean(API_SECURE_URI_KEY) == true
