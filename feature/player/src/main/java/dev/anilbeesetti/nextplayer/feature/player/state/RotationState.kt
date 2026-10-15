@@ -36,10 +36,17 @@ class RotationState(private val activity: Activity) {
 fun PlayerOrientationEffect(
     player: Player,
     screenOrientation: ScreenOrientation,
+    orientationOverride: Int? = null,
 ) {
     val activity = LocalActivity.current ?: return
-    LaunchedEffect(activity, player, screenOrientation) {
-        if (activity.requestedOrientation == ActivityInfo.SCREEN_ORIENTATION_UNSPECIFIED) {
+    LaunchedEffect(activity, player, screenOrientation, orientationOverride) {
+        if (orientationOverride != null) {
+            activity.requestedOrientation = if (orientationOverride == 99999) {
+                activity.videoBasedOrientation(player)
+            } else {
+                orientationOverride
+            }
+        } else if (activity.requestedOrientation == ActivityInfo.SCREEN_ORIENTATION_UNSPECIFIED) {
             activity.requestedOrientation = when (screenOrientation) {
                 ScreenOrientation.AUTOMATIC -> ActivityInfo.SCREEN_ORIENTATION_SENSOR
                 ScreenOrientation.LANDSCAPE -> ActivityInfo.SCREEN_ORIENTATION_LANDSCAPE
@@ -50,7 +57,12 @@ fun PlayerOrientationEffect(
             }
         }
         player.listen { events ->
-            if (screenOrientation == ScreenOrientation.VIDEO_ORIENTATION && events.contains(Player.EVENT_VIDEO_SIZE_CHANGED)) {
+            if ((
+                    orientationOverride == 99999 ||
+                        (orientationOverride == null && screenOrientation == ScreenOrientation.VIDEO_ORIENTATION)
+                    ) &&
+                events.contains(Player.EVENT_VIDEO_SIZE_CHANGED)
+            ) {
                 activity.requestedOrientation = activity.videoBasedOrientation(player)
             }
         }

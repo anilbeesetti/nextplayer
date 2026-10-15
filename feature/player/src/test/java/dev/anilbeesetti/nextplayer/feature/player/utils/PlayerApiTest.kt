@@ -3,14 +3,15 @@ package dev.anilbeesetti.nextplayer.feature.player.utils
 import android.content.Intent
 import android.net.Uri
 import androidx.media3.common.C
-import dev.anilbeesetti.nextplayer.feature.player.PlayerActivity
+import dev.anilbeesetti.nextplayer.feature.player.extensions.positionMs
+import dev.anilbeesetti.nextplayer.feature.player.extensions.uriToSubtitleConfiguration
+import dev.anilbeesetti.nextplayer.feature.player.extensions.videoDecoderMode
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertFalse
 import org.junit.Assert.assertNull
 import org.junit.Assert.assertTrue
 import org.junit.Test
 import org.junit.runner.RunWith
-import org.robolectric.Robolectric
 import org.robolectric.RobolectricTestRunner
 import org.robolectric.annotation.Config
 
@@ -20,11 +21,7 @@ class PlayerApiTest {
     private val video = Uri.parse("https://example.com/video.mp4")
     private val subtitle = Uri.parse("https://example.com/sub.srt")
 
-    private fun api(intent: Intent): PlayerApi {
-        val activity = Robolectric.buildActivity(PlayerActivity::class.java).get()
-        activity.intent = intent
-        return PlayerApi(activity)
-    }
+    private fun api(intent: Intent) = PlayerApi(intent)
 
     @Test
     fun falseReturnResultDoesNotRequestCallback() {
@@ -93,5 +90,141 @@ class PlayerApiTest {
             Int.MAX_VALUE,
             api(Intent()).getResult(false, Long.MAX_VALUE, Long.MAX_VALUE).getIntExtra("position", -1),
         )
+    }
+
+    @Test
+    fun playlistNamesOverrideTitleAndOnlySelectedItemGetsPositionAndSubs() {
+        val other = Uri.parse("https://example.com/other.mp4")
+        val api = api(
+            Intent(Intent.ACTION_VIEW, video)
+                .putExtra("video_list", arrayOf(other, video))
+                .putExtra("video_list.name", arrayOf("First", "Second"))
+                .putExtra("title", "Ignored")
+                .putExtra("position", 123)
+                .putExtra("video_list_is_explicit", true),
+        )
+        val sub = androidx.media3.common.MediaItem.SubtitleConfiguration.Builder(subtitle).build()
+        val items = api.createMediaItems(api.getPlaylist(), 1, listOf(sub))
+        assertEquals(listOf("First", "Second"), items.map { it.mediaMetadata.title })
+        assertNull(items[0].mediaMetadata.positionMs)
+        assertEquals(123L, items[1].mediaMetadata.positionMs)
+        assertTrue(items[0].localConfiguration!!.subtitleConfigurations.isEmpty())
+        assertEquals(subtitle, items[1].localConfiguration!!.subtitleConfigurations.single().uri)
+        assertTrue(items.all { it.isExplicitPlaylistItem })
+    }
+
+    @Test
+    fun playlistWithoutExplicitFlagRespectsAutoplayAndMissingDataIsAdded() {
+        val other = Uri.parse("https://example.com/other.mp4")
+        val api = api(Intent(Intent.ACTION_VIEW, video).putExtra("video_list", arrayOf(other)))
+        assertEquals(listOf(video.toString(), other.toString()), api.getPlaylist())
+        assertFalse(api.createMediaItems(api.getPlaylist(), 0, emptyList()).any { it.isExplicitPlaylistItem })
+    }
+
+    @Test
+    fun nullPlaylistNameUsesDefaultRatherThanSingleTitle() {
+        val api = api(
+            Intent(Intent.ACTION_VIEW, video).putExtra("video_list", arrayOf(video))
+                .putExtra("video_list.name", arrayOfNulls<String>(1)).putExtra("title", "Ignored"),
+        )
+        assertNull(api.createMediaItems(api.getPlaylist(), 0, emptyList()).single().mediaMetadata.title)
+    }
+
+    @Test
+    fun headersReachEveryItemAndAreNotReusedForNextRequest() {
+        val api = api(
+            Intent(Intent.ACTION_VIEW, video).putExtra(
+                "headers",
+                arrayOf("User-Agent", "Client/1", "Authorization", "Bearer test", "dangling"),
+            ),
+        )
+        val item = api.createMediaItems(listOf(video.toString()), 0, emptyList()).single()
+        assertEquals(mapOf("User-Agent" to "Client/1", "Authorization" to "Bearer test"), item.apiHeaders)
+        assertTrue(api(Intent()).createMediaItems(listOf(video.toString()), 0, emptyList()).single().apiHeaders.isEmpty())
+    }
+
+    @Test
+    fun decoderByteAndMimeTypeArePassedToMediaItem() {
+        val api = api(
+            Intent(Intent.ACTION_VIEW).setDataAndType(video, "application/x-mpegURL")
+                .putExtra("decode_mode", 2.toByte()),
+        )
+        val item = api.createMediaItems(listOf(video.toString()), 0, emptyList()).single()
+        assertEquals(io.github.anilbeesetti.nextlib.media3ext.ffdecoder.DecoderMode.FFMPEG, item.mediaMetadata.videoDecoderMode)
+        assertEquals("application/x-mpegURL", item.localConfiguration!!.mimeType)
+    }
+
+    @Test
+    fun playbackOptionsKeepAbsentAndFalseDistinctAndRejectInvalidValues() {
+        assertNull(api(Intent()).sticky)
+        assertEquals(false, api(Intent().putExtra("sticky", false)).sticky)
+        assertEquals(9, api(Intent().putExtra("orientation", 9)).orientation)
+        assertNull(api(Intent().putExtra("orientation", 99)).orientation)
+        assertEquals(dev.anilbeesetti.nextplayer.core.model.VideoContentScale.CROP, api(Intent().putExtra("video_zoom", 3)).videoContentScale)
+        assertNull(api(Intent().putExtra("video_zoom", 99)).videoContentScale)
+        assertEquals(2f, api(Intent().putExtra("DAR_horz", 4f).putExtra("DAR_vert", 2f)).displayAspectRatio)
+        assertNull(api(Intent().putExtra("DAR_horz", 4f).putExtra("DAR_vert", 0f)).displayAspectRatio)
+        assertFalse(api(Intent().putExtra("video", false)).videoVisible)
+        assertTrue(api(Intent().putExtra("suppress_error_message", true)).suppressErrorMessage)
+    }
+
+    @Test
+    fun allDecoderValuesAndZoomValuesUseTheirDocumentedMappings() {
+        listOf(
+            1 to io.github.anilbeesetti.nextlib.media3ext.ffdecoder.DecoderMode.HARDWARE,
+            2 to io.github.anilbeesetti.nextlib.media3ext.ffdecoder.DecoderMode.FFMPEG,
+            4 to io.github.anilbeesetti.nextlib.media3ext.ffdecoder.DecoderMode.HARDWARE,
+        ).forEach { (value, expected) ->
+            val api = api(Intent().putExtra("decode_mode", value.toByte()))
+            assertEquals(expected, api.createMediaItems(listOf(video.toString()), 0, emptyList()).single().mediaMetadata.videoDecoderMode)
+        }
+        val scales = listOf(
+            dev.anilbeesetti.nextplayer.core.model.VideoContentScale.STRETCH,
+            dev.anilbeesetti.nextplayer.core.model.VideoContentScale.BEST_FIT,
+            dev.anilbeesetti.nextplayer.core.model.VideoContentScale.HUNDRED_PERCENT,
+            dev.anilbeesetti.nextplayer.core.model.VideoContentScale.CROP,
+        )
+        scales.forEachIndexed { index, scale -> assertEquals(scale, api(Intent().putExtra("video_zoom", index)).videoContentScale) }
+    }
+
+    @Test
+    fun malformedOptionalExtrasAreIgnored() {
+        val api = api(
+            Intent().putExtra("position", "bad").putExtra("title", 17)
+                .putExtra("return_result", "true").putExtra("headers", arrayOf("Bad\r\nName", "x", "Valid", "bad\nvalue")),
+        )
+        assertNull(api.position)
+        assertNull(api.title)
+        assertFalse(api.shouldReturnResult)
+        assertTrue(api.createMediaItems(listOf(video.toString()), 0, emptyList()).single().apiHeaders.isEmpty())
+    }
+
+    @Test
+    fun resultReportsActualDecoderAndLastUriRatherThanRequestedValues() {
+        val other = Uri.parse("https://host/last.mp4")
+        val result = api(Intent(Intent.ACTION_VIEW, video).putExtra("decode_mode", 4.toByte())).getResult(
+            false,
+            2000,
+            1200,
+            other,
+            io.github.anilbeesetti.nextlib.media3ext.ffdecoder.DecoderMode.FFMPEG,
+        )
+        assertEquals(other, result.data)
+        assertEquals(2.toByte(), result.getByteExtra("decode_mode", 0))
+    }
+
+    @Test
+    fun networkSubtitleKeepsHeaderAwareUriAndUsesSuppliedNameAndFilename() = kotlinx.coroutines.test.runTest {
+        val config = org.robolectric.RuntimeEnvironment.getApplication().uriToSubtitleConfiguration(
+            uri = Uri.parse("https://host/subtitle?id=1"),
+            label = "English",
+            filename = "captions.vtt",
+            isSelected = true,
+            useMediaSourceForNetwork = true,
+        )
+        assertEquals("English", config.label)
+        assertEquals("text/vtt", config.mimeType)
+        assertEquals(Uri.parse("https://host/subtitle?id=1"), config.uri)
+        assertEquals(C.SELECTION_FLAG_DEFAULT, config.selectionFlags)
     }
 }
