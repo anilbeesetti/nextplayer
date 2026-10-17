@@ -543,4 +543,5 @@
     <string name="turn_off_watch_history_confirmation">Vypnutím historie sledování vymaže historii sledování a přestane zaznamenávat zhlédnuté videa.</string>
     <string name="turn_on_watch_history">Zapnout historii sledování</string>
     <string name="turn_off_watch_history">Vypnout historii sledování</string>
+    <string name="watch_history_desc">Zaznamenat videa, které sledujete</string>
 </resources>
