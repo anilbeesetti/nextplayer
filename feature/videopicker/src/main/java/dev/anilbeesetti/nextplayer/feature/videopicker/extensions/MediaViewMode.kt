@@ -6,10 +6,8 @@ import dev.anilbeesetti.nextplayer.core.model.MediaViewMode
 import dev.anilbeesetti.nextplayer.core.ui.R
 
 @Composable
-fun MediaViewMode.name(): String {
-    return when (this) {
-        MediaViewMode.VIDEOS -> stringResource(id = R.string.videos)
-        MediaViewMode.FOLDERS -> stringResource(id = R.string.folders)
-        MediaViewMode.FOLDER_TREE -> stringResource(id = R.string.tree)
-    }
+fun MediaViewMode.name(): String = when (this) {
+    MediaViewMode.VIDEOS -> stringResource(id = R.string.videos)
+    MediaViewMode.FOLDERS -> stringResource(id = R.string.folders)
+    MediaViewMode.FOLDER_TREE -> stringResource(id = R.string.tree)
 }

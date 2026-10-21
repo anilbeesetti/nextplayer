@@ -262,7 +262,9 @@ fun NextPlayerTheme(
                     surfaceContainerHigh = surfaceContainerHighPureBlack,
                     surfaceContainerHighest = surfaceContainerHighestPureBlack,
                 )
+
                 darkTheme -> dynamicDarkColorScheme(context)
+
                 else -> dynamicLightColorScheme(context)
             }
         }
@@ -278,7 +280,9 @@ fun NextPlayerTheme(
             surfaceContainerHigh = surfaceContainerHighPureBlack,
             surfaceContainerHighest = surfaceContainerHighestPureBlack,
         )
+
         darkTheme -> darkScheme
+
         else -> lightScheme
     }
 

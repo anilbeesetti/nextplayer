@@ -46,10 +46,7 @@ fun rememberRestorableFocusState(): RestorableFocusState {
 
 /** Restore when content becomes available or the destination resumes, including return from playback. */
 @Composable
-fun Modifier.restorableFocusGroup(
-    state: RestorableFocusState,
-    ready: Boolean = true,
-): Modifier {
+fun Modifier.restorableFocusGroup(state: RestorableFocusState, ready: Boolean = true): Modifier {
     val scope = rememberCoroutineScope()
     LifecycleResumeEffect(state, ready) {
         val request = if (state.isTv && ready) {

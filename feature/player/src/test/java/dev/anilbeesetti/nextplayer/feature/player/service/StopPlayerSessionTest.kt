@@ -35,12 +35,19 @@ class StopPlayerSessionTest {
     @Test
     fun stoppingSessionSavesLatestPositionBeforeClearingMedia() {
         val saved = mutableListOf<Pair<String, Long>>()
-        withSession(savePosition = { uri, position -> saved += uri to position }) { player, session, callback, _ ->
+        withSession(savePosition = { uri, position ->
+            saved += uri to position
+        }) { player, session, callback, _ ->
             // Closing PiP sends this command after playback has advanced from its last saved position.
             player.setMediaItem(MediaItem.Builder().setMediaId(VIDEO_URI).setUri(VIDEO_URI).build())
             player.seekTo(120_000)
 
-            val result = callback.onCustomCommand(session, controllerInfo(), CustomCommands.STOP_PLAYER_SESSION.sessionCommand, Bundle.EMPTY)
+            val result = callback.onCustomCommand(
+                session,
+                controllerInfo(),
+                CustomCommands.STOP_PLAYER_SESSION.sessionCommand,
+                Bundle.EMPTY,
+            )
             shadowOf(Looper.getMainLooper()).idle()
 
             assertEquals(listOf(VIDEO_URI to 120_000L), saved)
@@ -62,7 +69,12 @@ class StopPlayerSessionTest {
             player.setMediaItem(MediaItem.Builder().setMediaId(VIDEO_URI).setUri(VIDEO_URI).build())
             player.seekTo(120_000)
 
-            val result = callback.onCustomCommand(session, controllerInfo(), CustomCommands.STOP_PLAYER_SESSION.sessionCommand, Bundle.EMPTY)
+            val result = callback.onCustomCommand(
+                session,
+                controllerInfo(),
+                CustomCommands.STOP_PLAYER_SESSION.sessionCommand,
+                Bundle.EMPTY,
+            )
             shadowOf(Looper.getMainLooper()).idle()
 
             assertTrue(saveStarted.isCompleted)
@@ -83,8 +95,15 @@ class StopPlayerSessionTest {
 
     @Test
     fun stoppingEmptySessionDoesNotWritePosition() {
-        withSession(savePosition = { _, _ -> throw AssertionError("An empty queue has no position to save") }) { player, session, callback, _ ->
-            val result = callback.onCustomCommand(session, controllerInfo(), CustomCommands.STOP_PLAYER_SESSION.sessionCommand, Bundle.EMPTY)
+        withSession(savePosition = { _, _ ->
+            throw AssertionError("An empty queue has no position to save")
+        }) { player, session, callback, _ ->
+            val result = callback.onCustomCommand(
+                session,
+                controllerInfo(),
+                CustomCommands.STOP_PLAYER_SESSION.sessionCommand,
+                Bundle.EMPTY,
+            )
             shadowOf(Looper.getMainLooper()).idle()
 
             assertEquals(0, player.mediaItemCount)
@@ -127,7 +146,8 @@ class StopPlayerSessionTest {
                 module {
                     single<MediaRepository> {
                         object : MediaRepository by FakeMediaRepository() {
-                            override suspend fun updateMediumPosition(uri: String, position: Long) = savePosition(uri, position)
+                            override suspend fun updateMediumPosition(uri: String, position: Long) =
+                                savePosition(uri, position)
                         }
                     }
                 },
@@ -136,7 +156,9 @@ class StopPlayerSessionTest {
         val player = ExoPlayer.Builder(RuntimeEnvironment.getApplication()).build()
         val session = MediaSession.Builder(RuntimeEnvironment.getApplication(), player).build()
         val service = PlayerService()
-        PlayerService::class.java.getDeclaredField("mediaSession").apply { isAccessible = true }.set(service, session)
+        PlayerService::class.java.getDeclaredField("mediaSession").apply {
+            isAccessible = true
+        }.set(service, session)
         val callback = PlayerService::class.java.getDeclaredField("mediaSessionCallback")
             .apply { isAccessible = true }.get(service) as MediaSession.Callback
         try {

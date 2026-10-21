@@ -14,10 +14,7 @@ internal fun crashReportForClipboard(report: String): String {
     return report.take(prefixLength) + CLIPBOARD_REPORT_TRUNCATION_MARKER
 }
 
-internal fun copyCrashReportToClipboard(
-    clipboard: ClipboardManager,
-    report: String,
-) {
+internal fun copyCrashReportToClipboard(clipboard: ClipboardManager, report: String) {
     clipboard.setPrimaryClip(
         ClipData.newPlainText(null, crashReportForClipboard(report)),
     )

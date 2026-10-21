@@ -8,29 +8,29 @@ import android.os.Build.VERSION.SDK_INT
 import androidx.core.graphics.applyCanvas
 import androidx.core.graphics.createBitmap
 import androidx.core.graphics.drawable.toDrawable
+import androidx.core.graphics.get
 import coil3.ImageLoader
 import coil3.annotation.ExperimentalCoilApi
 import coil3.asImage
 import coil3.decode.ContentMetadata
 import coil3.decode.DecodeResult
+import coil3.decode.DecodeUtils
 import coil3.decode.Decoder
 import coil3.decode.ImageSource
 import coil3.disk.DiskCache
 import coil3.fetch.SourceFetchResult
 import coil3.request.Options
-import coil3.toAndroidUri
-import okio.FileSystem
-import androidx.core.graphics.get
-import io.github.anilbeesetti.nextlib.mediainfo.MediaThumbnailRetriever
-import kotlin.math.abs
-import coil3.decode.DecodeUtils
 import coil3.request.maxBitmapSize
 import coil3.size.Precision
 import coil3.size.Size
 import coil3.size.pxOrElse
+import coil3.toAndroidUri
 import coil3.util.component1
 import coil3.util.component2
+import io.github.anilbeesetti.nextlib.mediainfo.MediaThumbnailRetriever
+import kotlin.math.abs
 import kotlin.math.roundToInt
+import okio.FileSystem
 
 class VideoThumbnailDecoder(
     private val source: ImageSource,
@@ -66,7 +66,7 @@ class VideoThumbnailDecoder(
 
             // Cache is sufficient only if requested size <= cached size (or size is unspecified)
             val cacheIsSufficient = (requestedWidth == 0 || requestedWidth <= cachedWidth) &&
-                    (requestedHeight == 0 || requestedHeight <= cachedHeight)
+                (requestedHeight == 0 || requestedHeight <= cachedHeight)
 
             if (cacheIsSufficient) {
                 val dstSize = computeDstSize(cachedWidth, cachedHeight)
@@ -105,7 +105,8 @@ class VideoThumbnailDecoder(
                 }
 
                 // First, try to get embedded picture (album art/metadata thumbnail)
-                val embeddedPicture = nativeRetriever.embeddedPicture ?: fallbackRetriever?.getEmbeddedPicture()
+                val embeddedPicture =
+                    nativeRetriever.embeddedPicture ?: fallbackRetriever?.getEmbeddedPicture()
                 val embeddedPictureBitmap = embeddedPicture?.let { pictureBytes ->
                     BitmapFactory.decodeByteArray(pictureBytes, 0, pictureBytes.size)
                 }
@@ -123,14 +124,16 @@ class VideoThumbnailDecoder(
 
                     is ThumbnailStrategy.FrameAtPercentage -> {
                         val timeUs = (videoDuration * strategy.percentage * 1000).toLong()
-                        nativeRetriever.getFrameAtTime(timeUs) ?: fallbackRetriever?.getFrameAtTime(timeUs)
+                        nativeRetriever.getFrameAtTime(timeUs)
+                            ?: fallbackRetriever?.getFrameAtTime(timeUs)
                     }
 
                     is ThumbnailStrategy.Hybrid -> {
                         val firstFrame = nativeRetriever.getFrameAtTime(0)
                         if (firstFrame == null || isSolidColor(firstFrame)) {
                             val timeUs = (videoDuration * strategy.percentage * 1000).toLong()
-                            nativeRetriever.getFrameAtTime(timeUs) ?: fallbackRetriever?.getFrameAtTime(timeUs)
+                            nativeRetriever.getFrameAtTime(timeUs)
+                                ?: fallbackRetriever?.getFrameAtTime(timeUs)
                         } else {
                             firstFrame
                         }
@@ -196,13 +199,12 @@ class VideoThumbnailDecoder(
         }
     }
 
-    private fun readFromDiskCache(): DiskCache.Snapshot? {
-        return if (options.diskCachePolicy.readEnabled) {
+    private fun readFromDiskCache(): DiskCache.Snapshot? =
+        if (options.diskCachePolicy.readEnabled) {
             diskCache.value?.openSnapshot(diskCacheKey)
         } else {
             null
         }
-    }
 
     private fun writeToDiskCache(inBitmap: Bitmap) {
         if (!options.diskCachePolicy.writeEnabled) return
@@ -217,7 +219,12 @@ class VideoThumbnailDecoder(
         }
     }
 
-    private fun normalizeBitmap(inBitmap: Bitmap, srcWidth: Int, srcHeight: Int, dstSize: Size): Bitmap {
+    private fun normalizeBitmap(
+        inBitmap: Bitmap,
+        srcWidth: Int,
+        srcHeight: Int,
+        dstSize: Size,
+    ): Bitmap {
         val scale = DecodeUtils.computeSizeMultiplier(
             srcWidth = srcWidth,
             srcHeight = srcHeight,
@@ -233,7 +240,8 @@ class VideoThumbnailDecoder(
         val dstHeight = (scale * inBitmap.height).roundToInt()
 
         val paint = Paint(Paint.ANTI_ALIAS_FLAG or Paint.FILTER_BITMAP_FLAG)
-        val outBitmap = createBitmap(dstWidth, dstHeight, inBitmap.config ?: Bitmap.Config.ARGB_8888)
+        val outBitmap =
+            createBitmap(dstWidth, dstHeight, inBitmap.config ?: Bitmap.Config.ARGB_8888)
         outBitmap.applyCanvas {
             scale(scale, scale)
             drawBitmap(inBitmap, 0f, 0f, paint)
@@ -272,9 +280,7 @@ class VideoThumbnailDecoder(
         )
     }
 
-    class Factory(
-        private val thumbnailStrategy: () -> ThumbnailStrategy,
-    ) : Decoder.Factory {
+    class Factory(private val thumbnailStrategy: () -> ThumbnailStrategy) : Decoder.Factory {
         override fun create(
             result: SourceFetchResult,
             options: Options,
@@ -289,9 +295,8 @@ class VideoThumbnailDecoder(
             )
         }
 
-        private fun isApplicable(mimeType: String?): Boolean {
-            return mimeType != null && mimeType.startsWith("video/")
-        }
+        private fun isApplicable(mimeType: String?): Boolean =
+            mimeType != null && mimeType.startsWith("video/")
     }
 }
 
@@ -367,8 +372,8 @@ private fun isSolidColor(bitmap: Bitmap, threshold: Float = 0.7f): Boolean {
         val b = color and 0xFF
 
         abs(r - referenceR) <= tolerance &&
-                abs(g - referenceG) <= tolerance &&
-                abs(b - referenceB) <= tolerance
+            abs(g - referenceG) <= tolerance &&
+            abs(b - referenceB) <= tolerance
     }
 
     val similarityRatio = similarCount.toFloat() / sampledColors.size

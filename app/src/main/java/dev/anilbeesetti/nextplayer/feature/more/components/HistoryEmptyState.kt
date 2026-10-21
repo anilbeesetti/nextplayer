@@ -23,10 +23,7 @@ import dev.anilbeesetti.nextplayer.core.ui.designsystem.NextIcons
 
 @OptIn(ExperimentalMaterial3ExpressiveApi::class)
 @Composable
-internal fun HistoryEmptyState(
-    isHistoryOff: Boolean,
-    modifier: Modifier = Modifier,
-) {
+internal fun HistoryEmptyState(isHistoryOff: Boolean, modifier: Modifier = Modifier) {
     Column(
         modifier = modifier.padding(horizontal = 24.dp, vertical = 40.dp),
         verticalArrangement = Arrangement.Center,
@@ -48,7 +45,9 @@ internal fun HistoryEmptyState(
         }
         Spacer(modifier = Modifier.size(16.dp))
         Text(
-            text = stringResource(if (isHistoryOff) R.string.watch_history_turned_off else R.string.no_watch_history),
+            text = stringResource(
+                if (isHistoryOff) R.string.watch_history_turned_off else R.string.no_watch_history,
+            ),
             style = MaterialTheme.typography.titleLargeEmphasized,
             textAlign = TextAlign.Center,
         )

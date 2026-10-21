@@ -32,7 +32,8 @@ class BackgroundPlaybackCompletionTest {
     private val instrumentation = InstrumentationRegistry.getInstrumentation()
 
     @Test
-    fun wakingAfterBackgroundCompletionDoesNotReplayClearedQueue() = checkCompletion(autoplay = false)
+    fun wakingAfterBackgroundCompletionDoesNotReplayClearedQueue() =
+        checkCompletion(autoplay = false)
 
     @Test
     fun wakingAfterBackgroundCompletionClosesEndedQueue() = checkCompletion(autoplay = true)
@@ -43,11 +44,19 @@ class BackgroundPlaybackCompletionTest {
         val originalPreferences = preferences.playerPreferences.value
         runBlocking {
             preferences.updatePlayerPreferences {
-                it.copy(autoBackgroundPlay = true, autoPip = false, autoplay = autoplay, loopMode = LoopMode.OFF)
+                it.copy(
+                    autoBackgroundPlay = true,
+                    autoPip = false,
+                    autoplay = autoplay,
+                    loopMode = LoopMode.OFF,
+                )
             }
         }
         await("background playback preferences") {
-            preferences.playerPreferences.value.let { it.autoBackgroundPlay && !it.autoPip && it.autoplay == autoplay }
+            preferences.playerPreferences.value.let {
+                it.autoBackgroundPlay && !it.autoPip &&
+                    it.autoplay == autoplay
+            }
         }
 
         val audio = File(context.cacheDir, "background-completion-${System.nanoTime()}.wav")
@@ -80,7 +89,9 @@ class BackgroundPlaybackCompletionTest {
             }
             val controller = future.get(10, TimeUnit.SECONDS)
             player = controller
-            await("resumed playback") { controller.isPlaying && controller.currentPosition >= 45_000 }
+            await("resumed playback") {
+                controller.isPlaying && controller.currentPosition >= 45_000
+            }
 
             shell("input keyevent KEYCODE_SLEEP")
             await("screen off") { firstActivity.lifecycle.currentState == Lifecycle.State.CREATED }
@@ -89,15 +100,24 @@ class BackgroundPlaybackCompletionTest {
                 controller.seekTo(59_500)
             }
             await("background completion") {
-                if (autoplay) controller.playbackState == Player.STATE_ENDED else controller.mediaItemCount == 0
+                if (autoplay) {
+                    controller.playbackState == Player.STATE_ENDED
+                } else {
+                    controller.mediaItemCount ==
+                        0
+                }
             }
             shell("input keyevent KEYCODE_WAKEUP")
             shell("wm dismiss-keyguard")
-            await("completed player activity to close without replaying") { firstActivity.isDestroyed }
+            await("completed player activity to close without replaying") {
+                firstActivity.isDestroyed
+            }
 
             // A deliberate new request for the same media must still start playback.
             activity = instrumentation.startActivitySync(intent) as PlayerActivity
-            await("explicit replay") { controller.isPlaying && controller.currentPosition >= 45_000 }
+            await("explicit replay") {
+                controller.isPlaying && controller.currentPosition >= 45_000
+            }
         } finally {
             shell("input keyevent KEYCODE_WAKEUP")
             shell("wm dismiss-keyguard")
@@ -117,7 +137,11 @@ class BackgroundPlaybackCompletionTest {
     private fun onMain(block: () -> Unit) = instrumentation.runOnMainSync(block)
 
     private fun shell(command: String) {
-        ParcelFileDescriptor.AutoCloseInputStream(instrumentation.uiAutomation.executeShellCommand(command)).use { it.readBytes() }
+        ParcelFileDescriptor.AutoCloseInputStream(
+            instrumentation.uiAutomation.executeShellCommand(command),
+        ).use {
+            it.readBytes()
+        }
     }
 
     private fun await(description: String, condition: () -> Boolean) {

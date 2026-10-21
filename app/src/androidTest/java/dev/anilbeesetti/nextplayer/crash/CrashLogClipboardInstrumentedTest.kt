@@ -29,7 +29,7 @@ class CrashLogClipboardInstrumentedTest {
 
         ActivityScenario.launch<CrashActivity>(
             Intent(context, CrashActivity::class.java)
-                .putExtra("exception", "test")
+                .putExtra("exception", "test"),
         ).use { scenario ->
             scenario.awaitWindowFocus()
 

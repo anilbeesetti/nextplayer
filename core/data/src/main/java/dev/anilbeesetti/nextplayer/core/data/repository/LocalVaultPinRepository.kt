@@ -9,9 +9,7 @@ import kotlinx.coroutines.withContext
 import org.koin.core.annotation.Single
 
 @Single
-class LocalVaultPinRepository(
-    private val context: Context,
-) : VaultPinRepository {
+class LocalVaultPinRepository(private val context: Context) : VaultPinRepository {
 
     private val preferences by lazy {
         context.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE)

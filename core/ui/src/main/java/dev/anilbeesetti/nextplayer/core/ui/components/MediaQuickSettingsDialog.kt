@@ -76,7 +76,8 @@ fun MediaLayoutAndSortSettings(
     sort: Sort,
     onLayoutModeChange: (MediaLayoutMode) -> Unit,
     onSortChange: (Sort) -> Unit,
-    sortOptions: List<Sort.By> = listOf(Sort.By.TITLE, Sort.By.LENGTH, Sort.By.DATE, Sort.By.SIZE, Sort.By.PATH),
+    sortOptions: List<Sort.By> =
+        listOf(Sort.By.TITLE, Sort.By.LENGTH, Sort.By.DATE, Sort.By.SIZE, Sort.By.PATH),
     dateLabel: Int = R.string.date,
 ) {
     SectionTitle(stringResource(R.string.media_layout))
@@ -91,7 +92,17 @@ fun MediaLayoutAndSortSettings(
                     activeBorderColor = MaterialTheme.colorScheme.primary,
                 ),
             ) {
-                Text(stringResource(if (mode == MediaLayoutMode.LIST) R.string.list else R.string.grid))
+                Text(
+                    stringResource(
+                        if (mode ==
+                            MediaLayoutMode.LIST
+                        ) {
+                            R.string.list
+                        } else {
+                            R.string.grid
+                        },
+                    ),
+                )
             }
         }
     }
@@ -130,7 +141,13 @@ fun MediaLayoutAndSortSettings(
                 ),
                 icon = {
                     Icon(
-                        imageVector = if (order == Sort.Order.ASCENDING) NextIcons.ArrowUpward else NextIcons.ArrowDownward,
+                        imageVector = if (order ==
+                            Sort.Order.ASCENDING
+                        ) {
+                            NextIcons.ArrowUpward
+                        } else {
+                            NextIcons.ArrowDownward
+                        },
                         contentDescription = null,
                     )
                 },

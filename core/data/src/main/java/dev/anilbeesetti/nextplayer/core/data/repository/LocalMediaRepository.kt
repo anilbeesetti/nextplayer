@@ -23,7 +23,6 @@ import dev.anilbeesetti.nextplayer.core.model.MediaInfo
 import dev.anilbeesetti.nextplayer.core.model.Video
 import io.github.anilbeesetti.nextlib.mediainfo.MediaInfoBuilder
 import java.util.Date
-
 import kotlin.math.absoluteValue
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.async
@@ -43,35 +42,39 @@ class LocalMediaRepository(
     private val context: Context,
 ) : MediaRepository {
 
-    override fun observeFolders(folderPath: String?): Flow<List<Folder>> {
-        return mediaService.observeFolders(folderPath).map { mediaFolders ->
+    override fun observeFolders(folderPath: String?): Flow<List<Folder>> =
+        mediaService.observeFolders(folderPath).map { mediaFolders ->
             mediaFolders.map { it.toFolder() }
         }
-    }
 
-    override fun observeVideos(folderPath: String?): Flow<List<Video>> {
-        return combine(mediaService.observeVideos(folderPath), mediumStateDao.getAll()) { mediaVideos, mediumStates ->
+    override fun observeVideos(folderPath: String?): Flow<List<Video>> =
+        combine(mediaService.observeVideos(folderPath), mediumStateDao.getAll()) {
+                mediaVideos,
+                mediumStates,
+            ->
             val statesMap = mediumStates.associateBy { it.uriString }
             mediaVideos.map { mediaVideo ->
                 val mediaState = statesMap[mediaVideo.uri.toString()]
                 mediaVideo.toVideo(mediaState)
             }
         }
-    }
 
-    override suspend fun fetchFolders(folderPath: String?): List<Folder> {
-        return mediaService.fetchFolders(folderPath).map { it.toFolder() }
-    }
+    override suspend fun fetchFolders(folderPath: String?): List<Folder> =
+        mediaService.fetchFolders(folderPath).map {
+            it.toFolder()
+        }
 
-    override suspend fun fetchVideos(folderPath: String?): List<Video> {
-        return mediaService.fetchVideos(folderPath).mapAsync { mediaVideo ->
+    override suspend fun fetchVideos(folderPath: String?): List<Video> =
+        mediaService.fetchVideos(folderPath).mapAsync { mediaVideo ->
             val mediaState = mediumStateDao.get(mediaVideo.uri.toString())
             mediaVideo.toVideo(mediaState)
         }
-    }
 
-    override fun observePlaybackHistory(): Flow<List<Video>> {
-        return combine(mediaService.observeVideos(), mediumStateDao.getAll()) { mediaVideos, mediumStates ->
+    override fun observePlaybackHistory(): Flow<List<Video>> =
+        combine(mediaService.observeVideos(), mediumStateDao.getAll()) {
+                mediaVideos,
+                mediumStates,
+            ->
             val videosByUri = mediaVideos.associateBy { it.uri.toString() }
             mediumStates
                 .filter { it.lastPlayedTime != null && !it.uriString.toUri().isVaultUri() }
@@ -80,11 +83,11 @@ class LocalMediaRepository(
                     videosByUri[state.uriString]?.toVideo(state) ?: state.toHistoryVideo()
                 }
         }
-    }
 
-    override fun observeTrashVideos(): Flow<List<Video>> {
-        return mediaService.observeTrashVideos().map { videos -> videos.map { it.toVideo() } }
-    }
+    override fun observeTrashVideos(): Flow<List<Video>> =
+        mediaService.observeTrashVideos().map { videos ->
+            videos.map { it.toVideo() }
+        }
 
     override suspend fun getVideoByUri(uri: String): Video? = coroutineScope {
         val mediaVideoDeferred = async { mediaService.findVideo(uri.toUri()) }
@@ -96,18 +99,20 @@ class LocalMediaRepository(
         return@coroutineScope mediaVideo.toVideo(mediaState)
     }
 
-    override suspend fun getVideoState(uri: String): VideoState? {
-        return mediumStateDao.get(uri)?.toVideoState()
-    }
+    override suspend fun getVideoState(uri: String): VideoState? =
+        mediumStateDao.get(uri)?.toVideoState()
 
     override suspend fun getMediaInfo(uri: String): MediaInfo? = withContext(Dispatchers.IO) {
         val video = getVideoByUri(uri) ?: return@withContext null
-        val mediaInfo = runCatching { MediaInfoBuilder().from(context = context, uri = uri.toUri()).build() }.getOrNull()
+        val mediaInfo = runCatching {
+            MediaInfoBuilder().from(context = context, uri = uri.toUri()).build()
+        }.getOrNull()
         val result = MediaInfo(
             video = video.copy(format = mediaInfo?.format),
             videoStream = mediaInfo?.videoStream?.toVideoStreamInfo(),
             audioStreams = mediaInfo?.audioStreams?.map { it.toAudioStreamInfo() } ?: emptyList(),
-            subtitleStreams = mediaInfo?.subtitleStreams?.map { it.toSubtitleStreamInfo() } ?: emptyList(),
+            subtitleStreams =
+                mediaInfo?.subtitleStreams?.map { it.toSubtitleStreamInfo() } ?: emptyList(),
         )
         mediaInfo?.release()
         return@withContext result
@@ -117,14 +122,20 @@ class LocalMediaRepository(
         mediumStateDao.clearPlaybackHistory()
     }
 
-    override suspend fun updateMediumLastPlayedTime(uri: String, lastPlayedTime: Long, duration: Long?) {
+    override suspend fun updateMediumLastPlayedTime(
+        uri: String,
+        lastPlayedTime: Long,
+        duration: Long?,
+    ) {
         val preferences = appPreferencesDataSource.preferences.first()
         val mediaUri = uri.toUri()
         val recordHistory = !preferences.isHistoryPaused &&
             !mediaUri.isVaultUri() &&
-            (preferences.includeNetworkWatchHistory ||
-                !NetworkUri.isNetworkUri(mediaUri) ||
-                NetworkUri.connectionIdOf(mediaUri) == null)
+            (
+                preferences.includeNetworkWatchHistory ||
+                    !NetworkUri.isNetworkUri(mediaUri) ||
+                    NetworkUri.connectionIdOf(mediaUri) == null
+                )
         mediumStateDao.update(uri) { state ->
             state.copy(
                 lastPlayedTime = if (recordHistory) lastPlayedTime else state.lastPlayedTime,
@@ -161,7 +172,11 @@ class LocalMediaRepository(
     override suspend fun addExternalSubtitleToMedium(uri: String, subtitleUri: Uri) {
         mediumStateDao.update(uri) { state ->
             val subtitles = UriListConverter.fromStringToList(state.externalSubs)
-            state.copy(externalSubs = UriListConverter.fromListToString((subtitles + subtitleUri).distinct()))
+            state.copy(
+                externalSubs = UriListConverter.fromListToString(
+                    (subtitles + subtitleUri).distinct(),
+                ),
+            )
         }
     }
 
@@ -178,7 +193,10 @@ class LocalMediaRepository(
         val segments = pathSegments
         val root = segments.firstOrNull()
         return root == "vault" ||
-            segments.getOrNull(1) == "vault" && (root == "external_files_path" || root == "files_path")
+            (
+                segments.getOrNull(1) == "vault" &&
+                    (root == "external_files_path" || root == "files_path")
+                )
     }
 }
 

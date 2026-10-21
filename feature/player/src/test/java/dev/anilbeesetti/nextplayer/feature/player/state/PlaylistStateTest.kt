@@ -12,7 +12,10 @@ import org.robolectric.RuntimeEnvironment
 @RunWith(RobolectricTestRunner::class)
 class PlaylistStateTest {
     @Test
-    fun removesRequestedItemAndPreservesRemainingOrder() = withPlaylist("first", "middle", "last") { state, player ->
+    fun removesRequestedItemAndPreservesRemainingOrder() = withPlaylist("first", "middle", "last") {
+            state,
+            player,
+        ->
         state.removeItem(1)
 
         assertEquals(listOf("first", "last"), player.mediaIds())
@@ -36,12 +39,18 @@ class PlaylistStateTest {
     private fun withPlaylist(vararg ids: String, assertion: (PlaylistState, Player) -> Unit) {
         val player = ExoPlayer.Builder(RuntimeEnvironment.getApplication()).build()
         try {
-            player.setMediaItems(ids.map { MediaItem.Builder().setMediaId(it).setUri("file:///$it.mp4").build() })
+            player.setMediaItems(
+                ids.map {
+                    MediaItem.Builder().setMediaId(it).setUri("file:///$it.mp4").build()
+                },
+            )
             assertion(PlaylistState(player), player)
         } finally {
             player.release()
         }
     }
 
-    private fun Player.mediaIds(): List<String> = (0 until mediaItemCount).map { getMediaItemAt(it).mediaId }
+    private fun Player.mediaIds(): List<String> = (0 until mediaItemCount).map {
+        getMediaItemAt(it).mediaId
+    }
 }

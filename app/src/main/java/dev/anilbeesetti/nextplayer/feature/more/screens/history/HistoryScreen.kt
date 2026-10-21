@@ -9,8 +9,8 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.foundation.rememberScrollState
-import androidx.compose.foundation.verticalScroll
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.DropdownMenu
 import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.FilledTonalIconButton
@@ -24,8 +24,8 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
-import androidx.compose.runtime.setValue
 import androidx.compose.runtime.saveable.rememberSaveable
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.res.stringResource
@@ -44,9 +44,7 @@ import dev.anilbeesetti.nextplayer.feature.videopicker.composables.CenterCircula
 import dev.anilbeesetti.nextplayer.feature.videopicker.composables.VideoListItem
 
 @Composable
-fun HistoryScreen(
-    viewModel: HistoryViewModel,
-) {
+fun HistoryScreen(viewModel: HistoryViewModel) {
     val state by viewModel.state.collectAsStateWithLifecycle()
 
     HistoryScreenContent(
@@ -56,10 +54,7 @@ fun HistoryScreen(
 }
 
 @Composable
-internal fun HistoryScreenContent(
-    state: HistoryUiState,
-    onAction: (HistoryAction) -> Unit,
-) {
+internal fun HistoryScreenContent(state: HistoryUiState, onAction: (HistoryAction) -> Unit) {
     var showClearConfirmation by rememberSaveable { mutableStateOf(false) }
     var enableHistoryConfirmation by rememberSaveable { mutableStateOf<Boolean?>(null) }
     var menuExpanded by remember { mutableStateOf(false) }
@@ -96,7 +91,15 @@ internal fun HistoryScreenContent(
                         ) {
                             DropdownMenuItem(
                                 text = {
-                                    Text(stringResource(if (state.preferences.isHistoryPaused) R.string.turn_on_watch_history else R.string.turn_off_watch_history))
+                                    Text(
+                                        stringResource(
+                                            if (state.preferences.isHistoryPaused) {
+                                                R.string.turn_on_watch_history
+                                            } else {
+                                                R.string.turn_off_watch_history
+                                            },
+                                        ),
+                                    )
                                 },
                                 onClick = {
                                     menuExpanded = false
@@ -133,11 +136,13 @@ internal fun HistoryScreenContent(
             } else {
                 when (val history = state.history) {
                     is DataState.Loading -> CenterCircularProgressBar()
+
                     is DataState.Error -> Text(
                         text = history.value.message.orEmpty(),
                         modifier = Modifier.padding(16.dp),
                         color = MaterialTheme.colorScheme.error,
                     )
+
                     is DataState.Success -> if (history.value.isEmpty()) {
                         HistoryEmptyState(
                             isHistoryOff = false,
@@ -148,14 +153,18 @@ internal fun HistoryScreenContent(
                             contentPadding = PaddingValues(8.dp),
                             verticalArrangement = Arrangement.spacedBy(2.dp),
                         ) {
-                            itemsIndexed(history.value, key = { _, video -> video.uriString }) { index, video ->
+                            itemsIndexed(history.value, key = { _, video ->
+                                video.uriString
+                            }) { index, video ->
                                 VideoListItem(
                                     video = video,
                                     isRecentlyPlayedVideo = false,
                                     preferences = state.preferences,
                                     isFirstItem = index == 0,
                                     isLastItem = index == history.value.lastIndex,
-                                    onClick = { onAction(HistoryAction.PlayVideo(video.uriString)) },
+                                    onClick = {
+                                        onAction(HistoryAction.PlayVideo(video.uriString))
+                                    },
                                 )
                             }
                         }

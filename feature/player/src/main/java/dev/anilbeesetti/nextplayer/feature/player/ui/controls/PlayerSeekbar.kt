@@ -65,7 +65,8 @@ internal fun PlayerSeekbar(
     val onValueChange: (Float) -> Unit = { value ->
         isScrubbing = true
         val chapterIndex = chapters.currentChapterIndex(value.toLong())
-        val previousChapterIndex = lastSeekChapterIndex ?: chapters.currentChapterIndex(position.toLong())
+        val previousChapterIndex =
+            lastSeekChapterIndex ?: chapters.currentChapterIndex(position.toLong())
         if (chapterIndex != previousChapterIndex) {
             hapticFeedback.performHapticFeedback(HapticFeedbackType.SegmentTick)
         }
@@ -133,8 +134,14 @@ private fun MaterialYouSlider(
     val trackHeight = 8.dp
     val thumbWidth = 4.dp
     val trackThumbGapWidth = 12.dp
-    val focusedThumbWidth by animateDpAsState(if (isFocused) 10.dp else thumbWidth, label = "thumbWidth")
-    val focusedThumbHeight by animateDpAsState(if (isFocused) 24.dp else 20.dp, label = "thumbHeight")
+    val focusedThumbWidth by animateDpAsState(
+        if (isFocused) 10.dp else thumbWidth,
+        label = "thumbWidth",
+    )
+    val focusedThumbHeight by animateDpAsState(
+        if (isFocused) 24.dp else 20.dp,
+        label = "thumbHeight",
+    )
 
     Slider(
         value = value,
@@ -296,18 +303,19 @@ private fun SimpleSlider(
 }
 
 @OptIn(UnstableApi::class)
-private fun Modifier.chapterGaps(chapters: List<Chapter>, duration: Float): Modifier = drawWithCache {
-    val gaps = Path()
-    if (duration > 0f) {
-        val halfGap = 1.5.dp.toPx()
-        chapters.forEach { chapter ->
-            if (chapter.startTimeMs > 0 && chapter.startTimeMs < duration) {
-                val x = size.width * (chapter.startTimeMs / duration)
-                gaps.addRect(Rect(x - halfGap, 0f, x + halfGap, size.height))
+private fun Modifier.chapterGaps(chapters: List<Chapter>, duration: Float): Modifier =
+    drawWithCache {
+        val gaps = Path()
+        if (duration > 0f) {
+            val halfGap = 1.5.dp.toPx()
+            chapters.forEach { chapter ->
+                if (chapter.startTimeMs > 0 && chapter.startTimeMs < duration) {
+                    val x = size.width * (chapter.startTimeMs / duration)
+                    gaps.addRect(Rect(x - halfGap, 0f, x + halfGap, size.height))
+                }
             }
         }
+        onDrawWithContent {
+            clipPath(gaps, ClipOp.Difference) { this@onDrawWithContent.drawContent() }
+        }
     }
-    onDrawWithContent {
-        clipPath(gaps, ClipOp.Difference) { this@onDrawWithContent.drawContent() }
-    }
-}

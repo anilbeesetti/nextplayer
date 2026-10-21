@@ -85,7 +85,9 @@ fun ControlsBottomView(
     onSeek: (Long) -> Unit,
     onSeekEnd: () -> Unit,
 ) {
-    val systemBarsPadding = WindowInsets.systemBars.union(WindowInsets.displayCutout).asPaddingValues()
+    val systemBarsPadding = WindowInsets.systemBars.union(
+        WindowInsets.displayCutout,
+    ).asPaddingValues()
     val context = LocalContext.current
     val isTv = remember { context.isTelevision }
     val timeButtonFocusRequester = remember { FocusRequester() }
@@ -94,7 +96,10 @@ fun ControlsBottomView(
             .padding(systemBarsPadding.copy(top = 0.dp))
             .padding(horizontal = 16.dp)
             .padding(top = 16.dp)
-            .padding(bottom = 16.dp.takeIf { systemBarsPadding.calculateBottomPadding() == 0.dp } ?: 0.dp),
+            .padding(
+                bottom =
+                    16.dp.takeIf { systemBarsPadding.calculateBottomPadding() == 0.dp } ?: 0.dp,
+            ),
         verticalArrangement = Arrangement.spacedBy(4.dp),
     ) {
         Row(
@@ -140,7 +145,10 @@ fun ControlsBottomView(
                 PlayerButton(
                     onClick = onChaptersClick,
                     containerColor = PlayerButtonBlackAlpha,
-                    contentPadding = PaddingValues(vertical = 1.dp, horizontal = 8.dp).copy(end = 2.dp),
+                    contentPadding = PaddingValues(
+                        vertical = 1.dp,
+                        horizontal = 8.dp,
+                    ).copy(end = 2.dp),
                 ) {
                     Row(
                         modifier = Modifier,
@@ -148,9 +156,10 @@ fun ControlsBottomView(
                         horizontalArrangement = Arrangement.spacedBy(4.dp),
                     ) {
                         Text(
-                            text = chaptersState.chapters.getOrNull(chaptersState.currentChapterIndex)
-                                ?.titleOrDefault(chaptersState.currentChapterIndex)
-                                ?: stringResource(R.string.chapters),
+                            text =
+                                chaptersState.chapters.getOrNull(chaptersState.currentChapterIndex)
+                                    ?.titleOrDefault(chaptersState.currentChapterIndex)
+                                    ?: stringResource(R.string.chapters),
                             modifier = Modifier.weight(1f, fill = false),
                             style = MaterialTheme.typography.labelLarge,
                             maxLines = 1,

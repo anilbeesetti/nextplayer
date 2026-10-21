@@ -103,10 +103,7 @@ private fun DecoderTrackTypeSelector(
 }
 
 @Composable
-private fun DecoderModeGroup(
-    selectedMode: DecoderMode?,
-    onModeSelected: (DecoderMode) -> Unit,
-) {
+private fun DecoderModeGroup(selectedMode: DecoderMode?, onModeSelected: (DecoderMode) -> Unit) {
     Column(modifier = Modifier.selectableGroup()) {
         selectableDecoderModes.forEach { mode ->
             DecoderModeRow(
@@ -119,11 +116,7 @@ private fun DecoderModeGroup(
 }
 
 @Composable
-private fun DecoderModeRow(
-    mode: DecoderMode,
-    selected: Boolean,
-    onClick: () -> Unit,
-) {
+private fun DecoderModeRow(mode: DecoderMode, selected: Boolean, onClick: () -> Unit) {
     Row(
         modifier = Modifier
             .fillMaxWidth()

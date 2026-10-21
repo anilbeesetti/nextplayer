@@ -2,10 +2,7 @@ package dev.anilbeesetti.nextplayer.core.model
 
 import kotlin.comparisons.reversed as kotlinReversed
 
-data class Sort(
-    val by: By,
-    val order: Order,
-) {
+data class Sort(val by: By, val order: Order) {
     enum class By {
         TITLE,
         LENGTH,
@@ -126,10 +123,13 @@ data class Sort(
         }
         val comparator = when (by) {
             By.TITLE, By.LENGTH -> nameComparator
+
             By.PATH -> Comparator<NetworkFile> { first, second ->
                 stringComparator.compare(first.path.lowercase(), second.path.lowercase())
             }
+
             By.SIZE -> compareBy<NetworkFile> { it.size }.then(nameComparator)
+
             By.DATE -> compareBy<NetworkFile> { it.modified ?: 0L }.then(nameComparator)
         }.thenBy { it.path }
         val orderedComparator = when (order) {

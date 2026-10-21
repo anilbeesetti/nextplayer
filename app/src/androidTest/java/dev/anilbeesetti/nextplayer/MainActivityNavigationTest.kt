@@ -53,11 +53,15 @@ class MainActivityNavigationTest {
     private fun recreateHome() {
         val settings = composeRule.activity.getString(R.string.settings)
         composeRule.waitUntil(10_000) {
-            composeRule.onAllNodesWithContentDescription(settings).fetchSemanticsNodes().isNotEmpty()
+            composeRule.onAllNodesWithContentDescription(
+                settings,
+            ).fetchSemanticsNodes().isNotEmpty()
         }
         composeRule.activityRule.scenario.recreate()
         composeRule.waitUntil(10_000) {
-            composeRule.onAllNodesWithContentDescription(settings).fetchSemanticsNodes().isNotEmpty()
+            composeRule.onAllNodesWithContentDescription(
+                settings,
+            ).fetchSemanticsNodes().isNotEmpty()
         }
     }
 }

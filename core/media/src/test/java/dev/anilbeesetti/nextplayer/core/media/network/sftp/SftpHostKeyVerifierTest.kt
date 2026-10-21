@@ -62,9 +62,10 @@ class SftpHostKeyVerifierTest {
         assertTrue(SftpHostKeyVerifier(OPENSSH_SHA256_FINGERPRINT).verify("host", 22, publicKey))
     }
 
-    private fun confirmationFor(keyPair: KeyPair) = assertThrows(HostKeyConfirmationRequired::class.java) {
-        SftpHostKeyVerifier("").verify("host", 22, keyPair.public)
-    }
+    private fun confirmationFor(keyPair: KeyPair) =
+        assertThrows(HostKeyConfirmationRequired::class.java) {
+            SftpHostKeyVerifier("").verify("host", 22, keyPair.public)
+        }
 
     private fun generateRsaKeyPair(): KeyPair = KeyPairGenerator.getInstance("RSA").run {
         initialize(2048)
@@ -75,9 +76,11 @@ class SftpHostKeyVerifierTest {
         const val OPENSSH_SHA256_FINGERPRINT = "SHA256:nduAt4u4wQIOter2qOpMVAC6ST0oCGD8OJXXlbTbv20"
         const val PUBLIC_KEY_BASE64 =
             "MIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEArdxG0/VhPoiyEqopufeKFv2QpCXokNUUFMXLdxU" +
-                "HypfgT3png4eEPypSRbK0FZbsGej6Cw+LfeWyCwqcD3SxH3YPmEkCpGBjAqEtTXmeu29fjVvrUWPc91h9" +
+                "HypfgT3png4eEPypSRbK0FZbsGej6Cw+LfeWyCwq" +
+                "cD3SxH3YPmEkCpGBjAqEtTXmeu29fjVvrUWPc91h9" +
                 "h+xYgn6ichrMXv1YP4Tmw/pITJKWCCPvW3bfHcSEN9Ghtsjg0Vv6U+sT/I7Bad5XRUhNLLAzg24RW5Oa" +
-                "3eJN38wNWdFmm8A7YFfFJoLB+EMkqMCvaYz4C13ppK23DhyrWWhpLODYjXuXswknYampee2Pn351Eb0Mx" +
+                "3eJN38wNWdFmm8A7YFfFJoLB+EMkqMCvaYz4C13p" +
+                "pK23DhyrWWhpLODYjXuXswknYampee2Pn351Eb0Mx" +
                 "k6LalIA9BP34bDOaOpXramcunh+f3zgHSpggg4VM8dsUzD7uJX7PdRtEwXd7wIDAQAB"
     }
 }

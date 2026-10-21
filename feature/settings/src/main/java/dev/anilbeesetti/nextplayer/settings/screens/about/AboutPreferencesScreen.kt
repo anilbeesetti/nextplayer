@@ -96,7 +96,9 @@ private fun AboutPreferencesScreenContent(
             NextTopAppBar(
                 title = stringResource(id = R.string.about_name),
                 navigationIcon = {
-                    FilledTonalIconButton(onClick = { onAction(AboutPreferencesAction.NavigateUp) }, modifier = Modifier.tvFocusDown(listFocusRequester)) {
+                    FilledTonalIconButton(onClick = {
+                        onAction(AboutPreferencesAction.NavigateUp)
+                    }, modifier = Modifier.tvFocusDown(listFocusRequester)) {
                         Icon(
                             imageVector = NextIcons.ArrowBack,
                             contentDescription = stringResource(id = R.string.navigate_up),
@@ -132,7 +134,10 @@ private fun AboutPreferencesScreenContent(
             ) {
                 ClickablePreferenceItem(
                     title = stringResource(R.string.kofi),
-                    description = stringResource(R.string.support_the_developer_on, stringResource(R.string.kofi)),
+                    description = stringResource(
+                        R.string.support_the_developer_on,
+                        stringResource(R.string.kofi),
+                    ),
                     icon = ImageVector.vectorResource(R.drawable.ic_kofi),
                     onClick = {
                         uriHandler.openUriOrShowToast(
@@ -144,7 +149,10 @@ private fun AboutPreferencesScreenContent(
                 )
                 ClickablePreferenceItem(
                     title = stringResource(R.string.paypal),
-                    description = stringResource(R.string.support_the_developer_on, stringResource(R.string.paypal)),
+                    description = stringResource(
+                        R.string.support_the_developer_on,
+                        stringResource(R.string.paypal),
+                    ),
                     icon = ImageVector.vectorResource(R.drawable.ic_paypal),
                     onClick = {
                         uriHandler.openUriOrShowToast(
@@ -160,7 +168,11 @@ private fun AboutPreferencesScreenContent(
                     onClick = {
                         scope.launch {
                             clipboard.setClipEntry(ClipEntry(ClipData.newPlainText("text", UPI_ID)))
-                            Toast.makeText(context, "copied to clipboard", Toast.LENGTH_SHORT).show()
+                            Toast.makeText(
+                                context,
+                                "copied to clipboard",
+                                Toast.LENGTH_SHORT,
+                            ).show()
                         }
                     },
                     isLastItem = true,
@@ -312,6 +324,10 @@ internal fun UriHandler.openUriOrShowToast(uri: String, context: Context) {
     try {
         openUri(uri = uri)
     } catch (e: Exception) {
-        Toast.makeText(context, context.getString(R.string.error_opening_link), Toast.LENGTH_SHORT).show()
+        Toast.makeText(
+            context,
+            context.getString(R.string.error_opening_link),
+            Toast.LENGTH_SHORT,
+        ).show()
     }
 }

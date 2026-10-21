@@ -51,7 +51,9 @@ fun ControlsTopView(
     onPlaylistClick: () -> Unit = {},
 ) {
     val firstControlFocusRequester = remember { FocusRequester() }
-    val systemBarsPadding = WindowInsets.systemBars.union(WindowInsets.displayCutout).asPaddingValues()
+    val systemBarsPadding = WindowInsets.systemBars.union(
+        WindowInsets.displayCutout,
+    ).asPaddingValues()
     val decoderDescription = stringResource(R.string.select_decoders)
     // Add top spacing only when the system bars don't already provide it (e.g. on TV / landscape).
     val extraTopPadding = if (systemBarsPadding.calculateTopPadding() == 0.dp) 16.dp else 0.dp

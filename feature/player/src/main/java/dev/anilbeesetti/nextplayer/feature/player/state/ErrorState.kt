@@ -19,9 +19,7 @@ fun rememberErrorState(player: Player): ErrorState {
     return errorState
 }
 
-class ErrorState(
-    private val player: Player,
-) {
+class ErrorState(private val player: Player) {
     var playbackError: PlaybackException? by mutableStateOf(player.playerError)
         private set
 

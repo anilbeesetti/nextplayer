@@ -73,9 +73,7 @@ import dev.anilbeesetti.nextplayer.core.ui.extensions.copy
 import java.util.Date
 
 @Composable
-fun NetworkBrowseScreen(
-    viewModel: NetworkBrowseViewModel,
-) {
+fun NetworkBrowseScreen(viewModel: NetworkBrowseViewModel) {
     val state by viewModel.state.collectAsStateWithLifecycle()
 
     NetworkBrowseScreenContent(
@@ -100,7 +98,9 @@ internal fun NetworkBrowseScreenContent(
             NextTopAppBar(
                 title = state.title,
                 navigationIcon = {
-                    FilledTonalIconButton(onClick = { onAction(NetworkBrowseAction.NavigateUp) }, modifier = Modifier.tvFocusRing()) {
+                    FilledTonalIconButton(onClick = {
+                        onAction(NetworkBrowseAction.NavigateUp)
+                    }, modifier = Modifier.tvFocusRing()) {
                         Icon(
                             imageVector = NextIcons.ArrowBack,
                             contentDescription = stringResource(R.string.navigate_up),
@@ -112,15 +112,23 @@ internal fun NetworkBrowseScreenContent(
                         onClick = { showQuickSettings = true },
                         modifier = Modifier.tvFocusRing(),
                     ) {
-                        Icon(NextIcons.Sensitivity, contentDescription = stringResource(R.string.quick_settings))
+                        Icon(
+                            NextIcons.Sensitivity,
+                            contentDescription = stringResource(R.string.quick_settings),
+                        )
                     }
 
-                    if (!state.isLoading && state.error == null && state.files.any { !it.isDirectory }) {
+                    if (!state.isLoading && state.error == null &&
+                        state.files.any { !it.isDirectory }
+                    ) {
                         FilledTonalIconButton(
                             onClick = { onAction(NetworkBrowseAction.PlayAll) },
                             modifier = Modifier.tvFocusRing(),
                         ) {
-                            Icon(NextIcons.Play, contentDescription = stringResource(R.string.play_all))
+                            Icon(
+                                NextIcons.Play,
+                                contentDescription = stringResource(R.string.play_all),
+                            )
                         }
                     }
                 },
@@ -130,7 +138,10 @@ internal fun NetworkBrowseScreenContent(
     ) { scaffoldPadding ->
         when {
             state.isLoading -> {
-                Box(Modifier.fillMaxSize().padding(scaffoldPadding), contentAlignment = Alignment.Center) {
+                Box(
+                    Modifier.fillMaxSize().padding(scaffoldPadding),
+                    contentAlignment = Alignment.Center,
+                ) {
                     CircularProgressIndicator()
                 }
             }
@@ -138,7 +149,9 @@ internal fun NetworkBrowseScreenContent(
             state.error != null -> {
                 val error = state.error
                 Column(
-                    modifier = Modifier.fillMaxSize().padding(scaffoldPadding).padding(horizontal = 32.dp),
+                    modifier = Modifier.fillMaxSize().padding(
+                        scaffoldPadding,
+                    ).padding(horizontal = 32.dp),
                     verticalArrangement = Arrangement.Center,
                     horizontalAlignment = Alignment.CenterHorizontally,
                 ) {
@@ -186,7 +199,9 @@ internal fun NetworkBrowseScreenContent(
                         }
                     }
                     Spacer(Modifier.size(16.dp))
-                    Button(onClick = { onAction(NetworkBrowseAction.Retry) }) { Text(stringResource(R.string.retry)) }
+                    Button(onClick = {
+                        onAction(NetworkBrowseAction.Retry)
+                    }) { Text(stringResource(R.string.retry)) }
                 }
             }
 
@@ -203,8 +218,20 @@ internal fun NetworkBrowseScreenContent(
                     val availableWidth = maxWidth - horizontalPadding * 2 - itemSpacing
                     val folderMinWidth = if (isTv) 160.dp else 90.dp
                     val videoMinWidth = if (isTv) 240.dp else 130.dp
-                    val folderColumns = if (isGrid) (availableWidth / folderMinWidth).toInt().coerceAtLeast(1) else 1
-                    val videoColumns = if (isGrid) (availableWidth / videoMinWidth).toInt().coerceAtLeast(1) else 1
+                    val folderColumns = if (isGrid) {
+                        (availableWidth / folderMinWidth).toInt().coerceAtLeast(
+                            1,
+                        )
+                    } else {
+                        1
+                    }
+                    val videoColumns = if (isGrid) {
+                        (availableWidth / videoMinWidth).toInt().coerceAtLeast(
+                            1,
+                        )
+                    } else {
+                        1
+                    }
                     // A common column count lets folder and video tiles have different widths.
                     val columns = folderColumns * videoColumns
                     val (folders, videos) = state.files.partition { it.isDirectory }
@@ -231,30 +258,61 @@ internal fun NetworkBrowseScreenContent(
                             verticalArrangement = Arrangement.spacedBy(itemSpacing),
                             horizontalArrangement = Arrangement.spacedBy(itemSpacing),
                         ) {
-                            listOf(R.string.folders to folders, R.string.videos to videos).forEach { (title, files) ->
+                            listOf(
+                                R.string.folders to folders,
+                                R.string.videos to videos,
+                            ).forEach { (title, files) ->
                                 if (files.isNotEmpty()) {
                                     item(span = { GridItemSpan(maxLineSpan) }) {
-                                        ListSectionTitle(text = stringResource(title) + " (${files.size})")
+                                        ListSectionTitle(
+                                            text =
+                                                stringResource(title) + " (${files.size})",
+                                        )
                                     }
                                     itemsIndexed(
                                         items = files,
                                         key = { _, file -> file.path },
-                                        span = { _, file -> GridItemSpan(if (file.isDirectory) videoColumns else folderColumns) },
+                                        span = { _, file ->
+                                            GridItemSpan(
+                                                if (file.isDirectory) {
+                                                    videoColumns
+                                                } else {
+                                                    folderColumns
+                                                },
+                                            )
+                                        },
                                     ) { index, file ->
+                                        val recentPath = state.recentlyPlayedPath
+                                        val folderPath = "${file.path.trimEnd('/')}/"
+                                        val isRecentlyPlayed = recentPath == file.path ||
+                                            (
+                                                file.isDirectory &&
+                                                    recentPath?.startsWith(folderPath) == true
+                                                )
+                                        val history = state.playbackHistory[file.path]
                                         NetworkFileItem(
                                             file = file,
                                             isGrid = isGrid,
                                             isFirstItem = index == 0,
                                             isLastItem = index == files.lastIndex,
-                                            isRecentlyPlayed = state.preferences.markLastPlayedMedia &&
-                                                (
-                                                    state.recentlyPlayedPath == file.path ||
-                                                        (file.isDirectory && state.recentlyPlayedPath?.startsWith("${file.path.trimEnd('/')}/") == true)
-                                                    ),
-                                            playedPercentage = state.playbackHistory[file.path]?.playedPercentage
-                                                ?.takeIf { state.preferences.showPlayedProgress },
+                                            isRecentlyPlayed =
+                                                state.preferences.markLastPlayedMedia &&
+                                                    isRecentlyPlayed,
+                                            playedPercentage =
+                                                history?.playedPercentage
+                                                    ?.takeIf {
+                                                        state.preferences.showPlayedProgress
+                                                    },
                                             onClick = {
-                                                if (file.isDirectory) onAction(NetworkBrowseAction.OpenFolder(file)) else onAction(NetworkBrowseAction.PlayVideo(file))
+                                                if (file.isDirectory) {
+                                                    onAction(
+                                                        NetworkBrowseAction.OpenFolder(file),
+                                                    )
+                                                } else {
+                                                    onAction(
+                                                        NetworkBrowseAction.PlayVideo(file),
+                                                    )
+                                                }
                                             },
                                         )
                                     }
@@ -272,7 +330,9 @@ internal fun NetworkBrowseScreenContent(
             sort = Sort(state.preferences.networkSortBy, state.preferences.networkSortOrder),
             sortOptions = listOf(Sort.By.TITLE, Sort.By.DATE, Sort.By.SIZE),
             onDismiss = { showQuickSettings = false },
-            onConfirm = { layout, sort -> onAction(NetworkBrowseAction.UpdateQuickSettings(layout, sort)) },
+            onConfirm = { layout, sort ->
+                onAction(NetworkBrowseAction.UpdateQuickSettings(layout, sort))
+            },
         )
     }
 }
@@ -295,8 +355,16 @@ private fun NetworkFileItem(
         isLastItem = isLastItem,
         onClick = onClick,
         colors = ListItemDefaults.segmentedColors(
-            contentColor = if (isRecentlyPlayed) MaterialTheme.colorScheme.primary else ListItemDefaults.segmentedColors().contentColor,
-            supportingContentColor = if (isRecentlyPlayed) MaterialTheme.colorScheme.primary else ListItemDefaults.segmentedColors().supportingContentColor,
+            contentColor = if (isRecentlyPlayed) {
+                MaterialTheme.colorScheme.primary
+            } else {
+                ListItemDefaults.segmentedColors().contentColor
+            },
+            supportingContentColor = if (isRecentlyPlayed) {
+                MaterialTheme.colorScheme.primary
+            } else {
+                ListItemDefaults.segmentedColors().supportingContentColor
+            },
         ),
         leadingContent = if (isGrid) {
             null
@@ -314,7 +382,9 @@ private fun NetworkFileItem(
                     Text(
                         text = file.name,
                         maxLines = 2,
-                        style = MaterialTheme.typography.titleMedium.copy(lineBreak = LineBreak.Heading),
+                        style = MaterialTheme.typography.titleMedium.copy(
+                            lineBreak = LineBreak.Heading,
+                        ),
                         overflow = TextOverflow.Ellipsis,
                         textAlign = TextAlign.Center,
                     )
@@ -331,13 +401,16 @@ private fun NetworkFileItem(
         // Secondary line: size for videos, last-modified date for folders.
         supportingContent = when {
             isGrid -> null
+
             !file.isDirectory && file.size > 0 -> {
                 { SupportingText(Utils.formatFileSize(file.size)) }
             }
+
             file.isDirectory && file.modified != null -> {
                 val modified = file.modified!!
                 { SupportingText(formatModifiedDate(modified)) }
             }
+
             else -> null
         },
     )
@@ -355,7 +428,16 @@ private fun NetworkFileThumbnail(file: NetworkFile, playedPercentage: Float?, is
                 contentDescription = null,
                 tint = MaterialTheme.colorScheme.surfaceContainerHigh,
                 modifier = Modifier
-                    .width(if (isGrid) min(90.dp, LocalConfiguration.current.screenWidthDp.dp * 0.3f) else 72.dp)
+                    .width(
+                        if (isGrid) {
+                            min(
+                                90.dp,
+                                LocalConfiguration.current.screenWidthDp.dp * 0.3f,
+                            )
+                        } else {
+                            72.dp
+                        },
+                    )
                     .aspectRatio(20 / 17f),
             )
         }
@@ -377,9 +459,15 @@ private fun NetworkFileThumbnail(file: NetworkFile, playedPercentage: Float?, is
             if (playedPercentage != null) {
                 if (isGrid) {
                     Box(
-                        modifier = Modifier.height(4.dp).fillMaxWidth().align(Alignment.BottomCenter),
+                        modifier = Modifier.height(
+                            4.dp,
+                        ).fillMaxWidth().align(Alignment.BottomCenter),
                     ) {
-                        Box(modifier = Modifier.fillMaxSize().background(MaterialTheme.colorScheme.secondaryContainer))
+                        Box(
+                            modifier = Modifier.fillMaxSize().background(
+                                MaterialTheme.colorScheme.secondaryContainer,
+                            ),
+                        )
                         Box(
                             modifier = Modifier
                                 .fillMaxWidth(playedPercentage.coerceIn(0f, 1f))
@@ -391,7 +479,9 @@ private fun NetworkFileThumbnail(file: NetworkFile, playedPercentage: Float?, is
                 } else {
                     LinearProgressIndicator(
                         progress = { playedPercentage.coerceIn(0f, 1f) },
-                        modifier = Modifier.align(Alignment.BottomCenter).fillMaxWidth().height(4.dp),
+                        modifier = Modifier.align(
+                            Alignment.BottomCenter,
+                        ).fillMaxWidth().height(4.dp),
                         gapSize = 0.dp,
                         drawStopIndicator = {},
                     )

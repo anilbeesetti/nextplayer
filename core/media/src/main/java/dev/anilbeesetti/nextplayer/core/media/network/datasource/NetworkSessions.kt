@@ -14,10 +14,7 @@ import kotlinx.coroutines.sync.withLock
 import org.koin.core.annotation.Single
 
 /** A connected client and the path to read on it. */
-class NetworkTarget(
-    val client: NetworkClient,
-    val filePath: String,
-)
+class NetworkTarget(val client: NetworkClient, val filePath: String)
 
 /**
  * Keeps the connected [NetworkClient] for the connection currently being played.

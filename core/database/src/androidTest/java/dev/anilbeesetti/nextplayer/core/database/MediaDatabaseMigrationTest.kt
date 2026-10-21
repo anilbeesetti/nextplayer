@@ -71,13 +71,21 @@ class MediaDatabaseMigrationTest {
         helper.createDatabase("audio-migration", 11).apply {
             execSQL(
                 "INSERT INTO media_state " +
-                    "(uri, playback_position, external_subs, video_scale, subtitle_delay, subtitle_speed) " +
+                    "(uri, playback_position, external_subs, " +
+                    "video_scale, subtitle_delay, subtitle_speed) " +
                     "VALUES ('content://video/one', 12345, 'file:///captions.srt', 1, 0, 1)",
             )
             close()
         }
-        helper.runMigrationsAndValidate("audio-migration", 12, true, MediaDatabase.MIGRATION_11_12).use { db ->
-            db.query("SELECT playback_position, external_subs, external_audio FROM media_state").use { cursor ->
+        helper.runMigrationsAndValidate(
+            "audio-migration",
+            12,
+            true,
+            MediaDatabase.MIGRATION_11_12,
+        ).use { db ->
+            db.query(
+                "SELECT playback_position, external_subs, external_audio FROM media_state",
+            ).use { cursor ->
                 check(cursor.moveToFirst())
                 assertEquals(12345L, cursor.getLong(0))
                 assertEquals("file:///captions.srt", cursor.getString(1))
@@ -110,24 +118,47 @@ class MediaDatabaseMigrationTest {
             )
             close()
         }
-        helper.runMigrationsAndValidate("speed-migration", 13, true, MediaDatabase.MIGRATION_12_13).use { db ->
+        helper.runMigrationsAndValidate(
+            "speed-migration",
+            13,
+            true,
+            MediaDatabase.MIGRATION_12_13,
+        ).use { db ->
             db.query("SELECT * FROM media_state ORDER BY uri").use { cursor ->
                 assertEquals(2, cursor.count)
                 assertEquals(-1, cursor.getColumnIndex("playback_speed"))
                 check(cursor.moveToFirst())
-                assertEquals("content://video/one", cursor.getString(cursor.getColumnIndexOrThrow("uri")))
-                assertEquals(12345L, cursor.getLong(cursor.getColumnIndexOrThrow("playback_position")))
+                assertEquals(
+                    "content://video/one",
+                    cursor.getString(cursor.getColumnIndexOrThrow("uri")),
+                )
+                assertEquals(
+                    12345L,
+                    cursor.getLong(cursor.getColumnIndexOrThrow("playback_position")),
+                )
                 assertEquals(2, cursor.getInt(cursor.getColumnIndexOrThrow("audio_track_index")))
                 assertEquals(3, cursor.getInt(cursor.getColumnIndexOrThrow("subtitle_track_index")))
-                assertEquals(67890L, cursor.getLong(cursor.getColumnIndexOrThrow("last_played_time")))
+                assertEquals(
+                    67890L,
+                    cursor.getLong(cursor.getColumnIndexOrThrow("last_played_time")),
+                )
                 assertEquals(90000L, cursor.getLong(cursor.getColumnIndexOrThrow("duration")))
-                assertEquals("file:///captions.srt", cursor.getString(cursor.getColumnIndexOrThrow("external_subs")))
-                assertEquals("file:///audio.aac", cursor.getString(cursor.getColumnIndexOrThrow("external_audio")))
+                assertEquals(
+                    "file:///captions.srt",
+                    cursor.getString(cursor.getColumnIndexOrThrow("external_subs")),
+                )
+                assertEquals(
+                    "file:///audio.aac",
+                    cursor.getString(cursor.getColumnIndexOrThrow("external_audio")),
+                )
                 assertEquals(1.5f, cursor.getFloat(cursor.getColumnIndexOrThrow("video_scale")))
                 assertEquals(250L, cursor.getLong(cursor.getColumnIndexOrThrow("subtitle_delay")))
                 assertEquals(0.75f, cursor.getFloat(cursor.getColumnIndexOrThrow("subtitle_speed")))
                 check(cursor.moveToNext())
-                assertEquals("content://video/two", cursor.getString(cursor.getColumnIndexOrThrow("uri")))
+                assertEquals(
+                    "content://video/two",
+                    cursor.getString(cursor.getColumnIndexOrThrow("uri")),
+                )
                 assertTrue(cursor.isNull(cursor.getColumnIndexOrThrow("audio_track_index")))
                 assertTrue(cursor.isNull(cursor.getColumnIndexOrThrow("last_played_time")))
                 assertEquals("", cursor.getString(cursor.getColumnIndexOrThrow("external_audio")))

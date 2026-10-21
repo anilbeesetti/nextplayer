@@ -39,7 +39,9 @@ class ControlsTopViewTest {
                 )
             }
         }
-        val decoder = composeRule.onNodeWithContentDescription(composeRule.activity.getString(R.string.select_decoders))
+        val decoder = composeRule.onNodeWithContentDescription(
+            composeRule.activity.getString(R.string.select_decoders),
+        )
 
         composeRule.runOnIdle { groupFocusRequester.requestFocus() }
         decoder.assertIsFocused().performKeyInput {

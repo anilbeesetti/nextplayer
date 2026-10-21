@@ -12,12 +12,23 @@ fun WatchHistoryConfirmationDialog(
     onConfirm: () -> Unit,
     onDismiss: () -> Unit,
 ) {
-    val title = stringResource(if (enableHistory) R.string.turn_on_watch_history else R.string.turn_off_watch_history)
+    val title =
+        stringResource(
+            if (enableHistory) R.string.turn_on_watch_history else R.string.turn_off_watch_history,
+        )
     NextDialog(
         onDismissRequest = onDismiss,
         title = { Text(title) },
         content = {
-            Text(stringResource(if (enableHistory) R.string.turn_on_watch_history_confirmation else R.string.turn_off_watch_history_confirmation))
+            Text(
+                stringResource(
+                    if (enableHistory) {
+                        R.string.turn_on_watch_history_confirmation
+                    } else {
+                        R.string.turn_off_watch_history_confirmation
+                    },
+                ),
+            )
         },
         confirmButton = {
             TextButton(onClick = onConfirm) { Text(title) }

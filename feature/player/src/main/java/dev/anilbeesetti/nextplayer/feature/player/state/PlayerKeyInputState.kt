@@ -68,7 +68,11 @@ internal class PlayerKeyInputState(
         if (controls.controlsLocked) {
             return when (keyEvent.key) {
                 Key.DirectionCenter, Key.Enter, Key.NumPadEnter -> {
-                    if (controls.controlsVisible) controls.unlockControls() else controls.showControls()
+                    if (controls.controlsVisible) {
+                        controls.unlockControls()
+                    } else {
+                        controls.showControls()
+                    }
                     true
                 }
 

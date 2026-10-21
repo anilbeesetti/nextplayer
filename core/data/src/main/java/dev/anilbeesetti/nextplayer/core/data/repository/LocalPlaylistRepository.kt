@@ -16,9 +16,7 @@ import kotlinx.coroutines.flow.map
 import org.koin.core.annotation.Single
 
 @Single
-class LocalPlaylistRepository(
-    private val playlistDao: PlaylistDao,
-) : PlaylistRepository {
+class LocalPlaylistRepository(private val playlistDao: PlaylistDao) : PlaylistRepository {
 
     override fun observePlaylists(): Flow<List<PlaylistSummary>> =
         playlistDao.observeSummaries().map { summaries ->
@@ -55,10 +53,7 @@ class LocalPlaylistRepository(
         )
     }
 
-    override suspend fun replaceM3UItems(
-        playlistId: Long,
-        items: List<M3UPlaylistItem>,
-    ) {
+    override suspend fun replaceM3UItems(playlistId: Long, items: List<M3UPlaylistItem>) {
         playlistDao.replaceM3UItems(
             playlistId = playlistId,
             items = items.toEntities(playlistId),

@@ -26,9 +26,7 @@ fun rememberBrightnessState(): BrightnessState {
 }
 
 @Stable
-class BrightnessState(
-    private val activity: PlayerActivity,
-) {
+class BrightnessState(private val activity: PlayerActivity) {
     val maxBrightness: Float = WindowManager.LayoutParams.BRIGHTNESS_OVERRIDE_FULL
     var currentBrightness: Float by mutableFloatStateOf(activity.currentBrightness)
         private set
@@ -46,15 +44,16 @@ class BrightnessState(
         activity.window.attributes = windowAttributes
     }
 
-    fun handleListeners(disposableEffectScope: DisposableEffectScope): DisposableEffectResult = with(disposableEffectScope) {
-        val windowAttributesChangedListener: Consumer<WindowManager.LayoutParams?> = Consumer {
-            currentBrightness = activity.currentBrightness
-            brightnessPercentage = activity.brightnessPercentage
-        }
-        activity.addOnWindowAttributesChangedListener(windowAttributesChangedListener)
+    fun handleListeners(disposableEffectScope: DisposableEffectScope): DisposableEffectResult =
+        with(disposableEffectScope) {
+            val windowAttributesChangedListener: Consumer<WindowManager.LayoutParams?> = Consumer {
+                currentBrightness = activity.currentBrightness
+                brightnessPercentage = activity.brightnessPercentage
+            }
+            activity.addOnWindowAttributesChangedListener(windowAttributesChangedListener)
 
-        onDispose {
-            activity.removeOnWindowAttributesChangedListener(windowAttributesChangedListener)
+            onDispose {
+                activity.removeOnWindowAttributesChangedListener(windowAttributesChangedListener)
+            }
         }
-    }
 }

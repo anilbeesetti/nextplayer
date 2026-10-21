@@ -9,7 +9,9 @@ import org.junit.Test
 class PlayerPreferencesTest {
     @Test
     fun `existing preferences keep tunneled playback disabled`() {
-        val preferences = Json.decodeFromString<PlayerPreferences>("""{"autoplay":false,"preferredAudioLanguage":"en"}""")
+        val preferences = Json.decodeFromString<PlayerPreferences>(
+            """{"autoplay":false,"preferredAudioLanguage":"en"}""",
+        )
 
         assertFalse(preferences.enableTunneledPlayback)
         assertFalse(preferences.autoplay)

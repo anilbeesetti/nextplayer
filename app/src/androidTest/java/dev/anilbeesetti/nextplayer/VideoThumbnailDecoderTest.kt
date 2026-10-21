@@ -35,7 +35,9 @@ class VideoThumbnailDecoderTest {
     fun contentVideoWithInaccessiblePathDecodesWithoutCachedThumbnail() = runBlocking {
         val targetContext = ApplicationProvider.getApplicationContext<Context>()
         val file = File(targetContext.cacheDir, "thumbnail-test.mp4")
-        InstrumentationRegistry.getInstrumentation().context.assets.open("thumbnail-test.mp4").use { input ->
+        InstrumentationRegistry.getInstrumentation().context.assets.open(
+            "thumbnail-test.mp4",
+        ).use { input ->
             file.outputStream().use { input.copyTo(it) }
         }
         val provider = object : ContentProvider() {
@@ -57,8 +59,17 @@ class VideoThumbnailDecoderTest {
             }
 
             override fun insert(uri: Uri, values: ContentValues?): Uri? = null
-            override fun delete(uri: Uri, selection: String?, selectionArgs: Array<out String>?): Int = 0
-            override fun update(uri: Uri, values: ContentValues?, selection: String?, selectionArgs: Array<out String>?): Int = 0
+            override fun delete(
+                uri: Uri,
+                selection: String?,
+                selectionArgs: Array<out String>?,
+            ): Int = 0
+            override fun update(
+                uri: Uri,
+                values: ContentValues?,
+                selection: String?,
+                selectionArgs: Array<out String>?,
+            ): Int = 0
         }
         val resolver = ContentResolver.wrap(provider)
         val context = object : ContextWrapper(targetContext) {
@@ -89,16 +100,40 @@ class VideoThumbnailDecoderTest {
                 },
             ),
         )
-        val readPermission = if (Build.VERSION.SDK_INT >= 33) Manifest.permission.READ_MEDIA_VIDEO else Manifest.permission.READ_EXTERNAL_STORAGE
+        val readPermission = if (Build.VERSION.SDK_INT >=
+            33
+        ) {
+            Manifest.permission.READ_MEDIA_VIDEO
+        } else {
+            Manifest.permission.READ_EXTERNAL_STORAGE
+        }
         instrumentation.uiAutomation.adoptShellPermissionIdentity(readPermission)
         try {
             instrumentation.context.assets.open("thumbnail-test.mp4").use { input ->
                 context.contentResolver.openOutputStream(uri)!!.use { input.copyTo(it) }
             }
-            context.contentResolver.update(uri, ContentValues().apply { put(MediaStore.MediaColumns.IS_PENDING, 0) }, null, null)
+            context.contentResolver.update(
+                uri,
+                ContentValues().apply {
+                    put(MediaStore.MediaColumns.IS_PENDING, 0)
+                },
+                null,
+                null,
+            )
             // Transfer ownership so the test covers another app's trashed video.
-            shell("content update --uri $uri --bind owner_package_name:s:com.android.shell --bind is_trashed:i:1")
-            context.contentResolver.query(uri, arrayOf(MediaStore.MediaColumns.IS_TRASHED, MediaStore.MediaColumns.OWNER_PACKAGE_NAME), null, null, null)!!.use { cursor ->
+            shell(
+                "content update --uri $uri --bind owner_package_name:s:com.android.shell --bind is_trashed:i:1",
+            )
+            context.contentResolver.query(
+                uri,
+                arrayOf(
+                    MediaStore.MediaColumns.IS_TRASHED,
+                    MediaStore.MediaColumns.OWNER_PACKAGE_NAME,
+                ),
+                null,
+                null,
+                null,
+            )!!.use { cursor ->
                 assertTrue(cursor.moveToFirst())
                 assertEquals(1, cursor.getInt(0))
                 assertEquals("com.android.shell", cursor.getString(1))
@@ -112,7 +147,11 @@ class VideoThumbnailDecoderTest {
     }
 
     private suspend fun assertDecodesAllStrategies(context: Context, uri: String) {
-        for (strategy in listOf(ThumbnailStrategy.FirstFrame, ThumbnailStrategy.FrameAtPercentage(), ThumbnailStrategy.Hybrid())) {
+        for (strategy in listOf(
+            ThumbnailStrategy.FirstFrame,
+            ThumbnailStrategy.FrameAtPercentage(),
+            ThumbnailStrategy.Hybrid(),
+        )) {
             val imageLoader = ImageLoader.Builder(context)
                 .components { add(VideoThumbnailDecoder.Factory { strategy }) }
                 .build()

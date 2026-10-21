@@ -3,10 +3,7 @@ package dev.anilbeesetti.nextplayer.core.media.network.keys
 import android.net.Uri
 import java.io.File
 
-data class StagedSshKey(
-    val fileName: String,
-    val displayName: String,
-)
+data class StagedSshKey(val fileName: String, val displayName: String)
 
 interface SshKeyStore {
     /**

@@ -104,7 +104,9 @@ class NextOutlinedTextFieldTest {
             }
         }
         composeRule.waitUntil(5_000) {
-            composeRule.onAllNodes(androidx.compose.ui.test.isFocused()).fetchSemanticsNodes().isNotEmpty()
+            composeRule.onAllNodes(
+                androidx.compose.ui.test.isFocused(),
+            ).fetchSemanticsNodes().isNotEmpty()
         }
         composeRule.onNodeWithText("Original").assertIsFocused()
         assertKeyboardStaysHidden()
@@ -127,7 +129,9 @@ class NextOutlinedTextFieldTest {
                     value = "Query",
                     onValueChange = {},
                     trailingIcon = {
-                        IconButton(onClick = { clicked = true }, modifier = Modifier.testTag("clear")) {
+                        IconButton(onClick = {
+                            clicked = true
+                        }, modifier = Modifier.testTag("clear")) {
                             Text("Clear")
                         }
                     },
@@ -192,7 +196,9 @@ class NextOutlinedTextFieldTest {
 
     private fun keyboardIsShown(): Boolean {
         val automation = InstrumentationRegistry.getInstrumentation().uiAutomation
-        val output = ParcelFileDescriptor.AutoCloseInputStream(automation.executeShellCommand("dumpsys input_method"))
+        val output = ParcelFileDescriptor.AutoCloseInputStream(
+            automation.executeShellCommand("dumpsys input_method"),
+        )
             .bufferedReader().use { it.readText() }
         check("mInputShown=" in output) { "Keyboard visibility missing from input_method dump" }
         return "mInputShown=true" in output

@@ -19,7 +19,10 @@ class DecoderServiceStateTest {
         val extras = Bundle().apply {
             putString(CustomCommands.VIDEO_DECODER_MODE_KEY, DecoderMode.FFMPEG.name)
             putString(CustomCommands.AUDIO_DECODER_MODE_KEY, DecoderMode.SOFTWARE.name)
-            putString(CustomCommands.DECODER_RECOVERY_STATUS_KEY, DecoderRecoveryStatus.AWAITING_CONFIRMATION.name)
+            putString(
+                CustomCommands.DECODER_RECOVERY_STATUS_KEY,
+                DecoderRecoveryStatus.AWAITING_CONFIRMATION.name,
+            )
             putString(CustomCommands.DECODER_RECOVERY_TRACK_TYPE_KEY, DecoderTrackType.VIDEO.name)
             putString(CustomCommands.UNSUPPORTED_DECODER_MODE_KEY, DecoderMode.HARDWARE.name)
         }

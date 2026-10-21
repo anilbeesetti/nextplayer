@@ -90,9 +90,7 @@ import sh.calvin.reorderable.ReorderableItem
 import sh.calvin.reorderable.rememberReorderableLazyListState
 
 @Composable
-fun PlaylistDetailScreen(
-    viewModel: PlaylistDetailViewModel,
-) {
+fun PlaylistDetailScreen(viewModel: PlaylistDetailViewModel) {
     val state by viewModel.state.collectAsStateWithLifecycle()
 
     PlaylistDetailScreenContent(
@@ -259,7 +257,9 @@ internal fun PlaylistDetailScreenContent(
                                 ) {
                                     Icon(
                                         imageVector = NextIcons.Reorder,
-                                        contentDescription = stringResource(R.string.reorder_playlist),
+                                        contentDescription = stringResource(
+                                            R.string.reorder_playlist,
+                                        ),
                                     )
                                 }
                             }

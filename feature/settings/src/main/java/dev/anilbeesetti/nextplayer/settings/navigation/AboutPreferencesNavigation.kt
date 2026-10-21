@@ -31,7 +31,10 @@ fun EntryProviderScope<NavKey>.aboutPreferencesEntry(
     onNavigateUp: () -> Unit,
 ) {
     entry<AboutPreferencesRoute> {
-        val output = AboutPreferencesViewModel.Output(navigateUp = onNavigateUp, openLibraries = onLibrariesClick)
+        val output = AboutPreferencesViewModel.Output(
+            navigateUp = onNavigateUp,
+            openLibraries = onLibrariesClick,
+        )
         val viewModel = koinViewModel<AboutPreferencesViewModel>(
             parameters = { parametersOf(output) },
         )

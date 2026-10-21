@@ -36,10 +36,10 @@ import dev.anilbeesetti.nextplayer.core.ui.extensions.plus
 import dev.anilbeesetti.nextplayer.core.ui.theme.NextPlayerTheme
 
 @Composable
-fun FolderPreferencesScreen(
-    viewModel: FolderPreferencesViewModel,
-) {
-    val state by viewModel.state.collectAsStateWithLifecycle(minActiveState = Lifecycle.State.RESUMED)
+fun FolderPreferencesScreen(viewModel: FolderPreferencesViewModel) {
+    val state by viewModel.state.collectAsStateWithLifecycle(
+        minActiveState = Lifecycle.State.RESUMED,
+    )
 
     FolderPreferencesScreenContent(
         state = state,
@@ -97,7 +97,9 @@ private fun FolderPreferencesScreenContent(
                             title = folder.name,
                             description = folder.path,
                             selected = folder.path in state.preferences.excludeFolders,
-                            onClick = { onAction(FolderPreferencesUiEvent.UpdateExcludeList(folder.path)) },
+                            onClick = {
+                                onAction(FolderPreferencesUiEvent.UpdateExcludeList(folder.path))
+                            },
                             isFirstItem = index == 0,
                             isLastItem = index == state.foldersDataState.value.lastIndex,
                         )

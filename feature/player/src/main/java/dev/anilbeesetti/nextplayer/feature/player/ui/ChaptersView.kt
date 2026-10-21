@@ -32,7 +32,9 @@ fun BoxScope.ChaptersView(
     OverlayView(show = show, title = stringResource(R.string.chapters)) {
         LazyColumn(
             modifier = Modifier.fillMaxSize().navigationBarsPadding(),
-            state = rememberLazyListState(initialFirstVisibleItemIndex = currentChapterIndex.coerceAtLeast(0)),
+            state = rememberLazyListState(
+                initialFirstVisibleItemIndex = currentChapterIndex.coerceAtLeast(0),
+            ),
             contentPadding = PaddingValues(horizontal = 16.dp, vertical = 8.dp),
         ) {
             itemsIndexed(chapters, key = { _, chapter -> chapter.startTimeMs }) { index, chapter ->

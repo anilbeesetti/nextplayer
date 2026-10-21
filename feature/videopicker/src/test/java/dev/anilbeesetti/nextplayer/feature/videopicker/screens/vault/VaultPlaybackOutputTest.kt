@@ -47,52 +47,64 @@ class VaultPlaybackOutputTest {
     }
 
     @Test
-    fun `direct video action invokes the current output without an event collector`() = runTest(testDispatcher.scheduler) {
-        val uri = "content://dev.anilbeesetti.nextplayer.fileprovider/vault/1821".toUri()
-        val viewModel = VaultViewModel(
-            output = VaultViewModel.Output(navigateUp = {}, playVideo = {}, playVideos = {}),
-            vaultRepository = FakeVaultRepository,
-            vaultPinRepository = FakeVaultPinRepository,
-            getHiddenVideosUseCase = GetHiddenVideosUseCase(FakeVaultRepository, testDispatcher),
-            preferencesRepository = FakePreferencesRepository(),
-        )
-        val played = mutableListOf<Uri>()
-        viewModel.output = VaultViewModel.Output(navigateUp = {}, playVideo = { error("Stale output") }, playVideos = {})
-        viewModel.output = VaultViewModel.Output(navigateUp = {}, playVideo = played::add, playVideos = {})
+    fun `direct video action invokes the current output without an event collector`() =
+        runTest(testDispatcher.scheduler) {
+            val uri = "content://dev.anilbeesetti.nextplayer.fileprovider/vault/1821".toUri()
+            val viewModel = VaultViewModel(
+                output = VaultViewModel.Output(navigateUp = {}, playVideo = {}, playVideos = {}),
+                vaultRepository = FakeVaultRepository,
+                vaultPinRepository = FakeVaultPinRepository,
+                getHiddenVideosUseCase = GetHiddenVideosUseCase(
+                    FakeVaultRepository,
+                    testDispatcher,
+                ),
+                preferencesRepository = FakePreferencesRepository(),
+            )
+            val played = mutableListOf<Uri>()
+            viewModel.output =
+                VaultViewModel.Output(navigateUp = {
+                }, playVideo = { error("Stale output") }, playVideos = {})
+            viewModel.output =
+                VaultViewModel.Output(navigateUp = {}, playVideo = played::add, playVideos = {})
 
-        viewModel.onAction(VaultAction.PlayVideo(Video.sample.copy(uriString = uri.toString())))
-        assertEquals(listOf(uri), played)
-    }
+            viewModel.onAction(VaultAction.PlayVideo(Video.sample.copy(uriString = uri.toString())))
+            assertEquals(listOf(uri), played)
+        }
 
     @Test
-    fun `selected videos invoke output once and empty selection does not play`() = runTest(testDispatcher.scheduler) {
-        val played = mutableListOf<List<Uri>>()
-        val viewModel = VaultViewModel(
-            output = VaultViewModel.Output(navigateUp = {}, playVideo = {}, playVideos = played::add),
-            vaultRepository = FakeVaultRepository,
-            vaultPinRepository = FakeVaultPinRepository,
-            getHiddenVideosUseCase = GetHiddenVideosUseCase(FakeVaultRepository, testDispatcher),
-            preferencesRepository = FakePreferencesRepository(),
-        )
-        advanceUntilIdle()
-        viewModel.onAction(VaultAction.SubmitUnlockPin("1234"))
-        advanceUntilIdle()
+    fun `selected videos invoke output once and empty selection does not play`() =
+        runTest(testDispatcher.scheduler) {
+            val played = mutableListOf<List<Uri>>()
+            val viewModel = VaultViewModel(
+                output = VaultViewModel.Output(navigateUp = {
+                }, playVideo = {}, playVideos = played::add),
+                vaultRepository = FakeVaultRepository,
+                vaultPinRepository = FakeVaultPinRepository,
+                getHiddenVideosUseCase = GetHiddenVideosUseCase(
+                    FakeVaultRepository,
+                    testDispatcher,
+                ),
+                preferencesRepository = FakePreferencesRepository(),
+            )
+            advanceUntilIdle()
+            viewModel.onAction(VaultAction.SubmitUnlockPin("1234"))
+            advanceUntilIdle()
 
-        viewModel.onAction(VaultAction.PlaySelected(emptySet()))
-        viewModel.onAction(
-            VaultAction.PlaySelected(
-                setOf(
-                    SelectionItem.Video(
-                        name = Video.sample.nameWithExtension,
-                        uriString = Video.sample.uriString,
-                        path = Video.sample.path,
+            viewModel.onAction(VaultAction.PlaySelected(emptySet()))
+            viewModel.onAction(
+                VaultAction.PlaySelected(
+                    setOf(
+                        SelectionItem.Video(
+                            name = Video.sample.nameWithExtension,
+                            uriString = Video.sample.uriString,
+                            path = Video.sample.path,
+                        ),
                     ),
                 ),
-            ),
-        )
+            )
 
-        assertEquals(listOf(listOf(Video.sample.uriString.toUri())), played)
-    }
+            assertEquals(listOf(listOf(Video.sample.uriString.toUri())), played)
+        }
 
     private data object FakeVaultRepository : VaultRepository {
         override fun observeHiddenVideos(): Flow<List<Video>> = flowOf(listOf(Video.sample))
@@ -113,8 +125,10 @@ class VaultPlaybackOutputTest {
     }
 
     private class FakePreferencesRepository : PreferencesRepository {
-        override val applicationPreferences: StateFlow<ApplicationPreferences> = MutableStateFlow(ApplicationPreferences())
-        override val playerPreferences: StateFlow<PlayerPreferences> = MutableStateFlow(PlayerPreferences())
+        override val applicationPreferences: StateFlow<ApplicationPreferences> =
+            MutableStateFlow(ApplicationPreferences())
+        override val playerPreferences: StateFlow<PlayerPreferences> =
+            MutableStateFlow(PlayerPreferences())
 
         override suspend fun updateApplicationPreferences(
             transform: suspend (ApplicationPreferences) -> ApplicationPreferences,

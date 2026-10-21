@@ -33,10 +33,14 @@ class ExternalAudioMediaSourceFactoryTest {
         try {
             instrumentation.runOnMainSync {
                 player = ExoPlayer.Builder(context)
-                    .setMediaSourceFactory(ExternalAudioMediaSourceFactory(DefaultMediaSourceFactory(context)))
+                    .setMediaSourceFactory(
+                        ExternalAudioMediaSourceFactory(DefaultMediaSourceFactory(context)),
+                    )
                     .build()
                 player.setMediaItem(
-                    MediaItem.fromUri(primary.toUri()).withExternalAudio(listOf(shortAudio.toUri(), longAudio.toUri())),
+                    MediaItem.fromUri(
+                        primary.toUri(),
+                    ).withExternalAudio(listOf(shortAudio.toUri(), longAudio.toUri())),
                 )
                 player.prepare()
             }
@@ -48,7 +52,10 @@ class ExternalAudioMediaSourceFactoryTest {
                 player.setPlaybackSpeed(1.5f)
                 player.seekTo(2000)
             }
-            await { player.currentTracks.groups[1].isSelected && player.playbackState == Player.STATE_READY }
+            await {
+                player.currentTracks.groups[1].isSelected &&
+                    player.playbackState == Player.STATE_READY
+            }
             instrumentation.runOnMainSync {
                 assertEquals(2000L, player.currentPosition)
                 assertEquals(1.5f, player.playbackParameters.speed)

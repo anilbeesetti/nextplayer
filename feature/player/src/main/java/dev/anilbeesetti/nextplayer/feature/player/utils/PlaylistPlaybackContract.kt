@@ -25,14 +25,9 @@ internal fun MediaItem.asExplicitPlaylistItem(): MediaItem = buildUpon()
         ).build(),
     ).build()
 
-internal data class PlaylistMediaQueue(
-    val mediaItems: List<MediaItem>,
-    val startIndex: Int,
-)
+internal data class PlaylistMediaQueue(val mediaItems: List<MediaItem>, val startIndex: Int)
 
-internal fun PlaylistRecord.toMediaQueue(
-    selectedUri: String,
-): PlaylistMediaQueue? {
+internal fun PlaylistRecord.toMediaQueue(selectedUri: String): PlaylistMediaQueue? {
     val startIndex = items.indexOfFirst { it.uri == selectedUri }
         .takeIf { it >= 0 }
         ?: return null

@@ -85,20 +85,37 @@ class VaultViewModel(
             is VaultAction.NavigateUp -> output.navigateUp()
 
             is VaultAction.SubmitNewPin -> submitNewPin(action.pin)
+
             is VaultAction.SubmitPinConfirmation -> submitPinConfirmation(action.pin)
+
             is VaultAction.SubmitUnlockPin -> submitUnlockPin(action.pin)
+
             is VaultAction.BiometricAuthenticated -> {
-                if (stateInternal.value.stage == VaultStage.LOCKED && stateInternal.value.biometricEnabled) unlockVault()
+                if (stateInternal.value.stage == VaultStage.LOCKED &&
+                    stateInternal.value.biometricEnabled
+                ) {
+                    unlockVault()
+                }
             }
+
             is VaultAction.CompleteBiometricSetup -> completeBiometricSetup(action.enabled)
+
             is VaultAction.SetBiometricEnabled -> setBiometricEnabled(action.enabled)
+
             is VaultAction.PlayVideo -> playVideo(action.video)
+
             is VaultAction.PlaySelected -> playSelected(action.selectionItems)
+
             is VaultAction.UnhideSelected -> unhideVideos(action.selectionItems)
+
             is VaultAction.DeleteSelected -> deleteVideos(action.selectionItems)
+
             is VaultAction.ShowMediaInfo -> showMediaInfo(action.video)
+
             is VaultAction.DismissMediaInfo -> stateInternal.update { it.copy(mediaInfo = null) }
+
             is VaultAction.UpdateSort -> updateSort(action.sort)
+
             is VaultAction.UpdateQuickSettings -> {
                 updateSort(action.sort)
                 viewModelScope.launch {
@@ -119,7 +136,9 @@ class VaultViewModel(
     }
 
     private fun submitNewPin(pin: String) {
-        stateInternal.update { it.copy(pendingPin = pin, stage = VaultStage.CONFIRM_PIN, pinErrorCount = 0) }
+        stateInternal.update {
+            it.copy(pendingPin = pin, stage = VaultStage.CONFIRM_PIN, pinErrorCount = 0)
+        }
     }
 
     private fun submitPinConfirmation(pin: String) {

@@ -56,7 +56,6 @@ class NetworkViewModel(
             is NetworkAction.OpenConnection -> output.openConnection(action.id)
             is NetworkAction.OpenSettings -> output.openSettings()
             is NetworkAction.OpenStream -> output.openStream(action.uri)
-
             is NetworkAction.DeleteConnection -> deleteConnection(action.id)
         }
     }

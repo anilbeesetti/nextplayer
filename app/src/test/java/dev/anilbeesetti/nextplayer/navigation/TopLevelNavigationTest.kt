@@ -62,7 +62,10 @@ class TopLevelNavigationTest {
         state.openPlaylist(42)
 
         assertEquals(TopLevelDestination.PLAYLISTS.route, state.topLevelRoute)
-        assertEquals(listOf(TopLevelDestination.PLAYLISTS.route, PlaylistDetailRoute(42)), state.currentStack)
+        assertEquals(
+            listOf(TopLevelDestination.PLAYLISTS.route, PlaylistDetailRoute(42)),
+            state.currentStack,
+        )
         state.goBack()
         assertEquals(listOf(TopLevelDestination.PLAYLISTS.route), state.currentStack)
         state.goBack()
@@ -81,7 +84,9 @@ class TopLevelNavigationTest {
         )
         for (dest in TopLevelDestination.entries) {
             assert(state.topLevelContentKeys.contains(dest.route))
-            assert(state.topLevelContentKeys.contains(Pair("${dest.route}", "${dest.route::class}")))
+            assert(
+                state.topLevelContentKeys.contains(Pair("${dest.route}", "${dest.route::class}")),
+            )
         }
     }
 }

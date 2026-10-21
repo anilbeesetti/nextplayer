@@ -25,8 +25,8 @@ import androidx.compose.material3.Text
 import androidx.compose.material3.surfaceColorAtElevation
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.remember
 import androidx.compose.runtime.produceState
+import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -54,8 +54,8 @@ import dev.anilbeesetti.nextplayer.core.ui.R
 import dev.anilbeesetti.nextplayer.core.ui.components.NextSegmentedListItem
 import dev.anilbeesetti.nextplayer.core.ui.designsystem.NextIcons
 import dev.anilbeesetti.nextplayer.core.ui.theme.NextPlayerTheme
-import kotlinx.coroutines.delay
 import kotlin.time.Duration.Companion.seconds
+import kotlinx.coroutines.delay
 
 @Composable
 fun VideoItem(
@@ -81,6 +81,7 @@ fun VideoItem(
             onClick = onClick,
             onLongClick = onLongClick,
         )
+
         MediaLayoutMode.GRID -> VideoGridItem(
             video = video,
             isRecentlyPlayedVideo = isRecentlyPlayedVideo,
@@ -110,7 +111,8 @@ fun VideoListItem(
 ) {
     val path = video.path.substringBeforeLast("/")
     val showPath = preferences.showPathField && path.isNotBlank()
-    val showSize = preferences.showSizeField && video.size > 0 && video.formattedFileSize.isNotBlank()
+    val showSize =
+        preferences.showSizeField && video.size > 0 && video.formattedFileSize.isNotBlank()
     val showResolution = preferences.showResolutionField && video.height > 0
 
     NextSegmentedListItem(
@@ -144,7 +146,11 @@ fun VideoListItem(
         },
         content = {
             Text(
-                text = if (preferences.showExtensionField) video.nameWithExtension else video.displayName,
+                text = if (preferences.showExtensionField) {
+                    video.nameWithExtension
+                } else {
+                    video.displayName
+                },
                 maxLines = 2,
                 style = MaterialTheme.typography.titleMedium.copy(lineBreak = LineBreak.Heading),
                 overflow = TextOverflow.Ellipsis,
@@ -230,7 +236,11 @@ fun VideoGridItem(
                     preferences = preferences,
                 )
                 Text(
-                    text = if (preferences.showExtensionField) video.nameWithExtension else video.displayName,
+                    text = if (preferences.showExtensionField) {
+                        video.nameWithExtension
+                    } else {
+                        video.displayName
+                    },
                     maxLines = 2,
                     style = textStyle.copy(lineBreak = LineBreak.Heading),
                     overflow = TextOverflow.Ellipsis,
@@ -297,7 +307,9 @@ private fun ThumbnailView(
                 modifier = Modifier.fillMaxSize(),
             )
         }
-        if (preferences.showDurationField && video.duration > 0 && video.formattedDuration.isNotBlank()) {
+        if (preferences.showDurationField && video.duration > 0 &&
+            video.formattedDuration.isNotBlank()
+        ) {
             InfoChip(
                 text = video.formattedDuration,
                 modifier = Modifier

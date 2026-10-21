@@ -29,7 +29,8 @@ class HistoryScreenTest {
 
     @Test
     fun turningHistoryOffAndOnRequiresConfirmation() {
-        val state = mutableStateOf(HistoryUiState(history = DataState.Success(listOf(Video.sample))))
+        val state =
+            mutableStateOf(HistoryUiState(history = DataState.Success(listOf(Video.sample))))
         val actions = mutableListOf<HistoryAction>()
         composeRule.setContent {
             NextPlayerTheme {
@@ -37,7 +38,9 @@ class HistoryScreenTest {
                     actions += action
                     if (action is HistoryAction.SetHistoryEnabled) {
                         state.value = state.value.copy(
-                            preferences = state.value.preferences.copy(isHistoryPaused = !action.enabled),
+                            preferences = state.value.preferences.copy(
+                                isHistoryPaused = !action.enabled,
+                            ),
                             history = DataState.Success(emptyList()),
                         )
                     }
@@ -47,7 +50,9 @@ class HistoryScreenTest {
 
         composeRule.onNodeWithContentDescription("Menu").performClick()
         composeRule.onNodeWithText("Turn off watch history").performClick()
-        composeRule.onNodeWithText("Turning off watch history will clear your watch history and stop recording videos you watch.").assertExists()
+        composeRule.onNodeWithText(
+            "Turning off watch history will clear your watch history and stop recording videos you watch.",
+        ).assertExists()
         composeRule.runOnIdle { assertEquals(emptyList<HistoryAction>(), actions) }
         composeRule.onNodeWithText("Cancel").performClick()
         composeRule.runOnIdle { assertEquals(emptyList<HistoryAction>(), actions) }
@@ -56,12 +61,16 @@ class HistoryScreenTest {
         composeRule.onNodeWithText("Turn off watch history").performClick()
         confirm("Turn off watch history")
         composeRule.onNodeWithText("Watch history is turned off").assertExists()
-        composeRule.runOnIdle { assertEquals(listOf(HistoryAction.SetHistoryEnabled(false)), actions) }
+        composeRule.runOnIdle {
+            assertEquals(listOf(HistoryAction.SetHistoryEnabled(false)), actions)
+        }
 
         composeRule.onNodeWithContentDescription("Menu").performClick()
         composeRule.onNodeWithText("Clear history").assertIsNotEnabled()
         composeRule.onNodeWithText("Turn on watch history").performClick()
-        composeRule.onNodeWithText("Start recording videos you watch in your watch history?").assertExists()
+        composeRule.onNodeWithText(
+            "Start recording videos you watch in your watch history?",
+        ).assertExists()
         composeRule.onNodeWithText("Cancel").performClick()
         composeRule.onNodeWithText("Watch history is turned off").assertExists()
         composeRule.runOnIdle { assertEquals(1, actions.size) }
@@ -70,18 +79,32 @@ class HistoryScreenTest {
         composeRule.onNodeWithText("Turn on watch history").performClick()
         confirm("Turn on watch history")
         composeRule.onNodeWithText("No watch history").assertExists()
-        composeRule.runOnIdle { assertEquals(listOf(HistoryAction.SetHistoryEnabled(false), HistoryAction.SetHistoryEnabled(true)), actions) }
+        composeRule.runOnIdle {
+            assertEquals(
+                listOf(
+                    HistoryAction.SetHistoryEnabled(false),
+                    HistoryAction.SetHistoryEnabled(true),
+                ),
+                actions,
+            )
+        }
     }
 
     @Test
     fun clearHistoryRequiresConfirmationAndShowsEmptyState() {
-        val state = mutableStateOf(HistoryUiState(history = DataState.Success(listOf(Video.sample))))
+        val state =
+            mutableStateOf(HistoryUiState(history = DataState.Success(listOf(Video.sample))))
         val actions = mutableListOf<HistoryAction>()
         composeRule.setContent {
             NextPlayerTheme {
                 HistoryScreenContent(state = state.value) { action ->
                     actions += action
-                    if (action == HistoryAction.ClearHistory) state.value = state.value.copy(history = DataState.Success(emptyList()))
+                    if (action ==
+                        HistoryAction.ClearHistory
+                    ) {
+                        state.value =
+                            state.value.copy(history = DataState.Success(emptyList()))
+                    }
                 }
             }
         }

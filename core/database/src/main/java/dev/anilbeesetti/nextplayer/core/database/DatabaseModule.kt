@@ -9,9 +9,7 @@ import org.koin.core.annotation.Single
 class DatabaseModule {
 
     @Single
-    fun provideMediaDatabase(
-        context: Context,
-    ): MediaDatabase = Room.databaseBuilder(
+    fun provideMediaDatabase(context: Context): MediaDatabase = Room.databaseBuilder(
         context = context,
         klass = MediaDatabase::class.java,
         name = MediaDatabase.DATABASE_NAME,

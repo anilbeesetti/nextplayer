@@ -63,9 +63,7 @@ fun EntryProviderScope<NavKey>.networkEntry(
     }
 }
 
-fun EntryProviderScope<NavKey>.addConnectionEntry(
-    onNavigateUp: () -> Unit,
-) {
+fun EntryProviderScope<NavKey>.addConnectionEntry(onNavigateUp: () -> Unit) {
     entry<AddConnectionRoute>(
         metadata = metadata {
             put(NavDisplay.TransitionKey) {
@@ -112,7 +110,10 @@ fun EntryProviderScope<NavKey>.networkBrowseEntry(
             val viewModel = koinViewModel<NetworkBrowseViewModel>(
                 parameters = {
                     parametersOf(
-                        NetworkBrowseViewModel.Input(connectionId = key.connectionId, path = key.path),
+                        NetworkBrowseViewModel.Input(
+                            connectionId = key.connectionId,
+                            path = key.path,
+                        ),
                         output,
                     )
                 },

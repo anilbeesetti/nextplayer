@@ -181,8 +181,12 @@ abstract class MediaDatabase : RoomDatabase() {
 
         val MIGRATION_3_4 = object : Migration(3, 4) {
             override fun migrate(db: SupportSQLiteDatabase) {
-                db.execSQL("ALTER TABLE `media_state` ADD COLUMN `subtitle_delay` INTEGER NOT NULL DEFAULT 0")
-                db.execSQL("ALTER TABLE `media_state` ADD COLUMN `subtitle_speed` REAL NOT NULL DEFAULT 1")
+                db.execSQL(
+                    "ALTER TABLE `media_state` ADD COLUMN `subtitle_delay` INTEGER NOT NULL DEFAULT 0",
+                )
+                db.execSQL(
+                    "ALTER TABLE `media_state` ADD COLUMN `subtitle_speed` REAL NOT NULL DEFAULT 1",
+                )
             }
         }
 
@@ -320,7 +324,9 @@ abstract class MediaDatabase : RoomDatabase() {
 
         val MIGRATION_11_12 = object : Migration(11, 12) {
             override fun migrate(db: SupportSQLiteDatabase) {
-                db.execSQL("ALTER TABLE `media_state` ADD COLUMN `external_audio` TEXT NOT NULL DEFAULT ''")
+                db.execSQL(
+                    "ALTER TABLE `media_state` ADD COLUMN `external_audio` TEXT NOT NULL DEFAULT ''",
+                )
             }
         }
 

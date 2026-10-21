@@ -16,10 +16,7 @@ import dev.anilbeesetti.nextplayer.feature.player.LocalControlsVisibilityState
 
 @OptIn(UnstableApi::class)
 @Composable
-internal fun PreviousButton(
-    modifier: Modifier = Modifier,
-    player: Player?,
-) {
+internal fun PreviousButton(modifier: Modifier = Modifier, player: Player?) {
     val state = rememberPreviousButtonState(player)
     val controlsVisibilityState = LocalControlsVisibilityState.current
 

@@ -31,6 +31,11 @@ class NetworkFileSortingTest {
     }
 
     private fun assertOrder(by: Sort.By, order: Sort.Order, vararg paths: String) {
-        assertEquals(paths.toList(), files.sortedWith(Sort(by, order).networkFileComparator()).map { it.path })
+        assertEquals(
+            paths.toList(),
+            files.sortedWith(Sort(by, order).networkFileComparator()).map {
+                it.path
+            },
+        )
     }
 }

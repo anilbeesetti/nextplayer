@@ -15,10 +15,7 @@ import dev.anilbeesetti.nextplayer.feature.videopicker.navigation.navigateToVaul
 import dev.anilbeesetti.nextplayer.feature.videopicker.navigation.searchEntry
 import dev.anilbeesetti.nextplayer.settings.navigation.navigateToSettings
 
-fun EntryProviderScope<NavKey>.mediaNavGraph(
-    context: Context,
-    backStack: NavBackStack<NavKey>,
-) {
+fun EntryProviderScope<NavKey>.mediaNavGraph(context: Context, backStack: NavBackStack<NavKey>) {
     mediaPickerEntry(
         onNavigateUp = { backStack.removeLastIfNotRoot() },
         onPlayVideo = { uri -> context.startPlayback(uri) },
@@ -34,7 +31,6 @@ fun EntryProviderScope<NavKey>.mediaNavGraph(
         onPlayVideo = { uri -> context.startPlayback(uri) },
         onFolderClick = backStack::navigateToMediaPickerScreen,
     )
-
 }
 
 internal fun Context.startPlayback(uri: Uri, grantReadPermission: Boolean = false) {

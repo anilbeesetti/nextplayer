@@ -152,8 +152,5 @@ class SshKeyFiles(
         const val MAX_PRIVATE_KEY_BYTES = 1024L * 1024L
     }
 
-    private data class PendingImport(
-        val fileName: String,
-        val temporaryFile: File,
-    )
+    private data class PendingImport(val fileName: String, val temporaryFile: File)
 }

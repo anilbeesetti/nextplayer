@@ -29,7 +29,11 @@ class MediaNavGraphTest {
         val intent = shadowOf(context).nextStartedActivity
         assertEquals(
             arrayListOf(uri),
-            IntentCompat.getParcelableArrayListExtra(intent, PlayerApi.API_PLAYLIST, Uri::class.java),
+            IntentCompat.getParcelableArrayListExtra(
+                intent,
+                PlayerApi.API_PLAYLIST,
+                Uri::class.java,
+            ),
         )
     }
 
@@ -65,7 +69,11 @@ class MediaNavGraphTest {
         assertEquals(second, intent.data)
         assertEquals(
             arrayListOf(first, second),
-            IntentCompat.getParcelableArrayListExtra(intent, PlayerApi.API_PLAYLIST, Uri::class.java),
+            IntentCompat.getParcelableArrayListExtra(
+                intent,
+                PlayerApi.API_PLAYLIST,
+                Uri::class.java,
+            ),
         )
     }
 

@@ -44,8 +44,12 @@ class ControlsMiddleViewTest {
         val player = composeRule.runOnIdle { TestPlayer() }
         try {
             showControls(player, groupFocusRequester)
-            val playPause = composeRule.onNodeWithContentDescription(composeRule.activity.getString(R.string.play_pause))
-            val next = composeRule.onNodeWithContentDescription(composeRule.activity.getString(R.string.player_controls_next))
+            val playPause = composeRule.onNodeWithContentDescription(
+                composeRule.activity.getString(R.string.play_pause),
+            )
+            val next = composeRule.onNodeWithContentDescription(
+                composeRule.activity.getString(R.string.player_controls_next),
+            )
 
             composeRule.runOnIdle { groupFocusRequester.requestFocus() }
             playPause.assertIsFocused()
@@ -68,9 +72,15 @@ class ControlsMiddleViewTest {
         val player = composeRule.runOnIdle { TestPlayer() }
         try {
             showControls(player, groupFocusRequester)
-            val playPause = composeRule.onNodeWithContentDescription(composeRule.activity.getString(R.string.play_pause))
-            val next = composeRule.onNodeWithContentDescription(composeRule.activity.getString(R.string.player_controls_next))
-            val previous = composeRule.onNodeWithContentDescription(composeRule.activity.getString(R.string.player_controls_previous))
+            val playPause = composeRule.onNodeWithContentDescription(
+                composeRule.activity.getString(R.string.play_pause),
+            )
+            val next = composeRule.onNodeWithContentDescription(
+                composeRule.activity.getString(R.string.player_controls_next),
+            )
+            val previous = composeRule.onNodeWithContentDescription(
+                composeRule.activity.getString(R.string.player_controls_previous),
+            )
             composeRule.runOnIdle { groupFocusRequester.requestFocus() }
 
             for (key in listOf(Key.DirectionCenter, Key.Enter, Key.NumPadEnter)) {
@@ -139,12 +149,23 @@ class ControlsMiddleViewTest {
         override fun getState(): State = state
 
         override fun handleSetPlayWhenReady(playWhenReady: Boolean): ListenableFuture<*> {
-            state = state.buildUpon().setPlayWhenReady(playWhenReady, Player.PLAY_WHEN_READY_CHANGE_REASON_USER_REQUEST).build()
+            state =
+                state.buildUpon().setPlayWhenReady(
+                    playWhenReady,
+                    Player.PLAY_WHEN_READY_CHANGE_REASON_USER_REQUEST,
+                ).build()
             return Futures.immediateVoidFuture()
         }
 
-        override fun handleSeek(mediaItemIndex: Int, positionMs: Long, seekCommand: Int): ListenableFuture<*> {
-            state = state.buildUpon().setCurrentMediaItemIndex(mediaItemIndex).setContentPositionMs(0).build()
+        override fun handleSeek(
+            mediaItemIndex: Int,
+            positionMs: Long,
+            seekCommand: Int,
+        ): ListenableFuture<*> {
+            state =
+                state.buildUpon().setCurrentMediaItemIndex(
+                    mediaItemIndex,
+                ).setContentPositionMs(0).build()
             return Futures.immediateVoidFuture()
         }
     }

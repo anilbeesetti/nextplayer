@@ -42,10 +42,7 @@ fun LibrariesScreen(viewModel: LibrariesViewModel) {
 
 @OptIn(ExperimentalMaterial3Api::class, ExperimentalMaterial3ExpressiveApi::class)
 @Composable
-private fun LibrariesScreenContent(
-    state: LibrariesUiState,
-    onAction: (LibrariesAction) -> Unit,
-) {
+private fun LibrariesScreenContent(state: LibrariesUiState, onAction: (LibrariesAction) -> Unit) {
     val context = LocalContext.current
     val uriHandler = LocalUriHandler.current
 
@@ -70,7 +67,9 @@ private fun LibrariesScreenContent(
             contentPadding = innerPadding + PaddingValues(horizontal = 16.dp),
             verticalArrangement = Arrangement.spacedBy(ListItemDefaults.SegmentedGap),
         ) {
-            itemsIndexed(state.libraries, key = { _, library -> library.uniqueId }) { index, library ->
+            itemsIndexed(state.libraries, key = { _, library ->
+                library.uniqueId
+            }) { index, library ->
                 NextSegmentedListItem(
                     content = {
                         Row(
@@ -102,9 +101,13 @@ private fun LibrariesScreenContent(
                             ) {
                                 library.licenses.forEach {
                                     Badge(
-                                        containerColor = MaterialTheme.colorScheme.secondaryContainer,
+                                        containerColor =
+                                            MaterialTheme.colorScheme.secondaryContainer,
                                     ) {
-                                        Text(text = it.name, modifier = Modifier.padding(horizontal = 2.dp))
+                                        Text(
+                                            text = it.name,
+                                            modifier = Modifier.padding(horizontal = 2.dp),
+                                        )
                                     }
                                 }
                             }

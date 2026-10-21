@@ -80,12 +80,22 @@ class MediaPickerScreenTest {
                             preferences = ApplicationPreferences(mediaViewMode = viewMode),
                             mediaDataState = DataState.Success(
                                 MediaHolder(
-                                    videos = if (folderName == null && viewMode != MediaViewMode.VIDEOS) {
+                                    videos = if (folderName == null &&
+                                        viewMode != MediaViewMode.VIDEOS
+                                    ) {
                                         emptyList()
                                     } else {
-                                        listOf(Video.sample.copy(uriString = "content://media/external/video/media/1"), video)
+                                        listOf(
+                                            Video.sample.copy(
+                                                uriString =
+                                                    "content://media/external/video/media/1",
+                                            ),
+                                            video,
+                                        )
                                     },
-                                    folders = listOf(Folder(name = "Movies", path = "/Movies", dateModified = 0)),
+                                    folders = listOf(
+                                        Folder(name = "Movies", path = "/Movies", dateModified = 0),
+                                    ),
                                 ),
                             ),
                         ),
@@ -108,7 +118,11 @@ class MediaPickerScreenTest {
             // A single-video launch lets the player build the sorted queue; an explicit
             // one-item PlaySelectedItems queue disables that behavior.
             composeRule.runOnIdle {
-                assertEquals("Resume in $mode", listOf(MediaPickerAction.OnPlayVideo(video.uriString.toUri())), actions)
+                assertEquals(
+                    "Resume in $mode",
+                    listOf(MediaPickerAction.OnPlayVideo(video.uriString.toUri())),
+                    actions,
+                )
             }
         }
     }
@@ -119,7 +133,10 @@ class MediaPickerScreenTest {
         val application = ApplicationProvider.getApplicationContext<Application>()
         shadowOf(application).grantPermissions(Manifest.permission.READ_MEDIA_VIDEO)
         shadowOf(application.packageManager).setSystemFeature(PackageManager.FEATURE_LEANBACK, true)
-        val video = Video.sample.copy(nameWithExtension = "Clip.mp4", uriString = "content://video/1")
+        val video = Video.sample.copy(
+            nameWithExtension = "Clip.mp4",
+            uriString = "content://video/1",
+        )
         composeRule.setContent {
             NextPlayerTheme {
                 MediaPickerScreenContent(
@@ -181,13 +198,18 @@ class MediaPickerScreenTest {
         val application = ApplicationProvider.getApplicationContext<Application>()
         shadowOf(application).grantPermissions(Manifest.permission.READ_MEDIA_VIDEO)
         var showPlaylistDialog by mutableStateOf(false)
-        val video = Video.sample.copy(nameWithExtension = "Video.mp4", uriString = "content://video/1")
+        val video = Video.sample.copy(
+            nameWithExtension = "Video.mp4",
+            uriString = "content://video/1",
+        )
         composeRule.setContent {
             NextPlayerTheme {
                 MediaPickerScreenContent(
                     state = MediaPickerUiState(
                         folderName = null,
-                        mediaDataState = DataState.Success(MediaHolder(folders = emptyList(), videos = listOf(video))),
+                        mediaDataState = DataState.Success(
+                            MediaHolder(folders = emptyList(), videos = listOf(video)),
+                        ),
                         playlists = listOf(
                             PlaylistSummary(
                                 id = 7,

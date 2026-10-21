@@ -20,9 +20,7 @@ fun rememberMediaPresentationState(player: Player?): MediaPresentationState {
 }
 
 @Stable
-class MediaPresentationState(
-    private val player: Player?,
-) {
+class MediaPresentationState(private val player: Player?) {
     var isBuffering: Boolean by mutableStateOf(false)
         private set
 
@@ -31,7 +29,8 @@ class MediaPresentationState(
 
         player?.listen { events ->
             if (events.contains(Player.EVENT_PLAYBACK_STATE_CHANGED)) {
-                this@MediaPresentationState.isBuffering = player.playbackState == Player.STATE_BUFFERING
+                this@MediaPresentationState.isBuffering =
+                    player.playbackState == Player.STATE_BUFFERING
             }
         }
     }

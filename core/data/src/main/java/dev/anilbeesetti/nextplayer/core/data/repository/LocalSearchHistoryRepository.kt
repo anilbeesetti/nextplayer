@@ -6,9 +6,8 @@ import kotlinx.coroutines.flow.map
 import org.koin.core.annotation.Single
 
 @Single
-class LocalSearchHistoryRepository(
-    private val searchHistoryDataSource: SearchHistoryDataSource,
-) : SearchHistoryRepository {
+class LocalSearchHistoryRepository(private val searchHistoryDataSource: SearchHistoryDataSource) :
+    SearchHistoryRepository {
 
     override val searchHistory: Flow<List<String>> =
         searchHistoryDataSource.searchHistory.map { it.queries }

@@ -45,7 +45,11 @@ import dev.anilbeesetti.nextplayer.feature.videopicker.state.SelectionManager
 import dev.anilbeesetti.nextplayer.feature.videopicker.state.rememberSelectionManager
 import kotlin.math.abs
 
-@OptIn(ExperimentalMaterial3Api::class, ExperimentalFoundationApi::class, ExperimentalPermissionsApi::class)
+@OptIn(
+    ExperimentalMaterial3Api::class,
+    ExperimentalFoundationApi::class,
+    ExperimentalPermissionsApi::class,
+)
 @Composable
 fun MediaView(
     mediaHolder: MediaHolder,
@@ -98,17 +102,26 @@ fun MediaView(
         LazyVerticalGrid(
             modifier = modifier.fillMaxSize().restorableFocusGroup(
                 state = focusState,
-                ready = autoFocus && (mediaHolder.folders.isNotEmpty() || mediaHolder.videos.isNotEmpty()),
+                ready =
+                    autoFocus &&
+                        (mediaHolder.folders.isNotEmpty() || mediaHolder.videos.isNotEmpty()),
             ),
             state = lazyGridState,
             columns = GridCells.Fixed(spans),
-            contentPadding = contentPadding + PaddingValues(horizontal = contentHorizontalPadding, vertical = 8.dp),
+            contentPadding =
+                contentPadding +
+                    PaddingValues(horizontal = contentHorizontalPadding, vertical = 8.dp),
             verticalArrangement = Arrangement.spacedBy(itemSpacing),
             horizontalArrangement = Arrangement.spacedBy(itemSpacing),
         ) {
             if (showHeaders && mediaHolder.folders.isNotEmpty()) {
                 item(span = { GridItemSpan(maxLineSpan) }) {
-                    ListSectionTitle(text = stringResource(id = R.string.folders) + " (${mediaHolder.folders.size})")
+                    ListSectionTitle(
+                        text =
+                            stringResource(
+                                id = R.string.folders,
+                            ) + " (${mediaHolder.folders.size})",
+                    )
                 }
             }
             itemsIndexed(
@@ -116,7 +129,9 @@ fun MediaView(
                 key = { _, folder -> folder.path },
                 span = { _, _ -> GridItemSpan(singleFolderSpan) },
             ) { index, folder ->
-                val selected by remember { derivedStateOf { selectionManager.isFolderSelected(folder) } }
+                val selected by remember {
+                    derivedStateOf { selectionManager.isFolderSelected(folder) }
+                }
                 FolderItem(
                     folder = folder,
                     isRecentlyPlayedFolder = folder.path == recentlyPlayedFolder?.path,
@@ -140,7 +155,9 @@ fun MediaView(
                 )
             }
 
-            if (preferences.mediaViewMode == MediaViewMode.FOLDER_TREE && mediaHolder.folders.isNotEmpty()) {
+            if (preferences.mediaViewMode == MediaViewMode.FOLDER_TREE &&
+                mediaHolder.folders.isNotEmpty()
+            ) {
                 item(span = { GridItemSpan(maxLineSpan) }) {
                     Spacer(modifier = Modifier.size(8.dp))
                 }
@@ -148,7 +165,10 @@ fun MediaView(
 
             if (showHeaders && mediaHolder.videos.isNotEmpty()) {
                 item(span = { GridItemSpan(maxLineSpan) }) {
-                    ListSectionTitle(text = stringResource(id = R.string.videos) + " (${mediaHolder.videos.size})")
+                    ListSectionTitle(
+                        text =
+                            stringResource(id = R.string.videos) + " (${mediaHolder.videos.size})",
+                    )
                 }
             }
 
@@ -157,7 +177,9 @@ fun MediaView(
                 key = { _, video -> video.uriString },
                 span = { _, _ -> GridItemSpan(singleVideoSpan) },
             ) { index, video ->
-                val selected by remember { derivedStateOf { selectionManager.isVideoSelected(video) } }
+                val selected by remember {
+                    derivedStateOf { selectionManager.isVideoSelected(video) }
+                }
                 VideoItem(
                     video = video,
                     preferences = preferences,
@@ -184,10 +206,6 @@ fun MediaView(
     }
 }
 
-fun lcm(a: Int, b: Int): Int {
-    return abs(a * b) / gcd(a, b)
-}
+fun lcm(a: Int, b: Int): Int = abs(a * b) / gcd(a, b)
 
-fun gcd(a: Int, b: Int): Int {
-    return if (b == 0) a else gcd(b, a % b)
-}
+fun gcd(a: Int, b: Int): Int = if (b == 0) a else gcd(b, a % b)

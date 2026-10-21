@@ -67,7 +67,8 @@ fun Player.getManuallySelectedTrackIndex(trackType: @C.TrackType Int): Int? {
 
 fun Player.addAdditionalSubtitleConfiguration(subtitle: MediaItem.SubtitleConfiguration) {
     val currentMediaItemLocal = currentMediaItem ?: return
-    val existingSubConfigurations = currentMediaItemLocal.localConfiguration?.subtitleConfigurations ?: emptyList()
+    val existingSubConfigurations =
+        currentMediaItemLocal.localConfiguration?.subtitleConfigurations ?: emptyList()
 
     if (existingSubConfigurations.any { it.id == subtitle.id }) {
         return

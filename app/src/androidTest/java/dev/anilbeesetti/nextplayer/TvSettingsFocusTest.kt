@@ -86,7 +86,8 @@ class TvSettingsFocusTest {
             press(Key.DirectionCenter)
             composeRule.waitUntil(5_000) {
                 composeRule.onAllNodes(
-                    isFocused() and hasClickAction() and !hasContentDescription(text(R.string.navigate_up)),
+                    isFocused() and hasClickAction() and
+                        !hasContentDescription(text(R.string.navigate_up)),
                 ).fetchSemanticsNodes().size == 1
             }
             press(Key.Back)
@@ -112,7 +113,10 @@ class TvSettingsFocusTest {
                     .fetchSemanticsNodes().size == 1
             }
         } catch (failure: Throwable) {
-            throw AssertionError("Expected focus on ${text(id)}\n${composeRule.onRoot().printToString()}", failure)
+            throw AssertionError(
+                "Expected focus on ${text(id)}\n${composeRule.onRoot().printToString()}",
+                failure,
+            )
         }
     }
 

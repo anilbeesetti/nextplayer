@@ -22,9 +22,7 @@ class FolderPreferencesViewModel(
     @InjectedParam internal var output: Output,
 ) : MviViewModel<FolderPreferencesUiState, FolderPreferencesUiEvent>() {
 
-    data class Output(
-        val navigateUp: () -> Unit,
-    )
+    data class Output(val navigateUp: () -> Unit)
 
     private val stateInternal = MutableStateFlow(
         FolderPreferencesUiState(
@@ -54,7 +52,6 @@ class FolderPreferencesViewModel(
     override fun onAction(action: FolderPreferencesUiEvent) {
         when (action) {
             is FolderPreferencesUiEvent.NavigateUp -> output.navigateUp()
-
             is FolderPreferencesUiEvent.UpdateExcludeList -> updateExcludeList(action.path)
         }
     }

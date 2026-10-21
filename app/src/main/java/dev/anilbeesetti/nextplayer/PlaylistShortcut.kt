@@ -11,7 +11,8 @@ internal object PlaylistShortcut {
     private const val ACTION_OPEN_PLAYLIST = "dev.anilbeesetti.nextplayer.action.OPEN_PLAYLIST"
     private const val EXTRA_PLAYLIST_ID = "playlist_id"
 
-    fun isSupported(context: Context): Boolean = ShortcutManagerCompat.isRequestPinShortcutSupported(context)
+    fun isSupported(context: Context): Boolean =
+        ShortcutManagerCompat.isRequestPinShortcutSupported(context)
 
     fun requestPin(context: Context, playlist: PlaylistSummary): Boolean =
         ShortcutManagerCompat.requestPinShortcut(context, create(context, playlist), null)
@@ -31,10 +32,9 @@ internal object PlaylistShortcut {
             )
             .build()
 
-    fun playlistId(intent: Intent): Long? =
-        if (intent.action == ACTION_OPEN_PLAYLIST) {
-            intent.getLongExtra(EXTRA_PLAYLIST_ID, -1).takeIf { it > 0 }
-        } else {
-            null
-        }
+    fun playlistId(intent: Intent): Long? = if (intent.action == ACTION_OPEN_PLAYLIST) {
+        intent.getLongExtra(EXTRA_PLAYLIST_ID, -1).takeIf { it > 0 }
+    } else {
+        null
+    }
 }

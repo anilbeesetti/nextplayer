@@ -36,9 +36,7 @@ class PlaylistDetailViewModel(
     @InjectedParam internal var output: Output,
 ) : MviViewModel<PlaylistDetailUiState, PlaylistDetailUiAction>() {
 
-    data class Input(
-        val playlistId: Long,
-    )
+    data class Input(val playlistId: Long)
 
     data class Output(
         val navigateUp: () -> Unit,
@@ -68,15 +66,19 @@ class PlaylistDetailViewModel(
     override fun onAction(action: PlaylistDetailUiAction) {
         when (action) {
             is PlaylistDetailUiAction.OnNavigateUpClick -> output.navigateUp()
+
             is PlaylistDetailUiAction.OnSearchClick -> stateInternal.update {
                 it.copy(isSearching = true, isReordering = false)
             }
+
             is PlaylistDetailUiAction.OnSearchQueryChange -> stateInternal.update {
                 it.copy(searchQuery = action.query)
             }
+
             is PlaylistDetailUiAction.OnCloseSearchClick -> stateInternal.update {
                 it.copy(isSearching = false, searchQuery = "")
             }
+
             is PlaylistDetailUiAction.OnReorderClick -> {
                 if (currentPlaylist()?.type == PlaylistType.LOCAL) {
                     stateInternal.update {
@@ -84,18 +86,25 @@ class PlaylistDetailViewModel(
                     }
                 }
             }
+
             is PlaylistDetailUiAction.OnFinishReorderingClick -> stateInternal.update {
                 it.copy(isReordering = false)
             }
+
             is PlaylistDetailUiAction.OnPlay -> play(action.startUri)
+
             is PlaylistDetailUiAction.Refresh -> refreshM3U()
+
             is PlaylistDetailUiAction.ShowRemoveDialogFor -> stateInternal.update {
                 it.copy(showRemoveDialogFor = action.item)
             }
+
             is PlaylistDetailUiAction.DismissRemoveDialog -> stateInternal.update {
                 it.copy(showRemoveDialogFor = null)
             }
+
             is PlaylistDetailUiAction.RemoveVideo -> removeVideo(action.videoUri)
+
             is PlaylistDetailUiAction.ReplaceOrder -> replaceOrder(action.orderedUris)
         }
     }
@@ -132,7 +141,9 @@ class PlaylistDetailViewModel(
             ?: return Result.failure(IllegalStateException("Linked playlist source is missing"))
         return when (playlist.type) {
             PlaylistType.M3U_URL -> m3uParser.parseUrl(source)
+
             PlaylistType.M3U_FILE -> m3uParser.parseUri(source.toUri())
+
             PlaylistType.LOCAL -> Result.failure(
                 IllegalStateException("Local playlists do not have a linked source"),
             )
@@ -168,10 +179,7 @@ class PlaylistDetailViewModel(
         }
     }
 
-    private fun updatePlaylist(
-        block: suspend () -> Unit,
-        onSuccess: () -> Unit = {},
-    ) {
+    private fun updatePlaylist(block: suspend () -> Unit, onSuccess: () -> Unit = {}) {
         if (state.value.updateActionState.isRunning) return
         viewModelScope.launch {
             stateInternal.update { it.copy(updateActionState = ActionState.Running) }

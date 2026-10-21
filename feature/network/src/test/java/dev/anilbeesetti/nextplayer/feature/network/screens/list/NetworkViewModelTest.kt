@@ -222,7 +222,9 @@ class NetworkViewModelTest {
             val deleteEvents = mutableListOf<String>()
             val cleanupEvents = mutableListOf<String>()
             NetworkViewModel(
-                output = NetworkViewModel.Output(addConnection = {}, editConnection = {}, openConnection = {}, openSettings = {}, openStream = {}),
+                output = NetworkViewModel.Output(addConnection = {
+                }, editConnection = {
+                }, openConnection = {}, openSettings = {}, openStream = {}),
                 repository = FakeNetworkConnectionRepository(
                     connection = null,
                     events = lookupEvents,
@@ -232,7 +234,9 @@ class NetworkViewModelTest {
             ).onAction(NetworkAction.DeleteConnection(1))
 
             NetworkViewModel(
-                output = NetworkViewModel.Output(addConnection = {}, editConnection = {}, openConnection = {}, openSettings = {}, openStream = {}),
+                output = NetworkViewModel.Output(addConnection = {
+                }, editConnection = {
+                }, openConnection = {}, openSettings = {}, openStream = {}),
                 repository = FakeNetworkConnectionRepository(
                     connection = connection(privateKeyFileName = "delete.key"),
                     events = deleteEvents,
@@ -242,7 +246,9 @@ class NetworkViewModelTest {
             ).onAction(NetworkAction.DeleteConnection(2))
 
             NetworkViewModel(
-                output = NetworkViewModel.Output(addConnection = {}, editConnection = {}, openConnection = {}, openSettings = {}, openStream = {}),
+                output = NetworkViewModel.Output(addConnection = {
+                }, editConnection = {
+                }, openConnection = {}, openSettings = {}, openStream = {}),
                 repository = FakeNetworkConnectionRepository(
                     connection = connection(privateKeyFileName = "cleanup.key"),
                     events = cleanupEvents,
@@ -324,9 +330,8 @@ private class FakeSshKeyStore(
 }
 
 @OptIn(ExperimentalCoroutinesApi::class)
-class MainDispatcherRule(
-    val testDispatcher: TestDispatcher = StandardTestDispatcher(),
-) : TestWatcher() {
+class MainDispatcherRule(val testDispatcher: TestDispatcher = StandardTestDispatcher()) :
+    TestWatcher() {
     override fun starting(description: Description) {
         Dispatchers.setMain(testDispatcher)
     }

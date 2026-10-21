@@ -11,9 +11,7 @@ import androidx.media3.exoplayer.trackselection.MappingTrackSelector
  * @return Whether the specified renderer is available.
  */
 @UnstableApi
-fun MappingTrackSelector.MappedTrackInfo.isRendererAvailable(
-    type: @C.TrackType Int,
-): Boolean {
+fun MappingTrackSelector.MappedTrackInfo.isRendererAvailable(type: @C.TrackType Int): Boolean {
     for (i in 0 until rendererCount) {
         if (getTrackGroups(i).length == 0) continue
         if (type == getRendererType(i)) return true

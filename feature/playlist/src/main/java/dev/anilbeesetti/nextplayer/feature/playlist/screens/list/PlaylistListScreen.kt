@@ -81,9 +81,10 @@ internal fun PlaylistListScreenContent(
     onAction: (PlaylistUiAction) -> Unit = {},
     onAddToHomeScreen: ((PlaylistSummary) -> Unit)? = null,
 ) {
-    val openM3UFileLauncher = rememberLauncherForActivityResult(ActivityResultContracts.OpenDocument()) { uri ->
-        uri?.let { onAction(PlaylistUiAction.CreateM3UFile(it)) }
-    }
+    val openM3UFileLauncher =
+        rememberLauncherForActivityResult(ActivityResultContracts.OpenDocument()) { uri ->
+            uri?.let { onAction(PlaylistUiAction.CreateM3UFile(it)) }
+        }
     BindTopLevelFab(
         key = TopLevelFabKey.PLAYLISTS,
         icon = NextIcons.Add,
@@ -139,7 +140,10 @@ internal fun PlaylistListScreenContent(
                                 .fillMaxSize()
                                 .tvListFocus(),
                             contentPadding = PaddingValues(8.dp).copy(
-                                bottom = scaffoldPadding.calculateBottomPadding() + navigationBottomPadding + 96.dp,
+                                bottom =
+                                    scaffoldPadding.calculateBottomPadding() +
+                                        navigationBottomPadding +
+                                        96.dp,
                             ),
                             verticalArrangement = Arrangement.spacedBy(2.dp),
                         ) {
@@ -151,9 +155,15 @@ internal fun PlaylistListScreenContent(
                                     playlist = playlist,
                                     isFirstItem = index == 0,
                                     isLastItem = index == state.playlistsDataState.value.lastIndex,
-                                    onClick = { onAction(PlaylistUiAction.OnPlaylistClick(playlist)) },
-                                    onRename = { onAction(PlaylistUiAction.ShowRenameDialogFor(playlist)) },
-                                    onDelete = { onAction(PlaylistUiAction.ShowDeleteDialogFor(playlist)) },
+                                    onClick = {
+                                        onAction(PlaylistUiAction.OnPlaylistClick(playlist))
+                                    },
+                                    onRename = {
+                                        onAction(PlaylistUiAction.ShowRenameDialogFor(playlist))
+                                    },
+                                    onDelete = {
+                                        onAction(PlaylistUiAction.ShowDeleteDialogFor(playlist))
+                                    },
                                     onAddToHomeScreen = onAddToHomeScreen?.let { { it(playlist) } },
                                 )
                             }
@@ -166,6 +176,7 @@ internal fun PlaylistListScreenContent(
 
     when (state.creationDialog) {
         PlaylistCreationDialog.NONE -> Unit
+
         PlaylistCreationDialog.CHOOSER -> CreationChooserDialog(
             onDismissRequest = { onAction(PlaylistUiAction.DismissCreation) },
             onCreateLocal = { onAction(PlaylistUiAction.ChooseLocalPlaylist) },
@@ -374,6 +385,7 @@ private fun PlaylistNameDialog(
                     supportingText = {
                         when {
                             error != null -> Text(error)
+
                             trimmedName.isEmpty() ->
                                 Text(stringResource(R.string.name_required))
                         }

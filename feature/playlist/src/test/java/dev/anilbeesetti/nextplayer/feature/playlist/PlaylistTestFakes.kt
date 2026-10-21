@@ -45,10 +45,7 @@ internal class FakePlaylistRepository : PlaylistRepository {
         return createdId
     }
 
-    override suspend fun replaceM3UItems(
-        playlistId: Long,
-        items: List<M3UPlaylistItem>,
-    ) {
+    override suspend fun replaceM3UItems(playlistId: Long, items: List<M3UPlaylistItem>) {
         replacementCalls += playlistId to items
         replaceFailure?.let { throw it }
     }

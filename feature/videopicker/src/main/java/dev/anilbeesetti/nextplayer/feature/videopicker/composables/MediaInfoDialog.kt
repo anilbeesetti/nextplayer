@@ -38,10 +38,7 @@ import dev.anilbeesetti.nextplayer.core.ui.components.thenIf
 import kotlinx.coroutines.launch
 
 @Composable
-fun MediaInfoDialog(
-    mediaInfo: MediaInfo,
-    onDismiss: () -> Unit,
-) {
+fun MediaInfoDialog(mediaInfo: MediaInfo, onDismiss: () -> Unit) {
     val context = LocalContext.current
     val isTv = remember { context.isTelevision }
     val scrollState = rememberScrollState()
@@ -76,7 +73,8 @@ fun MediaInfoDialog(
                             .focusable()
                             .onKeyEvent { event ->
                                 if (event.type != KeyEventType.KeyDown) return@onKeyEvent false
-                                val amount = (scrollState.viewportSize * 0.8f).takeIf { it > 0f } ?: 400f
+                                val amount =
+                                    (scrollState.viewportSize * 0.8f).takeIf { it > 0f } ?: 400f
                                 when (event.key) {
                                     Key.DirectionDown -> if (scrollState.canScrollForward) {
                                         scope.launch { scrollState.animateScrollBy(amount) }
@@ -84,12 +82,14 @@ fun MediaInfoDialog(
                                     } else {
                                         false
                                     }
+
                                     Key.DirectionUp -> if (scrollState.canScrollBackward) {
                                         scope.launch { scrollState.animateScrollBy(-amount) }
                                         true
                                     } else {
                                         false
                                     }
+
                                     else -> false
                                 }
                             }
@@ -146,7 +146,9 @@ fun MediaInfoDialog(
                     }
                 }
                 mediaInfo.audioStreams.forEachIndexed { index, audioStream ->
-                    MediaInfoTitle(text = "${stringResource(id = R.string.audio_track)} #${index + 1}")
+                    MediaInfoTitle(
+                        text = "${stringResource(id = R.string.audio_track)} #${index + 1}",
+                    )
                     audioStream.title?.let {
                         MediaInfoText(
                             title = stringResource(id = R.string.title),
@@ -183,7 +185,9 @@ fun MediaInfoDialog(
                     }
                 }
                 mediaInfo.subtitleStreams.forEachIndexed { index, subtitleStream ->
-                    MediaInfoTitle(text = "${stringResource(id = R.string.subtitle_track)} #${index + 1}")
+                    MediaInfoTitle(
+                        text = "${stringResource(id = R.string.subtitle_track)} #${index + 1}",
+                    )
                     subtitleStream.title?.let {
                         MediaInfoText(
                             title = stringResource(id = R.string.title),
@@ -225,11 +229,7 @@ private fun MediaInfoTitle(
 }
 
 @Composable
-private fun MediaInfoText(
-    title: String,
-    subText: String,
-    modifier: Modifier = Modifier,
-) {
+private fun MediaInfoText(title: String, subText: String, modifier: Modifier = Modifier) {
     Row(modifier = modifier) {
         Text(text = "$title: ", style = MaterialTheme.typography.titleSmall)
         Text(text = subText)

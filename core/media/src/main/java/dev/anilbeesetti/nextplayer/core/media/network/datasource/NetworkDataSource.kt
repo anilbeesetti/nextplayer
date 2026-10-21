@@ -18,9 +18,7 @@ import kotlinx.coroutines.runBlocking
  * closes and reopens the source at a new offset for each seek.
  */
 @UnstableApi
-class NetworkDataSource(
-    private val sessions: NetworkSessions,
-) : BaseDataSource(/* isNetwork = */ true) {
+class NetworkDataSource(private val sessions: NetworkSessions) : BaseDataSource(true) {
 
     private var uri: Uri? = null
     private var stream: InputStream? = null

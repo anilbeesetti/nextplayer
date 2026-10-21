@@ -90,7 +90,11 @@ internal fun MediaPlayerControls(
     var isMiddleControlsFocused by remember { mutableStateOf(false) }
     var isUnlockFocused by remember { mutableStateOf(false) }
     if (isTv) {
-        LaunchedEffect(controlsVisibilityState.controlsVisible, controlsVisibilityState.controlsLocked, overlayView) {
+        LaunchedEffect(
+            controlsVisibilityState.controlsVisible,
+            controlsVisibilityState.controlsLocked,
+            overlayView,
+        ) {
             if (overlayView != null) return@LaunchedEffect
             if (!controlsVisibilityState.controlsVisible) {
                 runCatching { rootFocusRequester.requestFocus() }
@@ -98,7 +102,9 @@ internal fun MediaPlayerControls(
             }
             val locked = controlsVisibilityState.controlsLocked
             val target = if (locked) unlockFocusRequester else middleControlsFocusRequester
-            target.requestFocusUntilLanded(attempts = 20) { if (locked) isUnlockFocused else isMiddleControlsFocused }
+            target.requestFocusUntilLanded(attempts = 20) {
+                if (locked) isUnlockFocused else isMiddleControlsFocused
+            }
         }
     }
 
@@ -118,7 +124,9 @@ internal fun MediaPlayerControls(
                 },
         ) {
             AnimatedVisibility(
-                visible = controlsVisibilityState.controlsVisible && !controlsVisibilityState.controlsLocked,
+                visible =
+                    controlsVisibilityState.controlsVisible &&
+                        !controlsVisibilityState.controlsLocked,
                 enter = fadeIn(),
                 exit = fadeOut(),
             ) {
@@ -195,7 +203,8 @@ internal fun MediaPlayerControls(
                 onSelectSubtitleClick = { onAction(PlayerAction.SelectSubtitle) },
                 onSelectAudioClick = { onAction(PlayerAction.SelectAudio) },
                 onSubtitleOptionEvent = { onAction(PlayerAction.OnSubtitleOptionEvent(it)) },
-                onVideoContentScaleChanged = videoZoomAndContentScaleState::onVideoContentScaleChanged,
+                onVideoContentScaleChanged =
+                    videoZoomAndContentScaleState::onVideoContentScaleChanged,
             )
         }
     }
@@ -203,7 +212,10 @@ internal fun MediaPlayerControls(
     BackHandler {
         when {
             overlayView != null -> overlayView = null
-            isTv && controlsVisibilityState.controlsVisible -> controlsVisibilityState.hideControls()
+
+            isTv && controlsVisibilityState.controlsVisible ->
+                controlsVisibilityState.hideControls()
+
             else -> onAction(PlayerAction.NavigateUp)
         }
     }

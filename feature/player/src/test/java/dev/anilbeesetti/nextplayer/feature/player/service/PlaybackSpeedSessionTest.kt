@@ -36,7 +36,9 @@ class PlaybackSpeedSessionTest {
 
     @Before
     fun setUp() {
-        runBlocking { preferences.updatePlayerPreferences { it.copy(defaultPlaybackSpeed = 1.25f) } }
+        runBlocking {
+            preferences.updatePlayerPreferences { it.copy(defaultPlaybackSpeed = 1.25f) }
+        }
         startKoin {
             modules(
                 module {
@@ -86,8 +88,14 @@ class PlaybackSpeedSessionTest {
 
         val listener = PlayerService::class.java.getDeclaredField("playbackStateListener")
             .apply { isAccessible = true }.get(service) as Player.Listener
-        listener.onMediaItemTransition(player.currentMediaItem, Player.MEDIA_ITEM_TRANSITION_REASON_AUTO)
-        listener.onMediaItemTransition(player.currentMediaItem, Player.MEDIA_ITEM_TRANSITION_REASON_REPEAT)
+        listener.onMediaItemTransition(
+            player.currentMediaItem,
+            Player.MEDIA_ITEM_TRANSITION_REASON_AUTO,
+        )
+        listener.onMediaItemTransition(
+            player.currentMediaItem,
+            Player.MEDIA_ITEM_TRANSITION_REASON_REPEAT,
+        )
         listener.onPlaybackStateChanged(Player.STATE_ENDED)
         assertEquals(1.75f, player.playbackParameters.speed)
 
@@ -135,7 +143,11 @@ class PlaybackSpeedSessionTest {
         .setMediaMetadata(
             MediaMetadata.Builder()
                 .setArtworkData(byteArrayOf(1), MediaMetadata.PICTURE_TYPE_FRONT_COVER)
-                .setExtras(Bundle().apply { putFloat("media_metadata_playback_speed", legacySpeed) })
+                .setExtras(
+                    Bundle().apply {
+                        putFloat("media_metadata_playback_speed", legacySpeed)
+                    },
+                )
                 .build(),
         )
         .build()

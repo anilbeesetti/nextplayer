@@ -77,10 +77,10 @@ import dev.anilbeesetti.nextplayer.feature.videopicker.composables.FolderItem
 import dev.anilbeesetti.nextplayer.feature.videopicker.composables.MediaView
 
 @Composable
-fun SearchScreen(
-    viewModel: SearchViewModel,
-) {
-    val state by viewModel.state.collectAsStateWithLifecycle(minActiveState = Lifecycle.State.RESUMED)
+fun SearchScreen(viewModel: SearchViewModel) {
+    val state by viewModel.state.collectAsStateWithLifecycle(
+        minActiveState = Lifecycle.State.RESUMED,
+    )
 
     SearchScreenContent(
         state = state,
@@ -90,10 +90,7 @@ fun SearchScreen(
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-internal fun SearchScreenContent(
-    state: SearchUiState,
-    onAction: (SearchUiEvent) -> Unit,
-) {
+internal fun SearchScreenContent(state: SearchUiState, onAction: (SearchUiEvent) -> Unit) {
     val focusRequester = remember { FocusRequester() }
     val keyboardController = LocalSoftwareKeyboardController.current
     var isSearchFocused by remember { mutableStateOf(false) }
@@ -126,7 +123,9 @@ internal fun SearchScreenContent(
                         textStyle = MaterialTheme.typography.bodyLarge,
                         trailingIcon = {
                             if (state.query.isNotEmpty()) {
-                                IconButton(onClick = { onAction(SearchUiEvent.OnQueryChange("")) }) {
+                                IconButton(onClick = {
+                                    onAction(SearchUiEvent.OnQueryChange(""))
+                                }) {
                                     Icon(
                                         imageVector = NextIcons.Close,
                                         contentDescription = stringResource(R.string.clear_history),
@@ -172,7 +171,9 @@ internal fun SearchScreenContent(
             modifier = Modifier
                 .fillMaxSize()
                 .padding(top = scaffoldPadding.calculateTopPadding())
-                .padding(start = scaffoldPadding.calculateStartPadding(LocalLayoutDirection.current)),
+                .padding(
+                    start = scaffoldPadding.calculateStartPadding(LocalLayoutDirection.current),
+                ),
         ) {
             Box(
                 modifier = Modifier
@@ -315,11 +316,7 @@ private fun SuggestionsContent(
 
 @OptIn(ExperimentalMaterial3ExpressiveApi::class)
 @Composable
-private fun SearchHistoryItem(
-    query: String,
-    onClick: () -> Unit,
-    onRemove: () -> Unit,
-) {
+private fun SearchHistoryItem(query: String, onClick: () -> Unit, onRemove: () -> Unit) {
     NextSegmentedListItem(
         modifier = Modifier.padding(horizontal = 8.dp),
         contentPadding = PaddingValues(horizontal = 16.dp, vertical = 12.dp),
@@ -479,8 +476,14 @@ private fun SearchScreenWithResultsPreview() {
                         ),
                     ),
                     videos = listOf(
-                        Video.sample.copy(nameWithExtension = "Movie_Clip.mp4", uriString = "content://sample/movie_clip.mp4"),
-                        Video.sample.copy(nameWithExtension = "My_Movie.mp4", uriString = "content://sample/my_movie.mp4"),
+                        Video.sample.copy(
+                            nameWithExtension = "Movie_Clip.mp4",
+                            uriString = "content://sample/movie_clip.mp4",
+                        ),
+                        Video.sample.copy(
+                            nameWithExtension = "My_Movie.mp4",
+                            uriString = "content://sample/my_movie.mp4",
+                        ),
                     ),
                 ),
             ),

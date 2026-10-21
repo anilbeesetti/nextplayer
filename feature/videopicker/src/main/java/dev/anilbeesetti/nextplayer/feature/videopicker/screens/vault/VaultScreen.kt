@@ -101,9 +101,7 @@ import dev.anilbeesetti.nextplayer.feature.videopicker.state.SelectionItem
 import dev.anilbeesetti.nextplayer.feature.videopicker.state.rememberSelectionManager
 
 @Composable
-fun VaultScreen(
-    viewModel: VaultViewModel,
-) {
+fun VaultScreen(viewModel: VaultViewModel) {
     val state by viewModel.state.collectAsStateWithLifecycle()
     val context = LocalContext.current
     val lifecycleOwner = LocalLifecycleOwner.current
@@ -132,10 +130,7 @@ fun VaultScreen(
 }
 
 @Composable
-internal fun VaultScreenContent(
-    state: VaultUiState,
-    onAction: (VaultAction) -> Unit,
-) {
+internal fun VaultScreenContent(state: VaultUiState, onAction: (VaultAction) -> Unit) {
     when (state.stage) {
         VaultStage.LOADING -> CenterCircularProgressBar()
 
@@ -375,10 +370,7 @@ private fun PinEntryHeader(
 
 @OptIn(ExperimentalMaterial3Api::class, ExperimentalMaterial3ExpressiveApi::class)
 @Composable
-private fun VaultGalleryContent(
-    state: VaultUiState,
-    onAction: (VaultAction) -> Unit,
-) {
+private fun VaultGalleryContent(state: VaultUiState, onAction: (VaultAction) -> Unit) {
     val context = LocalContext.current
     val isTv = remember { context.isTelevision }
     val focusState = rememberRestorableFocusState()
@@ -399,7 +391,11 @@ private fun VaultGalleryContent(
         topBar = {
             NextTopAppBar(
                 title = {
-                    val titleText = stringResource(R.string.hidden_videos).takeIf { !selectionManager.isInSelectionMode } ?: ""
+                    val titleText =
+                        stringResource(R.string.hidden_videos).takeIf {
+                            !selectionManager.isInSelectionMode
+                        }
+                            ?: ""
                     Text(
                         text = titleText,
                         maxLines = 1,
@@ -424,7 +420,11 @@ private fun VaultGalleryContent(
                                 contentDescription = stringResource(id = R.string.navigate_up),
                             )
                             Text(
-                                text = stringResource(R.string.m_n_selected, selectedCount, totalCount),
+                                text = stringResource(
+                                    R.string.m_n_selected,
+                                    selectedCount,
+                                    totalCount,
+                                ),
                                 style = MaterialTheme.typography.labelLarge,
                             )
                         }
@@ -453,7 +453,13 @@ private fun VaultGalleryContent(
                             modifier = Modifier.tvFocusRing(),
                         ) {
                             Icon(
-                                imageVector = if (selectedCount != totalCount) NextIcons.SelectAll else NextIcons.DeselectAll,
+                                imageVector = if (selectedCount !=
+                                    totalCount
+                                ) {
+                                    NextIcons.SelectAll
+                                } else {
+                                    NextIcons.DeselectAll
+                                },
                                 contentDescription = if (selectedCount != totalCount) {
                                     stringResource(R.string.select_all)
                                 } else {
@@ -486,7 +492,9 @@ private fun VaultGalleryContent(
         },
         bottomBar = {
             VaultSelectionActionsSheet(
-                show = selectionManager.isInSelectionMode && selectionManager.selectionItems.isNotEmpty(),
+                show =
+                    selectionManager.isInSelectionMode &&
+                        selectionManager.selectionItems.isNotEmpty(),
                 contentFocusRequester = focusState.requester,
                 onPlayAction = {
                     onAction(VaultAction.PlaySelected(selectionManager.selectionItems))
@@ -494,7 +502,10 @@ private fun VaultGalleryContent(
                 },
                 onInfoAction = {
                     val selected = selectionManager.selectionItems.firstOrNull()
-                    val video = state.hiddenVideos.find { it.uriString == (selected as? SelectionItem.Video)?.uriString }
+                    val video = state.hiddenVideos.find {
+                        it.uriString ==
+                            (selected as? SelectionItem.Video)?.uriString
+                    }
                     if (video != null) onAction(VaultAction.ShowMediaInfo(video))
                     selectionManager.exitSelectionMode()
                 },

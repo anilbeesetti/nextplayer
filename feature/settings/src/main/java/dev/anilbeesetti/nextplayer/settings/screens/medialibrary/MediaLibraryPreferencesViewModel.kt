@@ -42,13 +42,24 @@ class MediaLibraryPreferencesViewModel(
     override fun onAction(action: MediaLibraryPreferencesUiEvent) {
         when (action) {
             is MediaLibraryPreferencesUiEvent.NavigateUp -> output.navigateUp()
+
             is MediaLibraryPreferencesUiEvent.OpenFolders -> output.openFolders()
+
             is MediaLibraryPreferencesUiEvent.OpenThumbnails -> output.openThumbnails()
 
-            is MediaLibraryPreferencesUiEvent.ToggleMarkLastPlayedMedia -> toggleMarkLastPlayedMedia()
-            is MediaLibraryPreferencesUiEvent.SetWatchHistoryEnabled -> setWatchHistoryEnabled(action.enabled)
-            is MediaLibraryPreferencesUiEvent.ToggleIncludeNetworkWatchHistory -> toggleIncludeNetworkWatchHistory()
-            is MediaLibraryPreferencesUiEvent.UpdateNewVideoThreshold -> updateNewVideoThreshold(action.days)
+            is MediaLibraryPreferencesUiEvent.ToggleMarkLastPlayedMedia ->
+                toggleMarkLastPlayedMedia()
+
+            is MediaLibraryPreferencesUiEvent.SetWatchHistoryEnabled -> setWatchHistoryEnabled(
+                action.enabled,
+            )
+
+            is MediaLibraryPreferencesUiEvent.ToggleIncludeNetworkWatchHistory ->
+                toggleIncludeNetworkWatchHistory()
+
+            is MediaLibraryPreferencesUiEvent.UpdateNewVideoThreshold -> updateNewVideoThreshold(
+                action.days,
+            )
         }
     }
 

@@ -44,11 +44,7 @@ import dev.anilbeesetti.nextplayer.feature.videopicker.screens.vault.VAULT_PIN_L
  * Shakes briefly when [error] becomes true (e.g. wrong PIN, mismatched confirmation).
  */
 @Composable
-fun PinDotsIndicator(
-    filledCount: Int,
-    error: Boolean,
-    modifier: Modifier = Modifier,
-) {
+fun PinDotsIndicator(filledCount: Int, error: Boolean, modifier: Modifier = Modifier) {
     val offsetX = remember { Animatable(0f) }
 
     LaunchedEffect(error) {
@@ -87,11 +83,7 @@ fun PinDotsIndicator(
  * A simple numeric keypad (0-9, backspace) used to enter a PIN.
  */
 @Composable
-fun PinKeypad(
-    onDigit: (Char) -> Unit,
-    onBackspace: () -> Unit,
-    modifier: Modifier = Modifier,
-) {
+fun PinKeypad(onDigit: (Char) -> Unit, onBackspace: () -> Unit, modifier: Modifier = Modifier) {
     val context = LocalContext.current
     val isTv = remember { context.isTelevision }
     val firstKeyFocusRequester = remember { FocusRequester() }
@@ -180,11 +172,7 @@ private fun PinKey(
 }
 
 @Composable
-private fun PinKeyIcon(
-    modifier: Modifier = Modifier,
-    isTv: Boolean = false,
-    onClick: () -> Unit,
-) {
+private fun PinKeyIcon(modifier: Modifier = Modifier, isTv: Boolean = false, onClick: () -> Unit) {
     Column(
         modifier = modifier
             .aspectRatio(1.4f)

@@ -36,10 +36,7 @@ class PlaylistListViewModel(
     @InjectedParam internal var output: Output,
 ) : MviViewModel<PlaylistListUiState, PlaylistUiAction>() {
 
-    data class Output(
-        val openPlaylist: (Long) -> Unit,
-        val openSettings: () -> Unit,
-    )
+    data class Output(val openPlaylist: (Long) -> Unit, val openSettings: () -> Unit)
 
     private var linkedCreationJob: Job? = null
 
@@ -59,29 +56,47 @@ class PlaylistListViewModel(
     override fun onAction(action: PlaylistUiAction) {
         when (action) {
             is PlaylistUiAction.Synchronize -> synchronize()
+
             is PlaylistUiAction.CreateM3UFile -> createM3UFile(action.uri)
 
             is PlaylistUiAction.OnSettingsClick -> output.openSettings()
+
             is PlaylistUiAction.OnPlaylistClick -> output.openPlaylist(action.playlist.id)
-            is PlaylistUiAction.ShowCreationChooser -> showCreationDialog(PlaylistCreationDialog.CHOOSER)
-            is PlaylistUiAction.ChooseLocalPlaylist -> showCreationDialog(PlaylistCreationDialog.LOCAL_NAME)
+
+            is PlaylistUiAction.ShowCreationChooser -> showCreationDialog(
+                PlaylistCreationDialog.CHOOSER,
+            )
+
+            is PlaylistUiAction.ChooseLocalPlaylist -> showCreationDialog(
+                PlaylistCreationDialog.LOCAL_NAME,
+            )
+
             is PlaylistUiAction.ChooseM3UUrl -> showCreationDialog(PlaylistCreationDialog.M3U_URL)
+
             is PlaylistUiAction.DismissCreation -> showCreationDialog(PlaylistCreationDialog.NONE)
+
             is PlaylistUiAction.ShowRenameDialogFor -> stateInternal.update {
                 it.copy(showRenameDialogFor = action.playlist, saveActionState = ActionState.Idle)
             }
+
             is PlaylistUiAction.DismissRenameDialog -> stateInternal.update {
                 it.copy(showRenameDialogFor = null, saveActionState = ActionState.Idle)
             }
+
             is PlaylistUiAction.ShowDeleteDialogFor -> stateInternal.update {
                 it.copy(showDeleteDialogFor = action.playlist, saveActionState = ActionState.Idle)
             }
+
             is PlaylistUiAction.DismissDeleteDialog -> stateInternal.update {
                 it.copy(showDeleteDialogFor = null, saveActionState = ActionState.Idle)
             }
+
             is PlaylistUiAction.CreateLocal -> createLocal(action.name)
+
             is PlaylistUiAction.CreateM3UUrl -> createM3UUrl(action.url)
+
             is PlaylistUiAction.Rename -> rename(action.playlistId, action.name)
+
             is PlaylistUiAction.Delete -> delete(action.playlistId)
         }
     }
