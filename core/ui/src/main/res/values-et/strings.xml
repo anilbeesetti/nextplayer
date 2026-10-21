@@ -532,4 +532,6 @@
     <string name="watch_history_desc">Sinu vaadatud videote nimed tähendatakse üles</string>
     <string name="network_watch_history">Võrgust vaatamiste ajalugu</string>
     <string name="network_watch_history_desc">Märgi üles ka sinu poolt võrgust vaadatud videote nimed.</string>
+    <string name="add_to_home_screen">Lisa avalehele</string>
+    <string name="playlist_shortcut_failed">Esitusloendi viite lisamine ei õnnestunud. Proovi uuesti.</string>
 </resources>
