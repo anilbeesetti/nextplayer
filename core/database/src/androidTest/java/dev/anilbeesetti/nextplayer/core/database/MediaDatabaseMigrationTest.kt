@@ -4,6 +4,7 @@ import androidx.room.testing.MigrationTestHelper
 import androidx.test.ext.junit.runners.AndroidJUnit4
 import androidx.test.platform.app.InstrumentationRegistry
 import org.junit.Assert.assertEquals
+import org.junit.Assert.assertTrue
 import org.junit.Rule
 import org.junit.Test
 import org.junit.runner.RunWith
@@ -15,6 +16,38 @@ class MediaDatabaseMigrationTest {
         InstrumentationRegistry.getInstrumentation(),
         MediaDatabase::class.java,
     )
+
+    @Test
+    fun migrate12To13_preservesVaultAndPlaybackWithoutInventingOriginalDates() {
+        helper.createDatabase("vault-dates-migration", 12).apply {
+            execSQL(
+                "INSERT INTO hidden_video " +
+                    "(vault_path, original_path, display_name, duration, size, width, height, hidden_at) " +
+                    "VALUES ('/vault/video.mp4', '/Movies/video.mp4', 'video.mp4', 1000, 100, 320, 180, 1234567890)",
+            )
+            execSQL(
+                "INSERT INTO media_state " +
+                    "(uri, playback_position, external_subs, video_scale, subtitle_delay, subtitle_speed) " +
+                    "VALUES ('content://video/one', 12345, '', 1, 0, 1)",
+            )
+            close()
+        }
+        helper.runMigrationsAndValidate("vault-dates-migration", 13, true, MediaDatabase.MIGRATION_12_13).use { db ->
+            db.query("SELECT vault_path, hidden_at, date_added, date_modified FROM hidden_video").use { cursor ->
+                check(cursor.moveToFirst())
+                assertEquals("/vault/video.mp4", cursor.getString(0))
+                assertEquals(1234567890L, cursor.getLong(1))
+                assertEquals(0L, cursor.getLong(2))
+                assertEquals(0L, cursor.getLong(3))
+            }
+            db.query("SELECT playback_position, original_date_added, original_date_modified FROM media_state").use { cursor ->
+                check(cursor.moveToFirst())
+                assertEquals(12345L, cursor.getLong(0))
+                assertTrue(cursor.isNull(1))
+                assertTrue(cursor.isNull(2))
+            }
+        }
+    }
 
     @Test
     fun migrate8To9_preservesConnectionAndAddsPasswordDefaults() {

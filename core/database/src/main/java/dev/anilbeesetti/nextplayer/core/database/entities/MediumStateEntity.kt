@@ -37,4 +37,9 @@ data class MediumStateEntity(
     val subtitleDelayMilliseconds: Long = 0,
     @ColumnInfo(name = "subtitle_speed")
     val subtitleSpeed: Float = 1f,
+    // MediaStore assigns fresh dates when a vault video is restored. Keep its original dates.
+    @ColumnInfo(name = "original_date_added")
+    val originalDateAdded: Long? = null,
+    @ColumnInfo(name = "original_date_modified")
+    val originalDateModified: Long? = null,
 )
