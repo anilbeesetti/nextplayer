@@ -6,4 +6,5 @@ data class Subtitle(
     val name: String?,
     val uri: Uri,
     val isSelected: Boolean,
+    val filename: String? = null,
 )

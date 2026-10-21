@@ -54,6 +54,68 @@ the [Issues](https://github.com/anilbeesetti/nextplayer/issues) section.**
 [<img src="fastlane/metadata/android/en-US/images/tvScreenshots/4.png" width=49% alt="TV appearance settings">](fastlane/metadata/android/en-US/images/tvScreenshots/4.png)
 </div>
 
+## Player intent API
+
+Next Player accepts the [MX Player VIEW intent contract](https://mx.j2inter.com/api)
+requested in [#2017](https://github.com/anilbeesetti/nextplayer/issues/2017).
+Clients supporting `com.mxtech.videoplayer.ad` (MX Free) or `com.mxtech.videoplayer.pro`
+(MX Pro) can use the same extras with `dev.anilbeesetti.nextplayer`. Select Next
+Player's package explicitly; an intent addressed to an MX package launches MX.
+Debug builds use `dev.anilbeesetti.nextplayer.debug`.
+
+```kotlin
+val intent = Intent(Intent.ACTION_VIEW).apply {
+    setClassName(
+        "dev.anilbeesetti.nextplayer",
+        "dev.anilbeesetti.nextplayer.feature.player.PlayerActivity",
+    )
+    setDataAndType(videoUri, "video/*")
+    putExtra("title", "Example")
+    putExtra("position", 30_000) // milliseconds, overrides saved resume position
+    putExtra("subs", arrayOf(subtitleUri)) // Uri[], also accepts legacy ArrayList<Uri>
+    putExtra("subs.name", arrayOf("English"))
+    putExtra("subs.enable", arrayOf(subtitleUri))
+    putExtra("headers", arrayOf("User-Agent", "Example/1.0"))
+    putExtra("return_result", true)
+    addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION)
+}
+// Launch with an Activity Result launcher to receive the playback result.
+launcher.launch(intent)
+```
+
+For `content://` media, grant access to every video and subtitle URI, including
+additional URIs through `ClipData` when needed. The player activity also accepts
+implicit VIEW intents with an appropriate MIME type.
+
+| Extras | Behavior |
+| --- | --- |
+| `video_list`, `video_list.name` | Ordered URI queue and optional per-item titles; playlist names take precedence over `title`. |
+| `video_list_is_explicit` | `true` plays the full queue even when autoplay is disabled; otherwise autoplay preferences apply. |
+| `subs`, `subs.name`, `subs.filename`, `subs.enable` | Subtitle URIs, labels, filename hints for format detection, and initial selection. Media3 displays one text track at a time. |
+| `headers` | Alternating header names and values, scoped to the request's videos, manifests, segments, and HTTP subtitles. |
+| `decode_mode` | Byte `1` (HW) and `4` (HW+) select hardware decoding; `2` (SW) selects FFmpeg. |
+| `video_zoom` | `0` stretch, `1` fit, `2` original size, `3` crop. |
+| `DAR_horz`, `DAR_vert` | Positive finite floats overriding the display aspect ratio. |
+| `video`, `sticky` | Video visibility and a request-specific background playback override. |
+| `orientation` | Android orientation constants `-1`, `0`, `1`, `6`, `7`, `8`, `9`, `10`; `99999` follows video orientation. |
+| `keys.dpad_up_down` | With controls hidden, `0` adjusts volume, `1` selects next/previous media. |
+| `suppress_error_message` | Skips a failed video when another is available, otherwise closes without an error dialog. |
+| `secure_uri` | Next Player has no URI property dialog; playback titles do not expose the full URI. |
+
+Results use action `com.mxtech.intent.result.VIEW`, the last media URI as data,
+`end_by` (`user` or `playback_completion`), and the actual `decode_mode` when known.
+For incomplete playback, known `position` and `duration` are integer milliseconds;
+completed playback omits them. Result codes are `RESULT_OK` for played media,
+`RESULT_CANCELED` before playback starts, and `RESULT_FIRST_USER` for playback errors.
+Only `return_result=true` requests a callback.
+
+Compatibility limits: deprecated `fast_mode` is ignored. MX's OpenSubtitles search
+hints (`size`, `filename`, `hash.opensubtitles`, and their `video_list.*` forms)
+are ignored because Next Player does not provide that search service. SAMI
+multi-track fragments require a subtitle format supported by Media3. Network API
+subtitles load through Media3 so request headers are preserved; local subtitle
+encoding conversion continues to use the configured encoding.
+
 ## Supported formats
 
 - **Video**: H.263, H.264 AVC (Baseline Profile; Main Profile on Android 6+), H.265 HEVC, MPEG-4 SP, VP8, VP9, AV1
