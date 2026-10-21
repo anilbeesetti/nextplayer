@@ -44,7 +44,13 @@ fun DoubleTapIndicator(modifier: Modifier = Modifier, tapGestureState: TapGestur
     if (tapGestureState.seekMillis == 0L) return
     Box(
         modifier = modifier.fillMaxSize(),
-        contentAlignment = if (tapGestureState.seekMillis > 0) Alignment.CenterEnd else Alignment.CenterStart,
+        contentAlignment = if (tapGestureState.seekMillis >
+            0
+        ) {
+            Alignment.CenterEnd
+        } else {
+            Alignment.CenterStart
+        },
     ) {
         Box(
             modifier = Modifier
@@ -57,7 +63,15 @@ fun DoubleTapIndicator(modifier: Modifier = Modifier, tapGestureState: TapGestur
                         DoubleTapGesture.NONE -> 0f
                     },
                 )
-                .clip(if (tapGestureState.seekMillis > 0) RightSideOvalShape() else LeftSideOvalShape())
+                .clip(
+                    if (tapGestureState.seekMillis >
+                        0
+                    ) {
+                        RightSideOvalShape()
+                    } else {
+                        LeftSideOvalShape()
+                    },
+                )
                 .background(Color.White.copy(0.2f))
                 .indication(tapGestureState.interactionSource, ripple()),
             contentAlignment = Alignment.Center,
@@ -77,10 +91,7 @@ fun DoubleTapIndicator(modifier: Modifier = Modifier, tapGestureState: TapGestur
 }
 
 @Composable
-private fun DoubleTapSeekTriangles(
-    isForward: Boolean,
-    modifier: Modifier = Modifier,
-) {
+private fun DoubleTapSeekTriangles(isForward: Boolean, modifier: Modifier = Modifier) {
     val animationDuration = 750L
 
     val alpha1 = remember { Animatable(0f) }

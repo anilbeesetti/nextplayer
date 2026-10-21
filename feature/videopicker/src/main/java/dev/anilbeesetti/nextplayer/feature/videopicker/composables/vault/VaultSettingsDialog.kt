@@ -28,7 +28,13 @@ internal fun VaultSettingsDialog(
             PreferenceSwitch(
                 title = stringResource(R.string.unlock_with_biometrics),
                 description = stringResource(
-                    if (available || biometricEnabled) R.string.vault_biometric_description else R.string.vault_biometric_unavailable,
+                    if (available ||
+                        biometricEnabled
+                    ) {
+                        R.string.vault_biometric_description
+                    } else {
+                        R.string.vault_biometric_unavailable
+                    },
                 ),
                 isChecked = biometricEnabled,
                 enabled = !authenticating && (biometricEnabled || available),

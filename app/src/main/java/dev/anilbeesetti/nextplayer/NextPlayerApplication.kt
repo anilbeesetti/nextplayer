@@ -37,7 +37,9 @@ class NextPlayerApplication :
             allowOverride(false)
             androidContext(this@NextPlayerApplication)
         }
-        Thread.setDefaultUncaughtExceptionHandler(GlobalExceptionHandler(applicationContext, CrashActivity::class.java))
+        Thread.setDefaultUncaughtExceptionHandler(
+            GlobalExceptionHandler(applicationContext, CrashActivity::class.java),
+        )
         applicationScope.launch {
             runCatching {
                 initializeSshKeyStore(networkConnectionRepository, sshKeyStore)

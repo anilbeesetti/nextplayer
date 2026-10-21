@@ -69,7 +69,9 @@ android {
     splits {
         abi {
             //noinspection WrongGradleMethod
-            val isBuildingBundle = gradle.startParameter.taskNames.any { it.lowercase().contains("bundle") }
+            val isBuildingBundle = gradle.startParameter.taskNames.any {
+                it.lowercase().contains("bundle")
+            }
 
             isEnable = !isBuildingBundle
             reset()

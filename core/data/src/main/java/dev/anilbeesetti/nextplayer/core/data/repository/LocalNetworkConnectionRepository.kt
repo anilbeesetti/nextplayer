@@ -10,9 +10,8 @@ import kotlinx.coroutines.flow.map
 import org.koin.core.annotation.Single
 
 @Single
-class LocalNetworkConnectionRepository(
-    private val networkConnectionDao: NetworkConnectionDao,
-) : NetworkConnectionRepository {
+class LocalNetworkConnectionRepository(private val networkConnectionDao: NetworkConnectionDao) :
+    NetworkConnectionRepository {
 
     override fun getConnections(): Flow<List<NetworkConnection>> =
         networkConnectionDao.getAll().map { entities -> entities.map { it.toModel() } }
@@ -28,7 +27,9 @@ class LocalNetworkConnectionRepository(
     private fun NetworkConnectionEntity.toModel() = NetworkConnection(
         id = id,
         name = name,
-        protocol = runCatching { NetworkProtocol.valueOf(protocol) }.getOrDefault(NetworkProtocol.SMB),
+        protocol = runCatching {
+            NetworkProtocol.valueOf(protocol)
+        }.getOrDefault(NetworkProtocol.SMB),
         host = host,
         port = port,
         path = path,

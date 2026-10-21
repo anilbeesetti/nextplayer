@@ -35,10 +35,17 @@ class PlaylistAutoplayTest {
     @Test
     fun explicitPlaylistAdvancesWithAutoplayOffInEveryRepeatMode() {
         withPlayer(autoplay = false) { player ->
-            for (repeatMode in listOf(Player.REPEAT_MODE_OFF, Player.REPEAT_MODE_ONE, Player.REPEAT_MODE_ALL)) {
+            for (repeatMode in listOf(
+                Player.REPEAT_MODE_OFF,
+                Player.REPEAT_MODE_ONE,
+                Player.REPEAT_MODE_ALL,
+            )) {
                 player.repeatMode = repeatMode
                 player.setMediaItems(explicitPlaylist())
-                assertFalse("Explicit playlist must advance in repeat mode $repeatMode", player.pauseAtEndOfMediaItems)
+                assertFalse(
+                    "Explicit playlist must advance in repeat mode $repeatMode",
+                    player.pauseAtEndOfMediaItems,
+                )
             }
         }
     }
@@ -91,7 +98,9 @@ class PlaylistAutoplayTest {
         val player = ExoPlayer.Builder(context).build()
         val session = MediaSession.Builder(context, player).build()
         val service = PlayerService()
-        PlayerService::class.java.getDeclaredField("mediaSession").apply { isAccessible = true }.set(service, session)
+        PlayerService::class.java.getDeclaredField("mediaSession").apply {
+            isAccessible = true
+        }.set(service, session)
         val listener = PlayerService::class.java.getDeclaredField("playbackStateListener")
             .apply { isAccessible = true }.get(service) as Player.Listener
         // Exercise real timeline changes without initializing unrelated native decoder and artwork state.

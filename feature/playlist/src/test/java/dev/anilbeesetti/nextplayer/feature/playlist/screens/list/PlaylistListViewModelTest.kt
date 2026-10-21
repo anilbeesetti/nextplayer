@@ -124,15 +124,14 @@ class PlaylistListViewModelTest {
         ),
     )
 
-    private fun playlistServer(): HttpServer =
-        HttpServer.create(InetSocketAddress(0), 0).apply {
-            createContext("/News_List.m3u") { exchange ->
-                val body = "https://media.example/live".encodeToByteArray()
-                exchange.sendResponseHeaders(200, body.size.toLong())
-                exchange.responseBody.use { it.write(body) }
-            }
-            start()
+    private fun playlistServer(): HttpServer = HttpServer.create(InetSocketAddress(0), 0).apply {
+        createContext("/News_List.m3u") { exchange ->
+            val body = "https://media.example/live".encodeToByteArray()
+            exchange.sendResponseHeaders(200, body.size.toLong())
+            exchange.responseBody.use { it.write(body) }
         }
+        start()
+    }
 
     private object FakeMediaSynchronizer : MediaSynchronizer {
         override suspend fun refresh(path: String?): Boolean = true

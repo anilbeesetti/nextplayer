@@ -91,7 +91,9 @@ fun PlayerGestures(
 
                     detectCustomTransformGestures(
                         onGesture = { _, panChange, zoomChange, _ ->
-                            if (tapGestureState.isLongPressGestureInAction) return@detectCustomTransformGestures
+                            if (tapGestureState.isLongPressGestureInAction) {
+                                return@detectCustomTransformGestures
+                            }
                             videoZoomAndContentScaleState.onZoomPanGesture(
                                 constraints = this@BoxWithConstraints.constraints,
                                 panChange = panChange,

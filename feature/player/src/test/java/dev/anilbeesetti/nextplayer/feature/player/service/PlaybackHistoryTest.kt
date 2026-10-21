@@ -35,7 +35,11 @@ class PlaybackHistoryTest {
     fun readyQueueItemsRecordHistoryWithoutAnotherFirstFrame() {
         val recorded = mutableListOf<Pair<String, Long?>>()
         val repository = object : MediaRepository by FakeMediaRepository() {
-            override suspend fun updateMediumLastPlayedTime(uri: String, lastPlayedTime: Long, duration: Long?) {
+            override suspend fun updateMediumLastPlayedTime(
+                uri: String,
+                lastPlayedTime: Long,
+                duration: Long?,
+            ) {
                 assertTrue(lastPlayedTime > 0)
                 recorded += uri to duration
             }
@@ -64,7 +68,9 @@ class PlaybackHistoryTest {
         }
         try {
             val items = listOf("first", "second").map {
-                MediaItem.Builder().setMediaId(it).setUri("webdav://example.com/$it.mp4?cid=1").build()
+                MediaItem.Builder().setMediaId(
+                    it,
+                ).setUri("webdav://example.com/$it.mp4?cid=1").build()
             }
             player.setMediaItems(items)
             notify(Player.EVENT_MEDIA_ITEM_TRANSITION)

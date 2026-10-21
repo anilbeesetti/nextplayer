@@ -53,14 +53,20 @@ fun PreferenceSlider(
                     onValueChangeFinished()
                     true
                 }
+
                 Key.DirectionRight -> {
                     onValueChange(nudged(direction = 1))
                     onValueChangeFinished()
                     true
                 }
+
                 Key.DirectionCenter, Key.Enter, Key.NumPadEnter -> {
-                    onReset?.let { it(); true } ?: false
+                    onReset?.let {
+                        it()
+                        true
+                    } ?: false
                 }
+
                 else -> false
             }
         },

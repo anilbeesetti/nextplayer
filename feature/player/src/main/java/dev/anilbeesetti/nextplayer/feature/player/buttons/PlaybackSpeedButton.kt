@@ -25,11 +25,7 @@ import dev.anilbeesetti.nextplayer.core.ui.R
 
 @OptIn(UnstableApi::class)
 @Composable
-fun PlaybackSpeedButton(
-    player: Player?,
-    onClick: () -> Unit,
-    modifier: Modifier = Modifier,
-) {
+fun PlaybackSpeedButton(player: Player?, onClick: () -> Unit, modifier: Modifier = Modifier) {
     val state = rememberPlaybackSpeedState(player)
     val description = stringResource(R.string.select_playback_speed)
     PlayerButton(

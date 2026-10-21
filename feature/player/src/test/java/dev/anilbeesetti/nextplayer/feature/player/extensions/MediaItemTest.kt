@@ -60,5 +60,4 @@ class MediaItemTest {
         assertNull(metadata.videoDecoderMode)
         assertNull(metadata.audioDecoderMode)
     }
-
 }

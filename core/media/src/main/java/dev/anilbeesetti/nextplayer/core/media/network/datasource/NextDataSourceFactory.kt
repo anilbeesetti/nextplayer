@@ -16,10 +16,8 @@ import org.koin.core.annotation.Single
  */
 @UnstableApi
 @Single
-class NextDataSourceFactory(
-    private val context: Context,
-    private val sessions: NetworkSessions,
-) : DataSource.Factory {
+class NextDataSourceFactory(private val context: Context, private val sessions: NetworkSessions) :
+    DataSource.Factory {
 
     override fun createDataSource(): DataSource = SchemeDispatchingDataSource(
         default = DefaultDataSource.Factory(context).createDataSource(),

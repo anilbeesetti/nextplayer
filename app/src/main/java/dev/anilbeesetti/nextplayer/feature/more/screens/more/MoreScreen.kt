@@ -64,9 +64,7 @@ import dev.anilbeesetti.nextplayer.feature.more.components.HistoryEmptyState
 import dev.anilbeesetti.nextplayer.feature.videopicker.composables.VideoGridItem
 
 @Composable
-fun MoreScreen(
-    viewModel: MoreViewModel,
-) {
+fun MoreScreen(viewModel: MoreViewModel) {
     val state by viewModel.state.collectAsStateWithLifecycle()
 
     MoreScreenContent(
@@ -76,14 +74,12 @@ fun MoreScreen(
 }
 
 @Composable
-internal fun MoreScreenContent(
-    state: MoreUiState,
-    onAction: (MoreAction) -> Unit,
-) {
+internal fun MoreScreenContent(state: MoreUiState, onAction: (MoreAction) -> Unit) {
     BindTopLevelFab(TopLevelFabKey.MORE, NextIcons.Settings) { onAction(MoreAction.OpenSettings) }
-    val filePicker = rememberLauncherForActivityResult(ActivityResultContracts.GetContent()) { uri ->
-        uri?.let { onAction(MoreAction.PlayVideo(it.toString())) }
-    }
+    val filePicker =
+        rememberLauncherForActivityResult(ActivityResultContracts.GetContent()) { uri ->
+            uri?.let { onAction(MoreAction.PlayVideo(it.toString())) }
+        }
 
     Scaffold(
         topBar = {
@@ -107,7 +103,13 @@ internal fun MoreScreenContent(
                     .verticalScroll(rememberScrollState())
                     .tvListFocus()
                     .padding(horizontal = 8.dp)
-                    .padding(top = 8.dp, bottom = scaffoldPadding.calculateBottomPadding() + LocalNavigationBottomPadding.current + 96.dp),
+                    .padding(
+                        top = 8.dp,
+                        bottom =
+                            scaffoldPadding.calculateBottomPadding() +
+                                LocalNavigationBottomPadding.current +
+                                96.dp,
+                    ),
                 verticalArrangement = Arrangement.spacedBy(16.dp),
             ) {
                 FlowRow(
@@ -195,10 +197,19 @@ private fun HistorySection(
                 onClick = onMoreClick,
                 modifier = Modifier
                     .focusRequester(historyButtonFocusRequester)
-                    .focusProperties { if (isTv && !preferences.isHistoryPaused && videos.isNotEmpty()) down = historyFocusState.requester }
+                    .focusProperties {
+                        if (isTv && !preferences.isHistoryPaused &&
+                            videos.isNotEmpty()
+                        ) {
+                            down = historyFocusState.requester
+                        }
+                    }
                     .tvFocusRing(),
             ) {
-                Icon(imageVector = NextIcons.ArrowForward, contentDescription = stringResource(R.string.history))
+                Icon(
+                    imageVector = NextIcons.ArrowForward,
+                    contentDescription = stringResource(R.string.history),
+                )
             }
         }
         when {
@@ -206,10 +217,12 @@ private fun HistorySection(
                 isHistoryOff = true,
                 modifier = Modifier.fillMaxWidth(),
             )
+
             history is DataState.Success && videos.isEmpty() -> HistoryEmptyState(
                 isHistoryOff = false,
                 modifier = Modifier.fillMaxWidth(),
             )
+
             else -> {
                 LazyRow(
                     // The screen owns initial focus; this region restores a video only when entered.

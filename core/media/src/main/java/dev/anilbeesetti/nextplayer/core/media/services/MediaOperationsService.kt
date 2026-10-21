@@ -15,22 +15,15 @@ interface MediaOperationsService {
     suspend fun shareMedia(uris: List<Uri>)
     suspend fun moveMedia(targets: Map<Uri, File>): Map<Uri, File?>
 
-    fun transferMedia(
-        uris: List<Uri>,
-        folderUri: Uri,
-        mode: TransferMode,
-    ): Flow<TransferEvent>
+    fun transferMedia(uris: List<Uri>, folderUri: Uri, mode: TransferMode): Flow<TransferEvent>
 
     companion object {
         @ChecksSdkIntAtLeast(api = Build.VERSION_CODES.R)
-        fun willSystemAsksForDeleteConfirmation(): Boolean {
-            return Build.VERSION.SDK_INT >= Build.VERSION_CODES.R
-        }
+        fun willSystemAsksForDeleteConfirmation(): Boolean =
+            Build.VERSION.SDK_INT >= Build.VERSION_CODES.R
 
         @ChecksSdkIntAtLeast(api = Build.VERSION_CODES.R)
-        fun supportsTrash(): Boolean {
-            return Build.VERSION.SDK_INT >= Build.VERSION_CODES.R
-        }
+        fun supportsTrash(): Boolean = Build.VERSION.SDK_INT >= Build.VERSION_CODES.R
     }
 }
 
@@ -51,7 +44,13 @@ data class TransferProgress(
     val overallBytesTotal: Long = 0,
 ) {
     val currentFraction: Float?
-        get() = if (currentBytesTotal > 0) (currentBytesCopied.toFloat() / currentBytesTotal).coerceIn(0f, 1f) else null
+        get() = if (currentBytesTotal >
+            0
+        ) {
+            (currentBytesCopied.toFloat() / currentBytesTotal).coerceIn(0f, 1f)
+        } else {
+            null
+        }
 
     val overallFraction: Float
         get() = if (overallBytesTotal > 0) {

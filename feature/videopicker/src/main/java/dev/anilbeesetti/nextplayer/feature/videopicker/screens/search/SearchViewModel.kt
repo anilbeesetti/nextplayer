@@ -98,7 +98,6 @@ class SearchViewModel(
             is SearchUiEvent.NavigateUp -> output.navigateUp()
             is SearchUiEvent.PlayVideo -> output.playVideo(action.uri)
             is SearchUiEvent.OpenFolder -> output.openFolder(action.path)
-
             is SearchUiEvent.OnQueryChange -> onQueryChange(action.query)
             is SearchUiEvent.OnSearch -> onSearch(action.query)
             is SearchUiEvent.OnHistoryItemClick -> onHistoryItemClick(action.query)

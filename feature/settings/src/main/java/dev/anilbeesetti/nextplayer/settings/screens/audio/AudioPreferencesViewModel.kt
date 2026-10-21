@@ -19,9 +19,7 @@ class AudioPreferencesViewModel(
     @InjectedParam internal var output: Output,
 ) : MviViewModel<AudioPreferencesUiState, AudioPreferencesUiEvent>() {
 
-    data class Output(
-        val navigateUp: () -> Unit,
-    )
+    data class Output(val navigateUp: () -> Unit)
 
     private val stateInternal = MutableStateFlow(
         AudioPreferencesUiState(
@@ -45,10 +43,16 @@ class AudioPreferencesViewModel(
             is AudioPreferencesUiEvent.NavigateUp -> output.navigateUp()
 
             is AudioPreferencesUiEvent.ShowDialog -> showDialog(action.value)
+
             is AudioPreferencesUiEvent.UpdateAudioLanguage -> updateAudioLanguage(action.value)
-            is AudioPreferencesUiEvent.TogglePauseOnHeadsetDisconnect -> togglePauseOnHeadsetDisconnect()
+
+            is AudioPreferencesUiEvent.TogglePauseOnHeadsetDisconnect ->
+                togglePauseOnHeadsetDisconnect()
+
             is AudioPreferencesUiEvent.ToggleShowSystemVolumePanel -> toggleShowSystemVolumePanel()
+
             is AudioPreferencesUiEvent.ToggleRequireAudioFocus -> toggleRequireAudioFocus()
+
             is AudioPreferencesUiEvent.ToggleVolumeBoost -> toggleVolumeBoost()
         }
     }

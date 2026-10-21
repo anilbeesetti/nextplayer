@@ -45,10 +45,7 @@ val LocalUseMaterialYouControls = compositionLocalOf { false }
 
 @OptIn(UnstableApi::class)
 @Composable
-fun MediaPlayerScreen(
-    viewModel: PlayerViewModel,
-    player: Player?,
-) {
+fun MediaPlayerScreen(viewModel: PlayerViewModel, player: Player?) {
     val state by viewModel.state.collectAsStateWithLifecycle()
 
     MediaPlayerContent(
@@ -134,7 +131,11 @@ internal fun MediaPlayerContent(
     val errorState = rememberErrorState(player = player)
 
     LaunchedEffect(pictureInPictureState?.isInPictureInPictureMode) {
-        if (pictureInPictureState?.isInPictureInPictureMode == true) controlsVisibilityState.hideControls()
+        if (pictureInPictureState?.isInPictureInPictureMode ==
+            true
+        ) {
+            controlsVisibilityState.hideControls()
+        }
     }
     LaunchedEffect(tapGestureState.isLongPressGestureInAction) {
         if (tapGestureState.isLongPressGestureInAction) controlsVisibilityState.hideControls()
@@ -190,7 +191,11 @@ internal fun MediaPlayerContent(
             onPictureInPictureClick = {
                 pictureInPictureState?.let {
                     if (!it.hasPipPermission) {
-                        Toast.makeText(context, R.string.enable_pip_from_settings, Toast.LENGTH_SHORT).show()
+                        Toast.makeText(
+                            context,
+                            R.string.enable_pip_from_settings,
+                            Toast.LENGTH_SHORT,
+                        ).show()
                         it.openPictureInPictureSettings()
                     } else {
                         it.enterPictureInPictureMode()
@@ -198,7 +203,9 @@ internal fun MediaPlayerContent(
                 }
             },
         )
-        if (volumeAndBrightnessGestureState != null && volumeState != null && brightnessState != null) {
+        if (volumeAndBrightnessGestureState != null && volumeState != null &&
+            brightnessState != null
+        ) {
             PlayerVerticalGestureIndicators(
                 activeGesture = volumeAndBrightnessGestureState.activeGesture,
                 volumePercentage = volumeState.volumePercentage,

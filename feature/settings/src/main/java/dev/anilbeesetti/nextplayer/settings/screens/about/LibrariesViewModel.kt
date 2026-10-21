@@ -12,10 +12,8 @@ import org.koin.core.annotation.InjectedParam
 import org.koin.core.annotation.KoinViewModel
 
 @KoinViewModel
-class LibrariesViewModel(
-    context: Context,
-    @InjectedParam internal var output: Output,
-) : MviViewModel<LibrariesUiState, LibrariesAction>() {
+class LibrariesViewModel(context: Context, @InjectedParam internal var output: Output) :
+    MviViewModel<LibrariesUiState, LibrariesAction>() {
 
     data class Output(val navigateUp: () -> Unit)
 

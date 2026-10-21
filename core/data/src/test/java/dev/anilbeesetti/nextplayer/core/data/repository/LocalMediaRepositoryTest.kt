@@ -43,7 +43,7 @@ class LocalMediaRepositoryTest {
     }
 
     @Test
-    fun `history respects pause, network preference and vault privacy while preserving playback state`() = runTest {
+    fun `history respects privacy preferences and preserves playback state`() = runTest {
         val file = temporaryFolder.newFile().apply { writeText("""{"isHistoryPaused":true}""") }
         val preferences = AppPreferencesDataSource(
             DataStoreFactory.create(
@@ -62,12 +62,25 @@ class LocalMediaRepositoryTest {
             override suspend fun findVideo(uri: Uri) = null
             override suspend fun findFolder(path: String) = null
         }
-        val repository = LocalMediaRepository(dao, mediaService, preferences, RuntimeEnvironment.getApplication())
+        val repository =
+            LocalMediaRepository(
+                dao,
+                mediaService,
+                preferences,
+                RuntimeEnvironment.getApplication(),
+            )
         val networkUri = "smb://example.com/films/movie.mkv?cid=1"
         val adHocUri = "smb://example.com/share/movie.mkv"
-        val vaultUri = "content://${RuntimeEnvironment.getApplication().packageName}.fileprovider/external_files_path/vault/movie.mkv"
+        val vaultUri =
+            "content://${RuntimeEnvironment.getApplication().packageName}" +
+                ".fileprovider/external_files_path/vault/movie.mkv"
         dao.upsert(MediumStateEntity(uriString = vaultUri, lastPlayedTime = 90))
-        assertEquals(listOf("content://watched"), repository.observePlaybackHistory().first().map { it.uriString })
+        assertEquals(
+            listOf("content://watched"),
+            repository.observePlaybackHistory().first().map {
+                it.uriString
+            },
+        )
 
         repository.updateMediumLastPlayedTime("content://watched", 200, 1_000)
         repository.updateMediumLastPlayedTime("content://new", 200, 1_000)

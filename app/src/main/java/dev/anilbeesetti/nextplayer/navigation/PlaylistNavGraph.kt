@@ -28,7 +28,11 @@ fun EntryProviderScope<NavKey>.playlistNavGraph(
         onAddToHomeScreen = if (PlaylistShortcut.isSupported(context)) {
             { playlist ->
                 if (!PlaylistShortcut.requestPin(context, playlist)) {
-                    Toast.makeText(context, R.string.playlist_shortcut_failed, Toast.LENGTH_SHORT).show()
+                    Toast.makeText(
+                        context,
+                        R.string.playlist_shortcut_failed,
+                        Toast.LENGTH_SHORT,
+                    ).show()
                 }
             }
         } else {
@@ -55,10 +59,7 @@ internal fun TopLevelNavState.openPlaylist(playlistId: Long) {
     switchTo(PlaylistListRoute)
 }
 
-internal fun Context.startPlaylistPlayback(
-    playlistId: Long,
-    startUri: Uri,
-) {
+internal fun Context.startPlaylistPlayback(playlistId: Long, startUri: Uri) {
     startActivity(
         Intent(this, PlayerActivity::class.java).apply {
             action = Intent.ACTION_VIEW

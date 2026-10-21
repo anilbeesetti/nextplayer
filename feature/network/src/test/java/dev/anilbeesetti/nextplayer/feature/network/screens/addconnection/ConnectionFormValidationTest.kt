@@ -9,10 +9,44 @@ import org.junit.Test
 class ConnectionFormValidationTest {
     @Test
     fun `legacy protocols require only name and host`() {
-        listOf(NetworkProtocol.SMB, NetworkProtocol.FTP, NetworkProtocol.WEBDAV).forEach { protocol ->
-            assertFalse(canSaveConnection("", "host", protocol, "", NetworkAuthentication.PASSWORD, false, false))
-            assertFalse(canSaveConnection("Name", "", protocol, "", NetworkAuthentication.PASSWORD, false, false))
-            assertTrue(canSaveConnection("Name", "host", protocol, "", NetworkAuthentication.PASSWORD, false, false))
+        listOf(
+            NetworkProtocol.SMB,
+            NetworkProtocol.FTP,
+            NetworkProtocol.WEBDAV,
+        ).forEach { protocol ->
+            assertFalse(
+                canSaveConnection(
+                    "",
+                    "host",
+                    protocol,
+                    "",
+                    NetworkAuthentication.PASSWORD,
+                    false,
+                    false,
+                ),
+            )
+            assertFalse(
+                canSaveConnection(
+                    "Name",
+                    "",
+                    protocol,
+                    "",
+                    NetworkAuthentication.PASSWORD,
+                    false,
+                    false,
+                ),
+            )
+            assertTrue(
+                canSaveConnection(
+                    "Name",
+                    "host",
+                    protocol,
+                    "",
+                    NetworkAuthentication.PASSWORD,
+                    false,
+                    false,
+                ),
+            )
         }
     }
 

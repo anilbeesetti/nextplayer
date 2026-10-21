@@ -30,7 +30,10 @@ fun EntryProviderScope<NavKey>.playlistListEntry(
     onAddToHomeScreen: ((PlaylistSummary) -> Unit)? = null,
 ) {
     entry<PlaylistListRoute> {
-        val output = PlaylistListViewModel.Output(openPlaylist = onPlaylistClick, openSettings = onSettingsClick)
+        val output = PlaylistListViewModel.Output(
+            openPlaylist = onPlaylistClick,
+            openSettings = onSettingsClick,
+        )
         val viewModel = koinViewModel<PlaylistListViewModel>(
             parameters = { parametersOf(output) },
         )

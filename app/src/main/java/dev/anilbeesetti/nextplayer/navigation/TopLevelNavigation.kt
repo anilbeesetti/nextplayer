@@ -198,17 +198,29 @@ class TopLevelNavState(
     }
 }
 
-fun TopLevelNavState.isNavigationBetweenTopLevelDestinations(initialState: Scene<NavKey>, targetState: Scene<NavKey>): Boolean =
-    topLevelContentKeys.run { contains(initialState.entries.lastOrNull()?.contentKey) && contains(targetState.entries.lastOrNull()?.contentKey) }
+fun TopLevelNavState.isNavigationBetweenTopLevelDestinations(
+    initialState: Scene<NavKey>,
+    targetState: Scene<NavKey>,
+): Boolean = topLevelContentKeys.run {
+    contains(initialState.entries.lastOrNull()?.contentKey) &&
+        contains(targetState.entries.lastOrNull()?.contentKey)
+}
 
-internal fun TopLevelNavState.navigationTransition(initialState: Scene<NavKey>, targetState: Scene<NavKey>): ContentTransform {
+internal fun TopLevelNavState.navigationTransition(
+    initialState: Scene<NavKey>,
+    targetState: Scene<NavKey>,
+): ContentTransform {
     if (isNavigationBetweenTopLevelDestinations(initialState, targetState)) {
-        return fadeIn(tween(200, easing = LinearEasing)) togetherWith fadeOut(tween(200, easing = LinearEasing))
+        return fadeIn(tween(200, easing = LinearEasing)) togetherWith
+            fadeOut(tween(200, easing = LinearEasing))
     }
 
     // Quick Back can select the pop spec while the animated scenes still describe the push.
     // Keep the direction tied to those scenes so the existing slide can reverse smoothly.
-    val isPop = initialState.previousEntries.any { it.contentKey == targetState.entries.lastOrNull()?.contentKey }
+    val isPop = initialState.previousEntries.any {
+        it.contentKey ==
+            targetState.entries.lastOrNull()?.contentKey
+    }
     return slideInHorizontally(
         initialOffsetX = { if (isPop) -(it * 0.3f).toInt() else it },
         animationSpec = tween(durationMillis = 200, easing = LinearEasing),
@@ -272,8 +284,9 @@ fun NextNavigationBar(
                         .tvFocusRing(shape = MaterialTheme.shapes.large)
                         .focusProperties {
                             if (isTv) {
-                                up = fab.upFocusRequester.takeUnless { it == FocusRequester.Default }
-                                    ?: contentFocusRequester
+                                up =
+                                    fab.upFocusRequester.takeUnless { it == FocusRequester.Default }
+                                        ?: contentFocusRequester
                             }
                         },
                     shape = MaterialTheme.shapes.large,
@@ -282,9 +295,15 @@ fun NextNavigationBar(
                         targetState = fab,
                         transitionSpec = {
                             fadeIn(tween(250, easing = FastOutSlowInEasing)) +
-                                scaleIn(tween(250, easing = FastOutSlowInEasing), initialScale = 0.25f) togetherWith
+                                scaleIn(
+                                    tween(250, easing = FastOutSlowInEasing),
+                                    initialScale = 0.25f,
+                                ) togetherWith
                                 fadeOut(tween(250, easing = FastOutSlowInEasing)) +
-                                scaleOut(tween(250, easing = FastOutSlowInEasing), targetScale = 0.25f)
+                                scaleOut(
+                                    tween(250, easing = FastOutSlowInEasing),
+                                    targetScale = 0.25f,
+                                )
                         },
                         label = "fab_icon_swap",
                     ) { fab ->

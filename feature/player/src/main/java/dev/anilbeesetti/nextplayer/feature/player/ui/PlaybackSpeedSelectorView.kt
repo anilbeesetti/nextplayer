@@ -93,7 +93,9 @@ fun BoxScope.PlaybackSpeedSelectorView(
 
                 FilledTonalIconButton(
                     onClick = {
-                        val newSpeed = (playbackParametersState.speed + stepSize).coerceAtMost(maxValue)
+                        val newSpeed = (playbackParametersState.speed + stepSize).coerceAtMost(
+                            maxValue,
+                        )
                         playbackParametersState.setPlaybackSpeed(newSpeed)
                     },
                 ) {
@@ -129,7 +131,8 @@ fun BoxScope.PlaybackSpeedSelectorView(
                 verticalArrangement = Arrangement.spacedBy(8.dp),
             ) {
                 listOf(
-                    0.25f, 0.5f, 0.75f, 1.0f, 1.25f, 1.5f, 1.75f, 2.0f, 2.5f, 3.0f, 4.0f, 5.0f, 6.0f, 7.0f, 8.0f
+                    0.25f, 0.5f, 0.75f, 1.0f, 1.25f, 1.5f, 1.75f, 2.0f,
+                    2.5f, 3.0f, 4.0f, 5.0f, 6.0f, 7.0f, 8.0f,
                 ).forEach { speed ->
                     Box(
                         modifier = Modifier

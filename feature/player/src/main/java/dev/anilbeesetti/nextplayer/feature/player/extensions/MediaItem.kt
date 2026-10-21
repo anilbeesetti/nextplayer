@@ -11,13 +11,22 @@ import io.github.anilbeesetti.nextlib.media3ext.ffdecoder.DecoderMode
 private const val MEDIA_METADATA_EXTERNAL_AUDIO_KEY = "external_audio"
 
 val MediaMetadata.externalAudio: List<Uri>
-    get() = extras?.getStringArrayList(MEDIA_METADATA_EXTERNAL_AUDIO_KEY)?.map { it.toUri() }.orEmpty()
+    get() = extras?.getStringArrayList(MEDIA_METADATA_EXTERNAL_AUDIO_KEY)?.map {
+        it.toUri()
+    }.orEmpty()
 
 fun MediaItem.withExternalAudio(uris: List<Uri>): MediaItem = buildUpon()
     .setMediaMetadata(
         mediaMetadata.buildUpon().setExtras(
             (mediaMetadata.extras?.let(::Bundle) ?: Bundle()).apply {
-                putStringArrayList(MEDIA_METADATA_EXTERNAL_AUDIO_KEY, ArrayList(uris.map { it.toString() }))
+                putStringArrayList(
+                    MEDIA_METADATA_EXTERNAL_AUDIO_KEY,
+                    ArrayList(
+                        uris.map {
+                            it.toString()
+                        },
+                    ),
+                )
             },
         ).build(),
     ).build()

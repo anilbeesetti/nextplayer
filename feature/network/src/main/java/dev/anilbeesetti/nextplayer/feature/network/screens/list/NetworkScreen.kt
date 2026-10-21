@@ -62,9 +62,7 @@ import dev.anilbeesetti.nextplayer.core.ui.extensions.copy
 import dev.anilbeesetti.nextplayer.core.ui.theme.NextPlayerTheme
 
 @Composable
-fun NetworkScreen(
-    viewModel: NetworkViewModel,
-) {
+fun NetworkScreen(viewModel: NetworkViewModel) {
     val state by viewModel.state.collectAsStateWithLifecycle()
 
     NetworkScreenContent(
@@ -74,10 +72,7 @@ fun NetworkScreen(
 }
 
 @Composable
-internal fun NetworkScreenContent(
-    state: NetworkUiState,
-    onAction: (NetworkAction) -> Unit,
-) {
+internal fun NetworkScreenContent(state: NetworkUiState, onAction: (NetworkAction) -> Unit) {
     var connectionToDelete by remember { mutableStateOf<NetworkConnection?>(null) }
     var streamUrl by rememberSaveable { mutableStateOf("") }
     val trimmedStreamUrl = streamUrl.trim()
@@ -98,7 +93,9 @@ internal fun NetworkScreenContent(
                 title = stringResource(R.string.network),
                 fontWeight = FontWeight.Bold,
                 actions = {
-                    IconButton(onClick = { onAction(NetworkAction.OpenSettings) }, modifier = Modifier.tvFocusRing()) {
+                    IconButton(onClick = {
+                        onAction(NetworkAction.OpenSettings)
+                    }, modifier = Modifier.tvFocusRing()) {
                         Icon(
                             imageVector = NextIcons.Settings,
                             contentDescription = stringResource(R.string.settings),
@@ -129,7 +126,9 @@ internal fun NetworkScreenContent(
                     NetworkStreamCard(
                         url = streamUrl,
                         onUrlChange = { streamUrl = it },
-                        onOpenStream = { onAction(NetworkAction.OpenStream(trimmedStreamUrl.toUri())) },
+                        onOpenStream = {
+                            onAction(NetworkAction.OpenStream(trimmedStreamUrl.toUri()))
+                        },
                         enabled = trimmedStreamUrl.isNotEmpty(),
                         fabUpFocusRequester = fabUpFocusRequester,
                     )
@@ -161,7 +160,9 @@ internal fun NetworkScreenContent(
         NextDialog(
             onDismissRequest = { connectionToDelete = null },
             title = { Text(stringResource(R.string.delete_connection)) },
-            content = { Text(stringResource(R.string.delete_connection_confirmation, connection.name)) },
+            content = {
+                Text(stringResource(R.string.delete_connection_confirmation, connection.name))
+            },
             confirmButton = {
                 TextButton(
                     onClick = {
@@ -346,7 +347,10 @@ internal fun NetworkProtocol.icon(): ImageVector = when (this) {
 private fun NetworkScreenPreview() {
     NextPlayerTheme {
         NetworkScreenContent(
-            state = NetworkUiState(connections = listOf(NetworkConnection.sample), isLoading = false),
+            state = NetworkUiState(
+                connections = listOf(NetworkConnection.sample),
+                isLoading = false,
+            ),
             onAction = {},
         )
     }

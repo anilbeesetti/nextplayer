@@ -171,13 +171,12 @@ private fun Context.getDataColumn(
  * @param uri uri of the file
  * @return filename of the file
  */
-fun Context.getFilenameFromUri(uri: Uri): String {
-    return if (ContentResolver.SCHEME_FILE.equals(uri.scheme, ignoreCase = true)) {
+fun Context.getFilenameFromUri(uri: Uri): String =
+    if (ContentResolver.SCHEME_FILE.equals(uri.scheme, ignoreCase = true)) {
         File(uri.toString()).name
     } else {
         getFilenameFromContentUri(uri) ?: uri.lastPathSegment ?: ""
     }
-}
 
 /**
  * get filename from content uri
@@ -227,35 +226,34 @@ fun Context.getMediaContentUri(uri: Uri): Uri? {
     return null
 }
 
-suspend fun Context.scanPaths(paths: List<String>): Boolean = suspendCancellableCoroutine { continuation ->
-    if (paths.isEmpty()) {
-        continuation.resumeWith(Result.success(true))
-        return@suspendCancellableCoroutine
-    }
-    // scanFile invokes the callback once per path, so only resume after the last one.
-    val remaining = AtomicInteger(paths.size)
-    try {
-        MediaScannerConnection.scanFile(
-            this@scanPaths,
-            paths.toTypedArray(),
-            arrayOf("video/*"),
-        ) { path, uri ->
-            Log.d("ScanPath", "scanPaths: path=$path, uri=$uri")
-            if (remaining.decrementAndGet() == 0) {
-                continuation.resumeWith(Result.success(true))
-            }
+suspend fun Context.scanPaths(paths: List<String>): Boolean =
+    suspendCancellableCoroutine { continuation ->
+        if (paths.isEmpty()) {
+            continuation.resumeWith(Result.success(true))
+            return@suspendCancellableCoroutine
         }
-    } catch (e: Exception) {
-        continuation.resumeWith(Result.failure(e))
+        // scanFile invokes the callback once per path, so only resume after the last one.
+        val remaining = AtomicInteger(paths.size)
+        try {
+            MediaScannerConnection.scanFile(
+                this@scanPaths,
+                paths.toTypedArray(),
+                arrayOf("video/*"),
+            ) { path, uri ->
+                Log.d("ScanPath", "scanPaths: path=$path, uri=$uri")
+                if (remaining.decrementAndGet() == 0) {
+                    continuation.resumeWith(Result.success(true))
+                }
+            }
+        } catch (e: Exception) {
+            continuation.resumeWith(Result.failure(e))
+        }
     }
-}
 
-suspend fun Context.scanPath(file: File): Boolean {
-    return if (file.isDirectory) {
-        file.listFiles()?.all { scanPath(it) } ?: true
-    } else {
-        scanPaths(listOf(file.path))
-    }
+suspend fun Context.scanPath(file: File): Boolean = if (file.isDirectory) {
+    file.listFiles()?.all { scanPath(it) } ?: true
+} else {
+    scanPaths(listOf(file.path))
 }
 
 suspend fun Context.scanStorage(
@@ -272,44 +270,43 @@ suspend fun Context.scanStorage(
     }
 }
 
-suspend fun Context.convertToUTF8(uri: Uri, charset: Charset? = null): Uri = withContext(Dispatchers.IO) {
-    try {
-        when {
-            uri.scheme?.let { it in listOf("http", "https", "ftp") } == true -> {
-                val url = URL(uri.toString())
-                val detectedCharset = charset ?: detectCharset(url)
-                if (detectedCharset == StandardCharsets.UTF_8) {
-                    uri
-                } else {
-                    convertNetworkUriToUTF8(url = url, sourceCharset = detectedCharset)
+suspend fun Context.convertToUTF8(uri: Uri, charset: Charset? = null): Uri =
+    withContext(Dispatchers.IO) {
+        try {
+            when {
+                uri.scheme?.let { it in listOf("http", "https", "ftp") } == true -> {
+                    val url = URL(uri.toString())
+                    val detectedCharset = charset ?: detectCharset(url)
+                    if (detectedCharset == StandardCharsets.UTF_8) {
+                        uri
+                    } else {
+                        convertNetworkUriToUTF8(url = url, sourceCharset = detectedCharset)
+                    }
                 }
-            }
 
-            else -> {
-                val detectedCharset = charset ?: detectCharset(uri = uri, context = this@convertToUTF8)
-                if (detectedCharset == StandardCharsets.UTF_8) {
-                    uri
-                } else {
-                    convertLocalUriToUTF8(uri = uri, sourceCharset = detectedCharset)
+                else -> {
+                    val detectedCharset =
+                        charset ?: detectCharset(uri = uri, context = this@convertToUTF8)
+                    if (detectedCharset == StandardCharsets.UTF_8) {
+                        uri
+                    } else {
+                        convertLocalUriToUTF8(uri = uri, sourceCharset = detectedCharset)
+                    }
                 }
             }
+        } catch (exception: Exception) {
+            exception.printStackTrace()
+            uri
         }
-    } catch (exception: Exception) {
-        exception.printStackTrace()
-        uri
     }
-}
 
-private fun detectCharset(uri: Uri, context: Context): Charset {
-    return context.contentResolver.openInputStream(uri)?.use { inputStream ->
+private fun detectCharset(uri: Uri, context: Context): Charset =
+    context.contentResolver.openInputStream(uri)?.use { inputStream ->
         detectCharsetFromStream(inputStream)
     } ?: StandardCharsets.UTF_8
-}
 
-private fun detectCharset(url: URL): Charset {
-    return url.openStream().use { inputStream ->
-        detectCharsetFromStream(inputStream)
-    }
+private fun detectCharset(url: URL): Charset = url.openStream().use { inputStream ->
+    detectCharsetFromStream(inputStream)
 }
 
 private fun detectCharsetFromStream(inputStream: InputStream): Charset {
@@ -399,9 +396,11 @@ fun Context.hasStorageAccessFrameworkChooser(): Boolean {
     return intent.resolveActivity(packageManager) != null
 }
 
-fun Context.pxToDp(px: Float) = TypedValue.applyDimension(TypedValue.COMPLEX_UNIT_PX, px, resources.displayMetrics)
+fun Context.pxToDp(px: Float) =
+    TypedValue.applyDimension(TypedValue.COMPLEX_UNIT_PX, px, resources.displayMetrics)
 
-fun Context.dpToPx(dp: Float) = TypedValue.applyDimension(TypedValue.COMPLEX_UNIT_DIP, dp, resources.displayMetrics)
+fun Context.dpToPx(dp: Float) =
+    TypedValue.applyDimension(TypedValue.COMPLEX_UNIT_DIP, dp, resources.displayMetrics)
 
 val Context.subtitleCacheDir: File
     get() {
@@ -417,26 +416,22 @@ val Context.thumbnailCacheDir: File
         return dir
     }
 
-suspend fun ContentResolver.updateMedia(
-    uri: Uri,
-    contentValues: ContentValues,
-): Boolean = withContext(Dispatchers.IO) {
-    return@withContext try {
-        update(
-            uri,
-            contentValues,
-            null,
-            null,
-        ) > 0
-    } catch (e: Exception) {
-        e.printStackTrace()
-        false
+suspend fun ContentResolver.updateMedia(uri: Uri, contentValues: ContentValues): Boolean =
+    withContext(Dispatchers.IO) {
+        return@withContext try {
+            update(
+                uri,
+                contentValues,
+                null,
+                null,
+            ) > 0
+        } catch (e: Exception) {
+            e.printStackTrace()
+            false
+        }
     }
-}
 
-suspend fun ContentResolver.deleteMedia(
-    uri: Uri,
-): Boolean = withContext(Dispatchers.IO) {
+suspend fun ContentResolver.deleteMedia(uri: Uri): Boolean = withContext(Dispatchers.IO) {
     return@withContext try {
         delete(uri, null, null) > 0
     } catch (e: Exception) {
@@ -453,9 +448,8 @@ fun Context.getStorageVolumes() = try {
     listOf(Environment.getExternalStorageDirectory())
 }
 
-fun Context.appIcon(): Bitmap? {
-    return packageManager.getApplicationInfo(packageName, 0).loadIcon(packageManager)?.toBitmapOrNull()
-}
+fun Context.appIcon(): Bitmap? =
+    packageManager.getApplicationInfo(packageName, 0).loadIcon(packageManager)?.toBitmapOrNull()
 
 val Context.isPipFeatureSupported: Boolean
     get() = Build.VERSION.SDK_INT >= Build.VERSION_CODES.O &&

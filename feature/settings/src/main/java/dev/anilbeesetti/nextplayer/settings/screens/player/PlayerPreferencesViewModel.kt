@@ -23,9 +23,7 @@ class PlayerPreferencesViewModel(
     @InjectedParam internal var output: Output,
 ) : MviViewModel<PlayerPreferencesUiState, PlayerPreferencesUiEvent>() {
 
-    data class Output(
-        val navigateUp: () -> Unit,
-    )
+    data class Output(val navigateUp: () -> Unit)
 
     private val stateInternal = MutableStateFlow(
         PlayerPreferencesUiState(
@@ -47,18 +45,43 @@ class PlayerPreferencesViewModel(
             is PlayerPreferencesUiEvent.NavigateUp -> output.navigateUp()
 
             is PlayerPreferencesUiEvent.ShowDialog -> showDialog(action.value)
+
             is PlayerPreferencesUiEvent.UpdatePlaybackResume -> updatePlaybackResume(action.resume)
+
             is PlayerPreferencesUiEvent.ToggleAutoplay -> toggleAutoplay()
+
             is PlayerPreferencesUiEvent.ToggleTunneledPlayback -> toggleTunneledPlayback()
+
             is PlayerPreferencesUiEvent.ToggleAutoPip -> toggleAutoPip()
+
             is PlayerPreferencesUiEvent.ToggleAutoBackgroundPlay -> toggleAutoBackgroundPlay()
-            is PlayerPreferencesUiEvent.ToggleRememberBrightnessLevel -> toggleRememberBrightnessLevel()
+
+            is PlayerPreferencesUiEvent.ToggleRememberBrightnessLevel ->
+                toggleRememberBrightnessLevel()
+
             is PlayerPreferencesUiEvent.ToggleRememberSelections -> toggleRememberSelections()
-            is PlayerPreferencesUiEvent.UpdatePreferredPlayerOrientation -> updatePreferredPlayerOrientation(action.value)
-            is PlayerPreferencesUiEvent.UpdatePreferredControlButtonsPosition -> updatePreferredControlButtonsPosition(action.value)
-            is PlayerPreferencesUiEvent.UpdateDefaultPlaybackSpeed -> updateDefaultPlaybackSpeed(action.value)
-            is PlayerPreferencesUiEvent.UpdateControlAutoHideTimeout -> updateControlAutoHideTimeout(action.value)
-            is PlayerPreferencesUiEvent.ToggleUseMaterialYouControls -> toggleUseMaterialYouControls()
+
+            is PlayerPreferencesUiEvent.UpdatePreferredPlayerOrientation ->
+                updatePreferredPlayerOrientation(
+                    action.value,
+                )
+
+            is PlayerPreferencesUiEvent.UpdatePreferredControlButtonsPosition ->
+                updatePreferredControlButtonsPosition(
+                    action.value,
+                )
+
+            is PlayerPreferencesUiEvent.UpdateDefaultPlaybackSpeed -> updateDefaultPlaybackSpeed(
+                action.value,
+            )
+
+            is PlayerPreferencesUiEvent.UpdateControlAutoHideTimeout ->
+                updateControlAutoHideTimeout(
+                    action.value,
+                )
+
+            is PlayerPreferencesUiEvent.ToggleUseMaterialYouControls ->
+                toggleUseMaterialYouControls()
         }
     }
 
@@ -190,8 +213,10 @@ sealed interface PlayerPreferencesUiEvent {
     data object ToggleAutoBackgroundPlay : PlayerPreferencesUiEvent
     data object ToggleRememberBrightnessLevel : PlayerPreferencesUiEvent
     data object ToggleRememberSelections : PlayerPreferencesUiEvent
-    data class UpdatePreferredPlayerOrientation(val value: ScreenOrientation) : PlayerPreferencesUiEvent
-    data class UpdatePreferredControlButtonsPosition(val value: ControlButtonsPosition) : PlayerPreferencesUiEvent
+    data class UpdatePreferredPlayerOrientation(val value: ScreenOrientation) :
+        PlayerPreferencesUiEvent
+    data class UpdatePreferredControlButtonsPosition(val value: ControlButtonsPosition) :
+        PlayerPreferencesUiEvent
     data class UpdateDefaultPlaybackSpeed(val value: Float) : PlayerPreferencesUiEvent
     data class UpdateControlAutoHideTimeout(val value: Int) : PlayerPreferencesUiEvent
     data object ToggleUseMaterialYouControls : PlayerPreferencesUiEvent

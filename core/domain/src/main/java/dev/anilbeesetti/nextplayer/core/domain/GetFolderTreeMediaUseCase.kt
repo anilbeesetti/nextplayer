@@ -31,23 +31,28 @@ class GetFolderTreeMediaUseCase(
     @Named(DiQualifiers.DEFAULT_DISPATCHER) private val defaultDispatcher: CoroutineDispatcher,
 ) {
 
-    operator fun invoke(folderPath: String? = null): Flow<MediaHolder> {
-        return combine(
-            mediaRepository.observeVideos(folderPath),
-            preferencesRepository.applicationPreferences,
-            newVideoClock(),
-        ) { videos, preferences, nowMillis ->
-            val included = videos.filterNot { it.parentPath in preferences.excludeFolders }
-            val sort = Sort(by = preferences.sortBy, order = preferences.sortOrder)
-            val thresholdDays = preferences.newVideoThresholdDays
+    operator fun invoke(folderPath: String? = null): Flow<MediaHolder> = combine(
+        mediaRepository.observeVideos(folderPath),
+        preferencesRepository.applicationPreferences,
+        newVideoClock(),
+    ) { videos, preferences, nowMillis ->
+        val included = videos.filterNot { it.parentPath in preferences.excludeFolders }
+        val sort = Sort(by = preferences.sortBy, order = preferences.sortOrder)
+        val thresholdDays = preferences.newVideoThresholdDays
 
-            if (folderPath != null) {
-                mediaUnder(folderPath, included, preferences.excludeFolders, sort, thresholdDays, nowMillis)
-            } else {
-                topLevelMedia(included, preferences.excludeFolders, sort, thresholdDays, nowMillis)
-            }
-        }.flowOn(defaultDispatcher)
-    }
+        if (folderPath != null) {
+            mediaUnder(
+                folderPath,
+                included,
+                preferences.excludeFolders,
+                sort,
+                thresholdDays,
+                nowMillis,
+            )
+        } else {
+            topLevelMedia(included, preferences.excludeFolders, sort, thresholdDays, nowMillis)
+        }
+    }.flowOn(defaultDispatcher)
 
     private fun topLevelMedia(
         videos: List<Video>,
@@ -67,7 +72,10 @@ class GetFolderTreeMediaUseCase(
             .map { volumeRoot ->
                 summarize(volumeRoot, videosUnder(volumeRoot, videos), thresholdDays, nowMillis)
             }
-        return MediaHolder(videos = emptyList(), folders = folders.sortedWith(sort.folderComparator()))
+        return MediaHolder(
+            videos = emptyList(),
+            folders = folders.sortedWith(sort.folderComparator()),
+        )
     }
 
     /** The videos directly inside [root] plus a [Folder] for each immediate subfolder with videos. */
@@ -139,8 +147,11 @@ class GetFolderTreeMediaUseCase(
     private fun volumeRootOf(path: String): String? {
         val parts = path.split('/').filter { it.isNotEmpty() }
         return when {
-            parts.size >= 3 && parts[0] == "storage" && parts[1] == "emulated" -> "/storage/emulated/${parts[2]}"
+            parts.size >= 3 && parts[0] == "storage" && parts[1] == "emulated" ->
+                "/storage/emulated/${parts[2]}"
+
             parts.size >= 2 && parts[0] == "storage" -> "/storage/${parts[1]}"
+
             else -> null
         }
     }

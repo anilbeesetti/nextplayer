@@ -11,23 +11,20 @@ import dev.anilbeesetti.nextplayer.core.common.service.registerForSuspendActivit
 import org.koin.core.annotation.Single
 
 @Single
-class LocalSystemService(
-    private val context: Context,
-) : SystemService {
+class LocalSystemService(private val context: Context) : SystemService {
     private var pickDocumentTreeLauncher: SuspendActivityResultLauncher<Uri?, Uri?>? = null
 
     override fun initialize(activity: ComponentActivity) {
-        pickDocumentTreeLauncher = activity.registerForSuspendActivityResult(ActivityResultContracts.OpenDocumentTree())
+        pickDocumentTreeLauncher =
+            activity.registerForSuspendActivityResult(ActivityResultContracts.OpenDocumentTree())
     }
 
-    override suspend fun pickFolder(): Uri? {
-        return pickDocumentTreeLauncher?.launch(null)?.also { uri ->
-            runCatching {
-                context.contentResolver.takePersistableUriPermission(
-                    uri,
-                    Intent.FLAG_GRANT_READ_URI_PERMISSION or Intent.FLAG_GRANT_WRITE_URI_PERMISSION,
-                )
-            }
+    override suspend fun pickFolder(): Uri? = pickDocumentTreeLauncher?.launch(null)?.also { uri ->
+        runCatching {
+            context.contentResolver.takePersistableUriPermission(
+                uri,
+                Intent.FLAG_GRANT_READ_URI_PERMISSION or Intent.FLAG_GRANT_WRITE_URI_PERMISSION,
+            )
         }
     }
 

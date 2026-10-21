@@ -29,10 +29,7 @@ import dev.anilbeesetti.nextplayer.core.ui.components.restorableFocusItem
 import dev.anilbeesetti.nextplayer.core.ui.components.tvFocusDown
 import dev.anilbeesetti.nextplayer.core.ui.designsystem.NextIcons
 
-data class SettingsOutput(
-    val navigateUp: () -> Unit,
-    val openSetting: (Setting) -> Unit,
-)
+data class SettingsOutput(val navigateUp: () -> Unit, val openSetting: (Setting) -> Unit)
 
 private sealed interface SettingsAction {
     data object NavigateUp : SettingsAction
@@ -51,9 +48,7 @@ fun SettingsScreen(output: SettingsOutput) {
 
 @OptIn(ExperimentalMaterial3Api::class, ExperimentalMaterial3ExpressiveApi::class)
 @Composable
-private fun SettingsScreenContent(
-    onAction: (SettingsAction) -> Unit,
-) {
+private fun SettingsScreenContent(onAction: (SettingsAction) -> Unit) {
     val settingRows = remember { SettingRow.entries }
     val focusState = rememberRestorableFocusState()
 

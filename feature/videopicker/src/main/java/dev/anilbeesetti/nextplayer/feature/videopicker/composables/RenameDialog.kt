@@ -22,11 +22,7 @@ import kotlin.time.Duration.Companion.milliseconds
 import kotlinx.coroutines.delay
 
 @Composable
-fun RenameDialog(
-    name: String,
-    onDismiss: () -> Unit,
-    onDone: (String) -> Unit,
-) {
+fun RenameDialog(name: String, onDismiss: () -> Unit, onDone: (String) -> Unit) {
     var mediaName by rememberSaveable { mutableStateOf(name) }
     val focusRequester = remember { FocusRequester() }
     NextDialog(

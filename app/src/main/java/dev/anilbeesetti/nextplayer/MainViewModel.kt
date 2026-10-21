@@ -10,9 +10,8 @@ import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 
-class MainViewModel(
-    private val preferencesRepository: PreferencesRepository,
-) : MviViewModel<MainActivityUiState, Nothing>() {
+class MainViewModel(private val preferencesRepository: PreferencesRepository) :
+    MviViewModel<MainActivityUiState, Nothing>() {
 
     private val stateInternal = MutableStateFlow<MainActivityUiState>(MainActivityUiState.Loading)
     override val state: StateFlow<MainActivityUiState> = stateInternal.asStateFlow()

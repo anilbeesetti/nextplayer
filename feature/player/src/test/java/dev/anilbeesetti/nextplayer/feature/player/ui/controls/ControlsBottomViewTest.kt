@@ -53,7 +53,9 @@ class ControlsBottomViewTest {
         val player = composeRule.runOnIdle { TestPlayer() }
         try {
             showControls(player)
-            val seekbar = composeRule.onNode(SemanticsMatcher.keyIsDefined(SemanticsProperties.ProgressBarRangeInfo))
+            val seekbar = composeRule.onNode(
+                SemanticsMatcher.keyIsDefined(SemanticsProperties.ProgressBarRangeInfo),
+            )
             seekbar.requestFocus().assertIsFocused()
 
             repeat(3) { index ->
@@ -109,7 +111,9 @@ class ControlsBottomViewTest {
         val player = composeRule.runOnIdle { TestPlayer() }
         try {
             showControls(player)
-            val seekbar = composeRule.onNode(SemanticsMatcher.keyIsDefined(SemanticsProperties.ProgressBarRangeInfo))
+            val seekbar = composeRule.onNode(
+                SemanticsMatcher.keyIsDefined(SemanticsProperties.ProgressBarRangeInfo),
+            )
             seekbar.requestFocus().performKeyInput { pressKey(Key.DirectionUp) }
             composeRule.onNodeWithText("00:00 / 01:00")
                 .assertIsFocused()
@@ -159,13 +163,21 @@ class ControlsBottomViewTest {
     }
 
     private class TestPlayer : SimpleBasePlayer(Looper.getMainLooper()) {
-        private val chapters = listOf(0L to "Opening", 1_500L to "Second", 1_750L to "Third").map { (start, title) ->
+        private val chapters = listOf(
+            0L to "Opening",
+            1_500L to "Second",
+            1_750L to "Third",
+        ).map { (start, title) ->
             Chapter.Builder().setStartTimeMs(start).setTitle(Label(null, title)).build()
         }
         private val tracks = Tracks(
             listOf(
                 Tracks.Group(
-                    TrackGroup(Format.Builder().setSampleMimeType(MimeTypes.VIDEO_H264).setMetadata(Metadata(chapters)).build()),
+                    TrackGroup(
+                        Format.Builder().setSampleMimeType(
+                            MimeTypes.VIDEO_H264,
+                        ).setMetadata(Metadata(chapters)).build(),
+                    ),
                     false,
                     intArrayOf(C.FORMAT_HANDLED),
                     booleanArrayOf(true),
@@ -184,14 +196,24 @@ class ControlsBottomViewTest {
                     )
                     .build(),
             )
-            .setPlaylist(listOf(MediaItemData.Builder("chapters").setDurationUs(60_000_000).setTracks(tracks).build()))
+            .setPlaylist(
+                listOf(
+                    MediaItemData.Builder(
+                        "chapters",
+                    ).setDurationUs(60_000_000).setTracks(tracks).build(),
+                ),
+            )
             .setContentPositionMs(0)
             .setPlaybackState(Player.STATE_READY)
             .build()
 
         override fun getState(): State = state
 
-        override fun handleSeek(mediaItemIndex: Int, positionMs: Long, seekCommand: Int): ListenableFuture<*> {
+        override fun handleSeek(
+            mediaItemIndex: Int,
+            positionMs: Long,
+            seekCommand: Int,
+        ): ListenableFuture<*> {
             state = state.buildUpon()
                 .setContentPositionMs(positionMs)
                 .setPositionDiscontinuity(Player.DISCONTINUITY_REASON_SEEK, positionMs)

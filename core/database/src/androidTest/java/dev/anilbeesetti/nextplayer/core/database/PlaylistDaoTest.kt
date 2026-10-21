@@ -35,7 +35,10 @@ class PlaylistDaoTest {
 
     @Test
     fun createAllowsDuplicateNamesAndDeduplicatesVideos() = runTest {
-        val firstId = dao.createPlaylist("Movies", listOf("content://one", "content://one", "content://two"))
+        val firstId = dao.createPlaylist(
+            "Movies",
+            listOf("content://one", "content://one", "content://two"),
+        )
         dao.createPlaylist("Movies", emptyList())
 
         val summaries = dao.observeSummaries().first()

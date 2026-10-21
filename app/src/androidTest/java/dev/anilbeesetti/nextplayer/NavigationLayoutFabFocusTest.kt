@@ -102,7 +102,11 @@ class NavigationLayoutFabFocusTest {
                     )
                 }
                 NavigationLayout(state = state, fabStates = fabs, showBottomBar = true) {
-                    Column(Modifier.fillMaxSize().padding(start = it.calculateStartPadding(LocalLayoutDirection.current))) {
+                    Column(
+                        Modifier.fillMaxSize().padding(
+                            start = it.calculateStartPadding(LocalLayoutDirection.current),
+                        ),
+                    ) {
                         Button(onClick = {}) { Text("Settings") }
                         Box(Modifier.fillMaxSize()) {
                             if (!empty) {

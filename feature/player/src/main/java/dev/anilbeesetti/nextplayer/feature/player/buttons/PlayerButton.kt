@@ -31,9 +31,9 @@ import androidx.compose.ui.unit.dp
 import dev.anilbeesetti.nextplayer.core.common.extensions.isTelevision
 import dev.anilbeesetti.nextplayer.core.ui.components.tvFocusRing
 import dev.anilbeesetti.nextplayer.feature.player.LocalUseMaterialYouControls
+import kotlin.time.Duration.Companion.milliseconds
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.collectLatest
-import kotlin.time.Duration.Companion.milliseconds
 
 val PlayerButtonBlackAlpha = Color.Black.copy(alpha = 0.3f)
 
@@ -95,14 +95,18 @@ fun PlayerButton(
                 pressedAlpha = 0.5f,
                 focusedAlpha = 0.5f,
                 draggedAlpha = 0.5f,
-                hoveredAlpha = 0.5f
-            )
+                hoveredAlpha = 0.5f,
+            ),
         )
     }
 
     CompositionLocalProvider(
-        LocalContentColor provides if (enabled) colors.contentColor else colors.disabledContentColor,
-        LocalRippleConfiguration provides rippleConfiguration
+        LocalContentColor provides if (enabled) {
+            colors.contentColor
+        } else {
+            colors.disabledContentColor
+        },
+        LocalRippleConfiguration provides rippleConfiguration,
     ) {
         Box(
             modifier = modifier
@@ -116,7 +120,7 @@ fun PlayerButton(
                 .padding(contentPadding)
                 .tvFocusRing(isTv),
             contentAlignment = Alignment.Center,
-            content = content
+            content = content,
         )
     }
 }

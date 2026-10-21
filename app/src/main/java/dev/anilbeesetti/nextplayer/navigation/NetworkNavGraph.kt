@@ -11,10 +11,7 @@ import dev.anilbeesetti.nextplayer.feature.network.navigation.networkBrowseEntry
 import dev.anilbeesetti.nextplayer.feature.network.navigation.networkEntry
 import dev.anilbeesetti.nextplayer.settings.navigation.navigateToSettings
 
-fun EntryProviderScope<NavKey>.networkNavGraph(
-    context: Context,
-    backStack: NavBackStack<NavKey>,
-) {
+fun EntryProviderScope<NavKey>.networkNavGraph(context: Context, backStack: NavBackStack<NavKey>) {
     networkEntry(
         onAddConnection = { backStack.navigateToAddConnection() },
         onEditConnection = { id -> backStack.navigateToAddConnection(id) },

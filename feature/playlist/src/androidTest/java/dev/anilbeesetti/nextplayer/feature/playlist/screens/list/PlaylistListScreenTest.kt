@@ -135,7 +135,9 @@ class PlaylistListScreenTest {
         composeRule.setContent {
             NextPlayerTheme {
                 PlaylistListScreenContent(
-                    state = PlaylistListUiState(playlistsDataState = DataState.Success(listOf(playlist))),
+                    state = PlaylistListUiState(
+                        playlistsDataState = DataState.Success(listOf(playlist)),
+                    ),
                     onAddToHomeScreen = { selectedPlaylist = it },
                 )
             }
@@ -153,7 +155,9 @@ class PlaylistListScreenTest {
         composeRule.setContent {
             NextPlayerTheme {
                 PlaylistListScreenContent(
-                    state = PlaylistListUiState(playlistsDataState = DataState.Success(listOf(playlistSummary()))),
+                    state = PlaylistListUiState(
+                        playlistsDataState = DataState.Success(listOf(playlistSummary())),
+                    ),
                 )
             }
         }

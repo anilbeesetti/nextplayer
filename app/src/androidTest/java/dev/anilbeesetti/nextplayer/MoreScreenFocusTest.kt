@@ -83,7 +83,10 @@ class MoreScreenFocusTest {
     fun historyUpdatesDoNotStealFocusFromActions() {
         showMore(emptyList())
         composeRule.onNodeWithText("Pick file").requestFocus()
-        composeRule.runOnIdle { state.value = MoreUiState(history = DataState.Success(clips.reversed())) }
+        composeRule.runOnIdle {
+            state.value =
+                MoreUiState(history = DataState.Success(clips.reversed()))
+        }
         composeRule.onNodeWithText("Pick file").assertIsFocused()
     }
 

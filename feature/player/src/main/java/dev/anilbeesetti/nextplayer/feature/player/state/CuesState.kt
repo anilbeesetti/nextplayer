@@ -21,9 +21,7 @@ fun rememberCuesState(player: Player?): CuesState {
 }
 
 @UnstableApi
-class CuesState(
-    private val player: Player?,
-) {
+class CuesState(private val player: Player?) {
     var currentCues: CueGroup? by mutableStateOf(null)
         private set
 

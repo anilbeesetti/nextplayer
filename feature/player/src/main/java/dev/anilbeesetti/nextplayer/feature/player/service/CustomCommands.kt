@@ -34,13 +34,10 @@ enum class CustomCommands(val customAction: String) {
     val sessionCommand = SessionCommand(customAction, Bundle.EMPTY)
 
     companion object {
-        fun fromSessionCommand(sessionCommand: SessionCommand): CustomCommands? {
-            return entries.find { it.customAction == sessionCommand.customAction }
-        }
+        fun fromSessionCommand(sessionCommand: SessionCommand): CustomCommands? =
+            entries.find { it.customAction == sessionCommand.customAction }
 
-        fun asSessionCommands(): List<SessionCommand> {
-            return entries.map { it.sessionCommand }
-        }
+        fun asSessionCommands(): List<SessionCommand> = entries.map { it.sessionCommand }
 
         const val AUDIO_TRACK_URI_KEY = "audio_track_uri"
         const val SUBTITLE_TRACK_URI_KEY = "subtitle_track_uri"
@@ -62,7 +59,11 @@ suspend fun MediaController.addAudioTrack(uri: Uri): Boolean {
     val args = Bundle().apply {
         putString(CustomCommands.AUDIO_TRACK_URI_KEY, uri.toString())
     }
-    return sendCustomCommand(CustomCommands.ADD_AUDIO_TRACK.sessionCommand, args).await().resultCode == SessionResult.RESULT_SUCCESS
+    return sendCustomCommand(
+        CustomCommands.ADD_AUDIO_TRACK.sessionCommand,
+        args,
+    ).await().resultCode ==
+        SessionResult.RESULT_SUCCESS
 }
 
 fun MediaController.addSubtitleTrack(uri: Uri) {
@@ -87,7 +88,8 @@ fun MediaController.setMediaControllerIsScrubbingModeEnabled(enabled: Boolean) {
 }
 
 suspend fun MediaController.getSkipSilenceEnabled(): Boolean {
-    val result = sendCustomCommand(CustomCommands.GET_SKIP_SILENCE_ENABLED.sessionCommand, Bundle.EMPTY)
+    val result =
+        sendCustomCommand(CustomCommands.GET_SKIP_SILENCE_ENABLED.sessionCommand, Bundle.EMPTY)
     return result.await().extras.getBoolean(CustomCommands.SKIP_SILENCE_ENABLED_KEY, false)
 }
 
@@ -132,7 +134,8 @@ suspend fun MediaController.getLoudnessGain(): Int {
 }
 
 suspend fun MediaController.getIsLoudnessGainSupported(): Boolean {
-    val result = sendCustomCommand(CustomCommands.IS_LOUDNESS_GAIN_SUPPORTED.sessionCommand, Bundle.EMPTY)
+    val result =
+        sendCustomCommand(CustomCommands.IS_LOUDNESS_GAIN_SUPPORTED.sessionCommand, Bundle.EMPTY)
     return result.await().extras.getBoolean(CustomCommands.IS_LOUDNESS_GAIN_SUPPORTED_KEY, false)
 }
 
@@ -140,7 +143,10 @@ suspend fun MediaController.setVideoDecoderMode(mode: DecoderMode): Boolean {
     val args = Bundle().apply {
         putString(CustomCommands.VIDEO_DECODER_MODE_KEY, mode.name)
     }
-    val result = sendCustomCommand(CustomCommands.SET_VIDEO_DECODER_MODE.sessionCommand, args).await()
+    val result = sendCustomCommand(
+        CustomCommands.SET_VIDEO_DECODER_MODE.sessionCommand,
+        args,
+    ).await()
     return result.resultCode == SessionResult.RESULT_SUCCESS
 }
 
@@ -148,7 +154,10 @@ suspend fun MediaController.setAudioDecoderMode(mode: DecoderMode): Boolean {
     val args = Bundle().apply {
         putString(CustomCommands.AUDIO_DECODER_MODE_KEY, mode.name)
     }
-    val result = sendCustomCommand(CustomCommands.SET_AUDIO_DECODER_MODE.sessionCommand, args).await()
+    val result = sendCustomCommand(
+        CustomCommands.SET_AUDIO_DECODER_MODE.sessionCommand,
+        args,
+    ).await()
     return result.resultCode == SessionResult.RESULT_SUCCESS
 }
 
@@ -172,7 +181,10 @@ internal fun Bundle.decoderServiceState(): DecoderServiceState {
 }
 
 suspend fun MediaController.tryDecoderFallback(): Boolean {
-    val result = sendCustomCommand(CustomCommands.TRY_DECODER_FALLBACK.sessionCommand, Bundle.EMPTY).await()
+    val result = sendCustomCommand(
+        CustomCommands.TRY_DECODER_FALLBACK.sessionCommand,
+        Bundle.EMPTY,
+    ).await()
     return result.resultCode == SessionResult.RESULT_SUCCESS
 }
 

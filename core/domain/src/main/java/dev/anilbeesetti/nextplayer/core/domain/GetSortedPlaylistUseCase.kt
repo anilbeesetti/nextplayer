@@ -33,10 +33,12 @@ class GetSortedPlaylistUseCase(
                 // Tree mode: the folder and its subfolders.
                 getSortedVideosUseCase(parent).first()
             }
+
             MediaViewMode.FOLDERS -> {
                 // Folders mode: only videos directly in the same folder.
                 getSortedVideosUseCase(parent).first().filter { it.parentPath == parent }
             }
+
             MediaViewMode.VIDEOS -> {
                 // Videos mode shows a single global list across all storage; play in that order.
                 getSortedVideosUseCase().first()

@@ -48,7 +48,10 @@ fun NextSegmentedListItem(
 
     val focusInteractionSource = interactionSource ?: remember { MutableInteractionSource() }
     val isFocused by focusInteractionSource.collectIsFocusedAsState()
-    val focusScale by animateFloatAsState(targetValue = if (isFocused) 1.01f else 1f, label = "focusScale")
+    val focusScale by animateFloatAsState(
+        targetValue = if (isFocused) 1.01f else 1f,
+        label = "focusScale",
+    )
 
     SegmentedListItem(
         modifier = modifier
@@ -75,10 +78,17 @@ fun NextSegmentedListItem(
             if (defaultBaseShape is CornerBasedShape) {
                 shapes.copy(
                     shape = defaultBaseShape.copy(
-                        topStart = overrideShape.topStart.takeIf { isFirstItem } ?: defaultBaseShape.topStart,
-                        topEnd = overrideShape.topEnd.takeIf { isFirstItem } ?: defaultBaseShape.topEnd,
-                        bottomStart = overrideShape.bottomStart.takeIf { isLastItem } ?: defaultBaseShape.bottomStart,
-                        bottomEnd = overrideShape.bottomEnd.takeIf { isLastItem } ?: defaultBaseShape.bottomEnd,
+                        topStart =
+                            overrideShape.topStart.takeIf { isFirstItem }
+                                ?: defaultBaseShape.topStart,
+                        topEnd =
+                            overrideShape.topEnd.takeIf { isFirstItem } ?: defaultBaseShape.topEnd,
+                        bottomStart =
+                            overrideShape.bottomStart.takeIf { isLastItem }
+                                ?: defaultBaseShape.bottomStart,
+                        bottomEnd =
+                            overrideShape.bottomEnd.takeIf { isLastItem }
+                                ?: defaultBaseShape.bottomEnd,
                     ),
                 )
             } else {

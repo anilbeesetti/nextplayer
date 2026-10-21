@@ -37,8 +37,11 @@ internal fun PlayerErrorDialogs(
                 Text(
                     text = stringResource(
                         when (recoveryTrackType) {
-                            DecoderTrackType.VIDEO -> coreUiR.string.video_decoder_mode_not_supported
-                            DecoderTrackType.AUDIO -> coreUiR.string.audio_decoder_mode_not_supported
+                            DecoderTrackType.VIDEO ->
+                                coreUiR.string.video_decoder_mode_not_supported
+
+                            DecoderTrackType.AUDIO ->
+                                coreUiR.string.audio_decoder_mode_not_supported
                         },
                         stringResource(unsupportedMode.labelRes),
                     ),

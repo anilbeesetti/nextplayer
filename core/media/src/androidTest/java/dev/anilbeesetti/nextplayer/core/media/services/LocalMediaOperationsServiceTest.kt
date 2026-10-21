@@ -34,14 +34,21 @@ class LocalMediaOperationsServiceTest {
         val sourceDir = File(testRoot, "source").apply { mkdirs() }
         val targetDir = File(testRoot, "vault").apply { mkdirs() }
         val sourceFile = File(sourceDir, "duplicate.mp4").apply { writeText("new source") }
-        val existingVaultFile = File(targetDir, sourceFile.name).apply { writeText("existing vault video") }
+        val existingVaultFile = File(targetDir, sourceFile.name).apply {
+            writeText("existing vault video")
+        }
         val sourceUri = sourceFile.toUri()
 
         try {
-            val moved = LocalMediaOperationsService(context).moveMedia(mapOf(sourceUri to existingVaultFile))
+            val moved = LocalMediaOperationsService(
+                context,
+            ).moveMedia(mapOf(sourceUri to existingVaultFile))
 
             assertNull("A colliding source must be reported as not moved", moved[sourceUri])
-            assertTrue("The colliding source must remain in its original location", sourceFile.exists())
+            assertTrue(
+                "The colliding source must remain in its original location",
+                sourceFile.exists(),
+            )
             assertEquals("existing vault video", existingVaultFile.readText())
         } finally {
             testRoot.deleteRecursively()
@@ -72,7 +79,13 @@ class LocalMediaOperationsServiceTest {
             }
 
             assertEquals(1, results.count { it != null })
-            assertEquals("Exactly one losing source must remain", 1, sourceFiles.count { it.exists() })
+            assertEquals(
+                "Exactly one losing source must remain",
+                1,
+                sourceFiles.count {
+                    it.exists()
+                },
+            )
             assertTrue(destination.readText() in setOf("first video", "second video"))
         } finally {
             testRoot.deleteRecursively()

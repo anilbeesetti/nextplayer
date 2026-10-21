@@ -42,9 +42,7 @@ import kotlinx.coroutines.withContext
 import org.koin.core.annotation.Single
 
 @Single
-class LocalMediaOperationsService(
-    private val context: Context,
-) : MediaOperationsService {
+class LocalMediaOperationsService(private val context: Context) : MediaOperationsService {
 
     private lateinit var activity: Activity
     private val contentResolver = context.contentResolver
@@ -64,16 +62,18 @@ class LocalMediaOperationsService(
         }
     }
 
-    override suspend fun deleteMedia(uris: List<Uri>, permanently: Boolean): Boolean = withContext(Dispatchers.IO) {
-        return@withContext if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) {
-            if (permanently) deleteMediaR(uris) else trashMediaR(uris)
-        } else {
-            deleteMediaBelowR(uris)
+    override suspend fun deleteMedia(uris: List<Uri>, permanently: Boolean): Boolean =
+        withContext(Dispatchers.IO) {
+            return@withContext if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) {
+                if (permanently) deleteMediaR(uris) else trashMediaR(uris)
+            } else {
+                deleteMediaBelowR(uris)
+            }
         }
-    }
 
     override suspend fun restoreMedia(uris: List<Uri>): Boolean = withContext(Dispatchers.IO) {
-        return@withContext Build.VERSION.SDK_INT >= Build.VERSION_CODES.R && trashMediaR(uris, trashed = false)
+        return@withContext Build.VERSION.SDK_INT >= Build.VERSION_CODES.R &&
+            trashMediaR(uris, trashed = false)
     }
 
     override suspend fun renameMedia(uri: Uri, to: String): Boolean = withContext(Dispatchers.IO) {
@@ -96,9 +96,8 @@ class LocalMediaOperationsService(
         activity.startActivity(intent)
     }
 
-    override suspend fun moveMedia(targets: Map<Uri, File>): Map<Uri, File?> {
-        return moveMedia(targets, onMoveCommitted = null)
-    }
+    override suspend fun moveMedia(targets: Map<Uri, File>): Map<Uri, File?> =
+        moveMedia(targets, onMoveCommitted = null)
 
     /**
      * The internal callback is a deterministic synchronization seam for commit-boundary tests.
@@ -138,7 +137,9 @@ class LocalMediaOperationsService(
                             null
                         } else {
                             destination.parentFile?.mkdirs()
-                            moveFileWithoutOverwrite(sourceFile, destination) { callerJob?.ensureActive() }
+                            moveFileWithoutOverwrite(sourceFile, destination) {
+                                callerJob?.ensureActive()
+                            }
                         }
                     } catch (e: CancellationException) {
                         if (!moveCommitted) throw e
@@ -351,13 +352,14 @@ class LocalMediaOperationsService(
     )
 
     @RequiresApi(Build.VERSION_CODES.R)
-    private suspend fun requestWriteR(uris: List<Uri>): Boolean = suspendCancellableCoroutine { continuation ->
-        launchWriteRequest(
-            uris = uris,
-            onResultOk = { continuation.resume(true) },
-            onResultCanceled = { continuation.resume(false) },
-        )
-    }
+    private suspend fun requestWriteR(uris: List<Uri>): Boolean =
+        suspendCancellableCoroutine { continuation ->
+            launchWriteRequest(
+                uris = uris,
+                onResultOk = { continuation.resume(true) },
+                onResultCanceled = { continuation.resume(false) },
+            )
+        }
 
     @RequiresApi(Build.VERSION_CODES.R)
     private fun launchWriteRequest(
@@ -393,29 +395,32 @@ class LocalMediaOperationsService(
     )
 
     @RequiresApi(Build.VERSION_CODES.R)
-    private suspend fun trashMediaR(uris: List<Uri>, trashed: Boolean = true): Boolean = runMediaRequests(
-        items = uris,
-        itemExists = ::mediaExists,
-        request = { requestTrashR(it, trashed) },
-    )
-
-    @RequiresApi(Build.VERSION_CODES.R)
-    private suspend fun requestTrashR(uris: List<Uri>, trashed: Boolean): Boolean = suspendCancellableCoroutine { continuation ->
-        resultOkCallback = { continuation.resume(true) }
-        resultCancelledCallback = { continuation.resume(false) }
-        MediaStore.createTrashRequest(contentResolver, uris, trashed).also { intent ->
-            mediaRequestLauncher?.launch(IntentSenderRequest.Builder(intent).build())
-        }
-    }
-
-    @RequiresApi(Build.VERSION_CODES.R)
-    private suspend fun requestDeleteR(uris: List<Uri>): Boolean = suspendCancellableCoroutine { continuation ->
-        launchDeleteRequest(
-            uris = uris,
-            onResultOk = { continuation.resume(true) },
-            onResultCanceled = { continuation.resume(false) },
+    private suspend fun trashMediaR(uris: List<Uri>, trashed: Boolean = true): Boolean =
+        runMediaRequests(
+            items = uris,
+            itemExists = ::mediaExists,
+            request = { requestTrashR(it, trashed) },
         )
-    }
+
+    @RequiresApi(Build.VERSION_CODES.R)
+    private suspend fun requestTrashR(uris: List<Uri>, trashed: Boolean): Boolean =
+        suspendCancellableCoroutine { continuation ->
+            resultOkCallback = { continuation.resume(true) }
+            resultCancelledCallback = { continuation.resume(false) }
+            MediaStore.createTrashRequest(contentResolver, uris, trashed).also { intent ->
+                mediaRequestLauncher?.launch(IntentSenderRequest.Builder(intent).build())
+            }
+        }
+
+    @RequiresApi(Build.VERSION_CODES.R)
+    private suspend fun requestDeleteR(uris: List<Uri>): Boolean =
+        suspendCancellableCoroutine { continuation ->
+            launchDeleteRequest(
+                uris = uris,
+                onResultOk = { continuation.resume(true) },
+                onResultCanceled = { continuation.resume(false) },
+            )
+        }
 
     private fun mediaExists(uri: Uri): Boolean = runCatching {
         contentResolver.query(
@@ -427,49 +432,46 @@ class LocalMediaOperationsService(
         )?.use { cursor -> cursor.moveToFirst() } == true
     }.getOrDefault(false)
 
-    private suspend fun deleteMediaBelowR(uris: List<Uri>): Boolean {
-        return uris.map { uri ->
-            contentResolver.deleteMedia(uri)
-        }.all { it }
-    }
+    private suspend fun deleteMediaBelowR(uris: List<Uri>): Boolean = uris.map { uri ->
+        contentResolver.deleteMedia(uri)
+    }.all { it }
 
     @RequiresApi(Build.VERSION_CODES.R)
-    private suspend fun renameMediaR(uri: Uri, to: String): Boolean = suspendCancellableCoroutine { continuation ->
-        val scope = CoroutineScope(Dispatchers.Default)
-        launchWriteRequest(
-            uris = listOf(uri),
-            onResultOk = {
-                scope.launch {
-                    val result = contentResolver.updateMedia(
-                        uri = uri,
-                        contentValues = ContentValues().apply {
-                            put(MediaStore.MediaColumns.DISPLAY_NAME, to)
-                        },
-                    )
-                    continuation.resume(result)
-                }
-            },
-            onResultCanceled = { continuation.resume(false) },
-        )
-        continuation.invokeOnCancellation { scope.cancel() }
-    }
+    private suspend fun renameMediaR(uri: Uri, to: String): Boolean =
+        suspendCancellableCoroutine { continuation ->
+            val scope = CoroutineScope(Dispatchers.Default)
+            launchWriteRequest(
+                uris = listOf(uri),
+                onResultOk = {
+                    scope.launch {
+                        val result = contentResolver.updateMedia(
+                            uri = uri,
+                            contentValues = ContentValues().apply {
+                                put(MediaStore.MediaColumns.DISPLAY_NAME, to)
+                            },
+                        )
+                        continuation.resume(result)
+                    }
+                },
+                onResultCanceled = { continuation.resume(false) },
+            )
+            continuation.invokeOnCancellation { scope.cancel() }
+        }
 
-    private suspend fun renameMediaBelowR(uri: Uri, to: String): Boolean {
-        return runCatching {
-            val oldFile = context.getPath(uri)?.let { File(it) } ?: throw Error()
-            val newFile = File(oldFile.parentFile, to)
-            oldFile.renameTo(newFile).also { success ->
-                if (success) {
-                    contentResolver.updateMedia(
-                        uri = uri,
-                        contentValues = ContentValues().apply {
-                            put(MediaStore.Files.FileColumns.DISPLAY_NAME, to)
-                            put(MediaStore.Files.FileColumns.TITLE, to)
-                            put(MediaStore.Files.FileColumns.DATA, newFile.path)
-                        },
-                    )
-                }
+    private suspend fun renameMediaBelowR(uri: Uri, to: String): Boolean = runCatching {
+        val oldFile = context.getPath(uri)?.let { File(it) } ?: throw Error()
+        val newFile = File(oldFile.parentFile, to)
+        oldFile.renameTo(newFile).also { success ->
+            if (success) {
+                contentResolver.updateMedia(
+                    uri = uri,
+                    contentValues = ContentValues().apply {
+                        put(MediaStore.Files.FileColumns.DISPLAY_NAME, to)
+                        put(MediaStore.Files.FileColumns.TITLE, to)
+                        put(MediaStore.Files.FileColumns.DATA, newFile.path)
+                    },
+                )
             }
-        }.getOrNull() ?: false
-    }
+        }
+    }.getOrNull() ?: false
 }

@@ -38,9 +38,7 @@ import dev.anilbeesetti.nextplayer.settings.composables.OptionsDialog
 import dev.anilbeesetti.nextplayer.settings.extensions.name
 
 @Composable
-fun AppearancePreferencesScreen(
-    viewModel: AppearancePreferencesViewModel,
-) {
+fun AppearancePreferencesScreen(viewModel: AppearancePreferencesViewModel) {
     val state by viewModel.state.collectAsStateWithLifecycle()
 
     AppearancePreferencesScreenContent(
@@ -61,7 +59,9 @@ private fun AppearancePreferencesScreenContent(
             NextTopAppBar(
                 title = stringResource(id = R.string.appearance_name),
                 navigationIcon = {
-                    FilledTonalIconButton(onClick = { onAction(AppearancePreferencesEvent.NavigateUp) }, modifier = Modifier.tvFocusDown(listFocusRequester)) {
+                    FilledTonalIconButton(onClick = {
+                        onAction(AppearancePreferencesEvent.NavigateUp)
+                    }, modifier = Modifier.tvFocusDown(listFocusRequester)) {
                         Icon(
                             imageVector = NextIcons.ArrowBack,
                             contentDescription = stringResource(id = R.string.navigate_up),
@@ -90,7 +90,11 @@ private fun AppearancePreferencesScreenContent(
                     isChecked = state.preferences.themeConfig == ThemeConfig.ON,
                     onChecked = { onAction(AppearancePreferencesEvent.ToggleDarkTheme) },
                     icon = NextIcons.DarkMode,
-                    onClick = { onAction(AppearancePreferencesEvent.ShowDialog(AppearancePreferenceDialog.Theme)) },
+                    onClick = {
+                        onAction(
+                            AppearancePreferencesEvent.ShowDialog(AppearancePreferenceDialog.Theme),
+                        )
+                    },
                     isFirstItem = true,
                 )
                 PreferenceSwitch(
@@ -98,7 +102,9 @@ private fun AppearancePreferencesScreenContent(
                     description = stringResource(R.string.high_contrast_dark_theme_desc),
                     icon = NextIcons.Contrast,
                     isChecked = state.preferences.useHighContrastDarkTheme,
-                    onClick = { onAction(AppearancePreferencesEvent.ToggleUseHighContrastDarkTheme) },
+                    onClick = {
+                        onAction(AppearancePreferencesEvent.ToggleUseHighContrastDarkTheme)
+                    },
                     isLastItem = !supportsDynamicTheming(),
                 )
                 if (supportsDynamicTheming()) {

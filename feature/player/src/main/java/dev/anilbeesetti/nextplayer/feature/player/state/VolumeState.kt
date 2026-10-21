@@ -34,10 +34,7 @@ import kotlinx.coroutines.launch
 
 @OptIn(UnstableApi::class)
 @Composable
-fun rememberVolumeState(
-    player: Player?,
-    showVolumePanelIfHeadsetIsOn: Boolean,
-): VolumeState {
+fun rememberVolumeState(player: Player?, showVolumePanelIfHeadsetIsOn: Boolean): VolumeState {
     val context = LocalContext.current
     val scope = rememberCoroutineScope()
     val volumeState = remember(player) {
@@ -70,7 +67,11 @@ class VolumeState(
         get() = if (isLoudnessGainSupported) systemMaxVolume * 2 else systemMaxVolume
 
     val maxVolumePercentage: Int
-        get() = if (isLoudnessGainSupported) MAX_VOLUME_PERCENTAGE_BOOST else MAX_VOLUME_PERCENTAGE_NORMAL
+        get() = if (isLoudnessGainSupported) {
+            MAX_VOLUME_PERCENTAGE_BOOST
+        } else {
+            MAX_VOLUME_PERCENTAGE_NORMAL
+        }
 
     var currentVolume: Int by mutableIntStateOf(audioManager.currentStreamVolume)
         private set
@@ -165,7 +166,8 @@ class VolumeState(
     }
 
     private fun setSystemVolume(volume: Int, showVolumePanel: Boolean) {
-        val shouldShowUi = showVolumePanel || (showVolumePanelIfHeadsetIsOn && audioManager.isHeadsetOn)
+        val shouldShowUi =
+            showVolumePanel || (showVolumePanelIfHeadsetIsOn && audioManager.isHeadsetOn)
         audioManager.setStreamVolume(
             AudioManager.STREAM_MUSIC,
             volume.coerceIn(0, systemMaxVolume),
@@ -184,9 +186,8 @@ class VolumeState(
         }
     }
 
-    private fun calculateVolumePercentage(): Int {
-        return (currentVolume.toFloat() / systemMaxVolume * MAX_VOLUME_PERCENTAGE_NORMAL).toInt()
-    }
+    private fun calculateVolumePercentage(): Int =
+        (currentVolume.toFloat() / systemMaxVolume * MAX_VOLUME_PERCENTAGE_NORMAL).toInt()
 
     private val AudioManager.currentStreamVolume: Int
         get() = getStreamVolume(AudioManager.STREAM_MUSIC)
@@ -194,10 +195,13 @@ class VolumeState(
     private val AudioManager.isHeadsetOn: Boolean
         get() = getDevices(AudioManager.GET_DEVICES_OUTPUTS).any { device ->
             device.type == AudioDeviceInfo.TYPE_WIRED_HEADSET ||
-                    device.type == AudioDeviceInfo.TYPE_WIRED_HEADPHONES ||
-                    device.type == AudioDeviceInfo.TYPE_BLUETOOTH_A2DP ||
-                    device.type == AudioDeviceInfo.TYPE_BLUETOOTH_SCO ||
-                    (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O && device.type == AudioDeviceInfo.TYPE_USB_HEADSET)
+                device.type == AudioDeviceInfo.TYPE_WIRED_HEADPHONES ||
+                device.type == AudioDeviceInfo.TYPE_BLUETOOTH_A2DP ||
+                device.type == AudioDeviceInfo.TYPE_BLUETOOTH_SCO ||
+                (
+                    Build.VERSION.SDK_INT >= Build.VERSION_CODES.O &&
+                        device.type == AudioDeviceInfo.TYPE_USB_HEADSET
+                    )
         }
 
     companion object {

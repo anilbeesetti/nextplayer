@@ -41,10 +41,10 @@ class LocalMediaSynchronizer(
 
     private var mediaSyncingJob: Job? = null
 
-    override suspend fun refresh(path: String?): Boolean {
-        return path?.let { context.scanPaths(listOf(path)) }
-            ?: context.getStorageVolumes().all { context.scanStorage(it.path) }
+    override suspend fun refresh(path: String?): Boolean = path?.let {
+        context.scanPaths(listOf(path))
     }
+        ?: context.getStorageVolumes().all { context.scanStorage(it.path) }
 
     override fun startSync() {
         if (mediaSyncingJob?.isActive == true) return
@@ -62,7 +62,8 @@ class LocalMediaSynchronizer(
     }
 
     private fun Context.hasStoragePermission(): Boolean =
-        ContextCompat.checkSelfPermission(this, storagePermission) == PackageManager.PERMISSION_GRANTED
+        ContextCompat.checkSelfPermission(this, storagePermission) ==
+            PackageManager.PERMISSION_GRANTED
 
     private suspend fun updateMedia(media: List<MediaVideo>) = withContext(Dispatchers.Default) {
         if (!context.hasStoragePermission()) return@withContext
@@ -72,7 +73,11 @@ class LocalMediaSynchronizer(
         playlistDao.removeMissingLocalItems(currentMediaUris)
 
         val (wantedMediaStates, unwantedMediaStates) = mediumStateDao.getAll().first().partition {
-            it.uriString in currentMediaUris || !ContentResolver.SCHEME_CONTENT.equals(it.uriString.toUri().scheme, ignoreCase = true)
+            it.uriString in currentMediaUris ||
+                !ContentResolver.SCHEME_CONTENT.equals(
+                    it.uriString.toUri().scheme,
+                    ignoreCase = true,
+                )
         }
 
         mediumStateDao.delete(unwantedMediaStates.map { it.uriString })
@@ -96,7 +101,10 @@ class LocalMediaSynchronizer(
                 for (sub in UriListConverter.fromStringToList(mediaState.externalSubs)) {
                     if (sub !in currentMediaExternalSubs) {
                         try {
-                            context.contentResolver.releasePersistableUriPermission(sub, Intent.FLAG_GRANT_READ_URI_PERMISSION)
+                            context.contentResolver.releasePersistableUriPermission(
+                                sub,
+                                Intent.FLAG_GRANT_READ_URI_PERMISSION,
+                            )
                         } catch (e: Exception) {
                             e.printStackTrace()
                         }

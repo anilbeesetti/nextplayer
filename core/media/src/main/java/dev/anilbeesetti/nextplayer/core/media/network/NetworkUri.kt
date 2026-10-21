@@ -40,7 +40,11 @@ object NetworkUri {
 
     /** Every scheme these URIs use, for telling network media items from local ones. */
     val schemes: Set<String> = setOf(
-        SCHEME_SMB, SCHEME_FTP, SCHEME_SFTP, SCHEME_WEBDAV, SCHEME_WEBDAVS,
+        SCHEME_SMB,
+        SCHEME_FTP,
+        SCHEME_SFTP,
+        SCHEME_WEBDAV,
+        SCHEME_WEBDAVS,
     )
 
     fun isNetworkUri(uri: Uri): Boolean = uri.scheme?.lowercase() in schemes
@@ -55,14 +59,19 @@ object NetworkUri {
     fun build(connection: NetworkConnection, filePath: String): Uri = Uri.Builder()
         .scheme(schemeOf(connection))
         .encodedAuthority(
-            if (connection.port != null) "${connection.host}:${connection.port}" else connection.host,
+            if (connection.port !=
+                null
+            ) {
+                "${connection.host}:${connection.port}"
+            } else {
+                connection.host
+            },
         )
         .apply { filePath.split('/').filter(String::isNotEmpty).forEach(::appendPath) }
         .appendQueryParameter(CONNECTION_ID_PARAM, connection.id.toString())
         .build()
 
-    fun connectionIdOf(uri: Uri): Long? =
-        uri.getQueryParameter(CONNECTION_ID_PARAM)?.toLongOrNull()
+    fun connectionIdOf(uri: Uri): Long? = uri.getQueryParameter(CONNECTION_ID_PARAM)?.toLongOrNull()
 
     /** Restores the path in the form the [NetworkClient] for [protocol] expects. */
     fun filePathOf(uri: Uri, protocol: NetworkProtocol): String {

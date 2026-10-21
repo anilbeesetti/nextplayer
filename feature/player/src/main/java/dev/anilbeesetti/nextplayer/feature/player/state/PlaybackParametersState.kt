@@ -28,10 +28,7 @@ fun rememberPlaybackParametersState(player: Player): PlaybackParametersState {
 }
 
 @UnstableApi
-class PlaybackParametersState(
-    private val player: Player,
-    private val scope: CoroutineScope,
-) {
+class PlaybackParametersState(private val player: Player, private val scope: CoroutineScope) {
     var speed: Float by mutableFloatStateOf(1f)
         private set
 

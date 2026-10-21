@@ -28,10 +28,7 @@ import dev.anilbeesetti.nextplayer.core.ui.R
 import dev.anilbeesetti.nextplayer.core.ui.designsystem.NextIcons
 
 @Composable
-internal fun VaultBiometricButton(
-    onAuthenticated: () -> Unit,
-    modifier: Modifier = Modifier,
-) {
+internal fun VaultBiometricButton(onAuthenticated: () -> Unit, modifier: Modifier = Modifier) {
     if (!rememberVaultBiometricAvailable()) return
 
     var showPrompt by rememberSaveable { mutableStateOf(true) }
@@ -61,7 +58,9 @@ internal fun rememberVaultBiometricAvailable(): Boolean {
     val activity = LocalActivity.current as? FragmentActivity ?: return false
     val manager = remember(activity) { BiometricManager.from(activity) }
     var available by remember(manager) {
-        mutableStateOf(manager.canAuthenticate(BIOMETRIC_STRONG) == BiometricManager.BIOMETRIC_SUCCESS)
+        mutableStateOf(
+            manager.canAuthenticate(BIOMETRIC_STRONG) == BiometricManager.BIOMETRIC_SUCCESS,
+        )
     }
     LifecycleResumeEffect(manager) {
         available = manager.canAuthenticate(BIOMETRIC_STRONG) == BiometricManager.BIOMETRIC_SUCCESS
@@ -84,7 +83,9 @@ internal fun VaultBiometricPrompt(
         BiometricPrompt(
             activity,
             object : BiometricPrompt.AuthenticationCallback() {
-                override fun onAuthenticationSucceeded(result: BiometricPrompt.AuthenticationResult) {
+                override fun onAuthenticationSucceeded(
+                    result: BiometricPrompt.AuthenticationResult,
+                ) {
                     if (!active) return
                     active = false
                     currentOnResult(true)
@@ -94,7 +95,8 @@ internal fun VaultBiometricPrompt(
                     if (!active) return
                     active = false
                     if (errorCode != BiometricPrompt.ERROR_NEGATIVE_BUTTON &&
-                        errorCode != BiometricPrompt.ERROR_USER_CANCELED && errorCode != BiometricPrompt.ERROR_CANCELED
+                        errorCode != BiometricPrompt.ERROR_USER_CANCELED &&
+                        errorCode != BiometricPrompt.ERROR_CANCELED
                     ) {
                         Toast.makeText(activity, errString, Toast.LENGTH_SHORT).show()
                     }

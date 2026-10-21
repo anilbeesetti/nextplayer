@@ -50,7 +50,9 @@ class PictureInPictureStateTest {
             .setSystemFeature(PackageManager.FEATURE_PICTURE_IN_PICTURE, true)
         controller = Robolectric.buildActivity(PipActivity::class.java).setup()
         activity = controller.get()
-        shadowOf(activity.application).grantPermissions("${activity.packageName}.DYNAMIC_RECEIVER_NOT_EXPORTED_PERMISSION")
+        shadowOf(
+            activity.application,
+        ).grantPermissions("${activity.packageName}.DYNAMIC_RECEIVER_NOT_EXPORTED_PERMISSION")
         player = TestPlayer()
         state = PictureInPictureState(player, activity)
         listeners = state.handleListeners(DisposableEffectScope())
@@ -198,7 +200,11 @@ class PictureInPictureStateTest {
             return Futures.immediateVoidFuture()
         }
 
-        override fun handleSeek(mediaItemIndex: Int, positionMs: Long, seekCommand: Int): ListenableFuture<*> {
+        override fun handleSeek(
+            mediaItemIndex: Int,
+            positionMs: Long,
+            seekCommand: Int,
+        ): ListenableFuture<*> {
             state = state.buildUpon().setCurrentMediaItemIndex(mediaItemIndex).build()
             return Futures.immediateVoidFuture()
         }

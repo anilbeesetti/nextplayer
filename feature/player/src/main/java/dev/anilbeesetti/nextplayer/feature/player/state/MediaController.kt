@@ -26,7 +26,10 @@ fun rememberMediaController(
     onExtrasChanged: (Bundle) -> Unit = {},
 ): MediaController? {
     val context = LocalContext.current.applicationContext
-    val token = remember(context) { SessionToken(context, ComponentName(context, PlayerService::class.java)) }
+    val token =
+        remember(context) {
+            SessionToken(context, ComponentName(context, PlayerService::class.java))
+        }
     val scope = rememberCoroutineScope()
     var mediaController by remember(context) { mutableStateOf<MediaController?>(null) }
     val currentOnBeforeRelease by rememberUpdatedState(onBeforeRelease)

@@ -135,10 +135,10 @@ import dev.anilbeesetti.nextplayer.feature.videopicker.state.toSelectedVideo
 import kotlin.math.roundToInt
 
 @Composable
-fun MediaPickerScreen(
-    viewModel: MediaPickerViewModel,
-) {
-    val state by viewModel.state.collectAsStateWithLifecycle(minActiveState = Lifecycle.State.RESUMED)
+fun MediaPickerScreen(viewModel: MediaPickerViewModel) {
+    val state by viewModel.state.collectAsStateWithLifecycle(
+        minActiveState = Lifecycle.State.RESUMED,
+    )
 
     MediaPickerScreenContent(
         state = state,
@@ -197,8 +197,14 @@ internal fun MediaPickerScreenContent(
             ?: mediaHolder?.videos?.firstOrNull()?.toSelectedVideo()
 
         when (selectedItem) {
-            is SelectionItem.Video -> onAction(MediaPickerAction.OnPlayVideo(selectedItem.uriString.toUri()))
-            is SelectionItem.Folder -> onAction(MediaPickerAction.PlaySelectedItems(setOf(selectedItem)))
+            is SelectionItem.Video -> onAction(
+                MediaPickerAction.OnPlayVideo(selectedItem.uriString.toUri()),
+            )
+
+            is SelectionItem.Folder -> onAction(
+                MediaPickerAction.PlaySelectedItems(setOf(selectedItem)),
+            )
+
             null -> selectVideoFileLauncher.launch("video/*")
         }
     }
@@ -214,7 +220,8 @@ internal fun MediaPickerScreenContent(
     }
 
     val selectedItemsSize = selectionManager.selectionItems.size
-    val totalItemsSize = (state.mediaDataState as? DataState.Success)?.value?.run { folders.size + videos.size } ?: 0
+    val totalItemsSize =
+        (state.mediaDataState as? DataState.Success)?.value?.run { folders.size + videos.size } ?: 0
 
     Scaffold(
         topBar = {
@@ -246,7 +253,11 @@ internal fun MediaPickerScreenContent(
                                 contentDescription = stringResource(id = R.string.navigate_up),
                             )
                             Text(
-                                text = stringResource(R.string.m_n_selected, selectedItemsSize, totalItemsSize),
+                                text = stringResource(
+                                    R.string.m_n_selected,
+                                    selectedItemsSize,
+                                    totalItemsSize,
+                                ),
                                 style = MaterialTheme.typography.labelLarge,
                             )
                         }
@@ -267,7 +278,8 @@ internal fun MediaPickerScreenContent(
                         FilledTonalIconButton(
                             onClick = {
                                 if (selectedItemsSize != totalItemsSize) {
-                                    (state.mediaDataState as? DataState.Success)?.value?.let { folder ->
+                                    val folder = (state.mediaDataState as? DataState.Success)?.value
+                                    if (folder != null) {
                                         folder.folders.forEach { selectionManager.selectFolder(it) }
                                         folder.videos.forEach { selectionManager.selectVideo(it) }
                                     }
@@ -324,7 +336,9 @@ internal fun MediaPickerScreenContent(
         },
         bottomBar = {
             SelectionActionsSheet(
-                show = selectionManager.isInSelectionMode && selectionManager.selectionItems.isNotEmpty(),
+                show =
+                    selectionManager.isInSelectionMode &&
+                        selectionManager.selectionItems.isNotEmpty(),
                 contentFocusRequester = focusState.requester,
                 showRenameAction = selectionManager.isSingleVideoSelected,
                 showInfoAction = selectionManager.isSingleVideoSelected,
@@ -337,13 +351,17 @@ internal fun MediaPickerScreenContent(
                     onAction(MediaPickerAction.ShowAddToPlaylist(selectionManager.selectionItems))
                 },
                 onRenameAction = {
-                    val selectedVideo = selectionManager.selectionItems.firstOrNull() ?: return@SelectionActionsSheet
+                    val selectedVideo =
+                        selectionManager.selectionItems.firstOrNull()
+                            ?: return@SelectionActionsSheet
                     val video = (state.mediaDataState as? DataState.Success)?.value?.videos
                         ?.find { it.uriString == selectedVideo.id } ?: return@SelectionActionsSheet
                     showRenameActionFor = video
                 },
                 onInfoAction = {
-                    val selectedVideo = selectionManager.selectionItems.firstOrNull() ?: return@SelectionActionsSheet
+                    val selectedVideo =
+                        selectionManager.selectionItems.firstOrNull()
+                            ?: return@SelectionActionsSheet
                     val video = (state.mediaDataState as? DataState.Success)?.value?.videos
                         ?.find { it.uriString == selectedVideo.id } ?: return@SelectionActionsSheet
                     onAction(MediaPickerAction.ShowMediaInfo(video))
@@ -361,7 +379,9 @@ internal fun MediaPickerScreenContent(
                     selectionManager.exitSelectionMode()
                 },
                 onHideAction = {
-                    onAction(MediaPickerAction.RequestHideSelectedItems(selectionManager.selectionItems))
+                    onAction(
+                        MediaPickerAction.RequestHideSelectedItems(selectionManager.selectionItems),
+                    )
                     selectionManager.exitSelectionMode()
                 },
                 onDeleteAction = {
@@ -378,7 +398,10 @@ internal fun MediaPickerScreenContent(
                         .focusProperties { if (isTv && hasMedia) up = focusState.requester },
                     shape = MaterialTheme.shapes.large,
                 ) {
-                    Icon(imageVector = NextIcons.Play, contentDescription = stringResource(R.string.play))
+                    Icon(
+                        imageVector = NextIcons.Play,
+                        contentDescription = stringResource(R.string.play),
+                    )
                 }
             }
         },
@@ -413,10 +436,13 @@ internal fun MediaPickerScreenContent(
                         val updatedScaffoldPadding = scaffoldPadding.copy(
                             top = 0.dp,
                             start = 0.dp,
-                            bottom = scaffoldPadding.calculateBottomPadding() + navigationBottomPadding,
+                            bottom =
+                                scaffoldPadding.calculateBottomPadding() + navigationBottomPadding,
                         )
                         val mediaHolder = state.mediaDataState.value
-                        if (mediaHolder == null || mediaHolder.folders.isEmpty() && mediaHolder.videos.isEmpty()) {
+                        if (mediaHolder == null ||
+                            (mediaHolder.folders.isEmpty() && mediaHolder.videos.isEmpty())
+                        ) {
                             NoVideosFound(contentPadding = updatedScaffoldPadding)
                         } else {
                             MediaView(
@@ -482,7 +508,12 @@ internal fun MediaPickerScreenContent(
             selectionItems = selectionManager.selectionItems,
             trashSupported = MediaOperationsService.supportsTrash(),
             onConfirm = { permanently ->
-                onAction(MediaPickerAction.DeleteSelectedItems(selectionManager.selectionItems, permanently = permanently))
+                onAction(
+                    MediaPickerAction.DeleteSelectedItems(
+                        selectionManager.selectionItems,
+                        permanently = permanently,
+                    ),
+                )
                 selectionManager.exitSelectionMode()
                 showDeleteVideosConfirmation = false
             },
@@ -583,10 +614,7 @@ private fun TransferProgressDialog(
  * A labelled progress bar. A null [fraction] renders an indeterminate bar with no percentage.
  */
 @Composable
-private fun ProgressSection(
-    label: String,
-    fraction: Float?,
-) {
+private fun ProgressSection(label: String, fraction: Float?) {
     val animatedFraction by animateFloatAsState(targetValue = fraction ?: 0f, label = "progress")
 
     Column(verticalArrangement = Arrangement.spacedBy(6.dp)) {
@@ -650,7 +678,10 @@ private fun DeleteConfirmationDialog(
                         else -> stringResource(R.string.delete_videos, selectedVideos.size)
                     }
 
-                    else -> stringResource(R.string.delete_items, selectedFolders.size + selectedVideos.size)
+                    else -> stringResource(
+                        R.string.delete_items,
+                        selectedFolders.size + selectedVideos.size,
+                    )
                 },
                 modifier = Modifier.fillMaxWidth(),
             )
@@ -660,7 +691,17 @@ private fun DeleteConfirmationDialog(
                 onClick = { onConfirm(permanently || !trashSupported) },
                 modifier = modifier,
             ) {
-                Text(text = stringResource(if (permanently || !trashSupported) R.string.delete else R.string.move_to_trash))
+                Text(
+                    text = stringResource(
+                        if (permanently ||
+                            !trashSupported
+                        ) {
+                            R.string.delete
+                        } else {
+                            R.string.move_to_trash
+                        },
+                    ),
+                )
             }
         },
         dismissButton = { CancelButton(onClick = onCancel) },
@@ -736,15 +777,14 @@ private fun HideFlowDialogs(
             )
         }
 
-        HideFlowState.BiometricSetup -> VaultBiometricSetupDialog(onComplete = onBiometricSetupComplete)
+        HideFlowState.BiometricSetup -> VaultBiometricSetupDialog(
+            onComplete = onBiometricSetupComplete,
+        )
     }
 }
 
 @Composable
-private fun SetupVaultPinDialog(
-    onDismiss: () -> Unit,
-    onPinConfirmed: (String) -> Unit,
-) {
+private fun SetupVaultPinDialog(onDismiss: () -> Unit, onPinConfirmed: (String) -> Unit) {
     var firstPin: String? by rememberSaveable { mutableStateOf(null) }
     var currentPin by rememberSaveable { mutableStateOf("") }
     var errorCount by rememberSaveable { mutableStateOf(0) }
@@ -1199,8 +1239,16 @@ private fun MediaPickerScreenPreview(
                 mediaDataState = DataState.Success(
                     value = MediaHolder(
                         folders = listOf(
-                            Folder(name = "Folder 1", path = "/root/folder1", dateModified = System.currentTimeMillis()),
-                            Folder(name = "Folder 2", path = "/root/folder2", dateModified = System.currentTimeMillis()),
+                            Folder(
+                                name = "Folder 1",
+                                path = "/root/folder1",
+                                dateModified = System.currentTimeMillis(),
+                            ),
+                            Folder(
+                                name = "Folder 2",
+                                path = "/root/folder2",
+                                dateModified = System.currentTimeMillis(),
+                            ),
                         ),
                         videos = videos,
                     ),

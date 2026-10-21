@@ -189,11 +189,14 @@ class TvMediaFocusTest {
                             )
                         }
                         Row(
-                            Modifier.fillMaxWidth().focusRestorer(fallback = firstAction).focusGroup()
+                            Modifier.fillMaxWidth().focusRestorer(
+                                fallback = firstAction,
+                            ).focusGroup()
                                 .focusProperties { up = focus.requester },
                             horizontalArrangement = Arrangement.SpaceEvenly,
                         ) {
-                            Button(modifier = Modifier.focusRequester(firstAction), onClick = {}) { Text("Action") }
+                            Button(modifier = Modifier.focusRequester(firstAction), onClick = {
+                            }) { Text("Action") }
                             Button(onClick = {}) { Text("Second action") }
                             Button(onClick = {}) { Text("Third action") }
                         }
@@ -208,10 +211,14 @@ class TvMediaFocusTest {
     private fun focused(text: String) {
         try {
             composeRule.waitUntil(5_000) {
-                composeRule.onAllNodes(hasText(text) and isFocused()).fetchSemanticsNodes().size == 1
+                composeRule.onAllNodes(hasText(text) and isFocused()).fetchSemanticsNodes().size ==
+                    1
             }
         } catch (failure: Throwable) {
-            throw AssertionError("Expected focus on $text\n${composeRule.onRoot().printToString()}", failure)
+            throw AssertionError(
+                "Expected focus on $text\n${composeRule.onRoot().printToString()}",
+                failure,
+            )
         }
     }
 

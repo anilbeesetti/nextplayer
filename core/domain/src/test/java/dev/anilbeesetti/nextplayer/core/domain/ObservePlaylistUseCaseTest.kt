@@ -88,13 +88,10 @@ class ObservePlaylistUseCaseTest {
     }
 }
 
-private class FakePlaylistRepository(
-    initialRecord: PlaylistRecord?,
-) : PlaylistRepository {
+private class FakePlaylistRepository(initialRecord: PlaylistRecord?) : PlaylistRepository {
     val record = MutableStateFlow(initialRecord)
 
-    override fun observePlaylists(): Flow<List<PlaylistSummary>> =
-        MutableStateFlow(emptyList())
+    override fun observePlaylists(): Flow<List<PlaylistSummary>> = MutableStateFlow(emptyList())
 
     override fun observePlaylist(playlistId: Long): Flow<PlaylistRecord?> = record
     override suspend fun getPlaylist(playlistId: Long): PlaylistRecord? = record.value
@@ -104,24 +101,20 @@ private class FakePlaylistRepository(
         source: String,
         playlist: M3UPlaylist,
     ): Long = error("Not used")
-    override suspend fun replaceM3UItems(
-        playlistId: Long,
-        items: List<M3UPlaylistItem>,
-    ) = error("Not used")
+    override suspend fun replaceM3UItems(playlistId: Long, items: List<M3UPlaylistItem>) =
+        error("Not used")
     override suspend fun rename(playlistId: Long, name: String) = error("Not used")
     override suspend fun delete(playlistId: Long) = error("Not used")
-    override suspend fun addVideos(playlistId: Long, videoUris: List<String>): Int = error("Not used")
+    override suspend fun addVideos(playlistId: Long, videoUris: List<String>): Int =
+        error("Not used")
     override suspend fun removeVideo(playlistId: Long, videoUri: String) = error("Not used")
-    override suspend fun replaceOrder(playlistId: Long, orderedUris: List<String>) = error("Not used")
+    override suspend fun replaceOrder(playlistId: Long, orderedUris: List<String>) =
+        error("Not used")
     override suspend fun markVideoPlayed(playlistId: Long, videoUri: String) = error("Not used")
     override suspend fun countFilePlaylistsBySource(source: String): Int = 0
 }
 
-private fun video(
-    uri: String,
-    name: String,
-    parentPath: String,
-) = Video(
+private fun video(uri: String, name: String, parentPath: String) = Video(
     id = uri.hashCode().toLong(),
     path = "$parentPath/$name",
     parentPath = parentPath,

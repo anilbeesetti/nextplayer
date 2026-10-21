@@ -49,9 +49,7 @@ import dev.anilbeesetti.nextplayer.settings.utils.LocalesHelper
 import java.nio.charset.Charset
 
 @Composable
-fun SubtitlePreferencesScreen(
-    viewModel: SubtitlePreferencesViewModel,
-) {
+fun SubtitlePreferencesScreen(viewModel: SubtitlePreferencesViewModel) {
     val state by viewModel.state.collectAsStateWithLifecycle()
 
     SubtitlePreferencesScreenContent(
@@ -76,7 +74,9 @@ private fun SubtitlePreferencesScreenContent(
             NextTopAppBar(
                 title = stringResource(id = R.string.subtitle),
                 navigationIcon = {
-                    FilledTonalIconButton(onClick = { onAction(SubtitlePreferencesUiEvent.NavigateUp) }, modifier = Modifier.tvFocusDown(listFocusRequester)) {
+                    FilledTonalIconButton(onClick = {
+                        onAction(SubtitlePreferencesUiEvent.NavigateUp)
+                    }, modifier = Modifier.tvFocusDown(listFocusRequester)) {
                         Icon(
                             imageVector = NextIcons.ArrowBack,
                             contentDescription = stringResource(id = R.string.navigate_up),
@@ -101,17 +101,35 @@ private fun SubtitlePreferencesScreenContent(
             ) {
                 ClickablePreferenceItem(
                     title = stringResource(id = R.string.preferred_subtitle_lang),
-                    description = LocalesHelper.getLocaleDisplayLanguage(state.preferences.preferredSubtitleLanguage)
-                        .takeIf { it.isNotBlank() } ?: stringResource(R.string.preferred_subtitle_lang_description),
+                    description =
+                        LocalesHelper.getLocaleDisplayLanguage(
+                            state.preferences.preferredSubtitleLanguage,
+                        )
+                            .takeIf { it.isNotBlank() }
+                            ?: stringResource(R.string.preferred_subtitle_lang_description),
                     icon = NextIcons.Language,
-                    onClick = { onAction(SubtitlePreferencesUiEvent.ShowDialog(SubtitlePreferenceDialog.SubtitleLanguageDialog)) },
+                    onClick = {
+                        onAction(
+                            SubtitlePreferencesUiEvent.ShowDialog(
+                                SubtitlePreferenceDialog.SubtitleLanguageDialog,
+                            ),
+                        )
+                    },
                     isFirstItem = true,
                 )
                 ClickablePreferenceItem(
                     title = stringResource(R.string.subtitle_text_encoding),
-                    description = charsetResource.first { it.contains(state.preferences.subtitleTextEncoding) },
+                    description = charsetResource.first {
+                        it.contains(state.preferences.subtitleTextEncoding)
+                    },
                     icon = NextIcons.Subtitle,
-                    onClick = { onAction(SubtitlePreferencesUiEvent.ShowDialog(SubtitlePreferenceDialog.SubtitleEncodingDialog)) },
+                    onClick = {
+                        onAction(
+                            SubtitlePreferencesUiEvent.ShowDialog(
+                                SubtitlePreferenceDialog.SubtitleEncodingDialog,
+                            ),
+                        )
+                    },
                     isLastItem = true,
                 )
             }
@@ -124,8 +142,12 @@ private fun SubtitlePreferencesScreenContent(
                     description = stringResource(R.string.system_caption_style_desc),
                     icon = NextIcons.Caption,
                     isChecked = state.preferences.useSystemCaptionStyle,
-                    onChecked = { onAction(SubtitlePreferencesUiEvent.ToggleUseSystemCaptionStyle) },
-                    onClick = { context.startActivity(Intent(Settings.ACTION_CAPTIONING_SETTINGS)) },
+                    onChecked = {
+                        onAction(SubtitlePreferencesUiEvent.ToggleUseSystemCaptionStyle)
+                    },
+                    onClick = {
+                        context.startActivity(Intent(Settings.ACTION_CAPTIONING_SETTINGS))
+                    },
                     isFirstItem = true,
                 )
                 ClickablePreferenceItem(
@@ -133,7 +155,13 @@ private fun SubtitlePreferencesScreenContent(
                     description = state.preferences.subtitleFont.name(),
                     icon = NextIcons.Font,
                     enabled = state.preferences.useSystemCaptionStyle.not(),
-                    onClick = { onAction(SubtitlePreferencesUiEvent.ShowDialog(SubtitlePreferenceDialog.SubtitleFontDialog)) },
+                    onClick = {
+                        onAction(
+                            SubtitlePreferencesUiEvent.ShowDialog(
+                                SubtitlePreferenceDialog.SubtitleFontDialog,
+                            ),
+                        )
+                    },
                 )
                 PreferenceSwitch(
                     title = stringResource(id = R.string.subtitle_text_bold),
@@ -150,17 +178,25 @@ private fun SubtitlePreferencesScreenContent(
                     enabled = state.preferences.useSystemCaptionStyle.not(),
                     value = state.preferences.subtitleTextSize.toFloat(),
                     valueRange = 10f..60f,
-                    onValueChange = { onAction(SubtitlePreferencesUiEvent.UpdateSubtitleFontSize(it.toInt())) },
+                    onValueChange = {
+                        onAction(SubtitlePreferencesUiEvent.UpdateSubtitleFontSize(it.toInt()))
+                    },
                     trailingContent = {
                         FilledIconButton(
                             enabled = state.preferences.useSystemCaptionStyle.not(),
                             onClick = {
-                                onAction(SubtitlePreferencesUiEvent.UpdateSubtitleFontSize(PlayerPreferences.DEFAULT_SUBTITLE_TEXT_SIZE))
+                                onAction(
+                                    SubtitlePreferencesUiEvent.UpdateSubtitleFontSize(
+                                        PlayerPreferences.DEFAULT_SUBTITLE_TEXT_SIZE,
+                                    ),
+                                )
                             },
                         ) {
                             Icon(
                                 imageVector = NextIcons.History,
-                                contentDescription = stringResource(id = R.string.reset_seek_increment),
+                                contentDescription = stringResource(
+                                    id = R.string.reset_seek_increment,
+                                ),
                             )
                         }
                     },
@@ -196,7 +232,11 @@ private fun SubtitlePreferencesScreenContent(
                                 text = it.first,
                                 selected = it.second == state.preferences.preferredSubtitleLanguage,
                                 onClick = {
-                                    onAction(SubtitlePreferencesUiEvent.UpdateSubtitleLanguage(it.second))
+                                    onAction(
+                                        SubtitlePreferencesUiEvent.UpdateSubtitleLanguage(
+                                            it.second,
+                                        ),
+                                    )
                                     onAction(SubtitlePreferencesUiEvent.ShowDialog(null))
                                 },
                             )
@@ -232,9 +272,14 @@ private fun SubtitlePreferencesScreenContent(
                             if (currentCharset.isEmpty() || Charset.isSupported(currentCharset)) {
                                 RadioTextButton(
                                     text = it,
-                                    selected = currentCharset == state.preferences.subtitleTextEncoding,
+                                    selected =
+                                        currentCharset == state.preferences.subtitleTextEncoding,
                                     onClick = {
-                                        onAction(SubtitlePreferencesUiEvent.UpdateSubtitleEncoding(currentCharset))
+                                        onAction(
+                                            SubtitlePreferencesUiEvent.UpdateSubtitleEncoding(
+                                                currentCharset,
+                                            ),
+                                        )
                                         onAction(SubtitlePreferencesUiEvent.ShowDialog(null))
                                     },
                                 )

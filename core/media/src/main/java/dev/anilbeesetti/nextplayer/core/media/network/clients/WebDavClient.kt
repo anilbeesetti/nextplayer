@@ -40,7 +40,12 @@ class WebDavClient(private val connection: NetworkConnection) : NetworkClient {
     override suspend fun connect(): Result<Unit> = withContext(Dispatchers.IO) {
         runCatching {
             val client = OkHttpSardine()
-            if (!connection.isAnonymous) client.setCredentials(connection.username, connection.password)
+            if (!connection.isAnonymous) {
+                client.setCredentials(
+                    connection.username,
+                    connection.password,
+                )
+            }
             client.exists(buildUrl("", isDirectory = true))
             sardine = client
         }
@@ -52,21 +57,22 @@ class WebDavClient(private val connection: NetworkConnection) : NetworkClient {
 
     override fun isConnected(): Boolean = sardine != null
 
-    override suspend fun listFiles(path: String): Result<List<NetworkFile>> = withContext(Dispatchers.IO) {
-        runCatching {
-            val client = sardine ?: error("Not connected")
-            client.list(buildUrl(path, isDirectory = true)).drop(1).map { resource ->
-                val name = resource.name ?: ""
-                NetworkFile(
-                    name = name,
-                    path = if (path.isBlank()) name else "${path.trimEnd('/')}/$name",
-                    isDirectory = resource.isDirectory,
-                    size = resource.contentLength ?: 0,
-                    modified = resource.modified?.time,
-                )
+    override suspend fun listFiles(path: String): Result<List<NetworkFile>> =
+        withContext(Dispatchers.IO) {
+            runCatching {
+                val client = sardine ?: error("Not connected")
+                client.list(buildUrl(path, isDirectory = true)).drop(1).map { resource ->
+                    val name = resource.name ?: ""
+                    NetworkFile(
+                        name = name,
+                        path = if (path.isBlank()) name else "${path.trimEnd('/')}/$name",
+                        isDirectory = resource.isDirectory,
+                        size = resource.contentLength ?: 0,
+                        modified = resource.modified?.time,
+                    )
+                }
             }
         }
-    }
 
     override suspend fun fileSize(path: String): Long = withContext(Dispatchers.IO) {
         runCatching {
@@ -75,20 +81,24 @@ class WebDavClient(private val connection: NetworkConnection) : NetworkClient {
         }.getOrDefault(-1L)
     }
 
-    override suspend fun openStream(path: String, offset: Long): InputStream = withContext(Dispatchers.IO) {
-        val builder = Request.Builder().url(buildUrl(path))
-        if (!connection.isAnonymous) {
-            builder.header("Authorization", Credentials.basic(connection.username, connection.password))
+    override suspend fun openStream(path: String, offset: Long): InputStream =
+        withContext(Dispatchers.IO) {
+            val builder = Request.Builder().url(buildUrl(path))
+            if (!connection.isAnonymous) {
+                builder.header(
+                    "Authorization",
+                    Credentials.basic(connection.username, connection.password),
+                )
+            }
+            if (offset > 0) builder.header("Range", "bytes=$offset-")
+            val response = httpClient.newCall(builder.build()).execute()
+            if (!response.isSuccessful) {
+                response.close()
+                error("WebDAV request failed: ${response.code}")
+            }
+            response.body?.byteStream() ?: run {
+                response.close()
+                error("Empty WebDAV response body")
+            }
         }
-        if (offset > 0) builder.header("Range", "bytes=$offset-")
-        val response = httpClient.newCall(builder.build()).execute()
-        if (!response.isSuccessful) {
-            response.close()
-            error("WebDAV request failed: ${response.code}")
-        }
-        response.body?.byteStream() ?: run {
-            response.close()
-            error("Empty WebDAV response body")
-        }
-    }
 }

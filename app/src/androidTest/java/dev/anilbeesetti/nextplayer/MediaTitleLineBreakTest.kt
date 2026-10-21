@@ -30,7 +30,8 @@ class MediaTitleLineBreakTest {
 
     private val title = "悬案.Unsettled.Case.S01E02.2026.2160p.WEB-DL.H265"
     private val video = Video.sample.copy(nameWithExtension = "$title.mp4")
-    private val preferences = ApplicationPreferences(showExtensionField = false, showThumbnailField = false)
+    private val preferences =
+        ApplicationPreferences(showExtensionField = false, showThumbnailField = false)
 
     @Test
     fun listTitleDoesNotIsolateChinesePrefix() = assertTitleWraps {

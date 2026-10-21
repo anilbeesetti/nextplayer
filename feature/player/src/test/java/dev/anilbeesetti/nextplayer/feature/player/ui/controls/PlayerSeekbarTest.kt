@@ -40,7 +40,11 @@ class PlayerSeekbarTest {
         }
         var position by mutableFloatStateOf(100f)
         var materialControls by mutableStateOf(false)
-        var chapters by mutableStateOf(listOf(0L, 400L, 700L).map { Chapter.Builder().setStartTimeMs(it).build() })
+        var chapters by mutableStateOf(
+            listOf(0L, 400L, 700L).map {
+                Chapter.Builder().setStartTimeMs(it).build()
+            },
+        )
         composeRule.setContent {
             NextPlayerTheme {
                 CompositionLocalProvider(
@@ -58,7 +62,9 @@ class PlayerSeekbarTest {
             }
         }
 
-        val slider = composeRule.onNode(SemanticsMatcher.keyIsDefined(SemanticsProperties.ProgressBarRangeInfo))
+        val slider = composeRule.onNode(
+            SemanticsMatcher.keyIsDefined(SemanticsProperties.ProgressBarRangeInfo),
+        )
         for (material in listOf(false, true)) {
             composeRule.runOnIdle {
                 materialControls = material

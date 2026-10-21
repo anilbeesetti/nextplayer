@@ -65,9 +65,8 @@ class SshKeyStoreInitializerTest {
     )
 }
 
-private class FakeRepository(
-    private val connections: Flow<List<NetworkConnection>>,
-) : NetworkConnectionRepository {
+private class FakeRepository(private val connections: Flow<List<NetworkConnection>>) :
+    NetworkConnectionRepository {
     override fun getConnections(): Flow<List<NetworkConnection>> = connections
     override suspend fun getConnection(id: Long): NetworkConnection? = error("Not used")
     override suspend fun upsert(connection: NetworkConnection): Long = error("Not used")

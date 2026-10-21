@@ -83,7 +83,11 @@ class LocalVaultRepositoryTest {
             }
 
             assertTrue("The repository must handle a rejected vault record", result.isSuccess)
-            assertEquals("The video must not be moved before its vault record exists", 0, mediaOperations.moveCalls)
+            assertEquals(
+                "The video must not be moved before its vault record exists",
+                0,
+                mediaOperations.moveCalls,
+            )
             assertTrue("The original video must remain in place", sourceFile.exists())
             assertFalse("A failed hide must not leave a private vault copy", vaultFile.exists())
         } finally {
@@ -122,7 +126,12 @@ class LocalVaultRepositoryTest {
             val vaultFiles = dao.entities.values.map { File(it.vaultPath) }
             assertEquals(2, vaultFiles.size)
             assertNotEquals(vaultFiles[0].absolutePath, vaultFiles[1].absolutePath)
-            assertEquals(setOf("first video", "second video"), vaultFiles.map { it.readText() }.toSet())
+            assertEquals(
+                setOf("first video", "second video"),
+                vaultFiles.map {
+                    it.readText()
+                }.toSet(),
+            )
             assertFalse(firstSource.exists())
             assertFalse(secondSource.exists())
         } finally {
@@ -161,14 +170,18 @@ class LocalVaultRepositoryTest {
             .apply { writeText("original video") }
         val dao = CommitThenCancelHiddenVideoDao()
         val mediaOperations = MovingMediaOperationsService()
-        val repository = LocalVaultRepository(dao, database.mediumStateDao(), mediaOperations, context)
+        val repository =
+            LocalVaultRepository(dao, database.mediumStateDao(), mediaOperations, context)
 
         try {
             val result = runCatching { repository.hideVideos(listOf(videoFor(sourceFile))) }
 
             assertTrue(result.exceptionOrNull() is CancellationException)
             assertTrue("Cancellation before moving must preserve the source", sourceFile.exists())
-            assertTrue("A row committed before cancellation delivery must be cleaned up", dao.entities.isEmpty())
+            assertTrue(
+                "A row committed before cancellation delivery must be cleaned up",
+                dao.entities.isEmpty(),
+            )
             assertEquals(0, mediaOperations.moveCalls)
         } finally {
             sourceFile.delete()
@@ -184,7 +197,9 @@ class LocalVaultRepositoryTest {
         val repository = LocalVaultRepository(
             hiddenVideoDao = dao,
             mediumStateDao = database.mediumStateDao(),
-            mediaOperationsService = MovingMediaOperationsService(moveException = CancellationException("cancelled")),
+            mediaOperationsService = MovingMediaOperationsService(
+                moveException = CancellationException("cancelled"),
+            ),
             context = context,
         )
 
@@ -249,8 +264,16 @@ class LocalVaultRepositoryTest {
             mediaOperationsService = MovingMediaOperationsService(maxSuccessfulMoves = 1),
             context = context,
         )
-        database.mediumStateDao().upsert(MediumStateEntity(uriString = firstSource.toUri().toString(), lastPlayedTime = 100, playbackPosition = 40))
-        database.mediumStateDao().upsert(MediumStateEntity(uriString = secondSource.toUri().toString(), lastPlayedTime = 200))
+        database.mediumStateDao().upsert(
+            MediumStateEntity(
+                uriString = firstSource.toUri().toString(),
+                lastPlayedTime = 100,
+                playbackPosition = 40,
+            ),
+        )
+        database.mediumStateDao().upsert(
+            MediumStateEntity(uriString = secondSource.toUri().toString(), lastPlayedTime = 200),
+        )
 
         try {
             repository.hideVideos(listOf(videoFor(firstSource), videoFor(secondSource)))
@@ -262,9 +285,17 @@ class LocalVaultRepositoryTest {
                 File(dao.entities.getValue(1L).vaultPath).exists(),
             )
             assertTrue("The later uncommitted source must remain", secondSource.exists())
-            assertNull(database.mediumStateDao().get(firstSource.toUri().toString())?.lastPlayedTime)
-            assertEquals(40L, database.mediumStateDao().get(firstSource.toUri().toString())?.playbackPosition)
-            assertEquals(200L, database.mediumStateDao().get(secondSource.toUri().toString())?.lastPlayedTime)
+            assertNull(
+                database.mediumStateDao().get(firstSource.toUri().toString())?.lastPlayedTime,
+            )
+            assertEquals(
+                40L,
+                database.mediumStateDao().get(firstSource.toUri().toString())?.playbackPosition,
+            )
+            assertEquals(
+                200L,
+                database.mediumStateDao().get(secondSource.toUri().toString())?.lastPlayedTime,
+            )
         } finally {
             firstSource.delete()
             secondSource.delete()
@@ -284,14 +315,19 @@ class LocalVaultRepositoryTest {
         val repository = LocalVaultRepository(
             hiddenVideoDao = dao,
             mediumStateDao = database.mediumStateDao(),
-            mediaOperationsService = MovingMediaOperationsService(deleteDestinationBeforeReturn = true),
+            mediaOperationsService = MovingMediaOperationsService(
+                deleteDestinationBeforeReturn = true,
+            ),
             context = context,
         )
 
         try {
             repository.hideVideos(listOf(videoFor(sourceFile)))
 
-            assertTrue("A missing reported destination must not retain a vault row", dao.entities.isEmpty())
+            assertTrue(
+                "A missing reported destination must not retain a vault row",
+                dao.entities.isEmpty(),
+            )
         } finally {
             sourceFile.delete()
             dao.entities.values.forEach { File(it.vaultPath).delete() }
@@ -307,7 +343,8 @@ class LocalVaultRepositoryTest {
         ).apply { writeText("original video") }
         val dao = RecordingHiddenVideoDao()
         val mediaOperations = PausedMovingMediaOperationsService()
-        val repository = LocalVaultRepository(dao, database.mediumStateDao(), mediaOperations, context)
+        val repository =
+            LocalVaultRepository(dao, database.mediumStateDao(), mediaOperations, context)
 
         try {
             val hideJob = launch(start = CoroutineStart.UNDISPATCHED) {
@@ -339,7 +376,8 @@ class LocalVaultRepositoryTest {
         ).apply { writeText("original video") }
         val dao = RecordingHiddenVideoDao()
         val mediaOperations = PausedMovingMediaOperationsService()
-        val repository = LocalVaultRepository(dao, database.mediumStateDao(), mediaOperations, context)
+        val repository =
+            LocalVaultRepository(dao, database.mediumStateDao(), mediaOperations, context)
 
         try {
             val hideJob = launch(start = CoroutineStart.UNDISPATCHED) {
@@ -352,7 +390,10 @@ class LocalVaultRepositoryTest {
             }
 
             assertTrue("Delete must wait for the in-progress hide operation", deleteJob.isActive)
-            assertTrue("Delete must not remove an in-progress reservation", dao.entities.containsKey(1L))
+            assertTrue(
+                "Delete must not remove an in-progress reservation",
+                dao.entities.containsKey(1L),
+            )
 
             mediaOperations.allowMove.complete(Unit)
             withTimeout(TEST_TIMEOUT_MILLIS) {

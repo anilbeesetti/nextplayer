@@ -66,7 +66,9 @@ fun NextOutlinedTextField(
             }
             .onPreviewKeyEvent {
                 if (!enabled || !isFocused) return@onPreviewKeyEvent false
-                val isSelect = it.key == Key.DirectionCenter || it.key == Key.Enter || it.key == Key.NumPadEnter
+                val isSelect =
+                    it.key == Key.DirectionCenter || it.key == Key.Enter ||
+                        it.key == Key.NumPadEnter
                 val direction = when (it.key) {
                     Key.DirectionUp -> FocusDirection.Up
                     Key.DirectionDown -> FocusDirection.Down

@@ -45,7 +45,9 @@ import kotlin.time.Duration.Companion.milliseconds
 internal fun InfoView(
     modifier: Modifier = Modifier,
     info: String,
-    textStyle: TextStyle = MaterialTheme.typography.headlineMedium.copy(fontWeight = FontWeight.Bold),
+    textStyle: TextStyle = MaterialTheme.typography.headlineMedium.copy(
+        fontWeight = FontWeight.Bold,
+    ),
 ) {
     Column(
         modifier = modifier.fillMaxWidth(),
@@ -66,11 +68,7 @@ internal fun InfoView(
  * hidden, along with the resulting position. Fades out shortly after the last seek.
  */
 @Composable
-internal fun BoxScope.DpadSeekIndicator(
-    visible: Boolean,
-    offsetMs: Long,
-    positionMs: Long,
-) {
+internal fun BoxScope.DpadSeekIndicator(visible: Boolean, offsetMs: Long, positionMs: Long) {
     AnimatedVisibility(
         modifier = Modifier.align(Alignment.Center),
         visible = visible,
@@ -96,7 +94,9 @@ internal fun BoxScope.DpadSeekIndicator(
                 )
                 Column(horizontalAlignment = Alignment.CenterHorizontally) {
                     Text(
-                        text = "${if (offsetMs >= 0) "+" else "-"}${abs(offsetMs).milliseconds.inWholeSeconds}s",
+                        text = "${if (offsetMs >= 0) "+" else "-"}${abs(
+                            offsetMs,
+                        ).milliseconds.inWholeSeconds}s",
                         style = MaterialTheme.typography.titleLarge,
                         fontWeight = FontWeight.Bold,
                         color = Color.White,
@@ -132,7 +132,10 @@ internal fun BoxScope.PlayerGestureIndicators(tapGestureState: TapGestureState) 
                 ),
             ) {
                 Text(
-                    text = stringResource(coreUiR.string.fast_playback_speed, tapGestureState.longPressSpeed),
+                    text = stringResource(
+                        coreUiR.string.fast_playback_speed,
+                        tapGestureState.longPressSpeed,
+                    ),
                     style = MaterialTheme.typography.labelLarge,
                 )
             }

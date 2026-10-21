@@ -26,7 +26,9 @@ class ExternalAudioTest {
     @Test
     fun audioSurvivesMetadataAndSubtitleChanges() {
         val audio = listOf(Uri.parse("content://documents/audio/one"), Uri.parse("file:///two.mp3"))
-        val subtitle = MediaItem.SubtitleConfiguration.Builder(Uri.parse("file:///captions.srt")).build()
+        val subtitle = MediaItem.SubtitleConfiguration.Builder(
+            Uri.parse("file:///captions.srt"),
+        ).build()
         val item = MediaItem.Builder()
             .setUri("file:///video.mp4")
             .setMediaId("video")
@@ -50,6 +52,9 @@ class ExternalAudioTest {
         assertEquals(DecoderMode.SOFTWARE, item.mediaMetadata.audioDecoderMode)
         assertEquals("Video", item.mediaMetadata.title)
         assertEquals(listOf(subtitle), item.localConfiguration!!.subtitleConfigurations)
-        assertEquals(emptyList<Uri>(), item.withExternalAudio(emptyList()).mediaMetadata.externalAudio)
+        assertEquals(
+            emptyList<Uri>(),
+            item.withExternalAudio(emptyList()).mediaMetadata.externalAudio,
+        )
     }
 }

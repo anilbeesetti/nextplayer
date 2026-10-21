@@ -79,7 +79,11 @@ class SmbClient internal constructor(
                 val authContext = if (connection.isAnonymous) {
                     AuthenticationContext.anonymous()
                 } else {
-                    AuthenticationContext(connection.username, connection.password.toCharArray(), null)
+                    AuthenticationContext(
+                        connection.username,
+                        connection.password.toCharArray(),
+                        null,
+                    )
                 }
                 val sess = conn.authenticate(authContext)
                 session = sess
@@ -113,74 +117,83 @@ class SmbClient internal constructor(
 
     override fun isConnected(): Boolean = session != null && smbConnection?.isConnected == true
 
-    override suspend fun listFiles(path: String): Result<List<NetworkFile>> = withContext(Dispatchers.IO) {
-        runCatching {
-            val sess = session ?: error("Not connected")
-            val relative = path.trim('/')
-            if (isServerRoot && relative.isEmpty()) return@runCatching listShares(sess)
-            val (selectedShare, sharePath) = shareAndPath(path)
-            (sess.connectShare(selectedShare) as DiskShare).use { share ->
-                share.list(smbPath(sharePath)).mapNotNull { info ->
-                    val name = info.fileName
-                    if (name == "." || name == ".." || name.endsWith("$")) return@mapNotNull null
-                    val isDirectory = info.fileAttributes and 0x10L != 0L // FILE_ATTRIBUTE_DIRECTORY
-                    NetworkFile(
-                        name = name,
-                        path = if (relative.isEmpty()) name else "$relative/$name",
-                        isDirectory = isDirectory,
-                        size = if (isDirectory) 0 else info.endOfFile,
-                        modified = info.lastWriteTime?.toEpochMillis(),
-                    )
+    override suspend fun listFiles(path: String): Result<List<NetworkFile>> =
+        withContext(Dispatchers.IO) {
+            runCatching {
+                val sess = session ?: error("Not connected")
+                val relative = path.trim('/')
+                if (isServerRoot && relative.isEmpty()) return@runCatching listShares(sess)
+                val (selectedShare, sharePath) = shareAndPath(path)
+                (sess.connectShare(selectedShare) as DiskShare).use { share ->
+                    share.list(smbPath(sharePath)).mapNotNull { info ->
+                        val name = info.fileName
+                        if (name == "." || name == ".." ||
+                            name.endsWith("$")
+                        ) {
+                            return@mapNotNull null
+                        }
+                        // FILE_ATTRIBUTE_DIRECTORY
+                        val isDirectory = info.fileAttributes and 0x10L != 0L
+                        NetworkFile(
+                            name = name,
+                            path = if (relative.isEmpty()) name else "$relative/$name",
+                            isDirectory = isDirectory,
+                            size = if (isDirectory) 0 else info.endOfFile,
+                            modified = info.lastWriteTime?.toEpochMillis(),
+                        )
+                    }
                 }
             }
         }
-    }
 
     override suspend fun fileSize(path: String): Long = withContext(Dispatchers.IO) {
         runCatching {
             val sess = session ?: error("Not connected")
             val (selectedShare, sharePath) = shareAndPath(path)
             (sess.connectShare(selectedShare) as DiskShare).use { share ->
-                openReadFile(share, sharePath).use { it.fileInformation.standardInformation.endOfFile }
+                openReadFile(share, sharePath).use {
+                    it.fileInformation.standardInformation.endOfFile
+                }
             }
         }.getOrDefault(-1L)
     }
 
-    override suspend fun openStream(path: String, offset: Long): InputStream = withContext(Dispatchers.IO) {
-        if (!isConnected()) connect().getOrThrow()
-        val sess = session ?: error("Not connected")
-        val (selectedShare, sharePath) = shareAndPath(path)
-        val share = sess.connectShare(selectedShare) as DiskShare
-        val file = try {
-            openReadFile(share, sharePath)
-        } catch (error: Throwable) {
-            runCatching { share.close() }
-            throw error
-        }
-
-        val rawStream = object : InputStream() {
-            private var position = offset
-
-            override fun read(): Int {
-                val one = ByteArray(1)
-                return if (read(one, 0, 1) == -1) -1 else one[0].toInt() and 0xFF
-            }
-
-            override fun read(b: ByteArray, off: Int, len: Int): Int {
-                val read = file.read(b, position, off, len)
-                if (read > 0) position += read
-                return read
-            }
-
-            override fun close() {
-                runCatching { file.close() }
+    override suspend fun openStream(path: String, offset: Long): InputStream =
+        withContext(Dispatchers.IO) {
+            if (!isConnected()) connect().getOrThrow()
+            val sess = session ?: error("Not connected")
+            val (selectedShare, sharePath) = shareAndPath(path)
+            val share = sess.connectShare(selectedShare) as DiskShare
+            val file = try {
+                openReadFile(share, sharePath)
+            } catch (error: Throwable) {
                 runCatching { share.close() }
+                throw error
             }
-        }
 
-        // Wrap the stream in a 2MB buffer to drastically reduce SMB network requests
-        return@withContext rawStream.buffered(2 * 1024 * 1024)
-    }
+            val rawStream = object : InputStream() {
+                private var position = offset
+
+                override fun read(): Int {
+                    val one = ByteArray(1)
+                    return if (read(one, 0, 1) == -1) -1 else one[0].toInt() and 0xFF
+                }
+
+                override fun read(b: ByteArray, off: Int, len: Int): Int {
+                    val read = file.read(b, position, off, len)
+                    if (read > 0) position += read
+                    return read
+                }
+
+                override fun close() {
+                    runCatching { file.close() }
+                    runCatching { share.close() }
+                }
+            }
+
+            // Wrap the stream in a 2MB buffer to drastically reduce SMB network requests
+            return@withContext rawStream.buffered(2 * 1024 * 1024)
+        }
 
     private fun openReadFile(share: DiskShare, path: String) = share.openFile(
         smbPath(path.trim('/')),

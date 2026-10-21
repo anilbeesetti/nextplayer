@@ -224,7 +224,10 @@ class SshKeyFilesTest {
             try {
                 assertEquals("committed", resolved.get(1, TimeUnit.SECONDS))
             } catch (error: TimeoutException) {
-                throw AssertionError("Resolving a committed key waited for the import stream", error)
+                throw AssertionError(
+                    "Resolving a committed key waited for the import stream",
+                    error,
+                )
             }
             allowImport.countDown()
             assertEquals("feed.key", import.get(5, TimeUnit.SECONDS))

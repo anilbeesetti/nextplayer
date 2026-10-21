@@ -37,7 +37,9 @@ class Migration7To8Test {
             MediaDatabase.MIGRATION_7_8,
         )
 
-        migrated.query("SELECT playback_position FROM media_state WHERE uri = 'content://existing'").use {
+        migrated.query(
+            "SELECT playback_position FROM media_state WHERE uri = 'content://existing'",
+        ).use {
             assertTrue(it.moveToFirst())
             assertEquals(42L, it.getLong(0))
         }
