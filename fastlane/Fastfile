@@ -22,6 +22,10 @@ platform :android do
             track: ENV["TRACK"],
             json_key: ENV["PLAY_API_CREDENTIALS"],
             skip_upload_apk: true,
+            mapping_paths: [
+                File.expand_path("../app/build/outputs/mapping/release/mapping.txt", __dir__),
+                File.expand_path("../app/build/outputs/native-debug-symbols/release/native-debug-symbols.zip", __dir__)
+            ],
             sync_image_upload: true
         )
     end
