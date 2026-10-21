@@ -22,7 +22,7 @@ import dev.anilbeesetti.nextplayer.core.database.entities.PlaylistItemEntity
         PlaylistEntity::class,
         PlaylistItemEntity::class,
     ],
-    version = 12,
+    version = 13,
     exportSchema = true,
 )
 abstract class MediaDatabase : RoomDatabase() {
@@ -327,6 +327,47 @@ abstract class MediaDatabase : RoomDatabase() {
         val MIGRATION_10_11 = object : Migration(10, 11) {
             override fun migrate(db: SupportSQLiteDatabase) {
                 db.execSQL("ALTER TABLE `media_state` ADD COLUMN `duration` INTEGER")
+            }
+        }
+
+        val MIGRATION_12_13 = object : Migration(12, 13) {
+            override fun migrate(db: SupportSQLiteDatabase) {
+                // Rebuild the table because older Android SQLite versions cannot drop columns.
+                db.execSQL(
+                    """
+                    CREATE TABLE `media_state_new` (
+                        `uri` TEXT NOT NULL,
+                        `playback_position` INTEGER NOT NULL,
+                        `audio_track_index` INTEGER,
+                        `subtitle_track_index` INTEGER,
+                        `last_played_time` INTEGER,
+                        `duration` INTEGER,
+                        `external_subs` TEXT NOT NULL,
+                        `external_audio` TEXT NOT NULL DEFAULT '',
+                        `video_scale` REAL NOT NULL,
+                        `subtitle_delay` INTEGER NOT NULL,
+                        `subtitle_speed` REAL NOT NULL,
+                        PRIMARY KEY(`uri`)
+                    )
+                    """,
+                )
+                db.execSQL(
+                    """
+                    INSERT INTO `media_state_new` (
+                        `uri`, `playback_position`, `audio_track_index`, `subtitle_track_index`,
+                        `last_played_time`, `duration`, `external_subs`, `external_audio`,
+                        `video_scale`, `subtitle_delay`, `subtitle_speed`
+                    )
+                    SELECT
+                        `uri`, `playback_position`, `audio_track_index`, `subtitle_track_index`,
+                        `last_played_time`, `duration`, `external_subs`, `external_audio`,
+                        `video_scale`, `subtitle_delay`, `subtitle_speed`
+                    FROM `media_state`
+                    """,
+                )
+                db.execSQL("DROP TABLE `media_state`")
+                db.execSQL("ALTER TABLE `media_state_new` RENAME TO `media_state`")
+                db.execSQL("CREATE UNIQUE INDEX `index_media_state_uri` ON `media_state` (`uri`)")
             }
         }
     }

@@ -36,7 +36,6 @@ class ExternalAudioTest {
             .copy(
                 positionMs = 12000,
                 audioTrackIndex = 2,
-                playbackSpeed = 1.5f,
                 videoDecoderMode = DecoderMode.HARDWARE,
                 audioDecoderMode = DecoderMode.SOFTWARE,
             )
