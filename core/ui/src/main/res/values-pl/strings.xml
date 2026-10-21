@@ -552,4 +552,6 @@
     <string name="watch_history_desc">Prowadź rejestr obejrzanych wideo</string>
     <string name="network_watch_history">Historia przeglądania sieci</string>
     <string name="network_watch_history_desc">Dodawaj odtworzone przez sieć wideo do historii odtwarzania.</string>
+    <string name="add_to_home_screen">Dodaj do ekranu głównego</string>
+    <string name="playlist_shortcut_failed">Nie można dodać skrótu do listy odtwarzania. Spróbuj ponownie.</string>
 </resources>
