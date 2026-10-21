@@ -33,7 +33,8 @@ class HistoryViewModel(
 
     init {
         viewModelScope.launch {
-            mediaRepository.observePlaybackHistory()
+            mediaRepository
+                .observePlaybackHistory()
                 .catch { error ->
                     stateInternal.update { it.copy(history = DataState.Error(error)) }
                 }
@@ -54,12 +55,13 @@ class HistoryViewModel(
             is HistoryAction.PlayVideo -> output.playVideo(action.uri)
 
             is HistoryAction.ClearHistory -> clearHistory()
-            is HistoryAction.SetHistoryEnabled -> viewModelScope.launch {
-                preferencesRepository.updateApplicationPreferences {
-                    it.copy(isHistoryPaused = !action.enabled)
+            is HistoryAction.SetHistoryEnabled ->
+                viewModelScope.launch {
+                    preferencesRepository.updateApplicationPreferences {
+                        it.copy(isHistoryPaused = !action.enabled)
+                    }
+                    if (!action.enabled) mediaRepository.clearPlaybackHistory()
                 }
-                if (!action.enabled) mediaRepository.clearPlaybackHistory()
-            }
         }
     }
 
@@ -75,8 +77,10 @@ data class HistoryUiState(
 
 sealed interface HistoryAction {
     data object NavigateUp : HistoryAction
+
     data class PlayVideo(val uri: String) : HistoryAction
 
     data object ClearHistory : HistoryAction
+
     data class SetHistoryEnabled(val enabled: Boolean) : HistoryAction
 }

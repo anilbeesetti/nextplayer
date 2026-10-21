@@ -29,10 +29,12 @@ object PlayerPreferencesSerializer : Serializer<PlayerPreferences> {
     @Suppress("BlockingMethodInNonBlockingContext")
     override suspend fun writeTo(t: PlayerPreferences, output: OutputStream) {
         output.write(
-            jsonFormat.encodeToString(
-                serializer = PlayerPreferences.serializer(),
-                value = t,
-            ).encodeToByteArray(),
+            jsonFormat
+                .encodeToString(
+                    serializer = PlayerPreferences.serializer(),
+                    value = t,
+                )
+                .encodeToByteArray()
         )
     }
 }

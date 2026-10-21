@@ -12,9 +12,11 @@ import org.koin.core.annotation.Single
 @Module(includes = [DatabaseModule::class, DataStoreModule::class, MediaModule::class])
 @ComponentScan
 class DataModule {
-    /** Lets `core:media` resolve a playback uri's connection id without depending on `core:data`. */
+    /**
+     * Lets `core:media` resolve a playback uri's connection id without depending on `core:data`.
+     */
     @Single
     fun providesNetworkConnectionResolver(
-        repository: NetworkConnectionRepository,
+        repository: NetworkConnectionRepository
     ): NetworkConnectionResolver = NetworkConnectionResolver { id -> repository.getConnection(id) }
 }

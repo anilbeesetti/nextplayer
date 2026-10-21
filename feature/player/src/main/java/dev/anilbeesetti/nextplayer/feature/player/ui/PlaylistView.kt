@@ -15,7 +15,6 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
-import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.material3.ExperimentalMaterial3ExpressiveApi
 import androidx.compose.material3.Icon
@@ -70,10 +69,11 @@ fun BoxScope.PlaylistView(
     val hapticFeedback = LocalHapticFeedback.current
     val playlistState = rememberPlaylistState(player)
     val lazyListState = rememberLazyListState()
-    val reorderableLazyListState = rememberReorderableLazyListState(lazyListState) { from, to ->
-        playlistState.moveItem(from.index, to.index)
-        hapticFeedback.performHapticFeedback(HapticFeedbackType.SegmentFrequentTick)
-    }
+    val reorderableLazyListState =
+        rememberReorderableLazyListState(lazyListState) { from, to ->
+            playlistState.moveItem(from.index, to.index)
+            hapticFeedback.performHapticFeedback(HapticFeedbackType.SegmentFrequentTick)
+        }
 
     // Auto-scroll to current item when playlist opens
     LaunchedEffect(show) {
@@ -140,29 +140,34 @@ private fun ReorderableCollectionItemScope.PlaylistItemView(
     val interactionSource = remember { MutableInteractionSource() }
     val hapticFeedback = LocalHapticFeedback.current
     NextSegmentedListItem(
-        modifier = Modifier
-            .fillMaxWidth()
-            .draggableHandle(
-                onDragStarted = {
-                    hapticFeedback.performHapticFeedback(HapticFeedbackType.GestureThresholdActivate)
-                },
-                onDragStopped = {
-                    hapticFeedback.performHapticFeedback(HapticFeedbackType.GestureEnd)
-                },
-                interactionSource = interactionSource,
-                dragGestureDetector = DragGestureDetector.LongPress,
-            ),
+        modifier =
+            Modifier.fillMaxWidth()
+                .draggableHandle(
+                    onDragStarted = {
+                        hapticFeedback.performHapticFeedback(
+                            HapticFeedbackType.GestureThresholdActivate
+                        )
+                    },
+                    onDragStopped = {
+                        hapticFeedback.performHapticFeedback(HapticFeedbackType.GestureEnd)
+                    },
+                    interactionSource = interactionSource,
+                    dragGestureDetector = DragGestureDetector.LongPress,
+                ),
         selected = isCurrentItem,
         contentPadding = PaddingValues(8.dp),
         interactionSource = interactionSource,
-        colors = ListItemDefaults.segmentedColors(
-            contentColor = if (isCurrentItem) {
-                MaterialTheme.colorScheme.primary
-            } else {
-                ListItemDefaults.segmentedColors().contentColor
-            },
-            selectedContainerColor = MaterialTheme.colorScheme.primaryContainer.copy(alpha = 0.3f),
-        ),
+        colors =
+            ListItemDefaults.segmentedColors(
+                contentColor =
+                    if (isCurrentItem) {
+                        MaterialTheme.colorScheme.primary
+                    } else {
+                        ListItemDefaults.segmentedColors().contentColor
+                    },
+                selectedContainerColor =
+                    MaterialTheme.colorScheme.primaryContainer.copy(alpha = 0.3f),
+            ),
         isFirstItem = isFirstItem,
         isLastItem = isLastItem,
         onClick = onClick,
@@ -174,23 +179,27 @@ private fun ReorderableCollectionItemScope.PlaylistItemView(
                 Icon(
                     painter = painterResource(R.drawable.ic_drag_handle),
                     contentDescription = stringResource(R.string.reorder),
-                    tint = if (isCurrentItem) {
-                        MaterialTheme.colorScheme.primary
-                    } else {
-                        MaterialTheme.colorScheme.onSurfaceVariant
-                    },
+                    tint =
+                        if (isCurrentItem) {
+                            MaterialTheme.colorScheme.primary
+                        } else {
+                            MaterialTheme.colorScheme.onSurfaceVariant
+                        },
                 )
 
                 ThumbnailView(
                     mediaItem = mediaItem,
-                    modifier = Modifier
-                        .width(min(100.dp, LocalConfiguration.current.screenWidthDp.dp * 0.3f)),
+                    modifier =
+                        Modifier.width(
+                            min(100.dp, LocalConfiguration.current.screenWidthDp.dp * 0.3f)
+                        ),
                 )
             }
         },
         content = {
             Text(
-                text = mediaItem.mediaMetadata.title?.toString() ?: stringResource(R.string.unknown),
+                text =
+                    mediaItem.mediaMetadata.title?.toString() ?: stringResource(R.string.unknown),
                 maxLines = 2,
                 style = MaterialTheme.typography.titleSmall.copy(lineBreak = LineBreak.Heading),
                 overflow = TextOverflow.Ellipsis,
@@ -217,27 +226,23 @@ private fun ThumbnailView(
 ) {
     val context = LocalContext.current
     Box(
-        modifier = modifier
-            .clip(MaterialTheme.shapes.small)
-            .background(MaterialTheme.colorScheme.surfaceColorAtElevation(1.dp))
-            .aspectRatio(16f / 10f),
+        modifier =
+            modifier
+                .clip(MaterialTheme.shapes.small)
+                .background(MaterialTheme.colorScheme.surfaceColorAtElevation(1.dp))
+                .aspectRatio(16f / 10f)
     ) {
         // Fallback icon
         Icon(
             imageVector = NextIcons.Video,
             contentDescription = null,
             tint = MaterialTheme.colorScheme.surfaceColorAtElevation(100.dp),
-            modifier = Modifier
-                .align(Alignment.Center)
-                .fillMaxSize(0.5f),
+            modifier = Modifier.align(Alignment.Center).fillMaxSize(0.5f),
         )
 
         // Thumbnail image
         AsyncImage(
-            model = ImageRequest.Builder(context)
-                .data(mediaItem.mediaId)
-                .crossfade(true)
-                .build(),
+            model = ImageRequest.Builder(context).data(mediaItem.mediaId).crossfade(true).build(),
             contentDescription = null,
             alignment = Alignment.Center,
             contentScale = ContentScale.Crop,
@@ -249,14 +254,15 @@ private fun ThumbnailView(
             if (durationMs > 0) {
                 Text(
                     text = Utils.formatDurationMillis(durationMs),
-                    style = MaterialTheme.typography.labelSmall.copy(fontWeight = FontWeight.Normal),
+                    style =
+                        MaterialTheme.typography.labelSmall.copy(fontWeight = FontWeight.Normal),
                     color = Color.White,
-                    modifier = Modifier
-                        .align(Alignment.BottomEnd)
-                        .padding(4.dp)
-                        .clip(MaterialTheme.shapes.extraSmall)
-                        .background(Color.Black.copy(alpha = 0.6f))
-                        .padding(vertical = 1.dp, horizontal = 3.dp),
+                    modifier =
+                        Modifier.align(Alignment.BottomEnd)
+                            .padding(4.dp)
+                            .clip(MaterialTheme.shapes.extraSmall)
+                            .background(Color.Black.copy(alpha = 0.6f))
+                            .padding(vertical = 1.dp, horizontal = 3.dp),
                 )
             }
         }
@@ -266,9 +272,7 @@ private fun ThumbnailView(
 @Composable
 private fun EmptyPlaylistView() {
     Column(
-        modifier = Modifier
-            .fillMaxWidth()
-            .padding(32.dp),
+        modifier = Modifier.fillMaxWidth().padding(32.dp),
         horizontalAlignment = Alignment.CenterHorizontally,
         verticalArrangement = Arrangement.spacedBy(16.dp),
     ) {

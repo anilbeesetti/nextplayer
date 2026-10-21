@@ -23,7 +23,6 @@ import dev.anilbeesetti.nextplayer.core.model.MediaInfo
 import dev.anilbeesetti.nextplayer.core.model.Video
 import io.github.anilbeesetti.nextlib.mediainfo.MediaInfoBuilder
 import java.util.Date
-
 import kotlin.math.absoluteValue
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.async
@@ -50,7 +49,9 @@ class LocalMediaRepository(
     }
 
     override fun observeVideos(folderPath: String?): Flow<List<Video>> {
-        return combine(mediaService.observeVideos(folderPath), mediumStateDao.getAll()) { mediaVideos, mediumStates ->
+        return combine(mediaService.observeVideos(folderPath), mediumStateDao.getAll()) {
+            mediaVideos,
+            mediumStates ->
             val statesMap = mediumStates.associateBy { it.uriString }
             mediaVideos.map { mediaVideo ->
                 val mediaState = statesMap[mediaVideo.uri.toString()]
@@ -71,7 +72,9 @@ class LocalMediaRepository(
     }
 
     override fun observePlaybackHistory(): Flow<List<Video>> {
-        return combine(mediaService.observeVideos(), mediumStateDao.getAll()) { mediaVideos, mediumStates ->
+        return combine(mediaService.observeVideos(), mediumStateDao.getAll()) {
+            mediaVideos,
+            mediumStates ->
             val videosByUri = mediaVideos.associateBy { it.uri.toString() }
             mediumStates
                 .filter { it.lastPlayedTime != null && !it.uriString.toUri().isVaultUri() }
@@ -100,31 +103,44 @@ class LocalMediaRepository(
         return mediumStateDao.get(uri)?.toVideoState()
     }
 
-    override suspend fun getMediaInfo(uri: String): MediaInfo? = withContext(Dispatchers.IO) {
-        val video = getVideoByUri(uri) ?: return@withContext null
-        val mediaInfo = runCatching { MediaInfoBuilder().from(context = context, uri = uri.toUri()).build() }.getOrNull()
-        val result = MediaInfo(
-            video = video.copy(format = mediaInfo?.format),
-            videoStream = mediaInfo?.videoStream?.toVideoStreamInfo(),
-            audioStreams = mediaInfo?.audioStreams?.map { it.toAudioStreamInfo() } ?: emptyList(),
-            subtitleStreams = mediaInfo?.subtitleStreams?.map { it.toSubtitleStreamInfo() } ?: emptyList(),
-        )
-        mediaInfo?.release()
-        return@withContext result
-    }
+    override suspend fun getMediaInfo(uri: String): MediaInfo? =
+        withContext(Dispatchers.IO) {
+            val video = getVideoByUri(uri) ?: return@withContext null
+            val mediaInfo = runCatching {
+                MediaInfoBuilder().from(context = context, uri = uri.toUri()).build()
+            }
+                .getOrNull()
+            val result =
+                MediaInfo(
+                    video = video.copy(format = mediaInfo?.format),
+                    videoStream = mediaInfo?.videoStream?.toVideoStreamInfo(),
+                    audioStreams =
+                        mediaInfo?.audioStreams?.map { it.toAudioStreamInfo() } ?: emptyList(),
+                    subtitleStreams =
+                        mediaInfo?.subtitleStreams?.map { it.toSubtitleStreamInfo() }
+                            ?: emptyList(),
+                )
+            mediaInfo?.release()
+            return@withContext result
+        }
 
     override suspend fun clearPlaybackHistory() {
         mediumStateDao.clearPlaybackHistory()
     }
 
-    override suspend fun updateMediumLastPlayedTime(uri: String, lastPlayedTime: Long, duration: Long?) {
+    override suspend fun updateMediumLastPlayedTime(
+        uri: String,
+        lastPlayedTime: Long,
+        duration: Long?,
+    ) {
         val preferences = appPreferencesDataSource.preferences.first()
         val mediaUri = uri.toUri()
-        val recordHistory = !preferences.isHistoryPaused &&
-            !mediaUri.isVaultUri() &&
-            (preferences.includeNetworkWatchHistory ||
-                !NetworkUri.isNetworkUri(mediaUri) ||
-                NetworkUri.connectionIdOf(mediaUri) == null)
+        val recordHistory =
+            !preferences.isHistoryPaused &&
+                !mediaUri.isVaultUri() &&
+                (preferences.includeNetworkWatchHistory ||
+                    !NetworkUri.isNetworkUri(mediaUri) ||
+                    NetworkUri.connectionIdOf(mediaUri) == null)
         mediumStateDao.update(uri) { state ->
             state.copy(
                 lastPlayedTime = if (recordHistory) lastPlayedTime else state.lastPlayedTime,
@@ -154,14 +170,17 @@ class LocalMediaRepository(
         val audio = UriListConverter.fromStringToList(stateEntity.externalAudio)
         if (audioUri in audio) return
         mediumStateDao.upsert(
-            stateEntity.copy(externalAudio = UriListConverter.fromListToString(audio + audioUri)),
+            stateEntity.copy(externalAudio = UriListConverter.fromListToString(audio + audioUri))
         )
     }
 
     override suspend fun addExternalSubtitleToMedium(uri: String, subtitleUri: Uri) {
         mediumStateDao.update(uri) { state ->
             val subtitles = UriListConverter.fromStringToList(state.externalSubs)
-            state.copy(externalSubs = UriListConverter.fromListToString((subtitles + subtitleUri).distinct()))
+            state.copy(
+                externalSubs =
+                    UriListConverter.fromListToString((subtitles + subtitleUri).distinct())
+            )
         }
     }
 
@@ -178,15 +197,14 @@ class LocalMediaRepository(
         val segments = pathSegments
         val root = segments.firstOrNull()
         return root == "vault" ||
-            segments.getOrNull(1) == "vault" && (root == "external_files_path" || root == "files_path")
+            segments.getOrNull(1) == "vault" &&
+                (root == "external_files_path" || root == "files_path")
     }
 }
 
 private fun MediumStateEntity.toHistoryVideo(): Video {
     val uri = uriString.toUri()
-    val name = uri.lastPathSegment?.substringAfterLast('/')
-        ?: uri.host
-        ?: uriString
+    val name = uri.lastPathSegment?.substringAfterLast('/') ?: uri.host ?: uriString
     return Video(
         id = uriString.hashCode().toLong().absoluteValue,
         path = uriString,

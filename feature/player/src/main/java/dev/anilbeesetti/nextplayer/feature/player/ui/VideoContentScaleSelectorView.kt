@@ -28,11 +28,11 @@ fun BoxScope.VideoContentScaleSelectorView(
         title = stringResource(R.string.video_zoom),
     ) {
         Column(
-            modifier = Modifier
-                .verticalScroll(rememberScrollState())
-                .padding(bottom = 24.dp)
-                .padding(horizontal = 24.dp)
-                .selectableGroup(),
+            modifier =
+                Modifier.verticalScroll(rememberScrollState())
+                    .padding(bottom = 24.dp)
+                    .padding(horizontal = 24.dp)
+                    .selectableGroup()
         ) {
             VideoContentScale.entries.forEach { contentScale ->
                 RadioButtonRow(

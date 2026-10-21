@@ -11,13 +11,12 @@ data class PersistedM3UGrant(
 )
 
 @Factory
-class M3UDocumentPermissionManager(
-    private val context: Context,
-) {
+class M3UDocumentPermissionManager(private val context: Context) {
     fun acquire(uri: Uri): Result<PersistedM3UGrant> = runCatching {
-        val alreadyPersisted = context.contentResolver.persistedUriPermissions.any {
-            it.uri == uri && it.isReadPermission
-        }
+        val alreadyPersisted =
+            context.contentResolver.persistedUriPermissions.any {
+                it.uri == uri && it.isReadPermission
+            }
         if (!alreadyPersisted) {
             context.contentResolver.takePersistableUriPermission(
                 uri,

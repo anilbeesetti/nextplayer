@@ -49,8 +49,7 @@ import org.robolectric.annotation.Config
 @Config(sdk = [36])
 class MediaPickerScreenTest {
 
-    @get:Rule
-    val composeRule = createAndroidComposeRule<ComponentActivity>()
+    @get:Rule val composeRule = createAndroidComposeRule<ComponentActivity>()
 
     @Test
     fun rootResumeFabUsesAutomaticPlaylistInEveryViewMode() {
@@ -74,21 +73,40 @@ class MediaPickerScreenTest {
             CompositionLocalProvider(LocalTopLevelFabSetter provides setFab) {
                 NextPlayerTheme {
                     MediaPickerScreenContent(
-                        state = MediaPickerUiState(
-                            folderName = folderName,
-                            recentlyPlayedVideo = video,
-                            preferences = ApplicationPreferences(mediaViewMode = viewMode),
-                            mediaDataState = DataState.Success(
-                                MediaHolder(
-                                    videos = if (folderName == null && viewMode != MediaViewMode.VIDEOS) {
-                                        emptyList()
-                                    } else {
-                                        listOf(Video.sample.copy(uriString = "content://media/external/video/media/1"), video)
-                                    },
-                                    folders = listOf(Folder(name = "Movies", path = "/Movies", dateModified = 0)),
-                                ),
+                        state =
+                            MediaPickerUiState(
+                                folderName = folderName,
+                                recentlyPlayedVideo = video,
+                                preferences = ApplicationPreferences(mediaViewMode = viewMode),
+                                mediaDataState =
+                                    DataState.Success(
+                                        MediaHolder(
+                                            videos =
+                                                if (
+                                                    folderName == null &&
+                                                        viewMode != MediaViewMode.VIDEOS
+                                                ) {
+                                                    emptyList()
+                                                } else {
+                                                    listOf(
+                                                        Video.sample.copy(
+                                                            uriString =
+                                                                "content://media/external/video/media/1"
+                                                        ),
+                                                        video,
+                                                    )
+                                                },
+                                            folders =
+                                                listOf(
+                                                    Folder(
+                                                        name = "Movies",
+                                                        path = "/Movies",
+                                                        dateModified = 0,
+                                                    )
+                                                ),
+                                        )
+                                    ),
                             ),
-                        ),
                         onAction = actions::add,
                     )
                 }
@@ -108,7 +126,11 @@ class MediaPickerScreenTest {
             // A single-video launch lets the player build the sorted queue; an explicit
             // one-item PlaySelectedItems queue disables that behavior.
             composeRule.runOnIdle {
-                assertEquals("Resume in $mode", listOf(MediaPickerAction.OnPlayVideo(video.uriString.toUri())), actions)
+                assertEquals(
+                    "Resume in $mode",
+                    listOf(MediaPickerAction.OnPlayVideo(video.uriString.toUri())),
+                    actions,
+                )
             }
         }
     }
@@ -119,14 +141,17 @@ class MediaPickerScreenTest {
         val application = ApplicationProvider.getApplicationContext<Application>()
         shadowOf(application).grantPermissions(Manifest.permission.READ_MEDIA_VIDEO)
         shadowOf(application.packageManager).setSystemFeature(PackageManager.FEATURE_LEANBACK, true)
-        val video = Video.sample.copy(nameWithExtension = "Clip.mp4", uriString = "content://video/1")
+        val video =
+            Video.sample.copy(nameWithExtension = "Clip.mp4", uriString = "content://video/1")
         composeRule.setContent {
             NextPlayerTheme {
                 MediaPickerScreenContent(
-                    state = MediaPickerUiState(
-                        folderName = "Movies",
-                        mediaDataState = DataState.Success(MediaHolder(listOf(video), emptyList())),
-                    ),
+                    state =
+                        MediaPickerUiState(
+                            folderName = "Movies",
+                            mediaDataState =
+                                DataState.Success(MediaHolder(listOf(video), emptyList())),
+                        )
                 )
             }
         }
@@ -139,14 +164,13 @@ class MediaPickerScreenTest {
 
     @Test
     fun loadingWithoutStoragePermissionShowsPermissionMessage() {
-        val permissionMessage = ApplicationProvider.getApplicationContext<android.content.Context>()
-            .getString(R.string.permission_not_granted)
+        val permissionMessage =
+            ApplicationProvider.getApplicationContext<android.content.Context>()
+                .getString(R.string.permission_not_granted)
 
         composeRule.setContent {
             NextPlayerTheme {
-                MediaPickerScreenContent(
-                    state = MediaPickerUiState(folderName = null),
-                )
+                MediaPickerScreenContent(state = MediaPickerUiState(folderName = null))
             }
         }
 
@@ -181,27 +205,34 @@ class MediaPickerScreenTest {
         val application = ApplicationProvider.getApplicationContext<Application>()
         shadowOf(application).grantPermissions(Manifest.permission.READ_MEDIA_VIDEO)
         var showPlaylistDialog by mutableStateOf(false)
-        val video = Video.sample.copy(nameWithExtension = "Video.mp4", uriString = "content://video/1")
+        val video =
+            Video.sample.copy(nameWithExtension = "Video.mp4", uriString = "content://video/1")
         composeRule.setContent {
             NextPlayerTheme {
                 MediaPickerScreenContent(
-                    state = MediaPickerUiState(
-                        folderName = null,
-                        mediaDataState = DataState.Success(MediaHolder(folders = emptyList(), videos = listOf(video))),
-                        playlists = listOf(
-                            PlaylistSummary(
-                                id = 7,
-                                name = "Movies",
-                                type = PlaylistType.LOCAL,
-                                itemCount = 2,
-                                lastRefreshedAt = null,
-                            ),
+                    state =
+                        MediaPickerUiState(
+                            folderName = null,
+                            mediaDataState =
+                                DataState.Success(
+                                    MediaHolder(folders = emptyList(), videos = listOf(video))
+                                ),
+                            playlists =
+                                listOf(
+                                    PlaylistSummary(
+                                        id = 7,
+                                        name = "Movies",
+                                        type = PlaylistType.LOCAL,
+                                        itemCount = 2,
+                                        lastRefreshedAt = null,
+                                    )
+                                ),
+                            addToPlaylistState =
+                                AddToPlaylistState(
+                                    isVisible = showPlaylistDialog,
+                                    hasVideos = true,
+                                ),
                         ),
-                        addToPlaylistState = AddToPlaylistState(
-                            isVisible = showPlaylistDialog,
-                            hasVideos = true,
-                        ),
-                    ),
                     onAction = actions::add,
                 )
             }

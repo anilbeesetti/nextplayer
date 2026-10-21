@@ -26,20 +26,26 @@ fun rememberMediaController(
     onExtrasChanged: (Bundle) -> Unit = {},
 ): MediaController? {
     val context = LocalContext.current.applicationContext
-    val token = remember(context) { SessionToken(context, ComponentName(context, PlayerService::class.java)) }
+    val token =
+        remember(context) {
+            SessionToken(context, ComponentName(context, PlayerService::class.java))
+        }
     val scope = rememberCoroutineScope()
     var mediaController by remember(context) { mutableStateOf<MediaController?>(null) }
     val currentOnBeforeRelease by rememberUpdatedState(onBeforeRelease)
     val currentOnExtrasChanged by rememberUpdatedState(onExtrasChanged)
 
     LifecycleStartEffect(context) {
-        val future = MediaController.Builder(context, token).setListener(
-            object : MediaController.Listener {
-                override fun onExtrasChanged(controller: MediaController, extras: Bundle) {
-                    if (controller === mediaController) currentOnExtrasChanged(extras)
-                }
-            },
-        ).buildAsync()
+        val future =
+            MediaController.Builder(context, token)
+                .setListener(
+                    object : MediaController.Listener {
+                        override fun onExtrasChanged(controller: MediaController, extras: Bundle) {
+                            if (controller === mediaController) currentOnExtrasChanged(extras)
+                        }
+                    }
+                )
+                .buildAsync()
         val connection = scope.launch { mediaController = future.await() }
 
         onStopOrDispose {

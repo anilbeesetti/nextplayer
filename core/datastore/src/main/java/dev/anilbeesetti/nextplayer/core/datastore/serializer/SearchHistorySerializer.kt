@@ -29,10 +29,12 @@ object SearchHistorySerializer : Serializer<SearchHistory> {
     @Suppress("BlockingMethodInNonBlockingContext")
     override suspend fun writeTo(t: SearchHistory, output: OutputStream) {
         output.write(
-            jsonFormat.encodeToString(
-                serializer = SearchHistory.serializer(),
-                value = t,
-            ).encodeToByteArray(),
+            jsonFormat
+                .encodeToString(
+                    serializer = SearchHistory.serializer(),
+                    value = t,
+                )
+                .encodeToByteArray()
         )
     }
 }

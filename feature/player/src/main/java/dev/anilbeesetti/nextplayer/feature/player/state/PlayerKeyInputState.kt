@@ -30,12 +30,11 @@ internal fun rememberPlayerKeyInputState(
     seekIncrementMs: Long,
 ): PlayerKeyInputState {
     val coroutineScope = rememberCoroutineScope()
-    val state = remember(player, controls, seekIncrementMs) {
-        PlayerKeyInputState(player, controls, seekIncrementMs, coroutineScope)
-    }
-    DisposableEffect(state) {
-        onDispose { state.cancelPendingReset() }
-    }
+    val state =
+        remember(player, controls, seekIncrementMs) {
+            PlayerKeyInputState(player, controls, seekIncrementMs, coroutineScope)
+        }
+    DisposableEffect(state) { onDispose { state.cancelPendingReset() } }
     return state
 }
 
@@ -67,8 +66,11 @@ internal class PlayerKeyInputState(
         if (keyEvent.type != KeyEventType.KeyDown) return false
         if (controls.controlsLocked) {
             return when (keyEvent.key) {
-                Key.DirectionCenter, Key.Enter, Key.NumPadEnter -> {
-                    if (controls.controlsVisible) controls.unlockControls() else controls.showControls()
+                Key.DirectionCenter,
+                Key.Enter,
+                Key.NumPadEnter -> {
+                    if (controls.controlsVisible) controls.unlockControls()
+                    else controls.showControls()
                     true
                 }
 
@@ -90,7 +92,8 @@ internal class PlayerKeyInputState(
         }
 
         return when (keyEvent.key) {
-            Key.MediaPlayPause, Key.Spacebar -> {
+            Key.MediaPlayPause,
+            Key.Spacebar -> {
                 togglePlayPause()
                 controls.showControls()
                 true
@@ -132,7 +135,9 @@ internal class PlayerKeyInputState(
                 true
             }
 
-            Key.DirectionCenter, Key.Enter, Key.NumPadEnter -> {
+            Key.DirectionCenter,
+            Key.Enter,
+            Key.NumPadEnter -> {
                 val controlsWereHidden = !controls.controlsVisible
                 controls.showControls()
                 controlsWereHidden
@@ -160,7 +165,8 @@ internal class PlayerKeyInputState(
                 }
             }
 
-            Key.DirectionUp, Key.DirectionDown -> {
+            Key.DirectionUp,
+            Key.DirectionDown -> {
                 if (!controls.controlsVisible) {
                     controls.showControls()
                     true

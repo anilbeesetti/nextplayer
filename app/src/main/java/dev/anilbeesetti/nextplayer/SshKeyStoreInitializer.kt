@@ -10,20 +10,22 @@ internal suspend fun initializeSshKeyStore(
     repository: NetworkConnectionRepository,
     sshKeyStore: SshKeyStore,
 ) {
-    val referencedFileNames = try {
-        repository.getConnections().first()
-            .asSequence()
-            .filter { connection ->
-                connection.protocol == NetworkProtocol.SFTP &&
-                    connection.authentication == NetworkAuthentication.SSH_KEY
-            }
-            .mapNotNull { connection ->
-                connection.privateKeyFileName.trim()
-                    .takeIf(SshKeyStore::isValidFileName)
-            }
-            .toSet()
-    } catch (_: Throwable) {
-        null
-    }
+    val referencedFileNames =
+        try {
+            repository
+                .getConnections()
+                .first()
+                .asSequence()
+                .filter { connection ->
+                    connection.protocol == NetworkProtocol.SFTP &&
+                        connection.authentication == NetworkAuthentication.SSH_KEY
+                }
+                .mapNotNull { connection ->
+                    connection.privateKeyFileName.trim().takeIf(SshKeyStore::isValidFileName)
+                }
+                .toSet()
+        } catch (_: Throwable) {
+            null
+        }
     sshKeyStore.initialize(referencedFileNames)
 }

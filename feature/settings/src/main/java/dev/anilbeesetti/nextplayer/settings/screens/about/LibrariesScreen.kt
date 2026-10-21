@@ -70,7 +70,8 @@ private fun LibrariesScreenContent(
             contentPadding = innerPadding + PaddingValues(horizontal = 16.dp),
             verticalArrangement = Arrangement.spacedBy(ListItemDefaults.SegmentedGap),
         ) {
-            itemsIndexed(state.libraries, key = { _, library -> library.uniqueId }) { index, library ->
+            itemsIndexed(state.libraries, key = { _, library -> library.uniqueId }) { index, library
+                ->
                 NextSegmentedListItem(
                     content = {
                         Row(
@@ -83,18 +84,17 @@ private fun LibrariesScreenContent(
                                 overflow = TextOverflow.Ellipsis,
                                 modifier = Modifier.weight(1f),
                             )
-                            library.artifactVersion?.let {
-                                Text(text = it)
-                            }
+                            library.artifactVersion?.let { Text(text = it) }
                         }
                     },
                     supportingContent = {
                         Column(verticalArrangement = Arrangement.spacedBy(4.dp)) {
                             Text(
-                                text = library.developers.takeIf { it.isNotEmpty() }
-                                    ?.mapNotNull { it.name }
-                                    ?.joinToString(", ")
-                                    ?: library.organization?.name ?: "",
+                                text =
+                                    library.developers
+                                        .takeIf { it.isNotEmpty() }
+                                        ?.mapNotNull { it.name }
+                                        ?.joinToString(", ") ?: library.organization?.name ?: ""
                             )
                             FlowRow(
                                 verticalArrangement = Arrangement.spacedBy(4.dp),
@@ -102,9 +102,13 @@ private fun LibrariesScreenContent(
                             ) {
                                 library.licenses.forEach {
                                     Badge(
-                                        containerColor = MaterialTheme.colorScheme.secondaryContainer,
+                                        containerColor =
+                                            MaterialTheme.colorScheme.secondaryContainer
                                     ) {
-                                        Text(text = it.name, modifier = Modifier.padding(horizontal = 2.dp))
+                                        Text(
+                                            text = it.name,
+                                            modifier = Modifier.padding(horizontal = 2.dp),
+                                        )
                                     }
                                 }
                             }
@@ -113,9 +117,9 @@ private fun LibrariesScreenContent(
                     isFirstItem = index == 0,
                     isLastItem = index == state.libraries.lastIndex,
                     onClick = {
-                        library.website?.takeIf { it.isNotBlank() }?.let {
-                            uriHandler.openUriOrShowToast(uri = it, context = context)
-                        }
+                        library.website
+                            ?.takeIf { it.isNotBlank() }
+                            ?.let { uriHandler.openUriOrShowToast(uri = it, context = context) }
                     },
                 )
             }

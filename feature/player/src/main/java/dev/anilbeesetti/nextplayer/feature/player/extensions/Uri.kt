@@ -23,7 +23,9 @@ fun Uri.getSubtitleMime(): String {
             MimeTypes.TEXT_VTT
         }
 
-        path?.endsWith(".ttml") == true || path?.endsWith(".xml") == true || path?.endsWith(".dfxp") == true -> {
+        path?.endsWith(".ttml") == true ||
+            path?.endsWith(".xml") == true ||
+            path?.endsWith(".dfxp") == true -> {
             MimeTypes.APPLICATION_TTML
         }
 
@@ -41,20 +43,23 @@ suspend fun Context.uriToSubtitleConfiguration(
     subtitleEncoding: String = "",
     isSelected: Boolean = false,
 ): MediaItem.SubtitleConfiguration {
-    val charset = if (subtitleEncoding.isNotEmpty() && Charset.isSupported(subtitleEncoding)) {
-        Charset.forName(subtitleEncoding)
-    } else {
-        null
-    }
+    val charset =
+        if (subtitleEncoding.isNotEmpty() && Charset.isSupported(subtitleEncoding)) {
+            Charset.forName(subtitleEncoding)
+        } else {
+            null
+        }
     val label = getFilenameFromUri(uri)
     val mimeType = uri.getSubtitleMime()
     val utf8ConvertedUri = convertToUTF8(uri = uri, charset = charset)
-    return MediaItem.SubtitleConfiguration.Builder(utf8ConvertedUri).apply {
-        setId(uri.toString())
-        setMimeType(mimeType)
-        setLabel(label)
-        if (isSelected) setSelectionFlags(C.SELECTION_FLAG_DEFAULT)
-    }.build()
+    return MediaItem.SubtitleConfiguration.Builder(utf8ConvertedUri)
+        .apply {
+            setId(uri.toString())
+            setMimeType(mimeType)
+            setLabel(label)
+            if (isSelected) setSelectionFlags(C.SELECTION_FLAG_DEFAULT)
+        }
+        .build()
 }
 
 @Suppress("DEPRECATION")

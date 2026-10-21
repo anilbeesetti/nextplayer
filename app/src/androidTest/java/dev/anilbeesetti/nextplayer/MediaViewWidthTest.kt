@@ -25,8 +25,7 @@ import org.junit.runner.RunWith
 
 @RunWith(AndroidJUnit4::class)
 class MediaViewWidthTest {
-    @get:Rule
-    val composeRule = createAndroidComposeRule<ComponentActivity>()
+    @get:Rule val composeRule = createAndroidComposeRule<ComponentActivity>()
 
     @Test
     fun gridSurvivesNarrowAndZeroWidthThenExpands() {
@@ -35,17 +34,19 @@ class MediaViewWidthTest {
             NextPlayerTheme {
                 Box(Modifier.requiredWidth(width)) {
                     MediaView(
-                        mediaHolder = MediaHolder(
-                            videos = listOf(Video.sample.copy(nameWithExtension = "Clip.mp4")),
-                            folders = listOf(Folder.sample.copy(name = "Movies")),
-                        ),
+                        mediaHolder =
+                            MediaHolder(
+                                videos = listOf(Video.sample.copy(nameWithExtension = "Clip.mp4")),
+                                folders = listOf(Folder.sample.copy(name = "Movies")),
+                            ),
                         recentlyPlayedVideo = null,
                         recentlyPlayedFolder = null,
-                        preferences = ApplicationPreferences(
-                            mediaLayoutMode = MediaLayoutMode.GRID,
-                            showThumbnailField = false,
-                            showExtensionField = false,
-                        ),
+                        preferences =
+                            ApplicationPreferences(
+                                mediaLayoutMode = MediaLayoutMode.GRID,
+                                showThumbnailField = false,
+                                showExtensionField = false,
+                            ),
                         showHeaders = false,
                         autoFocus = false,
                         onFolderClick = {},

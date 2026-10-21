@@ -26,21 +26,25 @@ class ExternalAudioTest {
     @Test
     fun audioSurvivesMetadataAndSubtitleChanges() {
         val audio = listOf(Uri.parse("content://documents/audio/one"), Uri.parse("file:///two.mp3"))
-        val subtitle = MediaItem.SubtitleConfiguration.Builder(Uri.parse("file:///captions.srt")).build()
-        val item = MediaItem.Builder()
-            .setUri("file:///video.mp4")
-            .setMediaId("video")
-            .setMediaMetadata(MediaMetadata.Builder().setTitle("Video").build())
-            .build()
-            .withExternalAudio(audio)
-            .copy(
-                positionMs = 12000,
-                audioTrackIndex = 2,
-                videoDecoderMode = DecoderMode.HARDWARE,
-                audioDecoderMode = DecoderMode.SOFTWARE,
-            )
-            .copy(durationMs = 60000)
-            .buildUpon().setSubtitleConfigurations(listOf(subtitle)).build()
+        val subtitle =
+            MediaItem.SubtitleConfiguration.Builder(Uri.parse("file:///captions.srt")).build()
+        val item =
+            MediaItem.Builder()
+                .setUri("file:///video.mp4")
+                .setMediaId("video")
+                .setMediaMetadata(MediaMetadata.Builder().setTitle("Video").build())
+                .build()
+                .withExternalAudio(audio)
+                .copy(
+                    positionMs = 12000,
+                    audioTrackIndex = 2,
+                    videoDecoderMode = DecoderMode.HARDWARE,
+                    audioDecoderMode = DecoderMode.SOFTWARE,
+                )
+                .copy(durationMs = 60000)
+                .buildUpon()
+                .setSubtitleConfigurations(listOf(subtitle))
+                .build()
 
         assertEquals(audio, item.mediaMetadata.externalAudio)
         assertEquals(12000L, item.mediaMetadata.positionMs)
@@ -50,6 +54,9 @@ class ExternalAudioTest {
         assertEquals(DecoderMode.SOFTWARE, item.mediaMetadata.audioDecoderMode)
         assertEquals("Video", item.mediaMetadata.title)
         assertEquals(listOf(subtitle), item.localConfiguration!!.subtitleConfigurations)
-        assertEquals(emptyList<Uri>(), item.withExternalAudio(emptyList()).mediaMetadata.externalAudio)
+        assertEquals(
+            emptyList<Uri>(),
+            item.withExternalAudio(emptyList()).mediaMetadata.externalAudio,
+        )
     }
 }

@@ -21,16 +21,12 @@ fun rememberCuesState(player: Player?): CuesState {
 }
 
 @UnstableApi
-class CuesState(
-    private val player: Player?,
-) {
+class CuesState(private val player: Player?) {
     var currentCues: CueGroup? by mutableStateOf(null)
         private set
 
     private val playerStateObserver: PlayerStateObserver? =
-        player?.observeState(Player.EVENT_CUES) {
-            currentCues = player.currentCues
-        }
+        player?.observeState(Player.EVENT_CUES) { currentCues = player.currentCues }
 
     suspend fun observe() {
         currentCues = player?.currentCues

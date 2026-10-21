@@ -83,18 +83,27 @@ class ControlsVisibilityStateTest {
     }
 
     private class TestPlayer(playing: Boolean = true) : SimpleBasePlayer(Looper.getMainLooper()) {
-        private var currentState = State.Builder()
-            .setPlaylist(listOf(MediaItemData.Builder("video").setDurationUs(20.minutes.inWholeMicroseconds).build()))
-            .setPlaybackState(Player.STATE_READY)
-            .setPlayWhenReady(playing, Player.PLAY_WHEN_READY_CHANGE_REASON_USER_REQUEST)
-            .build()
+        private var currentState =
+            State.Builder()
+                .setPlaylist(
+                    listOf(
+                        MediaItemData.Builder("video")
+                            .setDurationUs(20.minutes.inWholeMicroseconds)
+                            .build()
+                    )
+                )
+                .setPlaybackState(Player.STATE_READY)
+                .setPlayWhenReady(playing, Player.PLAY_WHEN_READY_CHANGE_REASON_USER_REQUEST)
+                .build()
 
         override fun getState(): State = currentState
 
         fun startPlayback() {
-            currentState = currentState.buildUpon()
-                .setPlayWhenReady(true, Player.PLAY_WHEN_READY_CHANGE_REASON_USER_REQUEST)
-                .build()
+            currentState =
+                currentState
+                    .buildUpon()
+                    .setPlayWhenReady(true, Player.PLAY_WHEN_READY_CHANGE_REASON_USER_REQUEST)
+                    .build()
             invalidateState()
             ShadowLooper.idleMainLooper()
         }

@@ -25,9 +25,10 @@ fun InfoChip(
         text = text,
         style = MaterialTheme.typography.labelSmall.copy(fontWeight = FontWeight.Normal),
         color = contentColor,
-        modifier = modifier
-            .clip(shape)
-            .background(backgroundColor)
-            .padding(vertical = 1.dp, horizontal = 3.dp),
+        modifier =
+            modifier
+                .clip(shape)
+                .background(backgroundColor)
+                .padding(vertical = 1.dp, horizontal = 3.dp),
     )
 }

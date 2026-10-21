@@ -20,15 +20,12 @@ class SubtitlePreferencesViewModel(
     @InjectedParam internal var output: Output,
 ) : MviViewModel<SubtitlePreferencesUiState, SubtitlePreferencesUiEvent>() {
 
-    data class Output(
-        val navigateUp: () -> Unit,
-    )
+    data class Output(val navigateUp: () -> Unit)
 
-    private val stateInternal = MutableStateFlow(
-        SubtitlePreferencesUiState(
-            preferences = preferencesRepository.playerPreferences.value,
-        ),
-    )
+    private val stateInternal =
+        MutableStateFlow(
+            SubtitlePreferencesUiState(preferences = preferencesRepository.playerPreferences.value)
+        )
     override val state: StateFlow<SubtitlePreferencesUiState> = stateInternal.asStateFlow()
 
     init {
@@ -46,21 +43,23 @@ class SubtitlePreferencesViewModel(
             is SubtitlePreferencesUiEvent.NavigateUp -> output.navigateUp()
 
             is SubtitlePreferencesUiEvent.ShowDialog -> showDialog(action.value)
-            is SubtitlePreferencesUiEvent.UpdateSubtitleLanguage -> updateSubtitleLanguage(action.value)
+            is SubtitlePreferencesUiEvent.UpdateSubtitleLanguage ->
+                updateSubtitleLanguage(action.value)
             is SubtitlePreferencesUiEvent.UpdateSubtitleFont -> updateSubtitleFont(action.value)
             is SubtitlePreferencesUiEvent.ToggleSubtitleTextBold -> toggleSubtitleTextBold()
-            is SubtitlePreferencesUiEvent.UpdateSubtitleFontSize -> updateSubtitleFontSize(action.value)
+            is SubtitlePreferencesUiEvent.UpdateSubtitleFontSize ->
+                updateSubtitleFontSize(action.value)
             is SubtitlePreferencesUiEvent.ToggleSubtitleBackground -> toggleSubtitleBackground()
             is SubtitlePreferencesUiEvent.ToggleApplyEmbeddedStyles -> toggleApplyEmbeddedStyles()
-            is SubtitlePreferencesUiEvent.UpdateSubtitleEncoding -> updateSubtitleEncoding(action.value)
-            is SubtitlePreferencesUiEvent.ToggleUseSystemCaptionStyle -> toggleUseSystemCaptionStyle()
+            is SubtitlePreferencesUiEvent.UpdateSubtitleEncoding ->
+                updateSubtitleEncoding(action.value)
+            is SubtitlePreferencesUiEvent.ToggleUseSystemCaptionStyle ->
+                toggleUseSystemCaptionStyle()
         }
     }
 
     private fun showDialog(value: SubtitlePreferenceDialog?) {
-        stateInternal.update {
-            it.copy(showDialog = value)
-        }
+        stateInternal.update { it.copy(showDialog = value) }
     }
 
     private fun updateSubtitleLanguage(value: String) {
@@ -73,9 +72,7 @@ class SubtitlePreferencesViewModel(
 
     private fun updateSubtitleFont(value: Font) {
         viewModelScope.launch {
-            preferencesRepository.updatePlayerPreferences {
-                it.copy(subtitleFont = value)
-            }
+            preferencesRepository.updatePlayerPreferences { it.copy(subtitleFont = value) }
         }
     }
 
@@ -89,9 +86,7 @@ class SubtitlePreferencesViewModel(
 
     private fun updateSubtitleFontSize(value: Int) {
         viewModelScope.launch {
-            preferencesRepository.updatePlayerPreferences {
-                it.copy(subtitleTextSize = value)
-            }
+            preferencesRepository.updatePlayerPreferences { it.copy(subtitleTextSize = value) }
         }
     }
 
@@ -119,7 +114,9 @@ class SubtitlePreferencesViewModel(
 
     private fun toggleUseSystemCaptionStyle() {
         viewModelScope.launch {
-            preferencesRepository.updatePlayerPreferences { it.copy(useSystemCaptionStyle = !it.useSystemCaptionStyle) }
+            preferencesRepository.updatePlayerPreferences {
+                it.copy(useSystemCaptionStyle = !it.useSystemCaptionStyle)
+            }
         }
     }
 }
@@ -132,7 +129,9 @@ data class SubtitlePreferencesUiState(
 
 sealed interface SubtitlePreferenceDialog {
     data object SubtitleLanguageDialog : SubtitlePreferenceDialog
+
     data object SubtitleFontDialog : SubtitlePreferenceDialog
+
     data object SubtitleEncodingDialog : SubtitlePreferenceDialog
 }
 
@@ -140,12 +139,20 @@ sealed interface SubtitlePreferencesUiEvent {
     data object NavigateUp : SubtitlePreferencesUiEvent
 
     data class ShowDialog(val value: SubtitlePreferenceDialog?) : SubtitlePreferencesUiEvent
+
     data class UpdateSubtitleLanguage(val value: String) : SubtitlePreferencesUiEvent
+
     data class UpdateSubtitleFont(val value: Font) : SubtitlePreferencesUiEvent
+
     data object ToggleSubtitleTextBold : SubtitlePreferencesUiEvent
+
     data class UpdateSubtitleFontSize(val value: Int) : SubtitlePreferencesUiEvent
+
     data object ToggleSubtitleBackground : SubtitlePreferencesUiEvent
+
     data object ToggleApplyEmbeddedStyles : SubtitlePreferencesUiEvent
+
     data class UpdateSubtitleEncoding(val value: String) : SubtitlePreferencesUiEvent
+
     data object ToggleUseSystemCaptionStyle : SubtitlePreferencesUiEvent
 }

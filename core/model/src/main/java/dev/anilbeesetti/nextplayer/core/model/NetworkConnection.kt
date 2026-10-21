@@ -37,18 +37,21 @@ data class NetworkConnection(
     val hostKeyFingerprint: String = "",
 ) : Serializable {
 
-    val effectivePort: Int get() = port ?: protocol.defaultPort
+    val effectivePort: Int
+        get() = port ?: protocol.defaultPort
 
-    val isAnonymous: Boolean get() = username.isBlank()
+    val isAnonymous: Boolean
+        get() = username.isBlank()
 
     companion object {
-        val sample = NetworkConnection(
-            id = 1,
-            name = "Home NAS",
-            protocol = NetworkProtocol.SMB,
-            host = "192.168.1.10",
-            path = "Media",
-            username = "guest",
-        )
+        val sample =
+            NetworkConnection(
+                id = 1,
+                name = "Home NAS",
+                protocol = NetworkProtocol.SMB,
+                host = "192.168.1.10",
+                path = "Media",
+                username = "guest",
+            )
     }
 }

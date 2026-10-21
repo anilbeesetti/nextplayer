@@ -11,16 +11,25 @@ import io.github.anilbeesetti.nextlib.media3ext.ffdecoder.DecoderMode
 private const val MEDIA_METADATA_EXTERNAL_AUDIO_KEY = "external_audio"
 
 val MediaMetadata.externalAudio: List<Uri>
-    get() = extras?.getStringArrayList(MEDIA_METADATA_EXTERNAL_AUDIO_KEY)?.map { it.toUri() }.orEmpty()
+    get() =
+        extras?.getStringArrayList(MEDIA_METADATA_EXTERNAL_AUDIO_KEY)?.map { it.toUri() }.orEmpty()
 
-fun MediaItem.withExternalAudio(uris: List<Uri>): MediaItem = buildUpon()
-    .setMediaMetadata(
-        mediaMetadata.buildUpon().setExtras(
-            (mediaMetadata.extras?.let(::Bundle) ?: Bundle()).apply {
-                putStringArrayList(MEDIA_METADATA_EXTERNAL_AUDIO_KEY, ArrayList(uris.map { it.toString() }))
-            },
-        ).build(),
-    ).build()
+fun MediaItem.withExternalAudio(uris: List<Uri>): MediaItem =
+    buildUpon()
+        .setMediaMetadata(
+            mediaMetadata
+                .buildUpon()
+                .setExtras(
+                    (mediaMetadata.extras?.let(::Bundle) ?: Bundle()).apply {
+                        putStringArrayList(
+                            MEDIA_METADATA_EXTERNAL_AUDIO_KEY,
+                            ArrayList(uris.map { it.toString() }),
+                        )
+                    }
+                )
+                .build()
+        )
+        .build()
 
 private const val MEDIA_METADATA_POSITION_KEY = "media_metadata_position"
 private const val MEDIA_METADATA_AUDIO_TRACK_INDEX_KEY = "audio_track_index"
@@ -60,53 +69,59 @@ fun MediaMetadata.Builder.setExtras(
     subtitleSpeed: Float? = null,
     videoDecoderMode: DecoderMode? = null,
     audioDecoderMode: DecoderMode? = null,
-): MediaMetadata.Builder = setExtras(
-    Bundle().setExtras(
-        positionMs = positionMs,
-        videoScale = videoScale,
-        audioTrackIndex = audioTrackIndex,
-        subtitleTrackIndex = subtitleTrackIndex,
-        subtitleDelayMilliseconds = subtitleDelayMilliseconds,
-        subtitleSpeed = subtitleSpeed,
-        videoDecoderMode = videoDecoderMode,
-        audioDecoderMode = audioDecoderMode,
-    ),
-)
+): MediaMetadata.Builder =
+    setExtras(
+        Bundle()
+            .setExtras(
+                positionMs = positionMs,
+                videoScale = videoScale,
+                audioTrackIndex = audioTrackIndex,
+                subtitleTrackIndex = subtitleTrackIndex,
+                subtitleDelayMilliseconds = subtitleDelayMilliseconds,
+                subtitleSpeed = subtitleSpeed,
+                videoDecoderMode = videoDecoderMode,
+                audioDecoderMode = audioDecoderMode,
+            )
+    )
 
 val MediaMetadata.positionMs: Long?
     get() = extras?.run {
-        getLong(MEDIA_METADATA_POSITION_KEY)
-            .takeIf { containsKey(MEDIA_METADATA_POSITION_KEY) }
+        getLong(MEDIA_METADATA_POSITION_KEY).takeIf { containsKey(MEDIA_METADATA_POSITION_KEY) }
     }
 
 val MediaMetadata.audioTrackIndex: Int?
     get() = extras?.run {
-        getInt(MEDIA_METADATA_AUDIO_TRACK_INDEX_KEY)
-            .takeIf { containsKey(MEDIA_METADATA_AUDIO_TRACK_INDEX_KEY) }
+        getInt(MEDIA_METADATA_AUDIO_TRACK_INDEX_KEY).takeIf {
+            containsKey(MEDIA_METADATA_AUDIO_TRACK_INDEX_KEY)
+        }
     }
 
 val MediaMetadata.subtitleTrackIndex: Int?
     get() = extras?.run {
-        getInt(MEDIA_METADATA_SUBTITLE_TRACK_INDEX_KEY)
-            .takeIf { containsKey(MEDIA_METADATA_SUBTITLE_TRACK_INDEX_KEY) }
+        getInt(MEDIA_METADATA_SUBTITLE_TRACK_INDEX_KEY).takeIf {
+            containsKey(MEDIA_METADATA_SUBTITLE_TRACK_INDEX_KEY)
+        }
     }
 
 val MediaMetadata.videoZoom: Float?
     get() = extras?.run {
-        getFloat(MEDIA_METADATA_VIDEO_ZOOM_KEY)
-            .takeIf { containsKey(MEDIA_METADATA_VIDEO_ZOOM_KEY) }
+        getFloat(MEDIA_METADATA_VIDEO_ZOOM_KEY).takeIf {
+            containsKey(MEDIA_METADATA_VIDEO_ZOOM_KEY)
+        }
     }
 
 val MediaMetadata.subtitleDelayMilliseconds: Long?
     get() = extras?.run {
-        getLong(MEDIA_METADATA_SUBTITLE_DELAY_KEY)
-            .takeIf { containsKey(MEDIA_METADATA_SUBTITLE_DELAY_KEY) }
+        getLong(MEDIA_METADATA_SUBTITLE_DELAY_KEY).takeIf {
+            containsKey(MEDIA_METADATA_SUBTITLE_DELAY_KEY)
+        }
     }
 
 val MediaMetadata.subtitleSpeed: Float?
     get() = extras?.run {
-        getFloat(MEDIA_METADATA_SUBTITLE_SPEED_KEY)
-            .takeIf { containsKey(MEDIA_METADATA_SUBTITLE_SPEED_KEY) }
+        getFloat(MEDIA_METADATA_SUBTITLE_SPEED_KEY).takeIf {
+            containsKey(MEDIA_METADATA_SUBTITLE_SPEED_KEY)
+        }
     }
 
 val MediaMetadata.videoDecoderMode: DecoderMode?
@@ -125,19 +140,24 @@ fun MediaItem.copy(
     subtitleSpeed: Float? = this.mediaMetadata.subtitleSpeed,
     videoDecoderMode: DecoderMode? = this.mediaMetadata.videoDecoderMode,
     audioDecoderMode: DecoderMode? = this.mediaMetadata.audioDecoderMode,
-): MediaItem = buildUpon().setMediaMetadata(
-    mediaMetadata.buildUpon()
-        .setDurationMs(durationMs)
-        .setExtras(
-            (mediaMetadata.extras?.let(::Bundle) ?: Bundle()).setExtras(
-                positionMs = positionMs,
-                videoScale = videoZoom,
-                audioTrackIndex = audioTrackIndex,
-                subtitleTrackIndex = subtitleTrackIndex,
-                subtitleDelayMilliseconds = subtitleDelayMilliseconds,
-                subtitleSpeed = subtitleSpeed,
-                videoDecoderMode = videoDecoderMode,
-                audioDecoderMode = audioDecoderMode,
-            ),
-        ).build(),
-).build()
+): MediaItem =
+    buildUpon()
+        .setMediaMetadata(
+            mediaMetadata
+                .buildUpon()
+                .setDurationMs(durationMs)
+                .setExtras(
+                    (mediaMetadata.extras?.let(::Bundle) ?: Bundle()).setExtras(
+                        positionMs = positionMs,
+                        videoScale = videoZoom,
+                        audioTrackIndex = audioTrackIndex,
+                        subtitleTrackIndex = subtitleTrackIndex,
+                        subtitleDelayMilliseconds = subtitleDelayMilliseconds,
+                        subtitleSpeed = subtitleSpeed,
+                        videoDecoderMode = videoDecoderMode,
+                        audioDecoderMode = audioDecoderMode,
+                    )
+                )
+                .build()
+        )
+        .build()

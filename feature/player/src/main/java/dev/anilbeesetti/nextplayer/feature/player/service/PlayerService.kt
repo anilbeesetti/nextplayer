@@ -126,323 +126,354 @@ class PlayerService : MediaSessionService() {
     private lateinit var trackSelector: DefaultTrackSelector
     private val decoderRecoveryManager = DecoderRecoveryManager()
 
-    private val decoderAnalyticsListener = object : AnalyticsListener {
-        override fun onEvents(player: Player, events: AnalyticsListener.Events) {
-            publishDecoderState()
-        }
-
-        override fun onVideoDecoderInitialized(
-            eventTime: AnalyticsListener.EventTime,
-            decoderName: String,
-            initializedTimestampMs: Long,
-            initializationDurationMs: Long,
-        ) {
-            Logger.logInfo(
-                DECODER_LOG_TAG,
-                "Video decoder initialized with requested=${decoderManager.videoMode} " +
-                    "as ${decoderManager.activeVideoMode}: $decoderName",
-            )
-            decoderRecoveryManager.onDecoderInitialized(DecoderTrackType.VIDEO)
-        }
-
-        override fun onAudioDecoderInitialized(
-            eventTime: AnalyticsListener.EventTime,
-            decoderName: String,
-            initializedTimestampMs: Long,
-            initializationDurationMs: Long,
-        ) {
-            Logger.logInfo(
-                DECODER_LOG_TAG,
-                "Audio decoder initialized with requested=${decoderManager.audioMode} " +
-                    "as ${decoderManager.activeAudioMode}: $decoderName",
-            )
-            decoderRecoveryManager.onDecoderInitialized(DecoderTrackType.AUDIO)
-        }
-
-        override fun onTracksChanged(
-            eventTime: AnalyticsListener.EventTime,
-            tracks: Tracks,
-        ) {
-            val videoTracks = tracks.groups
-                .filter { it.type == C.TRACK_TYPE_VIDEO }
-                .joinToString { group ->
-                    val mimeType = group.mediaTrackGroup.getFormat(0).sampleMimeType
-                    "$mimeType(supported=${group.isSupported(true)}, selected=${group.isSelected})"
-                }
-            Logger.logInfo(
-                DECODER_LOG_TAG,
-                "Video tracks: ${videoTracks.ifEmpty { "none" }}, " +
-                    "unmapped=${trackSelector.unmappedTrackCount(C.TRACK_TYPE_VIDEO)}",
-            )
-        }
-
-        override fun onRenderedFirstFrame(
-            eventTime: AnalyticsListener.EventTime,
-            output: Any,
-            renderTimeMs: Long,
-        ) {
-            Logger.logInfo(
-                DECODER_LOG_TAG,
-                "Rendered first frame with video=${decoderManager.activeVideoMode}",
-            )
-        }
-
-        override fun onPlayerError(
-            eventTime: AnalyticsListener.EventTime,
-            error: PlaybackException,
-        ) {
-            Logger.logError(
-                DECODER_LOG_TAG,
-                "Player error with requestedVideo=${decoderManager.videoMode}, " +
-                    "activeVideo=${decoderManager.activeVideoMode}, " +
-                    "requestedAudio=${decoderManager.audioMode}, " +
-                    "activeAudio=${decoderManager.activeAudioMode}: ${error.message}",
-            )
-        }
-    }
-
-    private val playbackStateListener = object : Player.Listener {
-        override fun onTimelineChanged(timeline: Timeline, reason: Int) {
-            val player = mediaSession?.player as? ExoPlayer ?: return
-            // Autoplay controls the implicit folder queue; explicitly chosen playlists play in full.
-            player.pauseAtEndOfMediaItems = !playerPreferences.autoplay &&
-                player.currentMediaItem?.isExplicitPlaylistItem != true
-        }
-
-        override fun onMediaItemTransition(mediaItem: MediaItem?, reason: Int) {
-            super.onMediaItemTransition(mediaItem, reason)
-            if (reason == Player.MEDIA_ITEM_TRANSITION_REASON_REPEAT) return
-            restoreDecoderChoices(mediaItem)
-            isMediaItemReady = false
-            loadArtworkForCurrentMediaItem()
-            mediaItem?.mediaMetadata?.let { metadata ->
-                mediaSession?.player?.run {
-                    playerSpecificSubtitleDelayMilliseconds = metadata.subtitleDelayMilliseconds ?: 0L
-                    playerSpecificSubtitleSpeed = metadata.subtitleSpeed ?: 1f
-                }
-
-                metadata.positionMs?.takeIf { playerPreferences.resume == Resume.YES }?.let {
-                    mediaSession?.player?.seekTo(it)
-                }
-            }
-        }
-
-        override fun onPositionDiscontinuity(
-            oldPosition: Player.PositionInfo,
-            newPosition: Player.PositionInfo,
-            reason: Int,
-        ) {
-            super.onPositionDiscontinuity(oldPosition, newPosition, reason)
-            val oldMediaItem = oldPosition.mediaItem ?: return
-
-            when (reason) {
-                DISCONTINUITY_REASON_SEEK,
-                DISCONTINUITY_REASON_AUTO_TRANSITION,
-                -> {
-                    if (newPosition.mediaItem == null || oldMediaItem == newPosition.mediaItem) return
-
-                    val updatedPosition = oldPosition.positionMs.takeIf { reason == DISCONTINUITY_REASON_SEEK } ?: C.TIME_UNSET
-                    mediaSession?.player?.replaceMediaItem(
-                        oldPosition.mediaItemIndex,
-                        oldMediaItem.copy(positionMs = updatedPosition),
-                    )
-                    serviceScope.launch {
-                        mediaRepository.updateMediumPosition(
-                            uri = oldMediaItem.mediaId,
-                            position = updatedPosition,
-                        )
-                    }
-                }
-
-                DISCONTINUITY_REASON_REMOVE -> {
-                    serviceScope.launch {
-                        val durationMs = oldMediaItem.mediaMetadata.durationMs
-                        val isAtEnd = durationMs != null && oldPosition.positionMs >= durationMs - 1000
-                        mediaRepository.updateMediumPosition(
-                            uri = oldMediaItem.mediaId,
-                            position = if (isAtEnd) C.TIME_UNSET else oldPosition.positionMs,
-                        )
-                    }
-                }
-
-                else -> return
-            }
-        }
-
-        override fun onTracksChanged(tracks: Tracks) {
-            super.onTracksChanged(tracks)
-            serviceScope.launch {
-                mediaSession?.player?.currentTracks?.let(::handleUnsupportedTracks)
-            }
-            if (!isMediaItemReady && tracks.groups.isNotEmpty()) {
-                isMediaItemReady = true
-
-                val player = mediaSession?.player ?: return
-                val pending = pendingAudioSelection
-                pendingAudioSelection = null
-                if (pending != null && pending.first == player.currentMediaItem?.mediaId) {
-                    val audioIndex = player.currentMediaItem?.mediaMetadata?.externalAudio.orEmpty().indexOf(pending.second)
-                    val trackIndex = tracks.groups.filter { it.type == C.TRACK_TYPE_AUDIO }
-                        .indexOfFirst { it.mediaTrackGroup.externalAudioIndex == audioIndex }
-                    if (audioIndex >= 0 && trackIndex >= 0) player.switchTrack(C.TRACK_TYPE_AUDIO, trackIndex)
-                }
-                if (!playerPreferences.rememberSelections) return
-                mediaSession?.player?.mediaMetadata?.audioTrackIndex?.takeIf { pending == null }?.let {
-                    mediaSession?.player?.switchTrack(C.TRACK_TYPE_AUDIO, it)
-                }
-                mediaSession?.player?.mediaMetadata?.subtitleTrackIndex?.let {
-                    mediaSession?.player?.switchTrack(C.TRACK_TYPE_TEXT, it)
-                }
-            }
-        }
-
-        override fun onTrackSelectionParametersChanged(parameters: TrackSelectionParameters) {
-            super.onTrackSelectionParametersChanged(parameters)
-            val player = mediaSession?.player ?: return
-            val currentMediaItem = player.currentMediaItem ?: return
-
-            val audioTrackIndex = player.getManuallySelectedTrackIndex(C.TRACK_TYPE_AUDIO)
-            val subtitleTrackIndex = player.getManuallySelectedTrackIndex(C.TRACK_TYPE_TEXT)
-
-            if (audioTrackIndex != null) {
-                serviceScope.launch {
-                    mediaRepository.updateMediumAudioTrack(
-                        uri = currentMediaItem.mediaId,
-                        audioTrackIndex = audioTrackIndex,
-                    )
-                }
+    private val decoderAnalyticsListener =
+        object : AnalyticsListener {
+            override fun onEvents(player: Player, events: AnalyticsListener.Events) {
+                publishDecoderState()
             }
 
-            if (subtitleTrackIndex != null) {
-                serviceScope.launch {
-                    mediaRepository.updateMediumSubtitleTrack(
-                        uri = currentMediaItem.mediaId,
-                        subtitleTrackIndex = subtitleTrackIndex,
-                    )
-                }
-            }
-
-            player.replaceMediaItem(
-                player.currentMediaItemIndex,
-                currentMediaItem.copy(
-                    audioTrackIndex = audioTrackIndex,
-                    subtitleTrackIndex = subtitleTrackIndex,
-                ),
-            )
-        }
-
-        override fun onPlaybackStateChanged(playbackState: Int) {
-            super.onPlaybackStateChanged(playbackState)
-
-            val player = mediaSession?.player
-            val shouldResetTrackSelectionParameters = playbackState == Player.STATE_ENDED ||
-                (
-                    playbackState == Player.STATE_IDLE &&
-                        player?.mediaItemCount == 0
-                    )
-            if (shouldResetTrackSelectionParameters) {
-                mediaSession?.player?.trackSelectionParameters = TrackSelectionParameters.DEFAULT
-            }
-        }
-
-        override fun onPlayerError(error: PlaybackException) {
-            if (!error.isDecoderFailure) {
-                decoderRecoveryManager.onNonDecoderError()
-                return
-            }
-
-            val trackType = error.decoderTrackType() ?: run {
-                decoderRecoveryManager.onNonDecoderError()
-                return
-            }
-            handleDecoderFailure(trackType)
-        }
-
-        override fun onPlayWhenReadyChanged(playWhenReady: Boolean, reason: Int) {
-            super.onPlayWhenReadyChanged(playWhenReady, reason)
-
-            if (reason == Player.PLAY_WHEN_READY_CHANGE_REASON_END_OF_MEDIA_ITEM) {
-                if (mediaSession?.player?.repeatMode != Player.REPEAT_MODE_OFF) {
-                    mediaSession?.player?.seekTo(0)
-                    mediaSession?.player?.play()
-                    return
-                }
-                mediaSession?.run {
-                    player.clearMediaItems()
-                    player.stop()
-                }
-                stopSelf()
-            }
-        }
-
-        override fun onEvents(player: Player, events: Player.Events) {
-            // Consecutive items can reuse the renderer without another first-frame callback.
-            if (player.playbackState != Player.STATE_READY ||
-                !events.containsAny(Player.EVENT_MEDIA_ITEM_TRANSITION, Player.EVENT_PLAYBACK_STATE_CHANGED)
+            override fun onVideoDecoderInitialized(
+                eventTime: AnalyticsListener.EventTime,
+                decoderName: String,
+                initializedTimestampMs: Long,
+                initializationDurationMs: Long,
             ) {
-                return
+                Logger.logInfo(
+                    DECODER_LOG_TAG,
+                    "Video decoder initialized with requested=${decoderManager.videoMode} " +
+                        "as ${decoderManager.activeVideoMode}: $decoderName",
+                )
+                decoderRecoveryManager.onDecoderInitialized(DecoderTrackType.VIDEO)
             }
-            val currentMediaItem = player.currentMediaItem ?: return
-            val duration = player.duration.validDurationOrNull()
-            // Update the media metadata duration so that it will be used later in position discontinuity handling
-            player.replaceMediaItem(
-                player.currentMediaItemIndex,
-                currentMediaItem.copy(durationMs = duration ?: 0),
-            )
 
-            serviceScope.launch {
-                mediaRepository.updateMediumLastPlayedTime(
-                    uri = currentMediaItem.mediaId,
-                    lastPlayedTime = System.currentTimeMillis(),
-                    duration = duration,
+            override fun onAudioDecoderInitialized(
+                eventTime: AnalyticsListener.EventTime,
+                decoderName: String,
+                initializedTimestampMs: Long,
+                initializationDurationMs: Long,
+            ) {
+                Logger.logInfo(
+                    DECODER_LOG_TAG,
+                    "Audio decoder initialized with requested=${decoderManager.audioMode} " +
+                        "as ${decoderManager.activeAudioMode}: $decoderName",
+                )
+                decoderRecoveryManager.onDecoderInitialized(DecoderTrackType.AUDIO)
+            }
+
+            override fun onTracksChanged(
+                eventTime: AnalyticsListener.EventTime,
+                tracks: Tracks,
+            ) {
+                val videoTracks =
+                    tracks.groups
+                        .filter { it.type == C.TRACK_TYPE_VIDEO }
+                        .joinToString { group ->
+                            val mimeType = group.mediaTrackGroup.getFormat(0).sampleMimeType
+                            "$mimeType(supported=${group.isSupported(true)}, selected=${group.isSelected})"
+                        }
+                Logger.logInfo(
+                    DECODER_LOG_TAG,
+                    "Video tracks: ${videoTracks.ifEmpty { "none" }}, " +
+                        "unmapped=${trackSelector.unmappedTrackCount(C.TRACK_TYPE_VIDEO)}",
+                )
+            }
+
+            override fun onRenderedFirstFrame(
+                eventTime: AnalyticsListener.EventTime,
+                output: Any,
+                renderTimeMs: Long,
+            ) {
+                Logger.logInfo(
+                    DECODER_LOG_TAG,
+                    "Rendered first frame with video=${decoderManager.activeVideoMode}",
+                )
+            }
+
+            override fun onPlayerError(
+                eventTime: AnalyticsListener.EventTime,
+                error: PlaybackException,
+            ) {
+                Logger.logError(
+                    DECODER_LOG_TAG,
+                    "Player error with requestedVideo=${decoderManager.videoMode}, " +
+                        "activeVideo=${decoderManager.activeVideoMode}, " +
+                        "requestedAudio=${decoderManager.audioMode}, " +
+                        "activeAudio=${decoderManager.activeAudioMode}: ${error.message}",
                 )
             }
         }
 
-        override fun onIsPlayingChanged(isPlaying: Boolean) {
-            super.onIsPlayingChanged(isPlaying)
-            mediaSession?.run {
+    private val playbackStateListener =
+        object : Player.Listener {
+            override fun onTimelineChanged(timeline: Timeline, reason: Int) {
+                val player = mediaSession?.player as? ExoPlayer ?: return
+                // Autoplay controls the implicit folder queue; explicitly chosen playlists play in
+                // full.
+                player.pauseAtEndOfMediaItems =
+                    !playerPreferences.autoplay &&
+                        player.currentMediaItem?.isExplicitPlaylistItem != true
+            }
+
+            override fun onMediaItemTransition(mediaItem: MediaItem?, reason: Int) {
+                super.onMediaItemTransition(mediaItem, reason)
+                if (reason == Player.MEDIA_ITEM_TRANSITION_REASON_REPEAT) return
+                restoreDecoderChoices(mediaItem)
+                isMediaItemReady = false
+                loadArtworkForCurrentMediaItem()
+                mediaItem?.mediaMetadata?.let { metadata ->
+                    mediaSession?.player?.run {
+                        playerSpecificSubtitleDelayMilliseconds =
+                            metadata.subtitleDelayMilliseconds ?: 0L
+                        playerSpecificSubtitleSpeed = metadata.subtitleSpeed ?: 1f
+                    }
+
+                    metadata.positionMs
+                        ?.takeIf { playerPreferences.resume == Resume.YES }
+                        ?.let { mediaSession?.player?.seekTo(it) }
+                }
+            }
+
+            override fun onPositionDiscontinuity(
+                oldPosition: Player.PositionInfo,
+                newPosition: Player.PositionInfo,
+                reason: Int,
+            ) {
+                super.onPositionDiscontinuity(oldPosition, newPosition, reason)
+                val oldMediaItem = oldPosition.mediaItem ?: return
+
+                when (reason) {
+                    DISCONTINUITY_REASON_SEEK,
+                    DISCONTINUITY_REASON_AUTO_TRANSITION -> {
+                        if (newPosition.mediaItem == null || oldMediaItem == newPosition.mediaItem)
+                            return
+
+                        val updatedPosition =
+                            oldPosition.positionMs.takeIf { reason == DISCONTINUITY_REASON_SEEK }
+                                ?: C.TIME_UNSET
+                        mediaSession
+                            ?.player
+                            ?.replaceMediaItem(
+                                oldPosition.mediaItemIndex,
+                                oldMediaItem.copy(positionMs = updatedPosition),
+                            )
+                        serviceScope.launch {
+                            mediaRepository.updateMediumPosition(
+                                uri = oldMediaItem.mediaId,
+                                position = updatedPosition,
+                            )
+                        }
+                    }
+
+                    DISCONTINUITY_REASON_REMOVE -> {
+                        serviceScope.launch {
+                            val durationMs = oldMediaItem.mediaMetadata.durationMs
+                            val isAtEnd =
+                                durationMs != null && oldPosition.positionMs >= durationMs - 1000
+                            mediaRepository.updateMediumPosition(
+                                uri = oldMediaItem.mediaId,
+                                position = if (isAtEnd) C.TIME_UNSET else oldPosition.positionMs,
+                            )
+                        }
+                    }
+
+                    else -> return
+                }
+            }
+
+            override fun onTracksChanged(tracks: Tracks) {
+                super.onTracksChanged(tracks)
                 serviceScope.launch {
-                    mediaRepository.updateMediumPosition(
-                        uri = player.currentMediaItem?.mediaId ?: return@launch,
-                        position = player.currentPosition,
+                    mediaSession?.player?.currentTracks?.let(::handleUnsupportedTracks)
+                }
+                if (!isMediaItemReady && tracks.groups.isNotEmpty()) {
+                    isMediaItemReady = true
+
+                    val player = mediaSession?.player ?: return
+                    val pending = pendingAudioSelection
+                    pendingAudioSelection = null
+                    if (pending != null && pending.first == player.currentMediaItem?.mediaId) {
+                        val audioIndex =
+                            player.currentMediaItem
+                                ?.mediaMetadata
+                                ?.externalAudio
+                                .orEmpty()
+                                .indexOf(pending.second)
+                        val trackIndex =
+                            tracks.groups
+                                .filter { it.type == C.TRACK_TYPE_AUDIO }
+                                .indexOfFirst {
+                                    it.mediaTrackGroup.externalAudioIndex == audioIndex
+                                }
+                        if (audioIndex >= 0 && trackIndex >= 0)
+                            player.switchTrack(C.TRACK_TYPE_AUDIO, trackIndex)
+                    }
+                    if (!playerPreferences.rememberSelections) return
+                    mediaSession
+                        ?.player
+                        ?.mediaMetadata
+                        ?.audioTrackIndex
+                        ?.takeIf { pending == null }
+                        ?.let { mediaSession?.player?.switchTrack(C.TRACK_TYPE_AUDIO, it) }
+                    mediaSession?.player?.mediaMetadata?.subtitleTrackIndex?.let {
+                        mediaSession?.player?.switchTrack(C.TRACK_TYPE_TEXT, it)
+                    }
+                }
+            }
+
+            override fun onTrackSelectionParametersChanged(parameters: TrackSelectionParameters) {
+                super.onTrackSelectionParametersChanged(parameters)
+                val player = mediaSession?.player ?: return
+                val currentMediaItem = player.currentMediaItem ?: return
+
+                val audioTrackIndex = player.getManuallySelectedTrackIndex(C.TRACK_TYPE_AUDIO)
+                val subtitleTrackIndex = player.getManuallySelectedTrackIndex(C.TRACK_TYPE_TEXT)
+
+                if (audioTrackIndex != null) {
+                    serviceScope.launch {
+                        mediaRepository.updateMediumAudioTrack(
+                            uri = currentMediaItem.mediaId,
+                            audioTrackIndex = audioTrackIndex,
+                        )
+                    }
+                }
+
+                if (subtitleTrackIndex != null) {
+                    serviceScope.launch {
+                        mediaRepository.updateMediumSubtitleTrack(
+                            uri = currentMediaItem.mediaId,
+                            subtitleTrackIndex = subtitleTrackIndex,
+                        )
+                    }
+                }
+
+                player.replaceMediaItem(
+                    player.currentMediaItemIndex,
+                    currentMediaItem.copy(
+                        audioTrackIndex = audioTrackIndex,
+                        subtitleTrackIndex = subtitleTrackIndex,
+                    ),
+                )
+            }
+
+            override fun onPlaybackStateChanged(playbackState: Int) {
+                super.onPlaybackStateChanged(playbackState)
+
+                val player = mediaSession?.player
+                val shouldResetTrackSelectionParameters =
+                    playbackState == Player.STATE_ENDED ||
+                        (playbackState == Player.STATE_IDLE && player?.mediaItemCount == 0)
+                if (shouldResetTrackSelectionParameters) {
+                    mediaSession?.player?.trackSelectionParameters =
+                        TrackSelectionParameters.DEFAULT
+                }
+            }
+
+            override fun onPlayerError(error: PlaybackException) {
+                if (!error.isDecoderFailure) {
+                    decoderRecoveryManager.onNonDecoderError()
+                    return
+                }
+
+                val trackType =
+                    error.decoderTrackType()
+                        ?: run {
+                            decoderRecoveryManager.onNonDecoderError()
+                            return
+                        }
+                handleDecoderFailure(trackType)
+            }
+
+            override fun onPlayWhenReadyChanged(playWhenReady: Boolean, reason: Int) {
+                super.onPlayWhenReadyChanged(playWhenReady, reason)
+
+                if (reason == Player.PLAY_WHEN_READY_CHANGE_REASON_END_OF_MEDIA_ITEM) {
+                    if (mediaSession?.player?.repeatMode != Player.REPEAT_MODE_OFF) {
+                        mediaSession?.player?.seekTo(0)
+                        mediaSession?.player?.play()
+                        return
+                    }
+                    mediaSession?.run {
+                        player.clearMediaItems()
+                        player.stop()
+                    }
+                    stopSelf()
+                }
+            }
+
+            override fun onEvents(player: Player, events: Player.Events) {
+                // Consecutive items can reuse the renderer without another first-frame callback.
+                if (
+                    player.playbackState != Player.STATE_READY ||
+                        !events.containsAny(
+                            Player.EVENT_MEDIA_ITEM_TRANSITION,
+                            Player.EVENT_PLAYBACK_STATE_CHANGED,
+                        )
+                ) {
+                    return
+                }
+                val currentMediaItem = player.currentMediaItem ?: return
+                val duration = player.duration.validDurationOrNull()
+                // Update the media metadata duration so that it will be used later in position
+                // discontinuity handling
+                player.replaceMediaItem(
+                    player.currentMediaItemIndex,
+                    currentMediaItem.copy(durationMs = duration ?: 0),
+                )
+
+                serviceScope.launch {
+                    mediaRepository.updateMediumLastPlayedTime(
+                        uri = currentMediaItem.mediaId,
+                        lastPlayedTime = System.currentTimeMillis(),
+                        duration = duration,
                     )
                 }
             }
-        }
 
-        override fun onRepeatModeChanged(repeatMode: Int) {
-            super.onRepeatModeChanged(repeatMode)
-            serviceScope.launch {
-                preferencesRepository.updatePlayerPreferences {
-                    it.copy(
-                        loopMode = when (repeatMode) {
-                            Player.REPEAT_MODE_OFF -> LoopMode.OFF
-                            Player.REPEAT_MODE_ONE -> LoopMode.ONE
-                            Player.REPEAT_MODE_ALL -> LoopMode.ALL
-                            else -> LoopMode.OFF
-                        },
-                    )
+            override fun onIsPlayingChanged(isPlaying: Boolean) {
+                super.onIsPlayingChanged(isPlaying)
+                mediaSession?.run {
+                    serviceScope.launch {
+                        mediaRepository.updateMediumPosition(
+                            uri = player.currentMediaItem?.mediaId ?: return@launch,
+                            position = player.currentPosition,
+                        )
+                    }
+                }
+            }
+
+            override fun onRepeatModeChanged(repeatMode: Int) {
+                super.onRepeatModeChanged(repeatMode)
+                serviceScope.launch {
+                    preferencesRepository.updatePlayerPreferences {
+                        it.copy(
+                            loopMode =
+                                when (repeatMode) {
+                                    Player.REPEAT_MODE_OFF -> LoopMode.OFF
+                                    Player.REPEAT_MODE_ONE -> LoopMode.ONE
+                                    Player.REPEAT_MODE_ALL -> LoopMode.ALL
+                                    else -> LoopMode.OFF
+                                }
+                        )
+                    }
+                }
+            }
+
+            override fun onAudioSessionIdChanged(audioSessionId: Int) {
+                super.onAudioSessionIdChanged(audioSessionId)
+                if (!playerPreferences.enableVolumeBoost) return
+                if (audioSessionId == C.AUDIO_SESSION_ID_UNSET) return
+                try {
+                    loudnessEnhancer?.release()
+                    loudnessEnhancer = LoudnessEnhancer(audioSessionId)
+                    if (currentVolumeGain > 0) {
+                        setEnhancerTargetGain(currentVolumeGain)
+                    }
+                } catch (e: Exception) {
+                    e.printStackTrace()
+                    loudnessEnhancer = null
                 }
             }
         }
-
-        override fun onAudioSessionIdChanged(audioSessionId: Int) {
-            super.onAudioSessionIdChanged(audioSessionId)
-            if (!playerPreferences.enableVolumeBoost) return
-            if (audioSessionId == C.AUDIO_SESSION_ID_UNSET) return
-            try {
-                loudnessEnhancer?.release()
-                loudnessEnhancer = LoudnessEnhancer(audioSessionId)
-                if (currentVolumeGain > 0) {
-                    setEnhancerTargetGain(currentVolumeGain)
-                }
-            } catch (e: Exception) {
-                e.printStackTrace()
-                loudnessEnhancer = null
-            }
-        }
-    }
 
     private fun setEnhancerTargetGain(gain: Int) {
         val enhancer = loudnessEnhancer ?: return
@@ -456,309 +487,364 @@ class PlayerService : MediaSessionService() {
         }
     }
 
-    private val mediaSessionCallback = object : MediaSession.Callback {
-        override fun onConnectAsync(
-            session: MediaSession,
-            controller: MediaSession.ControllerInfo,
-        ): ListenableFuture<MediaSession.ConnectionResult> = Futures.immediateFuture(
-            MediaSession.ConnectionResult.accept(
-                MediaSession.ConnectionResult.DEFAULT_SESSION_COMMANDS
-                    .buildUpon()
-                    .addSessionCommands(customCommands)
-                    .build(),
-                MediaSession.ConnectionResult.DEFAULT_PLAYER_COMMANDS,
-            ),
-        )
-
-        override fun onSetMediaItems(
-            mediaSession: MediaSession,
-            controller: MediaSession.ControllerInfo,
-            mediaItems: MutableList<MediaItem>,
-            startIndex: Int,
-            startPositionMs: Long,
-        ): ListenableFuture<MediaSession.MediaItemsWithStartPosition> = serviceScope.future(Dispatchers.Default) {
-            val updatedMediaItems = updatedMediaItemsWithMetadata(mediaItems)
-            return@future MediaSession.MediaItemsWithStartPosition(updatedMediaItems, startIndex, startPositionMs)
-        }
-
-        override fun onAddMediaItems(
-            mediaSession: MediaSession,
-            controller: MediaSession.ControllerInfo,
-            mediaItems: MutableList<MediaItem>,
-        ): ListenableFuture<MutableList<MediaItem>> = serviceScope.future(Dispatchers.Default) {
-            val updatedMediaItems = updatedMediaItemsWithMetadata(mediaItems)
-            return@future updatedMediaItems.toMutableList()
-        }
-
-        override fun onCustomCommand(
-            session: MediaSession,
-            controller: MediaSession.ControllerInfo,
-            customCommand: SessionCommand,
-            args: Bundle,
-        ): ListenableFuture<SessionResult> = serviceScope.future {
-            val command = CustomCommands.fromSessionCommand(customCommand)
-                ?: return@future SessionResult(SessionError.ERROR_BAD_VALUE)
-
-            when (command) {
-                CustomCommands.ADD_SUBTITLE_TRACK -> {
-                    val subtitleUri = args.getString(CustomCommands.SUBTITLE_TRACK_URI_KEY)?.toUri()
-                        ?: return@future SessionResult(SessionError.ERROR_BAD_VALUE)
-
-                    val newSubConfiguration = uriToSubtitleConfiguration(
-                        uri = subtitleUri,
-                        subtitleEncoding = playerPreferences.subtitleTextEncoding,
+    private val mediaSessionCallback =
+        object : MediaSession.Callback {
+            override fun onConnectAsync(
+                session: MediaSession,
+                controller: MediaSession.ControllerInfo,
+            ): ListenableFuture<MediaSession.ConnectionResult> =
+                Futures.immediateFuture(
+                    MediaSession.ConnectionResult.accept(
+                        MediaSession.ConnectionResult.DEFAULT_SESSION_COMMANDS.buildUpon()
+                            .addSessionCommands(customCommands)
+                            .build(),
+                        MediaSession.ConnectionResult.DEFAULT_PLAYER_COMMANDS,
                     )
-                    mediaSession?.player?.let { player ->
-                        val currentMediaItem = player.currentMediaItem ?: return@let
-                        val textTracks = player.currentTracks.groups.filter {
-                            it.type == C.TRACK_TYPE_TEXT && it.isSupported
-                        }
+                )
 
-                        mediaRepository.updateMediumPosition(
-                            uri = currentMediaItem.mediaId,
-                            position = player.currentPosition,
-                        )
-                        mediaRepository.updateMediumSubtitleTrack(
-                            uri = currentMediaItem.mediaId,
-                            subtitleTrackIndex = textTracks.size,
-                        )
-                        mediaRepository.addExternalSubtitleToMedium(
-                            uri = currentMediaItem.mediaId,
-                            subtitleUri = subtitleUri,
-                        )
-                        player.addAdditionalSubtitleConfiguration(newSubConfiguration)
-                    }
-                    return@future SessionResult(SessionResult.RESULT_SUCCESS)
+            override fun onSetMediaItems(
+                mediaSession: MediaSession,
+                controller: MediaSession.ControllerInfo,
+                mediaItems: MutableList<MediaItem>,
+                startIndex: Int,
+                startPositionMs: Long,
+            ): ListenableFuture<MediaSession.MediaItemsWithStartPosition> =
+                serviceScope.future(Dispatchers.Default) {
+                    val updatedMediaItems = updatedMediaItemsWithMetadata(mediaItems)
+                    return@future MediaSession.MediaItemsWithStartPosition(
+                        updatedMediaItems,
+                        startIndex,
+                        startPositionMs,
+                    )
                 }
 
-                CustomCommands.ADD_AUDIO_TRACK -> {
-                    val uri = args.getString(CustomCommands.AUDIO_TRACK_URI_KEY)?.toUri()
-                        ?.takeIf { it.scheme == ContentResolver.SCHEME_CONTENT || it.scheme == ContentResolver.SCHEME_FILE }
+            override fun onAddMediaItems(
+                mediaSession: MediaSession,
+                controller: MediaSession.ControllerInfo,
+                mediaItems: MutableList<MediaItem>,
+            ): ListenableFuture<MutableList<MediaItem>> =
+                serviceScope.future(Dispatchers.Default) {
+                    val updatedMediaItems = updatedMediaItemsWithMetadata(mediaItems)
+                    return@future updatedMediaItems.toMutableList()
+                }
+
+            override fun onCustomCommand(
+                session: MediaSession,
+                controller: MediaSession.ControllerInfo,
+                customCommand: SessionCommand,
+                args: Bundle,
+            ): ListenableFuture<SessionResult> = serviceScope.future {
+                val command =
+                    CustomCommands.fromSessionCommand(customCommand)
                         ?: return@future SessionResult(SessionError.ERROR_BAD_VALUE)
-                    val player = session.player
-                    val mediaItem = player.currentMediaItem
-                        ?: return@future SessionResult(SessionError.ERROR_INVALID_STATE)
-                    val hasAudio = withContext(Dispatchers.IO) {
-                        runCatching {
-                            contentResolver.openFileDescriptor(uri, "r")?.use { descriptor ->
-                                MediaInfoBuilder().from(descriptor).build()?.let { info ->
-                                    try {
-                                        info.audioStreams.isNotEmpty()
-                                    } finally {
-                                        info.release()
-                                    }
+
+                when (command) {
+                    CustomCommands.ADD_SUBTITLE_TRACK -> {
+                        val subtitleUri =
+                            args.getString(CustomCommands.SUBTITLE_TRACK_URI_KEY)?.toUri()
+                                ?: return@future SessionResult(SessionError.ERROR_BAD_VALUE)
+
+                        val newSubConfiguration =
+                            uriToSubtitleConfiguration(
+                                uri = subtitleUri,
+                                subtitleEncoding = playerPreferences.subtitleTextEncoding,
+                            )
+                        mediaSession?.player?.let { player ->
+                            val currentMediaItem = player.currentMediaItem ?: return@let
+                            val textTracks =
+                                player.currentTracks.groups.filter {
+                                    it.type == C.TRACK_TYPE_TEXT && it.isSupported
                                 }
-                            } == true
-                        }.getOrDefault(false)
+
+                            mediaRepository.updateMediumPosition(
+                                uri = currentMediaItem.mediaId,
+                                position = player.currentPosition,
+                            )
+                            mediaRepository.updateMediumSubtitleTrack(
+                                uri = currentMediaItem.mediaId,
+                                subtitleTrackIndex = textTracks.size,
+                            )
+                            mediaRepository.addExternalSubtitleToMedium(
+                                uri = currentMediaItem.mediaId,
+                                subtitleUri = subtitleUri,
+                            )
+                            player.addAdditionalSubtitleConfiguration(newSubConfiguration)
+                        }
+                        return@future SessionResult(SessionResult.RESULT_SUCCESS)
                     }
-                    if (!hasAudio) return@future SessionResult(SessionError.ERROR_BAD_VALUE)
-                    if (player.currentMediaItem?.mediaId != mediaItem.mediaId) {
-                        return@future SessionResult(SessionError.ERROR_INVALID_STATE)
+
+                    CustomCommands.ADD_AUDIO_TRACK -> {
+                        val uri =
+                            args.getString(CustomCommands.AUDIO_TRACK_URI_KEY)?.toUri()?.takeIf {
+                                it.scheme == ContentResolver.SCHEME_CONTENT ||
+                                    it.scheme == ContentResolver.SCHEME_FILE
+                            } ?: return@future SessionResult(SessionError.ERROR_BAD_VALUE)
+                        val player = session.player
+                        val mediaItem =
+                            player.currentMediaItem
+                                ?: return@future SessionResult(SessionError.ERROR_INVALID_STATE)
+                        val hasAudio =
+                            withContext(Dispatchers.IO) {
+                                runCatching {
+                                        contentResolver.openFileDescriptor(uri, "r")?.use {
+                                            descriptor ->
+                                            MediaInfoBuilder().from(descriptor).build()?.let { info
+                                                ->
+                                                try {
+                                                    info.audioStreams.isNotEmpty()
+                                                } finally {
+                                                    info.release()
+                                                }
+                                            }
+                                        } == true
+                                    }
+                                    .getOrDefault(false)
+                            }
+                        if (!hasAudio) return@future SessionResult(SessionError.ERROR_BAD_VALUE)
+                        if (player.currentMediaItem?.mediaId != mediaItem.mediaId) {
+                            return@future SessionResult(SessionError.ERROR_INVALID_STATE)
+                        }
+                        mediaRepository.addExternalAudioToMedium(mediaItem.mediaId, uri)
+                        val currentItem =
+                            player.currentMediaItem?.takeIf { it.mediaId == mediaItem.mediaId }
+                                ?: return@future SessionResult(SessionError.ERROR_INVALID_STATE)
+                        val audio = (currentItem.mediaMetadata.externalAudio + uri).distinct()
+                        pendingAudioSelection = currentItem.mediaId to uri
+                        val updatedItem =
+                            currentItem
+                                .withExternalAudio(audio)
+                                .copy(positionMs = player.currentPosition)
+                        val index = player.currentMediaItemIndex
+                        player.addMediaItem(index + 1, updatedItem)
+                        player.seekTo(index + 1, player.currentPosition)
+                        player.removeMediaItem(index)
+                        return@future SessionResult(SessionResult.RESULT_SUCCESS)
                     }
-                    mediaRepository.addExternalAudioToMedium(mediaItem.mediaId, uri)
-                    val currentItem = player.currentMediaItem?.takeIf { it.mediaId == mediaItem.mediaId }
-                        ?: return@future SessionResult(SessionError.ERROR_INVALID_STATE)
-                    val audio = (currentItem.mediaMetadata.externalAudio + uri).distinct()
-                    pendingAudioSelection = currentItem.mediaId to uri
-                    val updatedItem = currentItem.withExternalAudio(audio).copy(positionMs = player.currentPosition)
-                    val index = player.currentMediaItemIndex
-                    player.addMediaItem(index + 1, updatedItem)
-                    player.seekTo(index + 1, player.currentPosition)
-                    player.removeMediaItem(index)
-                    return@future SessionResult(SessionResult.RESULT_SUCCESS)
-                }
 
-                CustomCommands.SET_SKIP_SILENCE_ENABLED -> {
-                    val enabled = args.getBoolean(CustomCommands.SKIP_SILENCE_ENABLED_KEY)
-                    mediaSession?.player?.playerSpecificSkipSilenceEnabled = enabled
-                    mediaSession?.sessionExtras = Bundle(mediaSession?.sessionExtras ?: Bundle.EMPTY).apply {
-                        putBoolean(CustomCommands.SKIP_SILENCE_ENABLED_KEY, enabled)
+                    CustomCommands.SET_SKIP_SILENCE_ENABLED -> {
+                        val enabled = args.getBoolean(CustomCommands.SKIP_SILENCE_ENABLED_KEY)
+                        mediaSession?.player?.playerSpecificSkipSilenceEnabled = enabled
+                        mediaSession?.sessionExtras =
+                            Bundle(mediaSession?.sessionExtras ?: Bundle.EMPTY).apply {
+                                putBoolean(CustomCommands.SKIP_SILENCE_ENABLED_KEY, enabled)
+                            }
+                        return@future SessionResult(SessionResult.RESULT_SUCCESS)
                     }
-                    return@future SessionResult(SessionResult.RESULT_SUCCESS)
-                }
 
-                CustomCommands.GET_SKIP_SILENCE_ENABLED -> {
-                    val enabled = mediaSession?.player?.playerSpecificSkipSilenceEnabled ?: false
-                    return@future SessionResult(
-                        SessionResult.RESULT_SUCCESS,
-                        Bundle().apply {
-                            putBoolean(CustomCommands.SKIP_SILENCE_ENABLED_KEY, enabled)
-                        },
-                    )
-                }
-
-                CustomCommands.SET_IS_SCRUBBING_MODE_ENABLED -> {
-                    val enabled = args.getBoolean(CustomCommands.IS_SCRUBBING_MODE_ENABLED_KEY)
-                    mediaSession?.player?.setIsScrubbingModeEnabled(enabled)
-                    return@future SessionResult(SessionResult.RESULT_SUCCESS)
-                }
-
-                CustomCommands.IS_LOUDNESS_GAIN_SUPPORTED -> {
-                    val isSupported = loudnessEnhancer != null
-                    return@future SessionResult(
-                        SessionResult.RESULT_SUCCESS,
-                        Bundle().apply {
-                            putBoolean(CustomCommands.IS_LOUDNESS_GAIN_SUPPORTED_KEY, isSupported)
-                        },
-                    )
-                }
-
-                CustomCommands.SET_LOUDNESS_GAIN -> {
-                    val gain = args.getInt(CustomCommands.LOUDNESS_GAIN_KEY, 0)
-                    setEnhancerTargetGain(gain)
-                    return@future SessionResult(SessionResult.RESULT_SUCCESS)
-                }
-
-                CustomCommands.GET_LOUDNESS_GAIN -> {
-                    return@future SessionResult(
-                        SessionResult.RESULT_SUCCESS,
-                        Bundle().apply {
-                            putInt(CustomCommands.LOUDNESS_GAIN_KEY, currentVolumeGain)
-                        },
-                    )
-                }
-
-                CustomCommands.SET_VIDEO_DECODER_MODE -> {
-                    val mode = args.decoderMode(CustomCommands.VIDEO_DECODER_MODE_KEY)
-                        ?: return@future SessionResult(SessionResult.RESULT_ERROR_BAD_VALUE)
-                    val player = mediaSession?.player as? ExoPlayer
-                        ?: return@future SessionResult(SessionResult.RESULT_ERROR_INVALID_STATE)
-                    decoderRecoveryManager.onUserSelection(DecoderTrackType.VIDEO, mode)
-                    selectDecoder(DecoderTrackType.VIDEO, mode)
-                    serviceScope.launch { handleUnsupportedTrack(player.currentTracks, DecoderTrackType.VIDEO) }
-                    return@future SessionResult(SessionResult.RESULT_SUCCESS)
-                }
-
-                CustomCommands.SET_AUDIO_DECODER_MODE -> {
-                    val mode = args.decoderMode(CustomCommands.AUDIO_DECODER_MODE_KEY)
-                        ?: return@future SessionResult(SessionResult.RESULT_ERROR_BAD_VALUE)
-                    val player = mediaSession?.player as? ExoPlayer
-                        ?: return@future SessionResult(SessionResult.RESULT_ERROR_INVALID_STATE)
-                    decoderRecoveryManager.onUserSelection(DecoderTrackType.AUDIO, mode)
-                    selectDecoder(DecoderTrackType.AUDIO, mode)
-                    serviceScope.launch { handleUnsupportedTrack(player.currentTracks, DecoderTrackType.AUDIO) }
-                    return@future SessionResult(SessionResult.RESULT_SUCCESS)
-                }
-
-                CustomCommands.TRY_DECODER_FALLBACK -> {
-                    val retry = decoderRecoveryManager.confirmFallback()
-                        ?: return@future SessionResult(SessionResult.RESULT_ERROR_INVALID_STATE)
-                    if (!retryDecoderWith(retry)) {
-                        decoderRecoveryManager.onNonDecoderError()
-                        return@future SessionResult(SessionResult.RESULT_ERROR_INVALID_STATE)
+                    CustomCommands.GET_SKIP_SILENCE_ENABLED -> {
+                        val enabled =
+                            mediaSession?.player?.playerSpecificSkipSilenceEnabled ?: false
+                        return@future SessionResult(
+                            SessionResult.RESULT_SUCCESS,
+                            Bundle().apply {
+                                putBoolean(CustomCommands.SKIP_SILENCE_ENABLED_KEY, enabled)
+                            },
+                        )
                     }
-                    return@future SessionResult(SessionResult.RESULT_SUCCESS)
-                }
 
-                CustomCommands.GET_SUBTITLE_DELAY -> {
-                    val subtitleDelay = mediaSession?.player?.playerSpecificSubtitleDelayMilliseconds ?: 0
-                    return@future SessionResult(
-                        SessionResult.RESULT_SUCCESS,
-                        Bundle().apply {
-                            putLong(CustomCommands.SUBTITLE_DELAY_KEY, subtitleDelay)
-                        },
-                    )
-                }
+                    CustomCommands.SET_IS_SCRUBBING_MODE_ENABLED -> {
+                        val enabled = args.getBoolean(CustomCommands.IS_SCRUBBING_MODE_ENABLED_KEY)
+                        mediaSession?.player?.setIsScrubbingModeEnabled(enabled)
+                        return@future SessionResult(SessionResult.RESULT_SUCCESS)
+                    }
 
-                CustomCommands.SET_SUBTITLE_DELAY -> {
-                    val subtitleDelay = args.getLong(CustomCommands.SUBTITLE_DELAY_KEY)
-                    mediaSession?.player?.playerSpecificSubtitleDelayMilliseconds = subtitleDelay
-                    return@future SessionResult(SessionResult.RESULT_SUCCESS)
-                }
+                    CustomCommands.IS_LOUDNESS_GAIN_SUPPORTED -> {
+                        val isSupported = loudnessEnhancer != null
+                        return@future SessionResult(
+                            SessionResult.RESULT_SUCCESS,
+                            Bundle().apply {
+                                putBoolean(
+                                    CustomCommands.IS_LOUDNESS_GAIN_SUPPORTED_KEY,
+                                    isSupported,
+                                )
+                            },
+                        )
+                    }
 
-                CustomCommands.GET_SUBTITLE_SPEED -> {
-                    val subtitleSpeed = mediaSession?.player?.playerSpecificSubtitleSpeed ?: 0f
-                    return@future SessionResult(
-                        SessionResult.RESULT_SUCCESS,
-                        Bundle().apply {
-                            putFloat(CustomCommands.SUBTITLE_SPEED_KEY, subtitleSpeed)
-                        },
-                    )
-                }
+                    CustomCommands.SET_LOUDNESS_GAIN -> {
+                        val gain = args.getInt(CustomCommands.LOUDNESS_GAIN_KEY, 0)
+                        setEnhancerTargetGain(gain)
+                        return@future SessionResult(SessionResult.RESULT_SUCCESS)
+                    }
 
-                CustomCommands.SET_SUBTITLE_SPEED -> {
-                    val subtitleSpeed = args.getFloat(CustomCommands.SUBTITLE_SPEED_KEY)
-                    mediaSession?.player?.playerSpecificSubtitleSpeed = subtitleSpeed
-                    return@future SessionResult(SessionResult.RESULT_SUCCESS)
-                }
+                    CustomCommands.GET_LOUDNESS_GAIN -> {
+                        return@future SessionResult(
+                            SessionResult.RESULT_SUCCESS,
+                            Bundle().apply {
+                                putInt(CustomCommands.LOUDNESS_GAIN_KEY, currentVolumeGain)
+                            },
+                        )
+                    }
 
-                CustomCommands.STOP_PLAYER_SESSION -> {
-                    savePositionAndStopSession()
-                    return@future SessionResult(SessionResult.RESULT_SUCCESS)
+                    CustomCommands.SET_VIDEO_DECODER_MODE -> {
+                        val mode =
+                            args.decoderMode(CustomCommands.VIDEO_DECODER_MODE_KEY)
+                                ?: return@future SessionResult(SessionResult.RESULT_ERROR_BAD_VALUE)
+                        val player =
+                            mediaSession?.player as? ExoPlayer
+                                ?: return@future SessionResult(
+                                    SessionResult.RESULT_ERROR_INVALID_STATE
+                                )
+                        decoderRecoveryManager.onUserSelection(DecoderTrackType.VIDEO, mode)
+                        selectDecoder(DecoderTrackType.VIDEO, mode)
+                        serviceScope.launch {
+                            handleUnsupportedTrack(player.currentTracks, DecoderTrackType.VIDEO)
+                        }
+                        return@future SessionResult(SessionResult.RESULT_SUCCESS)
+                    }
+
+                    CustomCommands.SET_AUDIO_DECODER_MODE -> {
+                        val mode =
+                            args.decoderMode(CustomCommands.AUDIO_DECODER_MODE_KEY)
+                                ?: return@future SessionResult(SessionResult.RESULT_ERROR_BAD_VALUE)
+                        val player =
+                            mediaSession?.player as? ExoPlayer
+                                ?: return@future SessionResult(
+                                    SessionResult.RESULT_ERROR_INVALID_STATE
+                                )
+                        decoderRecoveryManager.onUserSelection(DecoderTrackType.AUDIO, mode)
+                        selectDecoder(DecoderTrackType.AUDIO, mode)
+                        serviceScope.launch {
+                            handleUnsupportedTrack(player.currentTracks, DecoderTrackType.AUDIO)
+                        }
+                        return@future SessionResult(SessionResult.RESULT_SUCCESS)
+                    }
+
+                    CustomCommands.TRY_DECODER_FALLBACK -> {
+                        val retry =
+                            decoderRecoveryManager.confirmFallback()
+                                ?: return@future SessionResult(
+                                    SessionResult.RESULT_ERROR_INVALID_STATE
+                                )
+                        if (!retryDecoderWith(retry)) {
+                            decoderRecoveryManager.onNonDecoderError()
+                            return@future SessionResult(SessionResult.RESULT_ERROR_INVALID_STATE)
+                        }
+                        return@future SessionResult(SessionResult.RESULT_SUCCESS)
+                    }
+
+                    CustomCommands.GET_SUBTITLE_DELAY -> {
+                        val subtitleDelay =
+                            mediaSession?.player?.playerSpecificSubtitleDelayMilliseconds ?: 0
+                        return@future SessionResult(
+                            SessionResult.RESULT_SUCCESS,
+                            Bundle().apply {
+                                putLong(CustomCommands.SUBTITLE_DELAY_KEY, subtitleDelay)
+                            },
+                        )
+                    }
+
+                    CustomCommands.SET_SUBTITLE_DELAY -> {
+                        val subtitleDelay = args.getLong(CustomCommands.SUBTITLE_DELAY_KEY)
+                        mediaSession?.player?.playerSpecificSubtitleDelayMilliseconds =
+                            subtitleDelay
+                        return@future SessionResult(SessionResult.RESULT_SUCCESS)
+                    }
+
+                    CustomCommands.GET_SUBTITLE_SPEED -> {
+                        val subtitleSpeed = mediaSession?.player?.playerSpecificSubtitleSpeed ?: 0f
+                        return@future SessionResult(
+                            SessionResult.RESULT_SUCCESS,
+                            Bundle().apply {
+                                putFloat(CustomCommands.SUBTITLE_SPEED_KEY, subtitleSpeed)
+                            },
+                        )
+                    }
+
+                    CustomCommands.SET_SUBTITLE_SPEED -> {
+                        val subtitleSpeed = args.getFloat(CustomCommands.SUBTITLE_SPEED_KEY)
+                        mediaSession?.player?.playerSpecificSubtitleSpeed = subtitleSpeed
+                        return@future SessionResult(SessionResult.RESULT_SUCCESS)
+                    }
+
+                    CustomCommands.STOP_PLAYER_SESSION -> {
+                        savePositionAndStopSession()
+                        return@future SessionResult(SessionResult.RESULT_SUCCESS)
+                    }
                 }
             }
         }
-    }
 
-    override fun onGetSession(controllerInfo: MediaSession.ControllerInfo): MediaSession? = mediaSession
+    override fun onGetSession(controllerInfo: MediaSession.ControllerInfo): MediaSession? =
+        mediaSession
 
     override fun onCreate() {
         super.onCreate()
         decoderManager = DecoderManager()
-        val renderersFactory = NextRenderersFactory(applicationContext).setDecoderManager(decoderManager)
+        val renderersFactory =
+            NextRenderersFactory(applicationContext).setDecoderManager(decoderManager)
 
-        trackSelector = DefaultTrackSelector(applicationContext).apply {
-            setParameters(
-                buildUponParameters()
-                    .setTunnelingEnabled(playerPreferences.enableTunneledPlayback)
-                    .setPreferredAudioLanguage(playerPreferences.preferredAudioLanguage)
-                    .setPreferredTextLanguage(playerPreferences.preferredSubtitleLanguage),
-            )
-        }
-
-        val player = ExoPlayer.Builder(applicationContext)
-            .setRenderersFactory(renderersFactory)
-            .setTrackSelector(trackSelector)
-            .setMediaSourceFactory(
-                ExternalAudioMediaSourceFactory(
-                    DefaultMediaSourceFactory(applicationContext).setDataSourceFactory(dataSourceFactory),
-                ),
-            )
-            .setAudioAttributes(
-                AudioAttributes.Builder()
-                    .setUsage(C.USAGE_MEDIA)
-                    .setContentType(C.AUDIO_CONTENT_TYPE_MOVIE)
-                    .build(),
-                playerPreferences.requireAudioFocus,
-            )
-            .setHandleAudioBecomingNoisy(playerPreferences.pauseOnHeadsetDisconnect)
-            .build()
-            .also {
-                it.setPlaybackSpeed(playerPreferences.defaultPlaybackSpeed)
-                it.addListener(playbackStateListener)
-                it.pauseAtEndOfMediaItems = !playerPreferences.autoplay
-                it.repeatMode = when (playerPreferences.loopMode) {
-                    LoopMode.OFF -> Player.REPEAT_MODE_OFF
-                    LoopMode.ONE -> Player.REPEAT_MODE_ONE
-                    LoopMode.ALL -> Player.REPEAT_MODE_ALL
-                }
+        trackSelector =
+            DefaultTrackSelector(applicationContext).apply {
+                setParameters(
+                    buildUponParameters()
+                        .setTunnelingEnabled(playerPreferences.enableTunneledPlayback)
+                        .setPreferredAudioLanguage(playerPreferences.preferredAudioLanguage)
+                        .setPreferredTextLanguage(playerPreferences.preferredSubtitleLanguage)
+                )
             }
+
+        val player =
+            ExoPlayer.Builder(applicationContext)
+                .setRenderersFactory(renderersFactory)
+                .setTrackSelector(trackSelector)
+                .setMediaSourceFactory(
+                    ExternalAudioMediaSourceFactory(
+                        DefaultMediaSourceFactory(applicationContext)
+                            .setDataSourceFactory(dataSourceFactory)
+                    )
+                )
+                .setAudioAttributes(
+                    AudioAttributes.Builder()
+                        .setUsage(C.USAGE_MEDIA)
+                        .setContentType(C.AUDIO_CONTENT_TYPE_MOVIE)
+                        .build(),
+                    playerPreferences.requireAudioFocus,
+                )
+                .setHandleAudioBecomingNoisy(playerPreferences.pauseOnHeadsetDisconnect)
+                .build()
+                .also {
+                    it.setPlaybackSpeed(playerPreferences.defaultPlaybackSpeed)
+                    it.addListener(playbackStateListener)
+                    it.pauseAtEndOfMediaItems = !playerPreferences.autoplay
+                    it.repeatMode =
+                        when (playerPreferences.loopMode) {
+                            LoopMode.OFF -> Player.REPEAT_MODE_OFF
+                            LoopMode.ONE -> Player.REPEAT_MODE_ONE
+                            LoopMode.ALL -> Player.REPEAT_MODE_ALL
+                        }
+                }
 
         decoderManager.attach(player)
         player.addAnalyticsListener(decoderAnalyticsListener)
 
         try {
-            mediaSession = MediaSession.Builder(this, player).apply {
-                setSessionActivity(
-                    PendingIntent.getActivity(
-                        this@PlayerService,
-                        0,
-                        Intent(this@PlayerService, PlayerActivity::class.java),
-                        PendingIntent.FLAG_IMMUTABLE,
-                    ),
-                )
-                setCallback(mediaSessionCallback)
-                setCustomLayout(
-                    listOf(
-                        CommandButton.Builder(ICON_UNDEFINED)
-                            .setCustomIconResId(coreUiR.drawable.ic_close)
-                            .setDisplayName(getString(coreUiR.string.stop_player_session))
-                            .setSessionCommand(CustomCommands.STOP_PLAYER_SESSION.sessionCommand)
-                            .setEnabled(true)
-                            .build(),
-                    ),
-                )
-            }.build()
+            mediaSession =
+                MediaSession.Builder(this, player)
+                    .apply {
+                        setSessionActivity(
+                            PendingIntent.getActivity(
+                                this@PlayerService,
+                                0,
+                                Intent(this@PlayerService, PlayerActivity::class.java),
+                                PendingIntent.FLAG_IMMUTABLE,
+                            )
+                        )
+                        setCallback(mediaSessionCallback)
+                        setCustomLayout(
+                            listOf(
+                                CommandButton.Builder(ICON_UNDEFINED)
+                                    .setCustomIconResId(coreUiR.drawable.ic_close)
+                                    .setDisplayName(getString(coreUiR.string.stop_player_session))
+                                    .setSessionCommand(
+                                        CustomCommands.STOP_PLAYER_SESSION.sessionCommand
+                                    )
+                                    .setEnabled(true)
+                                    .build()
+                            )
+                        )
+                    }
+                    .build()
         } catch (e: Exception) {
             e.printStackTrace()
         }
@@ -766,7 +852,11 @@ class PlayerService : MediaSessionService() {
 
     override fun onTaskRemoved(rootIntent: Intent?) {
         val player = mediaSession?.player ?: return
-        if (!player.playWhenReady || player.mediaItemCount == 0 || player.playbackState == Player.STATE_ENDED) {
+        if (
+            !player.playWhenReady ||
+                player.mediaItemCount == 0 ||
+                player.playbackState == Player.STATE_ENDED
+        ) {
             serviceScope.launch { savePositionAndStopSession() }
         }
     }
@@ -809,92 +899,138 @@ class PlayerService : MediaSessionService() {
     private fun Long.validDurationOrNull(): Long? = takeIf { it != C.TIME_UNSET && it >= 0 }
 
     private suspend fun updatedMediaItemsWithMetadata(
-        mediaItems: List<MediaItem>,
+        mediaItems: List<MediaItem>
     ): List<MediaItem> = supervisorScope {
-        mediaItems.map { mediaItem ->
-            async {
-                val uri = mediaItem.mediaId.toUri()
-                val isNetwork = mediaItem.isNetworkMediaItem()
+        mediaItems
+            .map { mediaItem ->
+                async {
+                    val uri = mediaItem.mediaId.toUri()
+                    val isNetwork = mediaItem.isNetworkMediaItem()
 
-                val video = if (isNetwork) null else mediaRepository.getVideoByUri(uri = mediaItem.mediaId)
-                val videoState = mediaRepository.getVideoState(uri = mediaItem.mediaId)
+                    val video =
+                        if (isNetwork) null
+                        else mediaRepository.getVideoByUri(uri = mediaItem.mediaId)
+                    val videoState = mediaRepository.getVideoState(uri = mediaItem.mediaId)
 
-                val externalSubs = videoState?.externalSubs ?: emptyList()
-                val savedAudio = videoState?.externalAudio.orEmpty()
-                val externalAudio = withContext(Dispatchers.IO) {
-                    savedAudio.filter { uri ->
-                        runCatching { contentResolver.openAssetFileDescriptor(uri, "r")?.use { true } == true }
-                            .getOrDefault(false)
-                    }
-                }
-                val localSubs = if (!isNetwork) {
-                    (videoState?.path ?: getPath(uri))?.let {
-                        File(it).getLocalSubtitles(
-                            context = this@PlayerService,
-                            excludeSubsList = externalSubs,
-                        )
-                    } ?: emptyList()
-                } else {
-                    emptyList()
-                }
+                    val externalSubs = videoState?.externalSubs ?: emptyList()
+                    val savedAudio = videoState?.externalAudio.orEmpty()
+                    val externalAudio =
+                        withContext(Dispatchers.IO) {
+                            savedAudio.filter { uri ->
+                                runCatching {
+                                        contentResolver.openAssetFileDescriptor(uri, "r")?.use {
+                                            true
+                                        } == true
+                                    }
+                                    .getOrDefault(false)
+                            }
+                        }
+                    val localSubs =
+                        if (!isNetwork) {
+                            (videoState?.path ?: getPath(uri))?.let {
+                                File(it)
+                                    .getLocalSubtitles(
+                                        context = this@PlayerService,
+                                        excludeSubsList = externalSubs,
+                                    )
+                            } ?: emptyList()
+                        } else {
+                            emptyList()
+                        }
 
-                val existingSubConfigurations = mediaItem.localConfiguration?.subtitleConfigurations ?: emptyList()
-                val subConfigurations = (localSubs + externalSubs).map { subtitleUri ->
-                    uriToSubtitleConfiguration(
-                        uri = subtitleUri,
-                        subtitleEncoding = playerPreferences.subtitleTextEncoding,
-                    )
-                }
-
-                // Local items get a placeholder now and their real artwork in the background;
-                // network items have no thumbnail to extract, so keep any supplied artwork.
-                val artworkUri = if (isNetwork) {
-                    mediaItem.mediaMetadata.artworkUri ?: getDefaultArtworkUri()
-                } else {
-                    getDefaultArtworkUri()
-                }
-
-                val title = mediaItem.mediaMetadata.title ?: video?.nameWithExtension ?: getFilenameFromUri(uri)
-                val positionMs = mediaItem.mediaMetadata.positionMs ?: videoState?.position
-                val videoScale = mediaItem.mediaMetadata.videoZoom ?: videoState?.videoScale
-                val audioTrackIndex = mediaItem.mediaMetadata.audioTrackIndex ?: videoState?.audioTrackIndex
-                val subtitleTrackIndex = mediaItem.mediaMetadata.subtitleTrackIndex ?: videoState?.subtitleTrackIndex
-                val subtitleDelay = mediaItem.mediaMetadata.subtitleDelayMilliseconds ?: videoState?.subtitleDelayMilliseconds
-                val subtitleSpeed = mediaItem.mediaMetadata.subtitleSpeed ?: videoState?.subtitleSpeed
-
-                mediaItem.buildUpon().apply {
-                    setSubtitleConfigurations(existingSubConfigurations + subConfigurations)
-                    setMediaMetadata(
-                        MediaMetadata.Builder().apply {
-                            setTitle(title)
-                            setArtworkUri(artworkUri)
-                            setExtras(
-                                positionMs = positionMs,
-                                videoScale = videoScale,
-                                audioTrackIndex = audioTrackIndex.takeIf { externalAudio == savedAudio },
-                                subtitleTrackIndex = subtitleTrackIndex,
-                                subtitleDelayMilliseconds = subtitleDelay,
-                                subtitleSpeed = subtitleSpeed,
-                                videoDecoderMode = mediaItem.mediaMetadata.videoDecoderMode,
-                                audioDecoderMode = mediaItem.mediaMetadata.audioDecoderMode,
+                    val existingSubConfigurations =
+                        mediaItem.localConfiguration?.subtitleConfigurations ?: emptyList()
+                    val subConfigurations =
+                        (localSubs + externalSubs).map { subtitleUri ->
+                            uriToSubtitleConfiguration(
+                                uri = subtitleUri,
+                                subtitleEncoding = playerPreferences.subtitleTextEncoding,
                             )
-                        }.build(),
-                    )
-                }.build().withExternalAudio(externalAudio)
+                        }
+
+                    // Local items get a placeholder now and their real artwork in the background;
+                    // network items have no thumbnail to extract, so keep any supplied artwork.
+                    val artworkUri =
+                        if (isNetwork) {
+                            mediaItem.mediaMetadata.artworkUri ?: getDefaultArtworkUri()
+                        } else {
+                            getDefaultArtworkUri()
+                        }
+
+                    val title =
+                        mediaItem.mediaMetadata.title
+                            ?: video?.nameWithExtension
+                            ?: getFilenameFromUri(uri)
+                    val positionMs = mediaItem.mediaMetadata.positionMs ?: videoState?.position
+                    val videoScale = mediaItem.mediaMetadata.videoZoom ?: videoState?.videoScale
+                    val audioTrackIndex =
+                        mediaItem.mediaMetadata.audioTrackIndex ?: videoState?.audioTrackIndex
+                    val subtitleTrackIndex =
+                        mediaItem.mediaMetadata.subtitleTrackIndex ?: videoState?.subtitleTrackIndex
+                    val subtitleDelay =
+                        mediaItem.mediaMetadata.subtitleDelayMilliseconds
+                            ?: videoState?.subtitleDelayMilliseconds
+                    val subtitleSpeed =
+                        mediaItem.mediaMetadata.subtitleSpeed ?: videoState?.subtitleSpeed
+
+                    mediaItem
+                        .buildUpon()
+                        .apply {
+                            setSubtitleConfigurations(existingSubConfigurations + subConfigurations)
+                            setMediaMetadata(
+                                MediaMetadata.Builder()
+                                    .apply {
+                                        setTitle(title)
+                                        setArtworkUri(artworkUri)
+                                        setExtras(
+                                            positionMs = positionMs,
+                                            videoScale = videoScale,
+                                            audioTrackIndex =
+                                                audioTrackIndex.takeIf {
+                                                    externalAudio == savedAudio
+                                                },
+                                            subtitleTrackIndex = subtitleTrackIndex,
+                                            subtitleDelayMilliseconds = subtitleDelay,
+                                            subtitleSpeed = subtitleSpeed,
+                                            videoDecoderMode =
+                                                mediaItem.mediaMetadata.videoDecoderMode,
+                                            audioDecoderMode =
+                                                mediaItem.mediaMetadata.audioDecoderMode,
+                                        )
+                                    }
+                                    .build()
+                            )
+                        }
+                        .build()
+                        .withExternalAudio(externalAudio)
+                }
             }
-        }.awaitAll()
+            .awaitAll()
     }
 
     private fun publishDecoderState() {
         val session = mediaSession ?: return
         val recoveryState = decoderRecoveryManager.state
-        session.sessionExtras = Bundle(session.sessionExtras).apply {
-            putString(CustomCommands.VIDEO_DECODER_MODE_KEY, decoderManager.activeVideoMode?.name)
-            putString(CustomCommands.AUDIO_DECODER_MODE_KEY, decoderManager.activeAudioMode?.name)
-            putString(CustomCommands.DECODER_RECOVERY_STATUS_KEY, recoveryState.status.name)
-            putString(CustomCommands.DECODER_RECOVERY_TRACK_TYPE_KEY, recoveryState.trackType?.name)
-            putString(CustomCommands.UNSUPPORTED_DECODER_MODE_KEY, recoveryState.unsupportedMode?.name)
-        }
+        session.sessionExtras =
+            Bundle(session.sessionExtras).apply {
+                putString(
+                    CustomCommands.VIDEO_DECODER_MODE_KEY,
+                    decoderManager.activeVideoMode?.name,
+                )
+                putString(
+                    CustomCommands.AUDIO_DECODER_MODE_KEY,
+                    decoderManager.activeAudioMode?.name,
+                )
+                putString(CustomCommands.DECODER_RECOVERY_STATUS_KEY, recoveryState.status.name)
+                putString(
+                    CustomCommands.DECODER_RECOVERY_TRACK_TYPE_KEY,
+                    recoveryState.trackType?.name,
+                )
+                putString(
+                    CustomCommands.UNSUPPORTED_DECODER_MODE_KEY,
+                    recoveryState.unsupportedMode?.name,
+                )
+            }
     }
 
     private fun retryDecoderWith(retry: DecoderRetry): Boolean {
@@ -922,10 +1058,11 @@ class PlayerService : MediaSessionService() {
     }
 
     private fun handleDecoderFailure(trackType: DecoderTrackType) {
-        val mode = when (trackType) {
-            DecoderTrackType.VIDEO -> decoderManager.videoMode
-            DecoderTrackType.AUDIO -> decoderManager.audioMode
-        }
+        val mode =
+            when (trackType) {
+                DecoderTrackType.VIDEO -> decoderManager.videoMode
+                DecoderTrackType.AUDIO -> decoderManager.audioMode
+            }
         val retry = decoderRecoveryManager.onDecoderFailure(trackType, mode)
         publishDecoderState()
         if (retry == null) return
@@ -942,10 +1079,11 @@ class PlayerService : MediaSessionService() {
         val player = mediaSession?.player
         val mediaItem = player?.currentMediaItem
         if (mediaItem != null) {
-            val updatedItem = when (trackType) {
-                DecoderTrackType.VIDEO -> mediaItem.copy(videoDecoderMode = mode)
-                DecoderTrackType.AUDIO -> mediaItem.copy(audioDecoderMode = mode)
-            }
+            val updatedItem =
+                when (trackType) {
+                    DecoderTrackType.VIDEO -> mediaItem.copy(videoDecoderMode = mode)
+                    DecoderTrackType.AUDIO -> mediaItem.copy(audioDecoderMode = mode)
+                }
             player.replaceMediaItem(player.currentMediaItemIndex, updatedItem)
         }
         publishDecoderState()
@@ -962,19 +1100,17 @@ class PlayerService : MediaSessionService() {
 
     private fun DefaultTrackSelector.unmappedTrackCount(trackType: Int): Int {
         val trackGroups = currentMappedTrackInfo?.unmappedTrackGroups ?: return 0
-        return (0 until trackGroups.length).count { index ->
-            trackGroups[index].type == trackType
-        }
+        return (0 until trackGroups.length).count { index -> trackGroups[index].type == trackType }
     }
 
     private fun PlaybackException.decoderTrackType(): DecoderTrackType? {
         val playbackError = this as? ExoPlaybackException ?: return null
         val formatTrackType = MimeTypes.getTrackType(playbackError.rendererFormat?.sampleMimeType)
-        val mediaTrackType = formatTrackType.takeIf {
-            it == C.TRACK_TYPE_VIDEO || it == C.TRACK_TYPE_AUDIO
-        } ?: trackSelector.currentMappedTrackInfo
-            ?.takeIf { playbackError.rendererIndex in 0 until it.rendererCount }
-            ?.getRendererType(playbackError.rendererIndex)
+        val mediaTrackType =
+            formatTrackType.takeIf { it == C.TRACK_TYPE_VIDEO || it == C.TRACK_TYPE_AUDIO }
+                ?: trackSelector.currentMappedTrackInfo
+                    ?.takeIf { playbackError.rendererIndex in 0 until it.rendererCount }
+                    ?.getRendererType(playbackError.rendererIndex)
 
         return when (mediaTrackType) {
             C.TRACK_TYPE_VIDEO -> DecoderTrackType.VIDEO
@@ -983,92 +1119,91 @@ class PlayerService : MediaSessionService() {
         }
     }
 
-    private fun getDefaultArtworkUri(): Uri = Uri.Builder().apply {
-        val defaultArtwork = R.drawable.artwork_default
-        scheme(ContentResolver.SCHEME_ANDROID_RESOURCE)
-        authority(resources.getResourcePackageName(defaultArtwork))
-        appendPath(resources.getResourceTypeName(defaultArtwork))
-        appendPath(resources.getResourceEntryName(defaultArtwork))
-    }.build()
+    private fun getDefaultArtworkUri(): Uri =
+        Uri.Builder()
+            .apply {
+                val defaultArtwork = R.drawable.artwork_default
+                scheme(ContentResolver.SCHEME_ANDROID_RESOURCE)
+                authority(resources.getResourcePackageName(defaultArtwork))
+                appendPath(resources.getResourceTypeName(defaultArtwork))
+                appendPath(resources.getResourceEntryName(defaultArtwork))
+            }
+            .build()
 
     private fun loadArtworkForCurrentMediaItem() {
         artworkLoadJob?.cancel()
-        artworkLoadJob = serviceScope.launch(Dispatchers.Main) {
-            val player = mediaSession?.player ?: return@launch
-            val currentMediaItem = player.currentMediaItem ?: return@launch
-            if (currentMediaItem.mediaMetadata.artworkData != null) return@launch
+        artworkLoadJob =
+            serviceScope.launch(Dispatchers.Main) {
+                val player = mediaSession?.player ?: return@launch
+                val currentMediaItem = player.currentMediaItem ?: return@launch
+                if (currentMediaItem.mediaMetadata.artworkData != null) return@launch
 
-            val artworkUri = loadArtworkForMediaItem(currentMediaItem)
-                ?: getDefaultArtworkUri()
+                val artworkUri = loadArtworkForMediaItem(currentMediaItem) ?: getDefaultArtworkUri()
 
-            val updatedPlayer = mediaSession?.player ?: return@launch
-            val updatedMediaItem = updatedPlayer.currentMediaItem ?: return@launch
-            if (updatedMediaItem.mediaId != currentMediaItem.mediaId) return@launch
+                val updatedPlayer = mediaSession?.player ?: return@launch
+                val updatedMediaItem = updatedPlayer.currentMediaItem ?: return@launch
+                if (updatedMediaItem.mediaId != currentMediaItem.mediaId) return@launch
 
-            updatedPlayer.replaceMediaItem(
-                updatedPlayer.currentMediaItemIndex,
-                updatedMediaItem.withArtwork(artworkUri),
-            )
-        }
-    }
-    private suspend fun loadArtworkForMediaItem(mediaItem: MediaItem): Uri? = withContext(Dispatchers.IO) {
-        val defaultArtwork = getDefaultArtworkUri()
-        val uri = mediaItem.mediaMetadata.artworkUri
-            ?.takeUnless { it == defaultArtwork }
-            ?: if (mediaItem.isNetworkMediaItem()) {
-                return@withContext null
-            } else {
-                mediaItem.mediaId.toUri()
+                updatedPlayer.replaceMediaItem(
+                    updatedPlayer.currentMediaItemIndex,
+                    updatedMediaItem.withArtwork(artworkUri),
+                )
             }
-        return@withContext try {
-            val request = ImageRequest.Builder(this@PlayerService)
-                .data(uri)
-                .size(512, 512)
-                .build()
-            imageLoader.execute(request)
-            val diskCache = imageLoader.diskCache ?: return@withContext null
-            return@withContext diskCache.openSnapshot(uri.toString())?.use { snapshot ->
-                snapshot.data.toFile().toUri()
-            }
-        } catch (cancellation: CancellationException) {
-            throw cancellation
-        } catch (_: Exception) {
-            null
-        }
     }
+
+    private suspend fun loadArtworkForMediaItem(mediaItem: MediaItem): Uri? =
+        withContext(Dispatchers.IO) {
+            val defaultArtwork = getDefaultArtworkUri()
+            val uri =
+                mediaItem.mediaMetadata.artworkUri?.takeUnless { it == defaultArtwork }
+                    ?: if (mediaItem.isNetworkMediaItem()) {
+                        return@withContext null
+                    } else {
+                        mediaItem.mediaId.toUri()
+                    }
+            return@withContext try {
+                val request =
+                    ImageRequest.Builder(this@PlayerService).data(uri).size(512, 512).build()
+                imageLoader.execute(request)
+                val diskCache = imageLoader.diskCache ?: return@withContext null
+                return@withContext diskCache.openSnapshot(uri.toString())?.use { snapshot ->
+                    snapshot.data.toFile().toUri()
+                }
+            } catch (cancellation: CancellationException) {
+                throw cancellation
+            } catch (_: Exception) {
+                null
+            }
+        }
 
     private fun MediaItem.isNetworkMediaItem(): Boolean {
         val uri = localConfiguration?.uri ?: return false
         return uri.scheme?.lowercase() in REMOTE_SCHEMES || NetworkUri.isNetworkUri(uri)
     }
 
-    private fun MediaItem.withArtwork(uri: Uri): MediaItem = buildUpon()
-        .setMediaMetadata(
-            mediaMetadata.buildUpon()
-                .setArtworkUri(uri)
-                .build(),
-        )
-        .build()
+    private fun MediaItem.withArtwork(uri: Uri): MediaItem =
+        buildUpon().setMediaMetadata(mediaMetadata.buildUpon().setArtworkUri(uri).build()).build()
 }
 
 internal val PlaybackException.isDecoderFailure: Boolean
-    get() = when (errorCode) {
-        PlaybackException.ERROR_CODE_DECODER_INIT_FAILED,
-        PlaybackException.ERROR_CODE_DECODER_QUERY_FAILED,
-        PlaybackException.ERROR_CODE_DECODING_FAILED,
-        PlaybackException.ERROR_CODE_DECODING_FORMAT_EXCEEDS_CAPABILITIES,
-        PlaybackException.ERROR_CODE_DECODING_FORMAT_UNSUPPORTED,
-        PlaybackException.ERROR_CODE_DECODING_RESOURCES_RECLAIMED,
-        -> true
+    get() =
+        when (errorCode) {
+            PlaybackException.ERROR_CODE_DECODER_INIT_FAILED,
+            PlaybackException.ERROR_CODE_DECODER_QUERY_FAILED,
+            PlaybackException.ERROR_CODE_DECODING_FAILED,
+            PlaybackException.ERROR_CODE_DECODING_FORMAT_EXCEEDS_CAPABILITIES,
+            PlaybackException.ERROR_CODE_DECODING_FORMAT_UNSUPPORTED,
+            PlaybackException.ERROR_CODE_DECODING_RESOURCES_RECLAIMED -> true
 
-        else -> false
-    }
+            else -> false
+        }
 
 private val DecoderTrackType.mediaTrackType: Int
-    get() = when (this) {
-        DecoderTrackType.VIDEO -> C.TRACK_TYPE_VIDEO
-        DecoderTrackType.AUDIO -> C.TRACK_TYPE_AUDIO
-    }
+    get() =
+        when (this) {
+            DecoderTrackType.VIDEO -> C.TRACK_TYPE_VIDEO
+            DecoderTrackType.AUDIO -> C.TRACK_TYPE_AUDIO
+        }
 
 private const val DECODER_LOG_TAG = "Decoder"
 
@@ -1076,10 +1211,11 @@ private const val DECODER_LOG_TAG = "Decoder"
 @set:UnstableApi
 private var Player.playerSpecificSkipSilenceEnabled: Boolean
     @OptIn(UnstableApi::class)
-    get() = when (this) {
-        is ExoPlayer -> this.skipSilenceEnabled
-        else -> false
-    }
+    get() =
+        when (this) {
+            is ExoPlayer -> this.skipSilenceEnabled
+            else -> false
+        }
     set(value) {
         when (this) {
             is ExoPlayer -> this.skipSilenceEnabled = value
@@ -1090,10 +1226,11 @@ private var Player.playerSpecificSkipSilenceEnabled: Boolean
 @set:UnstableApi
 private var Player.playerSpecificSubtitleDelayMilliseconds: Long
     @OptIn(UnstableApi::class)
-    get() = when (this) {
-        is ExoPlayer -> this.subtitleDelayMilliseconds
-        else -> 0L
-    }
+    get() =
+        when (this) {
+            is ExoPlayer -> this.subtitleDelayMilliseconds
+            else -> 0L
+        }
     set(value) {
         when (this) {
             is ExoPlayer -> this.subtitleDelayMilliseconds = value
@@ -1104,10 +1241,11 @@ private var Player.playerSpecificSubtitleDelayMilliseconds: Long
 @set:UnstableApi
 private var Player.playerSpecificSubtitleSpeed: Float
     @OptIn(UnstableApi::class)
-    get() = when (this) {
-        is ExoPlayer -> this.subtitleSpeed
-        else -> 0f
-    }
+    get() =
+        when (this) {
+            is ExoPlayer -> this.subtitleSpeed
+            else -> 0f
+        }
     set(value) {
         when (this) {
             is ExoPlayer -> this.subtitleSpeed = value

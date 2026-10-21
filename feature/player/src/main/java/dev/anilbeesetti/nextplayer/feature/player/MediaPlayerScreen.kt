@@ -14,7 +14,6 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalInspectionMode
 import androidx.compose.ui.tooling.preview.Preview
-import androidx.compose.ui.tooling.preview.PreviewScreenSizes
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.compose.LifecycleEventEffect
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
@@ -68,63 +67,70 @@ internal fun MediaPlayerContent(
     val playerPreferences = state.playerPreferences
     val isPreview = LocalInspectionMode.current
     // Layout previews have neither a PlayerActivity nor a live video/audio session.
-    val volumeState = if (!isPreview) {
-        rememberVolumeState(
-            player = player,
-            showVolumePanelIfHeadsetIsOn = playerPreferences.showSystemVolumePanel,
-        )
-    } else {
-        null
-    }
+    val volumeState =
+        if (!isPreview) {
+            rememberVolumeState(
+                player = player,
+                showVolumePanelIfHeadsetIsOn = playerPreferences.showSystemVolumePanel,
+            )
+        } else {
+            null
+        }
     if (player == null) {
         Box(Modifier.fillMaxSize().background(Color.Black))
         return
     }
     val context = LocalContext.current
-    val controlsVisibilityState = rememberControlsVisibilityState(
-        player = player,
-        hideAfter = playerPreferences.controllerAutoHideTimeout.seconds,
-    )
-    val tapGestureState = rememberTapGestureState(
-        player = player,
-        doubleTapGesture = playerPreferences.doubleTapGesture,
-        seekIncrementMillis = playerPreferences.seekIncrement.seconds.inWholeMilliseconds,
-        useLongPressGesture = playerPreferences.useLongPressControls,
-        longPressSpeed = playerPreferences.longPressControlsSpeed,
-    )
-    val seekGestureState = rememberSeekGestureState(
-        player = player,
-        sensitivity = playerPreferences.seekSensitivity,
-        enableSeekGesture = playerPreferences.useSeekControls,
-    )
-    val pictureInPictureState = if (!isPreview) {
-        rememberPictureInPictureState(
+    val controlsVisibilityState =
+        rememberControlsVisibilityState(
             player = player,
-            autoEnter = playerPreferences.autoPip,
+            hideAfter = playerPreferences.controllerAutoHideTimeout.seconds,
         )
-    } else {
-        null
-    }
-    val videoZoomAndContentScaleState = rememberVideoZoomAndContentScaleState(
-        player = player,
-        initialContentScale = playerPreferences.playerVideoZoom,
-        enableZoomGesture = playerPreferences.useZoomControls,
-        enablePanGesture = playerPreferences.enablePanGesture,
-        onEvent = { onAction(PlayerAction.OnVideoZoomEvent(it)) },
-    )
+    val tapGestureState =
+        rememberTapGestureState(
+            player = player,
+            doubleTapGesture = playerPreferences.doubleTapGesture,
+            seekIncrementMillis = playerPreferences.seekIncrement.seconds.inWholeMilliseconds,
+            useLongPressGesture = playerPreferences.useLongPressControls,
+            longPressSpeed = playerPreferences.longPressControlsSpeed,
+        )
+    val seekGestureState =
+        rememberSeekGestureState(
+            player = player,
+            sensitivity = playerPreferences.seekSensitivity,
+            enableSeekGesture = playerPreferences.useSeekControls,
+        )
+    val pictureInPictureState =
+        if (!isPreview) {
+            rememberPictureInPictureState(
+                player = player,
+                autoEnter = playerPreferences.autoPip,
+            )
+        } else {
+            null
+        }
+    val videoZoomAndContentScaleState =
+        rememberVideoZoomAndContentScaleState(
+            player = player,
+            initialContentScale = playerPreferences.playerVideoZoom,
+            enableZoomGesture = playerPreferences.useZoomControls,
+            enablePanGesture = playerPreferences.enablePanGesture,
+            onEvent = { onAction(PlayerAction.OnVideoZoomEvent(it)) },
+        )
     val brightnessState = if (!isPreview) rememberBrightnessState() else null
-    val volumeAndBrightnessGestureState = if (volumeState != null && brightnessState != null) {
-        rememberVolumeAndBrightnessGestureState(
-            volumeState = volumeState,
-            brightnessState = brightnessState,
-            enableVolumeGesture = playerPreferences.enableVolumeSwipeGesture,
-            enableBrightnessGesture = playerPreferences.enableBrightnessSwipeGesture,
-            volumeGestureSensitivity = playerPreferences.volumeGestureSensitivity,
-            brightnessGestureSensitivity = playerPreferences.brightnessGestureSensitivity,
-        )
-    } else {
-        null
-    }
+    val volumeAndBrightnessGestureState =
+        if (volumeState != null && brightnessState != null) {
+            rememberVolumeAndBrightnessGestureState(
+                volumeState = volumeState,
+                brightnessState = brightnessState,
+                enableVolumeGesture = playerPreferences.enableVolumeSwipeGesture,
+                enableBrightnessGesture = playerPreferences.enableBrightnessSwipeGesture,
+                volumeGestureSensitivity = playerPreferences.volumeGestureSensitivity,
+                brightnessGestureSensitivity = playerPreferences.brightnessGestureSensitivity,
+            )
+        } else {
+            null
+        }
     if (!isPreview) {
         PlayerOrientationEffect(
             player = player,
@@ -134,7 +140,8 @@ internal fun MediaPlayerContent(
     val errorState = rememberErrorState(player = player)
 
     LaunchedEffect(pictureInPictureState?.isInPictureInPictureMode) {
-        if (pictureInPictureState?.isInPictureInPictureMode == true) controlsVisibilityState.hideControls()
+        if (pictureInPictureState?.isInPictureInPictureMode == true)
+            controlsVisibilityState.hideControls()
     }
     LaunchedEffect(tapGestureState.isLongPressGestureInAction) {
         if (tapGestureState.isLongPressGestureInAction) controlsVisibilityState.hideControls()
@@ -158,14 +165,15 @@ internal fun MediaPlayerContent(
                 player = player,
                 pictureInPictureState = pictureInPictureState,
                 videoZoomAndContentScaleState = videoZoomAndContentScaleState,
-                subtitleConfiguration = SubtitleConfiguration(
-                    useSystemCaptionStyle = playerPreferences.useSystemCaptionStyle,
-                    showBackground = playerPreferences.subtitleBackground,
-                    font = playerPreferences.subtitleFont,
-                    textSize = playerPreferences.subtitleTextSize,
-                    textBold = playerPreferences.subtitleTextBold,
-                    applyEmbeddedStyles = playerPreferences.applyEmbeddedStyles,
-                ),
+                subtitleConfiguration =
+                    SubtitleConfiguration(
+                        useSystemCaptionStyle = playerPreferences.useSystemCaptionStyle,
+                        showBackground = playerPreferences.subtitleBackground,
+                        font = playerPreferences.subtitleFont,
+                        textSize = playerPreferences.subtitleTextSize,
+                        textBold = playerPreferences.subtitleTextBold,
+                        applyEmbeddedStyles = playerPreferences.applyEmbeddedStyles,
+                    ),
             )
             if (volumeAndBrightnessGestureState != null) {
                 PlayerGestures(
@@ -190,7 +198,12 @@ internal fun MediaPlayerContent(
             onPictureInPictureClick = {
                 pictureInPictureState?.let {
                     if (!it.hasPipPermission) {
-                        Toast.makeText(context, R.string.enable_pip_from_settings, Toast.LENGTH_SHORT).show()
+                        Toast.makeText(
+                                context,
+                                R.string.enable_pip_from_settings,
+                                Toast.LENGTH_SHORT,
+                            )
+                            .show()
                         it.openPictureInPictureSettings()
                     } else {
                         it.enterPictureInPictureMode()
@@ -198,7 +211,11 @@ internal fun MediaPlayerContent(
                 }
             },
         )
-        if (volumeAndBrightnessGestureState != null && volumeState != null && brightnessState != null) {
+        if (
+            volumeAndBrightnessGestureState != null &&
+                volumeState != null &&
+                brightnessState != null
+        ) {
             PlayerVerticalGestureIndicators(
                 activeGesture = volumeAndBrightnessGestureState.activeGesture,
                 volumePercentage = volumeState.volumePercentage,

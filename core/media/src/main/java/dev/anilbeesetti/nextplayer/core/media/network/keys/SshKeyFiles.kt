@@ -109,13 +109,19 @@ class SshKeyFiles(
     }
 
     private fun reconcile(referencedFileNames: Set<String>) {
-        val stagedDeleted = stagingDirectory.listFiles().orEmpty()
-            .map { file -> file.deleteIfPresent() }
-            .all { deleted -> deleted }
-        val committedDeleted = committedDirectory.listFiles().orEmpty()
-            .filterNot { it.name in referencedFileNames }
-            .map { file -> file.deleteIfPresent() }
-            .all { deleted -> deleted }
+        val stagedDeleted =
+            stagingDirectory
+                .listFiles()
+                .orEmpty()
+                .map { file -> file.deleteIfPresent() }
+                .all { deleted -> deleted }
+        val committedDeleted =
+            committedDirectory
+                .listFiles()
+                .orEmpty()
+                .filterNot { it.name in referencedFileNames }
+                .map { file -> file.deleteIfPresent() }
+                .all { deleted -> deleted }
         check(stagedDeleted && committedDeleted) { "Couldn't reconcile private keys" }
     }
 
@@ -124,8 +130,10 @@ class SshKeyFiles(
         check(
             generatedName !in importsInProgress &&
                 !stagedFile(generatedName).exists() &&
-                !committedFile(generatedName).exists(),
-        ) { "Private key filename is already in use" }
+                !committedFile(generatedName).exists()
+        ) {
+            "Private key filename is already in use"
+        }
         stagingDirectory.mkdirs()
         importsInProgress += generatedName
         return PendingImport(

@@ -63,28 +63,29 @@ class TapGestureState(
     fun handleDoubleTap(offset: Offset, size: IntSize) {
         if (!player.isCurrentMediaItemSeekable) return
 
-        val action = when (doubleTapGesture) {
-            DoubleTapGesture.FAST_FORWARD_AND_REWIND -> {
-                val viewCenterX = size.width / 2
-                when {
-                    offset.x < viewCenterX -> DoubleTapAction.SEEK_BACKWARD
-                    else -> DoubleTapAction.SEEK_FORWARD
+        val action =
+            when (doubleTapGesture) {
+                DoubleTapGesture.FAST_FORWARD_AND_REWIND -> {
+                    val viewCenterX = size.width / 2
+                    when {
+                        offset.x < viewCenterX -> DoubleTapAction.SEEK_BACKWARD
+                        else -> DoubleTapAction.SEEK_FORWARD
+                    }
                 }
-            }
 
-            DoubleTapGesture.BOTH -> {
-                val eventPositionX = offset.x / size.width
-                when {
-                    eventPositionX < 0.35 -> DoubleTapAction.SEEK_BACKWARD
-                    eventPositionX > 0.65 -> DoubleTapAction.SEEK_FORWARD
-                    else -> DoubleTapAction.PLAY_PAUSE
+                DoubleTapGesture.BOTH -> {
+                    val eventPositionX = offset.x / size.width
+                    when {
+                        eventPositionX < 0.35 -> DoubleTapAction.SEEK_BACKWARD
+                        eventPositionX > 0.65 -> DoubleTapAction.SEEK_FORWARD
+                        else -> DoubleTapAction.PLAY_PAUSE
+                    }
                 }
+
+                DoubleTapGesture.PLAY_PAUSE -> DoubleTapAction.PLAY_PAUSE
+
+                DoubleTapGesture.NONE -> return
             }
-
-            DoubleTapGesture.PLAY_PAUSE -> DoubleTapAction.PLAY_PAUSE
-
-            DoubleTapGesture.NONE -> return
-        }
 
         when (action) {
             DoubleTapAction.SEEK_BACKWARD -> {

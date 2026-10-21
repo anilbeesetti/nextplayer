@@ -17,22 +17,22 @@ fun PermissionMissingView(
         content()
     } else if (showRationale) {
         PermissionRationaleDialog(
-            text = stringResource(
-                id = R.string.permission_info,
-                permission,
-            ),
+            text =
+                stringResource(
+                    id = R.string.permission_info,
+                    permission,
+                ),
             onConfirmButtonClick = launchPermissionRequest,
         )
     } else {
         PermissionDetailView(
-            text = stringResource(
-                id = R.string.permission_settings,
-                permission,
-            ),
+            text =
+                stringResource(
+                    id = R.string.permission_settings,
+                    permission,
+                )
         )
 
-        LaunchedEffect(Unit) {
-            launchPermissionRequest()
-        }
+        LaunchedEffect(Unit) { launchPermissionRequest() }
     }
 }

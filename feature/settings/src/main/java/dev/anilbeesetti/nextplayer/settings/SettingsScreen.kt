@@ -36,6 +36,7 @@ data class SettingsOutput(
 
 private sealed interface SettingsAction {
     data object NavigateUp : SettingsAction
+
     data class OpenSetting(val setting: Setting) : SettingsAction
 }
 
@@ -51,9 +52,7 @@ fun SettingsScreen(output: SettingsOutput) {
 
 @OptIn(ExperimentalMaterial3Api::class, ExperimentalMaterial3ExpressiveApi::class)
 @Composable
-private fun SettingsScreenContent(
-    onAction: (SettingsAction) -> Unit,
-) {
+private fun SettingsScreenContent(onAction: (SettingsAction) -> Unit) {
     val settingRows = remember { SettingRow.entries }
     val focusState = rememberRestorableFocusState()
 
@@ -77,13 +76,13 @@ private fun SettingsScreenContent(
         containerColor = MaterialTheme.colorScheme.surfaceContainer,
     ) { innerPadding ->
         Column(
-            modifier = Modifier
-                .fillMaxSize()
-                .verticalScroll(state = rememberScrollState())
-                .restorableFocusGroup(focusState)
-                .padding(innerPadding)
-                .padding(horizontal = 16.dp)
-                .padding(vertical = 16.dp),
+            modifier =
+                Modifier.fillMaxSize()
+                    .verticalScroll(state = rememberScrollState())
+                    .restorableFocusGroup(focusState)
+                    .padding(innerPadding)
+                    .padding(horizontal = 16.dp)
+                    .padding(vertical = 16.dp),
             verticalArrangement = Arrangement.spacedBy(ListItemDefaults.SegmentedGap),
         ) {
             settingRows.forEachIndexed { index, row ->

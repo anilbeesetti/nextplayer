@@ -28,8 +28,7 @@ import org.junit.runner.RunWith
 
 @RunWith(AndroidJUnit4::class)
 class MoreScreenFocusTest {
-    @get:Rule
-    val composeRule = createAndroidComposeRule<ComponentActivity>()
+    @get:Rule val composeRule = createAndroidComposeRule<ComponentActivity>()
 
     private val state = mutableStateOf(MoreUiState(history = DataState.Success(clips)))
 
@@ -83,7 +82,9 @@ class MoreScreenFocusTest {
     fun historyUpdatesDoNotStealFocusFromActions() {
         showMore(emptyList())
         composeRule.onNodeWithText("Pick file").requestFocus()
-        composeRule.runOnIdle { state.value = MoreUiState(history = DataState.Success(clips.reversed())) }
+        composeRule.runOnIdle {
+            state.value = MoreUiState(history = DataState.Success(clips.reversed()))
+        }
         composeRule.onNodeWithText("Pick file").assertIsFocused()
     }
 
@@ -92,9 +93,9 @@ class MoreScreenFocusTest {
         showMore()
         composeRule.onNodeWithContentDescription("History").requestFocus()
         press(Key.DirectionUp)
-        composeRule.onNode(
-            isFocused() and (hasText("Vault") or hasText("Pick file") or hasText("Trash")),
-        ).assertExists()
+        composeRule
+            .onNode(isFocused() and (hasText("Vault") or hasText("Pick file") or hasText("Trash")))
+            .assertExists()
     }
 
     @Test
@@ -122,10 +123,11 @@ class MoreScreenFocusTest {
     }
 }
 
-private val clips = (1..10).map { index ->
-    Video.sample.copy(
-        id = index.toLong(),
-        nameWithExtension = "Clip %02d.mp4".format(index),
-        uriString = "content://video/$index",
-    )
-}
+private val clips =
+    (1..10).map { index ->
+        Video.sample.copy(
+            id = index.toLong(),
+            nameWithExtension = "Clip %02d.mp4".format(index),
+            uriString = "content://video/$index",
+        )
+    }

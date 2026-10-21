@@ -33,11 +33,12 @@ class DataStoreModule {
         context: Context,
         @Named(DiQualifiers.IO_DISPATCHER) ioDispatcher: CoroutineDispatcher,
         @Named(DiQualifiers.APPLICATION_SCOPE) scope: CoroutineScope,
-    ): DataStore<ApplicationPreferences> = DataStoreFactory.create(
-        serializer = ApplicationPreferencesSerializer,
-        scope = CoroutineScope(scope.coroutineContext + ioDispatcher),
-        produceFile = { context.dataStoreFile(APP_PREFERENCES_DATASTORE_FILE) },
-    )
+    ): DataStore<ApplicationPreferences> =
+        DataStoreFactory.create(
+            serializer = ApplicationPreferencesSerializer,
+            scope = CoroutineScope(scope.coroutineContext + ioDispatcher),
+            produceFile = { context.dataStoreFile(APP_PREFERENCES_DATASTORE_FILE) },
+        )
 
     @Single
     @Named(DiQualifiers.PLAYER_PREFERENCES)
@@ -45,11 +46,12 @@ class DataStoreModule {
         applicationContext: Context,
         @Named(DiQualifiers.IO_DISPATCHER) ioDispatcher: CoroutineDispatcher,
         @Named(DiQualifiers.APPLICATION_SCOPE) scope: CoroutineScope,
-    ): DataStore<PlayerPreferences> = DataStoreFactory.create(
-        serializer = PlayerPreferencesSerializer,
-        scope = CoroutineScope(scope.coroutineContext + ioDispatcher),
-        produceFile = { applicationContext.dataStoreFile(PLAYER_PREFERENCES_DATASTORE_FILE) },
-    )
+    ): DataStore<PlayerPreferences> =
+        DataStoreFactory.create(
+            serializer = PlayerPreferencesSerializer,
+            scope = CoroutineScope(scope.coroutineContext + ioDispatcher),
+            produceFile = { applicationContext.dataStoreFile(PLAYER_PREFERENCES_DATASTORE_FILE) },
+        )
 
     @Single
     @Named(DiQualifiers.SEARCH_HISTORY)
@@ -57,9 +59,10 @@ class DataStoreModule {
         applicationContext: Context,
         @Named(DiQualifiers.IO_DISPATCHER) ioDispatcher: CoroutineDispatcher,
         @Named(DiQualifiers.APPLICATION_SCOPE) scope: CoroutineScope,
-    ): DataStore<SearchHistory> = DataStoreFactory.create(
-        serializer = SearchHistorySerializer,
-        scope = CoroutineScope(scope.coroutineContext + ioDispatcher),
-        produceFile = { applicationContext.dataStoreFile(SEARCH_HISTORY_DATASTORE_FILE) },
-    )
+    ): DataStore<SearchHistory> =
+        DataStoreFactory.create(
+            serializer = SearchHistorySerializer,
+            scope = CoroutineScope(scope.coroutineContext + ioDispatcher),
+            produceFile = { applicationContext.dataStoreFile(SEARCH_HISTORY_DATASTORE_FILE) },
+        )
 }

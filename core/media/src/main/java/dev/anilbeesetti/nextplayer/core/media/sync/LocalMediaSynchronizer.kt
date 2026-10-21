@@ -48,13 +48,17 @@ class LocalMediaSynchronizer(
 
     override fun startSync() {
         if (mediaSyncingJob?.isActive == true) return
-        mediaSyncingJob = mediaService.observeVideos()
-            .onEach { media -> updateMedia(media) }
-            .catch {
-                // A failed MediaStore query is not a complete snapshot. Leave stored state alone;
-                // startSync can retry after storage permission or the provider becomes available.
-            }
-            .launchIn(applicationScope)
+        mediaSyncingJob =
+            mediaService
+                .observeVideos()
+                .onEach { media -> updateMedia(media) }
+                .catch {
+                    // A failed MediaStore query is not a complete snapshot. Leave stored state
+                    // alone;
+                    // startSync can retry after storage permission or the provider becomes
+                    // available.
+                }
+                .launchIn(applicationScope)
     }
 
     override fun stopSync() {
@@ -62,47 +66,58 @@ class LocalMediaSynchronizer(
     }
 
     private fun Context.hasStoragePermission(): Boolean =
-        ContextCompat.checkSelfPermission(this, storagePermission) == PackageManager.PERMISSION_GRANTED
+        ContextCompat.checkSelfPermission(this, storagePermission) ==
+            PackageManager.PERMISSION_GRANTED
 
-    private suspend fun updateMedia(media: List<MediaVideo>) = withContext(Dispatchers.Default) {
-        if (!context.hasStoragePermission()) return@withContext
+    private suspend fun updateMedia(media: List<MediaVideo>) =
+        withContext(Dispatchers.Default) {
+            if (!context.hasStoragePermission()) return@withContext
 
-        val currentMediaUris = media.mapTo(mutableSetOf()) { it.uri.toString() }
+            val currentMediaUris = media.mapTo(mutableSetOf()) { it.uri.toString() }
 
-        playlistDao.removeMissingLocalItems(currentMediaUris)
+            playlistDao.removeMissingLocalItems(currentMediaUris)
 
-        val (wantedMediaStates, unwantedMediaStates) = mediumStateDao.getAll().first().partition {
-            it.uriString in currentMediaUris || !ContentResolver.SCHEME_CONTENT.equals(it.uriString.toUri().scheme, ignoreCase = true)
-        }
+            val (wantedMediaStates, unwantedMediaStates) =
+                mediumStateDao.getAll().first().partition {
+                    it.uriString in currentMediaUris ||
+                        !ContentResolver.SCHEME_CONTENT.equals(
+                            it.uriString.toUri().scheme,
+                            ignoreCase = true,
+                        )
+                }
 
-        mediumStateDao.delete(unwantedMediaStates.map { it.uriString })
+            mediumStateDao.delete(unwantedMediaStates.map { it.uriString })
 
-        // Delete unwanted thumbnails
-        unwantedMediaStates.forEach { mediaState ->
-            try {
-                imageLoader.diskCache?.remove(mediaState.uriString)
-            } catch (e: Exception) {
-                e.printStackTrace()
+            // Delete unwanted thumbnails
+            unwantedMediaStates.forEach { mediaState ->
+                try {
+                    imageLoader.diskCache?.remove(mediaState.uriString)
+                } catch (e: Exception) {
+                    e.printStackTrace()
+                }
             }
-        }
 
-        // Release external subtitle uri permission if not used by any other media
-        launch {
-            val currentMediaExternalSubs = wantedMediaStates.flatMap {
-                UriListConverter.fromStringToList(it.externalSubs)
-            }.toSet()
+            // Release external subtitle uri permission if not used by any other media
+            launch {
+                val currentMediaExternalSubs =
+                    wantedMediaStates
+                        .flatMap { UriListConverter.fromStringToList(it.externalSubs) }
+                        .toSet()
 
-            unwantedMediaStates.onEach { mediaState ->
-                for (sub in UriListConverter.fromStringToList(mediaState.externalSubs)) {
-                    if (sub !in currentMediaExternalSubs) {
-                        try {
-                            context.contentResolver.releasePersistableUriPermission(sub, Intent.FLAG_GRANT_READ_URI_PERMISSION)
-                        } catch (e: Exception) {
-                            e.printStackTrace()
+                unwantedMediaStates.onEach { mediaState ->
+                    for (sub in UriListConverter.fromStringToList(mediaState.externalSubs)) {
+                        if (sub !in currentMediaExternalSubs) {
+                            try {
+                                context.contentResolver.releasePersistableUriPermission(
+                                    sub,
+                                    Intent.FLAG_GRANT_READ_URI_PERMISSION,
+                                )
+                            } catch (e: Exception) {
+                                e.printStackTrace()
+                            }
                         }
                     }
                 }
             }
         }
-    }
 }

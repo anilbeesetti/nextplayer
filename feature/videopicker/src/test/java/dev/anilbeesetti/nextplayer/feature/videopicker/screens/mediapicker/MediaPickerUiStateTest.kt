@@ -11,7 +11,8 @@ import org.junit.Test
 class MediaPickerUiStateTest {
     private val folder = Folder.sample.copy(path = "/storage/Movies")
     private val video = Video.sample.copy(path = "/storage/Movies/sample.mp4")
-    private val media = DataState.Success(MediaHolder(videos = emptyList(), folders = listOf(folder)))
+    private val media =
+        DataState.Success(MediaHolder(videos = emptyList(), folders = listOf(folder)))
 
     @Test
     fun `recent folder is resolved regardless of which source emits first`() {
@@ -27,10 +28,23 @@ class MediaPickerUiStateTest {
 
     @Test
     fun `recent folder tracks changes to either source`() {
-        val state = MediaPickerUiState(folderName = null, recentlyPlayedVideo = video, mediaDataState = media)
+        val state =
+            MediaPickerUiState(
+                folderName = null,
+                recentlyPlayedVideo = video,
+                mediaDataState = media,
+            )
         assertNull(state.copy(recentlyPlayedVideo = null).recentlyPlayedFolder)
-        assertNull(state.copy(recentlyPlayedVideo = video.copy(path = "/storage/Elsewhere/sample.mp4")).recentlyPlayedFolder)
+        assertNull(
+            state
+                .copy(recentlyPlayedVideo = video.copy(path = "/storage/Elsewhere/sample.mp4"))
+                .recentlyPlayedFolder
+        )
         assertNull(state.copy(mediaDataState = DataState.Success(null)).recentlyPlayedFolder)
-        assertNull(state.copy(mediaDataState = DataState.Success(MediaHolder(emptyList(), emptyList()))).recentlyPlayedFolder)
+        assertNull(
+            state
+                .copy(mediaDataState = DataState.Success(MediaHolder(emptyList(), emptyList())))
+                .recentlyPlayedFolder
+        )
     }
 }

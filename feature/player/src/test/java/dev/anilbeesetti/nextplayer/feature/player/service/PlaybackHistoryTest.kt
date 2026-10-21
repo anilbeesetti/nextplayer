@@ -34,38 +34,53 @@ class PlaybackHistoryTest {
     @Test
     fun readyQueueItemsRecordHistoryWithoutAnotherFirstFrame() {
         val recorded = mutableListOf<Pair<String, Long?>>()
-        val repository = object : MediaRepository by FakeMediaRepository() {
-            override suspend fun updateMediumLastPlayedTime(uri: String, lastPlayedTime: Long, duration: Long?) {
-                assertTrue(lastPlayedTime > 0)
-                recorded += uri to duration
+        val repository =
+            object : MediaRepository by FakeMediaRepository() {
+                override suspend fun updateMediumLastPlayedTime(
+                    uri: String,
+                    lastPlayedTime: Long,
+                    duration: Long?,
+                ) {
+                    assertTrue(lastPlayedTime > 0)
+                    recorded += uri to duration
+                }
             }
-        }
         startKoin {
             modules(
                 module {
                     single<MediaRepository> { repository }
                     single { ImageLoader.Builder(RuntimeEnvironment.getApplication()).build() }
-                },
+                }
             )
         }
         val service = PlayerService()
-        val listener = PlayerService::class.java.getDeclaredField("playbackStateListener")
-            .apply { isAccessible = true }.get(service) as Player.Listener
+        val listener =
+            PlayerService::class
+                .java
+                .getDeclaredField("playbackStateListener")
+                .apply { isAccessible = true }
+                .get(service) as Player.Listener
         val exoPlayer = ExoPlayer.Builder(RuntimeEnvironment.getApplication()).build()
         var state = Player.STATE_BUFFERING
         var duration = 20_000L
-        val player = object : ForwardingPlayer(exoPlayer) {
-            override fun getPlaybackState(): Int = state
-            override fun getDuration(): Long = duration
-        }
+        val player =
+            object : ForwardingPlayer(exoPlayer) {
+                override fun getPlaybackState(): Int = state
+
+                override fun getDuration(): Long = duration
+            }
         fun notify(event: Int) {
             listener.onEvents(player, Player.Events(FlagSet.Builder().add(event).build()))
             shadowOf(Looper.getMainLooper()).idle()
         }
         try {
-            val items = listOf("first", "second").map {
-                MediaItem.Builder().setMediaId(it).setUri("webdav://example.com/$it.mp4?cid=1").build()
-            }
+            val items =
+                listOf("first", "second").map {
+                    MediaItem.Builder()
+                        .setMediaId(it)
+                        .setUri("webdav://example.com/$it.mp4?cid=1")
+                        .build()
+                }
             player.setMediaItems(items)
             notify(Player.EVENT_MEDIA_ITEM_TRANSITION)
             assertTrue(recorded.isEmpty())

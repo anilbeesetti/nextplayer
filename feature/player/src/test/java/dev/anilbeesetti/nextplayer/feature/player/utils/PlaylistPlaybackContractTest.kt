@@ -42,24 +42,26 @@ class PlaylistPlaybackContractTest {
         assertNull(playlistRecord().toMediaQueue("https://example.com/missing"))
     }
 
-    private fun playlistRecord() = PlaylistRecord(
-        id = 7,
-        name = "Channels",
-        type = PlaylistType.M3U_URL,
-        source = "https://example.com/list.m3u",
-        items = listOf(
-            PlaylistItemRecord(
-                position = 0,
-                uri = "https://example.com/one",
-                title = "One",
-                tvgLogo = "https://example.com/one.png",
-            ),
-            PlaylistItemRecord(
-                position = 1,
-                uri = "https://example.com/two",
-                title = "Two",
-            ),
-        ),
-        lastRefreshedAt = 123,
-    )
+    private fun playlistRecord() =
+        PlaylistRecord(
+            id = 7,
+            name = "Channels",
+            type = PlaylistType.M3U_URL,
+            source = "https://example.com/list.m3u",
+            items =
+                listOf(
+                    PlaylistItemRecord(
+                        position = 0,
+                        uri = "https://example.com/one",
+                        title = "One",
+                        tvgLogo = "https://example.com/one.png",
+                    ),
+                    PlaylistItemRecord(
+                        position = 1,
+                        uri = "https://example.com/two",
+                        title = "Two",
+                    ),
+                ),
+            lastRefreshedAt = 123,
+        )
 }

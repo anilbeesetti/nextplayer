@@ -14,7 +14,7 @@ class PlayerActivityTest {
                 isRequestedUriCurrent = true,
                 hasExplicitPlaylist = true,
                 hasNextMediaItem = true,
-            ),
+            )
         )
     }
 
@@ -26,7 +26,7 @@ class PlayerActivityTest {
                 isRequestedUriCurrent = true,
                 hasExplicitPlaylist = false,
                 hasNextMediaItem = true,
-            ),
+            )
         )
     }
 
@@ -38,7 +38,7 @@ class PlayerActivityTest {
                 isRequestedUriCurrent = true,
                 hasExplicitPlaylist = false,
                 hasNextMediaItem = false,
-            ),
+            )
         )
     }
 
@@ -50,8 +50,7 @@ class PlayerActivityTest {
                 isRequestedUriCurrent = true,
                 hasExplicitPlaylist = true,
                 hasNextMediaItem = false,
-            ),
+            )
         )
     }
-
 }

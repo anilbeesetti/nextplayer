@@ -32,11 +32,15 @@ class ExternalAudioMediaSourceFactoryTest {
         lateinit var player: ExoPlayer
         try {
             instrumentation.runOnMainSync {
-                player = ExoPlayer.Builder(context)
-                    .setMediaSourceFactory(ExternalAudioMediaSourceFactory(DefaultMediaSourceFactory(context)))
-                    .build()
+                player =
+                    ExoPlayer.Builder(context)
+                        .setMediaSourceFactory(
+                            ExternalAudioMediaSourceFactory(DefaultMediaSourceFactory(context))
+                        )
+                        .build()
                 player.setMediaItem(
-                    MediaItem.fromUri(primary.toUri()).withExternalAudio(listOf(shortAudio.toUri(), longAudio.toUri())),
+                    MediaItem.fromUri(primary.toUri())
+                        .withExternalAudio(listOf(shortAudio.toUri(), longAudio.toUri()))
                 )
                 player.prepare()
             }
@@ -48,7 +52,10 @@ class ExternalAudioMediaSourceFactoryTest {
                 player.setPlaybackSpeed(1.5f)
                 player.seekTo(2000)
             }
-            await { player.currentTracks.groups[1].isSelected && player.playbackState == Player.STATE_READY }
+            await {
+                player.currentTracks.groups[1].isSelected &&
+                    player.playbackState == Player.STATE_READY
+            }
             instrumentation.runOnMainSync {
                 assertEquals(2000L, player.currentPosition)
                 assertEquals(1.5f, player.playbackParameters.speed)
@@ -77,10 +84,22 @@ class ExternalAudioMediaSourceFactoryTest {
 
     private fun wav(file: File, seconds: Int): File {
         val bytes = seconds * 8000 * 2
-        val header = ByteBuffer.allocate(44).order(ByteOrder.LITTLE_ENDIAN)
-            .put("RIFF".toByteArray()).putInt(36 + bytes).put("WAVEfmt ".toByteArray())
-            .putInt(16).putShort(1).putShort(1).putInt(8000).putInt(16000)
-            .putShort(2).putShort(16).put("data".toByteArray()).putInt(bytes).array()
+        val header =
+            ByteBuffer.allocate(44)
+                .order(ByteOrder.LITTLE_ENDIAN)
+                .put("RIFF".toByteArray())
+                .putInt(36 + bytes)
+                .put("WAVEfmt ".toByteArray())
+                .putInt(16)
+                .putShort(1)
+                .putShort(1)
+                .putInt(8000)
+                .putInt(16000)
+                .putShort(2)
+                .putShort(16)
+                .put("data".toByteArray())
+                .putInt(bytes)
+                .array()
         file.outputStream().use {
             it.write(header)
             it.write(ByteArray(bytes))

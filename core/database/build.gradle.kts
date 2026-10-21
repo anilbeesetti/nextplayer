@@ -10,9 +10,7 @@ android {
     namespace = "dev.anilbeesetti.nextplayer.core.database"
     compileSdk = libs.versions.android.compileSdk.get().toInt()
 
-    sourceSets {
-        getByName("androidTest").assets.srcDir("$projectDir/schemas")
-    }
+    sourceSets { getByName("androidTest").assets.srcDir("$projectDir/schemas") }
 
     defaultConfig {
         minSdk = libs.versions.android.minSdk.get().toInt()
@@ -24,9 +22,7 @@ android {
         targetCompatibility = JavaVersion.toVersion(libs.versions.android.jvm.get().toInt())
     }
 
-    ksp {
-        arg("room.schemaLocation", "$projectDir/schemas")
-    }
+    ksp { arg("room.schemaLocation", "$projectDir/schemas") }
 }
 
 androidComponents {
@@ -35,14 +31,9 @@ androidComponents {
     }
 }
 
-kotlin {
-    compilerOptions {
-        jvmTarget.set(JvmTarget.fromTarget(libs.versions.android.jvm.get()))
-    }
-}
+kotlin { compilerOptions { jvmTarget.set(JvmTarget.fromTarget(libs.versions.android.jvm.get())) } }
 
 dependencies {
-
     implementation(libs.androidx.core.ktx)
 
     // Koin

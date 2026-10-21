@@ -18,7 +18,5 @@ internal fun copyCrashReportToClipboard(
     clipboard: ClipboardManager,
     report: String,
 ) {
-    clipboard.setPrimaryClip(
-        ClipData.newPlainText(null, crashReportForClipboard(report)),
-    )
+    clipboard.setPrimaryClip(ClipData.newPlainText(null, crashReportForClipboard(report)))
 }

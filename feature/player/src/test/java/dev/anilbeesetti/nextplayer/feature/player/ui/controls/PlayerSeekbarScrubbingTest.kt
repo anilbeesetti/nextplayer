@@ -38,27 +38,33 @@ import org.robolectric.annotation.Config
 @RunWith(RobolectricTestRunner::class)
 @Config(sdk = [36])
 class PlayerSeekbarScrubbingTest {
-    @get:Rule
-    val composeRule = createAndroidComposeRule<ComponentActivity>()
+    @get:Rule val composeRule = createAndroidComposeRule<ComponentActivity>()
 
     @Test
     fun losingFocusBeforeSeekKeyUpResumesPlaybackForBothStyles() {
         withSeekbar { player, sliderFocus, otherFocus, setMaterial, _ ->
-            val slider = composeRule.onNode(SemanticsMatcher.keyIsDefined(SemanticsProperties.ProgressBarRangeInfo))
+            val slider =
+                composeRule.onNode(
+                    SemanticsMatcher.keyIsDefined(SemanticsProperties.ProgressBarRangeInfo)
+                )
             for (material in listOf(false, true)) {
-                composeRule.runOnIdle {
-                    setMaterial(material)
-                }
+                composeRule.runOnIdle { setMaterial(material) }
                 composeRule.runOnIdle { sliderFocus.requestFocus() }
                 slider.performKeyInput { keyDown(Key.DirectionRight) }
                 composeRule.runOnIdle {
                     assertTrue(player.isScrubbingModeEnabled)
-                    assertEquals(Player.PLAYBACK_SUPPRESSION_REASON_SCRUBBING, player.playbackSuppressionReason)
+                    assertEquals(
+                        Player.PLAYBACK_SUPPRESSION_REASON_SCRUBBING,
+                        player.playbackSuppressionReason,
+                    )
                     otherFocus.requestFocus()
                 }
                 composeRule.runOnIdle {
                     assertFalse(player.isScrubbingModeEnabled)
-                    assertEquals(Player.PLAYBACK_SUPPRESSION_REASON_NONE, player.playbackSuppressionReason)
+                    assertEquals(
+                        Player.PLAYBACK_SUPPRESSION_REASON_NONE,
+                        player.playbackSuppressionReason,
+                    )
                     assertTrue(player.playWhenReady)
                 }
                 // Key up now reaches the other control, not the slider.
@@ -70,7 +76,10 @@ class PlayerSeekbarScrubbingTest {
     @Test
     fun normalKeyReleasePreservesPausedPlaybackForBothStyles() {
         withSeekbar { player, sliderFocus, _, setMaterial, _ ->
-            val slider = composeRule.onNode(SemanticsMatcher.keyIsDefined(SemanticsProperties.ProgressBarRangeInfo))
+            val slider =
+                composeRule.onNode(
+                    SemanticsMatcher.keyIsDefined(SemanticsProperties.ProgressBarRangeInfo)
+                )
             for (material in listOf(false, true)) {
                 composeRule.runOnIdle {
                     player.pause()
@@ -91,7 +100,10 @@ class PlayerSeekbarScrubbingTest {
     @Test
     fun removingSeekbarDuringTouchScrubResumesPlaybackForBothStyles() {
         withSeekbar { player, _, _, setMaterial, setVisible ->
-            val slider = composeRule.onNode(SemanticsMatcher.keyIsDefined(SemanticsProperties.ProgressBarRangeInfo))
+            val slider =
+                composeRule.onNode(
+                    SemanticsMatcher.keyIsDefined(SemanticsProperties.ProgressBarRangeInfo)
+                )
             for (material in listOf(false, true)) {
                 composeRule.runOnIdle {
                     setMaterial(material)
@@ -107,7 +119,10 @@ class PlayerSeekbarScrubbingTest {
                 }
                 composeRule.runOnIdle {
                     assertFalse(player.isScrubbingModeEnabled)
-                    assertEquals(Player.PLAYBACK_SUPPRESSION_REASON_NONE, player.playbackSuppressionReason)
+                    assertEquals(
+                        Player.PLAYBACK_SUPPRESSION_REASON_NONE,
+                        player.playbackSuppressionReason,
+                    )
                     assertTrue(player.playWhenReady)
                 }
                 composeRule.onRoot().performTouchInput { cancel() }
@@ -116,9 +131,18 @@ class PlayerSeekbarScrubbingTest {
     }
 
     private fun withSeekbar(
-        check: (ExoPlayer, FocusRequester, FocusRequester, (Boolean) -> Unit, (Boolean) -> Unit) -> Unit,
+        check:
+            (
+                ExoPlayer,
+                FocusRequester,
+                FocusRequester,
+                (Boolean) -> Unit,
+                (Boolean) -> Unit,
+            ) -> Unit
     ) {
-        val player = composeRule.runOnIdle { ExoPlayer.Builder(composeRule.activity).build().apply { play() } }
+        val player = composeRule.runOnIdle {
+            ExoPlayer.Builder(composeRule.activity).build().apply { play() }
+        }
         val sliderFocus = FocusRequester()
         val otherFocus = FocusRequester()
         var position by mutableFloatStateOf(100f)
@@ -142,16 +166,16 @@ class PlayerSeekbarScrubbingTest {
                                     onSeekFinished = { player.setIsScrubbingModeEnabled(false) },
                                 )
                             }
-                            Button(modifier = Modifier.focusRequester(otherFocus), onClick = {}) { Text("Other control") }
+                            Button(modifier = Modifier.focusRequester(otherFocus), onClick = {}) {
+                                Text("Other control")
+                            }
                         }
                     }
                 }
             }
             check(player, sliderFocus, otherFocus, { material = it }, { visible = it })
         } finally {
-            composeRule.runOnIdle {
-                visible = false
-            }
+            composeRule.runOnIdle { visible = false }
             composeRule.runOnIdle { player.release() }
         }
     }

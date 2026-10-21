@@ -10,8 +10,7 @@ import kotlinx.serialization.Serializable
 import org.koin.compose.viewmodel.koinViewModel
 import org.koin.core.parameter.parametersOf
 
-@Serializable
-object AppearancePreferencesRoute : NavKey
+@Serializable object AppearancePreferencesRoute : NavKey
 
 fun NavBackStack<NavKey>.navigateToAppearancePreferences() {
     add(AppearancePreferencesRoute)
@@ -19,12 +18,9 @@ fun NavBackStack<NavKey>.navigateToAppearancePreferences() {
 
 fun EntryProviderScope<NavKey>.appearancePreferencesEntry(onNavigateUp: () -> Unit) {
     entry<AppearancePreferencesRoute> {
-        val output = AppearancePreferencesViewModel.Output(
-            navigateUp = onNavigateUp,
-        )
-        val viewModel = koinViewModel<AppearancePreferencesViewModel>(
-            parameters = { parametersOf(output) },
-        )
+        val output = AppearancePreferencesViewModel.Output(navigateUp = onNavigateUp)
+        val viewModel =
+            koinViewModel<AppearancePreferencesViewModel>(parameters = { parametersOf(output) })
         SideEffect { viewModel.output = output }
         AppearancePreferencesScreen(viewModel = viewModel)
     }

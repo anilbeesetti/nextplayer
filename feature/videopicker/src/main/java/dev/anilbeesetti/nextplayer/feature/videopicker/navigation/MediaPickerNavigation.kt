@@ -11,10 +11,7 @@ import kotlinx.serialization.Serializable
 import org.koin.compose.viewmodel.koinViewModel
 import org.koin.core.parameter.parametersOf
 
-@Serializable
-data class MediaPickerRoute(
-    val folderId: String? = null,
-) : NavKey
+@Serializable data class MediaPickerRoute(val folderId: String? = null) : NavKey
 
 fun NavBackStack<NavKey>.navigateToMediaPickerScreen(folderId: String) {
     add(MediaPickerRoute(folderId))
@@ -30,23 +27,25 @@ fun EntryProviderScope<NavKey>.mediaPickerEntry(
     onVaultClick: () -> Unit,
 ) {
     entry<MediaPickerRoute> { key ->
-        val output = MediaPickerViewModel.Output(
-            navigateUp = onNavigateUp,
-            playVideo = onPlayVideo,
-            playVideos = onPlayVideos,
-            openFolder = onFolderClick,
-            openSettings = onSettingsClick,
-            openSearch = onSearchClick,
-            openVault = onVaultClick,
-        )
-        val viewModel = koinViewModel<MediaPickerViewModel>(
-            parameters = {
-                parametersOf(
-                    MediaPickerViewModel.Input(folderId = key.folderId),
-                    output,
-                )
-            },
-        )
+        val output =
+            MediaPickerViewModel.Output(
+                navigateUp = onNavigateUp,
+                playVideo = onPlayVideo,
+                playVideos = onPlayVideos,
+                openFolder = onFolderClick,
+                openSettings = onSettingsClick,
+                openSearch = onSearchClick,
+                openVault = onVaultClick,
+            )
+        val viewModel =
+            koinViewModel<MediaPickerViewModel>(
+                parameters = {
+                    parametersOf(
+                        MediaPickerViewModel.Input(folderId = key.folderId),
+                        output,
+                    )
+                }
+            )
         SideEffect { viewModel.output = output }
         MediaPickerScreen(viewModel = viewModel)
     }

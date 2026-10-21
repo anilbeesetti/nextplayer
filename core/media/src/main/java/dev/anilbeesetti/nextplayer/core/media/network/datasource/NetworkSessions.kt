@@ -50,20 +50,23 @@ class NetworkSessions(
     }
 
     private suspend fun resolve(uri: Uri): NetworkUri.Target {
-        val connectionId = NetworkUri.connectionIdOf(uri)
-            ?: return NetworkUri.adHocTargetOf(uri)
-                ?: error("Not a playable network uri: $uri")
+        val connectionId =
+            NetworkUri.connectionIdOf(uri)
+                ?: return NetworkUri.adHocTargetOf(uri) ?: error("Not a playable network uri: $uri")
 
-        val saved = resolver.connection(connectionId)
-            ?: error("No saved network connection with id $connectionId")
+        val saved =
+            resolver.connection(connectionId)
+                ?: error("No saved network connection with id $connectionId")
         return NetworkUri.Target(saved, NetworkUri.filePathOf(uri, saved.protocol))
     }
 
     private suspend fun clientFor(target: NetworkConnection): NetworkClient {
-        client?.takeIf { connection == target }?.let { existing ->
-            if (!existing.isConnected()) existing.connect().getOrThrow()
-            return existing
-        }
+        client
+            ?.takeIf { connection == target }
+            ?.let { existing ->
+                if (!existing.isConnected()) existing.connect().getOrThrow()
+                return existing
+            }
 
         val fresh = clientFactory.create(target)
         fresh.connect().getOrThrow()

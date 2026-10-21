@@ -25,16 +25,15 @@ fun rememberSeekGestureState(
     sensitivity: Float = 0.5f,
     enableSeekGesture: Boolean,
 ): SeekGestureState {
-    val seekGestureState = remember(player, sensitivity, enableSeekGesture) {
-        SeekGestureState(
-            player = player,
-            sensitivity = sensitivity,
-            enableSeekGesture = enableSeekGesture,
-        )
-    }
-    DisposableEffect(seekGestureState) {
-        onDispose { seekGestureState.onSeekEnd() }
-    }
+    val seekGestureState =
+        remember(player, sensitivity, enableSeekGesture) {
+            SeekGestureState(
+                player = player,
+                sensitivity = sensitivity,
+                enableSeekGesture = enableSeekGesture,
+            )
+        }
+    DisposableEffect(seekGestureState) { onDispose { seekGestureState.onSeekEnd() } }
     return seekGestureState
 }
 
@@ -62,10 +61,11 @@ class SeekGestureState(
             player.setIsScrubbingModeEnabled(true)
         }
 
-        seekAmount = (value - seekStartPosition!!).coerceIn(
-            minimumValue = 0 - seekStartPosition!!,
-            maximumValue = player.duration - seekStartPosition!!,
-        )
+        seekAmount =
+            (value - seekStartPosition!!).coerceIn(
+                minimumValue = 0 - seekStartPosition!!,
+                maximumValue = player.duration - seekStartPosition!!,
+            )
 
         if (value > player.currentPosition) {
             player.seekTo(value.coerceAtMost(player.duration))
@@ -100,11 +100,13 @@ class SeekGestureState(
         if (player.currentPosition >= player.duration && dragAmount > 0) return
         if (change.isConsumed) return
 
-        val newPosition = seekStartPosition!! + ((change.position.x - seekStartX) * (sensitivity * 100)).toInt()
-        seekAmount = (newPosition - seekStartPosition!!).coerceIn(
-            minimumValue = 0 - seekStartPosition!!,
-            maximumValue = player.duration - seekStartPosition!!,
-        )
+        val newPosition =
+            seekStartPosition!! + ((change.position.x - seekStartX) * (sensitivity * 100)).toInt()
+        seekAmount =
+            (newPosition - seekStartPosition!!).coerceIn(
+                minimumValue = 0 - seekStartPosition!!,
+                maximumValue = player.duration - seekStartPosition!!,
+            )
 
         player.seekTo(newPosition.coerceIn(0L, player.duration))
     }

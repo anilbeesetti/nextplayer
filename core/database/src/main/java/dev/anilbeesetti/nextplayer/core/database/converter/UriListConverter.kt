@@ -9,7 +9,8 @@ object UriListConverter {
 
     fun fromListToString(urlList: List<Uri>): String {
         if (urlList.isEmpty()) return ""
-        return urlList.map { URLEncoder.encode(it.toString(), StandardCharsets.UTF_8.toString()) }
+        return urlList
+            .map { URLEncoder.encode(it.toString(), StandardCharsets.UTF_8.toString()) }
             .reduce { acc, s -> "$acc,$s" }
     }
 

@@ -20,12 +20,7 @@ fun PlayerLockedControls(
     modifier: Modifier = Modifier,
     unlockButtonModifier: Modifier = Modifier,
 ) {
-    Column(
-        modifier = modifier
-            .fillMaxSize()
-            .safeDrawingPadding()
-            .padding(top = 24.dp),
-    ) {
+    Column(modifier = modifier.fillMaxSize().safeDrawingPadding().padding(top = 24.dp)) {
         PlayerButton(
             modifier = unlockButtonModifier,
             containerColor = Color.Black.copy(0.5f),

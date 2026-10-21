@@ -29,18 +29,19 @@ internal fun SelectionAction(
     isTv: Boolean = false,
 ) {
     Column(
-        modifier = modifier
-            .defaultMinSize(
-                minWidth = 75.dp,
-                minHeight = 64.dp,
-            )
-            .tvFocusRing(isTv, shape = RoundedCornerShape(12.dp))
-            .clip(RoundedCornerShape(12.dp))
-            .clickable(onClick = onClick)
-            .padding(
-                horizontal = 16.dp,
-                vertical = 8.dp,
-            ),
+        modifier =
+            modifier
+                .defaultMinSize(
+                    minWidth = 75.dp,
+                    minHeight = 64.dp,
+                )
+                .tvFocusRing(isTv, shape = RoundedCornerShape(12.dp))
+                .clip(RoundedCornerShape(12.dp))
+                .clickable(onClick = onClick)
+                .padding(
+                    horizontal = 16.dp,
+                    vertical = 8.dp,
+                ),
         verticalArrangement = Arrangement.Center,
         horizontalAlignment = Alignment.CenterHorizontally,
     ) {

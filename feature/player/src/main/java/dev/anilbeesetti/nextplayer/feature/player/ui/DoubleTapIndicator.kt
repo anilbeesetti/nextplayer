@@ -44,27 +44,30 @@ fun DoubleTapIndicator(modifier: Modifier = Modifier, tapGestureState: TapGestur
     if (tapGestureState.seekMillis == 0L) return
     Box(
         modifier = modifier.fillMaxSize(),
-        contentAlignment = if (tapGestureState.seekMillis > 0) Alignment.CenterEnd else Alignment.CenterStart,
+        contentAlignment =
+            if (tapGestureState.seekMillis > 0) Alignment.CenterEnd else Alignment.CenterStart,
     ) {
         Box(
-            modifier = Modifier
-                .fillMaxHeight()
-                .fillMaxWidth(
-                    fraction = when (tapGestureState.doubleTapGesture) {
-                        DoubleTapGesture.PLAY_PAUSE -> 0f
-                        DoubleTapGesture.FAST_FORWARD_AND_REWIND -> 0.5f
-                        DoubleTapGesture.BOTH -> 0.35f
-                        DoubleTapGesture.NONE -> 0f
-                    },
-                )
-                .clip(if (tapGestureState.seekMillis > 0) RightSideOvalShape() else LeftSideOvalShape())
-                .background(Color.White.copy(0.2f))
-                .indication(tapGestureState.interactionSource, ripple()),
+            modifier =
+                Modifier.fillMaxHeight()
+                    .fillMaxWidth(
+                        fraction =
+                            when (tapGestureState.doubleTapGesture) {
+                                DoubleTapGesture.PLAY_PAUSE -> 0f
+                                DoubleTapGesture.FAST_FORWARD_AND_REWIND -> 0.5f
+                                DoubleTapGesture.BOTH -> 0.35f
+                                DoubleTapGesture.NONE -> 0f
+                            }
+                    )
+                    .clip(
+                        if (tapGestureState.seekMillis > 0) RightSideOvalShape()
+                        else LeftSideOvalShape()
+                    )
+                    .background(Color.White.copy(0.2f))
+                    .indication(tapGestureState.interactionSource, ripple()),
             contentAlignment = Alignment.Center,
         ) {
-            Column(
-                horizontalAlignment = Alignment.CenterHorizontally,
-            ) {
+            Column(horizontalAlignment = Alignment.CenterHorizontally) {
                 DoubleTapSeekTriangles(isForward = tapGestureState.seekMillis > 0)
                 Text(
                     text = "${tapGestureState.seekMillis.milliseconds.inWholeSeconds} seconds",
@@ -115,20 +118,21 @@ private class RightSideOvalShape : Shape {
         layoutDirection: LayoutDirection,
         density: Density,
     ): Outline {
-        val path = Path().apply {
-            moveTo(size.width, size.height)
-            lineTo(size.width, 0f)
-            lineTo(size.width * 0.1f, 0f)
-            cubicTo(
-                size.width * 0.1f,
-                0f,
-                -size.width * 0.1f,
-                size.height / 2,
-                size.width * 0.1f,
-                size.height,
-            )
-            close()
-        }
+        val path =
+            Path().apply {
+                moveTo(size.width, size.height)
+                lineTo(size.width, 0f)
+                lineTo(size.width * 0.1f, 0f)
+                cubicTo(
+                    size.width * 0.1f,
+                    0f,
+                    -size.width * 0.1f,
+                    size.height / 2,
+                    size.width * 0.1f,
+                    size.height,
+                )
+                close()
+            }
         return Outline.Generic(path)
     }
 }
@@ -139,20 +143,21 @@ private class LeftSideOvalShape : Shape {
         layoutDirection: LayoutDirection,
         density: Density,
     ): Outline {
-        val path = Path().apply {
-            moveTo(0f, 0f)
-            lineTo(size.width * 0.9f, 0f)
-            cubicTo(
-                size.width * 0.9f,
-                0f,
-                size.width * 1.1f,
-                size.height / 2,
-                size.width * 0.9f,
-                size.height,
-            )
-            lineTo(0f, size.height)
-            close()
-        }
+        val path =
+            Path().apply {
+                moveTo(0f, 0f)
+                lineTo(size.width * 0.9f, 0f)
+                cubicTo(
+                    size.width * 0.9f,
+                    0f,
+                    size.width * 1.1f,
+                    size.height / 2,
+                    size.width * 0.9f,
+                    size.height,
+                )
+                lineTo(0f, size.height)
+                close()
+            }
         return Outline.Generic(path)
     }
 }
@@ -162,9 +167,7 @@ private fun DoubleTapArrow(alpha: Float) {
     Icon(
         painter = painterResource(R.drawable.ic_play),
         contentDescription = null,
-        modifier = Modifier
-            .size(20.dp)
-            .graphicsLayer { this.alpha = alpha },
+        modifier = Modifier.size(20.dp).graphicsLayer { this.alpha = alpha },
         tint = Color.White,
     )
 }
@@ -175,18 +178,18 @@ private fun OvalShapePreview() {
     NextPlayerTheme {
         Row(modifier = Modifier.fillMaxWidth()) {
             Box(
-                modifier = Modifier
-                    .fillMaxHeight()
-                    .weight(1f)
-                    .clip(LeftSideOvalShape())
-                    .background(Color.Blue),
+                modifier =
+                    Modifier.fillMaxHeight()
+                        .weight(1f)
+                        .clip(LeftSideOvalShape())
+                        .background(Color.Blue)
             ) {}
             Box(
-                modifier = Modifier
-                    .fillMaxHeight()
-                    .weight(1f)
-                    .clip(RightSideOvalShape())
-                    .background(Color.Blue),
+                modifier =
+                    Modifier.fillMaxHeight()
+                        .weight(1f)
+                        .clip(RightSideOvalShape())
+                        .background(Color.Blue)
             ) {}
         }
     }

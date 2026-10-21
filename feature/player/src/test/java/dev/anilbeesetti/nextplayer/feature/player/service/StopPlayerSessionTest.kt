@@ -35,12 +35,23 @@ class StopPlayerSessionTest {
     @Test
     fun stoppingSessionSavesLatestPositionBeforeClearingMedia() {
         val saved = mutableListOf<Pair<String, Long>>()
-        withSession(savePosition = { uri, position -> saved += uri to position }) { player, session, callback, _ ->
-            // Closing PiP sends this command after playback has advanced from its last saved position.
+        withSession(savePosition = { uri, position -> saved += uri to position }) {
+            player,
+            session,
+            callback,
+            _ ->
+            // Closing PiP sends this command after playback has advanced from its last saved
+            // position.
             player.setMediaItem(MediaItem.Builder().setMediaId(VIDEO_URI).setUri(VIDEO_URI).build())
             player.seekTo(120_000)
 
-            val result = callback.onCustomCommand(session, controllerInfo(), CustomCommands.STOP_PLAYER_SESSION.sessionCommand, Bundle.EMPTY)
+            val result =
+                callback.onCustomCommand(
+                    session,
+                    controllerInfo(),
+                    CustomCommands.STOP_PLAYER_SESSION.sessionCommand,
+                    Bundle.EMPTY,
+                )
             shadowOf(Looper.getMainLooper()).idle()
 
             assertEquals(listOf(VIDEO_URI to 120_000L), saved)
@@ -54,15 +65,23 @@ class StopPlayerSessionTest {
         val saveStarted = CompletableDeferred<Unit>()
         val finishSave = CompletableDeferred<Unit>()
         val saved = mutableListOf<Pair<String, Long>>()
-        withSession(savePosition = { uri, position ->
-            saveStarted.complete(Unit)
-            finishSave.await()
-            saved += uri to position
-        }) { player, session, callback, service ->
+        withSession(
+            savePosition = { uri, position ->
+                saveStarted.complete(Unit)
+                finishSave.await()
+                saved += uri to position
+            }
+        ) { player, session, callback, service ->
             player.setMediaItem(MediaItem.Builder().setMediaId(VIDEO_URI).setUri(VIDEO_URI).build())
             player.seekTo(120_000)
 
-            val result = callback.onCustomCommand(session, controllerInfo(), CustomCommands.STOP_PLAYER_SESSION.sessionCommand, Bundle.EMPTY)
+            val result =
+                callback.onCustomCommand(
+                    session,
+                    controllerInfo(),
+                    CustomCommands.STOP_PLAYER_SESSION.sessionCommand,
+                    Bundle.EMPTY,
+                )
             shadowOf(Looper.getMainLooper()).idle()
 
             assertTrue(saveStarted.isCompleted)
@@ -83,8 +102,18 @@ class StopPlayerSessionTest {
 
     @Test
     fun stoppingEmptySessionDoesNotWritePosition() {
-        withSession(savePosition = { _, _ -> throw AssertionError("An empty queue has no position to save") }) { player, session, callback, _ ->
-            val result = callback.onCustomCommand(session, controllerInfo(), CustomCommands.STOP_PLAYER_SESSION.sessionCommand, Bundle.EMPTY)
+        withSession(
+            savePosition = { _, _ ->
+                throw AssertionError("An empty queue has no position to save")
+            }
+        ) { player, session, callback, _ ->
+            val result =
+                callback.onCustomCommand(
+                    session,
+                    controllerInfo(),
+                    CustomCommands.STOP_PLAYER_SESSION.sessionCommand,
+                    Bundle.EMPTY,
+                )
             shadowOf(Looper.getMainLooper()).idle()
 
             assertEquals(0, player.mediaItemCount)
@@ -96,10 +125,12 @@ class StopPlayerSessionTest {
     fun removingPausedPipTaskWaitsForPositionPersistence() {
         val finishSave = CompletableDeferred<Unit>()
         val saved = mutableListOf<Pair<String, Long>>()
-        withSession(savePosition = { uri, position ->
-            finishSave.await()
-            saved += uri to position
-        }) { player, _, _, service ->
+        withSession(
+            savePosition = { uri, position ->
+                finishSave.await()
+                saved += uri to position
+            }
+        ) { player, _, _, service ->
             player.setMediaItem(MediaItem.Builder().setMediaId(VIDEO_URI).setUri(VIDEO_URI).build())
             player.seekTo(120_000)
             player.pause()
@@ -127,18 +158,27 @@ class StopPlayerSessionTest {
                 module {
                     single<MediaRepository> {
                         object : MediaRepository by FakeMediaRepository() {
-                            override suspend fun updateMediumPosition(uri: String, position: Long) = savePosition(uri, position)
+                            override suspend fun updateMediumPosition(uri: String, position: Long) =
+                                savePosition(uri, position)
                         }
                     }
-                },
+                }
             )
         }
         val player = ExoPlayer.Builder(RuntimeEnvironment.getApplication()).build()
         val session = MediaSession.Builder(RuntimeEnvironment.getApplication(), player).build()
         val service = PlayerService()
-        PlayerService::class.java.getDeclaredField("mediaSession").apply { isAccessible = true }.set(service, session)
-        val callback = PlayerService::class.java.getDeclaredField("mediaSessionCallback")
-            .apply { isAccessible = true }.get(service) as MediaSession.Callback
+        PlayerService::class
+            .java
+            .getDeclaredField("mediaSession")
+            .apply { isAccessible = true }
+            .set(service, session)
+        val callback =
+            PlayerService::class
+                .java
+                .getDeclaredField("mediaSessionCallback")
+                .apply { isAccessible = true }
+                .get(service) as MediaSession.Callback
         try {
             check(player, session, callback, service)
         } finally {
@@ -147,16 +187,17 @@ class StopPlayerSessionTest {
         }
     }
 
-    private fun controllerInfo() = MediaSession.ControllerInfo.createTestOnlyControllerInfo(
-        "test",
-        0,
-        0,
-        0,
-        0,
-        true,
-        Bundle.EMPTY,
-        true,
-    )
+    private fun controllerInfo() =
+        MediaSession.ControllerInfo.createTestOnlyControllerInfo(
+            "test",
+            0,
+            0,
+            0,
+            0,
+            true,
+            Bundle.EMPTY,
+            true,
+        )
 
     private companion object {
         const val VIDEO_URI = "file:///video.mp4"

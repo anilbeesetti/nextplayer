@@ -21,40 +21,58 @@ import org.koin.core.annotation.KoinViewModel
 import org.koin.core.annotation.Module
 import org.koin.core.annotation.Single
 
-@Module(includes = [DispatchersModule::class, DataModule::class, NetworkModule::class, PlaylistModule::class, PlayerModule::class, SettingsModule::class, VideoPickerModule::class])
+@Module(
+    includes =
+        [
+            DispatchersModule::class,
+            DataModule::class,
+            NetworkModule::class,
+            PlaylistModule::class,
+            PlayerModule::class,
+            SettingsModule::class,
+            VideoPickerModule::class,
+        ]
+)
 @ComponentScan("dev.anilbeesetti.nextplayer.feature.more")
 class AppModule {
 
     @KoinViewModel
-    fun provideMainViewModel(preferencesRepository: PreferencesRepository) = MainViewModel(preferencesRepository)
+    fun provideMainViewModel(preferencesRepository: PreferencesRepository) =
+        MainViewModel(preferencesRepository)
 
     @Single
     fun provideImageLoader(
         context: Context,
         preferencesRepository: PreferencesRepository,
-    ): ImageLoader = ImageLoader.Builder(context)
-        .components {
-            add(
-                VideoThumbnailDecoder.Factory(
-                    thumbnailStrategy = {
-                        val preferences = preferencesRepository.applicationPreferences.value
-                        when (preferences.thumbnailGenerationStrategy) {
-                            ThumbnailGenerationStrategy.FIRST_FRAME -> ThumbnailStrategy.FirstFrame
-                            ThumbnailGenerationStrategy.FRAME_AT_PERCENTAGE -> ThumbnailStrategy.FrameAtPercentage(preferences.thumbnailFramePosition)
-                            ThumbnailGenerationStrategy.HYBRID -> ThumbnailStrategy.Hybrid(preferences.thumbnailFramePosition)
+    ): ImageLoader =
+        ImageLoader.Builder(context)
+            .components {
+                add(
+                    VideoThumbnailDecoder.Factory(
+                        thumbnailStrategy = {
+                            val preferences = preferencesRepository.applicationPreferences.value
+                            when (preferences.thumbnailGenerationStrategy) {
+                                ThumbnailGenerationStrategy.FIRST_FRAME ->
+                                    ThumbnailStrategy.FirstFrame
+                                ThumbnailGenerationStrategy.FRAME_AT_PERCENTAGE ->
+                                    ThumbnailStrategy.FrameAtPercentage(
+                                        preferences.thumbnailFramePosition
+                                    )
+                                ThumbnailGenerationStrategy.HYBRID ->
+                                    ThumbnailStrategy.Hybrid(preferences.thumbnailFramePosition)
+                            }
                         }
-                    },
-                ),
+                    )
+                )
+            }
+            .diskCachePolicy(CachePolicy.ENABLED)
+            .diskCache(
+                DiskCache.Builder()
+                    .fileSystem(FileSystem.SYSTEM)
+                    .directory(context.filesDir.resolve("thumbnails"))
+                    .maxSizePercent(1.0)
+                    .build()
             )
-        }
-        .diskCachePolicy(CachePolicy.ENABLED)
-        .diskCache(
-            DiskCache.Builder()
-                .fileSystem(FileSystem.SYSTEM)
-                .directory(context.filesDir.resolve("thumbnails"))
-                .maxSizePercent(1.0)
-                .build(),
-        )
-        .crossfade(true)
-        .build()
+            .crossfade(true)
+            .build()
 }

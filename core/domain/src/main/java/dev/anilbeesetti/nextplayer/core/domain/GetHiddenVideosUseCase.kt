@@ -11,9 +11,7 @@ import kotlinx.coroutines.flow.map
 import org.koin.core.annotation.Factory
 import org.koin.core.annotation.Named
 
-/**
- * Returns videos currently hidden in the vault, sorted by the given [Sort] criteria.
- */
+/** Returns videos currently hidden in the vault, sorted by the given [Sort] criteria. */
 @Factory
 class GetHiddenVideosUseCase(
     private val vaultRepository: VaultRepository,
@@ -21,7 +19,8 @@ class GetHiddenVideosUseCase(
 ) {
 
     operator fun invoke(sort: Sort): Flow<List<Video>> {
-        return vaultRepository.observeHiddenVideos()
+        return vaultRepository
+            .observeHiddenVideos()
             .map { videos -> videos.sortedWith(sort.videoComparator()) }
             .flowOn(defaultDispatcher)
     }

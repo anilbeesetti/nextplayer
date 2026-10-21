@@ -17,22 +17,21 @@ import dev.anilbeesetti.nextplayer.feature.player.service.setMediaControllerIsSc
  * @param trackType The type of track to switch.
  * @param trackIndex The index of the track to switch to, or null to enable the track.
  *
- * if trackIndex is a negative number, the track will be disabled
- * if trackIndex is a valid index, the track will be switched to that index
+ * if trackIndex is a negative number, the track will be disabled if trackIndex is a valid index,
+ * the track will be switched to that index
  */
 fun Player.switchTrack(trackType: @C.TrackType Int, trackIndex: Int) {
-    val trackTypeText = when (trackType) {
-        C.TRACK_TYPE_AUDIO -> "audio"
-        C.TRACK_TYPE_TEXT -> "subtitle"
-        else -> throw IllegalArgumentException("Invalid track type: $trackType")
-    }
+    val trackTypeText =
+        when (trackType) {
+            C.TRACK_TYPE_AUDIO -> "audio"
+            C.TRACK_TYPE_TEXT -> "subtitle"
+            else -> throw IllegalArgumentException("Invalid track type: $trackType")
+        }
 
     if (trackIndex < 0) {
         Logger.logDebug("Player", "Disabling $trackTypeText")
-        trackSelectionParameters = trackSelectionParameters
-            .buildUpon()
-            .setTrackTypeDisabled(trackType, true)
-            .build()
+        trackSelectionParameters =
+            trackSelectionParameters.buildUpon().setTrackTypeDisabled(trackType, true).build()
     } else {
         val tracks = currentTracks.groups.filter { it.type == trackType }
 
@@ -45,11 +44,12 @@ fun Player.switchTrack(trackType: @C.TrackType Int, trackIndex: Int) {
         val trackSelectionOverride = TrackSelectionOverride(tracks[trackIndex].mediaTrackGroup, 0)
 
         // Override the track selection parameters to force the selection of the specified track.
-        trackSelectionParameters = trackSelectionParameters
-            .buildUpon()
-            .setTrackTypeDisabled(trackType, false)
-            .setOverrideForType(trackSelectionOverride)
-            .build()
+        trackSelectionParameters =
+            trackSelectionParameters
+                .buildUpon()
+                .setTrackTypeDisabled(trackType, false)
+                .setOverrideForType(trackSelectionOverride)
+                .build()
     }
 }
 
@@ -67,22 +67,22 @@ fun Player.getManuallySelectedTrackIndex(trackType: @C.TrackType Int): Int? {
 
 fun Player.addAdditionalSubtitleConfiguration(subtitle: MediaItem.SubtitleConfiguration) {
     val currentMediaItemLocal = currentMediaItem ?: return
-    val existingSubConfigurations = currentMediaItemLocal.localConfiguration?.subtitleConfigurations ?: emptyList()
+    val existingSubConfigurations =
+        currentMediaItemLocal.localConfiguration?.subtitleConfigurations ?: emptyList()
 
     if (existingSubConfigurations.any { it.id == subtitle.id }) {
         return
     }
 
-    val textTracks = currentTracks.groups.filter {
-        it.type == C.TRACK_TYPE_TEXT && it.isSupported
-    }
+    val textTracks = currentTracks.groups.filter { it.type == C.TRACK_TYPE_TEXT && it.isSupported }
     val position = currentPosition
 
-    val updateMediaItem = currentMediaItemLocal
-        .buildUpon()
-        .setSubtitleConfigurations(existingSubConfigurations + listOf(subtitle))
-        .build()
-        .copy(positionMs = position, subtitleTrackIndex = textTracks.size)
+    val updateMediaItem =
+        currentMediaItemLocal
+            .buildUpon()
+            .setSubtitleConfigurations(existingSubConfigurations + listOf(subtitle))
+            .build()
+            .copy(positionMs = position, subtitleTrackIndex = textTracks.size)
 
     val index = currentMediaItemIndex
     val exoPlayer = this as? ExoPlayer

@@ -17,17 +17,18 @@ fun NextSwitch(
     enabled: Boolean = true,
     checkedIcon: ImageVector = NextIcons.Check,
 ) {
-    val thumbContent: (@Composable () -> Unit)? = if (checked) {
-        {
-            Icon(
-                imageVector = checkedIcon,
-                contentDescription = null,
-                modifier = Modifier.size(SwitchDefaults.IconSize),
-            )
+    val thumbContent: (@Composable () -> Unit)? =
+        if (checked) {
+            {
+                Icon(
+                    imageVector = checkedIcon,
+                    contentDescription = null,
+                    modifier = Modifier.size(SwitchDefaults.IconSize),
+                )
+            }
+        } else {
+            null
         }
-    } else {
-        null
-    }
 
     Switch(
         checked = checked,

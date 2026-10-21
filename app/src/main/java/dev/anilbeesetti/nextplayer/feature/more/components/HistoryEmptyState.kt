@@ -33,10 +33,10 @@ internal fun HistoryEmptyState(
         horizontalAlignment = Alignment.CenterHorizontally,
     ) {
         Box(
-            modifier = Modifier
-                .clip(MaterialTheme.shapes.large)
-                .background(MaterialTheme.colorScheme.surfaceContainerHigh)
-                .padding(24.dp),
+            modifier =
+                Modifier.clip(MaterialTheme.shapes.large)
+                    .background(MaterialTheme.colorScheme.surfaceContainerHigh)
+                    .padding(24.dp),
             contentAlignment = Alignment.Center,
         ) {
             Icon(
@@ -48,7 +48,11 @@ internal fun HistoryEmptyState(
         }
         Spacer(modifier = Modifier.size(16.dp))
         Text(
-            text = stringResource(if (isHistoryOff) R.string.watch_history_turned_off else R.string.no_watch_history),
+            text =
+                stringResource(
+                    if (isHistoryOff) R.string.watch_history_turned_off
+                    else R.string.no_watch_history
+                ),
             style = MaterialTheme.typography.titleLargeEmphasized,
             textAlign = TextAlign.Center,
         )

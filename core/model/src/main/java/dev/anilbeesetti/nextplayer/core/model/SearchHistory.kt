@@ -3,9 +3,7 @@ package dev.anilbeesetti.nextplayer.core.model
 import kotlinx.serialization.Serializable
 
 @Serializable
-data class SearchHistory(
-    val queries: List<String> = emptyList(),
-) {
+data class SearchHistory(val queries: List<String> = emptyList()) {
     companion object {
         const val MAX_HISTORY_SIZE = 5
     }

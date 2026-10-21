@@ -24,7 +24,7 @@ interface PlaylistDao {
         LEFT JOIN playlist_item ON playlist.id = playlist_item.playlist_id
         GROUP BY playlist.id
         ORDER BY playlist.created_at, playlist.id
-        """,
+        """
     )
     fun observeSummaries(): Flow<List<PlaylistSummaryEntity>>
 
@@ -42,11 +42,9 @@ interface PlaylistDao {
     @Query("SELECT * FROM playlist_item WHERE playlist_id = :playlistId ORDER BY position")
     suspend fun getItems(playlistId: Long): List<PlaylistItemEntity>
 
-    @Query("SELECT * FROM playlist_item")
-    suspend fun getAllItems(): List<PlaylistItemEntity>
+    @Query("SELECT * FROM playlist_item") suspend fun getAllItems(): List<PlaylistItemEntity>
 
-    @Insert
-    suspend fun insertPlaylist(playlist: PlaylistEntity): Long
+    @Insert suspend fun insertPlaylist(playlist: PlaylistEntity): Long
 
     @Insert(onConflict = OnConflictStrategy.IGNORE)
     suspend fun insertItems(items: List<PlaylistItemEntity>): List<Long>
@@ -68,7 +66,7 @@ interface PlaylistDao {
         UPDATE playlist
         SET last_refreshed_at = :refreshedAt
         WHERE id = :playlistId
-        """,
+        """
     )
     suspend fun updateLastRefreshedAt(playlistId: Long, refreshedAt: Long)
 
@@ -80,18 +78,16 @@ interface PlaylistDao {
         UPDATE playlist_item
         SET last_played_at = :playedAt
         WHERE playlist_id = :playlistId AND uri = :uri
-        """,
+        """
     )
     suspend fun updateLastPlayedAt(playlistId: Long, uri: String, playedAt: Long): Int
 
-    @Delete
-    suspend fun deleteItems(items: List<PlaylistItemEntity>)
+    @Delete suspend fun deleteItems(items: List<PlaylistItemEntity>)
 
     @Query("UPDATE playlist_item SET position = position + :offset WHERE playlist_id = :playlistId")
     suspend fun shiftPositions(playlistId: Long, offset: Int)
 
-    @Update
-    suspend fun updateItems(items: List<PlaylistItemEntity>)
+    @Update suspend fun updateItems(items: List<PlaylistItemEntity>)
 
     @Transaction
     suspend fun createPlaylist(name: String, uris: List<String>): Long {
@@ -127,7 +123,7 @@ interface PlaylistDao {
                     playlistId = playlistId,
                     lastPlayedAt = playedAtByUri[item.uri],
                 )
-            },
+            }
         )
         updateLastRefreshedAt(playlistId, refreshedAt)
     }
@@ -186,22 +182,22 @@ interface PlaylistDao {
         updateItems(
             orderedUris.mapIndexed { position, uri ->
                 itemsByUri.getValue(uri).copy(position = position)
-            },
+            }
         )
     }
 
     @Transaction
     suspend fun removeMissingLocalItems(existingUris: Set<String>) {
         val localPlaylistIds = getLocalPlaylistIds().toSet()
-        val missingItems = getAllItems().filter {
-            it.playlistId in localPlaylistIds && it.uri !in existingUris
-        }
+        val missingItems =
+            getAllItems().filter { it.playlistId in localPlaylistIds && it.uri !in existingUris }
         if (missingItems.isEmpty()) return
 
         deleteItems(missingItems)
-        missingItems.map { it.playlistId }.distinct().forEach { playlistId ->
-            normalizePositions(playlistId)
-        }
+        missingItems
+            .map { it.playlistId }
+            .distinct()
+            .forEach { playlistId -> normalizePositions(playlistId) }
     }
 
     private suspend fun normalizePositions(playlistId: Long) {

@@ -38,13 +38,15 @@ fun ShuffleButton(
 }
 
 @Composable
-private fun shuffleModeIconPainter(shuffleOn: Boolean): Painter = when (shuffleOn) {
-    true -> painterResource(coreUiR.drawable.ic_shuffle_on)
-    false -> painterResource(coreUiR.drawable.ic_shuffle)
-}
+private fun shuffleModeIconPainter(shuffleOn: Boolean): Painter =
+    when (shuffleOn) {
+        true -> painterResource(coreUiR.drawable.ic_shuffle_on)
+        false -> painterResource(coreUiR.drawable.ic_shuffle)
+    }
 
 @Composable
-private fun shuffleContentDescription(shuffleOn: Boolean): String = when (shuffleOn) {
-    true -> stringResource(coreUiR.string.shuffle_on)
-    false -> stringResource(coreUiR.string.shuffle_off)
-}
+private fun shuffleContentDescription(shuffleOn: Boolean): String =
+    when (shuffleOn) {
+        true -> stringResource(coreUiR.string.shuffle_on)
+        false -> stringResource(coreUiR.string.shuffle_off)
+    }

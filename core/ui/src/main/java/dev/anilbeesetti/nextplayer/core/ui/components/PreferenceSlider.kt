@@ -45,44 +45,49 @@ fun PreferenceSlider(
     }
 
     NextSegmentedListItem(
-        modifier = modifier.onPreviewKeyEvent { event ->
-            if (!enabled || event.type != KeyEventType.KeyDown) return@onPreviewKeyEvent false
-            when (event.key) {
-                Key.DirectionLeft -> {
-                    onValueChange(nudged(direction = -1))
-                    onValueChangeFinished()
-                    true
+        modifier =
+            modifier.onPreviewKeyEvent { event ->
+                if (!enabled || event.type != KeyEventType.KeyDown) return@onPreviewKeyEvent false
+                when (event.key) {
+                    Key.DirectionLeft -> {
+                        onValueChange(nudged(direction = -1))
+                        onValueChangeFinished()
+                        true
+                    }
+                    Key.DirectionRight -> {
+                        onValueChange(nudged(direction = 1))
+                        onValueChangeFinished()
+                        true
+                    }
+                    Key.DirectionCenter,
+                    Key.Enter,
+                    Key.NumPadEnter -> {
+                        onReset?.let {
+                            it()
+                            true
+                        } ?: false
+                    }
+                    else -> false
                 }
-                Key.DirectionRight -> {
-                    onValueChange(nudged(direction = 1))
-                    onValueChangeFinished()
-                    true
-                }
-                Key.DirectionCenter, Key.Enter, Key.NumPadEnter -> {
-                    onReset?.let { it(); true } ?: false
-                }
-                else -> false
-            }
-        },
+            },
         onClick = {},
         onLongClick = null,
         enabled = enabled,
         isFirstItem = isFirstItem,
         isLastItem = isLastItem,
-        leadingContent = icon?.let {
-            {
-                Icon(
-                    imageVector = icon,
-                    contentDescription = null,
-                    modifier = Modifier.size(24.dp),
-                )
-            }
-        },
+        leadingContent =
+            icon?.let {
+                {
+                    Icon(
+                        imageVector = icon,
+                        contentDescription = null,
+                        modifier = Modifier.size(24.dp),
+                    )
+                }
+            },
         supportingContent = {
             Column {
-                description?.let {
-                    Text(text = description)
-                }
+                description?.let { Text(text = description) }
                 Slider(
                     modifier = Modifier.fillMaxWidth(),
                     enabled = enabled,
@@ -94,9 +99,7 @@ fun PreferenceSlider(
                 )
             }
         },
-        content = {
-            Text(text = title)
-        },
+        content = { Text(text = title) },
         trailingContent = trailingContent,
     )
 }

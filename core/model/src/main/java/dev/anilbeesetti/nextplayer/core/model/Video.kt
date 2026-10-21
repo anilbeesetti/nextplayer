@@ -35,25 +35,29 @@ data class Video(
     }
 
     companion object {
-        val sample = Video(
-            id = 8,
-            path = "/storage/emulated/0/Download/Avengers Endgame (2019) BluRay x264.mp4",
-            parentPath = "/storage/emulated/0/Download",
-            uriString = "",
-            nameWithExtension = "Avengers Endgame (2019) BluRay x264.mp4",
-            duration = 1000,
-            width = 1920,
-            height = 1080,
-            size = 1000,
-            formattedDuration = "29.36",
-            formattedFileSize = "320KB",
-            playbackPosition = 200,
-        )
+        val sample =
+            Video(
+                id = 8,
+                path = "/storage/emulated/0/Download/Avengers Endgame (2019) BluRay x264.mp4",
+                parentPath = "/storage/emulated/0/Download",
+                uriString = "",
+                nameWithExtension = "Avengers Endgame (2019) BluRay x264.mp4",
+                duration = 1000,
+                width = 1920,
+                height = 1080,
+                size = 1000,
+                formattedDuration = "29.36",
+                formattedFileSize = "320KB",
+                playbackPosition = 200,
+            )
     }
 }
 
-fun List<Video>.recentPlayed(): Video? =
-    filter { it.lastPlayedAt != null }.sortedByDescending { it.lastPlayedAt?.time }.firstOrNull()
+fun List<Video>.recentPlayed(): Video? = filter {
+    it.lastPlayedAt != null
+}
+    .sortedByDescending { it.lastPlayedAt?.time }
+    .firstOrNull()
 
 fun Video.isNew(nowMillis: Long = System.currentTimeMillis(), thresholdDays: Int = 7): Boolean {
     if (lastPlayedAt != null || thresholdDays <= 0) return false

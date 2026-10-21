@@ -51,14 +51,12 @@ import org.junit.runner.RunWith
 
 @RunWith(AndroidJUnit4::class)
 class TvMediaFocusTest {
-    @get:Rule
-    val composeRule = createAndroidComposeRule<ComponentActivity>()
+    @get:Rule val composeRule = createAndroidComposeRule<ComponentActivity>()
 
     private var videos by mutableStateOf(clips(48))
     private var showContent by mutableStateOf(true)
 
-    @Before
-    fun requireTv() = assumeTrue(composeRule.activity.isTelevision)
+    @Before fun requireTv() = assumeTrue(composeRule.activity.isTelevision)
 
     @Test
     fun toolbarReturnsToPreviouslyFocusedGridItem() {
@@ -171,16 +169,19 @@ class TvMediaFocusTest {
                         Button(
                             modifier = Modifier.focusProperties { down = focus.requester },
                             onClick = {},
-                        ) { Text("Toolbar") }
+                        ) {
+                            Text("Toolbar")
+                        }
                         Box(Modifier.weight(1f)) {
                             MediaView(
                                 mediaHolder = MediaHolder(videos = videos, folders = emptyList()),
                                 recentlyPlayedVideo = null,
                                 recentlyPlayedFolder = null,
-                                preferences = ApplicationPreferences(
-                                    mediaLayoutMode = layout,
-                                    showExtensionField = false,
-                                ),
+                                preferences =
+                                    ApplicationPreferences(
+                                        mediaLayoutMode = layout,
+                                        showExtensionField = false,
+                                    ),
                                 showHeaders = false,
                                 focusState = focus,
                                 autoFocus = autoFocus,
@@ -189,11 +190,15 @@ class TvMediaFocusTest {
                             )
                         }
                         Row(
-                            Modifier.fillMaxWidth().focusRestorer(fallback = firstAction).focusGroup()
+                            Modifier.fillMaxWidth()
+                                .focusRestorer(fallback = firstAction)
+                                .focusGroup()
                                 .focusProperties { up = focus.requester },
                             horizontalArrangement = Arrangement.SpaceEvenly,
                         ) {
-                            Button(modifier = Modifier.focusRequester(firstAction), onClick = {}) { Text("Action") }
+                            Button(modifier = Modifier.focusRequester(firstAction), onClick = {}) {
+                                Text("Action")
+                            }
                             Button(onClick = {}) { Text("Second action") }
                             Button(onClick = {}) { Text("Third action") }
                         }
@@ -208,10 +213,14 @@ class TvMediaFocusTest {
     private fun focused(text: String) {
         try {
             composeRule.waitUntil(5_000) {
-                composeRule.onAllNodes(hasText(text) and isFocused()).fetchSemanticsNodes().size == 1
+                composeRule.onAllNodes(hasText(text) and isFocused()).fetchSemanticsNodes().size ==
+                    1
             }
         } catch (failure: Throwable) {
-            throw AssertionError("Expected focus on $text\n${composeRule.onRoot().printToString()}", failure)
+            throw AssertionError(
+                "Expected focus on $text\n${composeRule.onRoot().printToString()}",
+                failure,
+            )
         }
     }
 
@@ -220,12 +229,13 @@ class TvMediaFocusTest {
         composeRule.waitForIdle()
     }
 
-    private fun clips(count: Int) = (1..count).map { index ->
-        Video.sample.copy(
-            id = index.toLong(),
-            nameWithExtension = "Clip %02d.mp4".format(index),
-            uriString = "content://media/external/video/media/$index",
-            path = "/storage/emulated/0/Movies/Clip $index.mp4",
-        )
-    }
+    private fun clips(count: Int) =
+        (1..count).map { index ->
+            Video.sample.copy(
+                id = index.toLong(),
+                nameWithExtension = "Clip %02d.mp4".format(index),
+                uriString = "content://media/external/video/media/$index",
+                path = "/storage/emulated/0/Movies/Clip $index.mp4",
+            )
+        }
 }

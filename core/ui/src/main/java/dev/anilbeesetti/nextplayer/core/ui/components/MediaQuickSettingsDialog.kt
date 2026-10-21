@@ -60,10 +60,12 @@ fun MediaQuickSettingsDialog(
             }
         },
         confirmButton = {
-            DoneButton(onClick = {
-                onConfirm(selectedLayout, selectedSort)
-                onDismiss()
-            })
+            DoneButton(
+                onClick = {
+                    onConfirm(selectedLayout, selectedSort)
+                    onDismiss()
+                }
+            )
         },
         dismissButton = { CancelButton(onClick = onDismiss) },
     )
@@ -76,7 +78,8 @@ fun MediaLayoutAndSortSettings(
     sort: Sort,
     onLayoutModeChange: (MediaLayoutMode) -> Unit,
     onSortChange: (Sort) -> Unit,
-    sortOptions: List<Sort.By> = listOf(Sort.By.TITLE, Sort.By.LENGTH, Sort.By.DATE, Sort.By.SIZE, Sort.By.PATH),
+    sortOptions: List<Sort.By> =
+        listOf(Sort.By.TITLE, Sort.By.LENGTH, Sort.By.DATE, Sort.By.SIZE, Sort.By.PATH),
     dateLabel: Int = R.string.date,
 ) {
     SectionTitle(stringResource(R.string.media_layout))
@@ -86,12 +89,17 @@ fun MediaLayoutAndSortSettings(
                 selected = layoutMode == mode,
                 onClick = { onLayoutModeChange(mode) },
                 shape = SegmentedButtonDefaults.itemShape(index, MediaLayoutMode.entries.size),
-                colors = SegmentedButtonDefaults.colors(
-                    activeContentColor = MaterialTheme.colorScheme.primary,
-                    activeBorderColor = MaterialTheme.colorScheme.primary,
-                ),
+                colors =
+                    SegmentedButtonDefaults.colors(
+                        activeContentColor = MaterialTheme.colorScheme.primary,
+                        activeBorderColor = MaterialTheme.colorScheme.primary,
+                    ),
             ) {
-                Text(stringResource(if (mode == MediaLayoutMode.LIST) R.string.list else R.string.grid))
+                Text(
+                    stringResource(
+                        if (mode == MediaLayoutMode.LIST) R.string.list else R.string.grid
+                    )
+                )
             }
         }
     }
@@ -102,13 +110,14 @@ fun MediaLayoutAndSortSettings(
         modifier = Modifier.fillMaxWidth().horizontalScroll(rememberScrollState()),
     ) {
         sortOptions.forEach { by ->
-            val (label, icon) = when (by) {
-                Sort.By.TITLE -> R.string.title to NextIcons.Title
-                Sort.By.LENGTH -> R.string.duration to NextIcons.Length
-                Sort.By.DATE -> dateLabel to NextIcons.Calendar
-                Sort.By.SIZE -> R.string.size to NextIcons.Size
-                Sort.By.PATH -> R.string.location to NextIcons.Location
-            }
+            val (label, icon) =
+                when (by) {
+                    Sort.By.TITLE -> R.string.title to NextIcons.Title
+                    Sort.By.LENGTH -> R.string.duration to NextIcons.Length
+                    Sort.By.DATE -> dateLabel to NextIcons.Calendar
+                    Sort.By.SIZE -> R.string.size to NextIcons.Size
+                    Sort.By.PATH -> R.string.location to NextIcons.Location
+                }
             TextIconToggleButton(
                 text = stringResource(label),
                 icon = icon,
@@ -124,24 +133,29 @@ fun MediaLayoutAndSortSettings(
                 selected = sort.order == order,
                 onClick = { onSortChange(sort.copy(order = order)) },
                 shape = SegmentedButtonDefaults.itemShape(index, Sort.Order.entries.size),
-                colors = SegmentedButtonDefaults.colors(
-                    activeContentColor = MaterialTheme.colorScheme.primary,
-                    activeBorderColor = MaterialTheme.colorScheme.primary,
-                ),
+                colors =
+                    SegmentedButtonDefaults.colors(
+                        activeContentColor = MaterialTheme.colorScheme.primary,
+                        activeBorderColor = MaterialTheme.colorScheme.primary,
+                    ),
                 icon = {
                     Icon(
-                        imageVector = if (order == Sort.Order.ASCENDING) NextIcons.ArrowUpward else NextIcons.ArrowDownward,
+                        imageVector =
+                            if (order == Sort.Order.ASCENDING) NextIcons.ArrowUpward
+                            else NextIcons.ArrowDownward,
                         contentDescription = null,
                     )
                 },
             ) {
                 val ascending = order == Sort.Order.ASCENDING
-                val label = when (sort.by) {
-                    Sort.By.TITLE, Sort.By.PATH -> if (ascending) R.string.a_z else R.string.z_a
-                    Sort.By.LENGTH -> if (ascending) R.string.shortest else R.string.longest
-                    Sort.By.SIZE -> if (ascending) R.string.smallest else R.string.largest
-                    Sort.By.DATE -> if (ascending) R.string.oldest else R.string.newest
-                }
+                val label =
+                    when (sort.by) {
+                        Sort.By.TITLE,
+                        Sort.By.PATH -> if (ascending) R.string.a_z else R.string.z_a
+                        Sort.By.LENGTH -> if (ascending) R.string.shortest else R.string.longest
+                        Sort.By.SIZE -> if (ascending) R.string.smallest else R.string.largest
+                        Sort.By.DATE -> if (ascending) R.string.oldest else R.string.newest
+                    }
                 Text(stringResource(label))
             }
         }

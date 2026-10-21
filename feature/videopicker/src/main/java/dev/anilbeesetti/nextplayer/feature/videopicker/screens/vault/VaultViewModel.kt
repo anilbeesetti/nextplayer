@@ -66,9 +66,10 @@ class VaultViewModel(
         viewModelScope.launch {
             preferencesRepository.applicationPreferences.collect { prefs ->
                 val inheritedSort = Sort(by = prefs.sortBy, order = prefs.sortOrder)
-                val shouldRefresh = !hasVaultSortOverride &&
-                    stateInternal.value.stage == VaultStage.UNLOCKED &&
-                    stateInternal.value.sort != inheritedSort
+                val shouldRefresh =
+                    !hasVaultSortOverride &&
+                        stateInternal.value.stage == VaultStage.UNLOCKED &&
+                        stateInternal.value.sort != inheritedSort
                 stateInternal.update {
                     it.copy(
                         preferences = prefs,
@@ -88,7 +89,11 @@ class VaultViewModel(
             is VaultAction.SubmitPinConfirmation -> submitPinConfirmation(action.pin)
             is VaultAction.SubmitUnlockPin -> submitUnlockPin(action.pin)
             is VaultAction.BiometricAuthenticated -> {
-                if (stateInternal.value.stage == VaultStage.LOCKED && stateInternal.value.biometricEnabled) unlockVault()
+                if (
+                    stateInternal.value.stage == VaultStage.LOCKED &&
+                        stateInternal.value.biometricEnabled
+                )
+                    unlockVault()
             }
             is VaultAction.CompleteBiometricSetup -> completeBiometricSetup(action.enabled)
             is VaultAction.SetBiometricEnabled -> setBiometricEnabled(action.enabled)
@@ -112,14 +117,16 @@ class VaultViewModel(
 
     private fun updateSort(sort: Sort) {
         hasVaultSortOverride = true
-        val shouldRefresh = stateInternal.value.stage == VaultStage.UNLOCKED &&
-            stateInternal.value.sort != sort
+        val shouldRefresh =
+            stateInternal.value.stage == VaultStage.UNLOCKED && stateInternal.value.sort != sort
         stateInternal.update { it.copy(sort = sort) }
         if (shouldRefresh) collectHiddenVideos()
     }
 
     private fun submitNewPin(pin: String) {
-        stateInternal.update { it.copy(pendingPin = pin, stage = VaultStage.CONFIRM_PIN, pinErrorCount = 0) }
+        stateInternal.update {
+            it.copy(pendingPin = pin, stage = VaultStage.CONFIRM_PIN, pinErrorCount = 0)
+        }
     }
 
     private fun submitPinConfirmation(pin: String) {
@@ -214,9 +221,7 @@ class VaultViewModel(
     }
 
     private fun deleteVideos(selectionItems: Set<SelectionItem>) {
-        viewModelScope.launch {
-            vaultRepository.deleteHiddenVideos(selectionItems.toVideos())
-        }
+        viewModelScope.launch { vaultRepository.deleteHiddenVideos(selectionItems.toVideos()) }
     }
 
     private fun showMediaInfo(video: Video) {
@@ -262,18 +267,31 @@ sealed interface VaultAction {
     data object NavigateUp : VaultAction
 
     data class SubmitNewPin(val pin: String) : VaultAction
+
     data class SubmitPinConfirmation(val pin: String) : VaultAction
+
     data class SubmitUnlockPin(val pin: String) : VaultAction
+
     data object BiometricAuthenticated : VaultAction
+
     data class CompleteBiometricSetup(val enabled: Boolean) : VaultAction
+
     data class SetBiometricEnabled(val enabled: Boolean) : VaultAction
+
     data class PlayVideo(val video: Video) : VaultAction
+
     data class PlaySelected(val selectionItems: Set<SelectionItem>) : VaultAction
+
     data class UnhideSelected(val selectionItems: Set<SelectionItem>) : VaultAction
+
     data class DeleteSelected(val selectionItems: Set<SelectionItem>) : VaultAction
+
     data class ShowMediaInfo(val video: Video) : VaultAction
+
     data object DismissMediaInfo : VaultAction
+
     data class UpdateSort(val sort: Sort) : VaultAction
+
     data class UpdateQuickSettings(val layoutMode: MediaLayoutMode, val sort: Sort) : VaultAction
 }
 

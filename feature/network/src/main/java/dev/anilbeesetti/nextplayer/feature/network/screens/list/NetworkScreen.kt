@@ -62,9 +62,7 @@ import dev.anilbeesetti.nextplayer.core.ui.extensions.copy
 import dev.anilbeesetti.nextplayer.core.ui.theme.NextPlayerTheme
 
 @Composable
-fun NetworkScreen(
-    viewModel: NetworkViewModel,
-) {
+fun NetworkScreen(viewModel: NetworkViewModel) {
     val state by viewModel.state.collectAsStateWithLifecycle()
 
     NetworkScreenContent(
@@ -98,7 +96,10 @@ internal fun NetworkScreenContent(
                 title = stringResource(R.string.network),
                 fontWeight = FontWeight.Bold,
                 actions = {
-                    IconButton(onClick = { onAction(NetworkAction.OpenSettings) }, modifier = Modifier.tvFocusRing()) {
+                    IconButton(
+                        onClick = { onAction(NetworkAction.OpenSettings) },
+                        modifier = Modifier.tvFocusRing(),
+                    ) {
                         Icon(
                             imageVector = NextIcons.Settings,
                             contentDescription = stringResource(R.string.settings),
@@ -110,34 +111,35 @@ internal fun NetworkScreenContent(
         containerColor = MaterialTheme.colorScheme.surfaceContainer,
     ) { scaffoldPadding ->
         Box(
-            modifier = Modifier
-                .fillMaxSize()
-                .padding(scaffoldPadding.copy(bottom = 0.dp))
-                .clip(RoundedCornerShape(topStart = 24.dp, topEnd = 24.dp))
-                .background(MaterialTheme.colorScheme.background),
+            modifier =
+                Modifier.fillMaxSize()
+                    .padding(scaffoldPadding.copy(bottom = 0.dp))
+                    .clip(RoundedCornerShape(topStart = 24.dp, topEnd = 24.dp))
+                    .background(MaterialTheme.colorScheme.background)
         ) {
             LazyColumn(
-                modifier = Modifier
-                    .fillMaxSize()
-                    .tvListFocus(),
-                contentPadding = PaddingValues(8.dp).copy(
-                    bottom = scaffoldPadding.calculateBottomPadding() + navigationBottomPadding,
-                ),
+                modifier = Modifier.fillMaxSize().tvListFocus(),
+                contentPadding =
+                    PaddingValues(8.dp)
+                        .copy(
+                            bottom =
+                                scaffoldPadding.calculateBottomPadding() + navigationBottomPadding
+                        ),
                 verticalArrangement = Arrangement.spacedBy(2.dp),
             ) {
                 item {
                     NetworkStreamCard(
                         url = streamUrl,
                         onUrlChange = { streamUrl = it },
-                        onOpenStream = { onAction(NetworkAction.OpenStream(trimmedStreamUrl.toUri())) },
+                        onOpenStream = {
+                            onAction(NetworkAction.OpenStream(trimmedStreamUrl.toUri()))
+                        },
                         enabled = trimmedStreamUrl.isNotEmpty(),
                         fabUpFocusRequester = fabUpFocusRequester,
                     )
                 }
                 if (showEmptyState) {
-                    item {
-                        NetworkEmptyState()
-                    }
+                    item { NetworkEmptyState() }
                 } else {
                     itemsIndexed(
                         items = state.connections,
@@ -161,14 +163,18 @@ internal fun NetworkScreenContent(
         NextDialog(
             onDismissRequest = { connectionToDelete = null },
             title = { Text(stringResource(R.string.delete_connection)) },
-            content = { Text(stringResource(R.string.delete_connection_confirmation, connection.name)) },
+            content = {
+                Text(stringResource(R.string.delete_connection_confirmation, connection.name))
+            },
             confirmButton = {
                 TextButton(
                     onClick = {
                         onAction(NetworkAction.DeleteConnection(connection.id))
                         connectionToDelete = null
-                    },
-                ) { Text(stringResource(R.string.delete)) }
+                    }
+                ) {
+                    Text(stringResource(R.string.delete))
+                }
             },
             dismissButton = {
                 TextButton(onClick = { connectionToDelete = null }) {
@@ -189,10 +195,11 @@ private fun NetworkStreamCard(
     fabUpFocusRequester: FocusRequester,
 ) {
     Column(
-        modifier = modifier
-            .clip(RoundedCornerShape(24.dp))
-            .background(MaterialTheme.colorScheme.surfaceColorAtElevation(1.dp))
-            .padding(16.dp),
+        modifier =
+            modifier
+                .clip(RoundedCornerShape(24.dp))
+                .background(MaterialTheme.colorScheme.surfaceColorAtElevation(1.dp))
+                .padding(16.dp),
         verticalArrangement = Arrangement.spacedBy(12.dp),
     ) {
         Text(
@@ -208,18 +215,18 @@ private fun NetworkStreamCard(
         NextOutlinedTextField(
             value = url,
             onValueChange = onUrlChange,
-            modifier = Modifier
-                .fillMaxWidth()
-                .thenIf(!enabled) { focusRequester(fabUpFocusRequester) },
+            modifier =
+                Modifier.fillMaxWidth().thenIf(!enabled) { focusRequester(fabUpFocusRequester) },
             placeholder = { Text(stringResource(R.string.example_url)) },
             singleLine = true,
         )
         Button(
             onClick = onOpenStream,
             enabled = enabled,
-            modifier = Modifier
-                .align(Alignment.End)
-                .thenIf(enabled) { focusRequester(fabUpFocusRequester) },
+            modifier =
+                Modifier.align(Alignment.End).thenIf(enabled) {
+                    focusRequester(fabUpFocusRequester)
+                },
         ) {
             Text(stringResource(R.string.open_network_stream))
         }
@@ -245,11 +252,11 @@ private fun ConnectionItem(
         onClick = onClick,
         leadingContent = {
             Box(
-                modifier = Modifier
-                    .padding(horizontal = 8.dp)
-                    .size(48.dp)
-                    .clip(MaterialTheme.shapes.small)
-                    .background(MaterialTheme.colorScheme.surfaceColorAtElevation(1.dp)),
+                modifier =
+                    Modifier.padding(horizontal = 8.dp)
+                        .size(48.dp)
+                        .clip(MaterialTheme.shapes.small)
+                        .background(MaterialTheme.colorScheme.surfaceColorAtElevation(1.dp)),
                 contentAlignment = Alignment.Center,
             ) {
                 Icon(
@@ -334,19 +341,21 @@ private fun NetworkEmptyState(modifier: Modifier = Modifier) {
     }
 }
 
-internal fun NetworkProtocol.icon(): ImageVector = when (this) {
-    NetworkProtocol.SMB -> NextIcons.Storage
-    NetworkProtocol.FTP -> NextIcons.Dns
-    NetworkProtocol.SFTP -> NextIcons.Dns
-    NetworkProtocol.WEBDAV -> NextIcons.Cloud
-}
+internal fun NetworkProtocol.icon(): ImageVector =
+    when (this) {
+        NetworkProtocol.SMB -> NextIcons.Storage
+        NetworkProtocol.FTP -> NextIcons.Dns
+        NetworkProtocol.SFTP -> NextIcons.Dns
+        NetworkProtocol.WEBDAV -> NextIcons.Cloud
+    }
 
 @PreviewLightDark
 @Composable
 private fun NetworkScreenPreview() {
     NextPlayerTheme {
         NetworkScreenContent(
-            state = NetworkUiState(connections = listOf(NetworkConnection.sample), isLoading = false),
+            state =
+                NetworkUiState(connections = listOf(NetworkConnection.sample), isLoading = false),
             onAction = {},
         )
     }

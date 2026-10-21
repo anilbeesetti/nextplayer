@@ -16,11 +16,12 @@ class GetFolderTreeMediaUseCaseTest {
     private val mediaRepository = FakeMediaRepository()
     private val preferencesRepository = FakePreferencesRepository()
 
-    private val getFolderTreeMediaUseCase = GetFolderTreeMediaUseCase(
-        mediaRepository,
-        preferencesRepository,
-        Dispatchers.Unconfined,
-    )
+    private val getFolderTreeMediaUseCase =
+        GetFolderTreeMediaUseCase(
+            mediaRepository,
+            preferencesRepository,
+            Dispatchers.Unconfined,
+        )
 
     private val now = System.currentTimeMillis()
     private val oneDayMillis = 24 * 60 * 60 * 1000L
@@ -31,19 +32,20 @@ class GetFolderTreeMediaUseCaseTest {
         addedDaysAgo: Long,
         watched: Boolean,
         parent: String = folderPath,
-    ) = Video(
-        id = id,
-        path = "$parent/video_$id.mp4",
-        parentPath = parent,
-        duration = 1000,
-        uriString = "content://media/external/video/media/$id",
-        nameWithExtension = "video_$id.mp4",
-        width = 1920,
-        height = 1080,
-        size = 1000,
-        dateAdded = (now - addedDaysAgo * oneDayMillis) / 1000L,
-        lastPlayedAt = if (watched) Date(now) else null,
-    )
+    ) =
+        Video(
+            id = id,
+            path = "$parent/video_$id.mp4",
+            parentPath = parent,
+            duration = 1000,
+            uriString = "content://media/external/video/media/$id",
+            nameWithExtension = "video_$id.mp4",
+            width = 1920,
+            height = 1080,
+            size = 1000,
+            dateAdded = (now - addedDaysAgo * oneDayMillis) / 1000L,
+            lastPlayedAt = if (watched) Date(now) else null,
+        )
 
     @Test
     fun folderNewVideosCount_onlyCountsUnwatchedVideosAddedWithinLast7Days() = runTest {
@@ -53,7 +55,7 @@ class GetFolderTreeMediaUseCaseTest {
                 video(id = 2, addedDaysAgo = 6, watched = false), // new
                 video(id = 3, addedDaysAgo = 8, watched = false), // too old, not new
                 video(id = 4, addedDaysAgo = 1, watched = true), // watched, not new
-            ),
+            )
         )
 
         val media = getFolderTreeMediaUseCase(folderPath = null).first()
@@ -69,7 +71,7 @@ class GetFolderTreeMediaUseCaseTest {
             listOf(
                 video(id = 1, addedDaysAgo = 10, watched = false),
                 video(id = 2, addedDaysAgo = 1, watched = true),
-            ),
+            )
         )
 
         val media = getFolderTreeMediaUseCase(folderPath = null).first()
@@ -85,7 +87,7 @@ class GetFolderTreeMediaUseCaseTest {
             listOf(
                 video(id = 1, addedDaysAgo = 1, watched = false),
                 video(id = 2, addedDaysAgo = 2, watched = false, parent = nestedFolder),
-            ),
+            )
         )
 
         val media = getFolderTreeMediaUseCase(folderPath = null).first()
@@ -97,14 +99,12 @@ class GetFolderTreeMediaUseCaseTest {
 
     @Test
     fun folderNewVideosCount_respectsNewVideoThresholdPreference() = runTest {
-        preferencesRepository.updateApplicationPreferences {
-            it.copy(newVideoThresholdDays = 3)
-        }
+        preferencesRepository.updateApplicationPreferences { it.copy(newVideoThresholdDays = 3) }
         mediaRepository.videos.addAll(
             listOf(
                 video(id = 1, addedDaysAgo = 2, watched = false),
                 video(id = 2, addedDaysAgo = 5, watched = false),
-            ),
+            )
         )
 
         val media = getFolderTreeMediaUseCase(folderPath = null).first()
@@ -118,9 +118,7 @@ class GetFolderTreeMediaUseCaseTest {
         preferencesRepository.updateApplicationPreferences {
             it.copy(excludeFolders = listOf(folderPath))
         }
-        mediaRepository.videos.addAll(
-            listOf(video(id = 1, addedDaysAgo = 1, watched = false)),
-        )
+        mediaRepository.videos.addAll(listOf(video(id = 1, addedDaysAgo = 1, watched = false)))
 
         val media = getFolderTreeMediaUseCase(folderPath = null).first()
 

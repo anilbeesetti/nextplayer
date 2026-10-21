@@ -28,10 +28,12 @@ object ApplicationPreferencesSerializer : Serializer<ApplicationPreferences> {
     @Suppress("BlockingMethodInNonBlockingContext")
     override suspend fun writeTo(t: ApplicationPreferences, output: OutputStream) {
         output.write(
-            jsonFormat.encodeToString(
-                serializer = ApplicationPreferences.serializer(),
-                value = t,
-            ).encodeToByteArray(),
+            jsonFormat
+                .encodeToString(
+                    serializer = ApplicationPreferences.serializer(),
+                    value = t,
+                )
+                .encodeToByteArray()
         )
     }
 }

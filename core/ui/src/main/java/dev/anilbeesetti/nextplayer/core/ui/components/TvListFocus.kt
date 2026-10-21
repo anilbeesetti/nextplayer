@@ -12,17 +12,16 @@ import androidx.compose.ui.focus.focusRestorer
 import androidx.compose.ui.platform.LocalContext
 import dev.anilbeesetti.nextplayer.core.common.extensions.isTelevision
 
-@Composable
-fun rememberTvListFocusRequester(): FocusRequester = remember { FocusRequester() }
+@Composable fun rememberTvListFocusRequester(): FocusRequester = remember { FocusRequester() }
 
 /**
  * Owns initial focus and child restoration for a TV content region. Keep this after scroll
- * modifiers so the region targets its interactive children, rather than the scroll container.
- * Pass a requester only when another region needs to enter this one. No-op on touch devices.
+ * modifiers so the region targets its interactive children, rather than the scroll container. Pass
+ * a requester only when another region needs to enter this one. No-op on touch devices.
  */
 @Composable
 fun Modifier.tvListFocus(
-    focusRequester: FocusRequester = rememberTvListFocusRequester(),
+    focusRequester: FocusRequester = rememberTvListFocusRequester()
 ): Modifier {
     val context = LocalContext.current
     val isTv = remember { context.isTelevision }
@@ -33,9 +32,7 @@ fun Modifier.tvListFocus(
     }
 
     return if (isTv) {
-        this.focusRequester(focusRequester)
-            .focusRestorer()
-            .focusGroup()
+        this.focusRequester(focusRequester).focusRestorer().focusGroup()
     } else {
         this
     }

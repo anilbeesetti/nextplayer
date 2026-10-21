@@ -49,9 +49,7 @@ class PlaylistListViewModel(
     init {
         viewModelScope.launch {
             playlistRepository.observePlaylists().collect { playlists ->
-                stateInternal.update {
-                    it.copy(playlistsDataState = DataState.Success(playlists))
-                }
+                stateInternal.update { it.copy(playlistsDataState = DataState.Success(playlists)) }
             }
         }
     }
@@ -63,22 +61,34 @@ class PlaylistListViewModel(
 
             is PlaylistUiAction.OnSettingsClick -> output.openSettings()
             is PlaylistUiAction.OnPlaylistClick -> output.openPlaylist(action.playlist.id)
-            is PlaylistUiAction.ShowCreationChooser -> showCreationDialog(PlaylistCreationDialog.CHOOSER)
-            is PlaylistUiAction.ChooseLocalPlaylist -> showCreationDialog(PlaylistCreationDialog.LOCAL_NAME)
+            is PlaylistUiAction.ShowCreationChooser ->
+                showCreationDialog(PlaylistCreationDialog.CHOOSER)
+            is PlaylistUiAction.ChooseLocalPlaylist ->
+                showCreationDialog(PlaylistCreationDialog.LOCAL_NAME)
             is PlaylistUiAction.ChooseM3UUrl -> showCreationDialog(PlaylistCreationDialog.M3U_URL)
             is PlaylistUiAction.DismissCreation -> showCreationDialog(PlaylistCreationDialog.NONE)
-            is PlaylistUiAction.ShowRenameDialogFor -> stateInternal.update {
-                it.copy(showRenameDialogFor = action.playlist, saveActionState = ActionState.Idle)
-            }
-            is PlaylistUiAction.DismissRenameDialog -> stateInternal.update {
-                it.copy(showRenameDialogFor = null, saveActionState = ActionState.Idle)
-            }
-            is PlaylistUiAction.ShowDeleteDialogFor -> stateInternal.update {
-                it.copy(showDeleteDialogFor = action.playlist, saveActionState = ActionState.Idle)
-            }
-            is PlaylistUiAction.DismissDeleteDialog -> stateInternal.update {
-                it.copy(showDeleteDialogFor = null, saveActionState = ActionState.Idle)
-            }
+            is PlaylistUiAction.ShowRenameDialogFor ->
+                stateInternal.update {
+                    it.copy(
+                        showRenameDialogFor = action.playlist,
+                        saveActionState = ActionState.Idle,
+                    )
+                }
+            is PlaylistUiAction.DismissRenameDialog ->
+                stateInternal.update {
+                    it.copy(showRenameDialogFor = null, saveActionState = ActionState.Idle)
+                }
+            is PlaylistUiAction.ShowDeleteDialogFor ->
+                stateInternal.update {
+                    it.copy(
+                        showDeleteDialogFor = action.playlist,
+                        saveActionState = ActionState.Idle,
+                    )
+                }
+            is PlaylistUiAction.DismissDeleteDialog ->
+                stateInternal.update {
+                    it.copy(showDeleteDialogFor = null, saveActionState = ActionState.Idle)
+                }
             is PlaylistUiAction.CreateLocal -> createLocal(action.name)
             is PlaylistUiAction.CreateM3UUrl -> createM3UUrl(action.url)
             is PlaylistUiAction.Rename -> rename(action.playlistId, action.name)
@@ -93,10 +103,11 @@ class PlaylistListViewModel(
     private fun createM3UFile(uri: Uri) {
         if (linkedCreationJob?.isActive == true) return
         linkedCreationJob = viewModelScope.launch {
-            val grant = documentPermissionManager.acquire(uri).getOrElse {
-                showToast(R.string.m3u_file_permission_failed)
-                return@launch
-            }
+            val grant =
+                documentPermissionManager.acquire(uri).getOrElse {
+                    showToast(R.string.m3u_file_permission_failed)
+                    return@launch
+                }
             createM3U(
                 type = PlaylistType.M3U_FILE,
                 source = uri.toString(),
@@ -160,8 +171,9 @@ class PlaylistListViewModel(
             throw cancellation
         } catch (error: Throwable) {
             grant?.let(documentPermissionManager::release)
-            val message = error.message?.takeIf(String::isNotBlank)
-                ?: systemService.getString(R.string.playlist_save_failed)
+            val message =
+                error.message?.takeIf(String::isNotBlank)
+                    ?: systemService.getString(R.string.playlist_save_failed)
             if (showInlineError) {
                 stateInternal.update {
                     it.copy(saveActionState = ActionState.Failed(Error(message, error)))
@@ -192,7 +204,8 @@ class PlaylistListViewModel(
                 playlistRepository.delete(playlistId)
                 if (
                     playlist?.type == PlaylistType.M3U_FILE &&
-                    playlistRepository.countFilePlaylistsBySource(playlist.source.orEmpty()) == 0
+                        playlistRepository.countFilePlaylistsBySource(playlist.source.orEmpty()) ==
+                            0
                 ) {
                     playlist.source?.let(Uri::parse)?.let(documentPermissionManager::release)
                 }
@@ -218,9 +231,10 @@ class PlaylistListViewModel(
             } catch (error: Throwable) {
                 stateInternal.update {
                     it.copy(
-                        saveActionState = ActionState.Failed(
-                            Error(systemService.getString(R.string.playlist_save_failed), error),
-                        ),
+                        saveActionState =
+                            ActionState.Failed(
+                                Error(systemService.getString(R.string.playlist_save_failed), error)
+                            )
                     )
                 }
             }
@@ -252,20 +266,34 @@ data class PlaylistListUiState(
 
 sealed interface PlaylistUiAction {
     data object Synchronize : PlaylistUiAction
+
     data class CreateM3UFile(val uri: Uri) : PlaylistUiAction
 
     data object OnSettingsClick : PlaylistUiAction
+
     data class OnPlaylistClick(val playlist: PlaylistSummary) : PlaylistUiAction
+
     data object ShowCreationChooser : PlaylistUiAction
+
     data object ChooseLocalPlaylist : PlaylistUiAction
+
     data object ChooseM3UUrl : PlaylistUiAction
+
     data object DismissCreation : PlaylistUiAction
+
     data class ShowRenameDialogFor(val playlist: PlaylistSummary) : PlaylistUiAction
+
     data object DismissRenameDialog : PlaylistUiAction
+
     data class ShowDeleteDialogFor(val playlist: PlaylistSummary) : PlaylistUiAction
+
     data object DismissDeleteDialog : PlaylistUiAction
+
     data class CreateLocal(val name: String) : PlaylistUiAction
+
     data class CreateM3UUrl(val url: String) : PlaylistUiAction
+
     data class Rename(val playlistId: Long, val name: String) : PlaylistUiAction
+
     data class Delete(val playlistId: Long) : PlaylistUiAction
 }

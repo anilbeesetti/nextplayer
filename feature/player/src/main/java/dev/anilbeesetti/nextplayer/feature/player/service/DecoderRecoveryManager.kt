@@ -36,27 +36,30 @@ internal class DecoderRecoveryManager {
             recovery.fallbackModes = ArrayDeque(mode.fallbackModes())
         }
         if (recovery.fallbackModes.isNullOrEmpty()) {
-            recovery.state = DecoderRecoveryState(
-                status = DecoderRecoveryStatus.FAILED,
-                trackType = trackType,
-            )
+            recovery.state =
+                DecoderRecoveryState(
+                    status = DecoderRecoveryStatus.FAILED,
+                    trackType = trackType,
+                )
             return null
         }
 
         if (recovery.requiresConfirmation) {
-            recovery.state = DecoderRecoveryState(
-                status = DecoderRecoveryStatus.AWAITING_CONFIRMATION,
-                trackType = trackType,
-                unsupportedMode = mode,
-            )
+            recovery.state =
+                DecoderRecoveryState(
+                    status = DecoderRecoveryStatus.AWAITING_CONFIRMATION,
+                    trackType = trackType,
+                    unsupportedMode = mode,
+                )
             return null
         }
 
         val fallbackMode = checkNotNull(recovery.fallbackModes).removeFirst()
-        recovery.state = DecoderRecoveryState(
-            status = DecoderRecoveryStatus.RECOVERING,
-            trackType = trackType,
-        )
+        recovery.state =
+            DecoderRecoveryState(
+                status = DecoderRecoveryStatus.RECOVERING,
+                trackType = trackType,
+            )
         return DecoderRetry(trackType, fallbackMode)
     }
 
@@ -68,10 +71,11 @@ internal class DecoderRecoveryManager {
         val fallbackMode = checkNotNull(recovery.fallbackModes).removeFirst()
 
         recovery.requiresConfirmation = false
-        recovery.state = DecoderRecoveryState(
-            status = DecoderRecoveryStatus.RECOVERING,
-            trackType = trackType,
-        )
+        recovery.state =
+            DecoderRecoveryState(
+                status = DecoderRecoveryStatus.RECOVERING,
+                trackType = trackType,
+            )
         return DecoderRetry(
             trackType = trackType,
             mode = fallbackMode,

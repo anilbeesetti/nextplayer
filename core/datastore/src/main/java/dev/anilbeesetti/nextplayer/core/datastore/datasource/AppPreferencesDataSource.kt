@@ -9,7 +9,8 @@ import org.koin.core.annotation.Named
 
 @Factory(binds = [])
 class AppPreferencesDataSource(
-    @Named(DiQualifiers.APP_PREFERENCES) private val appPreferences: DataStore<ApplicationPreferences>,
+    @Named(DiQualifiers.APP_PREFERENCES)
+    private val appPreferences: DataStore<ApplicationPreferences>
 ) : PreferencesDataSource<ApplicationPreferences> {
 
     companion object {
@@ -19,7 +20,7 @@ class AppPreferencesDataSource(
     override val preferences = appPreferences.data
 
     override suspend fun update(
-        transform: suspend (ApplicationPreferences) -> ApplicationPreferences,
+        transform: suspend (ApplicationPreferences) -> ApplicationPreferences
     ) {
         try {
             appPreferences.updateData(transform)

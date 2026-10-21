@@ -14,14 +14,11 @@ import org.robolectric.RobolectricTestRunner
 class MediaItemTest {
     @Test
     fun `copy creates metadata extras when source extras are null`() {
-        val mediaItem = MediaItem.Builder()
-            .setMediaId("https://example.com/stream.mp4")
-            .setMediaMetadata(
-                MediaMetadata.Builder()
-                    .setTitle("Remote stream")
-                    .build(),
-            )
-            .build()
+        val mediaItem =
+            MediaItem.Builder()
+                .setMediaId("https://example.com/stream.mp4")
+                .setMediaMetadata(MediaMetadata.Builder().setTitle("Remote stream").build())
+                .build()
 
         val copiedItem = mediaItem.copy(audioTrackIndex = 2)
 
@@ -34,9 +31,11 @@ class MediaItemTest {
     fun decoderChoicesSurviveMetadataCopiesAndBundleRoundTrip() {
         for (videoMode in DecoderMode.entries) {
             for (audioMode in DecoderMode.entries) {
-                val item = MediaItem.Builder().build()
-                    .copy(videoDecoderMode = videoMode, audioDecoderMode = audioMode)
-                    .copy(positionMs = 12_000, subtitleTrackIndex = 2)
+                val item =
+                    MediaItem.Builder()
+                        .build()
+                        .copy(videoDecoderMode = videoMode, audioDecoderMode = audioMode)
+                        .copy(positionMs = 12_000, subtitleTrackIndex = 2)
                 val restored = MediaItem.fromBundle(item.toBundle())
                 assertEquals(videoMode, restored.mediaMetadata.videoDecoderMode)
                 assertEquals(audioMode, restored.mediaMetadata.audioDecoderMode)
@@ -51,14 +50,17 @@ class MediaItemTest {
     fun newItemsHaveNoDecoderChoiceAndInvalidNamesAreIgnored() {
         assertNull(MediaItem.EMPTY.mediaMetadata.videoDecoderMode)
         assertNull(MediaItem.EMPTY.mediaMetadata.audioDecoderMode)
-        val metadata = MediaMetadata.Builder()
-            .setExtras(videoDecoderMode = DecoderMode.AUTO, audioDecoderMode = DecoderMode.HARDWARE)
-            .build()
+        val metadata =
+            MediaMetadata.Builder()
+                .setExtras(
+                    videoDecoderMode = DecoderMode.AUTO,
+                    audioDecoderMode = DecoderMode.HARDWARE,
+                )
+                .build()
         assertEquals(DecoderMode.AUTO, metadata.videoDecoderMode)
         assertEquals(DecoderMode.HARDWARE, metadata.audioDecoderMode)
         metadata.extras!!.keySet().forEach { metadata.extras!!.putString(it, "unknown") }
         assertNull(metadata.videoDecoderMode)
         assertNull(metadata.audioDecoderMode)
     }
-
 }

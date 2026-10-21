@@ -21,10 +21,13 @@ class PlaylistDaoTest {
 
     @Before
     fun setUp() {
-        database = Room.inMemoryDatabaseBuilder(
-            ApplicationProvider.getApplicationContext(),
-            MediaDatabase::class.java,
-        ).allowMainThreadQueries().build()
+        database =
+            Room.inMemoryDatabaseBuilder(
+                    ApplicationProvider.getApplicationContext(),
+                    MediaDatabase::class.java,
+                )
+                .allowMainThreadQueries()
+                .build()
         dao = database.playlistDao()
     }
 
@@ -35,7 +38,8 @@ class PlaylistDaoTest {
 
     @Test
     fun createAllowsDuplicateNamesAndDeduplicatesVideos() = runTest {
-        val firstId = dao.createPlaylist("Movies", listOf("content://one", "content://one", "content://two"))
+        val firstId =
+            dao.createPlaylist("Movies", listOf("content://one", "content://one", "content://two"))
         dao.createPlaylist("Movies", emptyList())
 
         val summaries = dao.observeSummaries().first()
@@ -50,10 +54,11 @@ class PlaylistDaoTest {
 
     @Test
     fun renameRemoveAndReorderKeepContiguousPositions() = runTest {
-        val playlistId = dao.createPlaylist(
-            "Before",
-            listOf("content://one", "content://two", "content://three"),
-        )
+        val playlistId =
+            dao.createPlaylist(
+                "Before",
+                listOf("content://one", "content://two", "content://three"),
+            )
 
         dao.renamePlaylist(playlistId, "After")
         dao.removeItem(playlistId, "content://two")
@@ -86,10 +91,11 @@ class PlaylistDaoTest {
 
     @Test
     fun lastPlayedTimestampsRetainThePreviousItemAfterTheNewestIsRemoved() = runTest {
-        val playlistId = dao.createPlaylist(
-            "Movies",
-            listOf("content://one", "content://two"),
-        )
+        val playlistId =
+            dao.createPlaylist(
+                "Movies",
+                listOf("content://one", "content://two"),
+            )
 
         dao.markItemPlayed(playlistId, "content://one", playedAt = 100)
         dao.markItemPlayed(playlistId, "content://two", playedAt = 200)
@@ -107,12 +113,10 @@ class PlaylistDaoTest {
 
     @Test
     fun playlistItemTableStoresIdentityMetadataAndPlaybackTimestamp() {
-        val columns = database.openHelper.readableDatabase
-            .query("PRAGMA table_info(`playlist_item`)")
-            .use { cursor ->
-                buildSet {
-                    while (cursor.moveToNext()) add(cursor.getString(1))
-                }
+        val columns =
+            database.openHelper.readableDatabase.query("PRAGMA table_info(`playlist_item`)").use {
+                cursor ->
+                buildSet { while (cursor.moveToNext()) add(cursor.getString(1)) }
             }
 
         assertEquals(
@@ -132,38 +136,42 @@ class PlaylistDaoTest {
 
     @Test
     fun linkedRefreshReplacesMetadataAndPreservesMatchingPlaybackHistory() = runTest {
-        val playlistId = dao.createM3UPlaylist(
-            playlist = PlaylistEntity(
-                name = "Channels",
-                type = "M3U_URL",
-                source = "https://example.com/list.m3u",
-            ),
-            items = listOf(
-                PlaylistItemEntity(0, "https://example.com/one", 0, title = "Before"),
-                PlaylistItemEntity(0, "https://example.com/removed", 1),
-            ),
-        )
+        val playlistId =
+            dao.createM3UPlaylist(
+                playlist =
+                    PlaylistEntity(
+                        name = "Channels",
+                        type = "M3U_URL",
+                        source = "https://example.com/list.m3u",
+                    ),
+                items =
+                    listOf(
+                        PlaylistItemEntity(0, "https://example.com/one", 0, title = "Before"),
+                        PlaylistItemEntity(0, "https://example.com/removed", 1),
+                    ),
+            )
         dao.markItemPlayed(playlistId, "https://example.com/one", playedAt = 123)
 
         dao.replaceM3UItems(
             playlistId = playlistId,
-            items = listOf(
-                PlaylistItemEntity(
-                    playlistId = 0,
-                    uri = "https://example.com/new",
-                    position = 0,
-                    title = "New",
+            items =
+                listOf(
+                    PlaylistItemEntity(
+                        playlistId = 0,
+                        uri = "https://example.com/new",
+                        position = 0,
+                        title = "New",
+                    ),
+                    PlaylistItemEntity(
+                        playlistId = 0,
+                        uri = "https://example.com/one",
+                        position = 1,
+                        title = "After",
+                        tvgLogo = "https://example.com/logo.png",
+                        duration = 42,
+                        groupTitle = "News",
+                    ),
                 ),
-                PlaylistItemEntity(
-                    playlistId = 0,
-                    uri = "https://example.com/one",
-                    position = 1,
-                    title = "After",
-                    tvgLogo = "https://example.com/logo.png",
-                    duration = 42,
-                    groupTitle = "News",
-                ),
-            ),
             refreshedAt = 999,
         )
 
@@ -183,16 +191,16 @@ class PlaylistDaoTest {
 
     @Test
     fun missingMediaCleanupIgnoresLinkedPlaylists() = runTest {
-        val linkedId = dao.createM3UPlaylist(
-            playlist = PlaylistEntity(
-                name = "Channels",
-                type = "M3U_URL",
-                source = "https://example.com/list.m3u",
-            ),
-            items = listOf(
-                PlaylistItemEntity(0, "https://example.com/live", 0),
-            ),
-        )
+        val linkedId =
+            dao.createM3UPlaylist(
+                playlist =
+                    PlaylistEntity(
+                        name = "Channels",
+                        type = "M3U_URL",
+                        source = "https://example.com/list.m3u",
+                    ),
+                items = listOf(PlaylistItemEntity(0, "https://example.com/live", 0)),
+            )
 
         dao.removeMissingLocalItems(emptySet())
 

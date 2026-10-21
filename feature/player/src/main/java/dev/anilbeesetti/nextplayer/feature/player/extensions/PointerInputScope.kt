@@ -21,30 +21,36 @@ import kotlin.math.abs
 import kotlinx.coroutines.CancellationException
 
 /**
- * Detects custom transform gestures including pan, zoom, and rotation gestures.
- * This function allows customization of gesture handling and locks gestures to pan and zoom if specified.
- * This is a custom implementation of the [androidx.compose.foundation.gestures.detectTransformGestures] function that allows for more granular control over the gestures.
+ * Detects custom transform gestures including pan, zoom, and rotation gestures. This function
+ * allows customization of gesture handling and locks gestures to pan and zoom if specified. This is
+ * a custom implementation of the [androidx.compose.foundation.gestures.detectTransformGestures]
+ * function that allows for more granular control over the gestures.
  *
  * https://stackoverflow.com/questions/76370595/how-to-handle-horizontal-scroll-gesture-combined-with-transform-gestures-in-jetp/76374985#76374985
  *
- * @param panZoomLock If true, locks gestures to pan and zoom, ignoring rotation if the touch-slope threshold for rotation is not exceeded.
+ * @param panZoomLock If true, locks gestures to pan and zoom, ignoring rotation if the touch-slope
+ *   threshold for rotation is not exceeded.
  * @param pass Specifies the type of pointer events to process (e.g., Main, Initial).
- * @param onGestureStart Function invoked when a gesture is initiated with the first down event. The function receives the initial pointer change.
- * @param onGesture Function invoked during each gesture update with details on the gesture including the centroid position, pan offset, zoom factor, rotation angle, the current primary
- *  pointer change, and the list of all pointer changes.
- * @param onGestureEnd Function invoked when the gesture ends. The function receives the final pointer change.
+ * @param onGestureStart Function invoked when a gesture is initiated with the first down event. The
+ *   function receives the initial pointer change.
+ * @param onGesture Function invoked during each gesture update with details on the gesture
+ *   including the centroid position, pan offset, zoom factor, rotation angle, the current primary
+ *   pointer change, and the list of all pointer changes.
+ * @param onGestureEnd Function invoked when the gesture ends. The function receives the final
+ *   pointer change.
  */
 suspend fun PointerInputScope.detectCustomTransformGestures(
     panZoomLock: Boolean = false,
     pass: PointerEventPass = PointerEventPass.Main,
     pointCount: Int = 2,
     onGestureStart: (PointerInputChange) -> Unit = {},
-    onGesture: (
-        centroid: Offset,
-        pan: Offset,
-        zoom: Float,
-        rotation: Float,
-    ) -> Unit,
+    onGesture:
+        (
+            centroid: Offset,
+            pan: Offset,
+            zoom: Float,
+            rotation: Float,
+        ) -> Unit,
     onGestureEnd: (PointerInputChange) -> Unit = {},
 ) {
     awaitEachGesture {
@@ -57,10 +63,11 @@ suspend fun PointerInputScope.detectCustomTransformGestures(
         var gestureStarted = false
 
         // Wait for at least one pointer to press down and set the first contact position
-        val down: PointerInputChange = awaitFirstDown(
-            requireUnconsumed = false,
-            pass = pass,
-        )
+        val down: PointerInputChange =
+            awaitFirstDown(
+                requireUnconsumed = false,
+                pass = pass,
+            )
 
         var pointer = down
         // The main pointer is the one that is down initially
@@ -86,8 +93,8 @@ suspend fun PointerInputScope.detectCustomTransformGestures(
                 // Get a pointer that is down if the first pointer is up,
                 // get another and use it if other pointers are also down
                 // event.changes.first() doesn't return same order
-                val pointerInputChange = event.changes.firstOrNull { it.id == pointerId }
-                    ?: event.changes.first()
+                val pointerInputChange =
+                    event.changes.firstOrNull { it.id == pointerId } ?: event.changes.first()
 
                 // Next time will check the same pointer with this id
                 pointerId = pointerInputChange.id
@@ -104,14 +111,14 @@ suspend fun PointerInputScope.detectCustomTransformGestures(
 
                     val centroidSize = event.calculateCentroidSize(useCurrent = false)
                     val zoomMotion = abs(1 - zoom) * centroidSize
-                    val rotationMotion = abs(
-                        rotation * kotlin.math.PI.toFloat() * centroidSize / 180f,
-                    )
+                    val rotationMotion =
+                        abs(rotation * kotlin.math.PI.toFloat() * centroidSize / 180f)
                     val panMotion = pan.getDistance()
 
-                    if (zoomMotion > touchSlop ||
-                        rotationMotion > touchSlop ||
-                        panMotion > touchSlop
+                    if (
+                        zoomMotion > touchSlop ||
+                            rotationMotion > touchSlop ||
+                            panMotion > touchSlop
                     ) {
                         pastTouchSlop = true
                         lockedToPanZoom = panZoomLock && rotationMotion < touchSlop
@@ -121,10 +128,7 @@ suspend fun PointerInputScope.detectCustomTransformGestures(
                 if (pastTouchSlop) {
                     val centroid = event.calculateCentroid(useCurrent = false)
                     val effectiveRotation = if (lockedToPanZoom) 0f else rotationChange
-                    if (effectiveRotation != 0f ||
-                        zoomChange != 1f ||
-                        panChange != Offset.Zero
-                    ) {
+                    if (effectiveRotation != 0f || zoomChange != 1f || panChange != Offset.Zero) {
                         onGesture(
                             centroid,
                             panChange,
@@ -158,10 +162,11 @@ suspend fun PointerInputScope.detectCustomHorizontalDragGestures(
     awaitEachGesture {
         val down = awaitFirstDown(requireUnconsumed = false)
         var overSlop = 0f
-        val drag = awaitHorizontalTouchSlopOrCancellation(down.id) { change, over ->
-            change.consume()
-            overSlop = over
-        }
+        val drag =
+            awaitHorizontalTouchSlopOrCancellation(down.id) { change, over ->
+                change.consume()
+                overSlop = over
+            }
         if (drag != null && currentEvent.changes.count { it.pressed } == 1) {
             onDragStart.invoke(drag.position)
             try {
@@ -194,10 +199,11 @@ suspend fun PointerInputScope.detectCustomVerticalDragGestures(
     awaitEachGesture {
         val down = awaitFirstDown(requireUnconsumed = false)
         var overSlop = 0f
-        val drag = awaitVerticalTouchSlopOrCancellation(down.id) { change, over ->
-            change.consume()
-            overSlop = over
-        }
+        val drag =
+            awaitVerticalTouchSlopOrCancellation(down.id) { change, over ->
+                change.consume()
+                overSlop = over
+            }
         if (drag != null && currentEvent.changes.count { it.pressed } == 1) {
             onDragStart.invoke(drag.position)
             onVerticalDrag.invoke(drag, overSlop)

@@ -10,8 +10,7 @@ import kotlinx.serialization.Serializable
 import org.koin.compose.viewmodel.koinViewModel
 import org.koin.core.parameter.parametersOf
 
-@Serializable
-object GeneralPreferencesRoute : NavKey
+@Serializable object GeneralPreferencesRoute : NavKey
 
 fun NavBackStack<NavKey>.navigateToGeneralPreferences() {
     add(GeneralPreferencesRoute)
@@ -19,12 +18,9 @@ fun NavBackStack<NavKey>.navigateToGeneralPreferences() {
 
 fun EntryProviderScope<NavKey>.generalPreferencesEntry(onNavigateUp: () -> Unit) {
     entry<GeneralPreferencesRoute> {
-        val output = GeneralPreferencesViewModel.Output(
-            navigateUp = onNavigateUp,
-        )
-        val viewModel = koinViewModel<GeneralPreferencesViewModel>(
-            parameters = { parametersOf(output) },
-        )
+        val output = GeneralPreferencesViewModel.Output(navigateUp = onNavigateUp)
+        val viewModel =
+            koinViewModel<GeneralPreferencesViewModel>(parameters = { parametersOf(output) })
         SideEffect { viewModel.output = output }
         GeneralPreferencesScreen(viewModel = viewModel)
     }

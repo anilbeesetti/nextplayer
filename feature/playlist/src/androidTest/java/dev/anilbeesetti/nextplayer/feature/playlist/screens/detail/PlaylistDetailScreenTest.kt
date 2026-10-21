@@ -32,8 +32,7 @@ import org.junit.Rule
 import org.junit.Test
 
 class PlaylistDetailScreenTest {
-    @get:Rule
-    val composeRule = createComposeRule()
+    @get:Rule val composeRule = createComposeRule()
 
     @Test
     fun tvFabUpReturnsToTheVideoInsteadOfSearch() {
@@ -63,10 +62,11 @@ class PlaylistDetailScreenTest {
     @Test
     fun playFabEmitsOrderedQueueStartingFromFirstVideo() {
         val actions = mutableListOf<PlaylistDetailUiAction>()
-        val playlist = playlist(
-            item("content://two", "Renamed Two.mp4", "/Moved", 0),
-            item("content://one", "One.mp4", "/Movies", 1),
-        )
+        val playlist =
+            playlist(
+                item("content://two", "Renamed Two.mp4", "/Moved", 0),
+                item("content://one", "One.mp4", "/Movies", 1),
+            )
 
         setContent(playlist, onAction = actions::add)
 
@@ -84,10 +84,11 @@ class PlaylistDetailScreenTest {
     @Test
     fun playFabStartsFromTheLastPlayedVideo() {
         val actions = mutableListOf<PlaylistDetailUiAction>()
-        val playlist = playlist(
-            item("content://one", "One.mp4", "/Movies", 0),
-            item("content://two", "Two.mp4", "/Movies", 1, lastPlayedAt = 200),
-        )
+        val playlist =
+            playlist(
+                item("content://one", "One.mp4", "/Movies", 0),
+                item("content://two", "Two.mp4", "/Movies", 1, lastPlayedAt = 200),
+            )
 
         setContent(playlist, onAction = actions::add)
         composeRule.onNodeWithContentDescription("Play").performClick()
@@ -149,10 +150,11 @@ class PlaylistDetailScreenTest {
     @Test
     fun inPlaceSearchFiltersMetadataAndEmitsPlaybackAction() {
         val actions = mutableListOf<PlaylistDetailUiAction>()
-        val playlist = playlist(
-            item("content://one", "One.mp4", "/Movies", 0),
-            item("content://two", "Two.mp4", "/Downloads", 1),
-        )
+        val playlist =
+            playlist(
+                item("content://one", "One.mp4", "/Movies", 0),
+                item("content://two", "Two.mp4", "/Downloads", 1),
+            )
         setContent(
             playlist = playlist,
             isSearching = true,
@@ -191,10 +193,11 @@ class PlaylistDetailScreenTest {
     @Test
     fun touchReorderModeUsesWholeRowsWithoutPlayingVideos() {
         val actions = mutableListOf<PlaylistDetailUiAction>()
-        val playlist = playlist(
-            item("content://one", "One.mp4", "/Movies", 0),
-            item("content://two", "Two.mp4", "/Movies", 1),
-        )
+        val playlist =
+            playlist(
+                item("content://one", "One.mp4", "/Movies", 0),
+                item("content://two", "Two.mp4", "/Movies", 1),
+            )
 
         setContent(
             playlist = playlist,
@@ -221,10 +224,11 @@ class PlaylistDetailScreenTest {
     fun reorderButtonEmitsReorderAction() {
         val actions = mutableListOf<PlaylistDetailUiAction>()
         setContent(
-            playlist = playlist(
-                item("content://one", "One.mp4", "/Movies", 0),
-                item("content://two", "Two.mp4", "/Movies", 1),
-            ),
+            playlist =
+                playlist(
+                    item("content://one", "One.mp4", "/Movies", 0),
+                    item("content://two", "Two.mp4", "/Movies", 1),
+                ),
             onAction = actions::add,
         )
 
@@ -239,10 +243,11 @@ class PlaylistDetailScreenTest {
     @Test
     fun tvRowsPlayWithoutReorderControls() {
         val actions = mutableListOf<PlaylistDetailUiAction>()
-        val playlist = playlist(
-            item("content://one", "One.mp4", "/Movies", 0),
-            item("content://two", "Two.mp4", "/Movies", 1),
-        )
+        val playlist =
+            playlist(
+                item("content://one", "One.mp4", "/Movies", 0),
+                item("content://two", "Two.mp4", "/Movies", 1),
+            )
         setContent(
             playlist = playlist,
             isTv = true,
@@ -276,14 +281,15 @@ class PlaylistDetailScreenTest {
         composeRule.setContent {
             NextPlayerTheme {
                 PlaylistDetailScreenContent(
-                    state = PlaylistDetailUiState(
-                        playlistDataState = DataState.Success(playlist),
-                        updateActionState = updateActionState,
-                        isSearching = isSearching,
-                        searchQuery = searchQuery,
-                        isReordering = isReordering,
-                        showRemoveDialogFor = showRemoveDialogFor,
-                    ),
+                    state =
+                        PlaylistDetailUiState(
+                            playlistDataState = DataState.Success(playlist),
+                            updateActionState = updateActionState,
+                            isSearching = isSearching,
+                            searchQuery = searchQuery,
+                            isReordering = isReordering,
+                            showRemoveDialogFor = showRemoveDialogFor,
+                        ),
                     onAction = onAction,
                 )
             }
@@ -291,14 +297,15 @@ class PlaylistDetailScreenTest {
     }
 }
 
-private fun playlist(vararg items: PlaylistItem) = Playlist(
-    id = 7,
-    name = "Movies",
-    type = PlaylistType.LOCAL,
-    source = null,
-    items = items.toList(),
-    lastRefreshedAt = null,
-)
+private fun playlist(vararg items: PlaylistItem) =
+    Playlist(
+        id = 7,
+        name = "Movies",
+        type = PlaylistType.LOCAL,
+        source = null,
+        items = items.toList(),
+        lastRefreshedAt = null,
+    )
 
 private fun item(
     uri: String,
@@ -306,23 +313,25 @@ private fun item(
     parentPath: String,
     position: Int,
     lastPlayedAt: Long? = null,
-) = PlaylistItem(
-    position = position,
-    uri = uri,
-    title = null,
-    tvgLogo = null,
-    duration = -1,
-    groupTitle = null,
-    lastPlayedAt = lastPlayedAt,
-    video = Video(
-        id = position.toLong(),
-        path = "$parentPath/$name",
-        parentPath = parentPath,
-        duration = 1_000,
-        uriString = uri,
-        nameWithExtension = name,
-        width = 1920,
-        height = 1080,
-        size = 1_000,
-    ),
-)
+) =
+    PlaylistItem(
+        position = position,
+        uri = uri,
+        title = null,
+        tvgLogo = null,
+        duration = -1,
+        groupTitle = null,
+        lastPlayedAt = lastPlayedAt,
+        video =
+            Video(
+                id = position.toLong(),
+                path = "$parentPath/$name",
+                parentPath = parentPath,
+                duration = 1_000,
+                uriString = uri,
+                nameWithExtension = name,
+                width = 1920,
+                height = 1080,
+                size = 1_000,
+            ),
+    )

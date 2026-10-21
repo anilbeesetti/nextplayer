@@ -7,32 +7,32 @@ import java.util.Locale
 import java.util.concurrent.TimeUnit
 import kotlin.math.abs
 
-val storagePermission = when {
-    Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU -> Manifest.permission.READ_MEDIA_VIDEO
-    else -> Manifest.permission.READ_EXTERNAL_STORAGE
-}
+val storagePermission =
+    when {
+        Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU ->
+            Manifest.permission.READ_MEDIA_VIDEO
+        else -> Manifest.permission.READ_EXTERNAL_STORAGE
+    }
 
-/**
- * Utility functions.
- */
+/** Utility functions. */
 object Utils {
 
-    /**
-     * Converts px to dp.
-     */
+    /** Converts px to dp. */
     fun pxToDp(px: Float): Float {
         return px / Resources.getSystem().displayMetrics.density
     }
 
     /**
-     * Formats the given duration in milliseconds to a string in the format of `mm:ss` or `hh:mm:ss`.
+     * Formats the given duration in milliseconds to a string in the format of `mm:ss` or
+     * `hh:mm:ss`.
      */
     fun formatDurationMillis(millis: Long): String {
         val hours = TimeUnit.MILLISECONDS.toHours(millis)
         val minutes = TimeUnit.MILLISECONDS.toMinutes(millis) - TimeUnit.HOURS.toMinutes(hours)
-        val seconds = TimeUnit.MILLISECONDS.toSeconds(millis) -
-            TimeUnit.MINUTES.toSeconds(minutes) -
-            TimeUnit.HOURS.toSeconds(hours)
+        val seconds =
+            TimeUnit.MILLISECONDS.toSeconds(millis) -
+                TimeUnit.MINUTES.toSeconds(minutes) -
+                TimeUnit.HOURS.toSeconds(hours)
         return if (hours > 0) {
             String.format("%02d:%02d:%02d", hours, minutes, seconds)
         } else {
@@ -41,8 +41,8 @@ object Utils {
     }
 
     /**
-     * Formats the given duration in milliseconds to a string in the format of
-     * `+mm:ss` or `+hh:mm:ss` or `-mm:ss` or `-hh:mm:ss`.
+     * Formats the given duration in milliseconds to a string in the format of `+mm:ss` or
+     * `+hh:mm:ss` or `-mm:ss` or `-hh:mm:ss`.
      */
     fun formatDurationMillisSign(millis: Long): String {
         return if (millis >= 0) {
@@ -83,6 +83,8 @@ object Utils {
     }
 
     fun formatLanguage(language: String?): String? {
-        return language?.let { lang -> Locale.forLanguageTag(lang).displayLanguage.takeIf { it.isNotEmpty() } }
+        return language?.let { lang ->
+            Locale.forLanguageTag(lang).displayLanguage.takeIf { it.isNotEmpty() }
+        }
     }
 }

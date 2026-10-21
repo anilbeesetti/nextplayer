@@ -26,8 +26,7 @@ import org.robolectric.annotation.Config
 @RunWith(RobolectricTestRunner::class)
 @Config(sdk = [36])
 class NetworkBrowseScreenTest {
-    @get:Rule
-    val composeRule = createAndroidComposeRule<ComponentActivity>()
+    @get:Rule val composeRule = createAndroidComposeRule<ComponentActivity>()
 
     @Test
     fun `done applies layout and supported sort options together`() {
@@ -37,11 +36,21 @@ class NetworkBrowseScreenTest {
         composeRule.onNodeWithText("Location").assertDoesNotExist()
         composeRule.onNodeWithText("Grid").performClick()
         composeRule.onNodeWithContentDescription("Size").performClick()
-        composeRule.onNodeWithText("Largest").performScrollTo().assertIsDisplayed().performClick().assertIsSelected()
+        composeRule
+            .onNodeWithText("Largest")
+            .performScrollTo()
+            .assertIsDisplayed()
+            .performClick()
+            .assertIsSelected()
         assertTrue(actions.isEmpty())
         composeRule.onNodeWithText("Done").performClick()
         assertEquals(
-            listOf(NetworkBrowseAction.UpdateQuickSettings(MediaLayoutMode.GRID, Sort(Sort.By.SIZE, Sort.Order.DESCENDING))),
+            listOf(
+                NetworkBrowseAction.UpdateQuickSettings(
+                    MediaLayoutMode.GRID,
+                    Sort(Sort.By.SIZE, Sort.Order.DESCENDING),
+                )
+            ),
             actions,
         )
     }
@@ -57,7 +66,12 @@ class NetworkBrowseScreenTest {
         composeRule.onNodeWithContentDescription("Quick Settings").performClick()
         composeRule.onNodeWithText("Done").performClick()
         assertEquals(
-            listOf(NetworkBrowseAction.UpdateQuickSettings(MediaLayoutMode.LIST, Sort(Sort.By.TITLE, Sort.Order.ASCENDING))),
+            listOf(
+                NetworkBrowseAction.UpdateQuickSettings(
+                    MediaLayoutMode.LIST,
+                    Sort(Sort.By.TITLE, Sort.Order.ASCENDING),
+                )
+            ),
             actions,
         )
     }
@@ -67,7 +81,10 @@ class NetworkBrowseScreenTest {
         val actions = showScreen(MediaLayoutMode.GRID)
         composeRule.onNodeWithText("Folder").assertIsDisplayed().performClick()
         composeRule.onNodeWithText("Movie.mp4").assertIsDisplayed().performClick()
-        assertEquals(listOf(NetworkBrowseAction.OpenFolder(folder), NetworkBrowseAction.PlayVideo(video)), actions)
+        assertEquals(
+            listOf(NetworkBrowseAction.OpenFolder(folder), NetworkBrowseAction.PlayVideo(video)),
+            actions,
+        )
     }
 
     @Test
@@ -78,10 +95,16 @@ class NetworkBrowseScreenTest {
         showScreen(MediaLayoutMode.GRID, folders + videos)
 
         val folderBounds = folders.map {
-            composeRule.onNode(hasText(it.name) and hasClickAction()).fetchSemanticsNode().boundsInRoot
+            composeRule
+                .onNode(hasText(it.name) and hasClickAction())
+                .fetchSemanticsNode()
+                .boundsInRoot
         }
         val videoBounds = videos.map {
-            composeRule.onNode(hasText(it.name) and hasClickAction()).fetchSemanticsNode().boundsInRoot
+            composeRule
+                .onNode(hasText(it.name) and hasClickAction())
+                .fetchSemanticsNode()
+                .boundsInRoot
         }
         assertTrue(folderBounds.first().width < videoBounds.first().width)
         assertEquals(1, folderBounds.map { it.top }.distinct().size)
@@ -95,11 +118,33 @@ class NetworkBrowseScreenTest {
         val secondVideo = NetworkFile("Another.mp4", "another.mp4", false)
         showScreen(MediaLayoutMode.GRID, listOf(folder, video, secondVideo))
 
-        val folderHeader = composeRule.onNodeWithText("Folders (1)").assertIsDisplayed().fetchSemanticsNode().boundsInRoot
-        val videoHeader = composeRule.onNodeWithText("Videos (2)").assertIsDisplayed().fetchSemanticsNode().boundsInRoot
-        val folderBounds = composeRule.onNode(hasText(folder.name) and hasClickAction()).fetchSemanticsNode().boundsInRoot
-        val videoBounds = composeRule.onNode(hasText(video.name) and hasClickAction()).fetchSemanticsNode().boundsInRoot
-        val secondVideoBounds = composeRule.onNode(hasText(secondVideo.name) and hasClickAction()).fetchSemanticsNode().boundsInRoot
+        val folderHeader =
+            composeRule
+                .onNodeWithText("Folders (1)")
+                .assertIsDisplayed()
+                .fetchSemanticsNode()
+                .boundsInRoot
+        val videoHeader =
+            composeRule
+                .onNodeWithText("Videos (2)")
+                .assertIsDisplayed()
+                .fetchSemanticsNode()
+                .boundsInRoot
+        val folderBounds =
+            composeRule
+                .onNode(hasText(folder.name) and hasClickAction())
+                .fetchSemanticsNode()
+                .boundsInRoot
+        val videoBounds =
+            composeRule
+                .onNode(hasText(video.name) and hasClickAction())
+                .fetchSemanticsNode()
+                .boundsInRoot
+        val secondVideoBounds =
+            composeRule
+                .onNode(hasText(secondVideo.name) and hasClickAction())
+                .fetchSemanticsNode()
+                .boundsInRoot
 
         assertTrue(folderHeader.bottom <= folderBounds.top)
         assertTrue(folderBounds.bottom < videoHeader.top)
@@ -111,10 +156,28 @@ class NetworkBrowseScreenTest {
     fun `list layout also shows counted folder and video sections`() {
         showScreen()
 
-        val folderHeader = composeRule.onNodeWithText("Folders (1)").assertIsDisplayed().fetchSemanticsNode().boundsInRoot
-        val videoHeader = composeRule.onNodeWithText("Videos (1)").assertIsDisplayed().fetchSemanticsNode().boundsInRoot
-        val folderBounds = composeRule.onNode(hasText(folder.name) and hasClickAction()).fetchSemanticsNode().boundsInRoot
-        val videoBounds = composeRule.onNode(hasText(video.name) and hasClickAction()).fetchSemanticsNode().boundsInRoot
+        val folderHeader =
+            composeRule
+                .onNodeWithText("Folders (1)")
+                .assertIsDisplayed()
+                .fetchSemanticsNode()
+                .boundsInRoot
+        val videoHeader =
+            composeRule
+                .onNodeWithText("Videos (1)")
+                .assertIsDisplayed()
+                .fetchSemanticsNode()
+                .boundsInRoot
+        val folderBounds =
+            composeRule
+                .onNode(hasText(folder.name) and hasClickAction())
+                .fetchSemanticsNode()
+                .boundsInRoot
+        val videoBounds =
+            composeRule
+                .onNode(hasText(video.name) and hasClickAction())
+                .fetchSemanticsNode()
+                .boundsInRoot
 
         assertTrue(folderHeader.bottom <= folderBounds.top)
         assertTrue(folderBounds.bottom < videoHeader.top)
@@ -154,12 +217,13 @@ class NetworkBrowseScreenTest {
         composeRule.setContent {
             NextPlayerTheme {
                 NetworkBrowseScreenContent(
-                    state = NetworkBrowseUiState(
-                        title = "WebDAV",
-                        files = files,
-                        isLoading = false,
-                        preferences = ApplicationPreferences(networkMediaLayoutMode = layout),
-                    ),
+                    state =
+                        NetworkBrowseUiState(
+                            title = "WebDAV",
+                            files = files,
+                            isLoading = false,
+                            preferences = ApplicationPreferences(networkMediaLayoutMode = layout),
+                        ),
                     onAction = actions::add,
                 )
             }

@@ -28,9 +28,7 @@ import dev.anilbeesetti.nextplayer.settings.navigation.settingsEntry
 import dev.anilbeesetti.nextplayer.settings.navigation.subtitlePreferencesEntry
 import dev.anilbeesetti.nextplayer.settings.navigation.thumbnailPreferencesEntry
 
-fun EntryProviderScope<NavKey>.settingsNavGraph(
-    backStack: NavBackStack<NavKey>,
-) {
+fun EntryProviderScope<NavKey>.settingsNavGraph(backStack: NavBackStack<NavKey>) {
     settingsEntry(
         onNavigateUp = { backStack.removeLastIfNotRoot() },
         onItemClick = { setting ->
@@ -46,40 +44,22 @@ fun EntryProviderScope<NavKey>.settingsNavGraph(
             }
         },
     )
-    appearancePreferencesEntry(
-        onNavigateUp = { backStack.removeLastIfNotRoot() },
-    )
+    appearancePreferencesEntry(onNavigateUp = { backStack.removeLastIfNotRoot() })
     mediaLibraryPreferencesEntry(
         onNavigateUp = { backStack.removeLastIfNotRoot() },
         onFolderSettingClick = backStack::navigateToFolderPreferencesScreen,
         onThumbnailSettingClick = backStack::navigateToThumbnailPreferencesScreen,
     )
-    thumbnailPreferencesEntry(
-        onNavigateUp = { backStack.removeLastIfNotRoot() },
-    )
-    folderPreferencesEntry(
-        onNavigateUp = { backStack.removeLastIfNotRoot() },
-    )
-    playerPreferencesEntry(
-        onNavigateUp = { backStack.removeLastIfNotRoot() },
-    )
-    gesturePreferencesEntry(
-        onNavigateUp = { backStack.removeLastIfNotRoot() },
-    )
-    audioPreferencesEntry(
-        onNavigateUp = { backStack.removeLastIfNotRoot() },
-    )
-    subtitlePreferencesEntry(
-        onNavigateUp = { backStack.removeLastIfNotRoot() },
-    )
-    generalPreferencesEntry(
-        onNavigateUp = { backStack.removeLastIfNotRoot() },
-    )
+    thumbnailPreferencesEntry(onNavigateUp = { backStack.removeLastIfNotRoot() })
+    folderPreferencesEntry(onNavigateUp = { backStack.removeLastIfNotRoot() })
+    playerPreferencesEntry(onNavigateUp = { backStack.removeLastIfNotRoot() })
+    gesturePreferencesEntry(onNavigateUp = { backStack.removeLastIfNotRoot() })
+    audioPreferencesEntry(onNavigateUp = { backStack.removeLastIfNotRoot() })
+    subtitlePreferencesEntry(onNavigateUp = { backStack.removeLastIfNotRoot() })
+    generalPreferencesEntry(onNavigateUp = { backStack.removeLastIfNotRoot() })
     aboutPreferencesEntry(
         onLibrariesClick = backStack::navigateToLibraries,
         onNavigateUp = { backStack.removeLastIfNotRoot() },
     )
-    librariesEntry(
-        onNavigateUp = { backStack.removeLastIfNotRoot() },
-    )
+    librariesEntry(onNavigateUp = { backStack.removeLastIfNotRoot() })
 }

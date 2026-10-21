@@ -88,19 +88,21 @@ class SubtitleOptionsState(
     }
 
     private suspend fun updateSubtitleDelayMilliseconds() {
-        delayMilliseconds = when (player) {
-            is MediaController -> player.getSubtitleDelayMilliseconds()
-            is ExoPlayer -> player.subtitleDelayMilliseconds
-            else -> return
-        }
+        delayMilliseconds =
+            when (player) {
+                is MediaController -> player.getSubtitleDelayMilliseconds()
+                is ExoPlayer -> player.subtitleDelayMilliseconds
+                else -> return
+            }
     }
 
     private suspend fun updateSubtitleSpeed() {
-        speedMultiplier = when (player) {
-            is MediaController -> player.getSubtitleSpeed()
-            is ExoPlayer -> player.subtitleSpeed
-            else -> return
-        }
+        speedMultiplier =
+            when (player) {
+                is MediaController -> player.getSubtitleSpeed()
+                is ExoPlayer -> player.subtitleSpeed
+                else -> return
+            }
     }
 
     private fun updateDelayMetadataAndSendEvent(delay: Long = this.delayMilliseconds) {
@@ -124,5 +126,6 @@ class SubtitleOptionsState(
 
 sealed interface SubtitleOptionsEvent {
     data class DelayChanged(val mediaItem: MediaItem, val delay: Long) : SubtitleOptionsEvent
+
     data class SpeedChanged(val mediaItem: MediaItem, val speed: Float) : SubtitleOptionsEvent
 }

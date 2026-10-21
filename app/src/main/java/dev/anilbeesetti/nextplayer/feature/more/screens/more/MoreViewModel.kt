@@ -28,7 +28,8 @@ class MoreViewModel(
 
     init {
         viewModelScope.launch {
-            mediaRepository.observePlaybackHistory()
+            mediaRepository
+                .observePlaybackHistory()
                 .catch { error ->
                     stateInternal.update { it.copy(history = DataState.Error(error)) }
                 }
@@ -69,8 +70,12 @@ data class MoreUiState(
 
 sealed interface MoreAction {
     data object OpenHistory : MoreAction
+
     data class PlayVideo(val uri: String) : MoreAction
+
     data object OpenSettings : MoreAction
+
     data object OpenTrash : MoreAction
+
     data object OpenVault : MoreAction
 }

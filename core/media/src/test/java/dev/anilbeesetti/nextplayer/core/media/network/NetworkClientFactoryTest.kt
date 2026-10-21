@@ -29,16 +29,20 @@ class NetworkClientFactoryTest {
         assertTrue(factory.create(connection(NetworkProtocol.WEBDAV)) is WebDavClient)
     }
 
-    private fun connection(protocol: NetworkProtocol) = NetworkConnection(
-        name = protocol.name,
-        protocol = protocol,
-        host = "host",
-    )
+    private fun connection(protocol: NetworkProtocol) =
+        NetworkConnection(
+            name = protocol.name,
+            protocol = protocol,
+            host = "host",
+        )
 
     private class FakeSshKeyStore : SshKeyStore {
         override suspend fun stage(uri: Uri): StagedSshKey = error("Not used")
+
         override fun resolve(fileName: String): File = error("Not used")
+
         override suspend fun commit(fileName: String): String = error("Not used")
+
         override suspend fun delete(fileName: String) = Unit
     }
 }

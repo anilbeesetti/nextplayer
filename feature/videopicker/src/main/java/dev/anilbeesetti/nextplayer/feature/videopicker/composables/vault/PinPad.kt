@@ -66,26 +66,25 @@ fun PinDotsIndicator(
         repeat(VAULT_PIN_LENGTH) { index ->
             val filled = index < filledCount
             Spacer(
-                modifier = Modifier
-                    .size(14.dp)
-                    .clip(CircleShape)
-                    .background(
-                        color = if (error) {
-                            MaterialTheme.colorScheme.error
-                        } else if (filled) {
-                            MaterialTheme.colorScheme.primary
-                        } else {
-                            MaterialTheme.colorScheme.surfaceContainerHighest
-                        },
-                    ),
+                modifier =
+                    Modifier.size(14.dp)
+                        .clip(CircleShape)
+                        .background(
+                            color =
+                                if (error) {
+                                    MaterialTheme.colorScheme.error
+                                } else if (filled) {
+                                    MaterialTheme.colorScheme.primary
+                                } else {
+                                    MaterialTheme.colorScheme.surfaceContainerHighest
+                                }
+                        )
             )
         }
     }
 }
 
-/**
- * A simple numeric keypad (0-9, backspace) used to enter a PIN.
- */
+/** A simple numeric keypad (0-9, backspace) used to enter a PIN. */
 @Composable
 fun PinKeypad(
     onDigit: (Char) -> Unit,
@@ -104,11 +103,12 @@ fun PinKeypad(
         }
     }
 
-    val rows = listOf(
-        listOf('1', '2', '3'),
-        listOf('4', '5', '6'),
-        listOf('7', '8', '9'),
-    )
+    val rows =
+        listOf(
+            listOf('1', '2', '3'),
+            listOf('4', '5', '6'),
+            listOf('7', '8', '9'),
+        )
     Column(
         modifier = modifier.fillMaxWidth(),
         verticalArrangement = Arrangement.spacedBy(12.dp),
@@ -120,11 +120,11 @@ fun PinKeypad(
             ) {
                 row.forEachIndexed { colIndex, digit ->
                     PinKey(
-                        modifier = Modifier
-                            .weight(1f)
-                            .thenIf(rowIndex == 0 && colIndex == 0) {
-                                focusRequester(firstKeyFocusRequester)
-                                    .onFocusChanged { isFirstKeyFocused = it.hasFocus }
+                        modifier =
+                            Modifier.weight(1f).thenIf(rowIndex == 0 && colIndex == 0) {
+                                focusRequester(firstKeyFocusRequester).onFocusChanged {
+                                    isFirstKeyFocused = it.hasFocus
+                                }
                             },
                         isTv = isTv,
                         label = digit.toString(),
@@ -161,12 +161,13 @@ private fun PinKey(
     onClick: () -> Unit,
 ) {
     Column(
-        modifier = modifier
-            .aspectRatio(1.4f)
-            .tvFocusRing(isTv, shape = MaterialTheme.shapes.large)
-            .clip(MaterialTheme.shapes.large)
-            .background(MaterialTheme.colorScheme.surfaceContainerHigh)
-            .clickable(onClick = onClick),
+        modifier =
+            modifier
+                .aspectRatio(1.4f)
+                .tvFocusRing(isTv, shape = MaterialTheme.shapes.large)
+                .clip(MaterialTheme.shapes.large)
+                .background(MaterialTheme.colorScheme.surfaceContainerHigh)
+                .clickable(onClick = onClick),
         horizontalAlignment = Alignment.CenterHorizontally,
         verticalArrangement = Arrangement.Center,
     ) {
@@ -186,11 +187,12 @@ private fun PinKeyIcon(
     onClick: () -> Unit,
 ) {
     Column(
-        modifier = modifier
-            .aspectRatio(1.4f)
-            .tvFocusRing(isTv, shape = MaterialTheme.shapes.large)
-            .clip(MaterialTheme.shapes.large)
-            .clickable(onClick = onClick),
+        modifier =
+            modifier
+                .aspectRatio(1.4f)
+                .tvFocusRing(isTv, shape = MaterialTheme.shapes.large)
+                .clip(MaterialTheme.shapes.large)
+                .clickable(onClick = onClick),
         horizontalAlignment = Alignment.CenterHorizontally,
         verticalArrangement = Arrangement.Center,
     ) {

@@ -25,35 +25,41 @@ class MediaStoreMediaServicePermissionTest {
 
     @Test
     fun fetchVideosThrowsWhenProviderDeniesAccess() = runBlocking {
-        val provider = object : ContentProvider() {
-            override fun onCreate(): Boolean = true
+        val provider =
+            object : ContentProvider() {
+                override fun onCreate(): Boolean = true
 
-            override fun query(
-                uri: Uri,
-                projection: Array<out String>?,
-                selection: String?,
-                selectionArgs: Array<out String>?,
-                sortOrder: String?,
-            ): Cursor? = throw SecurityException("Permission denial")
+                override fun query(
+                    uri: Uri,
+                    projection: Array<out String>?,
+                    selection: String?,
+                    selectionArgs: Array<out String>?,
+                    sortOrder: String?,
+                ): Cursor? = throw SecurityException("Permission denial")
 
-            override fun getType(uri: Uri): String? = null
+                override fun getType(uri: Uri): String? = null
 
-            override fun insert(uri: Uri, values: ContentValues?): Uri? = null
+                override fun insert(uri: Uri, values: ContentValues?): Uri? = null
 
-            override fun delete(uri: Uri, selection: String?, selectionArgs: Array<out String>?): Int = 0
+                override fun delete(
+                    uri: Uri,
+                    selection: String?,
+                    selectionArgs: Array<out String>?,
+                ): Int = 0
 
-            override fun update(
-                uri: Uri,
-                values: ContentValues?,
-                selection: String?,
-                selectionArgs: Array<out String>?,
-            ): Int = 0
-        }
+                override fun update(
+                    uri: Uri,
+                    values: ContentValues?,
+                    selection: String?,
+                    selectionArgs: Array<out String>?,
+                ): Int = 0
+            }
         val contentResolver = ContentResolver.wrap(provider)
         val targetContext = ApplicationProvider.getApplicationContext<Context>()
-        val context = object : ContextWrapper(targetContext) {
-            override fun getContentResolver(): ContentResolver = contentResolver
-        }
+        val context =
+            object : ContextWrapper(targetContext) {
+                override fun getContentResolver(): ContentResolver = contentResolver
+            }
         val applicationScope = CoroutineScope(SupervisorJob() + Dispatchers.Default)
 
         try {
@@ -70,35 +76,41 @@ class MediaStoreMediaServicePermissionTest {
 
     @Test
     fun fetchVideosFailsWhenProviderReturnsNullCursor() = runBlocking {
-        val provider = object : ContentProvider() {
-            override fun onCreate(): Boolean = true
+        val provider =
+            object : ContentProvider() {
+                override fun onCreate(): Boolean = true
 
-            override fun query(
-                uri: Uri,
-                projection: Array<out String>?,
-                selection: String?,
-                selectionArgs: Array<out String>?,
-                sortOrder: String?,
-            ): Cursor? = null
+                override fun query(
+                    uri: Uri,
+                    projection: Array<out String>?,
+                    selection: String?,
+                    selectionArgs: Array<out String>?,
+                    sortOrder: String?,
+                ): Cursor? = null
 
-            override fun getType(uri: Uri): String? = null
+                override fun getType(uri: Uri): String? = null
 
-            override fun insert(uri: Uri, values: ContentValues?): Uri? = null
+                override fun insert(uri: Uri, values: ContentValues?): Uri? = null
 
-            override fun delete(uri: Uri, selection: String?, selectionArgs: Array<out String>?): Int = 0
+                override fun delete(
+                    uri: Uri,
+                    selection: String?,
+                    selectionArgs: Array<out String>?,
+                ): Int = 0
 
-            override fun update(
-                uri: Uri,
-                values: ContentValues?,
-                selection: String?,
-                selectionArgs: Array<out String>?,
-            ): Int = 0
-        }
+                override fun update(
+                    uri: Uri,
+                    values: ContentValues?,
+                    selection: String?,
+                    selectionArgs: Array<out String>?,
+                ): Int = 0
+            }
         val contentResolver = ContentResolver.wrap(provider)
         val targetContext = ApplicationProvider.getApplicationContext<Context>()
-        val context = object : ContextWrapper(targetContext) {
-            override fun getContentResolver(): ContentResolver = contentResolver
-        }
+        val context =
+            object : ContextWrapper(targetContext) {
+                override fun getContentResolver(): ContentResolver = contentResolver
+            }
         val applicationScope = CoroutineScope(SupervisorJob() + Dispatchers.Default)
 
         try {

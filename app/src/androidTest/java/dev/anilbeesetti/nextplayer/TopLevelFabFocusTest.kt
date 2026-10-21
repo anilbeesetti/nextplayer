@@ -30,8 +30,7 @@ class TopLevelFabFocusTest {
     @get:Rule(order = 0)
     val permissionRule: GrantPermissionRule = GrantPermissionRule.grant(storagePermission)
 
-    @get:Rule(order = 1)
-    val composeRule = createAndroidComposeRule<MainActivity>()
+    @get:Rule(order = 1) val composeRule = createAndroidComposeRule<MainActivity>()
 
     private val tab = SemanticsMatcher.expectValue(SemanticsProperties.Role, Role.Tab)
 
@@ -40,14 +39,11 @@ class TopLevelFabFocusTest {
         assumeTrue(composeRule.activity.isTelevision)
     }
 
-    @Test
-    fun homeFabUpReturnsToContent() = checkFabUp(tabIndex = 0)
+    @Test fun homeFabUpReturnsToContent() = checkFabUp(tabIndex = 0)
 
-    @Test
-    fun playlistsFabUpReturnsToContent() = checkFabUp(tabIndex = 1)
+    @Test fun playlistsFabUpReturnsToContent() = checkFabUp(tabIndex = 1)
 
-    @Test
-    fun moreFabUpReturnsToContent() = checkFabUp(tabIndex = 3)
+    @Test fun moreFabUpReturnsToContent() = checkFabUp(tabIndex = 3)
 
     @Test
     fun openingMoreFocusesItsFirstActionEvenAfterSwitchingTabs() {
@@ -68,7 +64,6 @@ class TopLevelFabFocusTest {
         composeRule.onAllNodes(tab)[tabIndex].performClick()
         composeRule.onNodeWithTag("top_level_fab").requestFocus()
         composeRule.onRoot().performKeyInput { pressKey(Key.DirectionUp) }
-        composeRule.onNode(isFocused() and !tab and !hasTestTag("top_level_fab"))
-            .assertExists()
+        composeRule.onNode(isFocused() and !tab and !hasTestTag("top_level_fab")).assertExists()
     }
 }

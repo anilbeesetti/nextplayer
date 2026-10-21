@@ -96,7 +96,10 @@ private fun AboutPreferencesScreenContent(
             NextTopAppBar(
                 title = stringResource(id = R.string.about_name),
                 navigationIcon = {
-                    FilledTonalIconButton(onClick = { onAction(AboutPreferencesAction.NavigateUp) }, modifier = Modifier.tvFocusDown(listFocusRequester)) {
+                    FilledTonalIconButton(
+                        onClick = { onAction(AboutPreferencesAction.NavigateUp) },
+                        modifier = Modifier.tvFocusDown(listFocusRequester),
+                    ) {
                         Icon(
                             imageVector = NextIcons.ArrowBack,
                             contentDescription = stringResource(id = R.string.navigate_up),
@@ -108,13 +111,13 @@ private fun AboutPreferencesScreenContent(
         containerColor = MaterialTheme.colorScheme.surfaceContainer,
     ) { innerPadding ->
         Column(
-            modifier = Modifier
-                .fillMaxSize()
-                .verticalScroll(rememberScrollState())
-                .tvListFocus(listFocusRequester)
-                .padding(innerPadding)
-                .padding(horizontal = 16.dp)
-                .padding(vertical = 16.dp),
+            modifier =
+                Modifier.fillMaxSize()
+                    .verticalScroll(rememberScrollState())
+                    .tvListFocus(listFocusRequester)
+                    .padding(innerPadding)
+                    .padding(horizontal = 16.dp)
+                    .padding(vertical = 16.dp)
         ) {
             AboutApp(
                 appVersion = state.appVersion,
@@ -127,12 +130,14 @@ private fun AboutPreferencesScreenContent(
                 onLibrariesClick = { onAction(AboutPreferencesAction.OpenLibraries) },
             )
             ListSectionTitle(text = stringResource(id = R.string.donate))
-            Column(
-                verticalArrangement = Arrangement.spacedBy(ListItemDefaults.SegmentedGap),
-            ) {
+            Column(verticalArrangement = Arrangement.spacedBy(ListItemDefaults.SegmentedGap)) {
                 ClickablePreferenceItem(
                     title = stringResource(R.string.kofi),
-                    description = stringResource(R.string.support_the_developer_on, stringResource(R.string.kofi)),
+                    description =
+                        stringResource(
+                            R.string.support_the_developer_on,
+                            stringResource(R.string.kofi),
+                        ),
                     icon = ImageVector.vectorResource(R.drawable.ic_kofi),
                     onClick = {
                         uriHandler.openUriOrShowToast(
@@ -144,7 +149,11 @@ private fun AboutPreferencesScreenContent(
                 )
                 ClickablePreferenceItem(
                     title = stringResource(R.string.paypal),
-                    description = stringResource(R.string.support_the_developer_on, stringResource(R.string.paypal)),
+                    description =
+                        stringResource(
+                            R.string.support_the_developer_on,
+                            stringResource(R.string.paypal),
+                        ),
                     icon = ImageVector.vectorResource(R.drawable.ic_paypal),
                     onClick = {
                         uriHandler.openUriOrShowToast(
@@ -160,7 +169,8 @@ private fun AboutPreferencesScreenContent(
                     onClick = {
                         scope.launch {
                             clipboard.setClipEntry(ClipEntry(ClipData.newPlainText("text", UPI_ID)))
-                            Toast.makeText(context, "copied to clipboard", Toast.LENGTH_SHORT).show()
+                            Toast.makeText(context, "copied to clipboard", Toast.LENGTH_SHORT)
+                                .show()
                         }
                     },
                     isLastItem = true,
@@ -184,44 +194,49 @@ fun AboutApp(
     val colorTertiary = MaterialTheme.colorScheme.tertiaryContainer
 
     val transition = rememberInfiniteTransition()
-    val fraction by transition.animateFloat(
-        initialValue = 0f,
-        targetValue = 1f,
-        animationSpec = infiniteRepeatable(
-            animation = tween(durationMillis = 5000),
-            repeatMode = RepeatMode.Reverse,
-        ),
-    )
+    val fraction by
+        transition.animateFloat(
+            initialValue = 0f,
+            targetValue = 1f,
+            animationSpec =
+                infiniteRepeatable(
+                    animation = tween(durationMillis = 5000),
+                    repeatMode = RepeatMode.Reverse,
+                ),
+        )
     val cornerRadius = 24.dp
 
     Column(
-        modifier = modifier
-            .padding(
-                vertical = 16.dp,
-                horizontal = 8.dp,
-            )
-            .drawWithCache {
-                val cx = size.width - size.width * fraction
-                val cy = size.height * fraction
-
-                val gradient = Brush.radialGradient(
-                    colors = listOf(colorPrimary, colorTertiary),
-                    center = Offset(cx, cy),
-                    radius = 800f,
+        modifier =
+            modifier
+                .padding(
+                    vertical = 16.dp,
+                    horizontal = 8.dp,
                 )
+                .drawWithCache {
+                    val cx = size.width - size.width * fraction
+                    val cy = size.height * fraction
 
-                onDrawBehind {
-                    drawRoundRect(
-                        brush = gradient,
-                        cornerRadius = CornerRadius(
-                            cornerRadius.toPx(),
-                            cornerRadius.toPx(),
-                        ),
-                    )
+                    val gradient =
+                        Brush.radialGradient(
+                            colors = listOf(colorPrimary, colorTertiary),
+                            center = Offset(cx, cy),
+                            radius = 800f,
+                        )
+
+                    onDrawBehind {
+                        drawRoundRect(
+                            brush = gradient,
+                            cornerRadius =
+                                CornerRadius(
+                                    cornerRadius.toPx(),
+                                    cornerRadius.toPx(),
+                                ),
+                        )
+                    }
                 }
-            }
-            .padding(all = 24.dp)
-            .fillMaxWidth(),
+                .padding(all = 24.dp)
+                .fillMaxWidth(),
         verticalArrangement = Arrangement.spacedBy(24.dp),
     ) {
         Row(
@@ -268,33 +283,33 @@ fun AboutApp(
         ) {
             Button(
                 onClick = onLibrariesClick,
-                colors = ButtonDefaults.buttonColors(
-                    contentColor = MaterialTheme.colorScheme.onPrimary,
-                    disabledContentColor = MaterialTheme.colorScheme.onPrimary.copy(alpha = .12f),
-                    containerColor = MaterialTheme.colorScheme.primary.copy(alpha = 0.8f),
-                    disabledContainerColor = MaterialTheme.colorScheme.primary.copy(alpha = .12f),
-                ),
+                colors =
+                    ButtonDefaults.buttonColors(
+                        contentColor = MaterialTheme.colorScheme.onPrimary,
+                        disabledContentColor =
+                            MaterialTheme.colorScheme.onPrimary.copy(alpha = .12f),
+                        containerColor = MaterialTheme.colorScheme.primary.copy(alpha = 0.8f),
+                        disabledContainerColor =
+                            MaterialTheme.colorScheme.primary.copy(alpha = .12f),
+                    ),
                 shape = RoundedCornerShape(8.dp),
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .height(52.dp)
-                    .weight(1f),
+                modifier = Modifier.fillMaxWidth().height(52.dp).weight(1f),
             ) {
                 Text(text = stringResource(R.string.libraries))
             }
             Button(
                 onClick = onGithubClick,
-                colors = ButtonDefaults.buttonColors(
-                    contentColor = MaterialTheme.colorScheme.onTertiary,
-                    disabledContentColor = MaterialTheme.colorScheme.onTertiary.copy(alpha = .12f),
-                    containerColor = MaterialTheme.colorScheme.tertiary.copy(alpha = 0.8f),
-                    disabledContainerColor = MaterialTheme.colorScheme.tertiary.copy(alpha = .12f),
-                ),
+                colors =
+                    ButtonDefaults.buttonColors(
+                        contentColor = MaterialTheme.colorScheme.onTertiary,
+                        disabledContentColor =
+                            MaterialTheme.colorScheme.onTertiary.copy(alpha = .12f),
+                        containerColor = MaterialTheme.colorScheme.tertiary.copy(alpha = 0.8f),
+                        disabledContainerColor =
+                            MaterialTheme.colorScheme.tertiary.copy(alpha = .12f),
+                    ),
                 shape = RoundedCornerShape(8.dp),
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .weight(1f)
-                    .height(52.dp),
+                modifier = Modifier.fillMaxWidth().weight(1f).height(52.dp),
             ) {
                 Icon(
                     painter = painterResource(R.drawable.ic_github),
@@ -312,6 +327,7 @@ internal fun UriHandler.openUriOrShowToast(uri: String, context: Context) {
     try {
         openUri(uri = uri)
     } catch (e: Exception) {
-        Toast.makeText(context, context.getString(R.string.error_opening_link), Toast.LENGTH_SHORT).show()
+        Toast.makeText(context, context.getString(R.string.error_opening_link), Toast.LENGTH_SHORT)
+            .show()
     }
 }

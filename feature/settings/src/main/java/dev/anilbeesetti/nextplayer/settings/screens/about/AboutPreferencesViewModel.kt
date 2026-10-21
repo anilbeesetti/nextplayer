@@ -20,7 +20,8 @@ class AboutPreferencesViewModel(
         val openLibraries: () -> Unit,
     )
 
-    private val stateInternal = MutableStateFlow(AboutPreferencesUiState(appVersion = context.appVersion()))
+    private val stateInternal =
+        MutableStateFlow(AboutPreferencesUiState(appVersion = context.appVersion()))
     override val state: StateFlow<AboutPreferencesUiState> = stateInternal.asStateFlow()
 
     override fun onAction(action: AboutPreferencesAction) {
@@ -35,6 +36,7 @@ data class AboutPreferencesUiState(val appVersion: String)
 
 sealed interface AboutPreferencesAction {
     data object NavigateUp : AboutPreferencesAction
+
     data object OpenLibraries : AboutPreferencesAction
 }
 
@@ -42,11 +44,12 @@ private fun Context.appVersion(): String {
     val packageInfo = packageManager.getPackageInfo(packageName, 0)
 
     @Suppress("DEPRECATION")
-    val versionCode = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.P) {
-        packageInfo.longVersionCode
-    } else {
-        packageInfo.versionCode
-    }
+    val versionCode =
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.P) {
+            packageInfo.longVersionCode
+        } else {
+            packageInfo.versionCode
+        }
 
     return "${packageInfo.versionName} ($versionCode)"
 }

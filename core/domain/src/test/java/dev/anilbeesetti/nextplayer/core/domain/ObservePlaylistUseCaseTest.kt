@@ -22,24 +22,27 @@ class ObservePlaylistUseCaseTest {
 
     @Test
     fun resolvesCurrentMetadataInPersistedPlaylistOrderAndOmitsMissingVideos() = runTest {
-        val playlistRepository = FakePlaylistRepository(
-            PlaylistRecord(
-                id = 7,
-                name = "Movies",
-                type = PlaylistType.LOCAL,
-                source = null,
-                items = listOf(
-                    PlaylistItemRecord(0, "content://two", lastPlayedAt = 200),
-                    PlaylistItemRecord(1, "content://missing", lastPlayedAt = 300),
-                    PlaylistItemRecord(2, "content://one", lastPlayedAt = 100),
-                ),
-                lastRefreshedAt = null,
-            ),
-        )
-        val mediaRepository = FakeMediaRepository().apply {
-            videos += video("content://one", "One.mp4", "/Movies")
-            videos += video("content://two", "Two.mp4", "/Downloads")
-        }
+        val playlistRepository =
+            FakePlaylistRepository(
+                PlaylistRecord(
+                    id = 7,
+                    name = "Movies",
+                    type = PlaylistType.LOCAL,
+                    source = null,
+                    items =
+                        listOf(
+                            PlaylistItemRecord(0, "content://two", lastPlayedAt = 200),
+                            PlaylistItemRecord(1, "content://missing", lastPlayedAt = 300),
+                            PlaylistItemRecord(2, "content://one", lastPlayedAt = 100),
+                        ),
+                    lastRefreshedAt = null,
+                )
+            )
+        val mediaRepository =
+            FakeMediaRepository().apply {
+                videos += video("content://one", "One.mp4", "/Movies")
+                videos += video("content://two", "Two.mp4", "/Downloads")
+            }
 
         val playlist = ObservePlaylistUseCase(playlistRepository, mediaRepository)(7).first()
 
@@ -52,28 +55,31 @@ class ObservePlaylistUseCaseTest {
 
     @Test
     fun aMediaStoreRenameAndPlaybackUpdateAreReflectedWithoutChangingPlaylistRows() = runTest {
-        val playlistRepository = FakePlaylistRepository(
-            PlaylistRecord(
-                id = 7,
-                name = "Movies",
-                type = PlaylistType.LOCAL,
-                source = null,
-                items = listOf(PlaylistItemRecord(0, "content://one")),
-                lastRefreshedAt = null,
-            ),
-        )
-        val mediaRepository = FakeMediaRepository().apply {
-            videos += video("content://one", "Before.mp4", "/Movies")
-        }
+        val playlistRepository =
+            FakePlaylistRepository(
+                PlaylistRecord(
+                    id = 7,
+                    name = "Movies",
+                    type = PlaylistType.LOCAL,
+                    source = null,
+                    items = listOf(PlaylistItemRecord(0, "content://one")),
+                    lastRefreshedAt = null,
+                )
+            )
+        val mediaRepository =
+            FakeMediaRepository().apply {
+                videos += video("content://one", "Before.mp4", "/Movies")
+            }
         val useCase = ObservePlaylistUseCase(playlistRepository, mediaRepository)
 
         val before = useCase(7).first()
-        mediaRepository.videos[0] = mediaRepository.videos[0].copy(
-            nameWithExtension = "After.mp4",
-            parentPath = "/Renamed",
-            path = "/Renamed/After.mp4",
-            playbackPosition = 500,
-        )
+        mediaRepository.videos[0] =
+            mediaRepository.videos[0].copy(
+                nameWithExtension = "After.mp4",
+                parentPath = "/Renamed",
+                path = "/Renamed/After.mp4",
+                playbackPosition = 500,
+            )
         mediaRepository.notifyMediaChanged()
         val after = useCase(7).first()
 
@@ -88,32 +94,42 @@ class ObservePlaylistUseCaseTest {
     }
 }
 
-private class FakePlaylistRepository(
-    initialRecord: PlaylistRecord?,
-) : PlaylistRepository {
+private class FakePlaylistRepository(initialRecord: PlaylistRecord?) : PlaylistRepository {
     val record = MutableStateFlow(initialRecord)
 
-    override fun observePlaylists(): Flow<List<PlaylistSummary>> =
-        MutableStateFlow(emptyList())
+    override fun observePlaylists(): Flow<List<PlaylistSummary>> = MutableStateFlow(emptyList())
 
     override fun observePlaylist(playlistId: Long): Flow<PlaylistRecord?> = record
+
     override suspend fun getPlaylist(playlistId: Long): PlaylistRecord? = record.value
+
     override suspend fun create(name: String, videoUris: List<String>): Long = error("Not used")
+
     override suspend fun createM3U(
         type: PlaylistType,
         source: String,
         playlist: M3UPlaylist,
     ): Long = error("Not used")
+
     override suspend fun replaceM3UItems(
         playlistId: Long,
         items: List<M3UPlaylistItem>,
     ) = error("Not used")
+
     override suspend fun rename(playlistId: Long, name: String) = error("Not used")
+
     override suspend fun delete(playlistId: Long) = error("Not used")
-    override suspend fun addVideos(playlistId: Long, videoUris: List<String>): Int = error("Not used")
+
+    override suspend fun addVideos(playlistId: Long, videoUris: List<String>): Int =
+        error("Not used")
+
     override suspend fun removeVideo(playlistId: Long, videoUri: String) = error("Not used")
-    override suspend fun replaceOrder(playlistId: Long, orderedUris: List<String>) = error("Not used")
+
+    override suspend fun replaceOrder(playlistId: Long, orderedUris: List<String>) =
+        error("Not used")
+
     override suspend fun markVideoPlayed(playlistId: Long, videoUri: String) = error("Not used")
+
     override suspend fun countFilePlaylistsBySource(source: String): Int = 0
 }
 
@@ -121,14 +137,15 @@ private fun video(
     uri: String,
     name: String,
     parentPath: String,
-) = Video(
-    id = uri.hashCode().toLong(),
-    path = "$parentPath/$name",
-    parentPath = parentPath,
-    duration = 1_000,
-    uriString = uri,
-    nameWithExtension = name,
-    width = 1920,
-    height = 1080,
-    size = 1_000,
-)
+) =
+    Video(
+        id = uri.hashCode().toLong(),
+        path = "$parentPath/$name",
+        parentPath = parentPath,
+        duration = 1_000,
+        uriString = uri,
+        nameWithExtension = name,
+        width = 1920,
+        height = 1080,
+        size = 1_000,
+    )

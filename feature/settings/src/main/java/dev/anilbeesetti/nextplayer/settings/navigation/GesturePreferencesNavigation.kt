@@ -10,8 +10,7 @@ import kotlinx.serialization.Serializable
 import org.koin.compose.viewmodel.koinViewModel
 import org.koin.core.parameter.parametersOf
 
-@Serializable
-object GesturePreferencesRoute : NavKey
+@Serializable object GesturePreferencesRoute : NavKey
 
 fun NavBackStack<NavKey>.navigateToGesturePreferences() {
     add(GesturePreferencesRoute)
@@ -19,12 +18,9 @@ fun NavBackStack<NavKey>.navigateToGesturePreferences() {
 
 fun EntryProviderScope<NavKey>.gesturePreferencesEntry(onNavigateUp: () -> Unit) {
     entry<GesturePreferencesRoute> {
-        val output = GesturePreferencesViewModel.Output(
-            navigateUp = onNavigateUp,
-        )
-        val viewModel = koinViewModel<GesturePreferencesViewModel>(
-            parameters = { parametersOf(output) },
-        )
+        val output = GesturePreferencesViewModel.Output(navigateUp = onNavigateUp)
+        val viewModel =
+            koinViewModel<GesturePreferencesViewModel>(parameters = { parametersOf(output) })
         SideEffect { viewModel.output = output }
         GesturePreferencesScreen(viewModel = viewModel)
     }

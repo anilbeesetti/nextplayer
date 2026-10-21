@@ -45,7 +45,8 @@ import kotlin.time.Duration.Companion.milliseconds
 internal fun InfoView(
     modifier: Modifier = Modifier,
     info: String,
-    textStyle: TextStyle = MaterialTheme.typography.headlineMedium.copy(fontWeight = FontWeight.Bold),
+    textStyle: TextStyle =
+        MaterialTheme.typography.headlineMedium.copy(fontWeight = FontWeight.Bold),
 ) {
     Column(
         modifier = modifier.fillMaxWidth(),
@@ -90,13 +91,12 @@ internal fun BoxScope.DpadSeekIndicator(
                     painter = painterResource(coreUiR.drawable.ic_fast),
                     contentDescription = null,
                     tint = Color.White,
-                    modifier = Modifier
-                        .size(28.dp)
-                        .rotate(if (offsetMs < 0) 180f else 0f),
+                    modifier = Modifier.size(28.dp).rotate(if (offsetMs < 0) 180f else 0f),
                 )
                 Column(horizontalAlignment = Alignment.CenterHorizontally) {
                     Text(
-                        text = "${if (offsetMs >= 0) "+" else "-"}${abs(offsetMs).milliseconds.inWholeSeconds}s",
+                        text =
+                            "${if (offsetMs >= 0) "+" else "-"}${abs(offsetMs).milliseconds.inWholeSeconds}s",
                         style = MaterialTheme.typography.titleLarge,
                         fontWeight = FontWeight.Bold,
                         color = Color.White,
@@ -117,22 +117,25 @@ internal fun BoxScope.PlayerGestureIndicators(tapGestureState: TapGestureState) 
     DoubleTapIndicator(tapGestureState = tapGestureState)
 
     AnimatedVisibility(
-        modifier = Modifier
-            .padding(top = 24.dp)
-            .align(Alignment.TopCenter),
+        modifier = Modifier.padding(top = 24.dp).align(Alignment.TopCenter),
         visible = tapGestureState.isLongPressGestureInAction,
         enter = fadeIn(),
         exit = fadeOut(),
     ) {
         Surface(shape = CircleShape) {
             Row(
-                modifier = Modifier.padding(
-                    horizontal = 16.dp,
-                    vertical = 8.dp,
-                ),
+                modifier =
+                    Modifier.padding(
+                        horizontal = 16.dp,
+                        vertical = 8.dp,
+                    )
             ) {
                 Text(
-                    text = stringResource(coreUiR.string.fast_playback_speed, tapGestureState.longPressSpeed),
+                    text =
+                        stringResource(
+                            coreUiR.string.fast_playback_speed,
+                            tapGestureState.longPressSpeed,
+                        ),
                     style = MaterialTheme.typography.labelLarge,
                 )
             }
@@ -149,11 +152,11 @@ internal fun BoxScope.PlayerVerticalGestureIndicators(
 ) {
     val systemBarsPadding = WindowInsets.systemBars.asPaddingValues()
     Box(
-        modifier = Modifier
-            .fillMaxSize()
-            .displayCutoutPadding()
-            .padding(systemBarsPadding.copy(top = 0.dp, bottom = 0.dp))
-            .padding(24.dp),
+        modifier =
+            Modifier.fillMaxSize()
+                .displayCutoutPadding()
+                .padding(systemBarsPadding.copy(top = 0.dp, bottom = 0.dp))
+                .padding(24.dp)
     ) {
         AnimatedVisibility(
             modifier = Modifier.align(Alignment.CenterStart),

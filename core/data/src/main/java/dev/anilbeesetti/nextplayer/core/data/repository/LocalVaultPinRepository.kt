@@ -9,50 +9,47 @@ import kotlinx.coroutines.withContext
 import org.koin.core.annotation.Single
 
 @Single
-class LocalVaultPinRepository(
-    private val context: Context,
-) : VaultPinRepository {
+class LocalVaultPinRepository(private val context: Context) : VaultPinRepository {
 
     private val preferences by lazy {
         context.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE)
     }
 
-    override suspend fun hasPinSet(): Boolean = withContext(Dispatchers.IO) {
-        preferences.contains(KEY_PIN_HASH)
-    }
+    override suspend fun hasPinSet(): Boolean =
+        withContext(Dispatchers.IO) { preferences.contains(KEY_PIN_HASH) }
 
-    override suspend fun setPin(pin: String) = withContext(Dispatchers.IO) {
-        val salt = generateSalt()
-        preferences.edit {
-            putString(KEY_PIN_HASH, hashPin(pin, salt))
-            putString(KEY_SALT, salt)
-            putBoolean(KEY_BIOMETRIC_ENABLED, false)
+    override suspend fun setPin(pin: String) =
+        withContext(Dispatchers.IO) {
+            val salt = generateSalt()
+            preferences.edit {
+                putString(KEY_PIN_HASH, hashPin(pin, salt))
+                putString(KEY_SALT, salt)
+                putBoolean(KEY_BIOMETRIC_ENABLED, false)
+            }
         }
-    }
 
-    override suspend fun verifyPin(pin: String): Boolean = withContext(Dispatchers.IO) {
-        val storedHash = preferences.getString(KEY_PIN_HASH, null) ?: return@withContext false
-        val salt = preferences.getString(KEY_SALT, null) ?: return@withContext false
-        hashPin(pin, salt) == storedHash
-    }
-
-    override suspend fun hasShownHideConfirmation(): Boolean = withContext(Dispatchers.IO) {
-        preferences.getBoolean(KEY_HIDE_CONFIRMATION_SHOWN, false)
-    }
-
-    override suspend fun isBiometricEnabled(): Boolean = withContext(Dispatchers.IO) {
-        preferences.getBoolean(KEY_BIOMETRIC_ENABLED, false)
-    }
-
-    override suspend fun setBiometricEnabled(enabled: Boolean) = withContext(Dispatchers.IO) {
-        preferences.edit { putBoolean(KEY_BIOMETRIC_ENABLED, enabled) }
-    }
-
-    override suspend fun setHideConfirmationShown() = withContext(Dispatchers.IO) {
-        preferences.edit {
-            putBoolean(KEY_HIDE_CONFIRMATION_SHOWN, true)
+    override suspend fun verifyPin(pin: String): Boolean =
+        withContext(Dispatchers.IO) {
+            val storedHash = preferences.getString(KEY_PIN_HASH, null) ?: return@withContext false
+            val salt = preferences.getString(KEY_SALT, null) ?: return@withContext false
+            hashPin(pin, salt) == storedHash
         }
-    }
+
+    override suspend fun hasShownHideConfirmation(): Boolean =
+        withContext(Dispatchers.IO) { preferences.getBoolean(KEY_HIDE_CONFIRMATION_SHOWN, false) }
+
+    override suspend fun isBiometricEnabled(): Boolean =
+        withContext(Dispatchers.IO) { preferences.getBoolean(KEY_BIOMETRIC_ENABLED, false) }
+
+    override suspend fun setBiometricEnabled(enabled: Boolean) =
+        withContext(Dispatchers.IO) {
+            preferences.edit { putBoolean(KEY_BIOMETRIC_ENABLED, enabled) }
+        }
+
+    override suspend fun setHideConfirmationShown() =
+        withContext(Dispatchers.IO) {
+            preferences.edit { putBoolean(KEY_HIDE_CONFIRMATION_SHOWN, true) }
+        }
 
     private fun generateSalt(): String {
         val bytes = ByteArray(16)

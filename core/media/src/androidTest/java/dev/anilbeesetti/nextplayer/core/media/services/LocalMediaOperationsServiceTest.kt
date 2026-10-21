@@ -34,14 +34,20 @@ class LocalMediaOperationsServiceTest {
         val sourceDir = File(testRoot, "source").apply { mkdirs() }
         val targetDir = File(testRoot, "vault").apply { mkdirs() }
         val sourceFile = File(sourceDir, "duplicate.mp4").apply { writeText("new source") }
-        val existingVaultFile = File(targetDir, sourceFile.name).apply { writeText("existing vault video") }
+        val existingVaultFile =
+            File(targetDir, sourceFile.name).apply { writeText("existing vault video") }
         val sourceUri = sourceFile.toUri()
 
         try {
-            val moved = LocalMediaOperationsService(context).moveMedia(mapOf(sourceUri to existingVaultFile))
+            val moved =
+                LocalMediaOperationsService(context)
+                    .moveMedia(mapOf(sourceUri to existingVaultFile))
 
             assertNull("A colliding source must be reported as not moved", moved[sourceUri])
-            assertTrue("The colliding source must remain in its original location", sourceFile.exists())
+            assertTrue(
+                "The colliding source must remain in its original location",
+                sourceFile.exists(),
+            )
             assertEquals("existing vault video", existingVaultFile.readText())
         } finally {
             testRoot.deleteRecursively()
@@ -52,27 +58,35 @@ class LocalMediaOperationsServiceTest {
     fun concurrentMovesToOneDestinationPreserveTheLosingSource() = runBlocking {
         val context = ApplicationProvider.getApplicationContext<Context>()
         val testRoot = File(context.cacheDir, "issue-1828-race-${UUID.randomUUID()}")
-        val sourceFiles = listOf("first video", "second video").mapIndexed { index, content ->
-            File(File(testRoot, "source-$index").apply { mkdirs() }, "duplicate.mp4")
-                .apply { writeText(content) }
-        }
+        val sourceFiles =
+            listOf("first video", "second video").mapIndexed { index, content ->
+                File(File(testRoot, "source-$index").apply { mkdirs() }, "duplicate.mp4").apply {
+                    writeText(content)
+                }
+            }
         val destination = File(File(testRoot, "vault").apply { mkdirs() }, "shared.mp4")
         val barrier = CyclicBarrier(sourceFiles.size)
         val service = LocalMediaOperationsService(context)
 
         try {
             val results = coroutineScope {
-                sourceFiles.map { source ->
-                    async(Dispatchers.Default) {
-                        barrier.await()
-                        val uri = source.toUri()
-                        service.moveMedia(mapOf(uri to destination))[uri]
+                sourceFiles
+                    .map { source ->
+                        async(Dispatchers.Default) {
+                            barrier.await()
+                            val uri = source.toUri()
+                            service.moveMedia(mapOf(uri to destination))[uri]
+                        }
                     }
-                }.awaitAll()
+                    .awaitAll()
             }
 
             assertEquals(1, results.count { it != null })
-            assertEquals("Exactly one losing source must remain", 1, sourceFiles.count { it.exists() })
+            assertEquals(
+                "Exactly one losing source must remain",
+                1,
+                sourceFiles.count { it.exists() },
+            )
             assertTrue(destination.readText() in setOf("first video", "second video"))
         } finally {
             testRoot.deleteRecursively()
@@ -83,8 +97,10 @@ class LocalMediaOperationsServiceTest {
     fun cancellationDuringCopyPreservesSourceAndRemovesPartialDestination() {
         val context = ApplicationProvider.getApplicationContext<Context>()
         val testRoot = File(context.cacheDir, "issue-1828-cancel-${UUID.randomUUID()}")
-        val source = File(File(testRoot, "source").apply { mkdirs() }, "large.mp4")
-            .apply { writeBytes(ByteArray(DEFAULT_BUFFER_SIZE * 4) { it.toByte() }) }
+        val source =
+            File(File(testRoot, "source").apply { mkdirs() }, "large.mp4").apply {
+                writeBytes(ByteArray(DEFAULT_BUFFER_SIZE * 4) { it.toByte() })
+            }
         val destination = File(File(testRoot, "vault").apply { mkdirs() }, "unique.mp4")
         var cancellationChecks = 0
 
@@ -108,10 +124,14 @@ class LocalMediaOperationsServiceTest {
     fun cancellationAfterCommittedMovePreservesRemainingSource() = runBlocking {
         val context = ApplicationProvider.getApplicationContext<Context>()
         val testRoot = File(context.cacheDir, "issue-1828-batch-cancel-${UUID.randomUUID()}")
-        val firstSource = File(File(testRoot, "source-1").apply { mkdirs() }, "first.mp4")
-            .apply { writeText("first video") }
-        val secondSource = File(File(testRoot, "source-2").apply { mkdirs() }, "second.mp4")
-            .apply { writeText("second video") }
+        val firstSource =
+            File(File(testRoot, "source-1").apply { mkdirs() }, "first.mp4").apply {
+                writeText("first video")
+            }
+        val secondSource =
+            File(File(testRoot, "source-2").apply { mkdirs() }, "second.mp4").apply {
+                writeText("second video")
+            }
         val vaultDir = File(testRoot, "vault").apply { mkdirs() }
         val firstDestination = File(vaultDir, "first.mp4")
         val secondDestination = File(vaultDir, "second.mp4")
@@ -120,17 +140,18 @@ class LocalMediaOperationsServiceTest {
         val allowSecondMove = CompletableDeferred<Unit>()
 
         try {
-            val moveJob = launch(Dispatchers.Default) {
-                service.moveMedia(
-                    linkedMapOf(
-                        firstSource.toUri() to firstDestination,
-                        secondSource.toUri() to secondDestination,
-                    ),
-                ) {
-                    firstMoveCommitted.complete(Unit)
-                    allowSecondMove.await()
+            val moveJob =
+                launch(Dispatchers.Default) {
+                    service.moveMedia(
+                        linkedMapOf(
+                            firstSource.toUri() to firstDestination,
+                            secondSource.toUri() to secondDestination,
+                        )
+                    ) {
+                        firstMoveCommitted.complete(Unit)
+                        allowSecondMove.await()
+                    }
                 }
-            }
             withTimeout(TEST_TIMEOUT_MILLIS) { firstMoveCommitted.await() }
             moveJob.cancel()
             allowSecondMove.complete(Unit)

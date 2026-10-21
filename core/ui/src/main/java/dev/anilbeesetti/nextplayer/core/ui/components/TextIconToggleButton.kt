@@ -35,15 +35,15 @@ fun TextIconToggleButton(
     Column(
         horizontalAlignment = Alignment.CenterHorizontally,
         verticalArrangement = Arrangement.Center,
-        modifier = modifier
-            .clip(MaterialTheme.shapes.small)
-            .clickable(
-                interactionSource = interactionSource,
-                indication = indication,
-                onClick = { onClick(!isSelected) },
-            )
-            .padding(10.dp),
-
+        modifier =
+            modifier
+                .clip(MaterialTheme.shapes.small)
+                .clickable(
+                    interactionSource = interactionSource,
+                    indication = indication,
+                    onClick = { onClick(!isSelected) },
+                )
+                .padding(10.dp),
     ) {
         FilledIconToggleButton(
             checked = isSelected,

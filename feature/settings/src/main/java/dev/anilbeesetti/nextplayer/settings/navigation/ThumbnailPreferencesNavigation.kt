@@ -10,8 +10,7 @@ import kotlinx.serialization.Serializable
 import org.koin.compose.viewmodel.koinViewModel
 import org.koin.core.parameter.parametersOf
 
-@Serializable
-object ThumbnailPreferencesRoute : NavKey
+@Serializable object ThumbnailPreferencesRoute : NavKey
 
 fun NavBackStack<NavKey>.navigateToThumbnailPreferencesScreen() {
     add(ThumbnailPreferencesRoute)
@@ -20,9 +19,8 @@ fun NavBackStack<NavKey>.navigateToThumbnailPreferencesScreen() {
 fun EntryProviderScope<NavKey>.thumbnailPreferencesEntry(onNavigateUp: () -> Unit) {
     entry<ThumbnailPreferencesRoute> {
         val output = ThumbnailPreferencesViewModel.Output(navigateUp = onNavigateUp)
-        val viewModel = koinViewModel<ThumbnailPreferencesViewModel>(
-            parameters = { parametersOf(output) },
-        )
+        val viewModel =
+            koinViewModel<ThumbnailPreferencesViewModel>(parameters = { parametersOf(output) })
         SideEffect { viewModel.output = output }
         ThumbnailPreferencesScreen(viewModel = viewModel)
     }

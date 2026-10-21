@@ -34,13 +34,13 @@ class NetworkFabFocusTest {
     @get:Rule(order = 0)
     val permissionRule: GrantPermissionRule = GrantPermissionRule.grant(storagePermission)
 
-    @get:Rule(order = 1)
-    val composeRule = createAndroidComposeRule<MainActivity>()
+    @get:Rule(order = 1) val composeRule = createAndroidComposeRule<MainActivity>()
 
     @Before
     fun openNetwork() {
         assumeTrue(composeRule.activity.isTelevision)
-        composeRule.onAllNodes(SemanticsMatcher.expectValue(SemanticsProperties.Role, Role.Tab))[2]
+        composeRule
+            .onAllNodes(SemanticsMatcher.expectValue(SemanticsProperties.Role, Role.Tab))[2]
             .performClick()
         composeRule.onNodeWithText(text(R.string.example_url)).assertIsFocused()
     }

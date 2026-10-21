@@ -33,8 +33,7 @@ import org.robolectric.annotation.Config
 @RunWith(RobolectricTestRunner::class)
 @Config(sdk = [36])
 class SeekGestureStateTest {
-    @get:Rule
-    val composeRule = createAndroidComposeRule<ComponentActivity>()
+    @get:Rule val composeRule = createAndroidComposeRule<ComponentActivity>()
 
     @Test
     fun replacingPlayerOrRemovingStateEndsPreviousSeek() {
@@ -74,7 +73,7 @@ class SeekGestureStateTest {
                         onDragEnd = state::onDragEnd,
                         onDragCancel = state::onDragEnd,
                     )
-                },
+                }
             )
         }
         composeRule.onNodeWithTag("gesture").performTouchInput {
@@ -91,16 +90,36 @@ class SeekGestureStateTest {
     }
 
     private class TestPlayer : SimpleBasePlayer(Looper.getMainLooper()) {
-        private var state = State.Builder()
-            .setAvailableCommands(Player.Commands.Builder().addAll(Player.COMMAND_GET_CURRENT_MEDIA_ITEM, Player.COMMAND_GET_TIMELINE, Player.COMMAND_SEEK_IN_CURRENT_MEDIA_ITEM).build())
-            .setPlaylist(listOf(MediaItemData.Builder("video").setDurationUs(60_000_000).setIsSeekable(true).build()))
-            .setContentPositionMs(1_000)
-            .setPlaybackState(Player.STATE_READY)
-            .build()
+        private var state =
+            State.Builder()
+                .setAvailableCommands(
+                    Player.Commands.Builder()
+                        .addAll(
+                            Player.COMMAND_GET_CURRENT_MEDIA_ITEM,
+                            Player.COMMAND_GET_TIMELINE,
+                            Player.COMMAND_SEEK_IN_CURRENT_MEDIA_ITEM,
+                        )
+                        .build()
+                )
+                .setPlaylist(
+                    listOf(
+                        MediaItemData.Builder("video")
+                            .setDurationUs(60_000_000)
+                            .setIsSeekable(true)
+                            .build()
+                    )
+                )
+                .setContentPositionMs(1_000)
+                .setPlaybackState(Player.STATE_READY)
+                .build()
 
         override fun getState(): State = state
 
-        override fun handleSeek(mediaItemIndex: Int, positionMs: Long, seekCommand: Int): ListenableFuture<*> {
+        override fun handleSeek(
+            mediaItemIndex: Int,
+            positionMs: Long,
+            seekCommand: Int,
+        ): ListenableFuture<*> {
             state = state.buildUpon().setContentPositionMs(positionMs).build()
             return Futures.immediateVoidFuture()
         }

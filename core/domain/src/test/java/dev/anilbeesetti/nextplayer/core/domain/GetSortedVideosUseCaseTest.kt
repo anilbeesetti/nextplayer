@@ -16,7 +16,8 @@ class GetSortedVideosUseCaseTest {
     private val mediaRepository = FakeMediaRepository()
     private val preferencesRepository = FakePreferencesRepository()
 
-    val getSortedVideosUseCase = GetSortedVideosUseCase(mediaRepository, preferencesRepository, Dispatchers.Unconfined)
+    val getSortedVideosUseCase =
+        GetSortedVideosUseCase(mediaRepository, preferencesRepository, Dispatchers.Unconfined)
 
     @Test
     fun testGetSortedVideosUseCase_whenSortByTitleAscending() = runTest {
@@ -132,113 +133,112 @@ class GetSortedVideosUseCaseTest {
         assertFalse(
             comparator.compare(arabicNine, asciiZeroZero) < 0 &&
                 comparator.compare(asciiZeroZero, letterA) < 0 &&
-                comparator.compare(letterA, arabicNine) < 0,
+                comparator.compare(letterA, arabicNine) < 0
         )
     }
 }
 
-/**
- * Sorted video items by title in ascending order and duration in ascending order.
- */
-val testVideoItems = listOf(
-    Video(
-        id = 1,
-        duration = 1000,
-        uriString = "content://media/external/video/media/1",
-        height = 1920,
-        nameWithExtension = "A.mp4",
-        width = 1080,
-        path = "/storage/emulated/0/DCIM/Camera/A.mp4",
-        size = 1000,
-    ),
-    Video(
-        id = 2,
-        duration = 2000,
-        uriString = "content://media/external/video/media/2",
-        height = 1930,
-        nameWithExtension = "B.mp4",
-        width = 1080,
-        path = "/storage/emulated/0/DCIM/Camera/B.mp4",
-        size = 2000,
-    ),
-    Video(
-        id = 3,
-        duration = 3000,
-        uriString = "content://media/external/video/media/3",
-        height = 1940,
-        nameWithExtension = "C.mp4",
-        width = 1080,
-        path = "/storage/emulated/0/DCIM/Camera/C.mp4",
-        size = 3000,
-    ),
-    Video(
-        id = 4,
-        duration = 4000,
-        uriString = "content://media/external/video/media/4",
-        height = 1950,
-        nameWithExtension = "D.mp4",
-        width = 1080,
-        path = "/storage/emulated/0/DCIM/Camera/D.mp4",
-        size = 4000,
-    ),
-    Video(
-        id = 5,
-        duration = 5000,
-        uriString = "content://media/external/video/media/5",
-        height = 1960,
-        nameWithExtension = "E.mp4",
-        width = 1080,
-        path = "/storage/emulated/0/DCIM/Camera/E.mp4",
-        size = 5000,
-    ),
-    Video(
-        id = 6,
-        duration = 6000,
-        uriString = "content://media/external/video/media/6",
-        height = 1970,
-        nameWithExtension = "F.mp4",
-        width = 1080,
-        path = "/storage/emulated/0/DCIM/Camera/F.mp4",
-        size = 6000,
-    ),
-    Video(
-        id = 7,
-        duration = 7000,
-        uriString = "content://media/external/video/media/7",
-        height = 1980,
-        nameWithExtension = "G.mp4",
-        width = 1080,
-        path = "/storage/emulated/0/DCIM/Camera/G.mp4",
-        size = 7000,
-    ),
-    Video(
-        id = 8,
-        duration = 8000,
-        uriString = "content://media/external/video/media/8",
-        height = 1990,
-        nameWithExtension = "H.mp4",
-        width = 1080,
-        path = "/storage/emulated/0/DCIM/Camera/H.mp4",
-        size = 8000,
-    ),
-    Video(
-        id = 9,
-        duration = 9000,
-        uriString = "content://media/external/video/media/9",
-        height = 2160,
-        nameWithExtension = "I.mp4",
-        width = 1080,
-        path = "/storage/emulated/0/DCIM/Camera/I.mp4",
-        size = 9000,
-    ),
-    Video(
-        id = 10,
-        duration = 10000,
-        uriString = "content://media/external/video/media/10",
-        height = 2170,
-        nameWithExtension = "J.mp4",
-        width = 1080,
-        path = "/storage/emulated/0/DCIM/Camera/J.mp4",
-        size = 10000,
-    ),
-)
+/** Sorted video items by title in ascending order and duration in ascending order. */
+val testVideoItems =
+    listOf(
+        Video(
+            id = 1,
+            duration = 1000,
+            uriString = "content://media/external/video/media/1",
+            height = 1920,
+            nameWithExtension = "A.mp4",
+            width = 1080,
+            path = "/storage/emulated/0/DCIM/Camera/A.mp4",
+            size = 1000,
+        ),
+        Video(
+            id = 2,
+            duration = 2000,
+            uriString = "content://media/external/video/media/2",
+            height = 1930,
+            nameWithExtension = "B.mp4",
+            width = 1080,
+            path = "/storage/emulated/0/DCIM/Camera/B.mp4",
+            size = 2000,
+        ),
+        Video(
+            id = 3,
+            duration = 3000,
+            uriString = "content://media/external/video/media/3",
+            height = 1940,
+            nameWithExtension = "C.mp4",
+            width = 1080,
+            path = "/storage/emulated/0/DCIM/Camera/C.mp4",
+            size = 3000,
+        ),
+        Video(
+            id = 4,
+            duration = 4000,
+            uriString = "content://media/external/video/media/4",
+            height = 1950,
+            nameWithExtension = "D.mp4",
+            width = 1080,
+            path = "/storage/emulated/0/DCIM/Camera/D.mp4",
+            size = 4000,
+        ),
+        Video(
+            id = 5,
+            duration = 5000,
+            uriString = "content://media/external/video/media/5",
+            height = 1960,
+            nameWithExtension = "E.mp4",
+            width = 1080,
+            path = "/storage/emulated/0/DCIM/Camera/E.mp4",
+            size = 5000,
+        ),
+        Video(
+            id = 6,
+            duration = 6000,
+            uriString = "content://media/external/video/media/6",
+            height = 1970,
+            nameWithExtension = "F.mp4",
+            width = 1080,
+            path = "/storage/emulated/0/DCIM/Camera/F.mp4",
+            size = 6000,
+        ),
+        Video(
+            id = 7,
+            duration = 7000,
+            uriString = "content://media/external/video/media/7",
+            height = 1980,
+            nameWithExtension = "G.mp4",
+            width = 1080,
+            path = "/storage/emulated/0/DCIM/Camera/G.mp4",
+            size = 7000,
+        ),
+        Video(
+            id = 8,
+            duration = 8000,
+            uriString = "content://media/external/video/media/8",
+            height = 1990,
+            nameWithExtension = "H.mp4",
+            width = 1080,
+            path = "/storage/emulated/0/DCIM/Camera/H.mp4",
+            size = 8000,
+        ),
+        Video(
+            id = 9,
+            duration = 9000,
+            uriString = "content://media/external/video/media/9",
+            height = 2160,
+            nameWithExtension = "I.mp4",
+            width = 1080,
+            path = "/storage/emulated/0/DCIM/Camera/I.mp4",
+            size = 9000,
+        ),
+        Video(
+            id = 10,
+            duration = 10000,
+            uriString = "content://media/external/video/media/10",
+            height = 2170,
+            nameWithExtension = "J.mp4",
+            width = 1080,
+            path = "/storage/emulated/0/DCIM/Camera/J.mp4",
+            size = 10000,
+        ),
+    )

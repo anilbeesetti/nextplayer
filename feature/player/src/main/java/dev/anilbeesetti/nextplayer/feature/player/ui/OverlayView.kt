@@ -5,6 +5,7 @@ import androidx.compose.animation.slideInHorizontally
 import androidx.compose.animation.slideInVertically
 import androidx.compose.animation.slideOutHorizontally
 import androidx.compose.animation.slideOutVertically
+import androidx.compose.foundation.focusGroup
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.BoxScope
 import androidx.compose.foundation.layout.Column
@@ -16,11 +17,9 @@ import androidx.compose.foundation.layout.calculateEndPadding
 import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.imePadding
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.safeDrawing
 import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.focusGroup
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
@@ -52,9 +51,7 @@ fun BoxScope.OverlayView(
     val context = LocalContext.current
     val isTv = remember { context.isTelevision }
     val layoutDirection = LocalLayoutDirection.current
-    val endPadding = WindowInsets.safeDrawing
-        .asPaddingValues()
-        .calculateEndPadding(layoutDirection)
+    val endPadding = WindowInsets.safeDrawing.asPaddingValues().calculateEndPadding(layoutDirection)
 
     val focusRequester = remember { FocusRequester() }
     LaunchedEffect(show) {
@@ -64,38 +61,38 @@ fun BoxScope.OverlayView(
     }
 
     AnimatedVisibility(
-        modifier = Modifier.align(
-            if (configuration.isPortrait) {
-                Alignment.BottomCenter
-            } else {
-                Alignment.CenterEnd
-            },
-        ),
+        modifier =
+            Modifier.align(
+                if (configuration.isPortrait) {
+                    Alignment.BottomCenter
+                } else {
+                    Alignment.CenterEnd
+                }
+            ),
         visible = show,
-        enter = if (configuration.isPortrait) slideInVertically { it } else slideInHorizontally { it },
-        exit = if (configuration.isPortrait) slideOutVertically { it } else slideOutHorizontally { it },
+        enter =
+            if (configuration.isPortrait) slideInVertically { it } else slideInHorizontally { it },
+        exit =
+            if (configuration.isPortrait) slideOutVertically { it }
+            else slideOutHorizontally { it },
     ) {
         Surface(
             shape = RoundedCornerShape(16.dp),
-            modifier = modifier
-                .then(
+            modifier =
+                modifier.then(
                     if (configuration.isPortrait) {
-                        Modifier
-                            .fillMaxWidth()
-                            .fillMaxHeight(0.45f)
+                        Modifier.fillMaxWidth().fillMaxHeight(0.45f)
                     } else {
-                        Modifier
-                            .fillMaxWidth(0.45f)
-                            .fillMaxHeight()
-                    },
+                        Modifier.fillMaxWidth(0.45f).fillMaxHeight()
+                    }
                 ),
         ) {
             Column(
-                modifier = Modifier
-                    .focusRequester(focusRequester)
-                    .focusGroup()
-                    .padding(top = 24.dp)
-                    .padding(end = endPadding),
+                modifier =
+                    Modifier.focusRequester(focusRequester)
+                        .focusGroup()
+                        .padding(top = 24.dp)
+                        .padding(end = endPadding)
             ) {
                 Text(
                     modifier = Modifier.padding(horizontal = 24.dp),
@@ -114,7 +111,11 @@ fun BoxScope.OverlayView(
 private fun PreviewOverlayView() {
     NextPlayerTheme {
         Box(modifier = Modifier.fillMaxSize()) {
-            OverlayView(modifier = Modifier.align(Alignment.BottomCenter), title = "Selector view", show = true) {
+            OverlayView(
+                modifier = Modifier.align(Alignment.BottomCenter),
+                title = "Selector view",
+                show = true,
+            ) {
                 Text("Lorem ipsum dolor sit amet, consectetur adipiscing elit. Lorem ipsum")
             }
         }

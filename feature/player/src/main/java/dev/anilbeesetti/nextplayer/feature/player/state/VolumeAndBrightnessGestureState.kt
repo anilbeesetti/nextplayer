@@ -27,17 +27,18 @@ fun rememberVolumeAndBrightnessGestureState(
     brightnessGestureSensitivity: Float,
 ): VolumeAndBrightnessGestureState {
     val coroutineScope = rememberCoroutineScope()
-    val volumeAndBrightnessGestureState = remember(volumeState, brightnessState) {
-        VolumeAndBrightnessGestureState(
-            volumeState = volumeState,
-            brightnessState = brightnessState,
-            enableVolumeGesture = enableVolumeGesture,
-            enableBrightnessGesture = enableBrightnessGesture,
-            volumeGestureSensitivity = volumeGestureSensitivity,
-            brightnessGestureSensitivity = brightnessGestureSensitivity,
-            coroutineScope = coroutineScope,
-        )
-    }
+    val volumeAndBrightnessGestureState =
+        remember(volumeState, brightnessState) {
+            VolumeAndBrightnessGestureState(
+                volumeState = volumeState,
+                brightnessState = brightnessState,
+                enableVolumeGesture = enableVolumeGesture,
+                enableBrightnessGesture = enableBrightnessGesture,
+                volumeGestureSensitivity = volumeGestureSensitivity,
+                brightnessGestureSensitivity = brightnessGestureSensitivity,
+                coroutineScope = coroutineScope,
+            )
+        }
     return volumeAndBrightnessGestureState
 }
 
@@ -68,10 +69,12 @@ class VolumeAndBrightnessGestureState(
     fun onDragStart(offset: Offset, size: IntSize) {
         val viewCenterX = size.width / 2
         job?.cancel()
-        activeGesture = when {
-            offset.x < viewCenterX -> VerticalGesture.BRIGHTNESS.takeIf { enableBrightnessGesture }
-            else -> VerticalGesture.VOLUME.takeIf { enableVolumeGesture }
-        }
+        activeGesture =
+            when {
+                offset.x < viewCenterX ->
+                    VerticalGesture.BRIGHTNESS.takeIf { enableBrightnessGesture }
+                else -> VerticalGesture.VOLUME.takeIf { enableVolumeGesture }
+            }
         startingY = offset.y
         volumeState.syncWithSystem()
         startVolumePercentage = volumeState.volumePercentage
@@ -87,21 +90,24 @@ class VolumeAndBrightnessGestureState(
                 val maxVolumePercentage = volumeState.maxVolumePercentage
                 val volumeChange = (startingY - change.position.y) * (volumeGestureSensitivity / 10)
                 val newVolume = startVolumePercentage + volumeChange.toInt()
-                volumeChangePercentage = (newVolume - startVolumePercentage).coerceIn(
-                    minimumValue = 0 - startVolumePercentage,
-                    maximumValue = maxVolumePercentage - startVolumePercentage,
-                )
+                volumeChangePercentage =
+                    (newVolume - startVolumePercentage).coerceIn(
+                        minimumValue = 0 - startVolumePercentage,
+                        maximumValue = maxVolumePercentage - startVolumePercentage,
+                    )
                 brightnessChangePercentage = 0
                 volumeState.updateVolumePercentage(newVolume)
             }
 
             VerticalGesture.BRIGHTNESS -> {
-                val brightnessChange = (startingY - change.position.y) * (brightnessGestureSensitivity / 10)
+                val brightnessChange =
+                    (startingY - change.position.y) * (brightnessGestureSensitivity / 10)
                 val newBrightness = startBrightnessPercentage + brightnessChange.toInt()
-                brightnessChangePercentage = (newBrightness - startBrightnessPercentage).coerceIn(
-                    minimumValue = 0 - startBrightnessPercentage,
-                    maximumValue = MAX_BRIGHTNESS_PERCENTAGE - startBrightnessPercentage,
-                )
+                brightnessChangePercentage =
+                    (newBrightness - startBrightnessPercentage).coerceIn(
+                        minimumValue = 0 - startBrightnessPercentage,
+                        maximumValue = MAX_BRIGHTNESS_PERCENTAGE - startBrightnessPercentage,
+                    )
                 volumeChangePercentage = 0
                 brightnessState.updateBrightnessPercentage(newBrightness)
             }

@@ -60,12 +60,15 @@ internal fun VaultBiometricButton(
 internal fun rememberVaultBiometricAvailable(): Boolean {
     val activity = LocalActivity.current as? FragmentActivity ?: return false
     val manager = remember(activity) { BiometricManager.from(activity) }
-    var available by remember(manager) {
-        mutableStateOf(manager.canAuthenticate(BIOMETRIC_STRONG) == BiometricManager.BIOMETRIC_SUCCESS)
-    }
+    var available by
+        remember(manager) {
+            mutableStateOf(
+                manager.canAuthenticate(BIOMETRIC_STRONG) == BiometricManager.BIOMETRIC_SUCCESS
+            )
+        }
     LifecycleResumeEffect(manager) {
         available = manager.canAuthenticate(BIOMETRIC_STRONG) == BiometricManager.BIOMETRIC_SUCCESS
-        onPauseOrDispose { }
+        onPauseOrDispose {}
     }
     return available
 }
@@ -80,36 +83,42 @@ internal fun VaultBiometricPrompt(
 
     val currentOnResult by rememberUpdatedState(onResult)
     var active by remember(activity) { mutableStateOf(false) }
-    val prompt = remember(activity) {
-        BiometricPrompt(
-            activity,
-            object : BiometricPrompt.AuthenticationCallback() {
-                override fun onAuthenticationSucceeded(result: BiometricPrompt.AuthenticationResult) {
-                    if (!active) return
-                    active = false
-                    currentOnResult(true)
-                }
-
-                override fun onAuthenticationError(errorCode: Int, errString: CharSequence) {
-                    if (!active) return
-                    active = false
-                    if (errorCode != BiometricPrompt.ERROR_NEGATIVE_BUTTON &&
-                        errorCode != BiometricPrompt.ERROR_USER_CANCELED && errorCode != BiometricPrompt.ERROR_CANCELED
+    val prompt =
+        remember(activity) {
+            BiometricPrompt(
+                activity,
+                object : BiometricPrompt.AuthenticationCallback() {
+                    override fun onAuthenticationSucceeded(
+                        result: BiometricPrompt.AuthenticationResult
                     ) {
-                        Toast.makeText(activity, errString, Toast.LENGTH_SHORT).show()
+                        if (!active) return
+                        active = false
+                        currentOnResult(true)
                     }
-                    currentOnResult(false)
-                }
-            },
-        )
-    }
-    val promptInfo = remember(title, negativeButtonText) {
-        BiometricPrompt.PromptInfo.Builder()
-            .setTitle(title)
-            .setAllowedAuthenticators(BIOMETRIC_STRONG)
-            .setNegativeButtonText(negativeButtonText)
-            .build()
-    }
+
+                    override fun onAuthenticationError(errorCode: Int, errString: CharSequence) {
+                        if (!active) return
+                        active = false
+                        if (
+                            errorCode != BiometricPrompt.ERROR_NEGATIVE_BUTTON &&
+                                errorCode != BiometricPrompt.ERROR_USER_CANCELED &&
+                                errorCode != BiometricPrompt.ERROR_CANCELED
+                        ) {
+                            Toast.makeText(activity, errString, Toast.LENGTH_SHORT).show()
+                        }
+                        currentOnResult(false)
+                    }
+                },
+            )
+        }
+    val promptInfo =
+        remember(title, negativeButtonText) {
+            BiometricPrompt.PromptInfo.Builder()
+                .setTitle(title)
+                .setAllowedAuthenticators(BIOMETRIC_STRONG)
+                .setNegativeButtonText(negativeButtonText)
+                .build()
+        }
 
     DisposableEffect(prompt) {
         active = true

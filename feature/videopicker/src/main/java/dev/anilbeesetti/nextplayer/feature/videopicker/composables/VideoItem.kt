@@ -25,8 +25,8 @@ import androidx.compose.material3.Text
 import androidx.compose.material3.surfaceColorAtElevation
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.remember
 import androidx.compose.runtime.produceState
+import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -54,8 +54,8 @@ import dev.anilbeesetti.nextplayer.core.ui.R
 import dev.anilbeesetti.nextplayer.core.ui.components.NextSegmentedListItem
 import dev.anilbeesetti.nextplayer.core.ui.designsystem.NextIcons
 import dev.anilbeesetti.nextplayer.core.ui.theme.NextPlayerTheme
-import kotlinx.coroutines.delay
 import kotlin.time.Duration.Companion.seconds
+import kotlinx.coroutines.delay
 
 @Composable
 fun VideoItem(
@@ -70,28 +70,30 @@ fun VideoItem(
     onLongClick: (() -> Unit)? = null,
 ) {
     when (preferences.mediaLayoutMode) {
-        MediaLayoutMode.LIST -> VideoListItem(
-            video = video,
-            isRecentlyPlayedVideo = isRecentlyPlayedVideo,
-            preferences = preferences,
-            modifier = modifier,
-            isFirstItem = isFirstItem,
-            isLastItem = isLastItem,
-            selected = selected,
-            onClick = onClick,
-            onLongClick = onLongClick,
-        )
-        MediaLayoutMode.GRID -> VideoGridItem(
-            video = video,
-            isRecentlyPlayedVideo = isRecentlyPlayedVideo,
-            preferences = preferences,
-            modifier = modifier,
-            isFirstItem = isFirstItem,
-            isLastItem = isLastItem,
-            selected = selected,
-            onClick = onClick,
-            onLongClick = onLongClick,
-        )
+        MediaLayoutMode.LIST ->
+            VideoListItem(
+                video = video,
+                isRecentlyPlayedVideo = isRecentlyPlayedVideo,
+                preferences = preferences,
+                modifier = modifier,
+                isFirstItem = isFirstItem,
+                isLastItem = isLastItem,
+                selected = selected,
+                onClick = onClick,
+                onLongClick = onLongClick,
+            )
+        MediaLayoutMode.GRID ->
+            VideoGridItem(
+                video = video,
+                isRecentlyPlayedVideo = isRecentlyPlayedVideo,
+                preferences = preferences,
+                modifier = modifier,
+                isFirstItem = isFirstItem,
+                isLastItem = isLastItem,
+                selected = selected,
+                onClick = onClick,
+                onLongClick = onLongClick,
+            )
     }
 }
 
@@ -110,26 +112,30 @@ fun VideoListItem(
 ) {
     val path = video.path.substringBeforeLast("/")
     val showPath = preferences.showPathField && path.isNotBlank()
-    val showSize = preferences.showSizeField && video.size > 0 && video.formattedFileSize.isNotBlank()
+    val showSize =
+        preferences.showSizeField && video.size > 0 && video.formattedFileSize.isNotBlank()
     val showResolution = preferences.showResolutionField && video.height > 0
 
     NextSegmentedListItem(
         modifier = modifier,
         selected = selected,
         contentPadding = PaddingValues(8.dp),
-        colors = ListItemDefaults.segmentedColors(
-            contentColor = if (isRecentlyPlayedVideo && preferences.markLastPlayedMedia) {
-                MaterialTheme.colorScheme.primary
-            } else {
-                ListItemDefaults.segmentedColors().contentColor
-            },
-            supportingContentColor = if (isRecentlyPlayedVideo && preferences.markLastPlayedMedia) {
-                MaterialTheme.colorScheme.primary
-            } else {
-                ListItemDefaults.colors().supportingContentColor
-            },
-            selectedContainerColor = MaterialTheme.colorScheme.tertiary.copy(alpha = 0.3f),
-        ),
+        colors =
+            ListItemDefaults.segmentedColors(
+                contentColor =
+                    if (isRecentlyPlayedVideo && preferences.markLastPlayedMedia) {
+                        MaterialTheme.colorScheme.primary
+                    } else {
+                        ListItemDefaults.segmentedColors().contentColor
+                    },
+                supportingContentColor =
+                    if (isRecentlyPlayedVideo && preferences.markLastPlayedMedia) {
+                        MaterialTheme.colorScheme.primary
+                    } else {
+                        ListItemDefaults.colors().supportingContentColor
+                    },
+                selectedContainerColor = MaterialTheme.colorScheme.tertiary.copy(alpha = 0.3f),
+            ),
         isFirstItem = isFirstItem,
         isLastItem = isLastItem,
         onClick = onClick,
@@ -138,50 +144,53 @@ fun VideoListItem(
             ThumbnailView(
                 video = video,
                 preferences = preferences,
-                modifier = Modifier
-                    .width(min(150.dp, LocalConfiguration.current.screenWidthDp.dp * 0.35f)),
+                modifier =
+                    Modifier.width(
+                        min(150.dp, LocalConfiguration.current.screenWidthDp.dp * 0.35f)
+                    ),
             )
         },
         content = {
             Text(
-                text = if (preferences.showExtensionField) video.nameWithExtension else video.displayName,
+                text =
+                    if (preferences.showExtensionField) video.nameWithExtension
+                    else video.displayName,
                 maxLines = 2,
                 style = MaterialTheme.typography.titleMedium.copy(lineBreak = LineBreak.Heading),
                 overflow = TextOverflow.Ellipsis,
             )
         },
-        supportingContent = if (showPath || showSize || showResolution) {
-            {
-                Column(
-                    verticalArrangement = Arrangement.spacedBy(4.dp),
-                ) {
-                    if (showPath) {
-                        Text(
-                            text = path,
-                            maxLines = 2,
-                            style = MaterialTheme.typography.bodySmall,
-                            overflow = TextOverflow.Ellipsis,
-                        )
-                    }
-                    if (showSize || showResolution) {
-                        FlowRow(
-                            modifier = Modifier.fillMaxWidth(),
-                            horizontalArrangement = Arrangement.spacedBy(5.dp),
-                            verticalArrangement = Arrangement.spacedBy(5.dp),
-                        ) {
-                            if (showSize) {
-                                InfoChip(text = video.formattedFileSize)
-                            }
-                            if (showResolution) {
-                                InfoChip(text = "${video.height}p")
+        supportingContent =
+            if (showPath || showSize || showResolution) {
+                {
+                    Column(verticalArrangement = Arrangement.spacedBy(4.dp)) {
+                        if (showPath) {
+                            Text(
+                                text = path,
+                                maxLines = 2,
+                                style = MaterialTheme.typography.bodySmall,
+                                overflow = TextOverflow.Ellipsis,
+                            )
+                        }
+                        if (showSize || showResolution) {
+                            FlowRow(
+                                modifier = Modifier.fillMaxWidth(),
+                                horizontalArrangement = Arrangement.spacedBy(5.dp),
+                                verticalArrangement = Arrangement.spacedBy(5.dp),
+                            ) {
+                                if (showSize) {
+                                    InfoChip(text = video.formattedFileSize)
+                                }
+                                if (showResolution) {
+                                    InfoChip(text = "${video.height}p")
+                                }
                             }
                         }
                     }
                 }
-            }
-        } else {
-            null
-        },
+            } else {
+                null
+            },
     )
 }
 
@@ -203,19 +212,22 @@ fun VideoGridItem(
         modifier = modifier.width(IntrinsicSize.Min),
         selected = selected,
         contentPadding = PaddingValues(8.dp),
-        colors = ListItemDefaults.segmentedColors(
-            contentColor = if (isRecentlyPlayedVideo && preferences.markLastPlayedMedia) {
-                MaterialTheme.colorScheme.primary
-            } else {
-                ListItemDefaults.segmentedColors().contentColor
-            },
-            supportingContentColor = if (isRecentlyPlayedVideo && preferences.markLastPlayedMedia) {
-                MaterialTheme.colorScheme.primary
-            } else {
-                ListItemDefaults.colors().supportingContentColor
-            },
-            selectedContainerColor = MaterialTheme.colorScheme.tertiary.copy(alpha = 0.3f),
-        ),
+        colors =
+            ListItemDefaults.segmentedColors(
+                contentColor =
+                    if (isRecentlyPlayedVideo && preferences.markLastPlayedMedia) {
+                        MaterialTheme.colorScheme.primary
+                    } else {
+                        ListItemDefaults.segmentedColors().contentColor
+                    },
+                supportingContentColor =
+                    if (isRecentlyPlayedVideo && preferences.markLastPlayedMedia) {
+                        MaterialTheme.colorScheme.primary
+                    } else {
+                        ListItemDefaults.colors().supportingContentColor
+                    },
+                selectedContainerColor = MaterialTheme.colorScheme.tertiary.copy(alpha = 0.3f),
+            ),
         isFirstItem = isFirstItem,
         isLastItem = isLastItem,
         onClick = onClick,
@@ -230,16 +242,19 @@ fun VideoGridItem(
                     preferences = preferences,
                 )
                 Text(
-                    text = if (preferences.showExtensionField) video.nameWithExtension else video.displayName,
+                    text =
+                        if (preferences.showExtensionField) video.nameWithExtension
+                        else video.displayName,
                     maxLines = 2,
                     style = textStyle.copy(lineBreak = LineBreak.Heading),
                     overflow = TextOverflow.Ellipsis,
                     textAlign = TextAlign.Center,
-                    color = if (isRecentlyPlayedVideo && preferences.markLastPlayedMedia) {
-                        MaterialTheme.colorScheme.primary
-                    } else {
-                        ListItemDefaults.colors().contentColor
-                    },
+                    color =
+                        if (isRecentlyPlayedVideo && preferences.markLastPlayedMedia) {
+                            MaterialTheme.colorScheme.primary
+                        } else {
+                            ListItemDefaults.colors().contentColor
+                        },
                 )
             }
         },
@@ -260,49 +275,48 @@ private fun ThumbnailView(
 ) {
     val context = LocalContext.current
     val isLocalVideo = remember(video.uriString) { video.isLocalUri() }
-    val isNew by produceState(
-        initialValue = video.isNew(thresholdDays = preferences.newVideoThresholdDays),
-        key1 = video.dateAdded,
-        key2 = video.lastPlayedAt,
-        key3 = preferences.newVideoThresholdDays,
-    ) {
-        while (value) {
-            delay(60.seconds)
-            value = video.isNew(thresholdDays = preferences.newVideoThresholdDays)
+    val isNew by
+        produceState(
+            initialValue = video.isNew(thresholdDays = preferences.newVideoThresholdDays),
+            key1 = video.dateAdded,
+            key2 = video.lastPlayedAt,
+            key3 = preferences.newVideoThresholdDays,
+        ) {
+            while (value) {
+                delay(60.seconds)
+                value = video.isNew(thresholdDays = preferences.newVideoThresholdDays)
+            }
         }
-    }
     Box(
-        modifier = modifier
-            .clip(MaterialTheme.shapes.small)
-            .background(MaterialTheme.colorScheme.surfaceColorAtElevation(1.dp))
-            .aspectRatio(16f / 10f),
+        modifier =
+            modifier
+                .clip(MaterialTheme.shapes.small)
+                .background(MaterialTheme.colorScheme.surfaceColorAtElevation(1.dp))
+                .aspectRatio(16f / 10f)
     ) {
         Icon(
             imageVector = NextIcons.Video,
             contentDescription = null,
             tint = MaterialTheme.colorScheme.surfaceColorAtElevation(100.dp),
-            modifier = Modifier
-                .align(Alignment.Center)
-                .fillMaxSize(0.5f),
+            modifier = Modifier.align(Alignment.Center).fillMaxSize(0.5f),
         )
         if (preferences.showThumbnailField && isLocalVideo) {
             AsyncImage(
-                model = ImageRequest.Builder(context)
-                    .data(video.uriString)
-                    .crossfade(true)
-                    .build(),
+                model = ImageRequest.Builder(context).data(video.uriString).crossfade(true).build(),
                 contentDescription = null,
                 alignment = Alignment.Center,
                 contentScale = ContentScale.Crop,
                 modifier = Modifier.fillMaxSize(),
             )
         }
-        if (preferences.showDurationField && video.duration > 0 && video.formattedDuration.isNotBlank()) {
+        if (
+            preferences.showDurationField &&
+                video.duration > 0 &&
+                video.formattedDuration.isNotBlank()
+        ) {
             InfoChip(
                 text = video.formattedDuration,
-                modifier = Modifier
-                    .padding(5.dp)
-                    .align(Alignment.BottomEnd),
+                modifier = Modifier.padding(5.dp).align(Alignment.BottomEnd),
                 backgroundColor = Color.Black.copy(alpha = 0.6f),
                 contentColor = Color.White,
                 shape = MaterialTheme.shapes.extraSmall,
@@ -312,9 +326,7 @@ private fun ThumbnailView(
         if (isNew) {
             InfoChip(
                 text = stringResource(R.string.new_label),
-                modifier = Modifier
-                    .padding(5.dp)
-                    .align(Alignment.TopStart),
+                modifier = Modifier.padding(5.dp).align(Alignment.TopStart),
                 backgroundColor = MaterialTheme.colorScheme.primary,
                 contentColor = MaterialTheme.colorScheme.onPrimary,
                 shape = MaterialTheme.shapes.extraSmall,
@@ -322,23 +334,18 @@ private fun ThumbnailView(
         }
 
         if (preferences.showPlayedProgress && video.playedPercentage != null) {
-            Box(
-                modifier = Modifier
-                    .height(4.dp)
-                    .fillMaxWidth()
-                    .align(Alignment.BottomCenter),
-            ) {
+            Box(modifier = Modifier.height(4.dp).fillMaxWidth().align(Alignment.BottomCenter)) {
                 Box(
-                    modifier = Modifier
-                        .fillMaxSize()
-                        .background(MaterialTheme.colorScheme.secondaryContainer),
+                    modifier =
+                        Modifier.fillMaxSize()
+                            .background(MaterialTheme.colorScheme.secondaryContainer)
                 )
                 Box(
-                    modifier = Modifier
-                        .fillMaxWidth(video.playedPercentage!!)
-                        .fillMaxHeight()
-                        .clip(CircleShape)
-                        .background(MaterialTheme.colorScheme.primary),
+                    modifier =
+                        Modifier.fillMaxWidth(video.playedPercentage!!)
+                            .fillMaxHeight()
+                            .clip(CircleShape)
+                            .background(MaterialTheme.colorScheme.primary)
                 )
             }
         }

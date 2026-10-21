@@ -39,9 +39,10 @@ class SftpHostKeyVerifierTest {
         val presentedKeyPair = generateRsaKeyPair()
         val expectedFingerprint = confirmationFor(expectedKeyPair).fingerprint
 
-        val mismatch = assertThrows(HostKeyMismatch::class.java) {
-            SftpHostKeyVerifier(expectedFingerprint).verify("host", 22, presentedKeyPair.public)
-        }
+        val mismatch =
+            assertThrows(HostKeyMismatch::class.java) {
+                SftpHostKeyVerifier(expectedFingerprint).verify("host", 22, presentedKeyPair.public)
+            }
 
         assertEquals(expectedFingerprint, mismatch.expectedFingerprint)
         assertTrue(mismatch.presentedFingerprint.startsWith("SHA256:"))
@@ -50,26 +51,29 @@ class SftpHostKeyVerifierTest {
 
     @Test
     fun `fingerprint matches fixed OpenSSH SHA256 vector`() {
-        val publicKey = KeyFactory.getInstance("RSA").generatePublic(
-            X509EncodedKeySpec(Base64.Default.decode(PUBLIC_KEY_BASE64)),
-        )
+        val publicKey =
+            KeyFactory.getInstance("RSA")
+                .generatePublic(X509EncodedKeySpec(Base64.Default.decode(PUBLIC_KEY_BASE64)))
 
-        val confirmation = assertThrows(HostKeyConfirmationRequired::class.java) {
-            SftpHostKeyVerifier("").verify("host", 22, publicKey)
-        }
+        val confirmation =
+            assertThrows(HostKeyConfirmationRequired::class.java) {
+                SftpHostKeyVerifier("").verify("host", 22, publicKey)
+            }
 
         assertEquals(OPENSSH_SHA256_FINGERPRINT, confirmation.fingerprint)
         assertTrue(SftpHostKeyVerifier(OPENSSH_SHA256_FINGERPRINT).verify("host", 22, publicKey))
     }
 
-    private fun confirmationFor(keyPair: KeyPair) = assertThrows(HostKeyConfirmationRequired::class.java) {
-        SftpHostKeyVerifier("").verify("host", 22, keyPair.public)
-    }
+    private fun confirmationFor(keyPair: KeyPair) =
+        assertThrows(HostKeyConfirmationRequired::class.java) {
+            SftpHostKeyVerifier("").verify("host", 22, keyPair.public)
+        }
 
-    private fun generateRsaKeyPair(): KeyPair = KeyPairGenerator.getInstance("RSA").run {
-        initialize(2048)
-        generateKeyPair()
-    }
+    private fun generateRsaKeyPair(): KeyPair =
+        KeyPairGenerator.getInstance("RSA").run {
+            initialize(2048)
+            generateKeyPair()
+        }
 
     private companion object {
         const val OPENSSH_SHA256_FINGERPRINT = "SHA256:nduAt4u4wQIOter2qOpMVAC6ST0oCGD8OJXXlbTbv20"

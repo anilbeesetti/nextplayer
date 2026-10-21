@@ -17,16 +17,17 @@ class LocalNetworkConnectionRepositoryTest {
 
     @Test
     fun `upsert and get connection preserves authentication settings`() = runTest {
-        val connection = NetworkConnection(
-            name = "SFTP",
-            protocol = NetworkProtocol.SFTP,
-            host = "10.0.2.2",
-            username = "alice",
-            authentication = NetworkAuthentication.SSH_KEY,
-            privateKeyFileName = "123.key",
-            privateKeyPassphrase = "passphrase",
-            hostKeyFingerprint = "SHA256:abc",
-        )
+        val connection =
+            NetworkConnection(
+                name = "SFTP",
+                protocol = NetworkProtocol.SFTP,
+                host = "10.0.2.2",
+                username = "alice",
+                authentication = NetworkAuthentication.SSH_KEY,
+                privateKeyFileName = "123.key",
+                privateKeyPassphrase = "passphrase",
+                hostKeyFingerprint = "SHA256:abc",
+            )
 
         assertEquals(1L, repository.upsert(connection))
         assertEquals(connection.copy(id = 1), repository.getConnection(1))
@@ -42,7 +43,7 @@ class LocalNetworkConnectionRepositoryTest {
                 host = "10.0.2.2",
                 port = 22,
                 authentication = "UNKNOWN",
-            ),
+            )
         )
 
         assertEquals(

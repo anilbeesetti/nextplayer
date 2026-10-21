@@ -36,9 +36,7 @@ class PlaylistDetailViewModel(
     @InjectedParam internal var output: Output,
 ) : MviViewModel<PlaylistDetailUiState, PlaylistDetailUiAction>() {
 
-    data class Input(
-        val playlistId: Long,
-    )
+    data class Input(val playlistId: Long)
 
     data class Output(
         val navigateUp: () -> Unit,
@@ -56,9 +54,10 @@ class PlaylistDetailViewModel(
                 stateInternal.update { currentState ->
                     currentState.copy(
                         playlistDataState = DataState.Success(playlist),
-                        isReordering = currentState.isReordering &&
-                            playlist?.type == PlaylistType.LOCAL &&
-                            playlist.items.size > 1,
+                        isReordering =
+                            currentState.isReordering &&
+                                playlist?.type == PlaylistType.LOCAL &&
+                                playlist.items.size > 1,
                     )
                 }
             }
@@ -68,15 +67,12 @@ class PlaylistDetailViewModel(
     override fun onAction(action: PlaylistDetailUiAction) {
         when (action) {
             is PlaylistDetailUiAction.OnNavigateUpClick -> output.navigateUp()
-            is PlaylistDetailUiAction.OnSearchClick -> stateInternal.update {
-                it.copy(isSearching = true, isReordering = false)
-            }
-            is PlaylistDetailUiAction.OnSearchQueryChange -> stateInternal.update {
-                it.copy(searchQuery = action.query)
-            }
-            is PlaylistDetailUiAction.OnCloseSearchClick -> stateInternal.update {
-                it.copy(isSearching = false, searchQuery = "")
-            }
+            is PlaylistDetailUiAction.OnSearchClick ->
+                stateInternal.update { it.copy(isSearching = true, isReordering = false) }
+            is PlaylistDetailUiAction.OnSearchQueryChange ->
+                stateInternal.update { it.copy(searchQuery = action.query) }
+            is PlaylistDetailUiAction.OnCloseSearchClick ->
+                stateInternal.update { it.copy(isSearching = false, searchQuery = "") }
             is PlaylistDetailUiAction.OnReorderClick -> {
                 if (currentPlaylist()?.type == PlaylistType.LOCAL) {
                     stateInternal.update {
@@ -84,17 +80,14 @@ class PlaylistDetailViewModel(
                     }
                 }
             }
-            is PlaylistDetailUiAction.OnFinishReorderingClick -> stateInternal.update {
-                it.copy(isReordering = false)
-            }
+            is PlaylistDetailUiAction.OnFinishReorderingClick ->
+                stateInternal.update { it.copy(isReordering = false) }
             is PlaylistDetailUiAction.OnPlay -> play(action.startUri)
             is PlaylistDetailUiAction.Refresh -> refreshM3U()
-            is PlaylistDetailUiAction.ShowRemoveDialogFor -> stateInternal.update {
-                it.copy(showRemoveDialogFor = action.item)
-            }
-            is PlaylistDetailUiAction.DismissRemoveDialog -> stateInternal.update {
-                it.copy(showRemoveDialogFor = null)
-            }
+            is PlaylistDetailUiAction.ShowRemoveDialogFor ->
+                stateInternal.update { it.copy(showRemoveDialogFor = action.item) }
+            is PlaylistDetailUiAction.DismissRemoveDialog ->
+                stateInternal.update { it.copy(showRemoveDialogFor = null) }
             is PlaylistDetailUiAction.RemoveVideo -> removeVideo(action.videoUri)
             is PlaylistDetailUiAction.ReplaceOrder -> replaceOrder(action.orderedUris)
         }
@@ -119,7 +112,7 @@ class PlaylistDetailViewModel(
             } catch (error: Throwable) {
                 showToast(
                     error.message?.takeIf(String::isNotBlank)
-                        ?: systemService.getString(R.string.playlist_refresh_failed),
+                        ?: systemService.getString(R.string.playlist_refresh_failed)
                 )
             } finally {
                 stateInternal.update { it.copy(isRefreshing = false) }
@@ -128,32 +121,26 @@ class PlaylistDetailViewModel(
     }
 
     private suspend fun parseLinkedSource(playlist: Playlist): Result<M3UPlaylist> {
-        val source = playlist.source
-            ?: return Result.failure(IllegalStateException("Linked playlist source is missing"))
+        val source =
+            playlist.source
+                ?: return Result.failure(IllegalStateException("Linked playlist source is missing"))
         return when (playlist.type) {
             PlaylistType.M3U_URL -> m3uParser.parseUrl(source)
             PlaylistType.M3U_FILE -> m3uParser.parseUri(source.toUri())
-            PlaylistType.LOCAL -> Result.failure(
-                IllegalStateException("Local playlists do not have a linked source"),
-            )
+            PlaylistType.LOCAL ->
+                Result.failure(IllegalStateException("Local playlists do not have a linked source"))
         }
     }
 
     private fun removeVideo(videoUri: String) {
         updatePlaylist(
             block = { playlistRepository.removeVideo(input.playlistId, videoUri) },
-            onSuccess = {
-                stateInternal.update { it.copy(showRemoveDialogFor = null) }
-            },
+            onSuccess = { stateInternal.update { it.copy(showRemoveDialogFor = null) } },
         )
     }
 
     private fun replaceOrder(orderedUris: List<String>) {
-        updatePlaylist(
-            block = {
-                playlistRepository.replaceOrder(input.playlistId, orderedUris)
-            },
-        )
+        updatePlaylist(block = { playlistRepository.replaceOrder(input.playlistId, orderedUris) })
     }
 
     private fun markVideoPlayed(videoUri: String) {
@@ -212,15 +199,26 @@ data class PlaylistDetailUiState(
 
 sealed interface PlaylistDetailUiAction {
     data object OnNavigateUpClick : PlaylistDetailUiAction
+
     data object OnSearchClick : PlaylistDetailUiAction
+
     data class OnSearchQueryChange(val query: String) : PlaylistDetailUiAction
+
     data object OnCloseSearchClick : PlaylistDetailUiAction
+
     data object OnReorderClick : PlaylistDetailUiAction
+
     data object OnFinishReorderingClick : PlaylistDetailUiAction
+
     data class OnPlay(val startUri: Uri) : PlaylistDetailUiAction
+
     data object Refresh : PlaylistDetailUiAction
+
     data class ShowRemoveDialogFor(val item: PlaylistItem) : PlaylistDetailUiAction
+
     data object DismissRemoveDialog : PlaylistDetailUiAction
+
     data class RemoveVideo(val videoUri: String) : PlaylistDetailUiAction
+
     data class ReplaceOrder(val orderedUris: List<String>) : PlaylistDetailUiAction
 }

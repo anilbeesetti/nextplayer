@@ -38,7 +38,8 @@ class TrashViewModel(
 
     init {
         viewModelScope.launch {
-            mediaRepository.observeTrashVideos()
+            mediaRepository
+                .observeTrashVideos()
                 .catch { error ->
                     stateInternal.update { it.copy(videos = DataState.Error(error)) }
                 }
@@ -68,10 +69,13 @@ class TrashViewModel(
     }
 
     private fun deletePermanently(selectionItems: Set<SelectionItem>) {
-        viewModelScope.launch { mediaOperationsService.deleteMedia(selectionItems.toUris(), permanently = true) }
+        viewModelScope.launch {
+            mediaOperationsService.deleteMedia(selectionItems.toUris(), permanently = true)
+        }
     }
 
-    private fun Set<SelectionItem>.toUris(): List<Uri> = filterIsInstance<SelectionItem.Video>().map { it.uriString.toUri() }
+    private fun Set<SelectionItem>.toUris(): List<Uri> =
+        filterIsInstance<SelectionItem.Video>().map { it.uriString.toUri() }
 }
 
 data class TrashUiState(
@@ -81,8 +85,10 @@ data class TrashUiState(
 
 sealed interface TrashAction {
     data object NavigateUp : TrashAction
+
     data class PlayVideo(val uri: String) : TrashAction
 
     data class Restore(val selectionItems: Set<SelectionItem>) : TrashAction
+
     data class DeletePermanently(val selectionItems: Set<SelectionItem>) : TrashAction
 }

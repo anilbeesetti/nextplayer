@@ -36,27 +36,37 @@ class SearchMediaUseCase(
         }
 
         return combine(
-            getSortedVideosUseCase(),
-            getSortedFoldersUseCase(),
-        ) { videos, folders ->
-            val searchMatcher = SearchMatcher(normalizedQuery)
+                getSortedVideosUseCase(),
+                getSortedFoldersUseCase(),
+            ) { videos, folders ->
+                val searchMatcher = SearchMatcher(normalizedQuery)
 
-            // Score and filter folders
-            val scoredFolders = folders.mapNotNull { folder ->
-                val score = searchMatcher.calculateScore(folder.name, folder.path)
-                if (score > 0) folder to score else null
-            }.sortedByDescending { it.second }.map { it.first }
+                // Score and filter folders
+                val scoredFolders =
+                    folders
+                        .mapNotNull { folder ->
+                            val score = searchMatcher.calculateScore(folder.name, folder.path)
+                            if (score > 0) folder to score else null
+                        }
+                        .sortedByDescending { it.second }
+                        .map { it.first }
 
-            val scoredVideos = videos.mapNotNull { video ->
-                val score = searchMatcher.calculateScore(video.nameWithExtension, video.path)
-                if (score > 0) video to score else null
-            }.sortedByDescending { it.second }.map { it.first }
+                val scoredVideos =
+                    videos
+                        .mapNotNull { video ->
+                            val score =
+                                searchMatcher.calculateScore(video.nameWithExtension, video.path)
+                            if (score > 0) video to score else null
+                        }
+                        .sortedByDescending { it.second }
+                        .map { it.first }
 
-            SearchResults(
-                folders = scoredFolders,
-                videos = scoredVideos,
-            )
-        }.flowOn(defaultDispatcher)
+                SearchResults(
+                    folders = scoredFolders,
+                    videos = scoredVideos,
+                )
+            }
+            .flowOn(defaultDispatcher)
     }
 }
 
@@ -72,15 +82,16 @@ private class SearchMatcher(query: String) {
     private val queryLower = query.lowercase()
     private val queryWords = query.lowercase().split(Regex("\\s+")).filter { it.isNotBlank() }
 
-    private val wordsInOrderPattern: Regex? = if (queryWords.size > 1) {
-        Regex(queryWords.joinToString(".*") { Regex.escape(it) }, RegexOption.IGNORE_CASE)
-    } else {
-        null
-    }
+    private val wordsInOrderPattern: Regex? =
+        if (queryWords.size > 1) {
+            Regex(queryWords.joinToString(".*") { Regex.escape(it) }, RegexOption.IGNORE_CASE)
+        } else {
+            null
+        }
 
     /**
-     * Calculate a relevance score for the given texts.
-     * Returns 0 if no match, higher scores for better matches.
+     * Calculate a relevance score for the given texts. Returns 0 if no match, higher scores for
+     * better matches.
      */
     fun calculateScore(vararg texts: String): Int {
         var bestScore = 0
@@ -132,8 +143,8 @@ private class SearchMatcher(query: String) {
     }
 
     /**
-     * Check if the query appears at a word boundary in the text.
-     * Word boundaries are: start of string, space, underscore, dash, dot, etc.
+     * Check if the query appears at a word boundary in the text. Word boundaries are: start of
+     * string, space, underscore, dash, dot, etc.
      */
     private fun isWordBoundaryMatch(text: String, query: String): Boolean {
         val index = text.indexOf(query)

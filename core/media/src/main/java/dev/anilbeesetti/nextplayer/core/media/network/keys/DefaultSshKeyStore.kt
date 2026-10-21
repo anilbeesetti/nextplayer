@@ -13,46 +13,47 @@ import kotlinx.coroutines.withContext
 import org.koin.core.annotation.Single
 
 @Single
-class DefaultSshKeyStore(
-    context: Context,
-) : SshKeyStore {
+class DefaultSshKeyStore(context: Context) : SshKeyStore {
 
     private val contentResolver = context.contentResolver
-    private val keyFiles = SshKeyFiles(
-        stagingDirectory = File(context.noBackupFilesDir, "$KEY_DIRECTORY/staging"),
-        committedDirectory = File(context.noBackupFilesDir, "$KEY_DIRECTORY/committed"),
-        reconciliationRequired = true,
-    )
+    private val keyFiles =
+        SshKeyFiles(
+            stagingDirectory = File(context.noBackupFilesDir, "$KEY_DIRECTORY/staging"),
+            committedDirectory = File(context.noBackupFilesDir, "$KEY_DIRECTORY/committed"),
+            reconciliationRequired = true,
+        )
 
-    override suspend fun initialize(referencedFileNames: Set<String>?): Unit = withContext(Dispatchers.IO) {
-        keyFiles.initialize(referencedFileNames)
-    }
+    override suspend fun initialize(referencedFileNames: Set<String>?): Unit =
+        withContext(Dispatchers.IO) { keyFiles.initialize(referencedFileNames) }
 
-    override suspend fun stage(uri: Uri): StagedSshKey = stageSshKey(
-        keyFiles = keyFiles,
-        ioDispatcher = Dispatchers.IO,
-        displayName = { queryDisplayName(uri) },
-        inputStream = { contentResolver.openInputStream(uri) },
-    )
+    override suspend fun stage(uri: Uri): StagedSshKey =
+        stageSshKey(
+            keyFiles = keyFiles,
+            ioDispatcher = Dispatchers.IO,
+            displayName = { queryDisplayName(uri) },
+            inputStream = { contentResolver.openInputStream(uri) },
+        )
 
     override fun resolve(fileName: String): File = keyFiles.resolve(fileName)
 
-    override suspend fun commit(fileName: String): String = withContext(Dispatchers.IO) {
-        keyFiles.commit(fileName)
-    }
+    override suspend fun commit(fileName: String): String =
+        withContext(Dispatchers.IO) { keyFiles.commit(fileName) }
 
-    override suspend fun delete(fileName: String): Unit = withContext(Dispatchers.IO) {
-        keyFiles.delete(fileName)
-    }
+    override suspend fun delete(fileName: String): Unit =
+        withContext(Dispatchers.IO) { keyFiles.delete(fileName) }
 
     private fun queryDisplayName(uri: Uri): String {
         val projection = arrayOf(OpenableColumns.DISPLAY_NAME)
-        return contentResolver.query(uri, projection, null, null, null)?.use { cursor ->
-            val displayNameColumn = cursor.getColumnIndex(OpenableColumns.DISPLAY_NAME)
-            if (displayNameColumn >= 0 && cursor.moveToFirst()) cursor.getString(displayNameColumn) else null
-        }.orEmpty().ifBlank {
-            uri.lastPathSegment.orEmpty().ifBlank { DEFAULT_DISPLAY_NAME }
-        }
+        return contentResolver
+            .query(uri, projection, null, null, null)
+            ?.use { cursor ->
+                val displayNameColumn = cursor.getColumnIndex(OpenableColumns.DISPLAY_NAME)
+                if (displayNameColumn >= 0 && cursor.moveToFirst())
+                    cursor.getString(displayNameColumn)
+                else null
+            }
+            .orEmpty()
+            .ifBlank { uri.lastPathSegment.orEmpty().ifBlank { DEFAULT_DISPLAY_NAME } }
     }
 
     private companion object {
@@ -71,17 +72,16 @@ internal suspend fun stageSshKey(
     try {
         return withContext(ioDispatcher) {
             val resolvedDisplayName = displayName()
-            val fileName = inputStream()?.let(keyFiles::stage)
-                ?: throw FileNotFoundException("Private key is missing")
+            val fileName =
+                inputStream()?.let(keyFiles::stage)
+                    ?: throw FileNotFoundException("Private key is missing")
             stagedFileName = fileName
             StagedSshKey(fileName = fileName, displayName = resolvedDisplayName)
         }
     } catch (throwable: Throwable) {
         stagedFileName?.let { fileName ->
             try {
-                withContext(NonCancellable + ioDispatcher) {
-                    keyFiles.delete(fileName)
-                }
+                withContext(NonCancellable + ioDispatcher) { keyFiles.delete(fileName) }
             } catch (cleanupFailure: Throwable) {
                 throwable.addSuppressed(cleanupFailure)
             }

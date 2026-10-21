@@ -16,9 +16,7 @@ import kotlinx.coroutines.flow.map
 import org.koin.core.annotation.Single
 
 @Single
-class LocalPlaylistRepository(
-    private val playlistDao: PlaylistDao,
-) : PlaylistRepository {
+class LocalPlaylistRepository(private val playlistDao: PlaylistDao) : PlaylistRepository {
 
     override fun observePlaylists(): Flow<List<PlaylistSummary>> =
         playlistDao.observeSummaries().map { summaries ->
@@ -45,12 +43,13 @@ class LocalPlaylistRepository(
         require(type == PlaylistType.M3U_URL || type == PlaylistType.M3U_FILE)
         val refreshedAt = System.currentTimeMillis()
         return playlistDao.createM3UPlaylist(
-            playlist = PlaylistEntity(
-                name = playlist.playlistName.validatedName(),
-                type = type.name,
-                source = source,
-                lastRefreshedAt = refreshedAt,
-            ),
+            playlist =
+                PlaylistEntity(
+                    name = playlist.playlistName.validatedName(),
+                    type = type.name,
+                    source = source,
+                    lastRefreshedAt = refreshedAt,
+                ),
             items = playlist.items.toEntities(),
         )
     }
@@ -104,32 +103,37 @@ class LocalPlaylistRepository(
 private fun String.validatedName(): String =
     trim().also { require(it.isNotEmpty()) { "Playlist name cannot be blank" } }
 
-private fun PlaylistSummaryEntity.toModel() = PlaylistSummary(
-    id = id,
-    name = name,
-    type = PlaylistType.valueOf(type),
-    itemCount = itemCount,
-    lastRefreshedAt = lastRefreshedAt,
-)
+private fun PlaylistSummaryEntity.toModel() =
+    PlaylistSummary(
+        id = id,
+        name = name,
+        type = PlaylistType.valueOf(type),
+        itemCount = itemCount,
+        lastRefreshedAt = lastRefreshedAt,
+    )
 
-private fun PlaylistWithItems.toModel() = PlaylistRecord(
-    id = playlist.id,
-    name = playlist.name,
-    type = PlaylistType.valueOf(playlist.type),
-    source = playlist.source,
-    items = items.sortedBy { it.position }.map { item ->
-        PlaylistItemRecord(
-            position = item.position,
-            uri = item.uri,
-            title = item.title,
-            tvgLogo = item.tvgLogo,
-            duration = item.duration,
-            groupTitle = item.groupTitle,
-            lastPlayedAt = item.lastPlayedAt,
-        )
-    },
-    lastRefreshedAt = playlist.lastRefreshedAt,
-)
+private fun PlaylistWithItems.toModel() =
+    PlaylistRecord(
+        id = playlist.id,
+        name = playlist.name,
+        type = PlaylistType.valueOf(playlist.type),
+        source = playlist.source,
+        items =
+            items
+                .sortedBy { it.position }
+                .map { item ->
+                    PlaylistItemRecord(
+                        position = item.position,
+                        uri = item.uri,
+                        title = item.title,
+                        tvgLogo = item.tvgLogo,
+                        duration = item.duration,
+                        groupTitle = item.groupTitle,
+                        lastPlayedAt = item.lastPlayedAt,
+                    )
+                },
+        lastRefreshedAt = playlist.lastRefreshedAt,
+    )
 
 private fun List<M3UPlaylistItem>.toEntities(playlistId: Long = 0): List<PlaylistItemEntity> =
     mapIndexed { position, item ->

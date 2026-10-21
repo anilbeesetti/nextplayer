@@ -15,7 +15,10 @@ class DecoderRecoveryManagerTest {
     @Test
     fun automaticFailureRetriesFfmpegOnce() {
         val manager = DecoderRecoveryManager()
-        assertEquals(DecoderRetry(video, DecoderMode.FFMPEG), manager.onDecoderFailure(video, DecoderMode.AUTO))
+        assertEquals(
+            DecoderRetry(video, DecoderMode.FFMPEG),
+            manager.onDecoderFailure(video, DecoderMode.AUTO),
+        )
         assertEquals(DecoderRecoveryStatus.RECOVERING, manager.state.status)
         assertNull(manager.onDecoderFailure(video, DecoderMode.AUTO))
         manager.onDecoderInitialized(video)
@@ -33,7 +36,10 @@ class DecoderRecoveryManagerTest {
         assertEquals(DecoderMode.HARDWARE, manager.state.unsupportedMode)
         assertEquals(DecoderRetry(video, DecoderMode.SOFTWARE), manager.confirmFallback())
         assertNull(manager.confirmFallback())
-        assertEquals(DecoderRetry(video, DecoderMode.FFMPEG), manager.onDecoderFailure(video, DecoderMode.SOFTWARE))
+        assertEquals(
+            DecoderRetry(video, DecoderMode.FFMPEG),
+            manager.onDecoderFailure(video, DecoderMode.SOFTWARE),
+        )
         assertNull(manager.onDecoderFailure(video, DecoderMode.FFMPEG))
         assertEquals(DecoderRecoveryStatus.FAILED, manager.state.status)
     }
@@ -68,7 +74,10 @@ class DecoderRecoveryManagerTest {
         manager.onDecoderInitialized(audio)
         assertEquals(DecoderRecoveryStatus.RECOVERING, manager.state.status)
         assertEquals(video, manager.state.trackType)
-        assertEquals(DecoderRetry(audio, DecoderMode.FFMPEG), manager.onDecoderFailure(audio, DecoderMode.AUTO))
+        assertEquals(
+            DecoderRetry(audio, DecoderMode.FFMPEG),
+            manager.onDecoderFailure(audio, DecoderMode.AUTO),
+        )
     }
 
     @Test

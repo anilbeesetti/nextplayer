@@ -21,10 +21,11 @@ class NextDataSourceFactory(
     private val sessions: NetworkSessions,
 ) : DataSource.Factory {
 
-    override fun createDataSource(): DataSource = SchemeDispatchingDataSource(
-        default = DefaultDataSource.Factory(context).createDataSource(),
-        network = NetworkDataSource(sessions),
-    )
+    override fun createDataSource(): DataSource =
+        SchemeDispatchingDataSource(
+            default = DefaultDataSource.Factory(context).createDataSource(),
+            network = NetworkDataSource(sessions),
+        )
 
     /** Disconnects the network client held for playback. Call when the player is released. */
     suspend fun release() = sessions.release()

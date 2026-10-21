@@ -37,9 +37,7 @@ import dev.anilbeesetti.nextplayer.settings.composables.OptionsDialog
 import dev.anilbeesetti.nextplayer.settings.utils.LocalesHelper
 
 @Composable
-fun AudioPreferencesScreen(
-    viewModel: AudioPreferencesViewModel,
-) {
+fun AudioPreferencesScreen(viewModel: AudioPreferencesViewModel) {
     val state by viewModel.state.collectAsStateWithLifecycle()
 
     AudioPreferencesScreenContent(
@@ -62,7 +60,10 @@ private fun AudioPreferencesScreenContent(
             NextTopAppBar(
                 title = stringResource(id = R.string.audio),
                 navigationIcon = {
-                    FilledTonalIconButton(onClick = { onAction(AudioPreferencesUiEvent.NavigateUp) }, modifier = Modifier.tvFocusDown(listFocusRequester)) {
+                    FilledTonalIconButton(
+                        onClick = { onAction(AudioPreferencesUiEvent.NavigateUp) },
+                        modifier = Modifier.tvFocusDown(listFocusRequester),
+                    ) {
                         Icon(
                             imageVector = NextIcons.ArrowBack,
                             contentDescription = stringResource(id = R.string.navigate_up),
@@ -74,23 +75,31 @@ private fun AudioPreferencesScreenContent(
         containerColor = MaterialTheme.colorScheme.surfaceContainer,
     ) { innerPadding ->
         Column(
-            modifier = Modifier
-                .fillMaxSize()
-                .verticalScroll(state = rememberScrollState())
-                .tvListFocus(listFocusRequester)
-                .padding(innerPadding)
-                .padding(horizontal = 16.dp),
+            modifier =
+                Modifier.fillMaxSize()
+                    .verticalScroll(state = rememberScrollState())
+                    .tvListFocus(listFocusRequester)
+                    .padding(innerPadding)
+                    .padding(horizontal = 16.dp)
         ) {
             ListSectionTitle(text = stringResource(id = R.string.playback))
-            Column(
-                verticalArrangement = Arrangement.spacedBy(ListItemDefaults.SegmentedGap),
-            ) {
+            Column(verticalArrangement = Arrangement.spacedBy(ListItemDefaults.SegmentedGap)) {
                 ClickablePreferenceItem(
                     title = stringResource(id = R.string.preferred_audio_lang),
-                    description = LocalesHelper.getLocaleDisplayLanguage(state.preferences.preferredAudioLanguage)
-                        .takeIf { it.isNotBlank() } ?: stringResource(R.string.preferred_audio_lang_description),
+                    description =
+                        LocalesHelper.getLocaleDisplayLanguage(
+                                state.preferences.preferredAudioLanguage
+                            )
+                            .takeIf { it.isNotBlank() }
+                            ?: stringResource(R.string.preferred_audio_lang_description),
                     icon = NextIcons.Language,
-                    onClick = { onAction(AudioPreferencesUiEvent.ShowDialog(AudioPreferenceDialog.AudioLanguageDialog)) },
+                    onClick = {
+                        onAction(
+                            AudioPreferencesUiEvent.ShowDialog(
+                                AudioPreferenceDialog.AudioLanguageDialog
+                            )
+                        )
+                    },
                     isFirstItem = true,
                 )
                 PreferenceSwitch(
