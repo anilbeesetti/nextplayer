@@ -20,15 +20,14 @@ class AppearancePreferencesViewModel(
     @InjectedParam internal var output: Output,
 ) : MviViewModel<AppearancePreferencesUiState, AppearancePreferencesEvent>() {
 
-    data class Output(
-        val navigateUp: () -> Unit,
-    )
+    data class Output(val navigateUp: () -> Unit)
 
-    private val stateInternal = MutableStateFlow(
-        AppearancePreferencesUiState(
-            preferences = preferencesRepository.applicationPreferences.value,
-        ),
-    )
+    private val stateInternal =
+        MutableStateFlow(
+            AppearancePreferencesUiState(
+                preferences = preferencesRepository.applicationPreferences.value
+            )
+        )
     override val state: StateFlow<AppearancePreferencesUiState> = stateInternal.asStateFlow()
 
     init {
@@ -47,21 +46,21 @@ class AppearancePreferencesViewModel(
             is AppearancePreferencesEvent.ToggleDarkTheme -> toggleDarkTheme()
             is AppearancePreferencesEvent.UpdateThemeConfig -> updateThemeConfig(action.themeConfig)
             is AppearancePreferencesEvent.ToggleUseDynamicColors -> toggleUseDynamicColors()
-            is AppearancePreferencesEvent.ToggleUseHighContrastDarkTheme -> toggleUseHighContrastDarkTheme()
+            is AppearancePreferencesEvent.ToggleUseHighContrastDarkTheme ->
+                toggleUseHighContrastDarkTheme()
         }
     }
 
     private fun showDialog(value: AppearancePreferenceDialog?) {
-        stateInternal.update {
-            it.copy(showDialog = value)
-        }
+        stateInternal.update { it.copy(showDialog = value) }
     }
 
     private fun toggleDarkTheme() {
         viewModelScope.launch {
             preferencesRepository.updateApplicationPreferences {
                 it.copy(
-                    themeConfig = if (it.themeConfig == ThemeConfig.ON) ThemeConfig.OFF else ThemeConfig.ON,
+                    themeConfig =
+                        if (it.themeConfig == ThemeConfig.ON) ThemeConfig.OFF else ThemeConfig.ON
                 )
             }
         }
@@ -102,9 +101,13 @@ sealed interface AppearancePreferencesEvent {
     data object NavigateUp : AppearancePreferencesEvent
 
     data class ShowDialog(val value: AppearancePreferenceDialog?) : AppearancePreferencesEvent
+
     data object ToggleDarkTheme : AppearancePreferencesEvent
+
     data class UpdateThemeConfig(val themeConfig: ThemeConfig) : AppearancePreferencesEvent
+
     data object ToggleUseDynamicColors : AppearancePreferencesEvent
+
     data object ToggleUseHighContrastDarkTheme : AppearancePreferencesEvent
 }
 

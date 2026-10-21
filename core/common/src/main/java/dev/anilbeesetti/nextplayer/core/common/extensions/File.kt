@@ -7,31 +7,33 @@ import java.io.File
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 
-suspend fun File.getSubtitles(): List<File> = withContext(Dispatchers.IO) {
-    val mediaName = this@getSubtitles.nameWithoutExtension
-    val parentDir = this@getSubtitles.parentFile
-    val subtitleExtensions = listOf("srt", "ssa", "ass", "vtt", "ttml")
+suspend fun File.getSubtitles(): List<File> =
+    withContext(Dispatchers.IO) {
+        val mediaName = this@getSubtitles.nameWithoutExtension
+        val parentDir = this@getSubtitles.parentFile
+        val subtitleExtensions = listOf("srt", "ssa", "ass", "vtt", "ttml")
 
-    subtitleExtensions.mapNotNull { extension ->
-        val file = File(parentDir, "$mediaName.$extension")
-        file.takeIf { it.exists() && it.isFile }
+        subtitleExtensions.mapNotNull { extension ->
+            val file = File(parentDir, "$mediaName.$extension")
+            file.takeIf { it.exists() && it.isFile }
+        }
     }
-}
 
 suspend fun File.getLocalSubtitles(
     context: Context,
     excludeSubsList: List<Uri> = emptyList(),
-): List<Uri> = withContext(Dispatchers.Default) {
-    val excludeSubsPathSet = excludeSubsList.mapNotNull { context.getPath(it) }.toSet()
+): List<Uri> =
+    withContext(Dispatchers.Default) {
+        val excludeSubsPathSet = excludeSubsList.mapNotNull { context.getPath(it) }.toSet()
 
-    getSubtitles().mapNotNull { file ->
-        if (file.path !in excludeSubsPathSet) {
-            file.toUri()
-        } else {
-            null
+        getSubtitles().mapNotNull { file ->
+            if (file.path !in excludeSubsPathSet) {
+                file.toUri()
+            } else {
+                null
+            }
         }
     }
-}
 
 fun String.getThumbnail(): File? {
     val filePathWithoutExtension = this.substringBeforeLast(".")
@@ -50,9 +52,7 @@ fun File.isSubtitle(): Boolean {
 
 fun File.deleteFiles() {
     try {
-        listFiles()?.onEach {
-            it.delete()
-        }
+        listFiles()?.onEach { it.delete() }
     } catch (e: Exception) {
         e.printStackTrace()
     }

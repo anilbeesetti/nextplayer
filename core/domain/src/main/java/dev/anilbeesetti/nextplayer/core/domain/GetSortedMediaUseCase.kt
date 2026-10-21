@@ -17,8 +17,8 @@ import org.koin.core.annotation.Named
 /**
  * Use case for retrieving sorted media (videos and folders) based on the current view mode.
  *
- * This is the main entry point for the media picker UI. It delegates to specialized use cases
- * based on the user's selected [MediaViewMode]:
+ * This is the main entry point for the media picker UI. It delegates to specialized use cases based
+ * on the user's selected [MediaViewMode]:
  * - [MediaViewMode.FOLDER_TREE]: Uses [GetFolderTreeMediaUseCase] for hierarchical folder view
  * - [MediaViewMode.FOLDERS]: Shows flat list of folders, or videos when inside a folder
  * - [MediaViewMode.VIDEOS]: Shows flat list of all videos
@@ -35,39 +35,41 @@ class GetSortedMediaUseCase(
     /**
      * Retrieves sorted media based on the current view mode and folder path.
      *
-     * @param folderPath The folder path to display. When null, shows root-level content
-     *                   based on the view mode.
+     * @param folderPath The folder path to display. When null, shows root-level content based on
+     *   the view mode.
      * @return A flow emitting [MediaHolder] with videos and folders appropriate for the view mode.
      */
     @OptIn(ExperimentalCoroutinesApi::class)
     operator fun invoke(folderPath: String? = null): Flow<MediaHolder?> {
-        return preferencesRepository.applicationPreferences.flatMapLatest { preferences ->
-            when (preferences.mediaViewMode) {
-                MediaViewMode.FOLDER_TREE -> {
-                    getFolderTreeMediaUseCase(folderPath)
-                }
+        return preferencesRepository.applicationPreferences
+            .flatMapLatest { preferences ->
+                when (preferences.mediaViewMode) {
+                    MediaViewMode.FOLDER_TREE -> {
+                        getFolderTreeMediaUseCase(folderPath)
+                    }
 
-                MediaViewMode.FOLDERS -> {
-                    if (folderPath == null) {
-                        // At root: show all folders as a flat list
-                        getSortedFoldersUseCase().map { folders ->
-                            MediaHolder(videos = emptyList(), folders = folders)
-                        }
-                    } else {
-                        getSortedVideosUseCase(folderPath).map { videos ->
-                            val directVideos = videos.filter { it.parentPath == folderPath }
-                            MediaHolder(videos = directVideos, folders = emptyList())
+                    MediaViewMode.FOLDERS -> {
+                        if (folderPath == null) {
+                            // At root: show all folders as a flat list
+                            getSortedFoldersUseCase().map { folders ->
+                                MediaHolder(videos = emptyList(), folders = folders)
+                            }
+                        } else {
+                            getSortedVideosUseCase(folderPath).map { videos ->
+                                val directVideos = videos.filter { it.parentPath == folderPath }
+                                MediaHolder(videos = directVideos, folders = emptyList())
+                            }
                         }
                     }
-                }
 
-                MediaViewMode.VIDEOS -> {
-                    getSortedVideosUseCase(folderPath).map { videos ->
-                        MediaHolder(videos = videos, folders = emptyList())
+                    MediaViewMode.VIDEOS -> {
+                        getSortedVideosUseCase(folderPath).map { videos ->
+                            MediaHolder(videos = videos, folders = emptyList())
+                        }
                     }
                 }
             }
-        }.flowOn(defaultDispatcher)
+            .flowOn(defaultDispatcher)
     }
 }
 

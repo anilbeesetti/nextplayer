@@ -9,7 +9,8 @@ import org.koin.core.annotation.Named
 
 @Factory(binds = [])
 class PlayerPreferencesDataSource(
-    @Named(DiQualifiers.PLAYER_PREFERENCES) private val preferencesDataStore: DataStore<PlayerPreferences>,
+    @Named(DiQualifiers.PLAYER_PREFERENCES)
+    private val preferencesDataStore: DataStore<PlayerPreferences>
 ) : PreferencesDataSource<PlayerPreferences> {
 
     companion object {

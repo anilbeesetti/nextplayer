@@ -28,20 +28,20 @@ class CrashLogClipboardInstrumentedTest {
         val report = prefix + "x".repeat(2_596_638)
 
         ActivityScenario.launch<CrashActivity>(
-            Intent(context, CrashActivity::class.java)
-                .putExtra("exception", "test")
-        ).use { scenario ->
-            scenario.awaitWindowFocus()
+                Intent(context, CrashActivity::class.java).putExtra("exception", "test")
+            )
+            .use { scenario ->
+                scenario.awaitWindowFocus()
 
-            InstrumentationRegistry.getInstrumentation().runOnMainSync {
-                copyCrashReportToClipboard(clipboard, report)
+                InstrumentationRegistry.getInstrumentation().runOnMainSync {
+                    copyCrashReportToClipboard(clipboard, report)
+                }
+
+                val copied = clipboard.primaryClip?.getItemAt(0)?.text.toString()
+                assertEquals(MAX_CLIPBOARD_REPORT_CHARS, copied.length)
+                assertTrue(copied.startsWith(prefix))
+                assertTrue(copied.endsWith(CLIPBOARD_REPORT_TRUNCATION_MARKER))
             }
-
-            val copied = clipboard.primaryClip?.getItemAt(0)?.text.toString()
-            assertEquals(MAX_CLIPBOARD_REPORT_CHARS, copied.length)
-            assertTrue(copied.startsWith(prefix))
-            assertTrue(copied.endsWith(CLIPBOARD_REPORT_TRUNCATION_MARKER))
-        }
     }
 }
 
@@ -51,17 +51,13 @@ private fun ActivityScenario<CrashActivity>.awaitWindowFocus() {
 
     while (SystemClock.uptimeMillis() < deadline) {
         var hasWindowFocus = false
-        onActivity { activity ->
-            hasWindowFocus = activity.hasWindowFocus()
-        }
+        onActivity { activity -> hasWindowFocus = activity.hasWindowFocus() }
         if (hasWindowFocus) return
 
         instrumentation.waitForIdleSync()
     }
 
     var hasWindowFocus = false
-    onActivity { activity ->
-        hasWindowFocus = activity.hasWindowFocus()
-    }
+    onActivity { activity -> hasWindowFocus = activity.hasWindowFocus() }
     assertTrue("CrashActivity did not receive window focus", hasWindowFocus)
 }

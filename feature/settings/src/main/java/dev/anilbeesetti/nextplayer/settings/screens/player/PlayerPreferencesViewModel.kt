@@ -23,15 +23,12 @@ class PlayerPreferencesViewModel(
     @InjectedParam internal var output: Output,
 ) : MviViewModel<PlayerPreferencesUiState, PlayerPreferencesUiEvent>() {
 
-    data class Output(
-        val navigateUp: () -> Unit,
-    )
+    data class Output(val navigateUp: () -> Unit)
 
-    private val stateInternal = MutableStateFlow(
-        PlayerPreferencesUiState(
-            preferences = preferencesRepository.playerPreferences.value,
-        ),
-    )
+    private val stateInternal =
+        MutableStateFlow(
+            PlayerPreferencesUiState(preferences = preferencesRepository.playerPreferences.value)
+        )
     override val state: StateFlow<PlayerPreferencesUiState> = stateInternal.asStateFlow()
 
     init {
@@ -52,45 +49,41 @@ class PlayerPreferencesViewModel(
             is PlayerPreferencesUiEvent.ToggleTunneledPlayback -> toggleTunneledPlayback()
             is PlayerPreferencesUiEvent.ToggleAutoPip -> toggleAutoPip()
             is PlayerPreferencesUiEvent.ToggleAutoBackgroundPlay -> toggleAutoBackgroundPlay()
-            is PlayerPreferencesUiEvent.ToggleRememberBrightnessLevel -> toggleRememberBrightnessLevel()
+            is PlayerPreferencesUiEvent.ToggleRememberBrightnessLevel ->
+                toggleRememberBrightnessLevel()
             is PlayerPreferencesUiEvent.ToggleRememberSelections -> toggleRememberSelections()
-            is PlayerPreferencesUiEvent.UpdatePreferredPlayerOrientation -> updatePreferredPlayerOrientation(action.value)
-            is PlayerPreferencesUiEvent.UpdatePreferredControlButtonsPosition -> updatePreferredControlButtonsPosition(action.value)
-            is PlayerPreferencesUiEvent.UpdateDefaultPlaybackSpeed -> updateDefaultPlaybackSpeed(action.value)
-            is PlayerPreferencesUiEvent.UpdateControlAutoHideTimeout -> updateControlAutoHideTimeout(action.value)
-            is PlayerPreferencesUiEvent.ToggleUseMaterialYouControls -> toggleUseMaterialYouControls()
+            is PlayerPreferencesUiEvent.UpdatePreferredPlayerOrientation ->
+                updatePreferredPlayerOrientation(action.value)
+            is PlayerPreferencesUiEvent.UpdatePreferredControlButtonsPosition ->
+                updatePreferredControlButtonsPosition(action.value)
+            is PlayerPreferencesUiEvent.UpdateDefaultPlaybackSpeed ->
+                updateDefaultPlaybackSpeed(action.value)
+            is PlayerPreferencesUiEvent.UpdateControlAutoHideTimeout ->
+                updateControlAutoHideTimeout(action.value)
+            is PlayerPreferencesUiEvent.ToggleUseMaterialYouControls ->
+                toggleUseMaterialYouControls()
         }
     }
 
     private fun showDialog(value: PlayerPreferenceDialog?) {
-        stateInternal.update {
-            it.copy(showDialog = value)
-        }
+        stateInternal.update { it.copy(showDialog = value) }
     }
 
     private fun updatePlaybackResume(resume: Resume) {
         viewModelScope.launch {
-            preferencesRepository.updatePlayerPreferences {
-                it.copy(
-                    resume = resume,
-                )
-            }
+            preferencesRepository.updatePlayerPreferences { it.copy(resume = resume) }
         }
     }
 
     private fun toggleAutoplay() {
         viewModelScope.launch {
-            preferencesRepository.updatePlayerPreferences {
-                it.copy(autoplay = !it.autoplay)
-            }
+            preferencesRepository.updatePlayerPreferences { it.copy(autoplay = !it.autoplay) }
         }
     }
 
     private fun toggleAutoPip() {
         viewModelScope.launch {
-            preferencesRepository.updatePlayerPreferences {
-                it.copy(autoPip = !it.autoPip)
-            }
+            preferencesRepository.updatePlayerPreferences { it.copy(autoPip = !it.autoPip) }
         }
     }
 
@@ -175,7 +168,9 @@ data class PlayerPreferencesUiState(
 
 sealed interface PlayerPreferenceDialog {
     data object ResumeDialog : PlayerPreferenceDialog
+
     data object PlayerScreenOrientationDialog : PlayerPreferenceDialog
+
     data object ControlButtonsDialog : PlayerPreferenceDialog
 }
 
@@ -183,16 +178,30 @@ sealed interface PlayerPreferencesUiEvent {
     data object NavigateUp : PlayerPreferencesUiEvent
 
     data class ShowDialog(val value: PlayerPreferenceDialog?) : PlayerPreferencesUiEvent
+
     data class UpdatePlaybackResume(val resume: Resume) : PlayerPreferencesUiEvent
+
     data object ToggleAutoplay : PlayerPreferencesUiEvent
+
     data object ToggleTunneledPlayback : PlayerPreferencesUiEvent
+
     data object ToggleAutoPip : PlayerPreferencesUiEvent
+
     data object ToggleAutoBackgroundPlay : PlayerPreferencesUiEvent
+
     data object ToggleRememberBrightnessLevel : PlayerPreferencesUiEvent
+
     data object ToggleRememberSelections : PlayerPreferencesUiEvent
-    data class UpdatePreferredPlayerOrientation(val value: ScreenOrientation) : PlayerPreferencesUiEvent
-    data class UpdatePreferredControlButtonsPosition(val value: ControlButtonsPosition) : PlayerPreferencesUiEvent
+
+    data class UpdatePreferredPlayerOrientation(val value: ScreenOrientation) :
+        PlayerPreferencesUiEvent
+
+    data class UpdatePreferredControlButtonsPosition(val value: ControlButtonsPosition) :
+        PlayerPreferencesUiEvent
+
     data class UpdateDefaultPlaybackSpeed(val value: Float) : PlayerPreferencesUiEvent
+
     data class UpdateControlAutoHideTimeout(val value: Int) : PlayerPreferencesUiEvent
+
     data object ToggleUseMaterialYouControls : PlayerPreferencesUiEvent
 }

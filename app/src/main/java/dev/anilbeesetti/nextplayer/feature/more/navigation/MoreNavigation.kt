@@ -14,14 +14,11 @@ import kotlinx.serialization.Serializable
 import org.koin.compose.viewmodel.koinViewModel
 import org.koin.core.parameter.parametersOf
 
-@Serializable
-object MoreRoute : NavKey
+@Serializable object MoreRoute : NavKey
 
-@Serializable
-object HistoryRoute : NavKey
+@Serializable object HistoryRoute : NavKey
 
-@Serializable
-object TrashRoute : NavKey
+@Serializable object TrashRoute : NavKey
 
 fun EntryProviderScope<NavKey>.moreEntry(
     onHistoryClick: () -> Unit,
@@ -31,16 +28,15 @@ fun EntryProviderScope<NavKey>.moreEntry(
     onVaultClick: () -> Unit,
 ) {
     entry<MoreRoute> {
-        val output = MoreViewModel.Output(
-            openHistory = onHistoryClick,
-            playVideo = onPlayVideo,
-            openSettings = onSettingsClick,
-            openTrash = onTrashClick,
-            openVault = onVaultClick,
-        )
-        val viewModel = koinViewModel<MoreViewModel>(
-            parameters = { parametersOf(output) },
-        )
+        val output =
+            MoreViewModel.Output(
+                openHistory = onHistoryClick,
+                playVideo = onPlayVideo,
+                openSettings = onSettingsClick,
+                openTrash = onTrashClick,
+                openVault = onVaultClick,
+            )
+        val viewModel = koinViewModel<MoreViewModel>(parameters = { parametersOf(output) })
         SideEffect { viewModel.output = output }
         MoreScreen(viewModel = viewModel)
     }
@@ -51,13 +47,12 @@ fun EntryProviderScope<NavKey>.historyEntry(
     onPlayVideo: (String) -> Unit,
 ) {
     entry<HistoryRoute> {
-        val output = HistoryViewModel.Output(
-            navigateUp = onNavigateUp,
-            playVideo = onPlayVideo,
-        )
-        val viewModel = koinViewModel<HistoryViewModel>(
-            parameters = { parametersOf(output) },
-        )
+        val output =
+            HistoryViewModel.Output(
+                navigateUp = onNavigateUp,
+                playVideo = onPlayVideo,
+            )
+        val viewModel = koinViewModel<HistoryViewModel>(parameters = { parametersOf(output) })
         SideEffect { viewModel.output = output }
         HistoryScreen(viewModel = viewModel)
     }
@@ -68,13 +63,12 @@ fun EntryProviderScope<NavKey>.trashEntry(
     onPlayVideo: (String) -> Unit,
 ) {
     entry<TrashRoute> {
-        val output = TrashViewModel.Output(
-            navigateUp = onNavigateUp,
-            playVideo = onPlayVideo,
-        )
-        val viewModel = koinViewModel<TrashViewModel>(
-            parameters = { parametersOf(output) },
-        )
+        val output =
+            TrashViewModel.Output(
+                navigateUp = onNavigateUp,
+                playVideo = onPlayVideo,
+            )
+        val viewModel = koinViewModel<TrashViewModel>(parameters = { parametersOf(output) })
         SideEffect { viewModel.output = output }
         TrashScreen(viewModel = viewModel)
     }

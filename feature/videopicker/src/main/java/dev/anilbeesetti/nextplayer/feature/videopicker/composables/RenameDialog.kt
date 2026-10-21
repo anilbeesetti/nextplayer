@@ -36,9 +36,7 @@ fun RenameDialog(
             NextOutlinedTextField(
                 value = mediaName,
                 onValueChange = { mediaName = it },
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .focusRequester(focusRequester),
+                modifier = Modifier.fillMaxWidth().focusRequester(focusRequester),
             )
         },
         confirmButton = {

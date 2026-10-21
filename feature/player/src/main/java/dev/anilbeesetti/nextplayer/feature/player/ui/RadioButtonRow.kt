@@ -24,17 +24,18 @@ fun RadioButtonRow(
     onClick: () -> Unit,
 ) {
     Row(
-        modifier = modifier
-            .fillMaxWidth()
-            .clip(RoundedCornerShape(4.dp))
-            .selectable(
-                selected = selected,
-                onClick = onClick,
-            )
-            .padding(
-                horizontal = 4.dp,
-                vertical = 8.dp,
-            ),
+        modifier =
+            modifier
+                .fillMaxWidth()
+                .clip(RoundedCornerShape(4.dp))
+                .selectable(
+                    selected = selected,
+                    onClick = onClick,
+                )
+                .padding(
+                    horizontal = 4.dp,
+                    vertical = 8.dp,
+                ),
         verticalAlignment = Alignment.CenterVertically,
         horizontalArrangement = Arrangement.spacedBy(8.dp),
     ) {

@@ -27,8 +27,7 @@ import org.junit.Rule
 import org.junit.Test
 
 class PlaylistListScreenTest {
-    @get:Rule
-    val composeRule = createComposeRule()
+    @get:Rule val composeRule = createComposeRule()
 
     @Test
     fun createFabEmitsShowCreateDialogAction() {
@@ -38,14 +37,16 @@ class PlaylistListScreenTest {
         composeRule.setContent {
             NextPlayerTheme {
                 CompositionLocalProvider(
-                    LocalTopLevelFabSetter provides { key, state ->
-                        if (key == TopLevelFabKey.PLAYLISTS) fabState = state
-                    },
+                    LocalTopLevelFabSetter provides
+                        { key, state ->
+                            if (key == TopLevelFabKey.PLAYLISTS) fabState = state
+                        }
                 ) {
                     PlaylistListScreenContent(
-                        state = PlaylistListUiState(
-                            playlistsDataState = DataState.Success(emptyList()),
-                        ),
+                        state =
+                            PlaylistListUiState(
+                                playlistsDataState = DataState.Success(emptyList())
+                            ),
                         onAction = actions::add,
                     )
                 }
@@ -64,10 +65,11 @@ class PlaylistListScreenTest {
         composeRule.setContent {
             NextPlayerTheme {
                 PlaylistListScreenContent(
-                    state = PlaylistListUiState(
-                        playlistsDataState = DataState.Success(emptyList()),
-                        creationDialog = PlaylistCreationDialog.LOCAL_NAME,
-                    ),
+                    state =
+                        PlaylistListUiState(
+                            playlistsDataState = DataState.Success(emptyList()),
+                            creationDialog = PlaylistCreationDialog.LOCAL_NAME,
+                        ),
                     onAction = actions::add,
                 )
             }
@@ -90,10 +92,11 @@ class PlaylistListScreenTest {
         composeRule.setContent {
             NextPlayerTheme {
                 PlaylistListScreenContent(
-                    state = PlaylistListUiState(
-                        playlistsDataState = DataState.Success(emptyList()),
-                        creationDialog = PlaylistCreationDialog.CHOOSER,
-                    ),
+                    state =
+                        PlaylistListUiState(
+                            playlistsDataState = DataState.Success(emptyList()),
+                            creationDialog = PlaylistCreationDialog.CHOOSER,
+                        )
                 )
             }
         }
@@ -111,9 +114,10 @@ class PlaylistListScreenTest {
         composeRule.setContent {
             NextPlayerTheme {
                 PlaylistListScreenContent(
-                    state = PlaylistListUiState(
-                        playlistsDataState = DataState.Success(listOf(playlist)),
-                    ),
+                    state =
+                        PlaylistListUiState(
+                            playlistsDataState = DataState.Success(listOf(playlist))
+                        ),
                     onAction = actions::add,
                 )
             }
@@ -135,7 +139,10 @@ class PlaylistListScreenTest {
         composeRule.setContent {
             NextPlayerTheme {
                 PlaylistListScreenContent(
-                    state = PlaylistListUiState(playlistsDataState = DataState.Success(listOf(playlist))),
+                    state =
+                        PlaylistListUiState(
+                            playlistsDataState = DataState.Success(listOf(playlist))
+                        ),
                     onAddToHomeScreen = { selectedPlaylist = it },
                 )
             }
@@ -153,7 +160,10 @@ class PlaylistListScreenTest {
         composeRule.setContent {
             NextPlayerTheme {
                 PlaylistListScreenContent(
-                    state = PlaylistListUiState(playlistsDataState = DataState.Success(listOf(playlistSummary()))),
+                    state =
+                        PlaylistListUiState(
+                            playlistsDataState = DataState.Success(listOf(playlistSummary()))
+                        )
                 )
             }
         }
@@ -171,10 +181,11 @@ class PlaylistListScreenTest {
         composeRule.setContent {
             NextPlayerTheme {
                 PlaylistListScreenContent(
-                    state = PlaylistListUiState(
-                        playlistsDataState = DataState.Success(listOf(playlist)),
-                        showDeleteDialogFor = playlist,
-                    ),
+                    state =
+                        PlaylistListUiState(
+                            playlistsDataState = DataState.Success(listOf(playlist)),
+                            showDeleteDialogFor = playlist,
+                        ),
                     onAction = actions::add,
                 )
             }
@@ -190,9 +201,7 @@ class PlaylistListScreenTest {
         composeRule.setContent {
             NextPlayerTheme {
                 PlaylistListScreenContent(
-                    state = PlaylistListUiState(
-                        playlistsDataState = DataState.Success(emptyList()),
-                    ),
+                    state = PlaylistListUiState(playlistsDataState = DataState.Success(emptyList()))
                 )
             }
         }
@@ -201,10 +210,11 @@ class PlaylistListScreenTest {
     }
 }
 
-private fun playlistSummary() = PlaylistSummary(
-    id = 7,
-    name = "Movies",
-    type = PlaylistType.LOCAL,
-    itemCount = 2,
-    lastRefreshedAt = null,
-)
+private fun playlistSummary() =
+    PlaylistSummary(
+        id = 7,
+        name = "Movies",
+        type = PlaylistType.LOCAL,
+        itemCount = 2,
+        lastRefreshedAt = null,
+    )

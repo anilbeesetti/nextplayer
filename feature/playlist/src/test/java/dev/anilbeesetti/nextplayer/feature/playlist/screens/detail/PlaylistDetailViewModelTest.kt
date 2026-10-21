@@ -55,82 +55,89 @@ class PlaylistDetailViewModelTest {
     }
 
     @Test
-    fun fileRefreshReplacesItemsAndPreservesSavedName() = runTest(dispatcher) {
-        val sourceFile = kotlin.io.path.createTempFile(suffix = ".m3u").toFile()
-        sourceFile.writeText("#PLAYLIST:New source name\nhttps://media.example/new")
-        repository.playlist.value = linkedRecord(Uri.fromFile(sourceFile).toString())
-        val viewModel = viewModel()
-        try {
+    fun fileRefreshReplacesItemsAndPreservesSavedName() =
+        runTest(dispatcher) {
+            val sourceFile = kotlin.io.path.createTempFile(suffix = ".m3u").toFile()
+            sourceFile.writeText("#PLAYLIST:New source name\nhttps://media.example/new")
+            repository.playlist.value = linkedRecord(Uri.fromFile(sourceFile).toString())
+            val viewModel = viewModel()
+            try {
+                runCurrent()
+                viewModel.onAction(PlaylistDetailUiAction.Refresh)
+                advanceUntilIdle()
+
+                assertEquals(
+                    listOf("https://media.example/new"),
+                    repository.replacementCalls.single().second.map { it.uri },
+                )
+                val playlist = (viewModel.state.value.playlistDataState as DataState.Success).value
+                assertEquals("Saved name", playlist?.name)
+                assertFalse(viewModel.state.value.isRefreshing)
+                assertEquals(1, systemService.toasts.size)
+            } finally {
+                sourceFile.delete()
+            }
+        }
+
+    @Test
+    fun failedRefreshKeepsCachedItemsAndSkipsReplacement() =
+        runTest(dispatcher) {
+            repository.playlist.value = linkedRecord("file:///missing/list.m3u")
+            val viewModel = viewModel()
             runCurrent()
+
             viewModel.onAction(PlaylistDetailUiAction.Refresh)
             advanceUntilIdle()
 
-            assertEquals(
-                listOf("https://media.example/new"),
-                repository.replacementCalls.single().second.map { it.uri },
-            )
             val playlist = (viewModel.state.value.playlistDataState as DataState.Success).value
-            assertEquals("Saved name", playlist?.name)
+            assertEquals(listOf("https://media.example/cached"), playlist?.items?.map { it.uri })
+            assertTrue(repository.replacementCalls.isEmpty())
             assertFalse(viewModel.state.value.isRefreshing)
             assertEquals(1, systemService.toasts.size)
-        } finally {
-            sourceFile.delete()
         }
-    }
 
     @Test
-    fun failedRefreshKeepsCachedItemsAndSkipsReplacement() = runTest(dispatcher) {
-        repository.playlist.value = linkedRecord("file:///missing/list.m3u")
-        val viewModel = viewModel()
-        runCurrent()
+    fun localRefreshIsIgnored() =
+        runTest(dispatcher) {
+            repository.playlist.value = linkedRecord(source = null).copy(type = PlaylistType.LOCAL)
+            val viewModel = viewModel()
+            runCurrent()
 
-        viewModel.onAction(PlaylistDetailUiAction.Refresh)
-        advanceUntilIdle()
+            viewModel.onAction(PlaylistDetailUiAction.Refresh)
+            advanceUntilIdle()
 
-        val playlist = (viewModel.state.value.playlistDataState as DataState.Success).value
-        assertEquals(listOf("https://media.example/cached"), playlist?.items?.map { it.uri })
-        assertTrue(repository.replacementCalls.isEmpty())
-        assertFalse(viewModel.state.value.isRefreshing)
-        assertEquals(1, systemService.toasts.size)
-    }
+            assertTrue(repository.replacementCalls.isEmpty())
+            assertTrue(systemService.toasts.isEmpty())
+        }
 
-    @Test
-    fun localRefreshIsIgnored() = runTest(dispatcher) {
-        repository.playlist.value = linkedRecord(source = null).copy(type = PlaylistType.LOCAL)
-        val viewModel = viewModel()
-        runCurrent()
+    private fun viewModel() =
+        PlaylistDetailViewModel(
+            observePlaylist = ObservePlaylistUseCase(repository, mediaRepository),
+            playlistRepository = repository,
+            m3uParser = M3UParser(context, Dispatchers.Unconfined),
+            systemService = systemService,
+            input = PlaylistDetailViewModel.Input(7),
+            output =
+                PlaylistDetailViewModel.Output(
+                    navigateUp = {},
+                    playPlaylist = { _, _ -> },
+                ),
+        )
 
-        viewModel.onAction(PlaylistDetailUiAction.Refresh)
-        advanceUntilIdle()
-
-        assertTrue(repository.replacementCalls.isEmpty())
-        assertTrue(systemService.toasts.isEmpty())
-    }
-
-    private fun viewModel() = PlaylistDetailViewModel(
-        observePlaylist = ObservePlaylistUseCase(repository, mediaRepository),
-        playlistRepository = repository,
-        m3uParser = M3UParser(context, Dispatchers.Unconfined),
-        systemService = systemService,
-        input = PlaylistDetailViewModel.Input(7),
-        output = PlaylistDetailViewModel.Output(
-            navigateUp = {},
-            playPlaylist = { _, _ -> },
-        ),
-    )
-
-    private fun linkedRecord(source: String?) = PlaylistRecord(
-        id = 7,
-        name = "Saved name",
-        type = PlaylistType.M3U_FILE,
-        source = source,
-        items = listOf(
-            PlaylistItemRecord(
-                position = 0,
-                uri = "https://media.example/cached",
-                title = "Cached",
-            ),
-        ),
-        lastRefreshedAt = 123,
-    )
+    private fun linkedRecord(source: String?) =
+        PlaylistRecord(
+            id = 7,
+            name = "Saved name",
+            type = PlaylistType.M3U_FILE,
+            source = source,
+            items =
+                listOf(
+                    PlaylistItemRecord(
+                        position = 0,
+                        uri = "https://media.example/cached",
+                        title = "Cached",
+                    )
+                ),
+            lastRefreshedAt = 123,
+        )
 }

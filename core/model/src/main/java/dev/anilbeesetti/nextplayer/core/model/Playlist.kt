@@ -44,10 +44,13 @@ data class PlaylistItem(
     val lastPlayedAt: Long? = null,
 ) {
     val displayTitle: String
-        get() = title?.takeIf(String::isNotBlank)
-            ?: video?.displayName
-            ?: uri.substringBefore('?').substringAfterLast('/').substringBeforeLast('.')
-                .ifBlank { uri }
+        get() =
+            title?.takeIf(String::isNotBlank)
+                ?: video?.displayName
+                ?: uri.substringBefore('?')
+                    .substringAfterLast('/')
+                    .substringBeforeLast('.')
+                    .ifBlank { uri }
 
     val supportingText: String
         get() = video?.parentPath?.takeIf(String::isNotBlank) ?: uri
@@ -62,7 +65,8 @@ data class Playlist(
     val lastRefreshedAt: Long?,
 ) {
     val lastPlayedItem: PlaylistItem?
-        get() = items
-            .maxByOrNull { it.lastPlayedAt ?: Long.MIN_VALUE }
-            ?.takeIf { it.lastPlayedAt != null }
+        get() =
+            items
+                .maxByOrNull { it.lastPlayedAt ?: Long.MIN_VALUE }
+                ?.takeIf { it.lastPlayedAt != null }
 }

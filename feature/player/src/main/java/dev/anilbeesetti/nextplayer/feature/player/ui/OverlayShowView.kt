@@ -31,15 +31,15 @@ fun BoxScope.OverlayShowView(
     onVideoContentScaleChanged: (VideoContentScale) -> Unit = {},
 ) {
     Box(
-        modifier = Modifier
-            .matchParentSize()
-            .then(
-                if (overlayView != null) {
-                    Modifier.noRippleClickable(onClick = onDismiss)
-                } else {
-                    Modifier
-                },
-            ),
+        modifier =
+            Modifier.matchParentSize()
+                .then(
+                    if (overlayView != null) {
+                        Modifier.noRippleClickable(onClick = onDismiss)
+                    } else {
+                        Modifier
+                    }
+                )
     )
 
     AudioTrackSelectorView(

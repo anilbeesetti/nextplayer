@@ -25,15 +25,21 @@ fun EntryProviderScope<NavKey>.playlistNavGraph(
     playlistListEntry(
         onPlaylistClick = backStack::navigateToPlaylistDetail,
         onSettingsClick = backStack::navigateToSettings,
-        onAddToHomeScreen = if (PlaylistShortcut.isSupported(context)) {
-            { playlist ->
-                if (!PlaylistShortcut.requestPin(context, playlist)) {
-                    Toast.makeText(context, R.string.playlist_shortcut_failed, Toast.LENGTH_SHORT).show()
+        onAddToHomeScreen =
+            if (PlaylistShortcut.isSupported(context)) {
+                { playlist ->
+                    if (!PlaylistShortcut.requestPin(context, playlist)) {
+                        Toast.makeText(
+                                context,
+                                R.string.playlist_shortcut_failed,
+                                Toast.LENGTH_SHORT,
+                            )
+                            .show()
+                    }
                 }
-            }
-        } else {
-            null
-        },
+            } else {
+                null
+            },
     )
 
     playlistDetailEntry(
@@ -64,6 +70,6 @@ internal fun Context.startPlaylistPlayback(
             action = Intent.ACTION_VIEW
             data = startUri
             putExtra(PlaylistPlaybackContract.EXTRA_PLAYLIST_ID, playlistId)
-        },
+        }
     )
 }

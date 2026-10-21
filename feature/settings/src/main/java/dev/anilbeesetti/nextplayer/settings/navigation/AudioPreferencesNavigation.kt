@@ -10,8 +10,7 @@ import kotlinx.serialization.Serializable
 import org.koin.compose.viewmodel.koinViewModel
 import org.koin.core.parameter.parametersOf
 
-@Serializable
-object AudioPreferencesRoute : NavKey
+@Serializable object AudioPreferencesRoute : NavKey
 
 fun NavBackStack<NavKey>.navigateToAudioPreferences() {
     add(AudioPreferencesRoute)
@@ -19,12 +18,9 @@ fun NavBackStack<NavKey>.navigateToAudioPreferences() {
 
 fun EntryProviderScope<NavKey>.audioPreferencesEntry(onNavigateUp: () -> Unit) {
     entry<AudioPreferencesRoute> {
-        val output = AudioPreferencesViewModel.Output(
-            navigateUp = onNavigateUp,
-        )
-        val viewModel = koinViewModel<AudioPreferencesViewModel>(
-            parameters = { parametersOf(output) },
-        )
+        val output = AudioPreferencesViewModel.Output(navigateUp = onNavigateUp)
+        val viewModel =
+            koinViewModel<AudioPreferencesViewModel>(parameters = { parametersOf(output) })
         SideEffect { viewModel.output = output }
         AudioPreferencesScreen(viewModel = viewModel)
     }

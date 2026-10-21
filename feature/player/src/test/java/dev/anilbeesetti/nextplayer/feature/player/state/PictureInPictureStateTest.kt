@@ -50,7 +50,8 @@ class PictureInPictureStateTest {
             .setSystemFeature(PackageManager.FEATURE_PICTURE_IN_PICTURE, true)
         controller = Robolectric.buildActivity(PipActivity::class.java).setup()
         activity = controller.get()
-        shadowOf(activity.application).grantPermissions("${activity.packageName}.DYNAMIC_RECEIVER_NOT_EXPORTED_PERMISSION")
+        shadowOf(activity.application)
+            .grantPermissions("${activity.packageName}.DYNAMIC_RECEIVER_NOT_EXPORTED_PERMISSION")
         player = TestPlayer()
         state = PictureInPictureState(player, activity)
         listeners = state.handleListeners(DisposableEffectScope())
@@ -126,7 +127,7 @@ class PictureInPictureStateTest {
                 PictureInPictureUiState::class.java,
                 ClassParameter.from(Boolean::class.javaPrimitiveType, false),
                 ClassParameter.from(Boolean::class.javaPrimitiveType, true),
-            ),
+            )
         )
         shadowOf(Looper.getMainLooper()).idle()
         assertTrue(state.isInPictureInPictureMode)
@@ -161,8 +162,10 @@ class PictureInPictureStateTest {
         runCurrent()
     }
 
-    private fun pipReceiverCount(): Int = shadowOf(activity.application).registeredReceivers
-        .count { it.intentFilter.hasAction("pip_action") }
+    private fun pipReceiverCount(): Int =
+        shadowOf(activity.application).registeredReceivers.count {
+            it.intentFilter.hasAction("pip_action")
+        }
 
     class PipActivity : ComponentActivity() {
         var params: PictureInPictureParams? = null
@@ -173,32 +176,46 @@ class PictureInPictureStateTest {
     }
 
     private class TestPlayer : SimpleBasePlayer(Looper.getMainLooper()) {
-        private var state = State.Builder()
-            .setAvailableCommands(
-                Player.Commands.Builder().addAll(
-                    Player.COMMAND_PLAY_PAUSE,
-                    Player.COMMAND_GET_CURRENT_MEDIA_ITEM,
-                    Player.COMMAND_GET_TIMELINE,
-                    Player.COMMAND_SEEK_TO_NEXT,
-                    Player.COMMAND_SEEK_TO_PREVIOUS,
-                ).build(),
-            )
-            .setPlaylist((0..2).map { MediaItemData.Builder(it).setDurationUs(60_000_000).build() })
-            .setCurrentMediaItemIndex(1)
-            .setPlaybackState(Player.STATE_READY)
-            .setPlayWhenReady(true, Player.PLAY_WHEN_READY_CHANGE_REASON_USER_REQUEST)
-            .build()
+        private var state =
+            State.Builder()
+                .setAvailableCommands(
+                    Player.Commands.Builder()
+                        .addAll(
+                            Player.COMMAND_PLAY_PAUSE,
+                            Player.COMMAND_GET_CURRENT_MEDIA_ITEM,
+                            Player.COMMAND_GET_TIMELINE,
+                            Player.COMMAND_SEEK_TO_NEXT,
+                            Player.COMMAND_SEEK_TO_PREVIOUS,
+                        )
+                        .build()
+                )
+                .setPlaylist(
+                    (0..2).map { MediaItemData.Builder(it).setDurationUs(60_000_000).build() }
+                )
+                .setCurrentMediaItemIndex(1)
+                .setPlaybackState(Player.STATE_READY)
+                .setPlayWhenReady(true, Player.PLAY_WHEN_READY_CHANGE_REASON_USER_REQUEST)
+                .build()
 
         override fun getState(): State = state
 
         override fun handleSetPlayWhenReady(playWhenReady: Boolean): ListenableFuture<*> {
-            state = state.buildUpon()
-                .setPlayWhenReady(playWhenReady, Player.PLAY_WHEN_READY_CHANGE_REASON_USER_REQUEST)
-                .build()
+            state =
+                state
+                    .buildUpon()
+                    .setPlayWhenReady(
+                        playWhenReady,
+                        Player.PLAY_WHEN_READY_CHANGE_REASON_USER_REQUEST,
+                    )
+                    .build()
             return Futures.immediateVoidFuture()
         }
 
-        override fun handleSeek(mediaItemIndex: Int, positionMs: Long, seekCommand: Int): ListenableFuture<*> {
+        override fun handleSeek(
+            mediaItemIndex: Int,
+            positionMs: Long,
+            seekCommand: Int,
+        ): ListenableFuture<*> {
             state = state.buildUpon().setCurrentMediaItemIndex(mediaItemIndex).build()
             return Futures.immediateVoidFuture()
         }

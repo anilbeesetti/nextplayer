@@ -81,21 +81,27 @@ class PictureInPictureState(
     val isPipSupported: Boolean = activity.isPipFeatureSupported
 
     val hasPipPermission: Boolean
-        get() = if (isPipSupported) {
-            val appOps = getSystemService(activity, AppOpsManager::class.java) ?: return true
-            appOps.checkOpNoThrow(AppOpsManager.OPSTR_PICTURE_IN_PICTURE, Process.myUid(), activity.packageName) == AppOpsManager.MODE_ALLOWED
-        } else {
-            true
-        }
+        get() =
+            if (isPipSupported) {
+                val appOps = getSystemService(activity, AppOpsManager::class.java) ?: return true
+                appOps.checkOpNoThrow(
+                    AppOpsManager.OPSTR_PICTURE_IN_PICTURE,
+                    Process.myUid(),
+                    activity.packageName,
+                ) == AppOpsManager.MODE_ALLOWED
+            } else {
+                true
+            }
 
     var isInPictureInPictureMode: Boolean by mutableStateOf(false)
         private set
 
-    private val pictureInPicture: VideoPlaybackPictureInPicture? = if (isPipSupported) {
-        VideoPlaybackPictureInPicture(activity, ContextCompat.getMainExecutor(activity))
-    } else {
-        null
-    }
+    private val pictureInPicture: VideoPlaybackPictureInPicture? =
+        if (isPipSupported) {
+            VideoPlaybackPictureInPicture(activity, ContextCompat.getMainExecutor(activity))
+        } else {
+            null
+        }
 
     private var aspectRatio: Rational? = null
     private var sourceRectHint: Rect? = null
@@ -106,8 +112,10 @@ class PictureInPictureState(
         if (rect.width() <= 0 || rect.height() <= 0) return
 
         val newSourceRectHint = Rect(rect)
-        val newAspectRatio = Rational(newSourceRectHint.width(), newSourceRectHint.height())
-            .takeIf { it.toFloat() in 0.5f..2.39f }
+        val newAspectRatio =
+            Rational(newSourceRectHint.width(), newSourceRectHint.height()).takeIf {
+                it.toFloat() in 0.5f..2.39f
+            }
 
         var changed = false
         if (newAspectRatio != null && newAspectRatio != aspectRatio) {
@@ -126,50 +134,63 @@ class PictureInPictureState(
         if (pictureInPicture == null || isInPictureInPictureMode) return false
         return runCatching {
             activity.enterPictureInPictureMode(buildPictureInPictureParams())
-        }.isSuccess
+        }
+            .isSuccess
     }
 
     fun openPictureInPictureSettings() {
-        val intent = Intent("android.settings.PICTURE_IN_PICTURE_SETTINGS").apply {
-            data = "package:${activity.packageName}".toUri()
-        }
+        val intent =
+            Intent("android.settings.PICTURE_IN_PICTURE_SETTINGS").apply {
+                data = "package:${activity.packageName}".toUri()
+            }
         activity.startActivity(intent)
     }
 
-    fun handleListeners(disposableEffectScope: DisposableEffectScope): DisposableEffectResult = with(disposableEffectScope) {
-        val pipBroadcastReceiver = object : BroadcastReceiver() {
-            override fun onReceive(context: Context?, intent: Intent?) {
-                if (intent == null || intent.action != PIP_INTENT_ACTION) return
-                when (intent.getIntExtra(PIP_INTENT_ACTION_CODE, 0)) {
-                    PIP_ACTION_PLAY -> player.play()
-                    PIP_ACTION_PAUSE -> player.pause()
-                    PIP_ACTION_NEXT -> player.seekToNext()
-                    PIP_ACTION_PREVIOUS -> player.seekToPrevious()
+    fun handleListeners(disposableEffectScope: DisposableEffectScope): DisposableEffectResult =
+        with(disposableEffectScope) {
+            val pipBroadcastReceiver =
+                object : BroadcastReceiver() {
+                    override fun onReceive(context: Context?, intent: Intent?) {
+                        if (intent == null || intent.action != PIP_INTENT_ACTION) return
+                        when (intent.getIntExtra(PIP_INTENT_ACTION_CODE, 0)) {
+                            PIP_ACTION_PLAY -> player.play()
+                            PIP_ACTION_PAUSE -> player.pause()
+                            PIP_ACTION_NEXT -> player.seekToNext()
+                            PIP_ACTION_PREVIOUS -> player.seekToPrevious()
+                        }
+                    }
                 }
+
+            val eventListener =
+                object : PictureInPictureDelegate.OnPictureInPictureEventListener {
+                    override fun onPictureInPictureEvent(
+                        event: PictureInPictureDelegate.Event,
+                        config: Configuration?,
+                    ) {
+                        when (event) {
+                            // Animation callbacks require API 35; ENTERED also covers older
+                            // devices.
+                            PictureInPictureDelegate.Event.ENTER_ANIMATION_START,
+                            PictureInPictureDelegate.Event.ENTERED ->
+                                onEnterPictureInPictureMode(pipBroadcastReceiver)
+                            PictureInPictureDelegate.Event.EXITED ->
+                                onExitPictureInPictureMode(pipBroadcastReceiver)
+                            else -> Unit
+                        }
+                    }
+                }
+
+            pictureInPicture?.addOnPictureInPictureEventListener(
+                ContextCompat.getMainExecutor(activity),
+                eventListener,
+            )
+
+            return onDispose {
+                pictureInPicture?.removeOnPictureInPictureEventListener(eventListener)
+                pictureInPicture?.close()
+                runCatching { activity.unregisterReceiver(pipBroadcastReceiver) }
             }
         }
-
-        val eventListener = object : PictureInPictureDelegate.OnPictureInPictureEventListener {
-            override fun onPictureInPictureEvent(event: PictureInPictureDelegate.Event, config: Configuration?) {
-                when (event) {
-                    // Animation callbacks require API 35; ENTERED also covers older devices.
-                    PictureInPictureDelegate.Event.ENTER_ANIMATION_START,
-                    PictureInPictureDelegate.Event.ENTERED,
-                    -> onEnterPictureInPictureMode(pipBroadcastReceiver)
-                    PictureInPictureDelegate.Event.EXITED -> onExitPictureInPictureMode(pipBroadcastReceiver)
-                    else -> Unit
-                }
-            }
-        }
-
-        pictureInPicture?.addOnPictureInPictureEventListener(ContextCompat.getMainExecutor(activity), eventListener)
-
-        return onDispose {
-            pictureInPicture?.removeOnPictureInPictureEventListener(eventListener)
-            pictureInPicture?.close()
-            runCatching { activity.unregisterReceiver(pipBroadcastReceiver) }
-        }
-    }
 
     suspend fun observe() {
         updatePictureInPictureActions()
@@ -203,45 +224,48 @@ class PictureInPictureState(
         if (pictureInPicture == null) return
         if (Build.VERSION.SDK_INT < Build.VERSION_CODES.O) return
 
-        actions = listOf(
-            createPipAction(
-                context = activity,
-                title = "skip to previous",
-                icon = coreUiR.drawable.ic_skip_prev,
-                actionCode = PIP_ACTION_PREVIOUS,
-            ),
-            if (player.isPlaying) {
+        actions =
+            listOf(
                 createPipAction(
                     context = activity,
-                    title = "pause",
-                    icon = coreUiR.drawable.ic_pause,
-                    actionCode = PIP_ACTION_PAUSE,
-                )
-            } else {
+                    title = "skip to previous",
+                    icon = coreUiR.drawable.ic_skip_prev,
+                    actionCode = PIP_ACTION_PREVIOUS,
+                ),
+                if (player.isPlaying) {
+                    createPipAction(
+                        context = activity,
+                        title = "pause",
+                        icon = coreUiR.drawable.ic_pause,
+                        actionCode = PIP_ACTION_PAUSE,
+                    )
+                } else {
+                    createPipAction(
+                        context = activity,
+                        title = "play",
+                        icon = coreUiR.drawable.ic_play,
+                        actionCode = PIP_ACTION_PLAY,
+                    )
+                },
                 createPipAction(
                     context = activity,
-                    title = "play",
-                    icon = coreUiR.drawable.ic_play,
-                    actionCode = PIP_ACTION_PLAY,
-                )
-            },
-            createPipAction(
-                context = activity,
-                title = "skip to next",
-                icon = coreUiR.drawable.ic_skip_next,
-                actionCode = PIP_ACTION_NEXT,
-            ),
-        )
+                    title = "skip to next",
+                    icon = coreUiR.drawable.ic_skip_next,
+                    actionCode = PIP_ACTION_NEXT,
+                ),
+            )
     }
 
     private fun buildPictureInPictureParams(): PictureInPictureParamsCompat =
-        PictureInPictureParamsCompat.Builder().apply {
-            setActions(actions)
-            setSeamlessResizeEnabled(true)
-            setEnabled(autoEnter && player.isPlaying)
-            aspectRatio?.let { setAspectRatio(it) }
-            sourceRectHint?.let { setSourceRectHint(it) }
-        }.build()
+        PictureInPictureParamsCompat.Builder()
+            .apply {
+                setActions(actions)
+                setSeamlessResizeEnabled(true)
+                setEnabled(autoEnter && player.isPlaying)
+                aspectRatio?.let { setAspectRatio(it) }
+                sourceRectHint?.let { setSourceRectHint(it) }
+            }
+            .build()
 
     private fun applyPictureInPictureParams() {
         val pictureInPicture = pictureInPicture ?: return

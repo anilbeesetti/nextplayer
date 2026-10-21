@@ -8,9 +8,9 @@ import androidx.compose.ui.focus.FocusRequester
  * landed.
  *
  * [requestFocus] can throw while the target isn't attached yet, and can also silently no-op while
- * the target is still being placed. Retrying on subsequent Compose frames keeps initial D-pad
- * focus reliable on Android TV without introducing visible 50ms gaps. When [isFocused] is provided
- * it is the source of truth; otherwise [FocusRequester.requestFocus]'s Boolean result is used.
+ * the target is still being placed. Retrying on subsequent Compose frames keeps initial D-pad focus
+ * reliable on Android TV without introducing visible 50ms gaps. When [isFocused] is provided it is
+ * the source of truth; otherwise [FocusRequester.requestFocus]'s Boolean result is used.
  */
 suspend fun FocusRequester.requestFocusUntilLanded(
     attempts: Int = 10,
@@ -19,7 +19,7 @@ suspend fun FocusRequester.requestFocusUntilLanded(
     repeat(attempts) {
         val requested = runCatching { requestFocus() }.getOrDefault(false)
         if (isFocused?.invoke() ?: requested) return true
-        withFrameNanos { }
+        withFrameNanos {}
         if (isFocused?.invoke() == true) return true
     }
     return false

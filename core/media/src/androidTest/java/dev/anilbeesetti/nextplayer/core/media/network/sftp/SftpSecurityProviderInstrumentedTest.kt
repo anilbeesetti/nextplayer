@@ -22,9 +22,7 @@ class SftpSecurityProviderInstrumentedTest {
     @Test
     fun sshjDecodesP256HostKeyWithInstalledProvider() {
         SftpSecurityProvider.install()
-        val hostKey = PlainBuffer()
-            .putString("nistp256")
-            .putBytes(P256_GENERATOR)
+        val hostKey = PlainBuffer().putString("nistp256").putBytes(P256_GENERATOR)
 
         val publicKey = KeyType.ECDSA256.readPubKeyFromBuffer(hostKey) as ECPublicKey
 
@@ -47,24 +45,28 @@ class SftpSecurityProviderInstrumentedTest {
         assertNotNull(KeyFactory.getInstance("Ed25519", SftpSecurityProvider.NAME))
         assertNotNull(Signature.getInstance("Ed25519", SftpSecurityProvider.NAME))
 
-        val parameters = AlgorithmParameters.getInstance("EC", SftpSecurityProvider.NAME).apply {
-            init(ECGenParameterSpec("secp256r1"))
-        }
+        val parameters =
+            AlgorithmParameters.getInstance("EC", SftpSecurityProvider.NAME).apply {
+                init(ECGenParameterSpec("secp256r1"))
+            }
         val parameterSpec = parameters.getParameterSpec(ECParameterSpec::class.java)
         assertNotNull(
-            KeyFactory.getInstance("ECDSA", SftpSecurityProvider.NAME).generatePublic(
-                ECPublicKeySpec(parameterSpec.generator, parameterSpec),
-            ),
+            KeyFactory.getInstance("ECDSA", SftpSecurityProvider.NAME)
+                .generatePublic(ECPublicKeySpec(parameterSpec.generator, parameterSpec))
         )
     }
 
     private companion object {
-        val P256_GENERATOR_X = "6b17d1f2e12c4247f8bce6e563a440f277037d812deb33a0f4a13945d898c296".toBigInteger(16)
-        val P256_GENERATOR_Y = "4fe342e2fe1a7f9b8ee7eb4a7c0f9e162bce33576b315ececbb6406837bf51f5".toBigInteger(16)
-        val P256_GENERATOR = (
-            "04" +
-                P256_GENERATOR_X.toString(16).padStart(64, '0') +
-                P256_GENERATOR_Y.toString(16).padStart(64, '0')
-            ).chunked(2).map { it.toInt(16).toByte() }.toByteArray()
+        val P256_GENERATOR_X =
+            "6b17d1f2e12c4247f8bce6e563a440f277037d812deb33a0f4a13945d898c296".toBigInteger(16)
+        val P256_GENERATOR_Y =
+            "4fe342e2fe1a7f9b8ee7eb4a7c0f9e162bce33576b315ececbb6406837bf51f5".toBigInteger(16)
+        val P256_GENERATOR =
+            ("04" +
+                    P256_GENERATOR_X.toString(16).padStart(64, '0') +
+                    P256_GENERATOR_Y.toString(16).padStart(64, '0'))
+                .chunked(2)
+                .map { it.toInt(16).toByte() }
+                .toByteArray()
     }
 }

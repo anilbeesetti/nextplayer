@@ -6,11 +6,14 @@ object LocalesHelper {
 
     fun getAvailableLocales(): List<Pair<String, String>> {
         return try {
-            Locale.getAvailableLocales().map {
-                val key = it.isO3Language
-                val language = it.displayLanguage
-                Pair(language, key)
-            }.distinctBy { it.second }.sortedBy { it.first }
+            Locale.getAvailableLocales()
+                .map {
+                    val key = it.isO3Language
+                    val language = it.displayLanguage
+                    Pair(language, key)
+                }
+                .distinctBy { it.second }
+                .sortedBy { it.first }
         } catch (e: Exception) {
             e.printStackTrace()
             listOf()

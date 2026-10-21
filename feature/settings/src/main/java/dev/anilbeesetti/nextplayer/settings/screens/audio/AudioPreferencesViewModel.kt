@@ -19,15 +19,12 @@ class AudioPreferencesViewModel(
     @InjectedParam internal var output: Output,
 ) : MviViewModel<AudioPreferencesUiState, AudioPreferencesUiEvent>() {
 
-    data class Output(
-        val navigateUp: () -> Unit,
-    )
+    data class Output(val navigateUp: () -> Unit)
 
-    private val stateInternal = MutableStateFlow(
-        AudioPreferencesUiState(
-            preferences = preferencesRepository.playerPreferences.value,
-        ),
-    )
+    private val stateInternal =
+        MutableStateFlow(
+            AudioPreferencesUiState(preferences = preferencesRepository.playerPreferences.value)
+        )
     override val state: StateFlow<AudioPreferencesUiState> = stateInternal.asStateFlow()
 
     init {
@@ -46,7 +43,8 @@ class AudioPreferencesViewModel(
 
             is AudioPreferencesUiEvent.ShowDialog -> showDialog(action.value)
             is AudioPreferencesUiEvent.UpdateAudioLanguage -> updateAudioLanguage(action.value)
-            is AudioPreferencesUiEvent.TogglePauseOnHeadsetDisconnect -> togglePauseOnHeadsetDisconnect()
+            is AudioPreferencesUiEvent.TogglePauseOnHeadsetDisconnect ->
+                togglePauseOnHeadsetDisconnect()
             is AudioPreferencesUiEvent.ToggleShowSystemVolumePanel -> toggleShowSystemVolumePanel()
             is AudioPreferencesUiEvent.ToggleRequireAudioFocus -> toggleRequireAudioFocus()
             is AudioPreferencesUiEvent.ToggleVolumeBoost -> toggleVolumeBoost()
@@ -54,9 +52,7 @@ class AudioPreferencesViewModel(
     }
 
     private fun showDialog(value: AudioPreferenceDialog?) {
-        stateInternal.update {
-            it.copy(showDialog = value)
-        }
+        stateInternal.update { it.copy(showDialog = value) }
     }
 
     private fun updateAudioLanguage(value: String) {
@@ -114,9 +110,14 @@ sealed interface AudioPreferencesUiEvent {
     data object NavigateUp : AudioPreferencesUiEvent
 
     data class ShowDialog(val value: AudioPreferenceDialog?) : AudioPreferencesUiEvent
+
     data class UpdateAudioLanguage(val value: String) : AudioPreferencesUiEvent
+
     data object TogglePauseOnHeadsetDisconnect : AudioPreferencesUiEvent
+
     data object ToggleShowSystemVolumePanel : AudioPreferencesUiEvent
+
     data object ToggleRequireAudioFocus : AudioPreferencesUiEvent
+
     data object ToggleVolumeBoost : AudioPreferencesUiEvent
 }

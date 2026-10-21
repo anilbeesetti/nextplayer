@@ -81,7 +81,9 @@ class NetworkUriTest {
 
     @Test
     fun `network uris are recognised and local ones are not`() {
-        assertTrue(NetworkUri.isNetworkUri(NetworkUri.build(connection(NetworkProtocol.SMB), "ep.mkv")))
+        assertTrue(
+            NetworkUri.isNetworkUri(NetworkUri.build(connection(NetworkProtocol.SMB), "ep.mkv"))
+        )
         assertFalse(NetworkUri.isNetworkUri("content://media/external/video/media/1".toUri()))
         assertFalse(NetworkUri.isNetworkUri("http://example.com/ep.mkv".toUri()))
     }
@@ -199,19 +201,22 @@ class NetworkUriTest {
         val plain = NetworkUri.adHocTargetOf("sftp://host/clip.mp4".toUri())!!
         assertEquals("", plain.connection.hostKeyFingerprint)
 
-        val pinned = NetworkUri.adHocTargetOf(
-            "sftp://host/clip.mp4?fp=SHA256:k6fzWcosN/NvDzUBUEolQT0E%2BjjnJAEcpVgrwJ9B%2BMc".toUri(),
-        )!!
+        val pinned =
+            NetworkUri.adHocTargetOf(
+                "sftp://host/clip.mp4?fp=SHA256:k6fzWcosN/NvDzUBUEolQT0E%2BjjnJAEcpVgrwJ9B%2BMc"
+                    .toUri()
+            )!!
         assertEquals(
             "SHA256:k6fzWcosN/NvDzUBUEolQT0E+jjnJAEcpVgrwJ9B+Mc",
             pinned.connection.hostKeyFingerprint,
         )
     }
 
-    private fun connection(protocol: NetworkProtocol) = NetworkConnection(
-        id = 3,
-        name = "NAS",
-        protocol = protocol,
-        host = "192.168.1.10",
-    )
+    private fun connection(protocol: NetworkProtocol) =
+        NetworkConnection(
+            id = 3,
+            name = "NAS",
+            protocol = protocol,
+            host = "192.168.1.10",
+        )
 }

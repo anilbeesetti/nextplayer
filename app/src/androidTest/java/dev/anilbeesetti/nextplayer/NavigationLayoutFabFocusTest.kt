@@ -42,8 +42,7 @@ import org.junit.runner.RunWith
 
 @RunWith(AndroidJUnit4::class)
 class NavigationLayoutFabFocusTest {
-    @get:Rule
-    val composeRule = createAndroidComposeRule<ComponentActivity>()
+    @get:Rule val composeRule = createAndroidComposeRule<ComponentActivity>()
 
     @Before
     fun requireTv() {
@@ -87,9 +86,11 @@ class NavigationLayoutFabFocusTest {
         showScreen()
         composeRule.onNodeWithText("Second item").requestFocus()
         composeRule.onRoot().performKeyInput { pressKey(Key.DirectionLeft) }
-        composeRule.onNode(
-            isFocused() and SemanticsMatcher.expectValue(SemanticsProperties.Role, Role.Tab),
-        ).assertExists()
+        composeRule
+            .onNode(
+                isFocused() and SemanticsMatcher.expectValue(SemanticsProperties.Role, Role.Tab)
+            )
+            .assertExists()
     }
 
     private fun showScreen(empty: Boolean = false) {
@@ -97,12 +98,13 @@ class NavigationLayoutFabFocusTest {
             NextPlayerTheme {
                 val state = rememberTopLevelNavState()
                 val fabs = remember {
-                    mutableStateMapOf(
-                        TopLevelFabKey.MEDIA to TopLevelFabState(NextIcons.Play, {}),
-                    )
+                    mutableStateMapOf(TopLevelFabKey.MEDIA to TopLevelFabState(NextIcons.Play, {}))
                 }
                 NavigationLayout(state = state, fabStates = fabs, showBottomBar = true) {
-                    Column(Modifier.fillMaxSize().padding(start = it.calculateStartPadding(LocalLayoutDirection.current))) {
+                    Column(
+                        Modifier.fillMaxSize()
+                            .padding(start = it.calculateStartPadding(LocalLayoutDirection.current))
+                    ) {
                         Button(onClick = {}) { Text("Settings") }
                         Box(Modifier.fillMaxSize()) {
                             if (!empty) {

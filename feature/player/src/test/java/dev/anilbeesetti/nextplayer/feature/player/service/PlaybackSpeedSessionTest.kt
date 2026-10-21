@@ -36,7 +36,9 @@ class PlaybackSpeedSessionTest {
 
     @Before
     fun setUp() {
-        runBlocking { preferences.updatePlayerPreferences { it.copy(defaultPlaybackSpeed = 1.25f) } }
+        runBlocking {
+            preferences.updatePlayerPreferences { it.copy(defaultPlaybackSpeed = 1.25f) }
+        }
         startKoin {
             modules(
                 module {
@@ -51,7 +53,7 @@ class PlaybackSpeedSessionTest {
                             ),
                         )
                     }
-                },
+                }
             )
         }
     }
@@ -84,10 +86,20 @@ class PlaybackSpeedSessionTest {
         shadowOf(Looper.getMainLooper()).idle()
         assertEquals(1.75f, player.playbackParameters.speed)
 
-        val listener = PlayerService::class.java.getDeclaredField("playbackStateListener")
-            .apply { isAccessible = true }.get(service) as Player.Listener
-        listener.onMediaItemTransition(player.currentMediaItem, Player.MEDIA_ITEM_TRANSITION_REASON_AUTO)
-        listener.onMediaItemTransition(player.currentMediaItem, Player.MEDIA_ITEM_TRANSITION_REASON_REPEAT)
+        val listener =
+            PlayerService::class
+                .java
+                .getDeclaredField("playbackStateListener")
+                .apply { isAccessible = true }
+                .get(service) as Player.Listener
+        listener.onMediaItemTransition(
+            player.currentMediaItem,
+            Player.MEDIA_ITEM_TRANSITION_REASON_AUTO,
+        )
+        listener.onMediaItemTransition(
+            player.currentMediaItem,
+            Player.MEDIA_ITEM_TRANSITION_REASON_REPEAT,
+        )
         listener.onPlaybackStateChanged(Player.STATE_ENDED)
         assertEquals(1.75f, player.playbackParameters.speed)
 
@@ -119,8 +131,12 @@ class PlaybackSpeedSessionTest {
     private fun withSession(check: (PlayerService, Player) -> Unit) {
         val controller = Robolectric.buildService(PlayerService::class.java).create()
         val service = controller.get()
-        val session = PlayerService::class.java.getDeclaredField("mediaSession")
-            .apply { isAccessible = true }.get(service) as MediaSession
+        val session =
+            PlayerService::class
+                .java
+                .getDeclaredField("mediaSession")
+                .apply { isAccessible = true }
+                .get(service) as MediaSession
         try {
             check(service, session.player)
         } finally {
@@ -129,14 +145,17 @@ class PlaybackSpeedSessionTest {
         }
     }
 
-    private fun video(id: String, legacySpeed: Float): MediaItem = MediaItem.Builder()
-        .setMediaId("file:///$id.mp4")
-        .setUri("file:///$id.mp4")
-        .setMediaMetadata(
-            MediaMetadata.Builder()
-                .setArtworkData(byteArrayOf(1), MediaMetadata.PICTURE_TYPE_FRONT_COVER)
-                .setExtras(Bundle().apply { putFloat("media_metadata_playback_speed", legacySpeed) })
-                .build(),
-        )
-        .build()
+    private fun video(id: String, legacySpeed: Float): MediaItem =
+        MediaItem.Builder()
+            .setMediaId("file:///$id.mp4")
+            .setUri("file:///$id.mp4")
+            .setMediaMetadata(
+                MediaMetadata.Builder()
+                    .setArtworkData(byteArrayOf(1), MediaMetadata.PICTURE_TYPE_FRONT_COVER)
+                    .setExtras(
+                        Bundle().apply { putFloat("media_metadata_playback_speed", legacySpeed) }
+                    )
+                    .build()
+            )
+            .build()
 }

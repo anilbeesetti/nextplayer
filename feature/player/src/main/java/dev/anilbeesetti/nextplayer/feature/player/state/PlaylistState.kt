@@ -40,7 +40,6 @@ class PlaylistState(private val player: Player?) {
     var playlistMetadata: MediaMetadata by mutableStateOf(MediaMetadata.EMPTY)
         private set
 
-
     private val playerStateObserver =
         player?.observeState(
             Player.EVENT_TIMELINE_CHANGED,
@@ -53,7 +52,8 @@ class PlaylistState(private val player: Player?) {
 
             playlistMetadata = if (canGetMetadata) player.playlistMetadata else MediaMetadata.EMPTY
             timeline = if (canGetTimeline) player.currentTimeline else Timeline.EMPTY
-            currentMediaItemIndex = if (canGetTimeline) player.currentMediaItemIndex else C.INDEX_UNSET
+            currentMediaItemIndex =
+                if (canGetTimeline) player.currentMediaItemIndex else C.INDEX_UNSET
         }
 
     suspend fun observe() {

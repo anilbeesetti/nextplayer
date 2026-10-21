@@ -70,11 +70,12 @@ class PlaybackParametersState(
 
     private fun updateSkipSilenceEnabled() {
         scope.launch {
-            skipSilenceEnabled = when (player) {
-                is MediaController -> player.getSkipSilenceEnabled()
-                is ExoPlayer -> player.skipSilenceEnabled
-                else -> return@launch
-            }
+            skipSilenceEnabled =
+                when (player) {
+                    is MediaController -> player.getSkipSilenceEnabled()
+                    is ExoPlayer -> player.skipSilenceEnabled
+                    else -> return@launch
+                }
         }
     }
 }

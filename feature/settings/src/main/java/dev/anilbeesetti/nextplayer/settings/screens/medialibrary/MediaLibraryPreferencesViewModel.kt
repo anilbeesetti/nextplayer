@@ -32,9 +32,7 @@ class MediaLibraryPreferencesViewModel(
     init {
         viewModelScope.launch {
             preferencesRepository.applicationPreferences.collect {
-                stateInternal.update { currentState ->
-                    currentState.copy(preferences = it)
-                }
+                stateInternal.update { currentState -> currentState.copy(preferences = it) }
             }
         }
     }
@@ -45,10 +43,14 @@ class MediaLibraryPreferencesViewModel(
             is MediaLibraryPreferencesUiEvent.OpenFolders -> output.openFolders()
             is MediaLibraryPreferencesUiEvent.OpenThumbnails -> output.openThumbnails()
 
-            is MediaLibraryPreferencesUiEvent.ToggleMarkLastPlayedMedia -> toggleMarkLastPlayedMedia()
-            is MediaLibraryPreferencesUiEvent.SetWatchHistoryEnabled -> setWatchHistoryEnabled(action.enabled)
-            is MediaLibraryPreferencesUiEvent.ToggleIncludeNetworkWatchHistory -> toggleIncludeNetworkWatchHistory()
-            is MediaLibraryPreferencesUiEvent.UpdateNewVideoThreshold -> updateNewVideoThreshold(action.days)
+            is MediaLibraryPreferencesUiEvent.ToggleMarkLastPlayedMedia ->
+                toggleMarkLastPlayedMedia()
+            is MediaLibraryPreferencesUiEvent.SetWatchHistoryEnabled ->
+                setWatchHistoryEnabled(action.enabled)
+            is MediaLibraryPreferencesUiEvent.ToggleIncludeNetworkWatchHistory ->
+                toggleIncludeNetworkWatchHistory()
+            is MediaLibraryPreferencesUiEvent.UpdateNewVideoThreshold ->
+                updateNewVideoThreshold(action.days)
         }
     }
 
@@ -87,16 +89,21 @@ class MediaLibraryPreferencesViewModel(
 }
 
 data class MediaLibraryPreferencesUiState(
-    val preferences: ApplicationPreferences = ApplicationPreferences(),
+    val preferences: ApplicationPreferences = ApplicationPreferences()
 )
 
 sealed interface MediaLibraryPreferencesUiEvent {
     data object NavigateUp : MediaLibraryPreferencesUiEvent
+
     data object OpenFolders : MediaLibraryPreferencesUiEvent
+
     data object OpenThumbnails : MediaLibraryPreferencesUiEvent
 
     data object ToggleMarkLastPlayedMedia : MediaLibraryPreferencesUiEvent
+
     data class SetWatchHistoryEnabled(val enabled: Boolean) : MediaLibraryPreferencesUiEvent
+
     data object ToggleIncludeNetworkWatchHistory : MediaLibraryPreferencesUiEvent
+
     data class UpdateNewVideoThreshold(val days: Int) : MediaLibraryPreferencesUiEvent
 }

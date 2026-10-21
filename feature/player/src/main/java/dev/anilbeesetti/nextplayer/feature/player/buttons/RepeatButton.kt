@@ -38,15 +38,17 @@ fun LoopButton(
 }
 
 @Composable
-private fun repeatModeIconPainter(repeatMode: @Player.RepeatMode Int): Painter = when (repeatMode) {
-    Player.REPEAT_MODE_OFF -> painterResource(coreUiR.drawable.ic_loop_off)
-    Player.REPEAT_MODE_ONE -> painterResource(coreUiR.drawable.ic_loop_one)
-    else -> painterResource(coreUiR.drawable.ic_loop_all)
-}
+private fun repeatModeIconPainter(repeatMode: @Player.RepeatMode Int): Painter =
+    when (repeatMode) {
+        Player.REPEAT_MODE_OFF -> painterResource(coreUiR.drawable.ic_loop_off)
+        Player.REPEAT_MODE_ONE -> painterResource(coreUiR.drawable.ic_loop_one)
+        else -> painterResource(coreUiR.drawable.ic_loop_all)
+    }
 
 @Composable
-private fun repeatModeContentDescription(repeatMode: @Player.RepeatMode Int): String = when (repeatMode) {
-    Player.REPEAT_MODE_OFF -> stringResource(coreUiR.string.loop_mode_off)
-    Player.REPEAT_MODE_ONE -> stringResource(coreUiR.string.loop_mode_one)
-    else -> stringResource(coreUiR.string.loop_mode_all)
-}
+private fun repeatModeContentDescription(repeatMode: @Player.RepeatMode Int): String =
+    when (repeatMode) {
+        Player.REPEAT_MODE_OFF -> stringResource(coreUiR.string.loop_mode_off)
+        Player.REPEAT_MODE_ONE -> stringResource(coreUiR.string.loop_mode_one)
+        else -> stringResource(coreUiR.string.loop_mode_all)
+    }

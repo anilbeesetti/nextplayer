@@ -31,7 +31,7 @@ class MainActivityPermissionTest {
         )
 
         context.startActivity(
-            Intent(context, MainActivity::class.java).addFlags(Intent.FLAG_ACTIVITY_NEW_TASK),
+            Intent(context, MainActivity::class.java).addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
         )
         SystemClock.sleep(1_000)
 

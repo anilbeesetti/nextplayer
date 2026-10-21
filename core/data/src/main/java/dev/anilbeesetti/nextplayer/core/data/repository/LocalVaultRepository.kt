@@ -65,11 +65,16 @@ class LocalVaultRepository(
         if (reservations.isEmpty()) return@withLock
 
         try {
-            val moveResult = try {
-                Result.success(mediaOperationsService.moveMedia(reservations.associate { it.sourceUri to it.destination }))
-            } catch (e: Exception) {
-                Result.failure(e)
-            }
+            val moveResult =
+                try {
+                    Result.success(
+                        mediaOperationsService.moveMedia(
+                            reservations.associate { it.sourceUri to it.destination }
+                        )
+                    )
+                } catch (e: Exception) {
+                    Result.failure(e)
+                }
             reconcileReservations(reservations, moveResult)
             moveResult.exceptionOrNull()?.let { if (it is CancellationException) throw it }
         } finally {
@@ -84,14 +89,15 @@ class LocalVaultRepository(
                 val destination = createVaultDestination(video.nameWithExtension)
                 attemptedVaultPaths += destination.absolutePath
                 pendingVaultPaths.update { it + destination.absolutePath }
-                val rowId = try {
-                    hiddenVideoDao.insert(video.toHiddenVideoEntity(destination))
-                } catch (e: CancellationException) {
-                    throw e
-                } catch (e: Exception) {
-                    cleanUpReservations(listOf(destination.absolutePath))
-                    return@mapNotNull null
-                }
+                val rowId =
+                    try {
+                        hiddenVideoDao.insert(video.toHiddenVideoEntity(destination))
+                    } catch (e: CancellationException) {
+                        throw e
+                    } catch (e: Exception) {
+                        cleanUpReservations(listOf(destination.absolutePath))
+                        return@mapNotNull null
+                    }
                 HideReservation(rowId, video.uriString.toUri(), destination)
             }
         } catch (e: Exception) {
@@ -131,11 +137,13 @@ class LocalVaultRepository(
         moveResult: Result<Map<Uri, File?>>,
     ) {
         val movedFiles = moveResult.getOrNull()
-        val (committed, failed) = reservations.partition { reservation ->
-            // If moving threw, the destination is the only evidence that a move committed.
-            reservation.destination.exists() &&
-                (movedFiles == null || movedFiles[reservation.sourceUri] == reservation.destination)
-        }
+        val (committed, failed) =
+            reservations.partition { reservation ->
+                // If moving threw, the destination is the only evidence that a move committed.
+                reservation.destination.exists() &&
+                    (movedFiles == null ||
+                        movedFiles[reservation.sourceUri] == reservation.destination)
+            }
         withContext(NonCancellable) {
             if (failed.isNotEmpty()) {
                 runCatching { hiddenVideoDao.deleteByIds(failed.map { it.rowId }) }
@@ -164,20 +172,22 @@ class LocalVaultRepository(
         Logger.logError(TAG, "Failed to $operation: ${throwable.stackTraceToString()}")
     }
 
-    override suspend fun unhideVideos(videos: List<Video>): UnhideResult = vaultMutationMutex.withLock {
-        val restored = withContext(Dispatchers.IO) {
-            entitiesFor(videos).mapNotNull { entity ->
-                restoreToMediaStore(entity)?.let { relocated -> entity.id to relocated }
-            }
+    override suspend fun unhideVideos(videos: List<Video>): UnhideResult =
+        vaultMutationMutex.withLock {
+            val restored =
+                withContext(Dispatchers.IO) {
+                    entitiesFor(videos).mapNotNull { entity ->
+                        restoreToMediaStore(entity)?.let { relocated -> entity.id to relocated }
+                    }
+                }
+            if (restored.isNotEmpty()) hiddenVideoDao.deleteByIds(restored.map { it.first })
+            UnhideResult(relocatedCount = restored.count { (_, relocated) -> relocated })
         }
-        if (restored.isNotEmpty()) hiddenVideoDao.deleteByIds(restored.map { it.first })
-        UnhideResult(relocatedCount = restored.count { (_, relocated) -> relocated })
-    }
 
     /**
-     * Recreates the video in shared storage via a MediaStore insert, streams the vault file
-     * into it, then deletes the vault copy. Returns `null` on failure, or whether the file had to
-     * be relocated to the fallback directory (`true`) rather than its original folder (`false`).
+     * Recreates the video in shared storage via a MediaStore insert, streams the vault file into
+     * it, then deletes the vault copy. Returns `null` on failure, or whether the file had to be
+     * relocated to the fallback directory (`true`) rather than its original folder (`false`).
      *
      * MediaStore is used for every API level because scoped storage (API 29+) forbids writing
      * directly into shared storage. On older versions the exact original path is restored via the
@@ -221,16 +231,21 @@ class LocalVaultRepository(
      */
     private fun insertPendingItem(entity: HiddenVideoEntity): InsertedItem? {
         val resolver = context.contentResolver
-        val mimeType = MimeTypeMap.getSingleton()
-            .getMimeTypeFromExtension(File(entity.vaultPath).extension.lowercase()) ?: "video/*"
+        val mimeType =
+            MimeTypeMap.getSingleton()
+                .getMimeTypeFromExtension(File(entity.vaultPath).extension.lowercase()) ?: "video/*"
 
         if (Build.VERSION.SDK_INT < Build.VERSION_CODES.Q) {
-            val values = ContentValues().apply {
-                put(MediaStore.MediaColumns.DISPLAY_NAME, entity.displayName)
-                put(MediaStore.MediaColumns.MIME_TYPE, mimeType)
-                put(MediaStore.MediaColumns.DATA, entity.originalPath)
+            val values =
+                ContentValues().apply {
+                    put(MediaStore.MediaColumns.DISPLAY_NAME, entity.displayName)
+                    put(MediaStore.MediaColumns.MIME_TYPE, mimeType)
+                    put(MediaStore.MediaColumns.DATA, entity.originalPath)
+                }
+            val uri = runCatching {
+                resolver.insert(MediaStore.Video.Media.EXTERNAL_CONTENT_URI, values)
             }
-            val uri = runCatching { resolver.insert(MediaStore.Video.Media.EXTERNAL_CONTENT_URI, values) }.getOrNull()
+                .getOrNull()
             return uri?.let { InsertedItem(it, relocated = false) }
         }
 
@@ -239,13 +254,15 @@ class LocalVaultRepository(
         val candidateDirs = listOfNotNull(originalDir, DEFAULT_RESTORE_DIR).distinct()
 
         return candidateDirs.firstNotNullOfOrNull { relativePath ->
-            val values = ContentValues().apply {
-                put(MediaStore.MediaColumns.DISPLAY_NAME, entity.displayName)
-                put(MediaStore.MediaColumns.MIME_TYPE, mimeType)
-                put(MediaStore.MediaColumns.RELATIVE_PATH, relativePath)
-                put(MediaStore.MediaColumns.IS_PENDING, 1)
-            }
-            runCatching { resolver.insert(collection, values) }.getOrNull()
+            val values =
+                ContentValues().apply {
+                    put(MediaStore.MediaColumns.DISPLAY_NAME, entity.displayName)
+                    put(MediaStore.MediaColumns.MIME_TYPE, mimeType)
+                    put(MediaStore.MediaColumns.RELATIVE_PATH, relativePath)
+                    put(MediaStore.MediaColumns.IS_PENDING, 1)
+                }
+            runCatching { resolver.insert(collection, values) }
+                .getOrNull()
                 ?.let { InsertedItem(it, relocated = relativePath != originalDir) }
         }
     }
@@ -263,26 +280,33 @@ class LocalVaultRepository(
         return parent.removePrefix(root).trim('/').takeIf { it.isNotEmpty() }?.let { "$it/" }
     }
 
-    override suspend fun deleteHiddenVideos(videos: List<Video>): Unit = vaultMutationMutex.withLock {
-        val entities = entitiesFor(videos)
-        if (entities.isEmpty()) return@withLock
-        entities.forEach { File(it.vaultPath).delete() }
-        hiddenVideoDao.deleteByIds(entities.map { it.id })
-    }
+    override suspend fun deleteHiddenVideos(videos: List<Video>): Unit =
+        vaultMutationMutex.withLock {
+            val entities = entitiesFor(videos)
+            if (entities.isEmpty()) return@withLock
+            entities.forEach { File(it.vaultPath).delete() }
+            hiddenVideoDao.deleteByIds(entities.map { it.id })
+        }
 
     override suspend fun getHiddenVideoInfo(id: Long): MediaInfo? {
         val entity = hiddenVideoDao.getById(id) ?: return null
         val video = entity.toVideo()
         val mediaInfo = runCatching {
-            MediaInfoBuilder().from(context = context, uri = Uri.fromFile(File(entity.vaultPath))).build()
-        }.getOrNull()
+            MediaInfoBuilder()
+                .from(context = context, uri = Uri.fromFile(File(entity.vaultPath)))
+                .build()
+        }
+            .getOrNull()
 
         return MediaInfo(
-            video = video.copy(format = mediaInfo?.format),
-            videoStream = mediaInfo?.videoStream?.toVideoStreamInfo(),
-            audioStreams = mediaInfo?.audioStreams?.map { it.toAudioStreamInfo() } ?: emptyList(),
-            subtitleStreams = mediaInfo?.subtitleStreams?.map { it.toSubtitleStreamInfo() } ?: emptyList(),
-        ).also { mediaInfo?.release() }
+                video = video.copy(format = mediaInfo?.format),
+                videoStream = mediaInfo?.videoStream?.toVideoStreamInfo(),
+                audioStreams =
+                    mediaInfo?.audioStreams?.map { it.toAudioStreamInfo() } ?: emptyList(),
+                subtitleStreams =
+                    mediaInfo?.subtitleStreams?.map { it.toSubtitleStreamInfo() } ?: emptyList(),
+            )
+            .also { mediaInfo?.release() }
     }
 
     /** Looks up the vault entities backing the given [videos] by their row id. */

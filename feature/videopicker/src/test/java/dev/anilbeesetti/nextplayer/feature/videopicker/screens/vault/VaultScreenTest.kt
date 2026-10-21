@@ -22,8 +22,7 @@ import org.robolectric.annotation.Config
 @RunWith(RobolectricTestRunner::class)
 @Config(sdk = [36])
 class VaultScreenTest {
-    @get:Rule
-    val composeRule = createAndroidComposeRule<ComponentActivity>()
+    @get:Rule val composeRule = createAndroidComposeRule<ComponentActivity>()
 
     @Test
     fun `quick settings apply grid and vault specific sort choices`() {
@@ -32,11 +31,21 @@ class VaultScreenTest {
         composeRule.onNodeWithText("Location").assertDoesNotExist()
         composeRule.onNodeWithText("Grid").performClick()
         composeRule.onNodeWithContentDescription("Date hidden").performClick()
-        composeRule.onNodeWithText("Newest").performScrollTo().assertIsDisplayed().performClick().assertIsSelected()
+        composeRule
+            .onNodeWithText("Newest")
+            .performScrollTo()
+            .assertIsDisplayed()
+            .performClick()
+            .assertIsSelected()
         assertTrue(actions.isEmpty())
         composeRule.onNodeWithText("Done").performClick()
         assertEquals(
-            listOf(VaultAction.UpdateQuickSettings(MediaLayoutMode.GRID, Sort(Sort.By.DATE, Sort.Order.DESCENDING))),
+            listOf(
+                VaultAction.UpdateQuickSettings(
+                    MediaLayoutMode.GRID,
+                    Sort(Sort.By.DATE, Sort.Order.DESCENDING),
+                )
+            ),
             actions,
         )
     }
@@ -52,7 +61,12 @@ class VaultScreenTest {
         composeRule.onNodeWithContentDescription("Quick Settings").performClick()
         composeRule.onNodeWithText("Done").performClick()
         assertEquals(
-            listOf(VaultAction.UpdateQuickSettings(MediaLayoutMode.LIST, Sort(Sort.By.TITLE, Sort.Order.ASCENDING))),
+            listOf(
+                VaultAction.UpdateQuickSettings(
+                    MediaLayoutMode.LIST,
+                    Sort(Sort.By.TITLE, Sort.Order.ASCENDING),
+                )
+            ),
             actions,
         )
     }
@@ -72,7 +86,11 @@ class VaultScreenTest {
         composeRule.setContent {
             NextPlayerTheme {
                 VaultScreenContent(
-                    state = VaultUiState(stage = VaultStage.UNLOCKED, sort = Sort(Sort.By.TITLE, Sort.Order.ASCENDING)),
+                    state =
+                        VaultUiState(
+                            stage = VaultStage.UNLOCKED,
+                            sort = Sort(Sort.By.TITLE, Sort.Order.ASCENDING),
+                        ),
                     onAction = actions::add,
                 )
             }

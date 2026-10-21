@@ -6,11 +6,12 @@ internal suspend fun <T> runMediaWriteRequests(
     uris: List<T>,
     itemExists: suspend (T) -> Boolean,
     request: suspend (List<T>) -> Boolean,
-): Boolean = runMediaRequests(
-    items = uris,
-    itemExists = itemExists,
-    request = request,
-)
+): Boolean =
+    runMediaRequests(
+        items = uris,
+        itemExists = itemExists,
+        request = request,
+    )
 
 internal suspend fun <T> runMediaRequests(
     items: List<T>,

@@ -79,9 +79,7 @@ class SearchViewModel(
         viewModelScope.launch {
             searchQuery
                 .debounce(SEARCH_DEBOUNCE_MS)
-                .flatMapLatest { query ->
-                    searchMediaUseCase(query)
-                }
+                .flatMapLatest { query -> searchMediaUseCase(query) }
                 .collect { results ->
                     stateInternal.update {
                         it.copy(
@@ -114,9 +112,7 @@ class SearchViewModel(
 
     private fun onSearch(query: String) {
         if (query.isBlank()) return
-        viewModelScope.launch {
-            searchHistoryRepository.addSearchQuery(query)
-        }
+        viewModelScope.launch { searchHistoryRepository.addSearchQuery(query) }
     }
 
     private fun onHistoryItemClick(query: String) {
@@ -126,15 +122,11 @@ class SearchViewModel(
     }
 
     private fun removeHistoryItem(query: String) {
-        viewModelScope.launch {
-            searchHistoryRepository.removeSearchQuery(query)
-        }
+        viewModelScope.launch { searchHistoryRepository.removeSearchQuery(query) }
     }
 
     private fun clearHistory() {
-        viewModelScope.launch {
-            searchHistoryRepository.clearHistory()
-        }
+        viewModelScope.launch { searchHistoryRepository.clearHistory() }
     }
 
     companion object {
@@ -154,12 +146,18 @@ data class SearchUiState(
 
 sealed interface SearchUiEvent {
     data object NavigateUp : SearchUiEvent
+
     data class PlayVideo(val uri: Uri) : SearchUiEvent
+
     data class OpenFolder(val path: String) : SearchUiEvent
 
     data class OnQueryChange(val query: String) : SearchUiEvent
+
     data class OnSearch(val query: String) : SearchUiEvent
+
     data class OnHistoryItemClick(val query: String) : SearchUiEvent
+
     data class OnRemoveHistoryItem(val query: String) : SearchUiEvent
+
     data object OnClearHistory : SearchUiEvent
 }

@@ -119,10 +119,11 @@ class VideoZoomAndContentScaleState(
         val maxY = abs(extraHeight / 2)
 
         if (enablePanGesture) {
-            offset = Offset(
-                x = (offset.x + zoom * panChange.x).coerceIn(-maxX, maxX),
-                y = (offset.y + zoom * panChange.y).coerceIn(-maxY, maxY),
-            )
+            offset =
+                Offset(
+                    x = (offset.x + zoom * panChange.x).coerceIn(-maxX, maxX),
+                    y = (offset.y + zoom * panChange.y).coerceIn(-maxY, maxY),
+                )
         }
     }
 
@@ -152,5 +153,6 @@ class VideoZoomAndContentScaleState(
 
 sealed interface VideoZoomEvent {
     data class ContentScaleChanged(val contentScale: VideoContentScale) : VideoZoomEvent
+
     data class ZoomChanged(val mediaItem: MediaItem, val zoom: Float) : VideoZoomEvent
 }

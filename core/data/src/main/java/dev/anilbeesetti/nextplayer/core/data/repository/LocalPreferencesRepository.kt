@@ -34,13 +34,13 @@ class LocalPreferencesRepository(
         )
 
     override suspend fun updateApplicationPreferences(
-        transform: suspend (ApplicationPreferences) -> ApplicationPreferences,
+        transform: suspend (ApplicationPreferences) -> ApplicationPreferences
     ) {
         appPreferencesDataSource.update(transform)
     }
 
     override suspend fun updatePlayerPreferences(
-        transform: suspend (PlayerPreferences) -> PlayerPreferences,
+        transform: suspend (PlayerPreferences) -> PlayerPreferences
     ) {
         playerPreferencesDataSource.update(transform)
     }

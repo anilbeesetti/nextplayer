@@ -12,15 +12,16 @@ class MediaRequestRunnerTest {
     fun `splits write access requests at the platform uri limit`() = runBlocking {
         val requestedBatchSizes = mutableListOf<Int>()
 
-        val result = runMediaWriteRequests(
-            uris = (1..2_001).toList(),
-            itemExists = { true },
-            request = { batch ->
-                require(batch.size <= MAX_MEDIA_REQUEST_URIS)
-                requestedBatchSizes += batch.size
-                true
-            },
-        )
+        val result =
+            runMediaWriteRequests(
+                uris = (1..2_001).toList(),
+                itemExists = { true },
+                request = { batch ->
+                    require(batch.size <= MAX_MEDIA_REQUEST_URIS)
+                    requestedBatchSizes += batch.size
+                    true
+                },
+            )
 
         assertTrue(result)
         assertEquals(listOf(2_000, 1), requestedBatchSizes)
@@ -30,16 +31,17 @@ class MediaRequestRunnerTest {
     fun `splits requests at the platform uri limit`() = runBlocking {
         val requestedBatchSizes = mutableListOf<Int>()
 
-        val result = runMediaRequests(
-            items = (1..2_001).toList(),
-            maxBatchSize = 2_000,
-            itemExists = { true },
-            request = { batch ->
-                require(batch.size <= 2_000)
-                requestedBatchSizes += batch.size
-                true
-            },
-        )
+        val result =
+            runMediaRequests(
+                items = (1..2_001).toList(),
+                maxBatchSize = 2_000,
+                itemExists = { true },
+                request = { batch ->
+                    require(batch.size <= 2_000)
+                    requestedBatchSizes += batch.size
+                    true
+                },
+            )
 
         assertTrue(result)
         assertEquals(listOf(2_000, 1), requestedBatchSizes)
@@ -49,16 +51,17 @@ class MediaRequestRunnerTest {
     fun `retries without an item that disappeared before request creation`() = runBlocking {
         val requestedBatches = mutableListOf<List<String>>()
 
-        val result = runMediaRequests(
-            items = listOf("existing", "stale"),
-            maxBatchSize = 2_000,
-            itemExists = { it == "existing" },
-            request = { batch ->
-                requestedBatches += batch
-                if ("stale" in batch) throw IllegalArgumentException("URI no longer exists")
-                true
-            },
-        )
+        val result =
+            runMediaRequests(
+                items = listOf("existing", "stale"),
+                maxBatchSize = 2_000,
+                itemExists = { it == "existing" },
+                request = { batch ->
+                    requestedBatches += batch
+                    if ("stale" in batch) throw IllegalArgumentException("URI no longer exists")
+                    true
+                },
+            )
 
         assertTrue(result)
         assertEquals(
@@ -74,15 +77,16 @@ class MediaRequestRunnerTest {
     fun `treats items already deleted by another app as success`() = runBlocking {
         var requestCount = 0
 
-        val result = runMediaRequests(
-            items = listOf("stale"),
-            maxBatchSize = 2_000,
-            itemExists = { false },
-            request = {
-                requestCount++
-                throw IllegalArgumentException("URI no longer exists")
-            },
-        )
+        val result =
+            runMediaRequests(
+                items = listOf("stale"),
+                maxBatchSize = 2_000,
+                itemExists = { false },
+                request = {
+                    requestCount++
+                    throw IllegalArgumentException("URI no longer exists")
+                },
+            )
 
         assertTrue(result)
         assertEquals(1, requestCount)
@@ -92,15 +96,16 @@ class MediaRequestRunnerTest {
     fun `returns failure when illegal argument is not caused by stale items`() = runBlocking {
         var requestCount = 0
 
-        val result = runMediaRequests(
-            items = listOf("existing"),
-            maxBatchSize = 2_000,
-            itemExists = { true },
-            request = {
-                requestCount++
-                throw IllegalArgumentException("Unrelated provider rejection")
-            },
-        )
+        val result =
+            runMediaRequests(
+                items = listOf("existing"),
+                maxBatchSize = 2_000,
+                itemExists = { true },
+                request = {
+                    requestCount++
+                    throw IllegalArgumentException("Unrelated provider rejection")
+                },
+            )
 
         assertFalse(result)
         assertEquals(1, requestCount)

@@ -58,8 +58,8 @@ import dev.anilbeesetti.nextplayer.core.ui.components.tvFocusRing
 import dev.anilbeesetti.nextplayer.core.ui.designsystem.NextIcons
 
 /**
- * Default path per protocol: SMB starts with an empty share name and also accepts `/` to browse
- * the server's shares, while FTP and WebDAV are rooted at "/".
+ * Default path per protocol: SMB starts with an empty share name and also accepts `/` to browse the
+ * server's shares, while FTP and WebDAV are rooted at "/".
  */
 private fun defaultPathFor(protocol: NetworkProtocol): String =
     if (protocol == NetworkProtocol.SMB) "" else "/"
@@ -78,9 +78,7 @@ internal fun fingerprintAfterEndpointEdit(
 ): String = if (protocol == NetworkProtocol.SFTP && previousValue != newValue) "" else fingerprint
 
 @Composable
-fun AddConnectionScreen(
-    viewModel: AddConnectionViewModel,
-) {
+fun AddConnectionScreen(viewModel: AddConnectionViewModel) {
     val state by viewModel.state.collectAsStateWithLifecycle()
 
     AddConnectionScreenContent(
@@ -99,9 +97,10 @@ internal fun AddConnectionScreenContent(
     val existing = state.existingConnection
     val saveState = state.saveState
     val selectedPrivateKey = state.selectedPrivateKey
-    val keyPicker = rememberLauncherForActivityResult(ActivityResultContracts.OpenDocument()) { uri ->
-        uri?.let { onAction(AddConnectionAction.StagePrivateKey(it)) }
-    }
+    val keyPicker =
+        rememberLauncherForActivityResult(ActivityResultContracts.OpenDocument()) { uri ->
+            uri?.let { onAction(AddConnectionAction.StagePrivateKey(it)) }
+        }
 
     var protocol by rememberSaveable { mutableStateOf(NetworkProtocol.SMB) }
     var name by rememberSaveable { mutableStateOf("") }
@@ -137,21 +136,19 @@ internal fun AddConnectionScreenContent(
     }
 
     val isTesting = saveState is SaveState.Testing
-    val storedPrivateKeyName = existing
-        ?.privateKeyFileName
-        .orEmpty()
-        .takeUnless { existingPrivateKeyRemoved }
-        .orEmpty()
+    val storedPrivateKeyName =
+        existing?.privateKeyFileName.orEmpty().takeUnless { existingPrivateKeyRemoved }.orEmpty()
     val activeKeyName = selectedPrivateKey?.stagedFileName ?: storedPrivateKeyName
-    val canSave = canSaveConnection(
-        name = name,
-        host = host,
-        protocol = protocol,
-        username = username,
-        authentication = authentication,
-        hasPrivateKey = activeKeyName.isNotBlank(),
-        isTesting = isTesting,
-    )
+    val canSave =
+        canSaveConnection(
+            name = name,
+            host = host,
+            protocol = protocol,
+            username = username,
+            authentication = authentication,
+            hasPrivateKey = activeKeyName.isNotBlank(),
+            isTesting = isTesting,
+        )
 
     fun submit() {
         onAction(
@@ -163,36 +160,44 @@ internal fun AddConnectionScreenContent(
                     port = port.toIntOrNull(),
                     path = normalizedPathFor(protocol, path),
                     username = username.trim(),
-                    password = if (
-                        protocol == NetworkProtocol.SFTP && authentication == NetworkAuthentication.SSH_KEY
-                    ) {
-                        ""
-                    } else {
-                        password
-                    },
+                    password =
+                        if (
+                            protocol == NetworkProtocol.SFTP &&
+                                authentication == NetworkAuthentication.SSH_KEY
+                        ) {
+                            ""
+                        } else {
+                            password
+                        },
                     useHttps = protocol == NetworkProtocol.WEBDAV && useHttps,
-                    authentication = if (protocol == NetworkProtocol.SFTP) {
-                        authentication
-                    } else {
-                        NetworkAuthentication.PASSWORD
-                    },
-                    privateKeyFileName = if (
-                        protocol == NetworkProtocol.SFTP && authentication == NetworkAuthentication.SSH_KEY
-                    ) {
-                        activeKeyName
-                    } else {
-                        ""
-                    },
-                    privateKeyPassphrase = if (
-                        protocol == NetworkProtocol.SFTP && authentication == NetworkAuthentication.SSH_KEY
-                    ) {
-                        privateKeyPassphrase
-                    } else {
-                        ""
-                    },
-                    hostKeyFingerprint = if (protocol == NetworkProtocol.SFTP) hostKeyFingerprint else "",
-                ),
-            ),
+                    authentication =
+                        if (protocol == NetworkProtocol.SFTP) {
+                            authentication
+                        } else {
+                            NetworkAuthentication.PASSWORD
+                        },
+                    privateKeyFileName =
+                        if (
+                            protocol == NetworkProtocol.SFTP &&
+                                authentication == NetworkAuthentication.SSH_KEY
+                        ) {
+                            activeKeyName
+                        } else {
+                            ""
+                        },
+                    privateKeyPassphrase =
+                        if (
+                            protocol == NetworkProtocol.SFTP &&
+                                authentication == NetworkAuthentication.SSH_KEY
+                        ) {
+                            privateKeyPassphrase
+                        } else {
+                            ""
+                        },
+                    hostKeyFingerprint =
+                        if (protocol == NetworkProtocol.SFTP) hostKeyFingerprint else "",
+                )
+            )
         )
     }
 
@@ -204,9 +209,15 @@ internal fun AddConnectionScreenContent(
     Scaffold(
         topBar = {
             NextTopAppBar(
-                title = stringResource(if (isEdit) R.string.edit_connection else R.string.add_connection),
+                title =
+                    stringResource(
+                        if (isEdit) R.string.edit_connection else R.string.add_connection
+                    ),
                 navigationIcon = {
-                    FilledTonalIconButton(onClick = { onAction(AddConnectionAction.Cancel) }, modifier = Modifier.tvFocusRing()) {
+                    FilledTonalIconButton(
+                        onClick = { onAction(AddConnectionAction.Cancel) },
+                        modifier = Modifier.tvFocusRing(),
+                    ) {
                         Icon(
                             imageVector = NextIcons.Close,
                             contentDescription = stringResource(R.string.navigate_up),
@@ -218,12 +229,12 @@ internal fun AddConnectionScreenContent(
         containerColor = MaterialTheme.colorScheme.surfaceContainer,
     ) { padding ->
         Column(
-            modifier = Modifier
-                .fillMaxSize()
-                .padding(padding)
-                .imePadding()
-                .verticalScroll(rememberScrollState())
-                .padding(horizontal = 20.dp, vertical = 12.dp),
+            modifier =
+                Modifier.fillMaxSize()
+                    .padding(padding)
+                    .imePadding()
+                    .verticalScroll(rememberScrollState())
+                    .padding(horizontal = 20.dp, vertical = 12.dp),
             verticalArrangement = Arrangement.spacedBy(12.dp),
         ) {
             Text(
@@ -232,33 +243,46 @@ internal fun AddConnectionScreenContent(
                 color = MaterialTheme.colorScheme.onSurfaceVariant,
             )
             SingleChoiceSegmentedButtonRow(modifier = Modifier.fillMaxWidth()) {
-                val protocols = listOf(NetworkProtocol.SMB, NetworkProtocol.FTP, NetworkProtocol.WEBDAV)
+                val protocols =
+                    listOf(NetworkProtocol.SMB, NetworkProtocol.FTP, NetworkProtocol.WEBDAV)
                 protocols.forEachIndexed { index, entry ->
                     SegmentedButton(
-                        selected = if (entry == NetworkProtocol.FTP) {
-                            protocol == NetworkProtocol.FTP || protocol == NetworkProtocol.SFTP
-                        } else {
-                            protocol == entry
-                        },
+                        selected =
+                            if (entry == NetworkProtocol.FTP) {
+                                protocol == NetworkProtocol.FTP || protocol == NetworkProtocol.SFTP
+                            } else {
+                                protocol == entry
+                            },
                         enabled = !isTesting,
                         onClick = {
                             onChange {
                                 // Keep the path in sync with the protocol's default unless the user
-                                // has customized it (SMB wants a bare share name, others a "/" root).
+                                // has customized it (SMB wants a bare share name, others a "/"
+                                // root).
                                 if (path == defaultPathFor(protocol)) path = defaultPathFor(entry)
-                                if (protocol == NetworkProtocol.SFTP && entry != NetworkProtocol.SFTP) {
+                                if (
+                                    protocol == NetworkProtocol.SFTP &&
+                                        entry != NetworkProtocol.SFTP
+                                ) {
                                     authentication = NetworkAuthentication.PASSWORD
                                     privateKeyPassphrase = ""
                                     hostKeyFingerprint = ""
-                                    if (selectedPrivateKey != null) onAction(AddConnectionAction.RemoveSelectedPrivateKey)
+                                    if (selectedPrivateKey != null)
+                                        onAction(AddConnectionAction.RemoveSelectedPrivateKey)
                                 }
                                 protocol = entry
                             }
                         },
                         shape = SegmentedButtonDefaults.itemShape(index, protocols.size),
-                        modifier = Modifier.tvFocusRing(shape = SegmentedButtonDefaults.itemShape(index, protocols.size)),
+                        modifier =
+                            Modifier.tvFocusRing(
+                                shape = SegmentedButtonDefaults.itemShape(index, protocols.size)
+                            ),
                     ) {
-                        Text(if (entry == NetworkProtocol.FTP) stringResource(R.string.ftp_sftp) else entry.name)
+                        Text(
+                            if (entry == NetworkProtocol.FTP) stringResource(R.string.ftp_sftp)
+                            else entry.name
+                        )
                     }
                 }
             }
@@ -272,12 +296,14 @@ internal fun AddConnectionScreenContent(
                         checked = protocol == NetworkProtocol.SFTP,
                         onCheckedChange = { useSftp ->
                             onChange {
-                                protocol = if (useSftp) NetworkProtocol.SFTP else NetworkProtocol.FTP
+                                protocol =
+                                    if (useSftp) NetworkProtocol.SFTP else NetworkProtocol.FTP
                                 if (!useSftp) {
                                     authentication = NetworkAuthentication.PASSWORD
                                     privateKeyPassphrase = ""
                                     hostKeyFingerprint = ""
-                                    if (selectedPrivateKey != null) onAction(AddConnectionAction.RemoveSelectedPrivateKey)
+                                    if (selectedPrivateKey != null)
+                                        onAction(AddConnectionAction.RemoveSelectedPrivateKey)
                                 }
                             }
                         },
@@ -286,7 +312,8 @@ internal fun AddConnectionScreenContent(
                 }
             }
 
-            val moveToNext = KeyboardActions(onNext = { focusManager.moveFocus(FocusDirection.Down) })
+            val moveToNext =
+                KeyboardActions(onNext = { focusManager.moveFocus(FocusDirection.Down) })
 
             NextOutlinedTextField(
                 value = name,
@@ -303,18 +330,20 @@ internal fun AddConnectionScreenContent(
                 enabled = !isTesting,
                 onValueChange = { newHost ->
                     onChange {
-                        hostKeyFingerprint = fingerprintAfterEndpointEdit(
-                            protocol,
-                            host,
-                            newHost,
-                            hostKeyFingerprint,
-                        )
+                        hostKeyFingerprint =
+                            fingerprintAfterEndpointEdit(
+                                protocol,
+                                host,
+                                newHost,
+                                hostKeyFingerprint,
+                            )
                         host = newHost
                     }
                 },
                 label = { Text(stringResource(R.string.host)) },
                 singleLine = true,
-                keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Uri, imeAction = ImeAction.Next),
+                keyboardOptions =
+                    KeyboardOptions(keyboardType = KeyboardType.Uri, imeAction = ImeAction.Next),
                 keyboardActions = moveToNext,
                 modifier = Modifier.fillMaxWidth(),
             )
@@ -324,18 +353,20 @@ internal fun AddConnectionScreenContent(
                 onValueChange = { input ->
                     onChange {
                         val newPort = input.filter { it.isDigit() }
-                        hostKeyFingerprint = fingerprintAfterEndpointEdit(
-                            protocol,
-                            port,
-                            newPort,
-                            hostKeyFingerprint,
-                        )
+                        hostKeyFingerprint =
+                            fingerprintAfterEndpointEdit(
+                                protocol,
+                                port,
+                                newPort,
+                                hostKeyFingerprint,
+                            )
                         port = newPort
                     }
                 },
                 label = { Text(stringResource(R.string.port_hint, protocol.defaultPort)) },
                 singleLine = true,
-                keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number, imeAction = ImeAction.Next),
+                keyboardOptions =
+                    KeyboardOptions(keyboardType = KeyboardType.Number, imeAction = ImeAction.Next),
                 keyboardActions = moveToNext,
                 modifier = Modifier.fillMaxWidth(),
             )
@@ -378,7 +409,10 @@ internal fun AddConnectionScreenContent(
                                     when (method) {
                                         NetworkAuthentication.PASSWORD -> {
                                             privateKeyPassphrase = ""
-                                            if (selectedPrivateKey != null) onAction(AddConnectionAction.RemoveSelectedPrivateKey)
+                                            if (selectedPrivateKey != null)
+                                                onAction(
+                                                    AddConnectionAction.RemoveSelectedPrivateKey
+                                                )
                                         }
                                         NetworkAuthentication.SSH_KEY -> password = ""
                                     }
@@ -393,15 +427,17 @@ internal fun AddConnectionScreenContent(
                                         R.string.password
                                     } else {
                                         R.string.ssh_key
-                                    },
-                                ),
+                                    }
+                                )
                             )
                         }
                     }
                 }
             }
 
-            if (protocol != NetworkProtocol.SFTP || authentication == NetworkAuthentication.PASSWORD) {
+            if (
+                protocol != NetworkProtocol.SFTP || authentication == NetworkAuthentication.PASSWORD
+            ) {
                 NextOutlinedTextField(
                     value = password,
                     enabled = !isTesting,
@@ -409,13 +445,18 @@ internal fun AddConnectionScreenContent(
                     label = { Text(stringResource(R.string.password)) },
                     singleLine = true,
                     visualTransformation = PasswordVisualTransformation(),
-                    keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Password, imeAction = ImeAction.Done),
-                    keyboardActions = KeyboardActions(
-                        onDone = {
-                            focusManager.clearFocus()
-                            if (canSave) submit()
-                        },
-                    ),
+                    keyboardOptions =
+                        KeyboardOptions(
+                            keyboardType = KeyboardType.Password,
+                            imeAction = ImeAction.Done,
+                        ),
+                    keyboardActions =
+                        KeyboardActions(
+                            onDone = {
+                                focusManager.clearFocus()
+                                if (canSave) submit()
+                            }
+                        ),
                     modifier = Modifier.fillMaxWidth(),
                 )
             } else {
@@ -435,8 +476,8 @@ internal fun AddConnectionScreenContent(
                                     R.string.choose_private_key
                                 } else {
                                     R.string.replace_private_key
-                                },
-                            ),
+                                }
+                            )
                         )
                     }
                     if (activeKeyName.isNotBlank()) {
@@ -456,9 +497,10 @@ internal fun AddConnectionScreenContent(
                 }
                 if (activeKeyName.isNotBlank()) {
                     Text(
-                        text = selectedPrivateKey?.let {
-                            stringResource(R.string.selected_private_key, it.displayName)
-                        } ?: stringResource(R.string.private_key_stored),
+                        text =
+                            selectedPrivateKey?.let {
+                                stringResource(R.string.selected_private_key, it.displayName)
+                            } ?: stringResource(R.string.private_key_stored),
                         style = MaterialTheme.typography.bodyMedium,
                         color = MaterialTheme.colorScheme.onSurfaceVariant,
                     )
@@ -470,13 +512,18 @@ internal fun AddConnectionScreenContent(
                     label = { Text(stringResource(R.string.private_key_passphrase)) },
                     singleLine = true,
                     visualTransformation = PasswordVisualTransformation(),
-                    keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Password, imeAction = ImeAction.Done),
-                    keyboardActions = KeyboardActions(
-                        onDone = {
-                            focusManager.clearFocus()
-                            if (canSave) submit()
-                        },
-                    ),
+                    keyboardOptions =
+                        KeyboardOptions(
+                            keyboardType = KeyboardType.Password,
+                            imeAction = ImeAction.Done,
+                        ),
+                    keyboardActions =
+                        KeyboardActions(
+                            onDone = {
+                                focusManager.clearFocus()
+                                if (canSave) submit()
+                            }
+                        ),
                     modifier = Modifier.fillMaxWidth(),
                 )
             }
@@ -505,18 +552,20 @@ internal fun AddConnectionScreenContent(
                         SelectionContainer {
                             Column(verticalArrangement = Arrangement.spacedBy(2.dp)) {
                                 Text(
-                                    text = stringResource(
-                                        R.string.ssh_host_key_trusted_fingerprint,
-                                        mismatch.trustedFingerprint,
-                                    ),
+                                    text =
+                                        stringResource(
+                                            R.string.ssh_host_key_trusted_fingerprint,
+                                            mismatch.trustedFingerprint,
+                                        ),
                                     color = MaterialTheme.colorScheme.error,
                                     style = MaterialTheme.typography.bodySmall,
                                 )
                                 Text(
-                                    text = stringResource(
-                                        R.string.ssh_host_key_presented_fingerprint,
-                                        mismatch.presentedFingerprint,
-                                    ),
+                                    text =
+                                        stringResource(
+                                            R.string.ssh_host_key_presented_fingerprint,
+                                            mismatch.presentedFingerprint,
+                                        ),
                                     color = MaterialTheme.colorScheme.error,
                                     style = MaterialTheme.typography.bodySmall,
                                 )
@@ -530,9 +579,7 @@ internal fun AddConnectionScreenContent(
             Button(
                 onClick = { submit() },
                 enabled = canSave,
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .tvFocusRing(shape = MaterialTheme.shapes.large),
+                modifier = Modifier.fillMaxWidth().tvFocusRing(shape = MaterialTheme.shapes.large),
             ) {
                 if (isTesting) {
                     CircularProgressIndicator(
@@ -559,7 +606,9 @@ internal fun AddConnectionScreenContent(
                 Text("${confirmation.host}:${confirmation.port}")
                 Text(stringResource(R.string.ssh_host_key_algorithm, confirmation.algorithm))
                 SelectionContainer {
-                    Text(stringResource(R.string.ssh_host_key_fingerprint, confirmation.fingerprint))
+                    Text(
+                        stringResource(R.string.ssh_host_key_fingerprint, confirmation.fingerprint)
+                    )
                 }
             },
             confirmButton = {

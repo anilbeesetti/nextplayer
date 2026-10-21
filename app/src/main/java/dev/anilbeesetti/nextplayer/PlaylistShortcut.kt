@@ -11,7 +11,8 @@ internal object PlaylistShortcut {
     private const val ACTION_OPEN_PLAYLIST = "dev.anilbeesetti.nextplayer.action.OPEN_PLAYLIST"
     private const val EXTRA_PLAYLIST_ID = "playlist_id"
 
-    fun isSupported(context: Context): Boolean = ShortcutManagerCompat.isRequestPinShortcutSupported(context)
+    fun isSupported(context: Context): Boolean =
+        ShortcutManagerCompat.isRequestPinShortcutSupported(context)
 
     fun requestPin(context: Context, playlist: PlaylistSummary): Boolean =
         ShortcutManagerCompat.requestPinShortcut(context, create(context, playlist), null)
@@ -25,9 +26,11 @@ internal object PlaylistShortcut {
                 Intent(context, MainActivity::class.java).apply {
                     action = ACTION_OPEN_PLAYLIST
                     putExtra(EXTRA_PLAYLIST_ID, playlist.id)
-                    flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TOP or
-                        Intent.FLAG_ACTIVITY_SINGLE_TOP
-                },
+                    flags =
+                        Intent.FLAG_ACTIVITY_NEW_TASK or
+                            Intent.FLAG_ACTIVITY_CLEAR_TOP or
+                            Intent.FLAG_ACTIVITY_SINGLE_TOP
+                }
             )
             .build()
 

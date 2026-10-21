@@ -52,11 +52,12 @@ fun VerticalProgressView(
     val isBoostActive = maxValue > NORMAL_MAX_PERCENTAGE && value > NORMAL_MAX_PERCENTAGE
 
     Column(
-        modifier = modifier
-            .heightIn(max = 250.dp)
-            .clip(CircleShape)
-            .background(MaterialTheme.colorScheme.background)
-            .padding(8.dp),
+        modifier =
+            modifier
+                .heightIn(max = 250.dp)
+                .clip(CircleShape)
+                .background(MaterialTheme.colorScheme.background)
+                .padding(8.dp),
         horizontalAlignment = Alignment.CenterHorizontally,
         verticalArrangement = Arrangement.spacedBy(4.dp),
     ) {
@@ -66,25 +67,31 @@ fun VerticalProgressView(
         ) {
             BasicText(
                 text = normalizedValue.toString(),
-                style = MaterialTheme.typography.labelLarge.copy(
-                    color = MaterialTheme.colorScheme.onBackground,
-                ),
-                autoSize = TextAutoSize.StepBased(maxFontSize = MaterialTheme.typography.labelLarge.fontSize),
+                style =
+                    MaterialTheme.typography.labelLarge.copy(
+                        color = MaterialTheme.colorScheme.onBackground
+                    ),
+                autoSize =
+                    TextAutoSize.StepBased(
+                        maxFontSize = MaterialTheme.typography.labelLarge.fontSize
+                    ),
             )
         }
         Box(
-            modifier = Modifier
-                .weight(1f)
-                .width(width)
-                .clip(MaterialTheme.shapes.medium)
-                .background(MaterialTheme.colorScheme.surfaceVariant),
+            modifier =
+                Modifier.weight(1f)
+                    .width(width)
+                    .clip(MaterialTheme.shapes.medium)
+                    .background(MaterialTheme.colorScheme.surfaceVariant),
             contentAlignment = Alignment.BottomCenter,
         ) {
             Box(
-                modifier = Modifier
-                    .width(width)
-                    .fillMaxHeight(fillFraction)
-                    .background(if (isBoostActive) boostColor else MaterialTheme.colorScheme.primary),
+                modifier =
+                    Modifier.width(width)
+                        .fillMaxHeight(fillFraction)
+                        .background(
+                            if (isBoostActive) boostColor else MaterialTheme.colorScheme.primary
+                        )
             )
         }
         Box(

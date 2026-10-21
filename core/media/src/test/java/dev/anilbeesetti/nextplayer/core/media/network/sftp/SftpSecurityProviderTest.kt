@@ -41,14 +41,15 @@ class SftpSecurityProviderTest {
     @Test
     fun `installed provider constructs P256 host public key`() {
         SftpSecurityProvider.install()
-        val parameters = AlgorithmParameters.getInstance("EC", SftpSecurityProvider.NAME).apply {
-            init(ECGenParameterSpec("secp256r1"))
-        }
+        val parameters =
+            AlgorithmParameters.getInstance("EC", SftpSecurityProvider.NAME).apply {
+                init(ECGenParameterSpec("secp256r1"))
+            }
         val parameterSpec = parameters.getParameterSpec(ECParameterSpec::class.java)
 
-        val publicKey = KeyFactory.getInstance("ECDSA", SftpSecurityProvider.NAME).generatePublic(
-            ECPublicKeySpec(parameterSpec.generator, parameterSpec),
-        )
+        val publicKey =
+            KeyFactory.getInstance("ECDSA", SftpSecurityProvider.NAME)
+                .generatePublic(ECPublicKeySpec(parameterSpec.generator, parameterSpec))
 
         assertNotNull(publicKey)
     }
@@ -60,9 +61,7 @@ class SftpSecurityProviderTest {
         Security.addProvider(UnrelatedProvider())
 
         try {
-            assertThrows(IllegalStateException::class.java) {
-                SftpSecurityProvider.install()
-            }
+            assertThrows(IllegalStateException::class.java) { SftpSecurityProvider.install() }
         } finally {
             Security.removeProvider(SftpSecurityProvider.NAME)
             if (installedProvider != null) {

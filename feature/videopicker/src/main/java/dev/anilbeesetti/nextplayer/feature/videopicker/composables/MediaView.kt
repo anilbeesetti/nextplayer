@@ -45,7 +45,11 @@ import dev.anilbeesetti.nextplayer.feature.videopicker.state.SelectionManager
 import dev.anilbeesetti.nextplayer.feature.videopicker.state.rememberSelectionManager
 import kotlin.math.abs
 
-@OptIn(ExperimentalMaterial3Api::class, ExperimentalFoundationApi::class, ExperimentalPermissionsApi::class)
+@OptIn(
+    ExperimentalMaterial3Api::class,
+    ExperimentalFoundationApi::class,
+    ExperimentalPermissionsApi::class,
+)
 @Composable
 fun MediaView(
     mediaHolder: MediaHolder,
@@ -70,45 +74,61 @@ fun MediaView(
     val videoMinWidth = if (isTv) 240.dp else 130.dp
 
     BoxWithConstraints {
-        val contentHorizontalPadding = when (preferences.mediaLayoutMode) {
-            MediaLayoutMode.LIST -> 8.dp
-            MediaLayoutMode.GRID -> 8.dp
-        }
-        val itemSpacing = when (preferences.mediaLayoutMode) {
-            MediaLayoutMode.LIST -> 2.dp
-            MediaLayoutMode.GRID -> 2.dp
-        }
+        val contentHorizontalPadding =
+            when (preferences.mediaLayoutMode) {
+                MediaLayoutMode.LIST -> 8.dp
+                MediaLayoutMode.GRID -> 8.dp
+            }
+        val itemSpacing =
+            when (preferences.mediaLayoutMode) {
+                MediaLayoutMode.LIST -> 2.dp
+                MediaLayoutMode.GRID -> 2.dp
+            }
         val maxWidth = this.maxWidth - (contentHorizontalPadding * 2) - itemSpacing
         val maxFolders = (maxWidth / folderMinWidth).toInt().coerceAtLeast(1)
         val maxVideos = (maxWidth / videoMinWidth).toInt().coerceAtLeast(1)
-        val spans = when (preferences.mediaLayoutMode) {
-            MediaLayoutMode.LIST -> 1
-            MediaLayoutMode.GRID -> lcm(maxFolders, maxVideos)
-        }
+        val spans =
+            when (preferences.mediaLayoutMode) {
+                MediaLayoutMode.LIST -> 1
+                MediaLayoutMode.GRID -> lcm(maxFolders, maxVideos)
+            }
 
-        val singleFolderSpan = when (preferences.mediaLayoutMode) {
-            MediaLayoutMode.LIST -> 1
-            MediaLayoutMode.GRID -> spans / maxFolders
-        }
-        val singleVideoSpan = when (preferences.mediaLayoutMode) {
-            MediaLayoutMode.LIST -> 1
-            MediaLayoutMode.GRID -> spans / maxVideos
-        }
+        val singleFolderSpan =
+            when (preferences.mediaLayoutMode) {
+                MediaLayoutMode.LIST -> 1
+                MediaLayoutMode.GRID -> spans / maxFolders
+            }
+        val singleVideoSpan =
+            when (preferences.mediaLayoutMode) {
+                MediaLayoutMode.LIST -> 1
+                MediaLayoutMode.GRID -> spans / maxVideos
+            }
 
         LazyVerticalGrid(
-            modifier = modifier.fillMaxSize().restorableFocusGroup(
-                state = focusState,
-                ready = autoFocus && (mediaHolder.folders.isNotEmpty() || mediaHolder.videos.isNotEmpty()),
-            ),
+            modifier =
+                modifier
+                    .fillMaxSize()
+                    .restorableFocusGroup(
+                        state = focusState,
+                        ready =
+                            autoFocus &&
+                                (mediaHolder.folders.isNotEmpty() ||
+                                    mediaHolder.videos.isNotEmpty()),
+                    ),
             state = lazyGridState,
             columns = GridCells.Fixed(spans),
-            contentPadding = contentPadding + PaddingValues(horizontal = contentHorizontalPadding, vertical = 8.dp),
+            contentPadding =
+                contentPadding +
+                    PaddingValues(horizontal = contentHorizontalPadding, vertical = 8.dp),
             verticalArrangement = Arrangement.spacedBy(itemSpacing),
             horizontalArrangement = Arrangement.spacedBy(itemSpacing),
         ) {
             if (showHeaders && mediaHolder.folders.isNotEmpty()) {
                 item(span = { GridItemSpan(maxLineSpan) }) {
-                    ListSectionTitle(text = stringResource(id = R.string.folders) + " (${mediaHolder.folders.size})")
+                    ListSectionTitle(
+                        text =
+                            stringResource(id = R.string.folders) + " (${mediaHolder.folders.size})"
+                    )
                 }
             }
             itemsIndexed(
@@ -116,7 +136,9 @@ fun MediaView(
                 key = { _, folder -> folder.path },
                 span = { _, _ -> GridItemSpan(singleFolderSpan) },
             ) { index, folder ->
-                val selected by remember { derivedStateOf { selectionManager.isFolderSelected(folder) } }
+                val selected by remember {
+                    derivedStateOf { selectionManager.isFolderSelected(folder) }
+                }
                 FolderItem(
                     folder = folder,
                     isRecentlyPlayedFolder = folder.path == recentlyPlayedFolder?.path,
@@ -140,7 +162,10 @@ fun MediaView(
                 )
             }
 
-            if (preferences.mediaViewMode == MediaViewMode.FOLDER_TREE && mediaHolder.folders.isNotEmpty()) {
+            if (
+                preferences.mediaViewMode == MediaViewMode.FOLDER_TREE &&
+                    mediaHolder.folders.isNotEmpty()
+            ) {
                 item(span = { GridItemSpan(maxLineSpan) }) {
                     Spacer(modifier = Modifier.size(8.dp))
                 }
@@ -148,7 +173,10 @@ fun MediaView(
 
             if (showHeaders && mediaHolder.videos.isNotEmpty()) {
                 item(span = { GridItemSpan(maxLineSpan) }) {
-                    ListSectionTitle(text = stringResource(id = R.string.videos) + " (${mediaHolder.videos.size})")
+                    ListSectionTitle(
+                        text =
+                            stringResource(id = R.string.videos) + " (${mediaHolder.videos.size})"
+                    )
                 }
             }
 
@@ -157,7 +185,9 @@ fun MediaView(
                 key = { _, video -> video.uriString },
                 span = { _, _ -> GridItemSpan(singleVideoSpan) },
             ) { index, video ->
-                val selected by remember { derivedStateOf { selectionManager.isVideoSelected(video) } }
+                val selected by remember {
+                    derivedStateOf { selectionManager.isVideoSelected(video) }
+                }
                 VideoItem(
                     video = video,
                     preferences = preferences,

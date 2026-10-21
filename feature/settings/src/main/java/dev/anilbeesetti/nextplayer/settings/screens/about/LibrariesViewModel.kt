@@ -19,9 +19,10 @@ class LibrariesViewModel(
 
     data class Output(val navigateUp: () -> Unit)
 
-    private val stateInternal = MutableStateFlow(
-        LibrariesUiState(libraries = Libs.Builder().withContext(context).build().libraries),
-    )
+    private val stateInternal =
+        MutableStateFlow(
+            LibrariesUiState(libraries = Libs.Builder().withContext(context).build().libraries)
+        )
     override val state: StateFlow<LibrariesUiState> = stateInternal.asStateFlow()
 
     override fun onAction(action: LibrariesAction) {

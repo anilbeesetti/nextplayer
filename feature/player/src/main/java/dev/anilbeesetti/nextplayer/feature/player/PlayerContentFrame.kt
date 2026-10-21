@@ -37,32 +37,36 @@ fun PlayerContentFrame(
         PlayerSurface(
             player = player,
             surfaceType = SURFACE_TYPE_SURFACE_VIEW,
-            modifier = Modifier
-                .resizeWithContentScale(
-                    contentScale = videoZoomAndContentScaleState.videoContentScale.toContentScale(),
-                    sourceSizeDp = presentationState.videoSizeDp?.let { size ->
-                        size.copy(
-                            width = with(LocalDensity.current) { size.width.toDp().value },
-                            height = with(LocalDensity.current) { size.height.toDp().value },
-                        )
-                    },
-                )
-                .onGloballyPositioned {
-                    val bounds = it.boundsInWindow()
-                    val rect = Rect(
-                        bounds.left.toInt(),
-                        bounds.top.toInt(),
-                        bounds.right.toInt(),
-                        bounds.bottom.toInt(),
+            modifier =
+                Modifier.resizeWithContentScale(
+                        contentScale =
+                            videoZoomAndContentScaleState.videoContentScale.toContentScale(),
+                        sourceSizeDp =
+                            presentationState.videoSizeDp?.let { size ->
+                                size.copy(
+                                    width = with(LocalDensity.current) { size.width.toDp().value },
+                                    height =
+                                        with(LocalDensity.current) { size.height.toDp().value },
+                                )
+                            },
                     )
-                    pictureInPictureState.setVideoViewRect(rect)
-                }
-                .graphicsLayer {
-                    scaleX = videoZoomAndContentScaleState.zoom
-                    scaleY = videoZoomAndContentScaleState.zoom
-                    translationX = videoZoomAndContentScaleState.offset.x
-                    translationY = videoZoomAndContentScaleState.offset.y
-                },
+                    .onGloballyPositioned {
+                        val bounds = it.boundsInWindow()
+                        val rect =
+                            Rect(
+                                bounds.left.toInt(),
+                                bounds.top.toInt(),
+                                bounds.right.toInt(),
+                                bounds.bottom.toInt(),
+                            )
+                        pictureInPictureState.setVideoViewRect(rect)
+                    }
+                    .graphicsLayer {
+                        scaleX = videoZoomAndContentScaleState.zoom
+                        scaleY = videoZoomAndContentScaleState.zoom
+                        translationX = videoZoomAndContentScaleState.offset.x
+                        translationY = videoZoomAndContentScaleState.offset.y
+                    },
         )
 
         SubtitleView(

@@ -22,15 +22,14 @@ class FolderPreferencesViewModel(
     @InjectedParam internal var output: Output,
 ) : MviViewModel<FolderPreferencesUiState, FolderPreferencesUiEvent>() {
 
-    data class Output(
-        val navigateUp: () -> Unit,
-    )
+    data class Output(val navigateUp: () -> Unit)
 
-    private val stateInternal = MutableStateFlow(
-        FolderPreferencesUiState(
-            preferences = preferencesRepository.applicationPreferences.value,
-        ),
-    )
+    private val stateInternal =
+        MutableStateFlow(
+            FolderPreferencesUiState(
+                preferences = preferencesRepository.applicationPreferences.value
+            )
+        )
     override val state: StateFlow<FolderPreferencesUiState> = stateInternal.asStateFlow()
 
     init {
@@ -63,11 +62,12 @@ class FolderPreferencesViewModel(
         viewModelScope.launch {
             preferencesRepository.updateApplicationPreferences {
                 it.copy(
-                    excludeFolders = if (path in it.excludeFolders) {
-                        it.excludeFolders - path
-                    } else {
-                        it.excludeFolders + path
-                    },
+                    excludeFolders =
+                        if (path in it.excludeFolders) {
+                            it.excludeFolders - path
+                        } else {
+                            it.excludeFolders + path
+                        }
                 )
             }
         }

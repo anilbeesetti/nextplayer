@@ -119,16 +119,18 @@ class MainActivity : FragmentActivity() {
 
             LaunchedEffect(shouldUseDarkTheme) {
                 enableEdgeToEdge(
-                    statusBarStyle = SystemBarStyle.auto(
-                        lightScrim = Color.TRANSPARENT,
-                        darkScrim = Color.TRANSPARENT,
-                        detectDarkMode = { shouldUseDarkTheme },
-                    ),
-                    navigationBarStyle = SystemBarStyle.auto(
-                        lightScrim = Color.TRANSPARENT,
-                        darkScrim = Color.TRANSPARENT,
-                        detectDarkMode = { shouldUseDarkTheme },
-                    ),
+                    statusBarStyle =
+                        SystemBarStyle.auto(
+                            lightScrim = Color.TRANSPARENT,
+                            darkScrim = Color.TRANSPARENT,
+                            detectDarkMode = { shouldUseDarkTheme },
+                        ),
+                    navigationBarStyle =
+                        SystemBarStyle.auto(
+                            lightScrim = Color.TRANSPARENT,
+                            darkScrim = Color.TRANSPARENT,
+                            detectDarkMode = { shouldUseDarkTheme },
+                        ),
                 )
             }
 
@@ -151,8 +153,10 @@ class MainActivity : FragmentActivity() {
                     }
 
                     val mediaStack = navState.backStacks.getValue(TopLevelDestination.MEDIA.route)
-                    val playlistStack = navState.backStacks.getValue(TopLevelDestination.PLAYLISTS.route)
-                    val networkStack = navState.backStacks.getValue(TopLevelDestination.NETWORK.route)
+                    val playlistStack =
+                        navState.backStacks.getValue(TopLevelDestination.PLAYLISTS.route)
+                    val networkStack =
+                        navState.backStacks.getValue(TopLevelDestination.NETWORK.route)
                     val moreStack = navState.backStacks.getValue(TopLevelDestination.MORE.route)
 
                     val provider = entryProvider {
@@ -163,44 +167,67 @@ class MainActivity : FragmentActivity() {
                         settingsNavGraph(backStack = navState.currentStack)
                     }
 
-                    val topLevelFabStates = remember { mutableStateMapOf<String, TopLevelFabState>() }
+                    val topLevelFabStates = remember {
+                        mutableStateMapOf<String, TopLevelFabState>()
+                    }
                     var showTopLevelBottomBar by remember { mutableStateOf(true) }
                     NavigationLayout(
                         state = navState,
                         fabStates = topLevelFabStates,
                         showBottomBar = showTopLevelBottomBar,
                     ) { layoutPaddingValues ->
-                        val railPadding = layoutPaddingValues.calculateStartPadding(LocalLayoutDirection.current)
-                        val navigationInsetsDecorator = remember(navState, railPadding) {
-                            NavEntryDecorator<NavKey> { entry ->
-                                // Reserve rail space per entry without resizing the animated display.
-                                Box(
-                                    Modifier.thenIf(navState.topLevelContentKeys.contains(entry.contentKey)) {
-                                        padding(start = railPadding)
-                                            .consumeWindowInsets(WindowInsets.displayCutout.only(WindowInsetsSides.Start))
-                                    },
-                                ) {
-                                    entry.Content()
+                        val railPadding =
+                            layoutPaddingValues.calculateStartPadding(LocalLayoutDirection.current)
+                        val navigationInsetsDecorator =
+                            remember(navState, railPadding) {
+                                NavEntryDecorator<NavKey> { entry ->
+                                    // Reserve rail space per entry without resizing the animated
+                                    // display.
+                                    Box(
+                                        Modifier.thenIf(
+                                            navState.topLevelContentKeys.contains(entry.contentKey)
+                                        ) {
+                                            padding(start = railPadding)
+                                                .consumeWindowInsets(
+                                                    WindowInsets.displayCutout.only(
+                                                        WindowInsetsSides.Start
+                                                    )
+                                                )
+                                        }
+                                    ) {
+                                        entry.Content()
+                                    }
                                 }
                             }
-                        }
                         CompositionLocalProvider(
-                            LocalNavigationBottomPadding provides layoutPaddingValues.calculateBottomPadding(),
-                            LocalTopLevelBottomBarVisibleSetter provides { showTopLevelBottomBar = it },
-                            LocalTopLevelFabSetter provides { key, state ->
-                                if (state == null) {
-                                    topLevelFabStates.remove(key)
-                                } else {
-                                    topLevelFabStates[key] = state
-                                }
-                            },
+                            LocalNavigationBottomPadding provides
+                                layoutPaddingValues.calculateBottomPadding(),
+                            LocalTopLevelBottomBarVisibleSetter provides
+                                {
+                                    showTopLevelBottomBar = it
+                                },
+                            LocalTopLevelFabSetter provides
+                                { key, state ->
+                                    if (state == null) {
+                                        topLevelFabStates.remove(key)
+                                    } else {
+                                        topLevelFabStates[key] = state
+                                    }
+                                },
                         ) {
                             NavDisplay(
-                                entries = navState.rememberEntries(provider, navigationInsetsDecorator),
+                                entries =
+                                    navState.rememberEntries(provider, navigationInsetsDecorator),
                                 onBack = { navState.goBack() },
-                                transitionSpec = { navState.navigationTransition(initialState, targetState) },
-                                popTransitionSpec = { navState.navigationTransition(initialState, targetState) },
-                                predictivePopTransitionSpec = { navState.navigationTransition(initialState, targetState) },
+                                transitionSpec = {
+                                    navState.navigationTransition(initialState, targetState)
+                                },
+                                popTransitionSpec = {
+                                    navState.navigationTransition(initialState, targetState)
+                                },
+                                predictivePopTransitionSpec = {
+                                    navState.navigationTransition(initialState, targetState)
+                                },
                             )
                         }
                     }
@@ -224,13 +251,13 @@ fun NavigationLayout(
     var railWidth by remember(density) { mutableStateOf(0.dp) }
     val contentFocusRequester = remember { FocusRequester() }
     val fabFocusRequester = remember { FocusRequester() }
-    val showNavRail = windowSizeClass.isWidthAtLeastBreakpoint(WindowSizeClass.WIDTH_DP_MEDIUM_LOWER_BOUND)
-    val showNavigation = state.currentStack.lastOrNull()?.let { state.topLevelContentKeys.contains(it) } == true
+    val showNavRail =
+        windowSizeClass.isWidthAtLeastBreakpoint(WindowSizeClass.WIDTH_DP_MEDIUM_LOWER_BOUND)
+    val showNavigation =
+        state.currentStack.lastOrNull()?.let { state.topLevelContentKeys.contains(it) } == true
     val selectedFabState = state.destinations[state.selectedIndex].fabKey?.let(fabStates::get)
     var displayedFabState by remember { mutableStateOf<TopLevelFabState?>(null) }
-    LaunchedEffect(selectedFabState) {
-        selectedFabState?.let { displayedFabState = it }
-    }
+    LaunchedEffect(selectedFabState) { selectedFabState?.let { displayedFabState = it } }
 
     Box(modifier = Modifier.fillMaxSize()) {
         Scaffold(
@@ -254,29 +281,32 @@ fun NavigationLayout(
             contentWindowInsets = WindowInsets(0.dp),
             content = {
                 Box(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .thenIf(isTv) {
+                    modifier =
+                        Modifier.fillMaxWidth().thenIf(isTv) {
                             // The FAB sits outside screen content, whose full-height focus groups
-                            // overlap it. Enter the content explicitly instead of searching the rail.
+                            // overlap it. Enter the content explicitly instead of searching the
+                            // rail.
                             focusRequester(contentFocusRequester)
                                 .focusProperties {
                                     onExit = {
-                                        if (requestedFocusDirection == FocusDirection.Down &&
-                                            showNavigation && showBottomBar && displayedFabState != null
+                                        if (
+                                            requestedFocusDirection == FocusDirection.Down &&
+                                                showNavigation &&
+                                                showBottomBar &&
+                                                displayedFabState != null
                                         ) {
                                             fabFocusRequester.requestFocus()
                                         }
                                     }
                                 }
                                 .focusGroup()
-                        },
+                        }
                 ) {
                     content(
                         PaddingValues(
                             start = if (showNavRail) railWidth else 0.dp,
                             bottom = it.calculateBottomPadding(),
-                        ),
+                        )
                     )
                 }
             },
@@ -295,36 +325,32 @@ fun NavigationLayout(
 }
 
 /**
- * Returns `true` if dark theme should be used, as a function of the [state] and the
- * current system context.
+ * Returns `true` if dark theme should be used, as a function of the [state] and the current system
+ * context.
  */
 @Composable
-fun shouldUseDarkTheme(
-    state: MainActivityUiState,
-): Boolean = when (state) {
-    MainActivityUiState.Loading -> isSystemInDarkTheme()
-    is MainActivityUiState.Success -> when (state.preferences.themeConfig) {
-        ThemeConfig.SYSTEM -> isSystemInDarkTheme()
-        ThemeConfig.OFF -> false
-        ThemeConfig.ON -> true
+fun shouldUseDarkTheme(state: MainActivityUiState): Boolean =
+    when (state) {
+        MainActivityUiState.Loading -> isSystemInDarkTheme()
+        is MainActivityUiState.Success ->
+            when (state.preferences.themeConfig) {
+                ThemeConfig.SYSTEM -> isSystemInDarkTheme()
+                ThemeConfig.OFF -> false
+                ThemeConfig.ON -> true
+            }
     }
-}
 
 @Composable
-fun shouldUseHighContrastDarkTheme(
-    state: MainActivityUiState,
-): Boolean = when (state) {
-    MainActivityUiState.Loading -> false
-    is MainActivityUiState.Success -> state.preferences.useHighContrastDarkTheme
-}
+fun shouldUseHighContrastDarkTheme(state: MainActivityUiState): Boolean =
+    when (state) {
+        MainActivityUiState.Loading -> false
+        is MainActivityUiState.Success -> state.preferences.useHighContrastDarkTheme
+    }
 
-/**
- * Returns `true` if the dynamic color is disabled, as a function of the [state].
- */
+/** Returns `true` if the dynamic color is disabled, as a function of the [state]. */
 @Composable
-fun shouldUseDynamicTheming(
-    state: MainActivityUiState,
-): Boolean = when (state) {
-    MainActivityUiState.Loading -> false
-    is MainActivityUiState.Success -> state.preferences.useDynamicColors
-}
+fun shouldUseDynamicTheming(state: MainActivityUiState): Boolean =
+    when (state) {
+        MainActivityUiState.Loading -> false
+        is MainActivityUiState.Success -> state.preferences.useDynamicColors
+    }

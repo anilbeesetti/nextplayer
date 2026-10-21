@@ -52,10 +52,10 @@ fun BoxScope.DecoderSelectorView(
         title = stringResource(R.string.select_decoders),
     ) {
         Column(
-            modifier = Modifier
-                .verticalScroll(rememberScrollState())
-                .padding(horizontal = 24.dp)
-                .padding(bottom = 24.dp),
+            modifier =
+                Modifier.verticalScroll(rememberScrollState())
+                    .padding(horizontal = 24.dp)
+                    .padding(bottom = 24.dp),
             verticalArrangement = Arrangement.spacedBy(24.dp),
         ) {
             DecoderTrackTypeSelector(
@@ -63,14 +63,16 @@ fun BoxScope.DecoderSelectorView(
                 onTrackTypeSelected = { selectedTrackType = it },
             )
             DecoderModeGroup(
-                selectedMode = when (selectedTrackType) {
-                    DecoderTrackType.VIDEO -> videoMode
-                    DecoderTrackType.AUDIO -> audioMode
-                },
-                onModeSelected = when (selectedTrackType) {
-                    DecoderTrackType.VIDEO -> onVideoModeSelected
-                    DecoderTrackType.AUDIO -> onAudioModeSelected
-                },
+                selectedMode =
+                    when (selectedTrackType) {
+                        DecoderTrackType.VIDEO -> videoMode
+                        DecoderTrackType.AUDIO -> audioMode
+                    },
+                onModeSelected =
+                    when (selectedTrackType) {
+                        DecoderTrackType.VIDEO -> onVideoModeSelected
+                        DecoderTrackType.AUDIO -> onAudioModeSelected
+                    },
             )
         }
     }
@@ -90,12 +92,13 @@ private fun DecoderTrackTypeSelector(
                 shape = SegmentedButtonDefaults.itemShape(index, trackTypes.size),
             ) {
                 Text(
-                    text = stringResource(
-                        when (trackType) {
-                            DecoderTrackType.VIDEO -> R.string.video
-                            DecoderTrackType.AUDIO -> R.string.audio
-                        },
-                    ),
+                    text =
+                        stringResource(
+                            when (trackType) {
+                                DecoderTrackType.VIDEO -> R.string.video
+                                DecoderTrackType.AUDIO -> R.string.audio
+                            }
+                        )
                 )
             }
         }
@@ -125,11 +128,11 @@ private fun DecoderModeRow(
     onClick: () -> Unit,
 ) {
     Row(
-        modifier = Modifier
-            .fillMaxWidth()
-            .clip(RoundedCornerShape(4.dp))
-            .selectable(selected = selected, onClick = onClick, role = Role.RadioButton)
-            .padding(horizontal = 4.dp, vertical = 8.dp),
+        modifier =
+            Modifier.fillMaxWidth()
+                .clip(RoundedCornerShape(4.dp))
+                .selectable(selected = selected, onClick = onClick, role = Role.RadioButton)
+                .padding(horizontal = 4.dp, vertical = 8.dp),
         verticalAlignment = Alignment.CenterVertically,
         horizontalArrangement = Arrangement.spacedBy(8.dp),
     ) {

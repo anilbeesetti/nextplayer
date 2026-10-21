@@ -1,7 +1,6 @@
 package dev.anilbeesetti.nextplayer.core.ui.components
 
 import androidx.compose.foundation.ExperimentalFoundationApi
-import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.size
 import androidx.compose.material3.Checkbox
 import androidx.compose.material3.ExperimentalMaterial3ExpressiveApi
@@ -42,23 +41,18 @@ fun PreferenceItem(
         enabled = enabled,
         isFirstItem = isFirstItem,
         isLastItem = isLastItem,
-        leadingContent = icon?.let {
-            {
-                Icon(
-                    imageVector = icon,
-                    contentDescription = null,
-                    modifier = Modifier.size(24.dp),
-                )
-            }
-        },
-        supportingContent = description?.let {
-            {
-                Text(text = description)
-            }
-        },
-        content = {
-            Text(text = title)
-        },
+        leadingContent =
+            icon?.let {
+                {
+                    Icon(
+                        imageVector = icon,
+                        contentDescription = null,
+                        modifier = Modifier.size(24.dp),
+                    )
+                }
+            },
+        supportingContent = description?.let { { Text(text = description) } },
+        content = { Text(text = title) },
         trailingContent = trailingContent,
     )
 }
@@ -85,9 +79,11 @@ fun SelectablePreference(
             Text(
                 text = title,
                 maxLines = 1,
-                style = MaterialTheme.typography.titleMedium.copy(
-                    textDecoration = if (selected) TextDecoration.LineThrough else TextDecoration.None,
-                ),
+                style =
+                    MaterialTheme.typography.titleMedium.copy(
+                        textDecoration =
+                            if (selected) TextDecoration.LineThrough else TextDecoration.None
+                    ),
             )
         },
         supportingContent = {
@@ -95,9 +91,11 @@ fun SelectablePreference(
                 Text(
                     text = it,
                     overflow = TextOverflow.Ellipsis,
-                    style = MaterialTheme.typography.bodyMedium.copy(
-                        textDecoration = if (selected) TextDecoration.LineThrough else TextDecoration.None,
-                    ),
+                    style =
+                        MaterialTheme.typography.bodyMedium.copy(
+                            textDecoration =
+                                if (selected) TextDecoration.LineThrough else TextDecoration.None
+                        ),
                 )
             }
         },

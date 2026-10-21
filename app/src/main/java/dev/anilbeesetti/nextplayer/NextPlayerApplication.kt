@@ -19,9 +19,7 @@ import org.koin.core.qualifier.named
 import org.koin.plugin.module.dsl.startKoin
 
 @KoinApplication(modules = [AppModule::class])
-class NextPlayerApplication :
-    Application(),
-    SingletonImageLoader.Factory {
+class NextPlayerApplication : Application(), SingletonImageLoader.Factory {
 
     private val imageLoader: ImageLoader by inject()
 
@@ -37,13 +35,16 @@ class NextPlayerApplication :
             allowOverride(false)
             androidContext(this@NextPlayerApplication)
         }
-        Thread.setDefaultUncaughtExceptionHandler(GlobalExceptionHandler(applicationContext, CrashActivity::class.java))
+        Thread.setDefaultUncaughtExceptionHandler(
+            GlobalExceptionHandler(applicationContext, CrashActivity::class.java)
+        )
         applicationScope.launch {
             runCatching {
                 initializeSshKeyStore(networkConnectionRepository, sshKeyStore)
-            }.onFailure { error ->
-                Logger.logError(TAG, "Couldn't reconcile SSH keys: ${error.message}")
             }
+                .onFailure { error ->
+                    Logger.logError(TAG, "Couldn't reconcile SSH keys: ${error.message}")
+                }
         }
     }
 

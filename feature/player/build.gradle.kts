@@ -25,19 +25,12 @@ android {
         compose = true
     }
 
-    testOptions {
-        unitTests.isIncludeAndroidResources = true
-    }
+    testOptions { unitTests.isIncludeAndroidResources = true }
 }
 
-kotlin {
-    compilerOptions {
-        jvmTarget.set(JvmTarget.fromTarget(libs.versions.android.jvm.get()))
-    }
-}
+kotlin { compilerOptions { jvmTarget.set(JvmTarget.fromTarget(libs.versions.android.jvm.get())) } }
 
 dependencies {
-
     implementation(project(":core:common"))
     implementation(project(":core:ui"))
     implementation(project(":core:data"))

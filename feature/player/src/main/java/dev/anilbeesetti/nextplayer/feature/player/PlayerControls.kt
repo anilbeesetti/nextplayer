@@ -74,7 +74,9 @@ fun PlayerControls(
             }
             Spacer(modifier = Modifier.weight(1f))
             AnimatedVisibility(
-                visible = controlsVisibilityState.controlsVisible && !controlsVisibilityState.controlsLocked,
+                visible =
+                    controlsVisibilityState.controlsVisible &&
+                        !controlsVisibilityState.controlsLocked,
                 enter = fadeIn(),
                 exit = fadeOut(),
             ) {
@@ -83,10 +85,11 @@ fun PlayerControls(
                     progressState = progressState,
                     chaptersState = chaptersState,
                     onChaptersClick = { onShowOverlay(OverlayView.CHAPTERS) },
-                    controlsAlignment = when (playerPreferences.controlButtonsPosition) {
-                        ControlButtonsPosition.LEFT -> Alignment.Start
-                        ControlButtonsPosition.RIGHT -> Alignment.End
-                    },
+                    controlsAlignment =
+                        when (playerPreferences.controlButtonsPosition) {
+                            ControlButtonsPosition.LEFT -> Alignment.Start
+                            ControlButtonsPosition.RIGHT -> Alignment.End
+                        },
                     videoContentScale = videoZoomAndContentScaleState.videoContentScale,
                     isPipSupported = isPipSupported,
                     showRemainingTime = playerPreferences.showRemainingTime,
@@ -103,19 +106,30 @@ fun PlayerControls(
                         controlsVisibilityState.showControls()
                         videoZoomAndContentScaleState.switchToNextVideoContentScale()
                     },
-                    onVideoContentScaleLongClick = { onShowOverlay(OverlayView.VIDEO_CONTENT_SCALE) },
+                    onVideoContentScaleLongClick = {
+                        onShowOverlay(OverlayView.VIDEO_CONTENT_SCALE)
+                    },
                     onPictureInPictureClick = onPictureInPictureClick,
                 )
             }
         }
         when {
-            seekGestureState.seekAmount != null -> InfoView(info = "${seekGestureState.seekAmountFormatted}\n[${seekGestureState.seekToPositionFormated}]")
-            videoZoomAndContentScaleState.isZooming -> InfoView(info = "${(videoZoomAndContentScaleState.zoom * 100).toInt()}%")
-            videoZoomAndContentScaleState.showContentScaleIndicator -> InfoView(info = stringResource(videoZoomAndContentScaleState.videoContentScale.nameRes()))
-            controlsVisibilityState.controlsVisible -> ControlsMiddleView(
-                player = player,
-                modifier = middleControlsModifier,
-            )
+            seekGestureState.seekAmount != null ->
+                InfoView(
+                    info =
+                        "${seekGestureState.seekAmountFormatted}\n[${seekGestureState.seekToPositionFormated}]"
+                )
+            videoZoomAndContentScaleState.isZooming ->
+                InfoView(info = "${(videoZoomAndContentScaleState.zoom * 100).toInt()}%")
+            videoZoomAndContentScaleState.showContentScaleIndicator ->
+                InfoView(
+                    info = stringResource(videoZoomAndContentScaleState.videoContentScale.nameRes())
+                )
+            controlsVisibilityState.controlsVisible ->
+                ControlsMiddleView(
+                    player = player,
+                    modifier = middleControlsModifier,
+                )
         }
     }
 }

@@ -31,31 +31,44 @@ class PlayerPreferencesViewModelTest {
     }
 
     @Test
-    fun toggleTunneledPlaybackUpdatesRepositoryAndScreenState() = runTest(dispatcher) {
-        repository.updatePlayerPreferences {
-            it.copy(autoplay = false, preferredAudioLanguage = "en")
+    fun toggleTunneledPlaybackUpdatesRepositoryAndScreenState() =
+        runTest(dispatcher) {
+            repository.updatePlayerPreferences {
+                it.copy(autoplay = false, preferredAudioLanguage = "en")
+            }
+            val original = repository.playerPreferences.value
+            val viewModel =
+                PlayerPreferencesViewModel(
+                    repository,
+                    PlayerPreferencesViewModel.Output(navigateUp = {}),
+                )
+
+            viewModel.onAction(PlayerPreferencesUiEvent.ToggleTunneledPlayback)
+            advanceUntilIdle()
+
+            assertTrue(repository.playerPreferences.value.enableTunneledPlayback)
+            assertEquals(
+                original.copy(enableTunneledPlayback = true),
+                viewModel.state.value.preferences,
+            )
+
+            viewModel.onAction(PlayerPreferencesUiEvent.ToggleTunneledPlayback)
+            advanceUntilIdle()
+
+            assertFalse(repository.playerPreferences.value.enableTunneledPlayback)
+            assertEquals(original, viewModel.state.value.preferences)
         }
-        val original = repository.playerPreferences.value
-        val viewModel = PlayerPreferencesViewModel(repository, PlayerPreferencesViewModel.Output(navigateUp = {}))
-
-        viewModel.onAction(PlayerPreferencesUiEvent.ToggleTunneledPlayback)
-        advanceUntilIdle()
-
-        assertTrue(repository.playerPreferences.value.enableTunneledPlayback)
-        assertEquals(original.copy(enableTunneledPlayback = true), viewModel.state.value.preferences)
-
-        viewModel.onAction(PlayerPreferencesUiEvent.ToggleTunneledPlayback)
-        advanceUntilIdle()
-
-        assertFalse(repository.playerPreferences.value.enableTunneledPlayback)
-        assertEquals(original, viewModel.state.value.preferences)
-    }
 
     @Test
-    fun screenRestoresSavedTunneledPlaybackPreference() = runTest(dispatcher) {
-        repository.updatePlayerPreferences { it.copy(enableTunneledPlayback = true) }
-        val viewModel = PlayerPreferencesViewModel(repository, PlayerPreferencesViewModel.Output(navigateUp = {}))
+    fun screenRestoresSavedTunneledPlaybackPreference() =
+        runTest(dispatcher) {
+            repository.updatePlayerPreferences { it.copy(enableTunneledPlayback = true) }
+            val viewModel =
+                PlayerPreferencesViewModel(
+                    repository,
+                    PlayerPreferencesViewModel.Output(navigateUp = {}),
+                )
 
-        assertTrue(viewModel.state.value.preferences.enableTunneledPlayback)
-    }
+            assertTrue(viewModel.state.value.preferences.enableTunneledPlayback)
+        }
 }

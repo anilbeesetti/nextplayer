@@ -7,11 +7,12 @@ import dev.anilbeesetti.nextplayer.core.ui.R
 
 @Composable
 fun FastSeek.name(): String {
-    val stringRes = when (this) {
-        FastSeek.AUTO -> R.string.auto
-        FastSeek.ENABLE -> R.string.enable
-        FastSeek.DISABLE -> R.string.disable
-    }
+    val stringRes =
+        when (this) {
+            FastSeek.AUTO -> R.string.auto
+            FastSeek.ENABLE -> R.string.enable
+            FastSeek.DISABLE -> R.string.disable
+        }
 
     return stringResource(id = stringRes)
 }

@@ -21,14 +21,8 @@ fun PermissionRationaleDialog(
     AlertDialog(
         onDismissRequest = {},
         modifier = modifier,
-        title = {
-            Text(
-                text = stringResource(R.string.permission_request),
-            )
-        },
-        text = {
-            Text(text = text)
-        },
+        title = { Text(text = stringResource(R.string.permission_request)) },
+        text = { Text(text = text) },
         confirmButton = {
             Button(onClick = onConfirmButtonClick) {
                 Text(stringResource(R.string.grant_permission))
@@ -43,10 +37,11 @@ fun PermissionRationaleDialogPreview() {
     NextPlayerTheme {
         Surface {
             PermissionRationaleDialog(
-                text = stringResource(
-                    id = R.string.permission_info,
-                    Manifest.permission.READ_EXTERNAL_STORAGE,
-                ),
+                text =
+                    stringResource(
+                        id = R.string.permission_info,
+                        Manifest.permission.READ_EXTERNAL_STORAGE,
+                    ),
                 onConfirmButtonClick = {},
             )
         }

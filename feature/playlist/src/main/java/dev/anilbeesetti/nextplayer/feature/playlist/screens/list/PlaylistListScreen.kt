@@ -81,9 +81,10 @@ internal fun PlaylistListScreenContent(
     onAction: (PlaylistUiAction) -> Unit = {},
     onAddToHomeScreen: ((PlaylistSummary) -> Unit)? = null,
 ) {
-    val openM3UFileLauncher = rememberLauncherForActivityResult(ActivityResultContracts.OpenDocument()) { uri ->
-        uri?.let { onAction(PlaylistUiAction.CreateM3UFile(it)) }
-    }
+    val openM3UFileLauncher =
+        rememberLauncherForActivityResult(ActivityResultContracts.OpenDocument()) { uri ->
+            uri?.let { onAction(PlaylistUiAction.CreateM3UFile(it)) }
+        }
     BindTopLevelFab(
         key = TopLevelFabKey.PLAYLISTS,
         icon = NextIcons.Add,
@@ -113,11 +114,11 @@ internal fun PlaylistListScreenContent(
         containerColor = MaterialTheme.colorScheme.surfaceContainer,
     ) { scaffoldPadding ->
         Box(
-            modifier = Modifier
-                .fillMaxSize()
-                .padding(scaffoldPadding.copy(bottom = 0.dp))
-                .clip(RoundedCornerShape(topStart = 24.dp, topEnd = 24.dp))
-                .background(MaterialTheme.colorScheme.background),
+            modifier =
+                Modifier.fillMaxSize()
+                    .padding(scaffoldPadding.copy(bottom = 0.dp))
+                    .clip(RoundedCornerShape(topStart = 24.dp, topEnd = 24.dp))
+                    .background(MaterialTheme.colorScheme.background)
         ) {
             when (state.playlistsDataState) {
                 is DataState.Loading -> {
@@ -135,12 +136,15 @@ internal fun PlaylistListScreenContent(
                         PlaylistListEmptyState(Modifier.fillMaxSize())
                     } else {
                         LazyColumn(
-                            modifier = Modifier
-                                .fillMaxSize()
-                                .tvListFocus(),
-                            contentPadding = PaddingValues(8.dp).copy(
-                                bottom = scaffoldPadding.calculateBottomPadding() + navigationBottomPadding + 96.dp,
-                            ),
+                            modifier = Modifier.fillMaxSize().tvListFocus(),
+                            contentPadding =
+                                PaddingValues(8.dp)
+                                    .copy(
+                                        bottom =
+                                            scaffoldPadding.calculateBottomPadding() +
+                                                navigationBottomPadding +
+                                                96.dp
+                                    ),
                             verticalArrangement = Arrangement.spacedBy(2.dp),
                         ) {
                             itemsIndexed(
@@ -151,9 +155,15 @@ internal fun PlaylistListScreenContent(
                                     playlist = playlist,
                                     isFirstItem = index == 0,
                                     isLastItem = index == state.playlistsDataState.value.lastIndex,
-                                    onClick = { onAction(PlaylistUiAction.OnPlaylistClick(playlist)) },
-                                    onRename = { onAction(PlaylistUiAction.ShowRenameDialogFor(playlist)) },
-                                    onDelete = { onAction(PlaylistUiAction.ShowDeleteDialogFor(playlist)) },
+                                    onClick = {
+                                        onAction(PlaylistUiAction.OnPlaylistClick(playlist))
+                                    },
+                                    onRename = {
+                                        onAction(PlaylistUiAction.ShowRenameDialogFor(playlist))
+                                    },
+                                    onDelete = {
+                                        onAction(PlaylistUiAction.ShowDeleteDialogFor(playlist))
+                                    },
                                     onAddToHomeScreen = onAddToHomeScreen?.let { { it(playlist) } },
                                 )
                             }
@@ -166,31 +176,34 @@ internal fun PlaylistListScreenContent(
 
     when (state.creationDialog) {
         PlaylistCreationDialog.NONE -> Unit
-        PlaylistCreationDialog.CHOOSER -> CreationChooserDialog(
-            onDismissRequest = { onAction(PlaylistUiAction.DismissCreation) },
-            onCreateLocal = { onAction(PlaylistUiAction.ChooseLocalPlaylist) },
-            onCreateUrl = { onAction(PlaylistUiAction.ChooseM3UUrl) },
-            onCreateFile = {
-                onAction(PlaylistUiAction.DismissCreation)
-                openM3UFileLauncher.launch(M3U_MIME_TYPES)
-            },
-        )
+        PlaylistCreationDialog.CHOOSER ->
+            CreationChooserDialog(
+                onDismissRequest = { onAction(PlaylistUiAction.DismissCreation) },
+                onCreateLocal = { onAction(PlaylistUiAction.ChooseLocalPlaylist) },
+                onCreateUrl = { onAction(PlaylistUiAction.ChooseM3UUrl) },
+                onCreateFile = {
+                    onAction(PlaylistUiAction.DismissCreation)
+                    openM3UFileLauncher.launch(M3U_MIME_TYPES)
+                },
+            )
 
-        PlaylistCreationDialog.LOCAL_NAME -> PlaylistNameDialog(
-            title = stringResource(R.string.create_local_playlist),
-            confirmLabel = stringResource(R.string.create),
-            isSaving = state.saveActionState.isRunning,
-            error = state.saveActionState.errorMessage,
-            onDismissRequest = { onAction(PlaylistUiAction.DismissCreation) },
-            onConfirm = { onAction(PlaylistUiAction.CreateLocal(it)) },
-        )
+        PlaylistCreationDialog.LOCAL_NAME ->
+            PlaylistNameDialog(
+                title = stringResource(R.string.create_local_playlist),
+                confirmLabel = stringResource(R.string.create),
+                isSaving = state.saveActionState.isRunning,
+                error = state.saveActionState.errorMessage,
+                onDismissRequest = { onAction(PlaylistUiAction.DismissCreation) },
+                onConfirm = { onAction(PlaylistUiAction.CreateLocal(it)) },
+            )
 
-        PlaylistCreationDialog.M3U_URL -> M3UUrlDialog(
-            isSaving = state.saveActionState.isRunning,
-            error = state.saveActionState.errorMessage,
-            onDismissRequest = { onAction(PlaylistUiAction.DismissCreation) },
-            onConfirm = { onAction(PlaylistUiAction.CreateM3UUrl(it)) },
-        )
+        PlaylistCreationDialog.M3U_URL ->
+            M3UUrlDialog(
+                isSaving = state.saveActionState.isRunning,
+                error = state.saveActionState.errorMessage,
+                onDismissRequest = { onAction(PlaylistUiAction.DismissCreation) },
+                onConfirm = { onAction(PlaylistUiAction.CreateM3UUrl(it)) },
+            )
     }
 
     state.showRenameDialogFor?.let { playlist ->
@@ -209,9 +222,7 @@ internal fun PlaylistListScreenContent(
         NextDialog(
             title = { Text(text = stringResource(R.string.delete_playlist)) },
             content = {
-                Text(
-                    text = stringResource(R.string.delete_playlist_confirmation, playlist.name),
-                )
+                Text(text = stringResource(R.string.delete_playlist_confirmation, playlist.name))
             },
             confirmButton = {
                 TextButton(
@@ -374,8 +385,7 @@ private fun PlaylistNameDialog(
                     supportingText = {
                         when {
                             error != null -> Text(error)
-                            trimmedName.isEmpty() ->
-                                Text(stringResource(R.string.name_required))
+                            trimmedName.isEmpty() -> Text(stringResource(R.string.name_required))
                         }
                     },
                 )
@@ -389,9 +399,7 @@ private fun PlaylistNameDialog(
         },
         confirmButton = {
             TextButton(
-                onClick = {
-                    if (trimmedName.isNotEmpty()) onConfirm(trimmedName)
-                },
+                onClick = { if (trimmedName.isNotEmpty()) onConfirm(trimmedName) },
                 enabled = !isSaving && trimmedName.isNotEmpty(),
                 modifier = Modifier.tvFocusRing(),
             ) {
@@ -422,11 +430,12 @@ private fun PlaylistRow(
     onAddToHomeScreen: (() -> Unit)?,
 ) {
     var menuExpanded by rememberSaveable { mutableStateOf(false) }
-    val videoCount = pluralStringResource(
-        R.plurals.playlist_video_count,
-        playlist.itemCount,
-        playlist.itemCount,
-    )
+    val videoCount =
+        pluralStringResource(
+            R.plurals.playlist_video_count,
+            playlist.itemCount,
+            playlist.itemCount,
+        )
 
     NextSegmentedListItem(
         isFirstItem = isFirstItem,
@@ -503,30 +512,31 @@ private fun PlaylistRow(
 }
 
 @Composable
-private fun PlaylistType.label(): String = stringResource(
-    when (this) {
-        PlaylistType.LOCAL -> R.string.local_playlist
-        PlaylistType.M3U_URL -> R.string.m3u_url_playlist
-        PlaylistType.M3U_FILE -> R.string.m3u_file_playlist
-    },
-)
+private fun PlaylistType.label(): String =
+    stringResource(
+        when (this) {
+            PlaylistType.LOCAL -> R.string.local_playlist
+            PlaylistType.M3U_URL -> R.string.m3u_url_playlist
+            PlaylistType.M3U_FILE -> R.string.m3u_file_playlist
+        }
+    )
 
 private fun String.isHttpUrl(): Boolean = runCatching {
     val uri = Uri.parse(this)
-    (
-        uri.scheme.equals("http", ignoreCase = true) ||
-            uri.scheme.equals("https", ignoreCase = true)
-        ) && !uri.host.isNullOrBlank()
-}.getOrDefault(false)
+    (uri.scheme.equals("http", ignoreCase = true) ||
+        uri.scheme.equals("https", ignoreCase = true)) && !uri.host.isNullOrBlank()
+}
+    .getOrDefault(false)
 
-private val M3U_MIME_TYPES = arrayOf(
-    "application/vnd.apple.mpegurl",
-    "application/x-mpegURL",
-    "audio/mpegurl",
-    "audio/x-mpegurl",
-    "text/plain",
-    "application/octet-stream",
-)
+private val M3U_MIME_TYPES =
+    arrayOf(
+        "application/vnd.apple.mpegurl",
+        "application/x-mpegURL",
+        "audio/mpegurl",
+        "audio/x-mpegurl",
+        "text/plain",
+        "application/octet-stream",
+    )
 
 @Composable
 private fun PlaylistListEmptyState(modifier: Modifier = Modifier) {

@@ -8,8 +8,8 @@ import androidx.core.view.WindowInsetsCompat.Type
 import androidx.core.view.WindowInsetsControllerCompat
 
 /**
-* Must call this function after any configuration done to activity to keep system bars behaviour
-*/
+ * Must call this function after any configuration done to activity to keep system bars behaviour
+ */
 fun Activity.swipeToShowStatusBars() {
     WindowCompat.getInsetsController(window, window.decorView).systemBarsBehavior =
         WindowInsetsControllerCompat.BEHAVIOR_SHOW_TRANSIENT_BARS_BY_SWIPE
@@ -17,6 +17,7 @@ fun Activity.swipeToShowStatusBars() {
 
 /**
  * Toggles system bars visibility
+ *
  * @param showBars true to show system bars, false to hide
  * @param types [Type.InsetsType] system bars to toggle default is all system bars
  */
@@ -28,10 +29,13 @@ fun Activity.toggleSystemBars(showBars: Boolean, @Type.InsetsType types: Int = T
 }
 
 val Activity.currentBrightness: Float
-    get() = when (val brightness = window.attributes.screenBrightness) {
-        in WindowManager.LayoutParams.BRIGHTNESS_OVERRIDE_OFF..WindowManager.LayoutParams.BRIGHTNESS_OVERRIDE_FULL -> brightness
-        else -> Settings.System.getFloat(contentResolver, Settings.System.SCREEN_BRIGHTNESS) / 255
-    }
+    get() =
+        when (val brightness = window.attributes.screenBrightness) {
+            in WindowManager.LayoutParams.BRIGHTNESS_OVERRIDE_OFF..WindowManager.LayoutParams
+                    .BRIGHTNESS_OVERRIDE_FULL -> brightness
+            else ->
+                Settings.System.getFloat(contentResolver, Settings.System.SCREEN_BRIGHTNESS) / 255
+        }
 
 val Activity.brightnessPercentage: Int
     get() = (currentBrightness / WindowManager.LayoutParams.BRIGHTNESS_OVERRIDE_FULL * 100).toInt()

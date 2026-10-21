@@ -12,16 +12,17 @@ class SftpOwnedInputStreamTest {
     fun `reads from requested offset and advances by bytes read`() {
         val positions = mutableListOf<Long>()
         val results = ArrayDeque(listOf(3, 2))
-        val stream = SftpOwnedInputStream(
-            offset = 41L,
-            reader = { position, _, _, _ ->
-                positions += position
-                results.removeFirst()
-            },
-            remoteFile = Closeable {},
-            sftpClient = Closeable {},
-            sshClient = Closeable {},
-        )
+        val stream =
+            SftpOwnedInputStream(
+                offset = 41L,
+                reader = { position, _, _, _ ->
+                    positions += position
+                    results.removeFirst()
+                },
+                remoteFile = Closeable {},
+                sftpClient = Closeable {},
+                sshClient = Closeable {},
+            )
 
         assertEquals(3, stream.read(ByteArray(8), 1, 4))
         assertEquals(2, stream.read(ByteArray(8), 0, 2))
@@ -31,16 +32,17 @@ class SftpOwnedInputStreamTest {
     @Test
     fun `end of file is preserved without advancing position`() {
         val positions = mutableListOf<Long>()
-        val stream = SftpOwnedInputStream(
-            offset = 9L,
-            reader = { position, _, _, _ ->
-                positions += position
-                -1
-            },
-            remoteFile = Closeable {},
-            sftpClient = Closeable {},
-            sshClient = Closeable {},
-        )
+        val stream =
+            SftpOwnedInputStream(
+                offset = 9L,
+                reader = { position, _, _, _ ->
+                    positions += position
+                    -1
+                },
+                remoteFile = Closeable {},
+                sftpClient = Closeable {},
+                sshClient = Closeable {},
+            )
 
         assertEquals(-1, stream.read(ByteArray(4)))
         assertEquals(-1, stream.read(ByteArray(4)))
@@ -50,16 +52,17 @@ class SftpOwnedInputStreamTest {
     @Test
     fun `invalid bulk read ranges fail locally without invoking reader`() {
         var readerCalls = 0
-        val stream = SftpOwnedInputStream(
-            offset = 0L,
-            reader = { _, _, _, _ ->
-                readerCalls++
-                -1
-            },
-            remoteFile = Closeable {},
-            sftpClient = Closeable {},
-            sshClient = Closeable {},
-        )
+        val stream =
+            SftpOwnedInputStream(
+                offset = 0L,
+                reader = { _, _, _, _ ->
+                    readerCalls++
+                    -1
+                },
+                remoteFile = Closeable {},
+                sftpClient = Closeable {},
+                sshClient = Closeable {},
+            )
         val buffer = ByteArray(4)
 
         assertThrows(IndexOutOfBoundsException::class.java) { stream.read(buffer, -1, 1) }
@@ -72,16 +75,17 @@ class SftpOwnedInputStreamTest {
     @Test
     fun `zero length bulk read returns zero without invoking reader at EOF`() {
         var readerCalls = 0
-        val stream = SftpOwnedInputStream(
-            offset = 0L,
-            reader = { _, _, _, _ ->
-                readerCalls++
-                -1
-            },
-            remoteFile = Closeable {},
-            sftpClient = Closeable {},
-            sshClient = Closeable {},
-        )
+        val stream =
+            SftpOwnedInputStream(
+                offset = 0L,
+                reader = { _, _, _, _ ->
+                    readerCalls++
+                    -1
+                },
+                remoteFile = Closeable {},
+                sftpClient = Closeable {},
+                sshClient = Closeable {},
+            )
 
         assertEquals(0, stream.read(ByteArray(4), 4, 0))
         assertEquals(0, readerCalls)
@@ -92,16 +96,18 @@ class SftpOwnedInputStreamTest {
         var remoteFileCloses = 0
         var sftpClientCloses = 0
         var sshClientCloses = 0
-        val stream = SftpOwnedInputStream(
-            offset = 0L,
-            reader = { _, _, _, _ -> -1 },
-            remoteFile = Closeable {
-                remoteFileCloses++
-                throw IOException("Remote file close failed")
-            },
-            sftpClient = Closeable { sftpClientCloses++ },
-            sshClient = Closeable { sshClientCloses++ },
-        )
+        val stream =
+            SftpOwnedInputStream(
+                offset = 0L,
+                reader = { _, _, _, _ -> -1 },
+                remoteFile =
+                    Closeable {
+                        remoteFileCloses++
+                        throw IOException("Remote file close failed")
+                    },
+                sftpClient = Closeable { sftpClientCloses++ },
+                sshClient = Closeable { sshClientCloses++ },
+            )
 
         stream.close()
         stream.close()

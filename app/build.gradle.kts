@@ -25,9 +25,7 @@ android {
         buildConfig = true
     }
 
-    testOptions {
-        unitTests.isIncludeAndroidResources = true
-    }
+    testOptions { unitTests.isIncludeAndroidResources = true }
 
     compileOptions {
         sourceCompatibility = JavaVersion.toVersion(libs.versions.android.jvm.get().toInt())
@@ -69,7 +67,8 @@ android {
     splits {
         abi {
             //noinspection WrongGradleMethod
-            val isBuildingBundle = gradle.startParameter.taskNames.any { it.lowercase().contains("bundle") }
+            val isBuildingBundle =
+                gradle.startParameter.taskNames.any { it.lowercase().contains("bundle") }
 
             isEnable = !isBuildingBundle
             reset()
@@ -78,11 +77,7 @@ android {
         }
     }
 
-    packaging {
-        resources {
-            excludes.add("/META-INF/{AL2.0,LGPL2.1}")
-        }
-    }
+    packaging { resources { excludes.add("/META-INF/{AL2.0,LGPL2.1}") } }
 
     dependenciesInfo {
         // Disables dependency metadata when building APKs.
@@ -92,14 +87,9 @@ android {
     }
 }
 
-kotlin {
-    compilerOptions {
-        jvmTarget.set(JvmTarget.fromTarget(libs.versions.android.jvm.get()))
-    }
-}
+kotlin { compilerOptions { jvmTarget.set(JvmTarget.fromTarget(libs.versions.android.jvm.get())) } }
 
 dependencies {
-
     implementation(project(":core:common"))
     implementation(project(":core:data"))
     implementation(project(":core:media"))

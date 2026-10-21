@@ -57,7 +57,7 @@ playlist, and `playWhenReady` remain intact.
 Use the sibling nextlib checkout without changing published dependencies:
 
 ```sh
-ANDROID_HOME=/path/to/sdk ./gradlew -PnextlibPath=../nextlib assembleDebug test ktlintCheck
+ANDROID_HOME=/path/to/sdk ./gradlew -PnextlibPath=../nextlib assembleDebug test ktfmtCheck
 ```
 
 Without `nextlibPath`, Gradle uses the published version. Tests cover fallback exhaustion,

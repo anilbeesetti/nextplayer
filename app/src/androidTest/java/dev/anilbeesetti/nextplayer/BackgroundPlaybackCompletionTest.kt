@@ -32,10 +32,10 @@ class BackgroundPlaybackCompletionTest {
     private val instrumentation = InstrumentationRegistry.getInstrumentation()
 
     @Test
-    fun wakingAfterBackgroundCompletionDoesNotReplayClearedQueue() = checkCompletion(autoplay = false)
+    fun wakingAfterBackgroundCompletionDoesNotReplayClearedQueue() =
+        checkCompletion(autoplay = false)
 
-    @Test
-    fun wakingAfterBackgroundCompletionClosesEndedQueue() = checkCompletion(autoplay = true)
+    @Test fun wakingAfterBackgroundCompletionClosesEndedQueue() = checkCompletion(autoplay = true)
 
     private fun checkCompletion(autoplay: Boolean) {
         val context = instrumentation.targetContext
@@ -43,27 +43,46 @@ class BackgroundPlaybackCompletionTest {
         val originalPreferences = preferences.playerPreferences.value
         runBlocking {
             preferences.updatePlayerPreferences {
-                it.copy(autoBackgroundPlay = true, autoPip = false, autoplay = autoplay, loopMode = LoopMode.OFF)
+                it.copy(
+                    autoBackgroundPlay = true,
+                    autoPip = false,
+                    autoplay = autoplay,
+                    loopMode = LoopMode.OFF,
+                )
             }
         }
         await("background playback preferences") {
-            preferences.playerPreferences.value.let { it.autoBackgroundPlay && !it.autoPip && it.autoplay == autoplay }
+            preferences.playerPreferences.value.let {
+                it.autoBackgroundPlay && !it.autoPip && it.autoplay == autoplay
+            }
         }
 
         val audio = File(context.cacheDir, "background-completion-${System.nanoTime()}.wav")
         val pcm = ByteArray(16_000 * 2 * 60)
-        val header = ByteBuffer.allocate(44).order(ByteOrder.LITTLE_ENDIAN)
-            .put("RIFF".toByteArray()).putInt(36 + pcm.size).put("WAVEfmt ".toByteArray())
-            .putInt(16).putShort(1).putShort(1).putInt(16_000).putInt(32_000)
-            .putShort(2).putShort(16).put("data".toByteArray()).putInt(pcm.size)
+        val header =
+            ByteBuffer.allocate(44)
+                .order(ByteOrder.LITTLE_ENDIAN)
+                .put("RIFF".toByteArray())
+                .putInt(36 + pcm.size)
+                .put("WAVEfmt ".toByteArray())
+                .putInt(16)
+                .putShort(1)
+                .putShort(1)
+                .putInt(16_000)
+                .putInt(32_000)
+                .putShort(2)
+                .putShort(16)
+                .put("data".toByteArray())
+                .putInt(pcm.size)
         audio.outputStream().use {
             it.write(header.array())
             it.write(pcm)
         }
-        val intent = Intent(context, PlayerActivity::class.java)
-            .addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
-            .setData(Uri.fromFile(audio))
-            .putExtra(PlayerApi.API_POSITION, 45_000)
+        val intent =
+            Intent(context, PlayerActivity::class.java)
+                .addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
+                .setData(Uri.fromFile(audio))
+                .putExtra(PlayerApi.API_POSITION, 45_000)
         var activity: PlayerActivity? = null
         var player: MediaController? = null
         try {
@@ -73,14 +92,21 @@ class BackgroundPlaybackCompletionTest {
             activity = firstActivity
             lateinit var future: ListenableFuture<MediaController>
             onMain {
-                future = MediaController.Builder(
-                    context,
-                    SessionToken(context, ComponentName(context, PlayerService::class.java)),
-                ).buildAsync()
+                future =
+                    MediaController.Builder(
+                            context,
+                            SessionToken(
+                                context,
+                                ComponentName(context, PlayerService::class.java),
+                            ),
+                        )
+                        .buildAsync()
             }
             val controller = future.get(10, TimeUnit.SECONDS)
             player = controller
-            await("resumed playback") { controller.isPlaying && controller.currentPosition >= 45_000 }
+            await("resumed playback") {
+                controller.isPlaying && controller.currentPosition >= 45_000
+            }
 
             shell("input keyevent KEYCODE_SLEEP")
             await("screen off") { firstActivity.lifecycle.currentState == Lifecycle.State.CREATED }
@@ -89,15 +115,20 @@ class BackgroundPlaybackCompletionTest {
                 controller.seekTo(59_500)
             }
             await("background completion") {
-                if (autoplay) controller.playbackState == Player.STATE_ENDED else controller.mediaItemCount == 0
+                if (autoplay) controller.playbackState == Player.STATE_ENDED
+                else controller.mediaItemCount == 0
             }
             shell("input keyevent KEYCODE_WAKEUP")
             shell("wm dismiss-keyguard")
-            await("completed player activity to close without replaying") { firstActivity.isDestroyed }
+            await("completed player activity to close without replaying") {
+                firstActivity.isDestroyed
+            }
 
             // A deliberate new request for the same media must still start playback.
             activity = instrumentation.startActivitySync(intent) as PlayerActivity
-            await("explicit replay") { controller.isPlaying && controller.currentPosition >= 45_000 }
+            await("explicit replay") {
+                controller.isPlaying && controller.currentPosition >= 45_000
+            }
         } finally {
             shell("input keyevent KEYCODE_WAKEUP")
             shell("wm dismiss-keyguard")
@@ -117,7 +148,10 @@ class BackgroundPlaybackCompletionTest {
     private fun onMain(block: () -> Unit) = instrumentation.runOnMainSync(block)
 
     private fun shell(command: String) {
-        ParcelFileDescriptor.AutoCloseInputStream(instrumentation.uiAutomation.executeShellCommand(command)).use { it.readBytes() }
+        ParcelFileDescriptor.AutoCloseInputStream(
+                instrumentation.uiAutomation.executeShellCommand(command)
+            )
+            .use { it.readBytes() }
     }
 
     private fun await(description: String, condition: () -> Boolean) {

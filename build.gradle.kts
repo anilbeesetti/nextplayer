@@ -1,5 +1,5 @@
-import org.gradle.api.tasks.testing.logging.TestLogEvent
 import org.gradle.api.tasks.testing.logging.TestExceptionFormat
+import org.gradle.api.tasks.testing.logging.TestLogEvent
 
 plugins {
     alias(libs.plugins.aboutLibraries) apply false
@@ -9,37 +9,33 @@ plugins {
     alias(libs.plugins.koin.compiler) apply false
     alias(libs.plugins.kotlinJvm) apply false
     alias(libs.plugins.ksp) apply false
-    alias(libs.plugins.ktlint) apply false
+    alias(libs.plugins.ktfmt)
 }
 
 subprojects {
-    apply(plugin = rootProject.libs.plugins.ktlint.get().pluginId)
     apply(plugin = rootProject.libs.plugins.aboutLibraries.get().pluginId)
-
-    configure<org.jlleitschuh.gradle.ktlint.KtlintExtension> {
-        android.set(true)
-        outputColorName.set("RED")
-        ignoreFailures.set(false)
-    }
 
     configure<com.mikepenz.aboutlibraries.plugin.AboutLibrariesExtension> {
         offlineMode.set(true)
-        export {
-            excludeFields.addAll("generated")
-        }
+        export { excludeFields.addAll("generated") }
     }
 }
 
 allprojects {
+    apply(plugin = rootProject.libs.plugins.ktfmt.get().pluginId)
+
+    configure<com.ncorti.ktfmt.gradle.KtfmtExtension> { kotlinLangStyle() }
+
     tasks.withType<Test>().configureEach {
         testLogging {
-            events = setOf(
-                TestLogEvent.PASSED,
-                TestLogEvent.FAILED,
-                TestLogEvent.SKIPPED,
-                TestLogEvent.STANDARD_OUT,
-                TestLogEvent.STANDARD_ERROR
-            )
+            events =
+                setOf(
+                    TestLogEvent.PASSED,
+                    TestLogEvent.FAILED,
+                    TestLogEvent.SKIPPED,
+                    TestLogEvent.STANDARD_OUT,
+                    TestLogEvent.STANDARD_ERROR,
+                )
 
             exceptionFormat = TestExceptionFormat.FULL
             showExceptions = true

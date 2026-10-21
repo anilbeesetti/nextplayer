@@ -16,8 +16,8 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.window.Dialog
 
 /**
- * A non-dismissible dialog showing a spinner next to [message], used while the vault is
- * moving files in or out (hide / unhide).
+ * A non-dismissible dialog showing a spinner next to [message], used while the vault is moving
+ * files in or out (hide / unhide).
  */
 @Composable
 fun VaultProgressDialog(message: String) {

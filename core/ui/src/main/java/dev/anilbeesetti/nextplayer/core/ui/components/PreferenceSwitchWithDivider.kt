@@ -35,17 +35,19 @@ fun PreferenceSwitchWithDivider(
     isLastItem: Boolean = false,
 ) {
     PreferenceItem(
-        modifier = Modifier.onPreviewKeyEvent { event ->
-            if (enabled &&
-                event.type == KeyEventType.KeyDown &&
-                (event.key == Key.DirectionLeft || event.key == Key.DirectionRight)
-            ) {
-                onChecked()
-                true
-            } else {
-                false
-            }
-        },
+        modifier =
+            Modifier.onPreviewKeyEvent { event ->
+                if (
+                    enabled &&
+                        event.type == KeyEventType.KeyDown &&
+                        (event.key == Key.DirectionLeft || event.key == Key.DirectionRight)
+                ) {
+                    onChecked()
+                    true
+                } else {
+                    false
+                }
+            },
         title = title,
         description = description,
         icon = icon,
@@ -54,13 +56,9 @@ fun PreferenceSwitchWithDivider(
         isFirstItem = isFirstItem,
         isLastItem = isLastItem,
         trailingContent = {
-            Row(
-                verticalAlignment = Alignment.CenterVertically,
-            ) {
+            Row(verticalAlignment = Alignment.CenterVertically) {
                 VerticalDivider(
-                    modifier = Modifier
-                        .padding(end = 12.dp)
-                        .height(40.dp),
+                    modifier = Modifier.padding(end = 12.dp).height(40.dp),
                     color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.3f),
                 )
                 NextSwitch(
@@ -100,16 +98,16 @@ fun PreferenceCheckbox(
         title = title,
         description = description,
         icon = icon,
-        modifier = Modifier
-            .toggleable(
-                value = isChecked,
-                enabled = enabled,
-                onValueChange = { onClick() },
-            )
-            .combinedClickable(
-                onClick = onClick,
-                onLongClick = onLongClick,
-            ),
+        modifier =
+            Modifier.toggleable(
+                    value = isChecked,
+                    enabled = enabled,
+                    onValueChange = { onClick() },
+                )
+                .combinedClickable(
+                    onClick = onClick,
+                    onLongClick = onLongClick,
+                ),
         enabled = enabled,
         trailingContent = {
             Checkbox(

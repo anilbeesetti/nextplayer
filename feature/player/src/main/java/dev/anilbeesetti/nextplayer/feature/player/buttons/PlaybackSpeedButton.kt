@@ -45,16 +45,18 @@ fun PlaybackSpeedButton(
         ) {
             BasicText(
                 text = state.playbackSpeed.round(2).toString(),
-                style = MaterialTheme.typography.labelLarge.copy(
-                    color = LocalContentColor.current,
-                    textAlign = TextAlign.Center,
-                ),
+                style =
+                    MaterialTheme.typography.labelLarge.copy(
+                        color = LocalContentColor.current,
+                        textAlign = TextAlign.Center,
+                    ),
                 maxLines = 1,
-                autoSize = TextAutoSize.StepBased(
-                    maxFontSize = MaterialTheme.typography.labelLarge.fontSize,
-                    minFontSize = 6.sp,
-                    stepSize = 0.5.sp,
-                ),
+                autoSize =
+                    TextAutoSize.StepBased(
+                        maxFontSize = MaterialTheme.typography.labelLarge.fontSize,
+                        minFontSize = 6.sp,
+                        stepSize = 0.5.sp,
+                    ),
             )
         }
     }

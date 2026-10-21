@@ -10,8 +10,7 @@ import kotlinx.serialization.Serializable
 import org.koin.compose.viewmodel.koinViewModel
 import org.koin.core.parameter.parametersOf
 
-@Serializable
-object PlayerPreferencesRoute : NavKey
+@Serializable object PlayerPreferencesRoute : NavKey
 
 fun NavBackStack<NavKey>.navigateToPlayerPreferences() {
     add(PlayerPreferencesRoute)
@@ -19,12 +18,9 @@ fun NavBackStack<NavKey>.navigateToPlayerPreferences() {
 
 fun EntryProviderScope<NavKey>.playerPreferencesEntry(onNavigateUp: () -> Unit) {
     entry<PlayerPreferencesRoute> {
-        val output = PlayerPreferencesViewModel.Output(
-            navigateUp = onNavigateUp,
-        )
-        val viewModel = koinViewModel<PlayerPreferencesViewModel>(
-            parameters = { parametersOf(output) },
-        )
+        val output = PlayerPreferencesViewModel.Output(navigateUp = onNavigateUp)
+        val viewModel =
+            koinViewModel<PlayerPreferencesViewModel>(parameters = { parametersOf(output) })
         SideEffect { viewModel.output = output }
         PlayerPreferencesScreen(viewModel = viewModel)
     }

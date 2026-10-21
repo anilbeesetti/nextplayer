@@ -12,11 +12,9 @@ import kotlinx.serialization.Serializable
 import org.koin.compose.viewmodel.koinViewModel
 import org.koin.core.parameter.parametersOf
 
-@Serializable
-object AboutPreferencesRoute : NavKey
+@Serializable object AboutPreferencesRoute : NavKey
 
-@Serializable
-object LibrariesRoute : NavKey
+@Serializable object LibrariesRoute : NavKey
 
 fun NavBackStack<NavKey>.navigateToAboutPreferences() {
     add(AboutPreferencesRoute)
@@ -31,10 +29,13 @@ fun EntryProviderScope<NavKey>.aboutPreferencesEntry(
     onNavigateUp: () -> Unit,
 ) {
     entry<AboutPreferencesRoute> {
-        val output = AboutPreferencesViewModel.Output(navigateUp = onNavigateUp, openLibraries = onLibrariesClick)
-        val viewModel = koinViewModel<AboutPreferencesViewModel>(
-            parameters = { parametersOf(output) },
-        )
+        val output =
+            AboutPreferencesViewModel.Output(
+                navigateUp = onNavigateUp,
+                openLibraries = onLibrariesClick,
+            )
+        val viewModel =
+            koinViewModel<AboutPreferencesViewModel>(parameters = { parametersOf(output) })
         SideEffect { viewModel.output = output }
         AboutPreferencesScreen(viewModel = viewModel)
     }
@@ -43,9 +44,7 @@ fun EntryProviderScope<NavKey>.aboutPreferencesEntry(
 fun EntryProviderScope<NavKey>.librariesEntry(onNavigateUp: () -> Unit) {
     entry<LibrariesRoute> {
         val output = LibrariesViewModel.Output(navigateUp = onNavigateUp)
-        val viewModel = koinViewModel<LibrariesViewModel>(
-            parameters = { parametersOf(output) },
-        )
+        val viewModel = koinViewModel<LibrariesViewModel>(parameters = { parametersOf(output) })
         SideEffect { viewModel.output = output }
         LibrariesScreen(viewModel = viewModel)
     }

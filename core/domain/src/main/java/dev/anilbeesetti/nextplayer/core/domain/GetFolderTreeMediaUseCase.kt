@@ -33,20 +33,34 @@ class GetFolderTreeMediaUseCase(
 
     operator fun invoke(folderPath: String? = null): Flow<MediaHolder> {
         return combine(
-            mediaRepository.observeVideos(folderPath),
-            preferencesRepository.applicationPreferences,
-            newVideoClock(),
-        ) { videos, preferences, nowMillis ->
-            val included = videos.filterNot { it.parentPath in preferences.excludeFolders }
-            val sort = Sort(by = preferences.sortBy, order = preferences.sortOrder)
-            val thresholdDays = preferences.newVideoThresholdDays
+                mediaRepository.observeVideos(folderPath),
+                preferencesRepository.applicationPreferences,
+                newVideoClock(),
+            ) { videos, preferences, nowMillis ->
+                val included = videos.filterNot { it.parentPath in preferences.excludeFolders }
+                val sort = Sort(by = preferences.sortBy, order = preferences.sortOrder)
+                val thresholdDays = preferences.newVideoThresholdDays
 
-            if (folderPath != null) {
-                mediaUnder(folderPath, included, preferences.excludeFolders, sort, thresholdDays, nowMillis)
-            } else {
-                topLevelMedia(included, preferences.excludeFolders, sort, thresholdDays, nowMillis)
+                if (folderPath != null) {
+                    mediaUnder(
+                        folderPath,
+                        included,
+                        preferences.excludeFolders,
+                        sort,
+                        thresholdDays,
+                        nowMillis,
+                    )
+                } else {
+                    topLevelMedia(
+                        included,
+                        preferences.excludeFolders,
+                        sort,
+                        thresholdDays,
+                        nowMillis,
+                    )
+                }
             }
-        }.flowOn(defaultDispatcher)
+            .flowOn(defaultDispatcher)
     }
 
     private fun topLevelMedia(
@@ -58,19 +72,26 @@ class GetFolderTreeMediaUseCase(
     ): MediaHolder {
         val volumeRoots = videos.mapNotNull { volumeRootOf(it.path) }.distinct()
         if (volumeRoots.size <= 1) {
-            val root = volumeRoots.firstOrNull()
-                ?: return MediaHolder(videos = emptyList(), folders = emptyList())
+            val root =
+                volumeRoots.firstOrNull()
+                    ?: return MediaHolder(videos = emptyList(), folders = emptyList())
             return mediaUnder(root, videos, excludedFolders, sort, thresholdDays, nowMillis)
         }
-        val folders = volumeRoots
-            .filterNot { it in excludedFolders }
-            .map { volumeRoot ->
-                summarize(volumeRoot, videosUnder(volumeRoot, videos), thresholdDays, nowMillis)
-            }
-        return MediaHolder(videos = emptyList(), folders = folders.sortedWith(sort.folderComparator()))
+        val folders =
+            volumeRoots
+                .filterNot { it in excludedFolders }
+                .map { volumeRoot ->
+                    summarize(volumeRoot, videosUnder(volumeRoot, videos), thresholdDays, nowMillis)
+                }
+        return MediaHolder(
+            videos = emptyList(),
+            folders = folders.sortedWith(sort.folderComparator()),
+        )
     }
 
-    /** The videos directly inside [root] plus a [Folder] for each immediate subfolder with videos. */
+    /**
+     * The videos directly inside [root] plus a [Folder] for each immediate subfolder with videos.
+     */
     private fun mediaUnder(
         root: String,
         videos: List<Video>,
@@ -81,11 +102,17 @@ class GetFolderTreeMediaUseCase(
     ): MediaHolder {
         val descendants = videosUnder(root, videos)
         val directVideos = descendants.filter { it.parentPath == root }
-        val folders = immediateChildFolders(root, descendants)
-            .filterNot { it in excludedFolders }
-            .map { childPath ->
-                summarize(childPath, videosUnder(childPath, descendants), thresholdDays, nowMillis)
-            }
+        val folders =
+            immediateChildFolders(root, descendants)
+                .filterNot { it in excludedFolders }
+                .map { childPath ->
+                    summarize(
+                        childPath,
+                        videosUnder(childPath, descendants),
+                        thresholdDays,
+                        nowMillis,
+                    )
+                }
 
         return MediaHolder(
             videos = directVideos.sortedWith(sort.videoComparator()),
@@ -110,13 +137,17 @@ class GetFolderTreeMediaUseCase(
             totalDuration = descendantVideos.sumOf { it.duration },
             videosCount = descendantVideos.count { it.parentPath == path },
             foldersCount = immediateChildFolders(path, descendantVideos).size,
-            newVideosCount = descendantVideos.count {
-                it.isNew(nowMillis = nowMillis, thresholdDays = thresholdDays)
-            },
+            newVideosCount =
+                descendantVideos.count {
+                    it.isNew(nowMillis = nowMillis, thresholdDays = thresholdDays)
+                },
         )
     }
 
-    /** Distinct immediate subfolders of [path] that contain at least one of [videos] (which are all beneath [path]). */
+    /**
+     * Distinct immediate subfolders of [path] that contain at least one of [videos] (which are all
+     * beneath [path]).
+     */
     private fun immediateChildFolders(path: String, videos: List<Video>): List<String> {
         val prefix = path + File.separator
         return videos
@@ -139,7 +170,8 @@ class GetFolderTreeMediaUseCase(
     private fun volumeRootOf(path: String): String? {
         val parts = path.split('/').filter { it.isNotEmpty() }
         return when {
-            parts.size >= 3 && parts[0] == "storage" && parts[1] == "emulated" -> "/storage/emulated/${parts[2]}"
+            parts.size >= 3 && parts[0] == "storage" && parts[1] == "emulated" ->
+                "/storage/emulated/${parts[2]}"
             parts.size >= 2 && parts[0] == "storage" -> "/storage/${parts[1]}"
             else -> null
         }

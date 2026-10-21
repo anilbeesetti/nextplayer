@@ -30,9 +30,7 @@ internal fun VaultBiometricSetupDialog(onComplete: (Boolean) -> Unit) {
             }
         },
         dismissButton = {
-            TextButton(onClick = { onComplete(false) }) {
-                Text(stringResource(R.string.not_now))
-            }
+            TextButton(onClick = { onComplete(false) }) { Text(stringResource(R.string.not_now)) }
         },
     )
 

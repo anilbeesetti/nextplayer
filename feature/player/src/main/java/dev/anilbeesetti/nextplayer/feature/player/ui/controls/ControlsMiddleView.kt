@@ -31,13 +31,13 @@ fun ControlsMiddleView(
 ) {
     val playPauseFocusRequester = remember { FocusRequester() }
     Row(
-        modifier = modifier
-            .fillMaxWidth()
-            .focusProperties {
-                onEnter = { playPauseFocusRequester.requestFocus() }
-            }
-            .focusGroup(),
-        horizontalArrangement = Arrangement.spacedBy(40.dp, alignment = Alignment.CenterHorizontally),
+        modifier =
+            modifier
+                .fillMaxWidth()
+                .focusProperties { onEnter = { playPauseFocusRequester.requestFocus() } }
+                .focusGroup(),
+        horizontalArrangement =
+            Arrangement.spacedBy(40.dp, alignment = Alignment.CenterHorizontally),
         verticalAlignment = Alignment.CenterVertically,
     ) {
         PreviousButton(player = player)
@@ -54,10 +54,6 @@ fun ControlsMiddleView(
 @Composable
 private fun ControlsMiddleViewPreview() {
     NextPlayerTheme(darkTheme = true) {
-        Surface {
-            ControlsMiddleView(
-                player = rememberPreviewPlayer(),
-            )
-        }
+        Surface { ControlsMiddleView(player = rememberPreviewPlayer()) }
     }
 }

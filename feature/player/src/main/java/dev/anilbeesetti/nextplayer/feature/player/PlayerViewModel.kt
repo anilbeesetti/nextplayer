@@ -41,11 +41,10 @@ class PlayerViewModel(
         val tryDecoderFallback: () -> Unit,
     )
 
-    private val stateInternal = MutableStateFlow(
-        PlayerUiState(
-            playerPreferences = preferencesRepository.playerPreferences.value,
-        ),
-    )
+    private val stateInternal =
+        MutableStateFlow(
+            PlayerUiState(playerPreferences = preferencesRepository.playerPreferences.value)
+        )
     override val state: StateFlow<PlayerUiState> = stateInternal.asStateFlow()
 
     init {
@@ -65,8 +64,10 @@ class PlayerViewModel(
             is PlayerAction.SetVideoDecoderMode -> output.setVideoDecoderMode(action.mode)
             is PlayerAction.SetAudioDecoderMode -> output.setAudioDecoderMode(action.mode)
             is PlayerAction.TryDecoderFallback -> output.tryDecoderFallback()
-            is PlayerAction.UpdateDecoderServiceState -> stateInternal.update { it.copy(decoderServiceState = action.state) }
-            is PlayerAction.UpdatePlayWhenReady -> stateInternal.update { it.copy(playWhenReady = action.playWhenReady) }
+            is PlayerAction.UpdateDecoderServiceState ->
+                stateInternal.update { it.copy(decoderServiceState = action.state) }
+            is PlayerAction.UpdatePlayWhenReady ->
+                stateInternal.update { it.copy(playWhenReady = action.playWhenReady) }
             is PlayerAction.UpdatePlayerBrightness -> updatePlayerBrightness(action.value)
             is PlayerAction.SetLoopMode -> setLoopMode(action.loopMode)
             is PlayerAction.ToggleTimeDisplay -> toggleTimeDisplay()
@@ -80,9 +81,7 @@ class PlayerViewModel(
     }
 
     private fun updateVideoZoom(uri: String, zoom: Float) {
-        viewModelScope.launch {
-            mediaRepository.updateMediumZoom(uri, zoom)
-        }
+        viewModelScope.launch { mediaRepository.updateMediumZoom(uri, zoom) }
     }
 
     private fun updatePlayerBrightness(value: Float) {
@@ -93,7 +92,9 @@ class PlayerViewModel(
 
     private fun updateVideoContentScale(contentScale: VideoContentScale) {
         viewModelScope.launch {
-            preferencesRepository.updatePlayerPreferences { it.copy(playerVideoZoom = contentScale) }
+            preferencesRepository.updatePlayerPreferences {
+                it.copy(playerVideoZoom = contentScale)
+            }
         }
     }
 
@@ -105,7 +106,9 @@ class PlayerViewModel(
 
     private fun toggleTimeDisplay() {
         viewModelScope.launch {
-            preferencesRepository.updatePlayerPreferences { it.copy(showRemainingTime = !it.showRemainingTime) }
+            preferencesRepository.updatePlayerPreferences {
+                it.copy(showRemainingTime = !it.showRemainingTime)
+            }
         }
     }
 
@@ -132,15 +135,11 @@ class PlayerViewModel(
     }
 
     private fun updateSubtitleDelay(uri: String, delay: Long) {
-        viewModelScope.launch {
-            mediaRepository.updateSubtitleDelay(uri, delay)
-        }
+        viewModelScope.launch { mediaRepository.updateSubtitleDelay(uri, delay) }
     }
 
     private fun updateSubtitleSpeed(uri: String, speed: Float) {
-        viewModelScope.launch {
-            mediaRepository.updateSubtitleSpeed(uri, speed)
-        }
+        viewModelScope.launch { mediaRepository.updateSubtitleSpeed(uri, speed) }
     }
 }
 
@@ -153,17 +152,30 @@ data class PlayerUiState(
 
 sealed interface PlayerAction {
     data object NavigateUp : PlayerAction
+
     data object SelectSubtitle : PlayerAction
+
     data object SelectAudio : PlayerAction
+
     data object PlayInBackground : PlayerAction
+
     data class SetVideoDecoderMode(val mode: DecoderMode) : PlayerAction
+
     data class SetAudioDecoderMode(val mode: DecoderMode) : PlayerAction
+
     data object TryDecoderFallback : PlayerAction
+
     data class UpdateDecoderServiceState(val state: DecoderServiceState) : PlayerAction
+
     data class UpdatePlayWhenReady(val playWhenReady: Boolean) : PlayerAction
+
     data class UpdatePlayerBrightness(val value: Float) : PlayerAction
+
     data class SetLoopMode(val loopMode: LoopMode) : PlayerAction
+
     data object ToggleTimeDisplay : PlayerAction
+
     data class OnVideoZoomEvent(val event: VideoZoomEvent) : PlayerAction
+
     data class OnSubtitleOptionEvent(val event: SubtitleOptionsEvent) : PlayerAction
 }

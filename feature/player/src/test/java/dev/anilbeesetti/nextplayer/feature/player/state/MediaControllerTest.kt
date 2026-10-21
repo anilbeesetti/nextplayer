@@ -40,8 +40,7 @@ import org.robolectric.annotation.Config
 @RunWith(RobolectricTestRunner::class)
 @Config(sdk = [36])
 class MediaControllerTest {
-    @get:Rule
-    val composeRule = createAndroidComposeRule<ComponentActivity>()
+    @get:Rule val composeRule = createAndroidComposeRule<ComponentActivity>()
 
     @Test
     fun controllerReconnectsOnStartAndReleasesOnStopOrCompositionDisposal() {
@@ -55,7 +54,8 @@ class MediaControllerTest {
             composeRule.setContent {
                 CompositionLocalProvider(LocalLifecycleOwner provides owner) {
                     if (visible.value) {
-                        val connected = rememberMediaController(onBeforeRelease = { controller?.pause() })
+                        val connected =
+                            rememberMediaController(onBeforeRelease = { controller?.pause() })
                         SideEffect { controller = connected }
                     } else {
                         SideEffect { controller = null }
@@ -107,33 +107,45 @@ class MediaControllerTest {
         }
     }
 
-    private fun scrubbingSession(player: ExoPlayer): MediaSession = MediaSession.Builder(composeRule.activity, player)
-        .setCallback(object : MediaSession.Callback {
-            override fun onConnect(session: MediaSession, controller: MediaSession.ControllerInfo): MediaSession.ConnectionResult =
-                MediaSession.ConnectionResult.AcceptedResultBuilder(session)
-                    .setAvailableSessionCommands(
-                        MediaSession.ConnectionResult.DEFAULT_SESSION_COMMANDS.buildUpon()
-                            .add(CustomCommands.SET_IS_SCRUBBING_MODE_ENABLED.sessionCommand)
-                            .build(),
-                    )
-                    .build()
+    private fun scrubbingSession(player: ExoPlayer): MediaSession =
+        MediaSession.Builder(composeRule.activity, player)
+            .setCallback(
+                object : MediaSession.Callback {
+                    override fun onConnect(
+                        session: MediaSession,
+                        controller: MediaSession.ControllerInfo,
+                    ): MediaSession.ConnectionResult =
+                        MediaSession.ConnectionResult.AcceptedResultBuilder(session)
+                            .setAvailableSessionCommands(
+                                MediaSession.ConnectionResult.DEFAULT_SESSION_COMMANDS.buildUpon()
+                                    .add(
+                                        CustomCommands.SET_IS_SCRUBBING_MODE_ENABLED.sessionCommand
+                                    )
+                                    .build()
+                            )
+                            .build()
 
-            override fun onCustomCommand(
-                session: MediaSession,
-                controller: MediaSession.ControllerInfo,
-                customCommand: SessionCommand,
-                args: Bundle,
-            ): ListenableFuture<SessionResult> {
-                player.setIsScrubbingModeEnabled(args.getBoolean(CustomCommands.IS_SCRUBBING_MODE_ENABLED_KEY))
-                return Futures.immediateFuture(SessionResult(SessionResult.RESULT_SUCCESS))
-            }
-        })
-        .build()
+                    override fun onCustomCommand(
+                        session: MediaSession,
+                        controller: MediaSession.ControllerInfo,
+                        customCommand: SessionCommand,
+                        args: Bundle,
+                    ): ListenableFuture<SessionResult> {
+                        player.setIsScrubbingModeEnabled(
+                            args.getBoolean(CustomCommands.IS_SCRUBBING_MODE_ENABLED_KEY)
+                        )
+                        return Futures.immediateFuture(SessionResult(SessionResult.RESULT_SUCCESS))
+                    }
+                }
+            )
+            .build()
 
     @Test
     fun connectionCompletingAfterStopIsReleasedWithoutBeingPublished() {
         val player = composeRule.runOnIdle { ExoPlayer.Builder(composeRule.activity).build() }
-        val session = composeRule.runOnIdle { MediaSession.Builder(composeRule.activity, player).build() }
+        val session = composeRule.runOnIdle {
+            MediaSession.Builder(composeRule.activity, player).build()
+        }
         val application = shadowOf(composeRule.activity.application)
         val service = composeRule.runOnIdle { bindSessionService(session) }
         val owner = TestLifecycleOwner()
@@ -166,25 +178,30 @@ class MediaControllerTest {
         }
     }
 
-    private fun bindSessionService(session: MediaSession): ServiceController<TestMediaSessionService> {
+    private fun bindSessionService(
+        session: MediaSession
+    ): ServiceController<TestMediaSessionService> {
         val service = Robolectric.buildService(TestMediaSessionService::class.java).create()
         service.get().session = session
         val application = composeRule.activity.applicationContext as Application
-        shadowOf(application).setComponentNameAndServiceForBindService(
-            ComponentName(application, PlayerService::class.java),
-            service.get().onBind(Intent(MediaSessionService.SERVICE_INTERFACE)),
-        )
+        shadowOf(application)
+            .setComponentNameAndServiceForBindService(
+                ComponentName(application, PlayerService::class.java),
+                service.get().onBind(Intent(MediaSessionService.SERVICE_INTERFACE)),
+            )
         return service
     }
 
     class TestMediaSessionService : MediaSessionService() {
         lateinit var session: MediaSession
 
-        override fun onGetSession(controllerInfo: MediaSession.ControllerInfo): MediaSession = session
+        override fun onGetSession(controllerInfo: MediaSession.ControllerInfo): MediaSession =
+            session
     }
 
     private class TestLifecycleOwner : LifecycleOwner {
-        val registry = LifecycleRegistry.createUnsafe(this).apply { currentState = Lifecycle.State.CREATED }
+        val registry =
+            LifecycleRegistry.createUnsafe(this).apply { currentState = Lifecycle.State.CREATED }
         override val lifecycle: Lifecycle = registry
     }
 }

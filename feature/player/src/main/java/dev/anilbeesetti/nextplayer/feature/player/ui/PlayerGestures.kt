@@ -29,80 +29,80 @@ fun PlayerGestures(
 ) {
     BoxWithConstraints {
         Box(
-            modifier = modifier
-                .fillMaxSize()
-                .pointerInput(pictureInPictureState.isInPictureInPictureMode) {
-                    if (pictureInPictureState.isInPictureInPictureMode) return@pointerInput
+            modifier =
+                modifier
+                    .fillMaxSize()
+                    .pointerInput(pictureInPictureState.isInPictureInPictureMode) {
+                        if (pictureInPictureState.isInPictureInPictureMode) return@pointerInput
 
-                    detectTapGestures(
-                        onTap = {
-                            if (tapGestureState.seekMillis != 0L) return@detectTapGestures
-                            controlsVisibilityState.toggleControlsVisibility()
-                        },
-                        onDoubleTap = {
-                            if (controlsVisibilityState.controlsLocked) return@detectTapGestures
-                            tapGestureState.handleDoubleTap(offset = it, size = size)
-                        },
-                        onPress = {
-                            tryAwaitRelease()
-                            tapGestureState.handleOnLongPressRelease()
-                        },
-                        onLongPress = {
-                            if (controlsVisibilityState.controlsLocked) return@detectTapGestures
-                            tapGestureState.handleLongPress(offset = it)
-                        },
-                    )
-                }
-                .pointerInput(
-                    seekGestureState,
-                    controlsVisibilityState.controlsLocked,
-                    pictureInPictureState.isInPictureInPictureMode,
-                ) {
-                    if (controlsVisibilityState.controlsLocked) return@pointerInput
-                    if (pictureInPictureState.isInPictureInPictureMode) return@pointerInput
+                        detectTapGestures(
+                            onTap = {
+                                if (tapGestureState.seekMillis != 0L) return@detectTapGestures
+                                controlsVisibilityState.toggleControlsVisibility()
+                            },
+                            onDoubleTap = {
+                                if (controlsVisibilityState.controlsLocked) return@detectTapGestures
+                                tapGestureState.handleDoubleTap(offset = it, size = size)
+                            },
+                            onPress = {
+                                tryAwaitRelease()
+                                tapGestureState.handleOnLongPressRelease()
+                            },
+                            onLongPress = {
+                                if (controlsVisibilityState.controlsLocked) return@detectTapGestures
+                                tapGestureState.handleLongPress(offset = it)
+                            },
+                        )
+                    }
+                    .pointerInput(
+                        seekGestureState,
+                        controlsVisibilityState.controlsLocked,
+                        pictureInPictureState.isInPictureInPictureMode,
+                    ) {
+                        if (controlsVisibilityState.controlsLocked) return@pointerInput
+                        if (pictureInPictureState.isInPictureInPictureMode) return@pointerInput
 
-                    detectCustomHorizontalDragGestures(
-                        onDragStart = seekGestureState::onDragStart,
-                        onHorizontalDrag = seekGestureState::onDrag,
-                        onDragCancel = seekGestureState::onDragEnd,
-                        onDragEnd = seekGestureState::onDragEnd,
-                    )
-                }
-                .pointerInput(
-                    controlsVisibilityState.controlsLocked,
-                    pictureInPictureState.isInPictureInPictureMode,
-                ) {
-                    if (controlsVisibilityState.controlsLocked) return@pointerInput
-                    if (pictureInPictureState.isInPictureInPictureMode) return@pointerInput
+                        detectCustomHorizontalDragGestures(
+                            onDragStart = seekGestureState::onDragStart,
+                            onHorizontalDrag = seekGestureState::onDrag,
+                            onDragCancel = seekGestureState::onDragEnd,
+                            onDragEnd = seekGestureState::onDragEnd,
+                        )
+                    }
+                    .pointerInput(
+                        controlsVisibilityState.controlsLocked,
+                        pictureInPictureState.isInPictureInPictureMode,
+                    ) {
+                        if (controlsVisibilityState.controlsLocked) return@pointerInput
+                        if (pictureInPictureState.isInPictureInPictureMode) return@pointerInput
 
-                    detectCustomVerticalDragGestures(
-                        onDragStart = { volumeAndBrightnessGestureState.onDragStart(it, size) },
-                        onVerticalDrag = volumeAndBrightnessGestureState::onDrag,
-                        onDragCancel = volumeAndBrightnessGestureState::onDragEnd,
-                        onDragEnd = volumeAndBrightnessGestureState::onDragEnd,
-                    )
-                }
-                .pointerInput(
-                    controlsVisibilityState.controlsLocked,
-                    pictureInPictureState.isInPictureInPictureMode,
-                ) {
-                    if (controlsVisibilityState.controlsLocked) return@pointerInput
-                    if (pictureInPictureState.isInPictureInPictureMode) return@pointerInput
+                        detectCustomVerticalDragGestures(
+                            onDragStart = { volumeAndBrightnessGestureState.onDragStart(it, size) },
+                            onVerticalDrag = volumeAndBrightnessGestureState::onDrag,
+                            onDragCancel = volumeAndBrightnessGestureState::onDragEnd,
+                            onDragEnd = volumeAndBrightnessGestureState::onDragEnd,
+                        )
+                    }
+                    .pointerInput(
+                        controlsVisibilityState.controlsLocked,
+                        pictureInPictureState.isInPictureInPictureMode,
+                    ) {
+                        if (controlsVisibilityState.controlsLocked) return@pointerInput
+                        if (pictureInPictureState.isInPictureInPictureMode) return@pointerInput
 
-                    detectCustomTransformGestures(
-                        onGesture = { _, panChange, zoomChange, _ ->
-                            if (tapGestureState.isLongPressGestureInAction) return@detectCustomTransformGestures
-                            videoZoomAndContentScaleState.onZoomPanGesture(
-                                constraints = this@BoxWithConstraints.constraints,
-                                panChange = panChange,
-                                zoomChange = zoomChange,
-                            )
-                        },
-                        onGestureEnd = {
-                            videoZoomAndContentScaleState.onZoomPanGestureEnd()
-                        },
-                    )
-                },
+                        detectCustomTransformGestures(
+                            onGesture = { _, panChange, zoomChange, _ ->
+                                if (tapGestureState.isLongPressGestureInAction)
+                                    return@detectCustomTransformGestures
+                                videoZoomAndContentScaleState.onZoomPanGesture(
+                                    constraints = this@BoxWithConstraints.constraints,
+                                    panChange = panChange,
+                                    zoomChange = zoomChange,
+                                )
+                            },
+                            onGestureEnd = { videoZoomAndContentScaleState.onZoomPanGestureEnd() },
+                        )
+                    }
         )
     }
 }

@@ -21,21 +21,17 @@ fun OptionsDialog(
 ) {
     NextDialog(
         onDismissRequest = onDismissClick,
-        title = {
-            Text(text = text)
-        },
+        title = { Text(text = text) },
         content = {
             HorizontalDivider()
             LazyColumn(
                 contentPadding = PaddingValues(vertical = 8.dp),
-                modifier = Modifier
-                    .selectableGroup()
-                    .tvListFocus(),
+                modifier = Modifier.selectableGroup().tvListFocus(),
                 content = options,
             )
             HorizontalDivider()
         },
         dismissButton = { CancelButton(onClick = onDismissClick) },
-        confirmButton = { },
+        confirmButton = {},
     )
 }

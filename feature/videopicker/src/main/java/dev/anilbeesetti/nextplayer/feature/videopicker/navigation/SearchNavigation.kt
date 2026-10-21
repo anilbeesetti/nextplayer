@@ -11,8 +11,7 @@ import kotlinx.serialization.Serializable
 import org.koin.compose.viewmodel.koinViewModel
 import org.koin.core.parameter.parametersOf
 
-@Serializable
-object SearchRoute : NavKey
+@Serializable object SearchRoute : NavKey
 
 fun NavBackStack<NavKey>.navigateToSearch() {
     add(SearchRoute)
@@ -24,14 +23,13 @@ fun EntryProviderScope<NavKey>.searchEntry(
     onFolderClick: (folderPath: String) -> Unit,
 ) {
     entry<SearchRoute> {
-        val output = SearchViewModel.Output(
-            playVideo = onPlayVideo,
-            navigateUp = onNavigateUp,
-            openFolder = onFolderClick,
-        )
-        val viewModel = koinViewModel<SearchViewModel>(
-            parameters = { parametersOf(output) },
-        )
+        val output =
+            SearchViewModel.Output(
+                playVideo = onPlayVideo,
+                navigateUp = onNavigateUp,
+                openFolder = onFolderClick,
+            )
+        val viewModel = koinViewModel<SearchViewModel>(parameters = { parametersOf(output) })
         SideEffect { viewModel.output = output }
         SearchScreen(viewModel = viewModel)
     }

@@ -28,13 +28,14 @@ import org.robolectric.RuntimeEnvironment
 
 @RunWith(RobolectricTestRunner::class)
 class LocalMediaRepositoryTest {
-    @get:Rule
-    val temporaryFolder = TemporaryFolder()
+    @get:Rule val temporaryFolder = TemporaryFolder()
 
-    private val database = Room.inMemoryDatabaseBuilder(
-        RuntimeEnvironment.getApplication(),
-        MediaDatabase::class.java,
-    ).build()
+    private val database =
+        Room.inMemoryDatabaseBuilder(
+                RuntimeEnvironment.getApplication(),
+                MediaDatabase::class.java,
+            )
+            .build()
     private val dao = database.mediumStateDao()
 
     @After
@@ -43,63 +44,85 @@ class LocalMediaRepositoryTest {
     }
 
     @Test
-    fun `history respects pause, network preference and vault privacy while preserving playback state`() = runTest {
-        val file = temporaryFolder.newFile().apply { writeText("""{"isHistoryPaused":true}""") }
-        val preferences = AppPreferencesDataSource(
-            DataStoreFactory.create(
-                serializer = ApplicationPreferencesSerializer,
-                scope = backgroundScope,
-                produceFile = { file },
-            ),
-        )
-        dao.upsert(MediumStateEntity(uriString = "content://watched", lastPlayedTime = 100))
-        val mediaService = object : MediaService {
-            override fun observeFolders(folderPath: String?) = flowOf(emptyList<MediaFolder>())
-            override fun observeVideos(folderPath: String?) = flowOf(emptyList<MediaVideo>())
-            override fun observeTrashVideos() = observeVideos(null)
-            override suspend fun fetchFolders(folderPath: String?) = emptyList<MediaFolder>()
-            override suspend fun fetchVideos(folderPath: String?) = emptyList<MediaVideo>()
-            override suspend fun findVideo(uri: Uri) = null
-            override suspend fun findFolder(path: String) = null
+    fun `history respects pause, network preference and vault privacy while preserving playback state`() =
+        runTest {
+            val file = temporaryFolder.newFile().apply { writeText("""{"isHistoryPaused":true}""") }
+            val preferences =
+                AppPreferencesDataSource(
+                    DataStoreFactory.create(
+                        serializer = ApplicationPreferencesSerializer,
+                        scope = backgroundScope,
+                        produceFile = { file },
+                    )
+                )
+            dao.upsert(MediumStateEntity(uriString = "content://watched", lastPlayedTime = 100))
+            val mediaService =
+                object : MediaService {
+                    override fun observeFolders(folderPath: String?) =
+                        flowOf(emptyList<MediaFolder>())
+
+                    override fun observeVideos(folderPath: String?) =
+                        flowOf(emptyList<MediaVideo>())
+
+                    override fun observeTrashVideos() = observeVideos(null)
+
+                    override suspend fun fetchFolders(folderPath: String?) =
+                        emptyList<MediaFolder>()
+
+                    override suspend fun fetchVideos(folderPath: String?) = emptyList<MediaVideo>()
+
+                    override suspend fun findVideo(uri: Uri) = null
+
+                    override suspend fun findFolder(path: String) = null
+                }
+            val repository =
+                LocalMediaRepository(
+                    dao,
+                    mediaService,
+                    preferences,
+                    RuntimeEnvironment.getApplication(),
+                )
+            val networkUri = "smb://example.com/films/movie.mkv?cid=1"
+            val adHocUri = "smb://example.com/share/movie.mkv"
+            val vaultUri =
+                "content://${RuntimeEnvironment.getApplication().packageName}.fileprovider/external_files_path/vault/movie.mkv"
+            dao.upsert(MediumStateEntity(uriString = vaultUri, lastPlayedTime = 90))
+            assertEquals(
+                listOf("content://watched"),
+                repository.observePlaybackHistory().first().map { it.uriString },
+            )
+
+            repository.updateMediumLastPlayedTime("content://watched", 200, 1_000)
+            repository.updateMediumLastPlayedTime("content://new", 200, 1_000)
+            repository.updateMediumPosition("content://new", 400)
+            assertEquals(100L, dao.get("content://watched")?.lastPlayedTime)
+            assertNull(dao.get("content://new")?.lastPlayedTime)
+            assertEquals(1_000L, dao.get("content://new")?.duration)
+            assertEquals(400L, dao.get("content://new")?.playbackPosition)
+
+            preferences.update { it.copy(isHistoryPaused = false) }
+            repository.updateMediumLastPlayedTime("content://new", 300, null)
+            assertEquals(300L, dao.get("content://new")?.lastPlayedTime)
+            assertEquals(1_000L, dao.get("content://new")?.duration)
+            preferences.update { it.copy(includeNetworkWatchHistory = false) }
+            repository.updateMediumLastPlayedTime(networkUri, 500, 2_000)
+            assertNull(dao.get(networkUri)?.lastPlayedTime)
+            assertEquals(2_000L, dao.get(networkUri)?.duration)
+            repository.updateMediumLastPlayedTime(vaultUri, 500, 2_000)
+            repository.updateMediumLastPlayedTime(adHocUri, 500, null)
+            assertEquals(500L, dao.get(adHocUri)?.lastPlayedTime)
+            assertEquals(90L, dao.get(vaultUri)?.lastPlayedTime)
+            preferences.update { it.copy(includeNetworkWatchHistory = true) }
+            repository.updateMediumLastPlayedTime(networkUri, 600, null)
+            assertEquals(600L, dao.get(networkUri)?.lastPlayedTime)
+
+            preferences.update { it.copy(isHistoryPaused = true) }
+            repository.clearPlaybackHistory()
+            repository.updateMediumLastPlayedTime("content://new", 400, null)
+            assertNull(dao.get("content://new")?.lastPlayedTime)
+            assertNull(dao.get("content://watched")?.lastPlayedTime)
+            assertEquals(400L, dao.get("content://new")?.playbackPosition)
         }
-        val repository = LocalMediaRepository(dao, mediaService, preferences, RuntimeEnvironment.getApplication())
-        val networkUri = "smb://example.com/films/movie.mkv?cid=1"
-        val adHocUri = "smb://example.com/share/movie.mkv"
-        val vaultUri = "content://${RuntimeEnvironment.getApplication().packageName}.fileprovider/external_files_path/vault/movie.mkv"
-        dao.upsert(MediumStateEntity(uriString = vaultUri, lastPlayedTime = 90))
-        assertEquals(listOf("content://watched"), repository.observePlaybackHistory().first().map { it.uriString })
-
-        repository.updateMediumLastPlayedTime("content://watched", 200, 1_000)
-        repository.updateMediumLastPlayedTime("content://new", 200, 1_000)
-        repository.updateMediumPosition("content://new", 400)
-        assertEquals(100L, dao.get("content://watched")?.lastPlayedTime)
-        assertNull(dao.get("content://new")?.lastPlayedTime)
-        assertEquals(1_000L, dao.get("content://new")?.duration)
-        assertEquals(400L, dao.get("content://new")?.playbackPosition)
-
-        preferences.update { it.copy(isHistoryPaused = false) }
-        repository.updateMediumLastPlayedTime("content://new", 300, null)
-        assertEquals(300L, dao.get("content://new")?.lastPlayedTime)
-        assertEquals(1_000L, dao.get("content://new")?.duration)
-        preferences.update { it.copy(includeNetworkWatchHistory = false) }
-        repository.updateMediumLastPlayedTime(networkUri, 500, 2_000)
-        assertNull(dao.get(networkUri)?.lastPlayedTime)
-        assertEquals(2_000L, dao.get(networkUri)?.duration)
-        repository.updateMediumLastPlayedTime(vaultUri, 500, 2_000)
-        repository.updateMediumLastPlayedTime(adHocUri, 500, null)
-        assertEquals(500L, dao.get(adHocUri)?.lastPlayedTime)
-        assertEquals(90L, dao.get(vaultUri)?.lastPlayedTime)
-        preferences.update { it.copy(includeNetworkWatchHistory = true) }
-        repository.updateMediumLastPlayedTime(networkUri, 600, null)
-        assertEquals(600L, dao.get(networkUri)?.lastPlayedTime)
-
-        preferences.update { it.copy(isHistoryPaused = true) }
-        repository.clearPlaybackHistory()
-        repository.updateMediumLastPlayedTime("content://new", 400, null)
-        assertNull(dao.get("content://new")?.lastPlayedTime)
-        assertNull(dao.get("content://watched")?.lastPlayedTime)
-        assertEquals(400L, dao.get("content://new")?.playbackPosition)
-    }
 
     @Test
     fun `concurrent playback state updates preserve each other's changes`() = runTest {

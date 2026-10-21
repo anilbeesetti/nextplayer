@@ -57,18 +57,18 @@ fun BoxScope.AudioTrackSelectorView(
         title = stringResource(R.string.select_audio_track),
     ) {
         Column(
-            modifier = Modifier
-                .verticalScroll(rememberScrollState())
-                .padding(bottom = 24.dp)
-                .padding(horizontal = 24.dp)
-                .selectableGroup(),
+            modifier =
+                Modifier.verticalScroll(rememberScrollState())
+                    .padding(bottom = 24.dp)
+                    .padding(horizontal = 24.dp)
+                    .selectableGroup()
         ) {
             audioTracksState.tracks.forEachIndexed { index, track ->
                 RadioButtonRow(
                     selected = track.isSelected,
-                    text = track.mediaTrackGroup.externalAudioIndex
-                        ?.let { audioNames.getOrNull(it) }
-                        ?: track.mediaTrackGroup.getName(C.TRACK_TYPE_AUDIO, index),
+                    text =
+                        track.mediaTrackGroup.externalAudioIndex?.let { audioNames.getOrNull(it) }
+                            ?: track.mediaTrackGroup.getName(C.TRACK_TYPE_AUDIO, index),
                     onClick = {
                         audioTracksState.switchTrack(index)
                         onDismiss()

@@ -8,15 +8,19 @@ import dev.anilbeesetti.nextplayer.settings.SettingsOutput
 import dev.anilbeesetti.nextplayer.settings.SettingsScreen
 import kotlinx.serialization.Serializable
 
-@Serializable
-object SettingsRoute : NavKey
+@Serializable object SettingsRoute : NavKey
 
 fun NavBackStack<NavKey>.navigateToSettings() {
     add(SettingsRoute)
 }
 
-fun EntryProviderScope<NavKey>.settingsEntry(onNavigateUp: () -> Unit, onItemClick: (Setting) -> Unit) {
+fun EntryProviderScope<NavKey>.settingsEntry(
+    onNavigateUp: () -> Unit,
+    onItemClick: (Setting) -> Unit,
+) {
     entry<SettingsRoute> {
-        SettingsScreen(output = SettingsOutput(navigateUp = onNavigateUp, openSetting = onItemClick))
+        SettingsScreen(
+            output = SettingsOutput(navigateUp = onNavigateUp, openSetting = onItemClick)
+        )
     }
 }

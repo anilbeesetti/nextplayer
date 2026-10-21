@@ -68,11 +68,11 @@ fun BoxScope.SubtitleSelectorView(
         title = stringResource(R.string.select_subtitle_track),
     ) {
         Column(
-            modifier = Modifier
-                .verticalScroll(rememberScrollState())
-                .padding(bottom = 24.dp)
-                .padding(horizontal = 24.dp)
-                .selectableGroup(),
+            modifier =
+                Modifier.verticalScroll(rememberScrollState())
+                    .padding(bottom = 24.dp)
+                    .padding(horizontal = 24.dp)
+                    .selectableGroup()
         ) {
             subtitleTracksState.tracks.forEachIndexed { index, track ->
                 RadioButtonRow(
@@ -172,9 +172,7 @@ private fun SpeedInput(
     value: Float,
     onValueChange: (Float) -> Unit,
 ) {
-    var valueString by remember {
-        mutableStateOf(if (value == 1f) "1" else "%.2f".format(value))
-    }
+    var valueString by remember { mutableStateOf(if (value == 1f) "1" else "%.2f".format(value)) }
 
     LaunchedEffect(value) {
         val currentValue = valueString.toFloatOrNull() ?: 0.0
@@ -233,7 +231,7 @@ private fun NumberChooserInput(
         horizontalArrangement = Arrangement.spacedBy(16.dp),
     ) {
         FilledTonalIconButton(
-            onClick = { },
+            onClick = {},
             modifier = Modifier.repeatingClickable(onClick = onDecrement),
         ) {
             Icon(
@@ -248,12 +246,10 @@ private fun NumberChooserInput(
             modifier = Modifier.weight(1f),
             suffix = suffix,
             singleLine = true,
-            keyboardOptions = KeyboardOptions(
-                keyboardType = KeyboardType.Decimal,
-            ),
+            keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Decimal),
         )
         FilledTonalIconButton(
-            onClick = { },
+            onClick = {},
             modifier = Modifier.repeatingClickable(onClick = onIncrement),
         ) {
             Icon(
@@ -282,7 +278,8 @@ private fun Modifier.repeatingClickable(
                     while (enabled && down.pressed) {
                         updatedOnClick()
                         delay(currentDelayMillis)
-                        val nextMillis = currentDelayMillis - (currentDelayMillis * delayDecayFactor)
+                        val nextMillis =
+                            currentDelayMillis - (currentDelayMillis * delayDecayFactor)
                         currentDelayMillis = nextMillis.toLong().coerceAtLeast(minDelayMillis)
                     }
                 }

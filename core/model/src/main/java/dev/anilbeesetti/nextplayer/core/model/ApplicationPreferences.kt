@@ -30,11 +30,11 @@ data class ApplicationPreferences(
     val showSizeField: Boolean = false,
     val showThumbnailField: Boolean = true,
     val showPlayedProgress: Boolean = true,
-
     val newVideoThresholdDays: Int = 7,
 
     // Thumbnail generation
-    val thumbnailGenerationStrategy: ThumbnailGenerationStrategy = ThumbnailGenerationStrategy.FRAME_AT_PERCENTAGE,
+    val thumbnailGenerationStrategy: ThumbnailGenerationStrategy =
+        ThumbnailGenerationStrategy.FRAME_AT_PERCENTAGE,
     val thumbnailFramePosition: Float = DEFAULT_THUMBNAIL_FRAME_POSITION,
 ) {
 

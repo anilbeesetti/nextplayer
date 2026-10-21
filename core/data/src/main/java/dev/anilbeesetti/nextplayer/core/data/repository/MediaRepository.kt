@@ -10,8 +10,8 @@ import kotlinx.coroutines.flow.Flow
 /**
  * Repository for accessing media (videos and folders) and managing video playback state.
  *
- * All methods that take a `folderPath` parameter will return media recursively
- * from that path and all its subdirectories.
+ * All methods that take a `folderPath` parameter will return media recursively from that path and
+ * all its subdirectories.
  */
 interface MediaRepository {
 
@@ -32,6 +32,7 @@ interface MediaRepository {
     fun observeVideos(folderPath: String? = null): Flow<List<Video>>
 
     fun observePlaybackHistory(): Flow<List<Video>>
+
     fun observeTrashVideos(): Flow<List<Video>>
 
     /**
@@ -51,16 +52,32 @@ interface MediaRepository {
     suspend fun fetchVideos(folderPath: String? = null): List<Video>
 
     suspend fun getVideoByUri(uri: String): Video?
+
     suspend fun getVideoState(uri: String): VideoState?
+
     suspend fun getMediaInfo(uri: String): MediaInfo?
+
     suspend fun clearPlaybackHistory()
-    suspend fun updateMediumLastPlayedTime(uri: String, lastPlayedTime: Long, duration: Long? = null)
+
+    suspend fun updateMediumLastPlayedTime(
+        uri: String,
+        lastPlayedTime: Long,
+        duration: Long? = null,
+    )
+
     suspend fun updateMediumPosition(uri: String, position: Long)
+
     suspend fun updateMediumAudioTrack(uri: String, audioTrackIndex: Int)
+
     suspend fun updateMediumSubtitleTrack(uri: String, subtitleTrackIndex: Int)
+
     suspend fun updateMediumZoom(uri: String, zoom: Float)
+
     suspend fun addExternalAudioToMedium(uri: String, audioUri: Uri)
+
     suspend fun addExternalSubtitleToMedium(uri: String, subtitleUri: Uri)
+
     suspend fun updateSubtitleDelay(uri: String, delay: Long)
+
     suspend fun updateSubtitleSpeed(uri: String, speed: Float)
 }

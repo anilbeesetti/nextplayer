@@ -20,9 +20,12 @@ import androidx.lifecycle.compose.LifecycleResumeEffect
 import dev.anilbeesetti.nextplayer.core.common.extensions.isTelevision
 import kotlinx.coroutines.launch
 
-/** Keeps item identity across destination recreation and when entering from another focus region. */
+/**
+ * Keeps item identity across destination recreation and when entering from another focus region.
+ */
 @Stable
-class RestorableFocusState internal constructor(
+class RestorableFocusState
+internal constructor(
     internal val isTv: Boolean,
     private val focusedKey: MutableState<String?>,
 ) {
@@ -44,7 +47,10 @@ fun rememberRestorableFocusState(): RestorableFocusState {
     return remember(isTv) { RestorableFocusState(isTv, focusedKey) }
 }
 
-/** Restore when content becomes available or the destination resumes, including return from playback. */
+/**
+ * Restore when content becomes available or the destination resumes, including return from
+ * playback.
+ */
 @Composable
 fun Modifier.restorableFocusGroup(
     state: RestorableFocusState,
@@ -52,23 +58,22 @@ fun Modifier.restorableFocusGroup(
 ): Modifier {
     val scope = rememberCoroutineScope()
     LifecycleResumeEffect(state, ready) {
-        val request = if (state.isTv && ready) {
-            scope.launch {
-                if (state.key == null || !state.itemRequester.requestFocusUntilLanded()) {
-                    state.requester.requestFocusUntilLanded()
+        val request =
+            if (state.isTv && ready) {
+                scope.launch {
+                    if (state.key == null || !state.itemRequester.requestFocusUntilLanded()) {
+                        state.requester.requestFocusUntilLanded()
+                    }
                 }
+            } else {
+                null
             }
-        } else {
-            null
-        }
         onPauseOrDispose { request?.cancel() }
     }
     if (!state.isTv) return this
     return focusRequester(state.requester)
         .focusProperties {
-            onEnter = {
-                if (state.key != null) runCatching { state.itemRequester.requestFocus() }
-            }
+            onEnter = { if (state.key != null) runCatching { state.itemRequester.requestFocus() } }
         }
         .focusGroup()
 }

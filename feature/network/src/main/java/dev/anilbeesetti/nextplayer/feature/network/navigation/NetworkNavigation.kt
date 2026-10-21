@@ -23,11 +23,9 @@ import kotlinx.serialization.Serializable
 import org.koin.compose.viewmodel.koinViewModel
 import org.koin.core.parameter.parametersOf
 
-@Serializable
-object NetworkRoute : NavKey
+@Serializable object NetworkRoute : NavKey
 
-@Serializable
-data class AddConnectionRoute(val connectionId: Long? = null) : NavKey
+@Serializable data class AddConnectionRoute(val connectionId: Long? = null) : NavKey
 
 @Serializable
 data class NetworkBrowseRoute(val connectionId: Long, val path: String? = null) : NavKey
@@ -48,49 +46,46 @@ fun EntryProviderScope<NavKey>.networkEntry(
     onOpenStream: (Uri) -> Unit,
 ) {
     entry<NetworkRoute> {
-        val output = NetworkViewModel.Output(
-            addConnection = onAddConnection,
-            editConnection = onEditConnection,
-            openConnection = onOpenConnection,
-            openSettings = onSettingsClick,
-            openStream = onOpenStream,
-        )
-        val viewModel = koinViewModel<NetworkViewModel>(
-            parameters = { parametersOf(output) },
-        )
+        val output =
+            NetworkViewModel.Output(
+                addConnection = onAddConnection,
+                editConnection = onEditConnection,
+                openConnection = onOpenConnection,
+                openSettings = onSettingsClick,
+                openStream = onOpenStream,
+            )
+        val viewModel = koinViewModel<NetworkViewModel>(parameters = { parametersOf(output) })
         SideEffect { viewModel.output = output }
         NetworkScreen(viewModel = viewModel)
     }
 }
 
-fun EntryProviderScope<NavKey>.addConnectionEntry(
-    onNavigateUp: () -> Unit,
-) {
+fun EntryProviderScope<NavKey>.addConnectionEntry(onNavigateUp: () -> Unit) {
     entry<AddConnectionRoute>(
-        metadata = metadata {
-            put(NavDisplay.TransitionKey) {
-                slideInVertically { it } togetherWith scaleOut(targetScale = 0.95f)
+        metadata =
+            metadata {
+                put(NavDisplay.TransitionKey) {
+                    slideInVertically { it } togetherWith scaleOut(targetScale = 0.95f)
+                }
+                put(NavDisplay.PopTransitionKey) {
+                    scaleIn(initialScale = 0.95f) togetherWith slideOutVertically { it }
+                }
+                put(NavDisplay.PredictivePopTransitionKey) {
+                    scaleIn(initialScale = 0.95f) togetherWith slideOutVertically { it }
+                }
             }
-            put(NavDisplay.PopTransitionKey) {
-                scaleIn(initialScale = 0.95f) togetherWith slideOutVertically { it }
-            }
-            put(NavDisplay.PredictivePopTransitionKey) {
-                scaleIn(initialScale = 0.95f) togetherWith slideOutVertically { it }
-            }
-        },
     ) { key ->
         LocalNetworkPermission {
-            val output = AddConnectionViewModel.Output(
-                navigateUp = onNavigateUp,
-            )
-            val viewModel = koinViewModel<AddConnectionViewModel>(
-                parameters = {
-                    parametersOf(
-                        AddConnectionViewModel.Input(connectionId = key.connectionId),
-                        output,
-                    )
-                },
-            )
+            val output = AddConnectionViewModel.Output(navigateUp = onNavigateUp)
+            val viewModel =
+                koinViewModel<AddConnectionViewModel>(
+                    parameters = {
+                        parametersOf(
+                            AddConnectionViewModel.Input(connectionId = key.connectionId),
+                            output,
+                        )
+                    }
+                )
             SideEffect { viewModel.output = output }
             AddConnectionScreen(viewModel = viewModel)
         }
@@ -104,19 +99,24 @@ fun EntryProviderScope<NavKey>.networkBrowseEntry(
 ) {
     entry<NetworkBrowseRoute> { key ->
         LocalNetworkPermission {
-            val output = NetworkBrowseViewModel.Output(
-                navigateUp = onNavigateUp,
-                playVideos = onPlayVideos,
-                openFolder = onNavigateToFolder,
-            )
-            val viewModel = koinViewModel<NetworkBrowseViewModel>(
-                parameters = {
-                    parametersOf(
-                        NetworkBrowseViewModel.Input(connectionId = key.connectionId, path = key.path),
-                        output,
-                    )
-                },
-            )
+            val output =
+                NetworkBrowseViewModel.Output(
+                    navigateUp = onNavigateUp,
+                    playVideos = onPlayVideos,
+                    openFolder = onNavigateToFolder,
+                )
+            val viewModel =
+                koinViewModel<NetworkBrowseViewModel>(
+                    parameters = {
+                        parametersOf(
+                            NetworkBrowseViewModel.Input(
+                                connectionId = key.connectionId,
+                                path = key.path,
+                            ),
+                            output,
+                        )
+                    }
+                )
             SideEffect { viewModel.output = output }
             NetworkBrowseScreen(viewModel = viewModel)
         }

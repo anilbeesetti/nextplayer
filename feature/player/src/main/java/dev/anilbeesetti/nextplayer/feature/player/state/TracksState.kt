@@ -34,9 +34,7 @@ class TracksState(
         private set
 
     private val playerStateObserver: PlayerStateObserver? =
-        player?.observeState(Player.EVENT_TRACKS_CHANGED) {
-            updateTracks()
-        }
+        player?.observeState(Player.EVENT_TRACKS_CHANGED) { updateTracks() }
 
     fun switchTrack(index: Int) {
         player?.switchTrack(trackType, index)
@@ -48,7 +46,8 @@ class TracksState(
     }
 
     private fun updateTracks() {
-        tracks = player?.currentTracks?.groups
-            ?.filter { it.type == trackType && it.isSupported } ?: emptyList()
+        tracks =
+            player?.currentTracks?.groups?.filter { it.type == trackType && it.isSupported }
+                ?: emptyList()
     }
 }

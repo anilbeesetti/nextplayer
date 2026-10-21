@@ -10,12 +10,23 @@ import dev.anilbeesetti.nextplayer.feature.player.model.Subtitle
 class PlayerApi(val activity: PlayerActivity) {
 
     private val extras = activity.intent.extras
-    val isApiAccess: Boolean get() = extras != null
-    val hasPosition: Boolean get() = extras?.containsKey(API_POSITION) == true
-    val hasTitle: Boolean get() = extras?.containsKey(API_TITLE) == true
-    val shouldReturnResult: Boolean get() = extras?.containsKey(API_RETURN_RESULT) == true
-    val position: Int? get() = if (hasPosition) extras?.getInt(API_POSITION) else null
-    val title: String? get() = if (hasTitle) extras?.getString(API_TITLE) else null
+    val isApiAccess: Boolean
+        get() = extras != null
+
+    val hasPosition: Boolean
+        get() = extras?.containsKey(API_POSITION) == true
+
+    val hasTitle: Boolean
+        get() = extras?.containsKey(API_TITLE) == true
+
+    val shouldReturnResult: Boolean
+        get() = extras?.containsKey(API_RETURN_RESULT) == true
+
+    val position: Int?
+        get() = if (hasPosition) extras?.getInt(API_POSITION) else null
+
+    val title: String?
+        get() = if (hasTitle) extras?.getString(API_TITLE) else null
 
     fun getSubs(): List<Subtitle> {
         if (extras == null) return emptyList()

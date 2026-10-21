@@ -58,39 +58,44 @@ fun NextOutlinedTextField(
     val isKeyboardVisible = WindowInsets.isImeVisible
     var isFocused by remember { mutableStateOf(false) }
     var isEditing by remember(enabled) { mutableStateOf(false) }
-    val inputModifier = if (isTv) {
-        Modifier
-            .onFocusChanged {
-                isFocused = it.isFocused
-                if (!it.isFocused) isEditing = false
-            }
-            .onPreviewKeyEvent {
-                if (!enabled || !isFocused) return@onPreviewKeyEvent false
-                val isSelect = it.key == Key.DirectionCenter || it.key == Key.Enter || it.key == Key.NumPadEnter
-                val direction = when (it.key) {
-                    Key.DirectionUp -> FocusDirection.Up
-                    Key.DirectionDown -> FocusDirection.Down
-                    Key.DirectionLeft -> FocusDirection.Left
-                    Key.DirectionRight -> FocusDirection.Right
-                    else -> null
+    val inputModifier =
+        if (isTv) {
+            Modifier.onFocusChanged {
+                    isFocused = it.isFocused
+                    if (!it.isFocused) isEditing = false
                 }
-                if (isSelect) {
-                    if (it.type == KeyEventType.KeyUp) {
-                        isEditing = true
-                        keyboardController?.show()
+                .onPreviewKeyEvent {
+                    if (!enabled || !isFocused) return@onPreviewKeyEvent false
+                    val isSelect =
+                        it.key == Key.DirectionCenter ||
+                            it.key == Key.Enter ||
+                            it.key == Key.NumPadEnter
+                    val direction =
+                        when (it.key) {
+                            Key.DirectionUp -> FocusDirection.Up
+                            Key.DirectionDown -> FocusDirection.Down
+                            Key.DirectionLeft -> FocusDirection.Left
+                            Key.DirectionRight -> FocusDirection.Right
+                            else -> null
+                        }
+                    if (isSelect) {
+                        if (it.type == KeyEventType.KeyUp) {
+                            isEditing = true
+                            keyboardController?.show()
+                        }
+                        true
+                    } else if (!isKeyboardVisible && direction != null) {
+                        // A text field otherwise consumes arrows as cursor movement, even
+                        // read-only.
+                        if (it.type == KeyEventType.KeyDown) focusManager.moveFocus(direction)
+                        true
+                    } else {
+                        false
                     }
-                    true
-                } else if (!isKeyboardVisible && direction != null) {
-                    // A text field otherwise consumes arrows as cursor movement, even read-only.
-                    if (it.type == KeyEventType.KeyDown) focusManager.moveFocus(direction)
-                    true
-                } else {
-                    false
                 }
-            }
-    } else {
-        Modifier
-    }
+        } else {
+            Modifier
+        }
 
     OutlinedTextField(
         value = value,

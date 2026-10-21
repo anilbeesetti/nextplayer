@@ -27,20 +27,23 @@ import org.robolectric.annotation.Config
 @RunWith(RobolectricTestRunner::class)
 @Config(sdk = [36])
 class PlayerSeekbarTest {
-    @get:Rule
-    val composeRule = createAndroidComposeRule<ComponentActivity>()
+    @get:Rule val composeRule = createAndroidComposeRule<ComponentActivity>()
 
     @Test
     fun bothStylesTickOnlyWhenScrubbingAcrossChapters() {
         val ticks = mutableListOf<HapticFeedbackType>()
-        val haptics = object : HapticFeedback {
-            override fun performHapticFeedback(hapticFeedbackType: HapticFeedbackType) {
-                ticks += hapticFeedbackType
+        val haptics =
+            object : HapticFeedback {
+                override fun performHapticFeedback(hapticFeedbackType: HapticFeedbackType) {
+                    ticks += hapticFeedbackType
+                }
             }
-        }
         var position by mutableFloatStateOf(100f)
         var materialControls by mutableStateOf(false)
-        var chapters by mutableStateOf(listOf(0L, 400L, 700L).map { Chapter.Builder().setStartTimeMs(it).build() })
+        var chapters by
+            mutableStateOf(
+                listOf(0L, 400L, 700L).map { Chapter.Builder().setStartTimeMs(it).build() }
+            )
         composeRule.setContent {
             NextPlayerTheme {
                 CompositionLocalProvider(
@@ -58,7 +61,10 @@ class PlayerSeekbarTest {
             }
         }
 
-        val slider = composeRule.onNode(SemanticsMatcher.keyIsDefined(SemanticsProperties.ProgressBarRangeInfo))
+        val slider =
+            composeRule.onNode(
+                SemanticsMatcher.keyIsDefined(SemanticsProperties.ProgressBarRangeInfo)
+            )
         for (material in listOf(false, true)) {
             composeRule.runOnIdle {
                 materialControls = material

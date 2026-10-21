@@ -23,21 +23,26 @@ import org.junit.runner.RunWith
 @SdkSuppress(minSdkVersion = 37)
 class LocalNetworkPermissionTest {
     @get:Rule(order = 0)
-    val permissionRule: GrantPermissionRule = GrantPermissionRule.grant(
-        storagePermission,
-        Manifest.permission.ACCESS_LOCAL_NETWORK,
-    )
+    val permissionRule: GrantPermissionRule =
+        GrantPermissionRule.grant(
+            storagePermission,
+            Manifest.permission.ACCESS_LOCAL_NETWORK,
+        )
 
-    @get:Rule(order = 1)
-    val composeRule = createAndroidComposeRule<MainActivity>()
+    @get:Rule(order = 1) val composeRule = createAndroidComposeRule<MainActivity>()
 
     @Test
     fun grantedLocalNetworkPermissionAllowsAddingConnectionAfterRecreation() {
         assertEquals(
             PackageManager.PERMISSION_GRANTED,
-            ContextCompat.checkSelfPermission(composeRule.activity, Manifest.permission.ACCESS_LOCAL_NETWORK),
+            ContextCompat.checkSelfPermission(
+                composeRule.activity,
+                Manifest.permission.ACCESS_LOCAL_NETWORK,
+            ),
         )
-        composeRule.onNodeWithContentDescription(composeRule.activity.getString(R.string.network)).performClick()
+        composeRule
+            .onNodeWithContentDescription(composeRule.activity.getString(R.string.network))
+            .performClick()
         composeRule.onNodeWithTag("top_level_fab").performClick()
         val host = composeRule.activity.getString(R.string.host)
         composeRule.onNodeWithText(host).assertIsDisplayed()

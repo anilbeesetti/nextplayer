@@ -40,14 +40,15 @@ fun rememberVolumeState(
 ): VolumeState {
     val context = LocalContext.current
     val scope = rememberCoroutineScope()
-    val volumeState = remember(player) {
-        VolumeState(
-            player = player,
-            context = context,
-            showVolumePanelIfHeadsetIsOn = showVolumePanelIfHeadsetIsOn,
-            scope = scope,
-        )
-    }
+    val volumeState =
+        remember(player) {
+            VolumeState(
+                player = player,
+                context = context,
+                showVolumePanelIfHeadsetIsOn = showVolumePanelIfHeadsetIsOn,
+                scope = scope,
+            )
+        }
     LaunchedEffect(player) { volumeState.initialize() }
     DisposableEffect(context) { volumeState.handleLifecycle(this) }
     return volumeState
@@ -70,7 +71,9 @@ class VolumeState(
         get() = if (isLoudnessGainSupported) systemMaxVolume * 2 else systemMaxVolume
 
     val maxVolumePercentage: Int
-        get() = if (isLoudnessGainSupported) MAX_VOLUME_PERCENTAGE_BOOST else MAX_VOLUME_PERCENTAGE_NORMAL
+        get() =
+            if (isLoudnessGainSupported) MAX_VOLUME_PERCENTAGE_BOOST
+            else MAX_VOLUME_PERCENTAGE_NORMAL
 
     var currentVolume: Int by mutableIntStateOf(audioManager.currentStreamVolume)
         private set
@@ -105,22 +108,21 @@ class VolumeState(
 
     fun handleLifecycle(disposableEffectScope: DisposableEffectScope): DisposableEffectResult =
         with(disposableEffectScope) {
-            val receiver = object : BroadcastReceiver() {
-                override fun onReceive(context: Context, intent: Intent) {
-                    if (intent.action == VOLUME_CHANGED_ACTION) {
-                        if (currentVolume <= systemMaxVolume) {
-                            currentVolume = audioManager.currentStreamVolume
-                            volumePercentage = calculateVolumePercentage()
+            val receiver =
+                object : BroadcastReceiver() {
+                    override fun onReceive(context: Context, intent: Intent) {
+                        if (intent.action == VOLUME_CHANGED_ACTION) {
+                            if (currentVolume <= systemMaxVolume) {
+                                currentVolume = audioManager.currentStreamVolume
+                                volumePercentage = calculateVolumePercentage()
+                            }
                         }
                     }
                 }
-            }
 
             context.registerReceiver(receiver, IntentFilter(VOLUME_CHANGED_ACTION))
 
-            onDispose {
-                context.unregisterReceiver(receiver)
-            }
+            onDispose { context.unregisterReceiver(receiver) }
         }
 
     suspend fun initialize() {
@@ -143,9 +145,7 @@ class VolumeState(
 
         player.listen { events ->
             if (events.contains(Player.EVENT_AUDIO_SESSION_ID)) {
-                scope.launch {
-                    isLoudnessGainSupported = player.getIsLoudnessGainSupported()
-                }
+                scope.launch { isLoudnessGainSupported = player.getIsLoudnessGainSupported() }
             }
         }
     }
@@ -165,7 +165,8 @@ class VolumeState(
     }
 
     private fun setSystemVolume(volume: Int, showVolumePanel: Boolean) {
-        val shouldShowUi = showVolumePanel || (showVolumePanelIfHeadsetIsOn && audioManager.isHeadsetOn)
+        val shouldShowUi =
+            showVolumePanel || (showVolumePanelIfHeadsetIsOn && audioManager.isHeadsetOn)
         audioManager.setStreamVolume(
             AudioManager.STREAM_MUSIC,
             volume.coerceIn(0, systemMaxVolume),
@@ -192,13 +193,15 @@ class VolumeState(
         get() = getStreamVolume(AudioManager.STREAM_MUSIC)
 
     private val AudioManager.isHeadsetOn: Boolean
-        get() = getDevices(AudioManager.GET_DEVICES_OUTPUTS).any { device ->
-            device.type == AudioDeviceInfo.TYPE_WIRED_HEADSET ||
+        get() =
+            getDevices(AudioManager.GET_DEVICES_OUTPUTS).any { device ->
+                device.type == AudioDeviceInfo.TYPE_WIRED_HEADSET ||
                     device.type == AudioDeviceInfo.TYPE_WIRED_HEADPHONES ||
                     device.type == AudioDeviceInfo.TYPE_BLUETOOTH_A2DP ||
                     device.type == AudioDeviceInfo.TYPE_BLUETOOTH_SCO ||
-                    (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O && device.type == AudioDeviceInfo.TYPE_USB_HEADSET)
-        }
+                    (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O &&
+                        device.type == AudioDeviceInfo.TYPE_USB_HEADSET)
+            }
 
     companion object {
         private const val VOLUME_CHANGED_ACTION = "android.media.VOLUME_CHANGED_ACTION"

@@ -25,23 +25,24 @@ internal fun PlayerErrorDialogs(
     val recoveryTrackType = decoderRecoveryState.trackType
     if (
         decoderRecoveryState.status == DecoderRecoveryStatus.AWAITING_CONFIRMATION &&
-        unsupportedMode != null &&
-        recoveryTrackType != null
+            unsupportedMode != null &&
+            recoveryTrackType != null
     ) {
         AlertDialog(
-            onDismissRequest = { },
-            title = {
-                Text(text = stringResource(coreUiR.string.decoder))
-            },
+            onDismissRequest = {},
+            title = { Text(text = stringResource(coreUiR.string.decoder)) },
             text = {
                 Text(
-                    text = stringResource(
-                        when (recoveryTrackType) {
-                            DecoderTrackType.VIDEO -> coreUiR.string.video_decoder_mode_not_supported
-                            DecoderTrackType.AUDIO -> coreUiR.string.audio_decoder_mode_not_supported
-                        },
-                        stringResource(unsupportedMode.labelRes),
-                    ),
+                    text =
+                        stringResource(
+                            when (recoveryTrackType) {
+                                DecoderTrackType.VIDEO ->
+                                    coreUiR.string.video_decoder_mode_not_supported
+                                DecoderTrackType.AUDIO ->
+                                    coreUiR.string.audio_decoder_mode_not_supported
+                            },
+                            stringResource(unsupportedMode.labelRes),
+                        )
                 )
             },
             confirmButton = {
@@ -53,27 +54,24 @@ internal fun PlayerErrorDialogs(
     }
 
     val allDecoderModesFailed = decoderRecoveryState.status == DecoderRecoveryStatus.FAILED
-    val showPlayerError = allDecoderModesFailed ||
-        (
-            decoderRecoveryState.status == DecoderRecoveryStatus.NONE &&
-                playbackError != null
-            )
+    val showPlayerError =
+        allDecoderModesFailed ||
+            (decoderRecoveryState.status == DecoderRecoveryStatus.NONE && playbackError != null)
     if (showPlayerError) {
         AlertDialog(
-            onDismissRequest = { },
-            title = {
-                Text(text = stringResource(coreUiR.string.error_playing_video))
-            },
+            onDismissRequest = {},
+            title = { Text(text = stringResource(coreUiR.string.error_playing_video)) },
             text = {
                 Text(
-                    text = playbackError?.message
-                        ?: stringResource(
-                            if (allDecoderModesFailed) {
-                                coreUiR.string.no_supported_decoder
-                            } else {
-                                coreUiR.string.unknown_error
-                            },
-                        ),
+                    text =
+                        playbackError?.message
+                            ?: stringResource(
+                                if (allDecoderModesFailed) {
+                                    coreUiR.string.no_supported_decoder
+                                } else {
+                                    coreUiR.string.unknown_error
+                                }
+                            )
                 )
             },
             confirmButton = {
@@ -84,9 +82,7 @@ internal fun PlayerErrorDialogs(
                 }
             },
             dismissButton = {
-                TextButton(onClick = onExit) {
-                    Text(text = stringResource(coreUiR.string.exit))
-                }
+                TextButton(onClick = onExit) { Text(text = stringResource(coreUiR.string.exit)) }
             },
         )
     }

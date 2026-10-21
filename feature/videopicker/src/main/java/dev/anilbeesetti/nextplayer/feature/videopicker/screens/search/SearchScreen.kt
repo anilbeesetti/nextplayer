@@ -77,10 +77,9 @@ import dev.anilbeesetti.nextplayer.feature.videopicker.composables.FolderItem
 import dev.anilbeesetti.nextplayer.feature.videopicker.composables.MediaView
 
 @Composable
-fun SearchScreen(
-    viewModel: SearchViewModel,
-) {
-    val state by viewModel.state.collectAsStateWithLifecycle(minActiveState = Lifecycle.State.RESUMED)
+fun SearchScreen(viewModel: SearchViewModel) {
+    val state by
+        viewModel.state.collectAsStateWithLifecycle(minActiveState = Lifecycle.State.RESUMED)
 
     SearchScreenContent(
         state = state,
@@ -98,9 +97,7 @@ internal fun SearchScreenContent(
     val keyboardController = LocalSoftwareKeyboardController.current
     var isSearchFocused by remember { mutableStateOf(false) }
 
-    LaunchedEffect(Unit) {
-        focusRequester.requestFocus()
-    }
+    LaunchedEffect(Unit) { focusRequester.requestFocus() }
 
     Scaffold(
         topBar = {
@@ -109,11 +106,11 @@ internal fun SearchScreenContent(
                     NextOutlinedTextField(
                         value = state.query,
                         onValueChange = { onAction(SearchUiEvent.OnQueryChange(it)) },
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .focusRequester(focusRequester)
-                            .onFocusChanged { isSearchFocused = it.hasFocus }
-                            .tvFocusRing(shape = CircleShape),
+                        modifier =
+                            Modifier.fillMaxWidth()
+                                .focusRequester(focusRequester)
+                                .onFocusChanged { isSearchFocused = it.hasFocus }
+                                .tvFocusRing(shape = CircleShape),
                         placeholder = {
                             Text(
                                 text = stringResource(R.string.search_videos_and_folders),
@@ -126,7 +123,9 @@ internal fun SearchScreenContent(
                         textStyle = MaterialTheme.typography.bodyLarge,
                         trailingIcon = {
                             if (state.query.isNotEmpty()) {
-                                IconButton(onClick = { onAction(SearchUiEvent.OnQueryChange("")) }) {
+                                IconButton(
+                                    onClick = { onAction(SearchUiEvent.OnQueryChange("")) }
+                                ) {
                                     Icon(
                                         imageVector = NextIcons.Close,
                                         contentDescription = stringResource(R.string.clear_history),
@@ -141,19 +140,21 @@ internal fun SearchScreenContent(
                         },
                         singleLine = true,
                         keyboardOptions = KeyboardOptions(imeAction = ImeAction.Search),
-                        keyboardActions = KeyboardActions(
-                            onSearch = {
-                                onAction(SearchUiEvent.OnSearch(state.query))
-                                keyboardController?.hide()
-                            },
-                        ),
+                        keyboardActions =
+                            KeyboardActions(
+                                onSearch = {
+                                    onAction(SearchUiEvent.OnSearch(state.query))
+                                    keyboardController?.hide()
+                                }
+                            ),
                         shape = CircleShape,
-                        colors = OutlinedTextFieldDefaults.colors(
-                            unfocusedBorderColor = Color.Transparent,
-                            focusedBorderColor = Color.Transparent,
-                            errorBorderColor = Color.Transparent,
-                            disabledBorderColor = Color.Transparent,
-                        ),
+                        colors =
+                            OutlinedTextFieldDefaults.colors(
+                                unfocusedBorderColor = Color.Transparent,
+                                focusedBorderColor = Color.Transparent,
+                                errorBorderColor = Color.Transparent,
+                                disabledBorderColor = Color.Transparent,
+                            ),
                     )
                 },
                 navigationIcon = {
@@ -169,16 +170,18 @@ internal fun SearchScreenContent(
         containerColor = MaterialTheme.colorScheme.surfaceContainer,
     ) { scaffoldPadding ->
         Column(
-            modifier = Modifier
-                .fillMaxSize()
-                .padding(top = scaffoldPadding.calculateTopPadding())
-                .padding(start = scaffoldPadding.calculateStartPadding(LocalLayoutDirection.current)),
+            modifier =
+                Modifier.fillMaxSize()
+                    .padding(top = scaffoldPadding.calculateTopPadding())
+                    .padding(
+                        start = scaffoldPadding.calculateStartPadding(LocalLayoutDirection.current)
+                    )
         ) {
             Box(
-                modifier = Modifier
-                    .fillMaxSize()
-                    .clip(RoundedCornerShape(topStart = 24.dp, topEnd = 24.dp))
-                    .background(MaterialTheme.colorScheme.background),
+                modifier =
+                    Modifier.fillMaxSize()
+                        .clip(RoundedCornerShape(topStart = 24.dp, topEnd = 24.dp))
+                        .background(MaterialTheme.colorScheme.background)
             ) {
                 val updatedScaffoldPadding = scaffoldPadding.copy(top = 0.dp, start = 0.dp)
                 if (state.query.isBlank()) {
@@ -226,9 +229,7 @@ private fun SuggestionsContent(
         if (searchHistory.isNotEmpty()) {
             item {
                 Row(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .padding(horizontal = 16.dp),
+                    modifier = Modifier.fillMaxWidth().padding(horizontal = 16.dp),
                     horizontalArrangement = Arrangement.SpaceBetween,
                     verticalAlignment = Alignment.CenterVertically,
                 ) {
@@ -258,11 +259,12 @@ private fun SuggestionsContent(
             item {
                 ListSectionTitle(
                     text = stringResource(R.string.popular_folders),
-                    contentPadding = PaddingValues(
-                        start = 16.dp,
-                        top = if (searchHistory.isNotEmpty()) 20.dp else 12.dp,
-                        bottom = 8.dp,
-                    ),
+                    contentPadding =
+                        PaddingValues(
+                            start = 16.dp,
+                            top = if (searchHistory.isNotEmpty()) 20.dp else 12.dp,
+                            bottom = 8.dp,
+                        ),
                 )
             }
 
@@ -285,9 +287,7 @@ private fun SuggestionsContent(
         if (searchHistory.isEmpty() && popularFolders.isEmpty()) {
             item {
                 Box(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .padding(32.dp),
+                    modifier = Modifier.fillMaxWidth().padding(32.dp),
                     contentAlignment = Alignment.Center,
                 ) {
                     Column(
@@ -410,10 +410,11 @@ private fun SearchResultsContent(
             MediaView(
                 recentlyPlayedVideo = null,
                 recentlyPlayedFolder = null,
-                mediaHolder = MediaHolder(
-                    videos = searchResults.videos,
-                    folders = searchResults.folders,
-                ),
+                mediaHolder =
+                    MediaHolder(
+                        videos = searchResults.videos,
+                        folders = searchResults.folders,
+                    ),
                 preferences = preferences,
                 focusState = focusState,
                 autoFocus = autoFocus,
@@ -443,21 +444,23 @@ private fun SearchScreenWithHistoryPreview() {
     NextPlayerTheme {
         SearchScreenContent(
             onAction = {},
-            state = SearchUiState(
-                searchHistory = listOf("avengers", "movie", "trailer"),
-                popularFolders = listOf(
-                    Folder(
-                        name = "Movies",
-                        path = "/storage/Movies",
-                        dateModified = System.currentTimeMillis(),
-                    ),
-                    Folder(
-                        name = "Downloads",
-                        path = "/storage/Downloads",
-                        dateModified = System.currentTimeMillis(),
-                    ),
+            state =
+                SearchUiState(
+                    searchHistory = listOf("avengers", "movie", "trailer"),
+                    popularFolders =
+                        listOf(
+                            Folder(
+                                name = "Movies",
+                                path = "/storage/Movies",
+                                dateModified = System.currentTimeMillis(),
+                            ),
+                            Folder(
+                                name = "Downloads",
+                                path = "/storage/Downloads",
+                                dateModified = System.currentTimeMillis(),
+                            ),
+                        ),
                 ),
-            ),
         )
     }
 }
@@ -468,22 +471,32 @@ private fun SearchScreenWithResultsPreview() {
     NextPlayerTheme {
         SearchScreenContent(
             onAction = {},
-            state = SearchUiState(
-                query = "movie",
-                searchResults = SearchResults(
-                    folders = listOf(
-                        Folder(
-                            name = "Movies",
-                            path = "/storage/Movies",
-                            dateModified = System.currentTimeMillis(),
+            state =
+                SearchUiState(
+                    query = "movie",
+                    searchResults =
+                        SearchResults(
+                            folders =
+                                listOf(
+                                    Folder(
+                                        name = "Movies",
+                                        path = "/storage/Movies",
+                                        dateModified = System.currentTimeMillis(),
+                                    )
+                                ),
+                            videos =
+                                listOf(
+                                    Video.sample.copy(
+                                        nameWithExtension = "Movie_Clip.mp4",
+                                        uriString = "content://sample/movie_clip.mp4",
+                                    ),
+                                    Video.sample.copy(
+                                        nameWithExtension = "My_Movie.mp4",
+                                        uriString = "content://sample/my_movie.mp4",
+                                    ),
+                                ),
                         ),
-                    ),
-                    videos = listOf(
-                        Video.sample.copy(nameWithExtension = "Movie_Clip.mp4", uriString = "content://sample/movie_clip.mp4"),
-                        Video.sample.copy(nameWithExtension = "My_Movie.mp4", uriString = "content://sample/my_movie.mp4"),
-                    ),
                 ),
-            ),
         )
     }
 }
@@ -494,10 +507,11 @@ private fun SearchScreenNoResultsPreview() {
     NextPlayerTheme {
         SearchScreenContent(
             onAction = {},
-            state = SearchUiState(
-                query = "xyz123",
-                searchResults = SearchResults(),
-            ),
+            state =
+                SearchUiState(
+                    query = "xyz123",
+                    searchResults = SearchResults(),
+                ),
         )
     }
 }

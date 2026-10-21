@@ -61,29 +61,31 @@ fun FolderItem(
     onLongClick: (() -> Unit)? = null,
 ) {
     when (preferences.mediaLayoutMode) {
-        MediaLayoutMode.LIST -> FolderListItem(
-            folder = folder,
-            isRecentlyPlayedFolder = isRecentlyPlayedFolder,
-            preferences = preferences,
-            modifier = modifier,
-            isFirstItem = isFirstItem,
-            isLastItem = isLastItem,
-            selected = selected,
-            onClick = onClick,
-            onLongClick = onLongClick,
-        )
+        MediaLayoutMode.LIST ->
+            FolderListItem(
+                folder = folder,
+                isRecentlyPlayedFolder = isRecentlyPlayedFolder,
+                preferences = preferences,
+                modifier = modifier,
+                isFirstItem = isFirstItem,
+                isLastItem = isLastItem,
+                selected = selected,
+                onClick = onClick,
+                onLongClick = onLongClick,
+            )
 
-        MediaLayoutMode.GRID -> FolderGridItem(
-            folder = folder,
-            isRecentlyPlayedFolder = isRecentlyPlayedFolder,
-            preferences = preferences,
-            modifier = modifier,
-            isFirstItem = isFirstItem,
-            isLastItem = isLastItem,
-            selected = selected,
-            onClick = onClick,
-            onLongClick = onLongClick,
-        )
+        MediaLayoutMode.GRID ->
+            FolderGridItem(
+                folder = folder,
+                isRecentlyPlayedFolder = isRecentlyPlayedFolder,
+                preferences = preferences,
+                modifier = modifier,
+                isFirstItem = isFirstItem,
+                isLastItem = isLastItem,
+                selected = selected,
+                onClick = onClick,
+                onLongClick = onLongClick,
+            )
     }
 }
 
@@ -104,19 +106,22 @@ private fun FolderListItem(
         modifier = modifier,
         selected = selected,
         contentPadding = PaddingValues(8.dp),
-        colors = ListItemDefaults.segmentedColors(
-            contentColor = if (isRecentlyPlayedFolder && preferences.markLastPlayedMedia) {
-                MaterialTheme.colorScheme.primary
-            } else {
-                ListItemDefaults.colors().contentColor
-            },
-            supportingContentColor = if (isRecentlyPlayedFolder && preferences.markLastPlayedMedia) {
-                MaterialTheme.colorScheme.primary
-            } else {
-                ListItemDefaults.colors().supportingContentColor
-            },
-            selectedContainerColor = MaterialTheme.colorScheme.tertiary.copy(alpha = 0.3f),
-        ),
+        colors =
+            ListItemDefaults.segmentedColors(
+                contentColor =
+                    if (isRecentlyPlayedFolder && preferences.markLastPlayedMedia) {
+                        MaterialTheme.colorScheme.primary
+                    } else {
+                        ListItemDefaults.colors().contentColor
+                    },
+                supportingContentColor =
+                    if (isRecentlyPlayedFolder && preferences.markLastPlayedMedia) {
+                        MaterialTheme.colorScheme.primary
+                    } else {
+                        ListItemDefaults.colors().supportingContentColor
+                    },
+                selectedContainerColor = MaterialTheme.colorScheme.tertiary.copy(alpha = 0.3f),
+            ),
         isFirstItem = isFirstItem,
         isLastItem = isLastItem,
         onClick = onClick,
@@ -127,18 +132,20 @@ private fun FolderListItem(
                     imageVector = ImageVector.vectorResource(id = R.drawable.folder_thumb),
                     contentDescription = "",
                     tint = MaterialTheme.colorScheme.surfaceContainerHigh,
-                    modifier = Modifier
-                        .width(min(90.dp, LocalConfiguration.current.screenWidthDp.dp * 0.3f))
-                        .aspectRatio(20 / 17f),
+                    modifier =
+                        Modifier.width(
+                                min(90.dp, LocalConfiguration.current.screenWidthDp.dp * 0.3f)
+                            )
+                            .aspectRatio(20 / 17f),
                 )
 
                 if (preferences.showFolderDurationField) {
                     InfoChip(
                         text = Utils.formatDurationMillis(folder.totalDuration),
-                        modifier = Modifier
-                            .padding(5.dp)
-                            .padding(bottom = 3.dp)
-                            .align(Alignment.BottomEnd),
+                        modifier =
+                            Modifier.padding(5.dp)
+                                .padding(bottom = 3.dp)
+                                .align(Alignment.BottomEnd),
                         backgroundColor = Color.Black.copy(alpha = 0.6f),
                         contentColor = Color.White,
                         shape = MaterialTheme.shapes.extraSmall,
@@ -162,9 +169,7 @@ private fun FolderListItem(
             )
         },
         supportingContent = {
-            Column(
-                verticalArrangement = Arrangement.spacedBy(4.dp),
-            ) {
+            Column(verticalArrangement = Arrangement.spacedBy(4.dp)) {
                 if (preferences.showPathField) {
                     Text(
                         text = folder.path.substringBeforeLast("/"),
@@ -180,14 +185,24 @@ private fun FolderListItem(
                 ) {
                     if (folder.videosCount > 0) {
                         InfoChip(
-                            text = "${folder.videosCount} " +
-                                    stringResource(id = R.string.video.takeIf { folder.videosCount == 1 } ?: R.string.videos),
+                            text =
+                                "${folder.videosCount} " +
+                                    stringResource(
+                                        id =
+                                            R.string.video.takeIf { folder.videosCount == 1 }
+                                                ?: R.string.videos
+                                    )
                         )
                     }
                     if (folder.foldersCount > 0) {
                         InfoChip(
-                            text = "${folder.foldersCount} " +
-                                    stringResource(id = R.string.folder.takeIf { folder.foldersCount == 1 } ?: R.string.folders),
+                            text =
+                                "${folder.foldersCount} " +
+                                    stringResource(
+                                        id =
+                                            R.string.folder.takeIf { folder.foldersCount == 1 }
+                                                ?: R.string.folders
+                                    )
                         )
                     }
                     if (preferences.showSizeField) {
@@ -216,19 +231,22 @@ private fun FolderGridItem(
         modifier = modifier.width(IntrinsicSize.Min),
         selected = selected,
         contentPadding = PaddingValues(8.dp),
-        colors = ListItemDefaults.segmentedColors(
-            contentColor = if (isRecentlyPlayedFolder && preferences.markLastPlayedMedia) {
-                MaterialTheme.colorScheme.primary
-            } else {
-                ListItemDefaults.segmentedColors().contentColor
-            },
-            supportingContentColor = if (isRecentlyPlayedFolder && preferences.markLastPlayedMedia) {
-                MaterialTheme.colorScheme.primary
-            } else {
-                ListItemDefaults.colors().supportingContentColor
-            },
-            selectedContainerColor = MaterialTheme.colorScheme.tertiary.copy(alpha = 0.3f),
-        ),
+        colors =
+            ListItemDefaults.segmentedColors(
+                contentColor =
+                    if (isRecentlyPlayedFolder && preferences.markLastPlayedMedia) {
+                        MaterialTheme.colorScheme.primary
+                    } else {
+                        ListItemDefaults.segmentedColors().contentColor
+                    },
+                supportingContentColor =
+                    if (isRecentlyPlayedFolder && preferences.markLastPlayedMedia) {
+                        MaterialTheme.colorScheme.primary
+                    } else {
+                        ListItemDefaults.colors().supportingContentColor
+                    },
+                selectedContainerColor = MaterialTheme.colorScheme.tertiary.copy(alpha = 0.3f),
+            ),
         isFirstItem = isFirstItem,
         isLastItem = isLastItem,
         onClick = onClick,
@@ -244,18 +262,20 @@ private fun FolderGridItem(
                         imageVector = ImageVector.vectorResource(id = R.drawable.folder_thumb),
                         contentDescription = "",
                         tint = MaterialTheme.colorScheme.surfaceContainerHigh,
-                        modifier = Modifier
-                            .width(min(90.dp, LocalConfiguration.current.screenWidthDp.dp * 0.3f))
-                            .aspectRatio(20 / 17f),
+                        modifier =
+                            Modifier.width(
+                                    min(90.dp, LocalConfiguration.current.screenWidthDp.dp * 0.3f)
+                                )
+                                .aspectRatio(20 / 17f),
                     )
 
                     if (preferences.showFolderDurationField) {
                         InfoChip(
                             text = Utils.formatDurationMillis(folder.totalDuration),
-                            modifier = Modifier
-                                .padding(5.dp)
-                                .padding(bottom = 3.dp)
-                                .align(Alignment.BottomEnd),
+                            modifier =
+                                Modifier.padding(5.dp)
+                                    .padding(bottom = 3.dp)
+                                    .align(Alignment.BottomEnd),
                             backgroundColor = Color.Black.copy(alpha = 0.6f),
                             contentColor = Color.White,
                             shape = MaterialTheme.shapes.extraSmall,
@@ -265,9 +285,7 @@ private fun FolderGridItem(
                     if (folder.newVideosCount > 0) {
                         NewVideosCountBadge(
                             count = folder.newVideosCount,
-                            modifier = Modifier
-                                .align(Alignment.TopEnd)
-                                .offset(x = 4.dp),
+                            modifier = Modifier.align(Alignment.TopEnd).offset(x = 4.dp),
                         )
                     }
                 }
@@ -281,39 +299,54 @@ private fun FolderGridItem(
                         maxLines = 2,
                         style = MaterialTheme.typography.titleMedium,
                         overflow = TextOverflow.Ellipsis,
-                        color = if (isRecentlyPlayedFolder && preferences.markLastPlayedMedia) {
-                            MaterialTheme.colorScheme.primary
-                        } else {
-                            ListItemDefaults.colors().contentColor
-                        },
+                        color =
+                            if (isRecentlyPlayedFolder && preferences.markLastPlayedMedia) {
+                                MaterialTheme.colorScheme.primary
+                            } else {
+                                ListItemDefaults.colors().contentColor
+                            },
                         textAlign = TextAlign.Center,
                     )
-                    val mediaCount = if (folder.videosCount > 0) {
-                        "${folder.videosCount} " + stringResource(id = R.string.video.takeIf { folder.videosCount == 1 } ?: R.string.videos)
-                    } else {
-                        null
-                    }
-                    val folderCount = if (folder.foldersCount > 0) {
-                        "${folder.foldersCount} " + stringResource(id = R.string.folder.takeIf { folder.foldersCount == 1 } ?: R.string.folders)
-                    } else {
-                        null
-                    }
+                    val mediaCount =
+                        if (folder.videosCount > 0) {
+                            "${folder.videosCount} " +
+                                stringResource(
+                                    id =
+                                        R.string.video.takeIf { folder.videosCount == 1 }
+                                            ?: R.string.videos
+                                )
+                        } else {
+                            null
+                        }
+                    val folderCount =
+                        if (folder.foldersCount > 0) {
+                            "${folder.foldersCount} " +
+                                stringResource(
+                                    id =
+                                        R.string.folder.takeIf { folder.foldersCount == 1 }
+                                            ?: R.string.folders
+                                )
+                        } else {
+                            null
+                        }
 
                     Text(
-                        text = buildString {
-                            mediaCount?.let {
-                                append(it)
-                                folderCount?.let {
-                                    append(", ")
-                                    append("\u00A0")
+                        text =
+                            buildString {
+                                mediaCount?.let {
+                                    append(it)
+                                    folderCount?.let {
+                                        append(", ")
+                                        append("\u00A0")
+                                    }
                                 }
-                            }
-                            folderCount?.let {
-                                append(it)
-                            }
-                        },
+                                folderCount?.let { append(it) }
+                            },
                         maxLines = 2,
-                        style = MaterialTheme.typography.labelSmall.copy(fontWeight = FontWeight.Normal),
+                        style =
+                            MaterialTheme.typography.labelSmall.copy(
+                                fontWeight = FontWeight.Normal
+                            ),
                         textAlign = TextAlign.Center,
                     )
                 }
@@ -328,23 +361,30 @@ private fun NewVideosCountBadge(
     count: Int,
     modifier: Modifier = Modifier,
 ) {
-    require(count > 0) { "NewVideosCountBadge should only be shown for a positive count, was $count" }
+    require(count > 0) {
+        "NewVideosCountBadge should only be shown for a positive count, was $count"
+    }
 
     val description = pluralStringResource(R.plurals.new_videos_count, count, count)
 
     Box(
-        modifier = modifier
-            .defaultMinSize(minWidth = 20.dp)
-            .height(20.dp)
-            .clip(CircleShape)
-            .background(MaterialTheme.colorScheme.primary)
-            .semantics { contentDescription = description }
-            .padding(horizontal = 6.dp),
+        modifier =
+            modifier
+                .defaultMinSize(minWidth = 20.dp)
+                .height(20.dp)
+                .clip(CircleShape)
+                .background(MaterialTheme.colorScheme.primary)
+                .semantics { contentDescription = description }
+                .padding(horizontal = 6.dp),
         contentAlignment = Alignment.Center,
     ) {
         Text(
             text = count.toString(),
-            style = MaterialTheme.typography.labelSmall.copy(fontWeight = FontWeight.Bold, fontSize = 10.sp),
+            style =
+                MaterialTheme.typography.labelSmall.copy(
+                    fontWeight = FontWeight.Bold,
+                    fontSize = 10.sp,
+                ),
             color = MaterialTheme.colorScheme.onPrimary,
             maxLines = 1,
             softWrap = false,

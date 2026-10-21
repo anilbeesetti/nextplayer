@@ -65,7 +65,8 @@ internal fun PlayerSeekbar(
     val onValueChange: (Float) -> Unit = { value ->
         isScrubbing = true
         val chapterIndex = chapters.currentChapterIndex(value.toLong())
-        val previousChapterIndex = lastSeekChapterIndex ?: chapters.currentChapterIndex(position.toLong())
+        val previousChapterIndex =
+            lastSeekChapterIndex ?: chapters.currentChapterIndex(position.toLong())
         if (chapterIndex != previousChapterIndex) {
             hapticFeedback.performHapticFeedback(HapticFeedbackType.SegmentTick)
         }
@@ -85,9 +86,8 @@ internal fun PlayerSeekbar(
         onDispose { onValueChangeFinished() }
     }
     var isFocused by remember { mutableStateOf(false) }
-    val focusModifier = modifier
-        .fillMaxWidth()
-        .onFocusChanged {
+    val focusModifier =
+        modifier.fillMaxWidth().onFocusChanged {
             if (isFocused && !it.isFocused) onValueChangeFinished()
             isFocused = it.isFocused
         }
@@ -133,8 +133,10 @@ private fun MaterialYouSlider(
     val trackHeight = 8.dp
     val thumbWidth = 4.dp
     val trackThumbGapWidth = 12.dp
-    val focusedThumbWidth by animateDpAsState(if (isFocused) 10.dp else thumbWidth, label = "thumbWidth")
-    val focusedThumbHeight by animateDpAsState(if (isFocused) 24.dp else 20.dp, label = "thumbHeight")
+    val focusedThumbWidth by
+        animateDpAsState(if (isFocused) 10.dp else thumbWidth, label = "thumbWidth")
+    val focusedThumbHeight by
+        animateDpAsState(if (isFocused) 24.dp else 20.dp, label = "thumbHeight")
 
     Slider(
         value = value,
@@ -147,10 +149,10 @@ private fun MaterialYouSlider(
             val disabledAlpha = 0.4f
 
             Canvas(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .height(trackHeight)
-                    .chapterGaps(chapters, valueRange.endInclusive),
+                modifier =
+                    Modifier.fillMaxWidth()
+                        .height(trackHeight)
+                        .chapterGaps(chapters, valueRange.endInclusive)
             ) {
                 val min = sliderState.valueRange.start
                 val max = sliderState.valueRange.endInclusive
@@ -200,17 +202,17 @@ private fun MaterialYouSlider(
         },
         thumb = {
             Box(
-                modifier = Modifier
-                    .width(focusedThumbWidth)
-                    .height(focusedThumbHeight)
-                    .background(primaryColor, CircleShape)
-                    .then(
-                        if (isFocused) {
-                            Modifier.border(2.dp, Color.White, CircleShape)
-                        } else {
-                            Modifier
-                        },
-                    ),
+                modifier =
+                    Modifier.width(focusedThumbWidth)
+                        .height(focusedThumbHeight)
+                        .background(primaryColor, CircleShape)
+                        .then(
+                            if (isFocused) {
+                                Modifier.border(2.dp, Color.White, CircleShape)
+                            } else {
+                                Modifier
+                            }
+                        )
             )
         },
     )
@@ -225,17 +227,16 @@ private fun DrawScope.drawRoundedRect(
 ) {
     val startCorner = CornerRadius(startCornerRadius, startCornerRadius)
     val endCorner = CornerRadius(endCornerRadius, endCornerRadius)
-    val track = RoundRect(
-        rect = Rect(Offset(offset.x, 0f), size = Size(size.width, size.height)),
-        topLeft = startCorner,
-        topRight = endCorner,
-        bottomRight = endCorner,
-        bottomLeft = startCorner,
-    )
+    val track =
+        RoundRect(
+            rect = Rect(Offset(offset.x, 0f), size = Size(size.width, size.height)),
+            topLeft = startCorner,
+            topRight = endCorner,
+            bottomRight = endCorner,
+            bottomLeft = startCorner,
+        )
     drawPath(
-        path = Path().apply {
-            addRoundRect(track)
-        },
+        path = Path().apply { addRoundRect(track) },
         color = color,
     )
 }
@@ -260,34 +261,38 @@ private fun SimpleSlider(
         modifier = modifier.height(24.dp),
         thumb = {
             Box(
-                modifier = Modifier
-                    .size(thumbSize)
-                    .shadow(4.dp, CircleShape)
-                    .background(Color.White)
-                    .then(
-                        if (isFocused) {
-                            Modifier.border(2.dp, MaterialTheme.colorScheme.primary, CircleShape)
-                        } else {
-                            Modifier
-                        },
-                    ),
+                modifier =
+                    Modifier.size(thumbSize)
+                        .shadow(4.dp, CircleShape)
+                        .background(Color.White)
+                        .then(
+                            if (isFocused) {
+                                Modifier.border(
+                                    2.dp,
+                                    MaterialTheme.colorScheme.primary,
+                                    CircleShape,
+                                )
+                            } else {
+                                Modifier
+                            }
+                        )
             )
         },
         track = {
             Box(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .height(4.dp)
-                    .chapterGaps(chapters, valueRange.endInclusive)
-                    .clip(MaterialTheme.shapes.extraSmall)
-                    .background(Color.White.copy(0.5f)),
+                modifier =
+                    Modifier.fillMaxWidth()
+                        .height(4.dp)
+                        .chapterGaps(chapters, valueRange.endInclusive)
+                        .clip(MaterialTheme.shapes.extraSmall)
+                        .background(Color.White.copy(0.5f))
             ) {
                 if (valueRange.endInclusive > 0f) {
                     Box(
-                        modifier = Modifier
-                            .fillMaxWidth(value / valueRange.endInclusive)
-                            .height(4.dp)
-                            .background(MaterialTheme.colorScheme.primary),
+                        modifier =
+                            Modifier.fillMaxWidth(value / valueRange.endInclusive)
+                                .height(4.dp)
+                                .background(MaterialTheme.colorScheme.primary)
                     )
                 }
             }
@@ -296,18 +301,19 @@ private fun SimpleSlider(
 }
 
 @OptIn(UnstableApi::class)
-private fun Modifier.chapterGaps(chapters: List<Chapter>, duration: Float): Modifier = drawWithCache {
-    val gaps = Path()
-    if (duration > 0f) {
-        val halfGap = 1.5.dp.toPx()
-        chapters.forEach { chapter ->
-            if (chapter.startTimeMs > 0 && chapter.startTimeMs < duration) {
-                val x = size.width * (chapter.startTimeMs / duration)
-                gaps.addRect(Rect(x - halfGap, 0f, x + halfGap, size.height))
+private fun Modifier.chapterGaps(chapters: List<Chapter>, duration: Float): Modifier =
+    drawWithCache {
+        val gaps = Path()
+        if (duration > 0f) {
+            val halfGap = 1.5.dp.toPx()
+            chapters.forEach { chapter ->
+                if (chapter.startTimeMs > 0 && chapter.startTimeMs < duration) {
+                    val x = size.width * (chapter.startTimeMs / duration)
+                    gaps.addRect(Rect(x - halfGap, 0f, x + halfGap, size.height))
+                }
             }
         }
+        onDrawWithContent {
+            clipPath(gaps, ClipOp.Difference) { this@onDrawWithContent.drawContent() }
+        }
     }
-    onDrawWithContent {
-        clipPath(gaps, ClipOp.Difference) { this@onDrawWithContent.drawContent() }
-    }
-}

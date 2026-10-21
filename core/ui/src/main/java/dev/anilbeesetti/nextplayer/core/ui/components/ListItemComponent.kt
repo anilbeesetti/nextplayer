@@ -48,43 +48,55 @@ fun NextSegmentedListItem(
 
     val focusInteractionSource = interactionSource ?: remember { MutableInteractionSource() }
     val isFocused by focusInteractionSource.collectIsFocusedAsState()
-    val focusScale by animateFloatAsState(targetValue = if (isFocused) 1.01f else 1f, label = "focusScale")
+    val focusScale by
+        animateFloatAsState(targetValue = if (isFocused) 1.01f else 1f, label = "focusScale")
 
     SegmentedListItem(
-        modifier = modifier
-            .zIndex(if (isFocused) 1f else 0f)
-            .scale(focusScale)
-            .then(
-                if (isFocused) {
-                    Modifier.border(
-                        width = 2.dp,
-                        color = MaterialTheme.colorScheme.primary,
-                        shape = overrideShape,
-                    )
-                } else {
-                    Modifier
-                },
-            ),
+        modifier =
+            modifier
+                .zIndex(if (isFocused) 1f else 0f)
+                .scale(focusScale)
+                .then(
+                    if (isFocused) {
+                        Modifier.border(
+                            width = 2.dp,
+                            color = MaterialTheme.colorScheme.primary,
+                            shape = overrideShape,
+                        )
+                    } else {
+                        Modifier
+                    }
+                ),
         selected = selected,
         onClick = onClick,
         onLongClick = onLongClick,
         enabled = enabled,
         verticalAlignment = Alignment.CenterVertically,
-        shapes = remember(isFirstItem, isLastItem, shapes) {
-            val defaultBaseShape = shapes.shape
-            if (defaultBaseShape is CornerBasedShape) {
-                shapes.copy(
-                    shape = defaultBaseShape.copy(
-                        topStart = overrideShape.topStart.takeIf { isFirstItem } ?: defaultBaseShape.topStart,
-                        topEnd = overrideShape.topEnd.takeIf { isFirstItem } ?: defaultBaseShape.topEnd,
-                        bottomStart = overrideShape.bottomStart.takeIf { isLastItem } ?: defaultBaseShape.bottomStart,
-                        bottomEnd = overrideShape.bottomEnd.takeIf { isLastItem } ?: defaultBaseShape.bottomEnd,
-                    ),
-                )
-            } else {
-                shapes
-            }
-        },
+        shapes =
+            remember(isFirstItem, isLastItem, shapes) {
+                val defaultBaseShape = shapes.shape
+                if (defaultBaseShape is CornerBasedShape) {
+                    shapes.copy(
+                        shape =
+                            defaultBaseShape.copy(
+                                topStart =
+                                    overrideShape.topStart.takeIf { isFirstItem }
+                                        ?: defaultBaseShape.topStart,
+                                topEnd =
+                                    overrideShape.topEnd.takeIf { isFirstItem }
+                                        ?: defaultBaseShape.topEnd,
+                                bottomStart =
+                                    overrideShape.bottomStart.takeIf { isLastItem }
+                                        ?: defaultBaseShape.bottomStart,
+                                bottomEnd =
+                                    overrideShape.bottomEnd.takeIf { isLastItem }
+                                        ?: defaultBaseShape.bottomEnd,
+                            )
+                    )
+                } else {
+                    shapes
+                }
+            },
         colors = colors,
         contentPadding = contentPadding,
         leadingContent = leadingContent,
@@ -100,11 +112,12 @@ fun NextSegmentedListItem(
 fun ListSectionTitle(
     modifier: Modifier = Modifier,
     text: String,
-    contentPadding: PaddingValues = PaddingValues(
-        start = 12.dp,
-        top = 20.dp,
-        bottom = 10.dp,
-    ),
+    contentPadding: PaddingValues =
+        PaddingValues(
+            start = 12.dp,
+            top = 20.dp,
+            bottom = 10.dp,
+        ),
     color: Color = MaterialTheme.colorScheme.primary,
 ) {
     Text(

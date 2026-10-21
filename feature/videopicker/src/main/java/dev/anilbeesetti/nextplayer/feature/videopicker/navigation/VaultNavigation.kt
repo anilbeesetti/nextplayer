@@ -11,8 +11,7 @@ import kotlinx.serialization.Serializable
 import org.koin.compose.viewmodel.koinViewModel
 import org.koin.core.parameter.parametersOf
 
-@Serializable
-object VaultRoute : NavKey
+@Serializable object VaultRoute : NavKey
 
 fun NavBackStack<NavKey>.navigateToVault() {
     add(VaultRoute)
@@ -24,14 +23,13 @@ fun EntryProviderScope<NavKey>.vaultEntry(
     onPlayVideos: (uris: List<Uri>) -> Unit,
 ) {
     entry<VaultRoute> {
-        val output = VaultViewModel.Output(
-            playVideo = onPlayVideo,
-            playVideos = onPlayVideos,
-            navigateUp = onNavigateUp,
-        )
-        val viewModel = koinViewModel<VaultViewModel>(
-            parameters = { parametersOf(output) },
-        )
+        val output =
+            VaultViewModel.Output(
+                playVideo = onPlayVideo,
+                playVideos = onPlayVideos,
+                navigateUp = onNavigateUp,
+            )
+        val viewModel = koinViewModel<VaultViewModel>(parameters = { parametersOf(output) })
         SideEffect { viewModel.output = output }
         VaultScreen(viewModel = viewModel)
     }

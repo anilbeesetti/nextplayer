@@ -21,8 +21,7 @@ import org.robolectric.annotation.Config
 @RunWith(RobolectricTestRunner::class)
 @Config(sdk = [36])
 class PlaybackSpeedButtonTest {
-    @get:Rule
-    val composeRule = createAndroidComposeRule<ComponentActivity>()
+    @get:Rule val composeRule = createAndroidComposeRule<ComponentActivity>()
 
     @Test
     fun speedFollowsActivePlayerAcrossHiddenControlsAndPlayerReplacement() {
@@ -51,7 +50,10 @@ class PlaybackSpeedButtonTest {
             composeRule.runOnIdle { first.updateSpeed(3f) }
             composeRule.onNodeWithText("2.0").assertExists()
             composeRule.runOnIdle { player.value = null }
-            composeRule.onNodeWithContentDescription(composeRule.activity.getString(R.string.select_playback_speed))
+            composeRule
+                .onNodeWithContentDescription(
+                    composeRule.activity.getString(R.string.select_playback_speed)
+                )
                 .assertIsNotEnabled()
         } finally {
             composeRule.runOnIdle {
@@ -62,10 +64,13 @@ class PlaybackSpeedButtonTest {
     }
 
     private class TestPlayer(speed: Float) : SimpleBasePlayer(Looper.getMainLooper()) {
-        private var state = State.Builder()
-            .setAvailableCommands(Player.Commands.Builder().add(Player.COMMAND_SET_SPEED_AND_PITCH).build())
-            .setPlaybackParameters(PlaybackParameters(speed))
-            .build()
+        private var state =
+            State.Builder()
+                .setAvailableCommands(
+                    Player.Commands.Builder().add(Player.COMMAND_SET_SPEED_AND_PITCH).build()
+                )
+                .setPlaybackParameters(PlaybackParameters(speed))
+                .build()
 
         override fun getState(): State = state
 

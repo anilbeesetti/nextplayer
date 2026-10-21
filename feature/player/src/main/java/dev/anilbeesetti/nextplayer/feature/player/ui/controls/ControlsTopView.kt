@@ -51,20 +51,20 @@ fun ControlsTopView(
     onPlaylistClick: () -> Unit = {},
 ) {
     val firstControlFocusRequester = remember { FocusRequester() }
-    val systemBarsPadding = WindowInsets.systemBars.union(WindowInsets.displayCutout).asPaddingValues()
+    val systemBarsPadding =
+        WindowInsets.systemBars.union(WindowInsets.displayCutout).asPaddingValues()
     val decoderDescription = stringResource(R.string.select_decoders)
     // Add top spacing only when the system bars don't already provide it (e.g. on TV / landscape).
     val extraTopPadding = if (systemBarsPadding.calculateTopPadding() == 0.dp) 16.dp else 0.dp
     Row(
-        modifier = modifier
-            .padding(systemBarsPadding.copy(bottom = 0.dp))
-            .padding(horizontal = 16.dp)
-            .padding(bottom = 16.dp)
-            .padding(top = extraTopPadding)
-            .focusProperties {
-                onEnter = { firstControlFocusRequester.requestFocus() }
-            }
-            .focusGroup(),
+        modifier =
+            modifier
+                .padding(systemBarsPadding.copy(bottom = 0.dp))
+                .padding(horizontal = 16.dp)
+                .padding(bottom = 16.dp)
+                .padding(top = extraTopPadding)
+                .focusProperties { onEnter = { firstControlFocusRequester.requestFocus() } }
+                .focusGroup(),
         verticalAlignment = Alignment.CenterVertically,
         horizontalArrangement = Arrangement.spacedBy(16.dp),
     ) {
@@ -88,9 +88,9 @@ fun ControlsTopView(
             horizontalArrangement = Arrangement.spacedBy(8.dp),
         ) {
             PlayerButton(
-                modifier = Modifier
-                    .semantics { contentDescription = decoderDescription }
-                    .focusRequester(firstControlFocusRequester),
+                modifier =
+                    Modifier.semantics { contentDescription = decoderDescription }
+                        .focusRequester(firstControlFocusRequester),
                 onClick = onDecoderClick,
             ) {
                 Text(

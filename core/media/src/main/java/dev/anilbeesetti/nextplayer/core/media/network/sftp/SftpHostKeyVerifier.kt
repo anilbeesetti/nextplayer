@@ -7,9 +7,7 @@ import net.schmizz.sshj.common.Buffer
 import net.schmizz.sshj.common.SecurityUtils
 import net.schmizz.sshj.transport.verification.HostKeyVerifier
 
-class SftpHostKeyVerifier(
-    private val expectedFingerprint: String,
-) : HostKeyVerifier {
+class SftpHostKeyVerifier(private val expectedFingerprint: String) : HostKeyVerifier {
 
     override fun verify(hostname: String, port: Int, key: PublicKey): Boolean {
         val presentedFingerprint = sha256Fingerprint(key)

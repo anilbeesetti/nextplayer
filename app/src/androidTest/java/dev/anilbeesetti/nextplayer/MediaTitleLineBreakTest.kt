@@ -25,12 +25,12 @@ import org.junit.runner.RunWith
 
 @RunWith(AndroidJUnit4::class)
 class MediaTitleLineBreakTest {
-    @get:Rule
-    val composeRule = createAndroidComposeRule<ComponentActivity>()
+    @get:Rule val composeRule = createAndroidComposeRule<ComponentActivity>()
 
     private val title = "悬案.Unsettled.Case.S01E02.2026.2160p.WEB-DL.H265"
     private val video = Video.sample.copy(nameWithExtension = "$title.mp4")
-    private val preferences = ApplicationPreferences(showExtensionField = false, showThumbnailField = false)
+    private val preferences =
+        ApplicationPreferences(showExtensionField = false, showThumbnailField = false)
 
     @Test
     fun listTitleDoesNotIsolateChinesePrefix() = assertTitleWraps {
@@ -65,8 +65,11 @@ class MediaTitleLineBreakTest {
     private fun assertTitleWraps(content: @Composable () -> Unit) {
         composeRule.setContent { NextPlayerTheme { content() } }
         val results = mutableListOf<TextLayoutResult>()
-        composeRule.onNodeWithText(title, useUnmergedTree = true)
-            .performSemanticsAction(SemanticsActions.GetTextLayoutResult) { it(results) }
+        composeRule.onNodeWithText(title, useUnmergedTree = true).performSemanticsAction(
+            SemanticsActions.GetTextLayoutResult
+        ) {
+            it(results)
+        }
         val layout = results.single()
         assertEquals(2, layout.lineCount)
         assertTrue("First line ends at ${layout.getLineEnd(0)}", layout.getLineEnd(0) > 2)

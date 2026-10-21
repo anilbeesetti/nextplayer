@@ -7,10 +7,11 @@ import dev.anilbeesetti.nextplayer.core.ui.R
 
 @Composable
 fun Resume.name(): String {
-    val stringRes = when (this) {
-        Resume.YES -> R.string.yes
-        Resume.NO -> R.string.no
-    }
+    val stringRes =
+        when (this) {
+            Resume.YES -> R.string.yes
+            Resume.NO -> R.string.no
+        }
 
     return stringResource(id = stringRes)
 }

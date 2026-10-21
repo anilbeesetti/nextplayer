@@ -14,9 +14,7 @@ import java.io.Serializable
 
 @Composable
 fun rememberSelectionManager(): SelectionManager {
-    return rememberSaveable(saver = SelectionManager.Saver) {
-        SelectionManager()
-    }
+    return rememberSaveable(saver = SelectionManager.Saver) { SelectionManager() }
 }
 
 @Stable
@@ -30,15 +28,18 @@ class SelectionManager(
     var isInSelectionMode: Boolean by mutableStateOf(initialIsInSelectionMode)
         private set
 
-    val isSingleVideoSelected: Boolean by derivedStateOf { selectionItems.size == 1 && selectionItems.first() is SelectionItem.Video }
+    val isSingleVideoSelected: Boolean by derivedStateOf {
+        selectionItems.size == 1 && selectionItems.first() is SelectionItem.Video
+    }
 
     fun toggleFolderSelection(folder: Folder) {
         val selectedFolder = selectionItems.find { it.id == folder.path }
-        selectionItems = if (selectedFolder != null) {
-            selectionItems - selectedFolder
-        } else {
-            selectionItems + folder.toSelectedFolder()
-        }
+        selectionItems =
+            if (selectedFolder != null) {
+                selectionItems - selectedFolder
+            } else {
+                selectionItems + folder.toSelectedFolder()
+            }
         if (selectionItems.isNotEmpty()) {
             enterSelectionMode()
         } else {
@@ -48,11 +49,12 @@ class SelectionManager(
 
     fun toggleVideoSelection(video: Video) {
         val selectedVideo = selectionItems.find { it.id == video.uriString }
-        selectionItems = if (selectedVideo != null) {
-            selectionItems - selectedVideo
-        } else {
-            selectionItems + video.toSelectedVideo()
-        }
+        selectionItems =
+            if (selectedVideo != null) {
+                selectionItems - selectedVideo
+            } else {
+                selectionItems + video.toSelectedVideo()
+            }
         if (selectionItems.isNotEmpty()) {
             enterSelectionMode()
         } else {
@@ -93,24 +95,26 @@ class SelectionManager(
 
     companion object {
         @Suppress("UNCHECKED_CAST")
-        val Saver = Saver<SelectionManager, Map<String, Any>>(
-            save = {
-                mapOf(
-                    "selectionItems" to it.selectionItems,
-                    "isInSelectionMode" to it.isInSelectionMode,
-                )
-            },
-            restore = {
-                SelectionManager(
-                    initialSelectionItems = (it["selectionItems"] as? Set<SelectionItem>) ?: emptySet(),
-                    initialIsInSelectionMode = it["isInSelectionMode"] as? Boolean ?: false,
-                )
-            },
-        )
+        val Saver =
+            Saver<SelectionManager, Map<String, Any>>(
+                save = {
+                    mapOf(
+                        "selectionItems" to it.selectionItems,
+                        "isInSelectionMode" to it.isInSelectionMode,
+                    )
+                },
+                restore = {
+                    SelectionManager(
+                        initialSelectionItems =
+                            (it["selectionItems"] as? Set<SelectionItem>) ?: emptySet(),
+                        initialIsInSelectionMode = it["isInSelectionMode"] as? Boolean ?: false,
+                    )
+                },
+            )
     }
 }
 
-sealed interface SelectionItem: Serializable {
+sealed interface SelectionItem : Serializable {
     @Stable
     data class Folder(
         override val name: String,
@@ -132,13 +136,15 @@ sealed interface SelectionItem: Serializable {
     val name: String
 }
 
-fun Folder.toSelectedFolder() = SelectionItem.Folder(
-    name = name,
-    path = path,
-)
+fun Folder.toSelectedFolder() =
+    SelectionItem.Folder(
+        name = name,
+        path = path,
+    )
 
-fun Video.toSelectedVideo() = SelectionItem.Video(
-    name = displayName,
-    uriString = uriString,
-    path = path,
-)
+fun Video.toSelectedVideo() =
+    SelectionItem.Video(
+        name = displayName,
+        uriString = uriString,
+        path = path,
+    )

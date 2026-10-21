@@ -16,13 +16,20 @@ import org.robolectric.annotation.Config
 class DecoderServiceStateTest {
     @Test
     fun extrasCarryActiveModesAndRecoveryWithoutPlayerEvents() {
-        val extras = Bundle().apply {
-            putString(CustomCommands.VIDEO_DECODER_MODE_KEY, DecoderMode.FFMPEG.name)
-            putString(CustomCommands.AUDIO_DECODER_MODE_KEY, DecoderMode.SOFTWARE.name)
-            putString(CustomCommands.DECODER_RECOVERY_STATUS_KEY, DecoderRecoveryStatus.AWAITING_CONFIRMATION.name)
-            putString(CustomCommands.DECODER_RECOVERY_TRACK_TYPE_KEY, DecoderTrackType.VIDEO.name)
-            putString(CustomCommands.UNSUPPORTED_DECODER_MODE_KEY, DecoderMode.HARDWARE.name)
-        }
+        val extras =
+            Bundle().apply {
+                putString(CustomCommands.VIDEO_DECODER_MODE_KEY, DecoderMode.FFMPEG.name)
+                putString(CustomCommands.AUDIO_DECODER_MODE_KEY, DecoderMode.SOFTWARE.name)
+                putString(
+                    CustomCommands.DECODER_RECOVERY_STATUS_KEY,
+                    DecoderRecoveryStatus.AWAITING_CONFIRMATION.name,
+                )
+                putString(
+                    CustomCommands.DECODER_RECOVERY_TRACK_TYPE_KEY,
+                    DecoderTrackType.VIDEO.name,
+                )
+                putString(CustomCommands.UNSUPPORTED_DECODER_MODE_KEY, DecoderMode.HARDWARE.name)
+            }
         val state = extras.decoderServiceState()
         assertEquals(DecoderMode.FFMPEG, state.videoMode)
         assertEquals(DecoderMode.SOFTWARE, state.audioMode)

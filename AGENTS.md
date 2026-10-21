@@ -16,13 +16,13 @@ Use the checked-in Gradle wrapper and JDK 17:
 - `./gradlew :app:installDebug` installs the debug app on an emulator.
 - `./gradlew test` runs local JUnit and Robolectric tests across modules.
 - `./gradlew connectedDebugAndroidTest` runs instrumentation and Compose UI tests.
-- `./gradlew ktlintCheck` checks Kotlin formatting; `./gradlew ktlintFormat` applies safe formatting fixes.
+- `./gradlew ktfmtCheck` checks Kotlin formatting; `./gradlew ktfmtFormat` applies formatting fixes.
 
 For faster feedback, target a module: `./gradlew :core:media:test`.
 
 ## Coding Style & Naming Conventions
 
-- Follow `.editorconfig` and the Android Studio ktlint style: four-space indentation and trailing commas where supported. Use `PascalCase` for classes, files, and `@Composable` functions; use `camelCase` for methods and properties; keep packages lowercase under `dev.anilbeesetti.nextplayer`.
+- Follow `.editorconfig` and ktfmt's KotlinLang style: four-space indentation and trailing commas where supported. Use `PascalCase` for classes, files, and `@Composable` functions; use `camelCase` for methods and properties; keep packages lowercase under `dev.anilbeesetti.nextplayer`.
 - Place UI string and plurals resources in `core/ui/src/main/res/values/strings.xml` and reference them through `dev.anilbeesetti.nextplayer.core.ui.R`; do not create feature-local string resource files.
 - Choose the simplest implementation that fully meets the current requirements.
 - Prefer established, well-maintained libraries over custom implementations.
@@ -40,7 +40,7 @@ Write short, imperative commit subjects consistent with history, such as `Fix va
 
 During feature work, commit each coherent, verified intermediate milestone instead of leaving multiple completed steps uncommitted until the end.
 
-Pull requests should explain the problem and solution, link the relevant issue, and list verification commands. Include before/after screenshots or recordings for UI changes and note device/API coverage for Android-specific behavior. Ensure `assembleDebug`, `test`, and `ktlintCheck` pass before requesting review.
+Pull requests should explain the problem and solution, link the relevant issue, and list verification commands. Include before/after screenshots or recordings for UI changes and note device/API coverage for Android-specific behavior. Ensure `assembleDebug`, `test`, and `ktfmtCheck` pass before requesting review.
 
 ## Security & Local Configuration
 

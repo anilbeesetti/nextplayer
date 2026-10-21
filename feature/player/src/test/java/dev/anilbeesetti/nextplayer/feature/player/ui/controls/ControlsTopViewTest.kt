@@ -22,8 +22,7 @@ import org.robolectric.annotation.Config
 @RunWith(RobolectricTestRunner::class)
 @Config(sdk = [36])
 class ControlsTopViewTest {
-    @get:Rule
-    val composeRule = createAndroidComposeRule<ComponentActivity>()
+    @get:Rule val composeRule = createAndroidComposeRule<ComponentActivity>()
 
     @Test
     fun enteringGroupFocusesDecoderWithoutTrappingNavigationToBack() {
@@ -39,7 +38,10 @@ class ControlsTopViewTest {
                 )
             }
         }
-        val decoder = composeRule.onNodeWithContentDescription(composeRule.activity.getString(R.string.select_decoders))
+        val decoder =
+            composeRule.onNodeWithContentDescription(
+                composeRule.activity.getString(R.string.select_decoders)
+            )
 
         composeRule.runOnIdle { groupFocusRequester.requestFocus() }
         decoder.assertIsFocused().performKeyInput {

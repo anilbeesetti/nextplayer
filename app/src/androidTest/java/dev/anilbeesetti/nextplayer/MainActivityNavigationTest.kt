@@ -20,8 +20,7 @@ class MainActivityNavigationTest {
     @get:Rule(order = 0)
     val permissionRule: GrantPermissionRule = GrantPermissionRule.grant(storagePermission)
 
-    @get:Rule(order = 1)
-    val composeRule = createAndroidComposeRule<MainActivity>()
+    @get:Rule(order = 1) val composeRule = createAndroidComposeRule<MainActivity>()
 
     @Test
     fun settingsOpensAfterActivityRecreation() {
@@ -53,11 +52,17 @@ class MainActivityNavigationTest {
     private fun recreateHome() {
         val settings = composeRule.activity.getString(R.string.settings)
         composeRule.waitUntil(10_000) {
-            composeRule.onAllNodesWithContentDescription(settings).fetchSemanticsNodes().isNotEmpty()
+            composeRule
+                .onAllNodesWithContentDescription(settings)
+                .fetchSemanticsNodes()
+                .isNotEmpty()
         }
         composeRule.activityRule.scenario.recreate()
         composeRule.waitUntil(10_000) {
-            composeRule.onAllNodesWithContentDescription(settings).fetchSemanticsNodes().isNotEmpty()
+            composeRule
+                .onAllNodesWithContentDescription(settings)
+                .fetchSemanticsNodes()
+                .isNotEmpty()
         }
     }
 }

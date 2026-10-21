@@ -11,28 +11,19 @@ android {
     namespace = "dev.anilbeesetti.nextplayer.feature.settings"
     compileSdk = libs.versions.android.compileSdk.get().toInt()
 
-    defaultConfig {
-        minSdk = libs.versions.android.minSdk.get().toInt()
-    }
+    defaultConfig { minSdk = libs.versions.android.minSdk.get().toInt() }
 
     compileOptions {
         sourceCompatibility = JavaVersion.toVersion(libs.versions.android.jvm.get().toInt())
         targetCompatibility = JavaVersion.toVersion(libs.versions.android.jvm.get().toInt())
     }
 
-    buildFeatures {
-        compose = true
-    }
+    buildFeatures { compose = true }
 }
 
-kotlin {
-    compilerOptions {
-        jvmTarget.set(JvmTarget.fromTarget(libs.versions.android.jvm.get()))
-    }
-}
+kotlin { compilerOptions { jvmTarget.set(JvmTarget.fromTarget(libs.versions.android.jvm.get())) } }
 
 dependencies {
-
     implementation(project(":core:ui"))
     implementation(project(":core:data"))
     implementation(project(":core:domain"))

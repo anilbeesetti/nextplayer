@@ -35,9 +35,7 @@ fun CenterCircularProgressBar(modifier: Modifier = Modifier) {
         verticalArrangement = Arrangement.Center,
         horizontalAlignment = Alignment.CenterHorizontally,
     ) {
-        CircularProgressIndicator(
-            modifier = Modifier.testTag(CIRCULAR_PROGRESS_INDICATOR_TEST_TAG),
-        )
+        CircularProgressIndicator(modifier = Modifier.testTag(CIRCULAR_PROGRESS_INDICATOR_TEST_TAG))
     }
 }
 
@@ -45,22 +43,22 @@ fun CenterCircularProgressBar(modifier: Modifier = Modifier) {
 @Composable
 fun NoVideosFound(contentPadding: PaddingValues) {
     Column(
-        modifier = Modifier
-            .fillMaxSize()
-            .verticalScroll(rememberScrollState())
-            .padding(contentPadding)
-            .padding(
-                horizontal = 24.dp,
-                vertical = 40.dp,
-            ),
+        modifier =
+            Modifier.fillMaxSize()
+                .verticalScroll(rememberScrollState())
+                .padding(contentPadding)
+                .padding(
+                    horizontal = 24.dp,
+                    vertical = 40.dp,
+                ),
         verticalArrangement = Arrangement.Center,
         horizontalAlignment = Alignment.CenterHorizontally,
     ) {
         Box(
-            modifier = Modifier
-                .clip(MaterialTheme.shapes.large)
-                .background(MaterialTheme.colorScheme.surfaceContainerHigh)
-                .padding(24.dp),
+            modifier =
+                Modifier.clip(MaterialTheme.shapes.large)
+                    .background(MaterialTheme.colorScheme.surfaceContainerHigh)
+                    .padding(24.dp),
             contentAlignment = Alignment.Center,
         ) {
             Icon(

@@ -141,28 +141,34 @@ class TopLevelNavState(
     var selectedIndex by selectedIndexState
         private set
 
-    private val startRoute: NavKey get() = destinations.first().route
+    private val startRoute: NavKey
+        get() = destinations.first().route
 
-    val topLevelRoute: NavKey get() = destinations[selectedIndex].route
+    val topLevelRoute: NavKey
+        get() = destinations[selectedIndex].route
 
     /** The back stack of the currently selected tab — navigation targets are added here. */
-    val currentStack: NavBackStack<NavKey> get() = backStacks.getValue(topLevelRoute)
+    val currentStack: NavBackStack<NavKey>
+        get() = backStacks.getValue(topLevelRoute)
 
     private val stacksInUse: List<NavKey>
         get() = if (selectedIndex == 0) listOf(startRoute) else listOf(startRoute, topLevelRoute)
 
     /**
-     * The [androidx.navigation3.runtime.NavEntry.contentKey]s of the top-level destinations. Used to
-     * decide whether a rendered scene should show the nav bar/rail. `contentKey` defaults to the
+     * The [androidx.navigation3.runtime.NavEntry.contentKey]s of the top-level destinations. Used
+     * to decide whether a rendered scene should show the nav bar/rail. `contentKey` defaults to the
      * route's `toString()`, matching how the entries are created.
      */
-    val topLevelContentKeys: Set<Any> = destinations.flatMap { dest ->
-        listOf(
-            dest.route,
-            dest.route.toString(),
-            Pair("${dest.route}", "${dest.route::class}"),
-        )
-    }.toSet()
+    val topLevelContentKeys: Set<Any> =
+        destinations
+            .flatMap { dest ->
+                listOf(
+                    dest.route,
+                    dest.route.toString(),
+                    Pair("${dest.route}", "${dest.route::class}"),
+                )
+            }
+            .toSet()
 
     fun switchTo(route: NavKey) {
         val index = destinations.indexOfFirst { it.route == route }
@@ -184,38 +190,53 @@ class TopLevelNavState(
     ): SnapshotStateList<NavEntry<NavKey>> {
         val decoratedByRoute = LinkedHashMap<NavKey, List<NavEntry<NavKey>>>()
         for (dest in destinations) {
-            decoratedByRoute[dest.route] = rememberDecoratedNavEntries(
-                backStack = backStacks.getValue(dest.route),
-                entryDecorators = listOf(
-                    rememberSaveableStateHolderNavEntryDecorator(),
-                    rememberViewModelStoreNavEntryDecorator(),
-                    entryDecorator,
-                ),
-                entryProvider = entryProvider,
-            )
+            decoratedByRoute[dest.route] =
+                rememberDecoratedNavEntries(
+                    backStack = backStacks.getValue(dest.route),
+                    entryDecorators =
+                        listOf(
+                            rememberSaveableStateHolderNavEntryDecorator(),
+                            rememberViewModelStoreNavEntryDecorator(),
+                            entryDecorator,
+                        ),
+                    entryProvider = entryProvider,
+                )
         }
         return stacksInUse.flatMap { decoratedByRoute.getValue(it) }.toMutableStateList()
     }
 }
 
-fun TopLevelNavState.isNavigationBetweenTopLevelDestinations(initialState: Scene<NavKey>, targetState: Scene<NavKey>): Boolean =
-    topLevelContentKeys.run { contains(initialState.entries.lastOrNull()?.contentKey) && contains(targetState.entries.lastOrNull()?.contentKey) }
+fun TopLevelNavState.isNavigationBetweenTopLevelDestinations(
+    initialState: Scene<NavKey>,
+    targetState: Scene<NavKey>,
+): Boolean = topLevelContentKeys.run {
+    contains(initialState.entries.lastOrNull()?.contentKey) &&
+        contains(targetState.entries.lastOrNull()?.contentKey)
+}
 
-internal fun TopLevelNavState.navigationTransition(initialState: Scene<NavKey>, targetState: Scene<NavKey>): ContentTransform {
+internal fun TopLevelNavState.navigationTransition(
+    initialState: Scene<NavKey>,
+    targetState: Scene<NavKey>,
+): ContentTransform {
     if (isNavigationBetweenTopLevelDestinations(initialState, targetState)) {
-        return fadeIn(tween(200, easing = LinearEasing)) togetherWith fadeOut(tween(200, easing = LinearEasing))
+        return fadeIn(tween(200, easing = LinearEasing)) togetherWith
+            fadeOut(tween(200, easing = LinearEasing))
     }
 
     // Quick Back can select the pop spec while the animated scenes still describe the push.
     // Keep the direction tied to those scenes so the existing slide can reverse smoothly.
-    val isPop = initialState.previousEntries.any { it.contentKey == targetState.entries.lastOrNull()?.contentKey }
+    val isPop =
+        initialState.previousEntries.any {
+            it.contentKey == targetState.entries.lastOrNull()?.contentKey
+        }
     return slideInHorizontally(
         initialOffsetX = { if (isPop) -(it * 0.3f).toInt() else it },
         animationSpec = tween(durationMillis = 200, easing = LinearEasing),
-    ) togetherWith slideOutHorizontally(
-        targetOffsetX = { if (isPop) it else -(it * 0.3f).toInt() },
-        animationSpec = tween(durationMillis = 200, easing = LinearEasing),
-    )
+    ) togetherWith
+        slideOutHorizontally(
+            targetOffsetX = { if (isPop) it else -(it * 0.3f).toInt() },
+            animationSpec = tween(durationMillis = 200, easing = LinearEasing),
+        )
 }
 
 @Composable
@@ -228,25 +249,25 @@ fun NextNavigationBar(
 ) {
     val isTv = LocalContext.current.isTelevision
     Box(
-        modifier = Modifier
-            .fillMaxWidth()
-            .thenIf(condition = !showFabOnly) {
-                background(
-                    brush = Brush.verticalGradient(
-                        colors = listOf(
-                            Color.Transparent,
-                            MaterialTheme.colorScheme.background,
-                        ),
-                    ),
-                )
-            }
-            .navigationBarsPadding()
-            .windowInsetsPadding(WindowInsets.displayCutout.only(WindowInsetsSides.Horizontal))
-            .padding(bottom = 12.dp)
-            .padding(horizontal = 16.dp)
-            .thenIf(condition = !showFabOnly) {
-                pointerInput(Unit) {}
-            },
+        modifier =
+            Modifier.fillMaxWidth()
+                .thenIf(condition = !showFabOnly) {
+                    background(
+                        brush =
+                            Brush.verticalGradient(
+                                colors =
+                                    listOf(
+                                        Color.Transparent,
+                                        MaterialTheme.colorScheme.background,
+                                    )
+                            )
+                    )
+                }
+                .navigationBarsPadding()
+                .windowInsetsPadding(WindowInsets.displayCutout.only(WindowInsetsSides.Horizontal))
+                .padding(bottom = 12.dp)
+                .padding(horizontal = 16.dp)
+                .thenIf(condition = !showFabOnly) { pointerInput(Unit) {} },
         contentAlignment = Alignment.BottomCenter,
     ) {
         Row(
@@ -266,25 +287,33 @@ fun NextNavigationBar(
             fabState?.let { fab ->
                 FloatingActionButton(
                     onClick = fab.onClick,
-                    modifier = Modifier
-                        .testTag("top_level_fab")
-                        .focusRequester(fabFocusRequester)
-                        .tvFocusRing(shape = MaterialTheme.shapes.large)
-                        .focusProperties {
-                            if (isTv) {
-                                up = fab.upFocusRequester.takeUnless { it == FocusRequester.Default }
-                                    ?: contentFocusRequester
-                            }
-                        },
+                    modifier =
+                        Modifier.testTag("top_level_fab")
+                            .focusRequester(fabFocusRequester)
+                            .tvFocusRing(shape = MaterialTheme.shapes.large)
+                            .focusProperties {
+                                if (isTv) {
+                                    up =
+                                        fab.upFocusRequester.takeUnless {
+                                            it == FocusRequester.Default
+                                        } ?: contentFocusRequester
+                                }
+                            },
                     shape = MaterialTheme.shapes.large,
                 ) {
                     AnimatedContent(
                         targetState = fab,
                         transitionSpec = {
                             fadeIn(tween(250, easing = FastOutSlowInEasing)) +
-                                scaleIn(tween(250, easing = FastOutSlowInEasing), initialScale = 0.25f) togetherWith
+                                scaleIn(
+                                    tween(250, easing = FastOutSlowInEasing),
+                                    initialScale = 0.25f,
+                                ) togetherWith
                                 fadeOut(tween(250, easing = FastOutSlowInEasing)) +
-                                scaleOut(tween(250, easing = FastOutSlowInEasing), targetScale = 0.25f)
+                                    scaleOut(
+                                        tween(250, easing = FastOutSlowInEasing),
+                                        targetScale = 0.25f,
+                                    )
                         },
                         label = "fab_icon_swap",
                     ) { fab ->
@@ -307,33 +336,32 @@ fun NavigationView(
     onDestinationClick: (TopLevelDestination) -> Unit,
 ) {
     val animationSpec = MaterialTheme.motionScheme.defaultSpatialSpec<Rect>()
-    val boundsTransform = remember {
-        BoundsTransform { _, _ -> animationSpec }
-    }
+    val boundsTransform = remember { BoundsTransform { _, _ -> animationSpec } }
 
     Box(
-        modifier = modifier
-            .graphicsLayer(
-                shadowElevation = with(LocalDensity.current) { 6.dp.toPx() },
-                shape = CircleShape,
-            )
-            .clip(CircleShape)
-            .background(MaterialTheme.colorScheme.surfaceContainer)
-            .padding(4.dp),
+        modifier =
+            modifier
+                .graphicsLayer(
+                    shadowElevation = with(LocalDensity.current) { 6.dp.toPx() },
+                    shape = CircleShape,
+                )
+                .clip(CircleShape)
+                .background(MaterialTheme.colorScheme.surfaceContainer)
+                .padding(4.dp)
     ) {
         LookaheadScope {
             val pill = remember {
                 movableContentOf<BoxScope> { scope ->
                     with(scope) {
                         Box(
-                            modifier = Modifier
-                                .matchParentSize()
-                                .animateBounds(
-                                    lookaheadScope = this@LookaheadScope,
-                                    boundsTransform = boundsTransform,
-                                )
-                                .clip(CircleShape)
-                                .background(MaterialTheme.colorScheme.secondaryContainer),
+                            modifier =
+                                Modifier.matchParentSize()
+                                    .animateBounds(
+                                        lookaheadScope = this@LookaheadScope,
+                                        boundsTransform = boundsTransform,
+                                    )
+                                    .clip(CircleShape)
+                                    .background(MaterialTheme.colorScheme.secondaryContainer)
                         )
                     }
                 }
@@ -353,8 +381,7 @@ fun NavigationView(
                             pill(this)
                         }
                         Column(
-                            Modifier
-                                .tvFocusRing(shape = RoundedCornerShape(99.dp))
+                            Modifier.tvFocusRing(shape = RoundedCornerShape(99.dp))
                                 .clip(CircleShape)
                                 .selectable(
                                     selected = isSelected,
@@ -368,11 +395,12 @@ fun NavigationView(
                             verticalArrangement = Arrangement.spacedBy(2.dp),
                         ) {
                             CompositionLocalProvider(
-                                LocalContentColor provides if (isSelected) {
-                                    MaterialTheme.colorScheme.onSecondaryContainer
-                                } else {
-                                    MaterialTheme.colorScheme.onSurfaceVariant
-                                },
+                                LocalContentColor provides
+                                    if (isSelected) {
+                                        MaterialTheme.colorScheme.onSecondaryContainer
+                                    } else {
+                                        MaterialTheme.colorScheme.onSurfaceVariant
+                                    }
                             ) {
                                 Icon(
                                     imageVector = destination.icon,
@@ -402,8 +430,7 @@ fun NextNavigationRail(state: TopLevelNavState, modifier: Modifier = Modifier) {
             state.destinations.forEach { dest ->
                 val selected = state.topLevelRoute == dest.route
                 Box(
-                    Modifier
-                        .tvFocusRing(shape = RoundedCornerShape(99.dp))
+                    Modifier.tvFocusRing(shape = RoundedCornerShape(99.dp))
                         .clip(CircleShape)
                         .selectable(
                             selected = state.topLevelRoute == dest.route,
@@ -415,18 +442,19 @@ fun NextNavigationRail(state: TopLevelNavState, modifier: Modifier = Modifier) {
                                 MaterialTheme.colorScheme.secondaryContainer
                             } else {
                                 Color.Transparent
-                            },
+                            }
                         )
                         .padding(16.dp),
                     contentAlignment = Alignment.Center,
                     propagateMinConstraints = true,
                 ) {
                     CompositionLocalProvider(
-                        LocalContentColor provides if (selected) {
-                            MaterialTheme.colorScheme.onSecondaryContainer
-                        } else {
-                            MaterialTheme.colorScheme.onSurfaceVariant
-                        },
+                        LocalContentColor provides
+                            if (selected) {
+                                MaterialTheme.colorScheme.onSecondaryContainer
+                            } else {
+                                MaterialTheme.colorScheme.onSurfaceVariant
+                            }
                     ) {
                         Icon(
                             imageVector = dest.icon,

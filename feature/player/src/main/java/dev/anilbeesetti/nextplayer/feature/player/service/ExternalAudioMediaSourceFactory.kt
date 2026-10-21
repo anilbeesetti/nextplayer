@@ -9,9 +9,8 @@ import androidx.media3.exoplayer.source.MergingMediaSource
 import dev.anilbeesetti.nextplayer.feature.player.extensions.externalAudio
 
 @UnstableApi
-internal class ExternalAudioMediaSourceFactory(
-    private val delegate: MediaSource.Factory,
-) : MediaSource.Factory by delegate {
+internal class ExternalAudioMediaSourceFactory(private val delegate: MediaSource.Factory) :
+    MediaSource.Factory by delegate {
     override fun createMediaSource(mediaItem: MediaItem): MediaSource {
         val video = delegate.createMediaSource(mediaItem)
         val audio = mediaItem.mediaMetadata.externalAudio
@@ -21,9 +20,14 @@ internal class ExternalAudioMediaSourceFactory(
             true,
             false,
             video,
-            *audio.map { uri ->
-                FilteringMediaSource(delegate.createMediaSource(MediaItem.fromUri(uri)), C.TRACK_TYPE_AUDIO)
-            }.toTypedArray(),
+            *audio
+                .map { uri ->
+                    FilteringMediaSource(
+                        delegate.createMediaSource(MediaItem.fromUri(uri)),
+                        C.TRACK_TYPE_AUDIO,
+                    )
+                }
+                .toTypedArray(),
         )
     }
 }

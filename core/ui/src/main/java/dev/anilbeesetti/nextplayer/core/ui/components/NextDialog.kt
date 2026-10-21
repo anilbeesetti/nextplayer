@@ -26,8 +26,10 @@ fun NextDialog(
     AlertDialog(
         title = title,
         text = { Column { content() } },
-        modifier = modifier
-            .widthIn(max = configuration.screenWidthDp.dp - NextDialogDefaults.dialogMargin * 2),
+        modifier =
+            modifier.widthIn(
+                max = configuration.screenWidthDp.dp - NextDialogDefaults.dialogMargin * 2
+            ),
         onDismissRequest = onDismissRequest,
         confirmButton = confirmButton,
         dismissButton = dismissButton,
@@ -52,11 +54,12 @@ fun NextDialogWithDoneAndCancelButtons(
 }
 
 object NextDialogDefaults {
-    val dialogProperties: DialogProperties = DialogProperties(
-        usePlatformDefaultWidth = false,
-        dismissOnBackPress = true,
-        dismissOnClickOutside = true,
-        decorFitsSystemWindows = true,
-    )
+    val dialogProperties: DialogProperties =
+        DialogProperties(
+            usePlatformDefaultWidth = false,
+            dismissOnBackPress = true,
+            dismissOnClickOutside = true,
+            decorFitsSystemWindows = true,
+        )
     val dialogMargin: Dp = 16.dp
 }

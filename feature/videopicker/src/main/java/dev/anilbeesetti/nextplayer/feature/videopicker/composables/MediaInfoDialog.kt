@@ -51,9 +51,7 @@ fun MediaInfoDialog(
     // On a TV the info panel has no focusable rows, so make it focusable and scroll it with the
     // D-pad. Focus escapes to the OK button once there's nothing left to scroll.
     if (isTv) {
-        LaunchedEffect(Unit) {
-            runCatching { focusRequester.requestFocus() }
-        }
+        LaunchedEffect(Unit) { runCatching { focusRequester.requestFocus() } }
     }
 
     NextDialog(
@@ -69,30 +67,30 @@ fun MediaInfoDialog(
             HorizontalDivider()
             Column(
                 verticalArrangement = Arrangement.spacedBy(5.dp),
-                modifier = Modifier
-                    .verticalScroll(scrollState)
-                    .thenIf(isTv) {
-                        focusRequester(focusRequester)
-                            .focusable()
-                            .onKeyEvent { event ->
-                                if (event.type != KeyEventType.KeyDown) return@onKeyEvent false
-                                val amount = (scrollState.viewportSize * 0.8f).takeIf { it > 0f } ?: 400f
-                                when (event.key) {
-                                    Key.DirectionDown -> if (scrollState.canScrollForward) {
+                modifier =
+                    Modifier.verticalScroll(scrollState).thenIf(isTv) {
+                        focusRequester(focusRequester).focusable().onKeyEvent { event ->
+                            if (event.type != KeyEventType.KeyDown) return@onKeyEvent false
+                            val amount =
+                                (scrollState.viewportSize * 0.8f).takeIf { it > 0f } ?: 400f
+                            when (event.key) {
+                                Key.DirectionDown ->
+                                    if (scrollState.canScrollForward) {
                                         scope.launch { scrollState.animateScrollBy(amount) }
                                         true
                                     } else {
                                         false
                                     }
-                                    Key.DirectionUp -> if (scrollState.canScrollBackward) {
+                                Key.DirectionUp ->
+                                    if (scrollState.canScrollBackward) {
                                         scope.launch { scrollState.animateScrollBy(-amount) }
                                         true
                                     } else {
                                         false
                                     }
-                                    else -> false
-                                }
+                                else -> false
                             }
+                        }
                     },
             ) {
                 MediaInfoTitle(text = stringResource(R.string.file))
@@ -146,7 +144,9 @@ fun MediaInfoDialog(
                     }
                 }
                 mediaInfo.audioStreams.forEachIndexed { index, audioStream ->
-                    MediaInfoTitle(text = "${stringResource(id = R.string.audio_track)} #${index + 1}")
+                    MediaInfoTitle(
+                        text = "${stringResource(id = R.string.audio_track)} #${index + 1}"
+                    )
                     audioStream.title?.let {
                         MediaInfoText(
                             title = stringResource(id = R.string.title),
@@ -183,7 +183,9 @@ fun MediaInfoDialog(
                     }
                 }
                 mediaInfo.subtitleStreams.forEachIndexed { index, subtitleStream ->
-                    MediaInfoTitle(text = "${stringResource(id = R.string.subtitle_track)} #${index + 1}")
+                    MediaInfoTitle(
+                        text = "${stringResource(id = R.string.subtitle_track)} #${index + 1}"
+                    )
                     subtitleStream.title?.let {
                         MediaInfoText(
                             title = stringResource(id = R.string.title),
@@ -204,9 +206,7 @@ fun MediaInfoDialog(
             }
         },
         confirmButton = {
-            TextButton(onClick = onDismiss) {
-                Text(text = stringResource(id = R.string.okay))
-            }
+            TextButton(onClick = onDismiss) { Text(text = stringResource(id = R.string.okay)) }
         },
     )
 }

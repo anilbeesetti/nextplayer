@@ -38,8 +38,7 @@ import org.junit.Test
 
 @OptIn(ExperimentalCoroutinesApi::class)
 class AddConnectionViewModelTest {
-    @get:Rule
-    val mainDispatcherRule = MainDispatcherRule()
+    @get:Rule val mainDispatcherRule = MainDispatcherRule()
 
     @Test
     fun `successful save navigates through the current output after resetting state`() =
@@ -47,32 +46,38 @@ class AddConnectionViewModelTest {
             val started = CompletableDeferred<Unit>()
             val finish = CompletableDeferred<Unit>()
             val repository = FakeRepository()
-            val viewModel = viewModel(
-                repository = repository,
-                clients = ArrayDeque(
-                    listOf(
-                        FakeNetworkClient(Result.success(Unit)) {
-                            started.complete(Unit)
-                            finish.await()
-                        },
-                    ),
-                ),
-            )
+            val viewModel =
+                viewModel(
+                    repository = repository,
+                    clients =
+                        ArrayDeque(
+                            listOf(
+                                FakeNetworkClient(Result.success(Unit)) {
+                                    started.complete(Unit)
+                                    finish.await()
+                                }
+                            )
+                        ),
+                )
             val calls = mutableListOf<String>()
             viewModel.output = AddConnectionViewModel.Output(navigateUp = { calls.add("old") })
             viewModel.onAction(
                 AddConnectionAction.TestAndSave(
-                    keyDraft(authentication = NetworkAuthentication.PASSWORD, privateKeyFileName = ""),
-                ),
+                    keyDraft(
+                        authentication = NetworkAuthentication.PASSWORD,
+                        privateKeyFileName = "",
+                    )
+                )
             )
             started.await()
-            viewModel.output = AddConnectionViewModel.Output(
-                navigateUp = {
-                    assertEquals(SaveState.Idle, viewModel.state.value.saveState)
-                    assertEquals(1, repository.upserted.size)
-                    calls.add("current")
-                },
-            )
+            viewModel.output =
+                AddConnectionViewModel.Output(
+                    navigateUp = {
+                        assertEquals(SaveState.Idle, viewModel.state.value.saveState)
+                        assertEquals(1, repository.upserted.size)
+                        calls.add("current")
+                    }
+                )
 
             finish.complete(Unit)
             advanceUntilIdle()
@@ -83,14 +88,16 @@ class AddConnectionViewModelTest {
     @Test
     fun `staging a replacement deletes the previous staged key`() =
         runTest(mainDispatcherRule.testDispatcher) {
-            val keyStore = FakeSshKeyStore(
-                stagedKeys = ArrayDeque(
-                    listOf(
-                        StagedSshKey("first.key", "first.pem"),
-                        StagedSshKey("second.key", "second.pem"),
-                    ),
-                ),
-            )
+            val keyStore =
+                FakeSshKeyStore(
+                    stagedKeys =
+                        ArrayDeque(
+                            listOf(
+                                StagedSshKey("first.key", "first.pem"),
+                                StagedSshKey("second.key", "second.pem"),
+                            )
+                        )
+                )
             val viewModel = viewModel(keyStore = keyStore)
 
             viewModel.onAction(AddConnectionAction.StagePrivateKey(TestUri))
@@ -98,7 +105,10 @@ class AddConnectionViewModelTest {
             viewModel.onAction(AddConnectionAction.StagePrivateKey(TestUri))
             advanceUntilIdle()
 
-            assertEquals(SelectedPrivateKey("second.key", "second.pem"), viewModel.state.value.selectedPrivateKey)
+            assertEquals(
+                SelectedPrivateKey("second.key", "second.pem"),
+                viewModel.state.value.selectedPrivateKey,
+            )
             assertEquals(listOf("first.key"), keyStore.deleted)
         }
 
@@ -107,32 +117,38 @@ class AddConnectionViewModelTest {
         runTest(mainDispatcherRule.testDispatcher) {
             val connectStarted = CompletableDeferred<Unit>()
             val allowConnect = CompletableDeferred<Unit>()
-            val keyStore = FakeSshKeyStore(
-                stagedKeys = ArrayDeque(
-                    listOf(
-                        StagedSshKey("tested-a.key", "a.pem"),
-                        StagedSshKey("replacement-b.key", "b.pem"),
-                    ),
-                ),
-                committedName = "committed-a.key",
-            )
+            val keyStore =
+                FakeSshKeyStore(
+                    stagedKeys =
+                        ArrayDeque(
+                            listOf(
+                                StagedSshKey("tested-a.key", "a.pem"),
+                                StagedSshKey("replacement-b.key", "b.pem"),
+                            )
+                        ),
+                    committedName = "committed-a.key",
+                )
             val repository = FakeRepository()
-            val viewModel = viewModel(
-                repository = repository,
-                clients = ArrayDeque(
-                    listOf(
-                        FakeNetworkClient(Result.success(Unit)) {
-                            connectStarted.complete(Unit)
-                            allowConnect.await()
-                        },
-                    ),
-                ),
-                keyStore = keyStore,
-            )
+            val viewModel =
+                viewModel(
+                    repository = repository,
+                    clients =
+                        ArrayDeque(
+                            listOf(
+                                FakeNetworkClient(Result.success(Unit)) {
+                                    connectStarted.complete(Unit)
+                                    allowConnect.await()
+                                }
+                            )
+                        ),
+                    keyStore = keyStore,
+                )
             viewModel.onAction(AddConnectionAction.StagePrivateKey(TestUri))
             advanceUntilIdle()
 
-            viewModel.onAction(AddConnectionAction.TestAndSave(keyDraft(privateKeyFileName = "tested-a.key")))
+            viewModel.onAction(
+                AddConnectionAction.TestAndSave(keyDraft(privateKeyFileName = "tested-a.key"))
+            )
             connectStarted.await()
             viewModel.onAction(AddConnectionAction.StagePrivateKey(TestUri))
             runCurrent()
@@ -150,27 +166,32 @@ class AddConnectionViewModelTest {
         runTest(mainDispatcherRule.testDispatcher) {
             val connectStarted = CompletableDeferred<Unit>()
             val allowConnect = CompletableDeferred<Unit>()
-            val keyStore = FakeSshKeyStore(
-                stagedKeys = ArrayDeque(listOf(StagedSshKey("tested-a.key", "a.pem"))),
-                committedName = "committed-a.key",
-            )
+            val keyStore =
+                FakeSshKeyStore(
+                    stagedKeys = ArrayDeque(listOf(StagedSshKey("tested-a.key", "a.pem"))),
+                    committedName = "committed-a.key",
+                )
             val repository = FakeRepository()
-            val viewModel = viewModel(
-                repository = repository,
-                clients = ArrayDeque(
-                    listOf(
-                        FakeNetworkClient(Result.success(Unit)) {
-                            connectStarted.complete(Unit)
-                            allowConnect.await()
-                        },
-                    ),
-                ),
-                keyStore = keyStore,
-            )
+            val viewModel =
+                viewModel(
+                    repository = repository,
+                    clients =
+                        ArrayDeque(
+                            listOf(
+                                FakeNetworkClient(Result.success(Unit)) {
+                                    connectStarted.complete(Unit)
+                                    allowConnect.await()
+                                }
+                            )
+                        ),
+                    keyStore = keyStore,
+                )
             viewModel.onAction(AddConnectionAction.StagePrivateKey(TestUri))
             advanceUntilIdle()
 
-            viewModel.onAction(AddConnectionAction.TestAndSave(keyDraft(privateKeyFileName = "tested-a.key")))
+            viewModel.onAction(
+                AddConnectionAction.TestAndSave(keyDraft(privateKeyFileName = "tested-a.key"))
+            )
             connectStarted.await()
             viewModel.onAction(AddConnectionAction.RemoveSelectedPrivateKey)
             runCurrent()
@@ -187,25 +208,30 @@ class AddConnectionViewModelTest {
         runTest(mainDispatcherRule.testDispatcher) {
             val connectStarted = CompletableDeferred<Unit>()
             val allowConnect = CompletableDeferred<Unit>()
-            val keyStore = FakeSshKeyStore(
-                stagedKeys = ArrayDeque(listOf(StagedSshKey("tested-a.key", "a.pem"))),
-                failStageAfterCalls = 1,
-            )
-            val viewModel = viewModel(
-                clients = ArrayDeque(
-                    listOf(
-                        FakeNetworkClient(Result.success(Unit)) {
-                            connectStarted.complete(Unit)
-                            allowConnect.await()
-                        },
-                    ),
-                ),
-                keyStore = keyStore,
-            )
+            val keyStore =
+                FakeSshKeyStore(
+                    stagedKeys = ArrayDeque(listOf(StagedSshKey("tested-a.key", "a.pem"))),
+                    failStageAfterCalls = 1,
+                )
+            val viewModel =
+                viewModel(
+                    clients =
+                        ArrayDeque(
+                            listOf(
+                                FakeNetworkClient(Result.success(Unit)) {
+                                    connectStarted.complete(Unit)
+                                    allowConnect.await()
+                                }
+                            )
+                        ),
+                    keyStore = keyStore,
+                )
             viewModel.onAction(AddConnectionAction.StagePrivateKey(TestUri))
             advanceUntilIdle()
 
-            viewModel.onAction(AddConnectionAction.TestAndSave(keyDraft(privateKeyFileName = "tested-a.key")))
+            viewModel.onAction(
+                AddConnectionAction.TestAndSave(keyDraft(privateKeyFileName = "tested-a.key"))
+            )
             connectStarted.await()
             viewModel.onAction(AddConnectionAction.StagePrivateKey(TestUri))
             runCurrent()
@@ -222,25 +248,30 @@ class AddConnectionViewModelTest {
             val connectStarted = CompletableDeferred<Unit>()
             val allowConnect = CompletableDeferred<Unit>()
             val repository = FakeRepository()
-            val keyStore = FakeSshKeyStore(
-                stagedKeys = ArrayDeque(listOf(StagedSshKey("tested-a.key", "a.pem"))),
-            )
-            val viewModel = viewModel(
-                repository = repository,
-                clients = ArrayDeque(
-                    listOf(
-                        FakeNetworkClient(Result.success(Unit)) {
-                            connectStarted.complete(Unit)
-                            allowConnect.await()
-                        },
-                    ),
-                ),
-                keyStore = keyStore,
-            )
+            val keyStore =
+                FakeSshKeyStore(
+                    stagedKeys = ArrayDeque(listOf(StagedSshKey("tested-a.key", "a.pem")))
+                )
+            val viewModel =
+                viewModel(
+                    repository = repository,
+                    clients =
+                        ArrayDeque(
+                            listOf(
+                                FakeNetworkClient(Result.success(Unit)) {
+                                    connectStarted.complete(Unit)
+                                    allowConnect.await()
+                                }
+                            )
+                        ),
+                    keyStore = keyStore,
+                )
             viewModel.onAction(AddConnectionAction.StagePrivateKey(TestUri))
             advanceUntilIdle()
 
-            viewModel.onAction(AddConnectionAction.TestAndSave(keyDraft(privateKeyFileName = "tested-a.key")))
+            viewModel.onAction(
+                AddConnectionAction.TestAndSave(keyDraft(privateKeyFileName = "tested-a.key"))
+            )
             connectStarted.await()
             viewModel.onAction(AddConnectionAction.Cancel)
             allowConnect.complete(Unit)
@@ -253,9 +284,11 @@ class AddConnectionViewModelTest {
 
     @Test
     fun `connection screen never stores password fields with rememberSaveable`() {
-        val source = File(
-            "src/main/java/dev/anilbeesetti/nextplayer/feature/network/screens/addconnection/AddConnectionScreen.kt",
-        ).readText()
+        val source =
+            File(
+                    "src/main/java/dev/anilbeesetti/nextplayer/feature/network/screens/addconnection/AddConnectionScreen.kt"
+                )
+                .readText()
 
         assertFalse(source.contains("var password by rememberSaveable"))
         assertFalse(source.contains("var privateKeyPassphrase by rememberSaveable"))
@@ -267,25 +300,41 @@ class AddConnectionViewModelTest {
     fun `SFTP fingerprint is cleared only when its endpoint value changes`() {
         assertEquals(
             "",
-            fingerprintAfterEndpointEdit(NetworkProtocol.SFTP, "old-host", "new-host", "SHA256:trusted"),
+            fingerprintAfterEndpointEdit(
+                NetworkProtocol.SFTP,
+                "old-host",
+                "new-host",
+                "SHA256:trusted",
+            ),
         )
         assertEquals(
             "SHA256:trusted",
-            fingerprintAfterEndpointEdit(NetworkProtocol.SFTP, "old-host", "old-host", "SHA256:trusted"),
+            fingerprintAfterEndpointEdit(
+                NetworkProtocol.SFTP,
+                "old-host",
+                "old-host",
+                "SHA256:trusted",
+            ),
         )
         assertEquals(
             "SHA256:trusted",
-            fingerprintAfterEndpointEdit(NetworkProtocol.SMB, "old-host", "new-host", "SHA256:trusted"),
+            fingerprintAfterEndpointEdit(
+                NetworkProtocol.SMB,
+                "old-host",
+                "new-host",
+                "SHA256:trusted",
+            ),
         )
     }
 
     @Test
     fun `failed removal retains the staged key for retry`() =
         runTest(mainDispatcherRule.testDispatcher) {
-            val keyStore = FakeSshKeyStore(
-                stagedKeys = ArrayDeque(listOf(StagedSshKey("staged.key", "id_ed25519"))),
-                deleteFailures = mutableMapOf("staged.key" to 1),
-            )
+            val keyStore =
+                FakeSshKeyStore(
+                    stagedKeys = ArrayDeque(listOf(StagedSshKey("staged.key", "id_ed25519"))),
+                    deleteFailures = mutableMapOf("staged.key" to 1),
+                )
             val viewModel = viewModel(keyStore = keyStore)
             viewModel.onAction(AddConnectionAction.StagePrivateKey(TestUri))
             advanceUntilIdle()
@@ -293,7 +342,10 @@ class AddConnectionViewModelTest {
             viewModel.onAction(AddConnectionAction.RemoveSelectedPrivateKey)
             advanceUntilIdle()
 
-            assertEquals(SelectedPrivateKey("staged.key", "id_ed25519"), viewModel.state.value.selectedPrivateKey)
+            assertEquals(
+                SelectedPrivateKey("staged.key", "id_ed25519"),
+                viewModel.state.value.selectedPrivateKey,
+            )
             assertTrue(viewModel.state.value.saveState is SaveState.Error)
             assertTrue(keyStore.deleted.isEmpty())
 
@@ -305,24 +357,30 @@ class AddConnectionViewModelTest {
     @Test
     fun `stale draft cannot reuse a staged filename after removal completes`() =
         runTest(mainDispatcherRule.testDispatcher) {
-            val keyStore = FakeSshKeyStore(
-                stagedKeys = ArrayDeque(listOf(StagedSshKey("removed-a.key", "a.pem"))),
-            )
+            val keyStore =
+                FakeSshKeyStore(
+                    stagedKeys = ArrayDeque(listOf(StagedSshKey("removed-a.key", "a.pem")))
+                )
             val repository = FakeRepository()
-            val factory = FakeNetworkClientFactory(
-                ArrayDeque(
-                    listOf(
-                        FakeNetworkClient(Result.failure(FileNotFoundException("Private key is missing"))),
-                    ),
-                ),
-            )
+            val factory =
+                FakeNetworkClientFactory(
+                    ArrayDeque(
+                        listOf(
+                            FakeNetworkClient(
+                                Result.failure(FileNotFoundException("Private key is missing"))
+                            )
+                        )
+                    )
+                )
             val viewModel = viewModel(repository, factory, keyStore)
             viewModel.onAction(AddConnectionAction.StagePrivateKey(TestUri))
             advanceUntilIdle()
             viewModel.onAction(AddConnectionAction.RemoveSelectedPrivateKey)
             advanceUntilIdle()
 
-            viewModel.onAction(AddConnectionAction.TestAndSave(keyDraft(privateKeyFileName = "removed-a.key")))
+            viewModel.onAction(
+                AddConnectionAction.TestAndSave(keyDraft(privateKeyFileName = "removed-a.key"))
+            )
             advanceUntilIdle()
 
             assertEquals("", factory.created.single().privateKeyFileName)
@@ -333,21 +391,28 @@ class AddConnectionViewModelTest {
     @Test
     fun `edit without replacement uses only existing committed SSH key`() =
         runTest(mainDispatcherRule.testDispatcher) {
-            val repository = FakeRepository(
-                existing = keyDraft(id = 9, privateKeyFileName = "committed-existing.key"),
-            )
-            val factory = FakeNetworkClientFactory(
-                ArrayDeque(listOf(FakeNetworkClient(Result.success(Unit)))),
-            )
-            val viewModel = viewModel(
-                repository = repository,
-                factory = factory,
-                keyStore = FakeSshKeyStore(),
-                connectionId = 9,
-            )
+            val repository =
+                FakeRepository(
+                    existing = keyDraft(id = 9, privateKeyFileName = "committed-existing.key")
+                )
+            val factory =
+                FakeNetworkClientFactory(
+                    ArrayDeque(listOf(FakeNetworkClient(Result.success(Unit))))
+                )
+            val viewModel =
+                viewModel(
+                    repository = repository,
+                    factory = factory,
+                    keyStore = FakeSshKeyStore(),
+                    connectionId = 9,
+                )
             advanceUntilIdle()
 
-            viewModel.onAction(AddConnectionAction.TestAndSave(keyDraft(privateKeyFileName = "untrusted-caller.key")))
+            viewModel.onAction(
+                AddConnectionAction.TestAndSave(
+                    keyDraft(privateKeyFileName = "untrusted-caller.key")
+                )
+            )
             advanceUntilIdle()
 
             assertEquals("committed-existing.key", factory.created.single().privateKeyFileName)
@@ -357,27 +422,35 @@ class AddConnectionViewModelTest {
     @Test
     fun `selected key snapshot overrides caller and existing filenames`() =
         runTest(mainDispatcherRule.testDispatcher) {
-            val repository = FakeRepository(
-                existing = keyDraft(id = 9, privateKeyFileName = "committed-existing.key"),
-            )
-            val keyStore = FakeSshKeyStore(
-                stagedKeys = ArrayDeque(listOf(StagedSshKey("selected-new.key", "new.pem"))),
-                committedName = "committed-new.key",
-            )
-            val factory = FakeNetworkClientFactory(
-                ArrayDeque(listOf(FakeNetworkClient(Result.success(Unit)))),
-            )
-            val viewModel = viewModel(
-                repository = repository,
-                factory = factory,
-                keyStore = keyStore,
-                connectionId = 9,
-            )
+            val repository =
+                FakeRepository(
+                    existing = keyDraft(id = 9, privateKeyFileName = "committed-existing.key")
+                )
+            val keyStore =
+                FakeSshKeyStore(
+                    stagedKeys = ArrayDeque(listOf(StagedSshKey("selected-new.key", "new.pem"))),
+                    committedName = "committed-new.key",
+                )
+            val factory =
+                FakeNetworkClientFactory(
+                    ArrayDeque(listOf(FakeNetworkClient(Result.success(Unit))))
+                )
+            val viewModel =
+                viewModel(
+                    repository = repository,
+                    factory = factory,
+                    keyStore = keyStore,
+                    connectionId = 9,
+                )
             advanceUntilIdle()
             viewModel.onAction(AddConnectionAction.StagePrivateKey(TestUri))
             advanceUntilIdle()
 
-            viewModel.onAction(AddConnectionAction.TestAndSave(keyDraft(privateKeyFileName = "untrusted-caller.key")))
+            viewModel.onAction(
+                AddConnectionAction.TestAndSave(
+                    keyDraft(privateKeyFileName = "untrusted-caller.key")
+                )
+            )
             advanceUntilIdle()
 
             assertEquals("selected-new.key", factory.created.single().privateKeyFileName)
@@ -387,15 +460,17 @@ class AddConnectionViewModelTest {
     @Test
     fun `failed replacement cleanup remains tracked until ViewModel is cleared`() =
         runTest(mainDispatcherRule.testDispatcher) {
-            val keyStore = FakeSshKeyStore(
-                stagedKeys = ArrayDeque(
-                    listOf(
-                        StagedSshKey("first.key", "first.pem"),
-                        StagedSshKey("second.key", "second.pem"),
-                    ),
-                ),
-                deleteFailures = mutableMapOf("first.key" to 4),
-            )
+            val keyStore =
+                FakeSshKeyStore(
+                    stagedKeys =
+                        ArrayDeque(
+                            listOf(
+                                StagedSshKey("first.key", "first.pem"),
+                                StagedSshKey("second.key", "second.pem"),
+                            )
+                        ),
+                    deleteFailures = mutableMapOf("first.key" to 4),
+                )
             val viewModel = viewModel(keyStore = keyStore)
             viewModel.onAction(AddConnectionAction.StagePrivateKey(TestUri))
             advanceUntilIdle()
@@ -413,7 +488,8 @@ class AddConnectionViewModelTest {
         runTest(mainDispatcherRule.testDispatcher) {
             val confirmation = confirmation()
             val repository = FakeRepository()
-            val client = FakeNetworkClient(Result.failure(IllegalStateException("wrapped", confirmation)))
+            val client =
+                FakeNetworkClient(Result.failure(IllegalStateException("wrapped", confirmation)))
             val viewModel = viewModel(repository = repository, clients = ArrayDeque(listOf(client)))
 
             viewModel.onAction(AddConnectionAction.TestAndSave(keyDraft()))
@@ -421,7 +497,7 @@ class AddConnectionViewModelTest {
 
             assertEquals(
                 SaveState.ConfirmHostKey(
-                    HostKeyConfirmation("sftp.example", 22, "EdDSA", "SHA256:server-key"),
+                    HostKeyConfirmation("sftp.example", 22, "EdDSA", "SHA256:server-key")
                 ),
                 viewModel.state.value.saveState,
             )
@@ -432,7 +508,10 @@ class AddConnectionViewModelTest {
     @Test
     fun `wrapped passphrase failure has actionable message`() =
         assertConnectionError(
-            IllegalStateException("SSH failed", IllegalArgumentException("Incorrect private key passphrase")),
+            IllegalStateException(
+                "SSH failed",
+                IllegalArgumentException("Incorrect private key passphrase"),
+            ),
             "The private key passphrase is incorrect or missing.",
         )
 
@@ -446,33 +525,48 @@ class AddConnectionViewModelTest {
     @Test
     fun `wrapped authentication failure has actionable message`() =
         assertConnectionError(
-            IllegalStateException("SSH failed", IllegalStateException("Exhausted available authentication methods")),
+            IllegalStateException(
+                "SSH failed",
+                IllegalStateException("Exhausted available authentication methods"),
+            ),
             "Authentication was rejected. Check your credentials and try again.",
         )
 
     @Test
     fun `host key mismatch exposes trusted and presented fingerprints`() =
         runTest(mainDispatcherRule.testDispatcher) {
-            val mismatch = HostKeyMismatch(
-                expectedFingerprint = "SHA256:trusted-key",
-                presentedFingerprint = "SHA256:presented-key",
-            )
-            val viewModel = viewModel(
-                clients = ArrayDeque(
-                    listOf(FakeNetworkClient(Result.failure(IllegalStateException("SSH failed", mismatch)))),
-                ),
-            )
+            val mismatch =
+                HostKeyMismatch(
+                    expectedFingerprint = "SHA256:trusted-key",
+                    presentedFingerprint = "SHA256:presented-key",
+                )
+            val viewModel =
+                viewModel(
+                    clients =
+                        ArrayDeque(
+                            listOf(
+                                FakeNetworkClient(
+                                    Result.failure(IllegalStateException("SSH failed", mismatch))
+                                )
+                            )
+                        )
+                )
 
-            viewModel.onAction(AddConnectionAction.TestAndSave(keyDraft(authentication = NetworkAuthentication.PASSWORD)))
+            viewModel.onAction(
+                AddConnectionAction.TestAndSave(
+                    keyDraft(authentication = NetworkAuthentication.PASSWORD)
+                )
+            )
             advanceUntilIdle()
 
             assertEquals(
                 SaveState.Error(
                     message = "The SSH host key doesn't match the trusted fingerprint.",
-                    hostKeyMismatch = HostKeyMismatchDetails(
-                        trustedFingerprint = "SHA256:trusted-key",
-                        presentedFingerprint = "SHA256:presented-key",
-                    ),
+                    hostKeyMismatch =
+                        HostKeyMismatchDetails(
+                            trustedFingerprint = "SHA256:trusted-key",
+                            presentedFingerprint = "SHA256:presented-key",
+                        ),
                 ),
                 viewModel.state.value.saveState,
             )
@@ -481,13 +575,15 @@ class AddConnectionViewModelTest {
     @Test
     fun `rejecting host confirmation retains the staged key`() =
         runTest(mainDispatcherRule.testDispatcher) {
-            val keyStore = FakeSshKeyStore(
-                stagedKeys = ArrayDeque(listOf(StagedSshKey("staged.key", "id_ed25519"))),
-            )
-            val viewModel = viewModel(
-                keyStore = keyStore,
-                clients = ArrayDeque(listOf(FakeNetworkClient(Result.failure(confirmation())))),
-            )
+            val keyStore =
+                FakeSshKeyStore(
+                    stagedKeys = ArrayDeque(listOf(StagedSshKey("staged.key", "id_ed25519")))
+                )
+            val viewModel =
+                viewModel(
+                    keyStore = keyStore,
+                    clients = ArrayDeque(listOf(FakeNetworkClient(Result.failure(confirmation())))),
+                )
             viewModel.onAction(AddConnectionAction.StagePrivateKey(TestUri))
             advanceUntilIdle()
             viewModel.onAction(AddConnectionAction.TestAndSave(keyDraft()))
@@ -496,25 +592,32 @@ class AddConnectionViewModelTest {
             viewModel.onAction(AddConnectionAction.RejectHostKey)
 
             assertEquals(SaveState.Idle, viewModel.state.value.saveState)
-            assertEquals(SelectedPrivateKey("staged.key", "id_ed25519"), viewModel.state.value.selectedPrivateKey)
+            assertEquals(
+                SelectedPrivateKey("staged.key", "id_ed25519"),
+                viewModel.state.value.selectedPrivateKey,
+            )
             assertTrue(keyStore.deleted.isEmpty())
         }
 
     @Test
     fun `trust retries the exact pending draft with only its fingerprint changed`() =
         runTest(mainDispatcherRule.testDispatcher) {
-            val draft = keyDraft().copy(name = "Exact draft", path = "/videos", privateKeyPassphrase = "secret")
-            val keyStore = FakeSshKeyStore(
-                stagedKeys = ArrayDeque(listOf(StagedSshKey("staged.key", "id_ed25519"))),
-            )
-            val factory = FakeNetworkClientFactory(
-                ArrayDeque(
-                    listOf(
-                        FakeNetworkClient(Result.failure(confirmation())),
-                        FakeNetworkClient(Result.success(Unit)),
-                    ),
-                ),
-            )
+            val draft =
+                keyDraft()
+                    .copy(name = "Exact draft", path = "/videos", privateKeyPassphrase = "secret")
+            val keyStore =
+                FakeSshKeyStore(
+                    stagedKeys = ArrayDeque(listOf(StagedSshKey("staged.key", "id_ed25519")))
+                )
+            val factory =
+                FakeNetworkClientFactory(
+                    ArrayDeque(
+                        listOf(
+                            FakeNetworkClient(Result.failure(confirmation())),
+                            FakeNetworkClient(Result.success(Unit)),
+                        )
+                    )
+                )
             val repository = FakeRepository()
             val viewModel = viewModel(repository, factory, keyStore)
             viewModel.onAction(AddConnectionAction.StagePrivateKey(TestUri))
@@ -527,7 +630,10 @@ class AddConnectionViewModelTest {
 
             assertEquals(draft.copy(privateKeyFileName = "staged.key"), factory.created[0])
             assertEquals(
-                draft.copy(privateKeyFileName = "staged.key", hostKeyFingerprint = "SHA256:server-key"),
+                draft.copy(
+                    privateKeyFileName = "staged.key",
+                    hostKeyFingerprint = "SHA256:server-key",
+                ),
                 factory.created[1],
             )
             assertEquals("SHA256:server-key", repository.upserted.single().hostKeyFingerprint)
@@ -537,28 +643,42 @@ class AddConnectionViewModelTest {
     fun `successful replacement commits then saves before deleting old key`() =
         runTest(mainDispatcherRule.testDispatcher) {
             val events = mutableListOf<String>()
-            val repository = FakeRepository(existing = keyDraft(id = 9, privateKeyFileName = "old.key"), events = events)
-            val keyStore = FakeSshKeyStore(
-                stagedKeys = ArrayDeque(listOf(StagedSshKey("staged.key", "new.pem"))),
-                committedName = "new.key",
-                events = events,
-            )
-            val viewModel = viewModel(
-                repository = repository,
-                clients = ArrayDeque(listOf(FakeNetworkClient(Result.success(Unit), events))),
-                keyStore = keyStore,
-                connectionId = 9,
-            )
+            val repository =
+                FakeRepository(
+                    existing = keyDraft(id = 9, privateKeyFileName = "old.key"),
+                    events = events,
+                )
+            val keyStore =
+                FakeSshKeyStore(
+                    stagedKeys = ArrayDeque(listOf(StagedSshKey("staged.key", "new.pem"))),
+                    committedName = "new.key",
+                    events = events,
+                )
+            val viewModel =
+                viewModel(
+                    repository = repository,
+                    clients = ArrayDeque(listOf(FakeNetworkClient(Result.success(Unit), events))),
+                    keyStore = keyStore,
+                    connectionId = 9,
+                )
             advanceUntilIdle()
             events.clear()
             viewModel.onAction(AddConnectionAction.StagePrivateKey(TestUri))
             advanceUntilIdle()
 
-            viewModel.onAction(AddConnectionAction.TestAndSave(keyDraft(privateKeyFileName = "staged.key")))
+            viewModel.onAction(
+                AddConnectionAction.TestAndSave(keyDraft(privateKeyFileName = "staged.key"))
+            )
             advanceUntilIdle()
 
             assertEquals(
-                listOf("client.connect", "client.disconnect", "key.commit:staged.key", "repository.upsert:new.key", "key.delete:old.key"),
+                listOf(
+                    "client.connect",
+                    "client.disconnect",
+                    "key.commit:staged.key",
+                    "repository.upsert:new.key",
+                    "key.delete:old.key",
+                ),
                 events,
             )
             assertEquals("new.key", repository.upserted.single().privateKeyFileName)
@@ -568,25 +688,40 @@ class AddConnectionViewModelTest {
     @Test
     fun `failed authentication retains staged and old committed keys`() =
         runTest(mainDispatcherRule.testDispatcher) {
-            val repository = FakeRepository(existing = keyDraft(id = 9, privateKeyFileName = "old.key"))
-            val keyStore = FakeSshKeyStore(
-                stagedKeys = ArrayDeque(listOf(StagedSshKey("staged.key", "new.pem"))),
-            )
-            val viewModel = viewModel(
-                repository = repository,
-                clients = ArrayDeque(listOf(FakeNetworkClient(Result.failure(IllegalStateException("Authentication rejected"))))),
-                keyStore = keyStore,
-                connectionId = 9,
-            )
+            val repository =
+                FakeRepository(existing = keyDraft(id = 9, privateKeyFileName = "old.key"))
+            val keyStore =
+                FakeSshKeyStore(
+                    stagedKeys = ArrayDeque(listOf(StagedSshKey("staged.key", "new.pem")))
+                )
+            val viewModel =
+                viewModel(
+                    repository = repository,
+                    clients =
+                        ArrayDeque(
+                            listOf(
+                                FakeNetworkClient(
+                                    Result.failure(IllegalStateException("Authentication rejected"))
+                                )
+                            )
+                        ),
+                    keyStore = keyStore,
+                    connectionId = 9,
+                )
             advanceUntilIdle()
             viewModel.onAction(AddConnectionAction.StagePrivateKey(TestUri))
             advanceUntilIdle()
 
-            viewModel.onAction(AddConnectionAction.TestAndSave(keyDraft(privateKeyFileName = "staged.key")))
+            viewModel.onAction(
+                AddConnectionAction.TestAndSave(keyDraft(privateKeyFileName = "staged.key"))
+            )
             advanceUntilIdle()
 
             assertTrue(viewModel.state.value.saveState is SaveState.Error)
-            assertEquals(SelectedPrivateKey("staged.key", "new.pem"), viewModel.state.value.selectedPrivateKey)
+            assertEquals(
+                SelectedPrivateKey("staged.key", "new.pem"),
+                viewModel.state.value.selectedPrivateKey,
+            )
             assertTrue(repository.upserted.isEmpty())
             assertTrue(keyStore.committed.isEmpty())
             assertTrue(keyStore.deleted.isEmpty())
@@ -596,17 +731,23 @@ class AddConnectionViewModelTest {
     fun `switching to password saves blank key fields then deletes staged and old keys`() =
         runTest(mainDispatcherRule.testDispatcher) {
             val events = mutableListOf<String>()
-            val repository = FakeRepository(existing = keyDraft(id = 9, privateKeyFileName = "old.key"), events = events)
-            val keyStore = FakeSshKeyStore(
-                stagedKeys = ArrayDeque(listOf(StagedSshKey("staged.key", "new.pem"))),
-                events = events,
-            )
-            val viewModel = viewModel(
-                repository = repository,
-                clients = ArrayDeque(listOf(FakeNetworkClient(Result.success(Unit), events))),
-                keyStore = keyStore,
-                connectionId = 9,
-            )
+            val repository =
+                FakeRepository(
+                    existing = keyDraft(id = 9, privateKeyFileName = "old.key"),
+                    events = events,
+                )
+            val keyStore =
+                FakeSshKeyStore(
+                    stagedKeys = ArrayDeque(listOf(StagedSshKey("staged.key", "new.pem"))),
+                    events = events,
+                )
+            val viewModel =
+                viewModel(
+                    repository = repository,
+                    clients = ArrayDeque(listOf(FakeNetworkClient(Result.success(Unit), events))),
+                    keyStore = keyStore,
+                    connectionId = 9,
+                )
             advanceUntilIdle()
             events.clear()
             viewModel.onAction(AddConnectionAction.StagePrivateKey(TestUri))
@@ -619,8 +760,8 @@ class AddConnectionViewModelTest {
                         password = "password",
                         privateKeyFileName = "stale.key",
                         privateKeyPassphrase = "stale passphrase",
-                    ),
-                ),
+                    )
+                )
             )
             advanceUntilIdle()
 
@@ -629,7 +770,13 @@ class AddConnectionViewModelTest {
             assertEquals("", saved.privateKeyFileName)
             assertEquals("", saved.privateKeyPassphrase)
             assertEquals(
-                listOf("client.connect", "client.disconnect", "repository.upsert:", "key.delete:old.key", "key.delete:staged.key"),
+                listOf(
+                    "client.connect",
+                    "client.disconnect",
+                    "repository.upsert:",
+                    "key.delete:old.key",
+                    "key.delete:staged.key",
+                ),
                 events,
             )
         }
@@ -637,25 +784,30 @@ class AddConnectionViewModelTest {
     @Test
     fun `save failure deletes newly committed key but preserves old key`() =
         runTest(mainDispatcherRule.testDispatcher) {
-            val repository = FakeRepository(
-                existing = keyDraft(id = 9, privateKeyFileName = "old.key"),
-                upsertFailure = IllegalStateException("database unavailable"),
-            )
-            val keyStore = FakeSshKeyStore(
-                stagedKeys = ArrayDeque(listOf(StagedSshKey("staged.key", "new.pem"))),
-                committedName = "new.key",
-            )
-            val viewModel = viewModel(
-                repository = repository,
-                clients = ArrayDeque(listOf(FakeNetworkClient(Result.success(Unit)))),
-                keyStore = keyStore,
-                connectionId = 9,
-            )
+            val repository =
+                FakeRepository(
+                    existing = keyDraft(id = 9, privateKeyFileName = "old.key"),
+                    upsertFailure = IllegalStateException("database unavailable"),
+                )
+            val keyStore =
+                FakeSshKeyStore(
+                    stagedKeys = ArrayDeque(listOf(StagedSshKey("staged.key", "new.pem"))),
+                    committedName = "new.key",
+                )
+            val viewModel =
+                viewModel(
+                    repository = repository,
+                    clients = ArrayDeque(listOf(FakeNetworkClient(Result.success(Unit)))),
+                    keyStore = keyStore,
+                    connectionId = 9,
+                )
             advanceUntilIdle()
             viewModel.onAction(AddConnectionAction.StagePrivateKey(TestUri))
             advanceUntilIdle()
 
-            viewModel.onAction(AddConnectionAction.TestAndSave(keyDraft(privateKeyFileName = "staged.key")))
+            viewModel.onAction(
+                AddConnectionAction.TestAndSave(keyDraft(privateKeyFileName = "staged.key"))
+            )
             advanceUntilIdle()
 
             assertTrue(viewModel.state.value.saveState is SaveState.Error)
@@ -667,29 +819,37 @@ class AddConnectionViewModelTest {
     @Test
     fun `rollback cleanup failure preserves repository error and schedules committed key cleanup`() =
         runTest(mainDispatcherRule.testDispatcher) {
-            val repository = FakeRepository(
-                existing = keyDraft(id = 9, privateKeyFileName = "old.key"),
-                upsertFailure = IllegalStateException("database unavailable"),
-            )
-            val keyStore = FakeSshKeyStore(
-                stagedKeys = ArrayDeque(listOf(StagedSshKey("staged.key", "new.pem"))),
-                committedName = "new.key",
-                deleteFailures = mutableMapOf("new.key" to 1),
-            )
-            val viewModel = viewModel(
-                repository = repository,
-                clients = ArrayDeque(listOf(FakeNetworkClient(Result.success(Unit)))),
-                keyStore = keyStore,
-                connectionId = 9,
-            )
+            val repository =
+                FakeRepository(
+                    existing = keyDraft(id = 9, privateKeyFileName = "old.key"),
+                    upsertFailure = IllegalStateException("database unavailable"),
+                )
+            val keyStore =
+                FakeSshKeyStore(
+                    stagedKeys = ArrayDeque(listOf(StagedSshKey("staged.key", "new.pem"))),
+                    committedName = "new.key",
+                    deleteFailures = mutableMapOf("new.key" to 1),
+                )
+            val viewModel =
+                viewModel(
+                    repository = repository,
+                    clients = ArrayDeque(listOf(FakeNetworkClient(Result.success(Unit)))),
+                    keyStore = keyStore,
+                    connectionId = 9,
+                )
             advanceUntilIdle()
             viewModel.onAction(AddConnectionAction.StagePrivateKey(TestUri))
             advanceUntilIdle()
 
-            viewModel.onAction(AddConnectionAction.TestAndSave(keyDraft(privateKeyFileName = "staged.key")))
+            viewModel.onAction(
+                AddConnectionAction.TestAndSave(keyDraft(privateKeyFileName = "staged.key"))
+            )
             advanceUntilIdle()
 
-            assertEquals("database unavailable", (viewModel.state.value.saveState as SaveState.Error).message)
+            assertEquals(
+                "database unavailable",
+                (viewModel.state.value.saveState as SaveState.Error).message,
+            )
             assertEquals(listOf("new.key", "new.key"), keyStore.deleteAttempts)
             assertEquals(listOf("new.key"), keyStore.deleted)
             assertFalse("old.key" in keyStore.deleteAttempts)
@@ -698,23 +858,28 @@ class AddConnectionViewModelTest {
     @Test
     fun `old key cleanup failure is retried after replacement is saved`() =
         runTest(mainDispatcherRule.testDispatcher) {
-            val repository = FakeRepository(existing = keyDraft(id = 9, privateKeyFileName = "old.key"))
-            val keyStore = FakeSshKeyStore(
-                stagedKeys = ArrayDeque(listOf(StagedSshKey("staged.key", "new.pem"))),
-                committedName = "new.key",
-                deleteFailures = mutableMapOf("old.key" to 1),
-            )
-            val viewModel = viewModel(
-                repository = repository,
-                clients = ArrayDeque(listOf(FakeNetworkClient(Result.success(Unit)))),
-                keyStore = keyStore,
-                connectionId = 9,
-            )
+            val repository =
+                FakeRepository(existing = keyDraft(id = 9, privateKeyFileName = "old.key"))
+            val keyStore =
+                FakeSshKeyStore(
+                    stagedKeys = ArrayDeque(listOf(StagedSshKey("staged.key", "new.pem"))),
+                    committedName = "new.key",
+                    deleteFailures = mutableMapOf("old.key" to 1),
+                )
+            val viewModel =
+                viewModel(
+                    repository = repository,
+                    clients = ArrayDeque(listOf(FakeNetworkClient(Result.success(Unit)))),
+                    keyStore = keyStore,
+                    connectionId = 9,
+                )
             advanceUntilIdle()
             viewModel.onAction(AddConnectionAction.StagePrivateKey(TestUri))
             advanceUntilIdle()
 
-            viewModel.onAction(AddConnectionAction.TestAndSave(keyDraft(privateKeyFileName = "staged.key")))
+            viewModel.onAction(
+                AddConnectionAction.TestAndSave(keyDraft(privateKeyFileName = "staged.key"))
+            )
             advanceUntilIdle()
 
             assertEquals(SaveState.Idle, viewModel.state.value.saveState)
@@ -725,17 +890,23 @@ class AddConnectionViewModelTest {
     @Test
     fun `old key cleanup failure is retried after switching to password`() =
         runTest(mainDispatcherRule.testDispatcher) {
-            val repository = FakeRepository(existing = keyDraft(id = 9, privateKeyFileName = "old.key"))
+            val repository =
+                FakeRepository(existing = keyDraft(id = 9, privateKeyFileName = "old.key"))
             val keyStore = FakeSshKeyStore(deleteFailures = mutableMapOf("old.key" to 1))
-            val viewModel = viewModel(
-                repository = repository,
-                clients = ArrayDeque(listOf(FakeNetworkClient(Result.success(Unit)))),
-                keyStore = keyStore,
-                connectionId = 9,
-            )
+            val viewModel =
+                viewModel(
+                    repository = repository,
+                    clients = ArrayDeque(listOf(FakeNetworkClient(Result.success(Unit)))),
+                    keyStore = keyStore,
+                    connectionId = 9,
+                )
             advanceUntilIdle()
 
-            viewModel.onAction(AddConnectionAction.TestAndSave(keyDraft(authentication = NetworkAuthentication.PASSWORD, password = "password")))
+            viewModel.onAction(
+                AddConnectionAction.TestAndSave(
+                    keyDraft(authentication = NetworkAuthentication.PASSWORD, password = "password")
+                )
+            )
             advanceUntilIdle()
 
             assertEquals(SaveState.Idle, viewModel.state.value.saveState)
@@ -749,28 +920,33 @@ class AddConnectionViewModelTest {
         runTest(mainDispatcherRule.testDispatcher) {
             val upsertReached = CompletableDeferred<Unit>()
             val allowUpsertToReturn = CompletableDeferred<Unit>()
-            val repository = FakeRepository(
-                existing = keyDraft(id = 9, privateKeyFileName = "old.key"),
-                afterUpsert = {
-                    upsertReached.complete(Unit)
-                    allowUpsertToReturn.await()
-                },
-            )
-            val keyStore = FakeSshKeyStore(
-                stagedKeys = ArrayDeque(listOf(StagedSshKey("staged.key", "new.pem"))),
-                committedName = "new.key",
-            )
-            val viewModel = viewModel(
-                repository = repository,
-                clients = ArrayDeque(listOf(FakeNetworkClient(Result.success(Unit)))),
-                keyStore = keyStore,
-                connectionId = 9,
-            )
+            val repository =
+                FakeRepository(
+                    existing = keyDraft(id = 9, privateKeyFileName = "old.key"),
+                    afterUpsert = {
+                        upsertReached.complete(Unit)
+                        allowUpsertToReturn.await()
+                    },
+                )
+            val keyStore =
+                FakeSshKeyStore(
+                    stagedKeys = ArrayDeque(listOf(StagedSshKey("staged.key", "new.pem"))),
+                    committedName = "new.key",
+                )
+            val viewModel =
+                viewModel(
+                    repository = repository,
+                    clients = ArrayDeque(listOf(FakeNetworkClient(Result.success(Unit)))),
+                    keyStore = keyStore,
+                    connectionId = 9,
+                )
             advanceUntilIdle()
             viewModel.onAction(AddConnectionAction.StagePrivateKey(TestUri))
             advanceUntilIdle()
 
-            viewModel.onAction(AddConnectionAction.TestAndSave(keyDraft(privateKeyFileName = "staged.key")))
+            viewModel.onAction(
+                AddConnectionAction.TestAndSave(keyDraft(privateKeyFileName = "staged.key"))
+            )
             upsertReached.await()
             clear(viewModel)
             allowUpsertToReturn.complete(Unit)
@@ -786,23 +962,29 @@ class AddConnectionViewModelTest {
         runTest(mainDispatcherRule.testDispatcher) {
             val upsertReached = CompletableDeferred<Unit>()
             val allowUpsertToReturn = CompletableDeferred<Unit>()
-            val repository = FakeRepository(
-                existing = keyDraft(id = 9, privateKeyFileName = "old.key"),
-                afterUpsert = {
-                    upsertReached.complete(Unit)
-                    allowUpsertToReturn.await()
-                },
-            )
+            val repository =
+                FakeRepository(
+                    existing = keyDraft(id = 9, privateKeyFileName = "old.key"),
+                    afterUpsert = {
+                        upsertReached.complete(Unit)
+                        allowUpsertToReturn.await()
+                    },
+                )
             val keyStore = FakeSshKeyStore()
-            val viewModel = viewModel(
-                repository = repository,
-                clients = ArrayDeque(listOf(FakeNetworkClient(Result.success(Unit)))),
-                keyStore = keyStore,
-                connectionId = 9,
-            )
+            val viewModel =
+                viewModel(
+                    repository = repository,
+                    clients = ArrayDeque(listOf(FakeNetworkClient(Result.success(Unit)))),
+                    keyStore = keyStore,
+                    connectionId = 9,
+                )
             advanceUntilIdle()
 
-            viewModel.onAction(AddConnectionAction.TestAndSave(keyDraft(authentication = NetworkAuthentication.PASSWORD, password = "password")))
+            viewModel.onAction(
+                AddConnectionAction.TestAndSave(
+                    keyDraft(authentication = NetworkAuthentication.PASSWORD, password = "password")
+                )
+            )
             upsertReached.await()
             clear(viewModel)
             allowUpsertToReturn.complete(Unit)
@@ -815,14 +997,17 @@ class AddConnectionViewModelTest {
     @Test
     fun `cancel deletes only the staged key`() =
         runTest(mainDispatcherRule.testDispatcher) {
-            val keyStore = FakeSshKeyStore(
-                stagedKeys = ArrayDeque(listOf(StagedSshKey("staged.key", "new.pem"))),
-            )
-            val viewModel = viewModel(
-                repository = FakeRepository(existing = keyDraft(id = 9, privateKeyFileName = "old.key")),
-                keyStore = keyStore,
-                connectionId = 9,
-            )
+            val keyStore =
+                FakeSshKeyStore(
+                    stagedKeys = ArrayDeque(listOf(StagedSshKey("staged.key", "new.pem")))
+                )
+            val viewModel =
+                viewModel(
+                    repository =
+                        FakeRepository(existing = keyDraft(id = 9, privateKeyFileName = "old.key")),
+                    keyStore = keyStore,
+                    connectionId = 9,
+                )
             advanceUntilIdle()
             viewModel.onAction(AddConnectionAction.StagePrivateKey(TestUri))
             advanceUntilIdle()
@@ -837,14 +1022,17 @@ class AddConnectionViewModelTest {
     @Test
     fun `clearing ViewModel deletes only the staged key`() =
         runTest(mainDispatcherRule.testDispatcher) {
-            val keyStore = FakeSshKeyStore(
-                stagedKeys = ArrayDeque(listOf(StagedSshKey("staged.key", "new.pem"))),
-            )
-            val viewModel = viewModel(
-                repository = FakeRepository(existing = keyDraft(id = 9, privateKeyFileName = "old.key")),
-                keyStore = keyStore,
-                connectionId = 9,
-            )
+            val keyStore =
+                FakeSshKeyStore(
+                    stagedKeys = ArrayDeque(listOf(StagedSshKey("staged.key", "new.pem")))
+                )
+            val viewModel =
+                viewModel(
+                    repository =
+                        FakeRepository(existing = keyDraft(id = 9, privateKeyFileName = "old.key")),
+                    keyStore = keyStore,
+                    connectionId = 9,
+                )
             advanceUntilIdle()
             viewModel.onAction(AddConnectionAction.StagePrivateKey(TestUri))
             advanceUntilIdle()
@@ -869,14 +1057,15 @@ class AddConnectionViewModelTest {
         factory: FakeNetworkClientFactory,
         keyStore: FakeSshKeyStore,
         connectionId: Long? = null,
-    ) = AddConnectionViewModel(
-        AddConnectionViewModel.Input(connectionId),
-        AddConnectionViewModel.Output(navigateUp = {}),
-        repository,
-        factory,
-        keyStore,
-        CoroutineScope(SupervisorJob() + mainDispatcherRule.testDispatcher),
-    )
+    ) =
+        AddConnectionViewModel(
+            AddConnectionViewModel.Input(connectionId),
+            AddConnectionViewModel.Output(navigateUp = {}),
+            repository,
+            factory,
+            keyStore,
+            CoroutineScope(SupervisorJob() + mainDispatcherRule.testDispatcher),
+        )
 
     private fun clear(viewModel: AddConnectionViewModel) {
         register(viewModel).clear()
@@ -884,33 +1073,38 @@ class AddConnectionViewModelTest {
 
     private fun register(viewModel: AddConnectionViewModel): ViewModelStore {
         val store = ViewModelStore()
-        val provider = ViewModelProvider(
-            store,
-            object : ViewModelProvider.Factory {
-                override fun <T : ViewModel> create(modelClass: Class<T>): T {
-                    @Suppress("UNCHECKED_CAST")
-                    return viewModel as T
-                }
-            },
-        )
+        val provider =
+            ViewModelProvider(
+                store,
+                object : ViewModelProvider.Factory {
+                    override fun <T : ViewModel> create(modelClass: Class<T>): T {
+                        @Suppress("UNCHECKED_CAST")
+                        return viewModel as T
+                    }
+                },
+            )
         provider[AddConnectionViewModel::class.java]
         return store
     }
 
-    private fun confirmation() = HostKeyConfirmationRequired(
-        host = "sftp.example",
-        port = 22,
-        algorithm = "EdDSA",
-        fingerprint = "SHA256:server-key",
-    )
+    private fun confirmation() =
+        HostKeyConfirmationRequired(
+            host = "sftp.example",
+            port = 22,
+            algorithm = "EdDSA",
+            fingerprint = "SHA256:server-key",
+        )
 
     private fun assertConnectionError(error: Throwable, expected: String) =
         runTest(mainDispatcherRule.testDispatcher) {
-            val viewModel = viewModel(
-                clients = ArrayDeque(listOf(FakeNetworkClient(Result.failure(error)))),
-            )
+            val viewModel =
+                viewModel(clients = ArrayDeque(listOf(FakeNetworkClient(Result.failure(error)))))
 
-            viewModel.onAction(AddConnectionAction.TestAndSave(keyDraft(authentication = NetworkAuthentication.PASSWORD)))
+            viewModel.onAction(
+                AddConnectionAction.TestAndSave(
+                    keyDraft(authentication = NetworkAuthentication.PASSWORD)
+                )
+            )
             advanceUntilIdle()
 
             assertEquals(expected, (viewModel.state.value.saveState as SaveState.Error).message)
@@ -922,17 +1116,18 @@ class AddConnectionViewModelTest {
         password: String = "",
         privateKeyFileName: String = "staged.key",
         privateKeyPassphrase: String = "",
-    ) = NetworkConnection(
-        id = id,
-        name = "SFTP",
-        protocol = NetworkProtocol.SFTP,
-        host = "sftp.example",
-        username = "media",
-        password = password,
-        authentication = authentication,
-        privateKeyFileName = privateKeyFileName,
-        privateKeyPassphrase = privateKeyPassphrase,
-    )
+    ) =
+        NetworkConnection(
+            id = id,
+            name = "SFTP",
+            protocol = NetworkProtocol.SFTP,
+            host = "sftp.example",
+            username = "media",
+            password = password,
+            authentication = authentication,
+            privateKeyFileName = privateKeyFileName,
+            privateKeyPassphrase = privateKeyPassphrase,
+        )
 }
 
 private class FakeRepository(
@@ -958,9 +1153,8 @@ private class FakeRepository(
     override suspend fun delete(id: Long) = Unit
 }
 
-private class FakeNetworkClientFactory(
-    private val clients: ArrayDeque<FakeNetworkClient>,
-) : NetworkClientFactory {
+private class FakeNetworkClientFactory(private val clients: ArrayDeque<FakeNetworkClient>) :
+    NetworkClientFactory {
     val created = mutableListOf<NetworkConnection>()
 
     override fun create(connection: NetworkConnection): NetworkClient {

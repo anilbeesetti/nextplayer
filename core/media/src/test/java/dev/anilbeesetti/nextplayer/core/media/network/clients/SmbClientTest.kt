@@ -31,15 +31,16 @@ class SmbClientTest {
     @Test
     fun `server root reaches connection test instead of rejecting the path`() = runBlocking {
         val port = ServerSocket(0).use { it.localPort }
-        val client = SmbClient(
-            NetworkConnection(
-                name = "Server root",
-                protocol = NetworkProtocol.SMB,
-                host = "127.0.0.1",
-                port = port,
-                path = "/",
-            ),
-        )
+        val client =
+            SmbClient(
+                NetworkConnection(
+                    name = "Server root",
+                    protocol = NetworkProtocol.SMB,
+                    host = "127.0.0.1",
+                    port = port,
+                    path = "/",
+                )
+            )
 
         try {
             val result = client.connect()
@@ -49,7 +50,10 @@ class SmbClientTest {
                 "SMB server root must not fail local path validation: ${result.exceptionOrNull()}",
                 result.exceptionOrNull() is IllegalArgumentException,
             )
-            assertTrue("The failure must come from the network: ${result.exceptionOrNull()}", result.exceptionOrNull() is IOException)
+            assertTrue(
+                "The failure must come from the network: ${result.exceptionOrNull()}",
+                result.exceptionOrNull() is IOException,
+            )
             assertFalse(client.isConnected())
         } finally {
             client.disconnect()
@@ -59,10 +63,11 @@ class SmbClientTest {
     @Test
     fun `server root connects and lists shares as folders`() = runBlocking {
         val server = TestServer()
-        val shares = listOf(
-            NetworkFile(name = "Media", path = "Media", isDirectory = true),
-            NetworkFile(name = "Other", path = "Other", isDirectory = true),
-        )
+        val shares =
+            listOf(
+                NetworkFile(name = "Media", path = "Media", isDirectory = true),
+                NetworkFile(name = "Other", path = "Other", isDirectory = true),
+            )
         val client = server.client("/") { shares }
 
         assertTrue(client.connect().isSuccess)
@@ -102,7 +107,14 @@ class SmbClientTest {
         val files = client.listFiles("Media/folder/nested").getOrThrow()
 
         assertEquals(
-            listOf(NetworkFile(name = "clip.mp4", path = "Media/folder/nested/clip.mp4", isDirectory = false, size = 123L)),
+            listOf(
+                NetworkFile(
+                    name = "clip.mp4",
+                    path = "Media/folder/nested/clip.mp4",
+                    isDirectory = false,
+                    size = 123L,
+                )
+            ),
             files,
         )
         verify(server.session).connectShare("Media")
@@ -111,36 +123,41 @@ class SmbClientTest {
     }
 
     @Test
-    fun `server root reads size and stream from the selected share at the requested offset`() = runBlocking {
-        val server = TestServer()
-        val file = mock(com.hierynomus.smbj.share.File::class.java, RETURNS_DEEP_STUBS)
-        `when`(file.fileInformation.standardInformation.endOfFile).thenReturn(123L)
-        `when`(server.share.openFile(anyString(), any(), any(), any(), any(), any())).thenReturn(file)
-        `when`(file.read(any(ByteArray::class.java), eq(4L), anyInt(), anyInt())).thenAnswer { call ->
-            val buffer = call.getArgument<ByteArray>(0)
-            buffer[0] = 4
-            buffer[1] = 5
-            2
-        }
-        val client = server.client("/")
-        assertTrue(client.connect().isSuccess)
+    fun `server root reads size and stream from the selected share at the requested offset`() =
+        runBlocking {
+            val server = TestServer()
+            val file = mock(com.hierynomus.smbj.share.File::class.java, RETURNS_DEEP_STUBS)
+            `when`(file.fileInformation.standardInformation.endOfFile).thenReturn(123L)
+            `when`(server.share.openFile(anyString(), any(), any(), any(), any(), any()))
+                .thenReturn(file)
+            `when`(file.read(any(ByteArray::class.java), eq(4L), anyInt(), anyInt())).thenAnswer {
+                call ->
+                val buffer = call.getArgument<ByteArray>(0)
+                buffer[0] = 4
+                buffer[1] = 5
+                2
+            }
+            val client = server.client("/")
+            assertTrue(client.connect().isSuccess)
 
-        assertEquals(123L, client.fileSize("Media/folder/clip.mp4"))
-        client.openStream("Media/folder/clip.mp4", offset = 4L).use { stream ->
-            assertEquals(4, stream.read())
-            assertEquals(5, stream.read())
-        }
+            assertEquals(123L, client.fileSize("Media/folder/clip.mp4"))
+            client.openStream("Media/folder/clip.mp4", offset = 4L).use { stream ->
+                assertEquals(4, stream.read())
+                assertEquals(5, stream.read())
+            }
 
-        verify(server.session, times(2)).connectShare("Media")
-        verify(server.share, times(2)).openFile(eq("folder\\clip.mp4"), any(), any(), any(), any(), any())
-        verify(file, times(2)).close()
-        client.disconnect()
-    }
+            verify(server.session, times(2)).connectShare("Media")
+            verify(server.share, times(2))
+                .openFile(eq("folder\\clip.mp4"), any(), any(), any(), any(), any())
+            verify(file, times(2)).close()
+            client.disconnect()
+        }
 
     @Test
     fun `named share retains share-relative browsing`() = runBlocking {
         val server = TestServer()
-        val client = server.client("/Media/") { error("Named shares must not enumerate the server") }
+        val client =
+            server.client("/Media/") { error("Named shares must not enumerate the server") }
 
         assertTrue(client.connect().isSuccess)
         assertEquals(emptyList<NetworkFile>(), client.listFiles("folder").getOrThrow())
@@ -175,10 +192,17 @@ class SmbClientTest {
             `when`(session.connectShare("Media")).thenReturn(share)
         }
 
-        fun client(path: String, listShares: (Session) -> List<NetworkFile> = { emptyList() }) = SmbClient(
-            connection = NetworkConnection(name = "Test", protocol = NetworkProtocol.SMB, host = "server", path = path),
-            createClient = { smbClient },
-            listShares = listShares,
-        )
+        fun client(path: String, listShares: (Session) -> List<NetworkFile> = { emptyList() }) =
+            SmbClient(
+                connection =
+                    NetworkConnection(
+                        name = "Test",
+                        protocol = NetworkProtocol.SMB,
+                        host = "server",
+                        path = path,
+                    ),
+                createClient = { smbClient },
+                listShares = listShares,
+            )
     }
 }

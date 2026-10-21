@@ -64,9 +64,7 @@ import dev.anilbeesetti.nextplayer.feature.more.components.HistoryEmptyState
 import dev.anilbeesetti.nextplayer.feature.videopicker.composables.VideoGridItem
 
 @Composable
-fun MoreScreen(
-    viewModel: MoreViewModel,
-) {
+fun MoreScreen(viewModel: MoreViewModel) {
     val state by viewModel.state.collectAsStateWithLifecycle()
 
     MoreScreenContent(
@@ -81,9 +79,10 @@ internal fun MoreScreenContent(
     onAction: (MoreAction) -> Unit,
 ) {
     BindTopLevelFab(TopLevelFabKey.MORE, NextIcons.Settings) { onAction(MoreAction.OpenSettings) }
-    val filePicker = rememberLauncherForActivityResult(ActivityResultContracts.GetContent()) { uri ->
-        uri?.let { onAction(MoreAction.PlayVideo(it.toString())) }
-    }
+    val filePicker =
+        rememberLauncherForActivityResult(ActivityResultContracts.GetContent()) { uri ->
+            uri?.let { onAction(MoreAction.PlayVideo(it.toString())) }
+        }
 
     Scaffold(
         topBar = {
@@ -95,19 +94,25 @@ internal fun MoreScreenContent(
         containerColor = MaterialTheme.colorScheme.surfaceContainer,
     ) { scaffoldPadding ->
         Box(
-            modifier = Modifier
-                .fillMaxSize()
-                .padding(scaffoldPadding.copy(bottom = 0.dp))
-                .clip(RoundedCornerShape(topStart = 24.dp, topEnd = 24.dp))
-                .background(MaterialTheme.colorScheme.background),
+            modifier =
+                Modifier.fillMaxSize()
+                    .padding(scaffoldPadding.copy(bottom = 0.dp))
+                    .clip(RoundedCornerShape(topStart = 24.dp, topEnd = 24.dp))
+                    .background(MaterialTheme.colorScheme.background)
         ) {
             Column(
-                modifier = Modifier
-                    .fillMaxSize()
-                    .verticalScroll(rememberScrollState())
-                    .tvListFocus()
-                    .padding(horizontal = 8.dp)
-                    .padding(top = 8.dp, bottom = scaffoldPadding.calculateBottomPadding() + LocalNavigationBottomPadding.current + 96.dp),
+                modifier =
+                    Modifier.fillMaxSize()
+                        .verticalScroll(rememberScrollState())
+                        .tvListFocus()
+                        .padding(horizontal = 8.dp)
+                        .padding(
+                            top = 8.dp,
+                            bottom =
+                                scaffoldPadding.calculateBottomPadding() +
+                                    LocalNavigationBottomPadding.current +
+                                    96.dp,
+                        ),
                 verticalArrangement = Arrangement.spacedBy(16.dp),
             ) {
                 FlowRow(
@@ -178,9 +183,7 @@ private fun HistorySection(
     val isTv = LocalContext.current.isTelevision
     val historyButtonFocusRequester = remember { FocusRequester() }
     val historyFocusState = rememberRestorableFocusState()
-    Column(
-        verticalArrangement = Arrangement.spacedBy(4.dp),
-    ) {
+    Column(verticalArrangement = Arrangement.spacedBy(4.dp)) {
         Row(
             // Keep the full header in the vertical focus path, including its empty title area.
             modifier = Modifier.fillMaxWidth().thenIf(isTv) { focusGroup() },
@@ -193,35 +196,44 @@ private fun HistorySection(
             )
             IconButton(
                 onClick = onMoreClick,
-                modifier = Modifier
-                    .focusRequester(historyButtonFocusRequester)
-                    .focusProperties { if (isTv && !preferences.isHistoryPaused && videos.isNotEmpty()) down = historyFocusState.requester }
-                    .tvFocusRing(),
+                modifier =
+                    Modifier.focusRequester(historyButtonFocusRequester)
+                        .focusProperties {
+                            if (isTv && !preferences.isHistoryPaused && videos.isNotEmpty())
+                                down = historyFocusState.requester
+                        }
+                        .tvFocusRing(),
             ) {
-                Icon(imageVector = NextIcons.ArrowForward, contentDescription = stringResource(R.string.history))
+                Icon(
+                    imageVector = NextIcons.ArrowForward,
+                    contentDescription = stringResource(R.string.history),
+                )
             }
         }
         when {
-            preferences.isHistoryPaused -> HistoryEmptyState(
-                isHistoryOff = true,
-                modifier = Modifier.fillMaxWidth(),
-            )
-            history is DataState.Success && videos.isEmpty() -> HistoryEmptyState(
-                isHistoryOff = false,
-                modifier = Modifier.fillMaxWidth(),
-            )
+            preferences.isHistoryPaused ->
+                HistoryEmptyState(
+                    isHistoryOff = true,
+                    modifier = Modifier.fillMaxWidth(),
+                )
+            history is DataState.Success && videos.isEmpty() ->
+                HistoryEmptyState(
+                    isHistoryOff = false,
+                    modifier = Modifier.fillMaxWidth(),
+                )
             else -> {
                 LazyRow(
-                    // The screen owns initial focus; this region restores a video only when entered.
-                    modifier = Modifier
-                        .focusProperties {
-                            onExit = {
-                                if (isTv && requestedFocusDirection == FocusDirection.Up) {
-                                    historyButtonFocusRequester.requestFocus()
+                    // The screen owns initial focus; this region restores a video only when
+                    // entered.
+                    modifier =
+                        Modifier.focusProperties {
+                                onExit = {
+                                    if (isTv && requestedFocusDirection == FocusDirection.Up) {
+                                        historyButtonFocusRequester.requestFocus()
+                                    }
                                 }
                             }
-                        }
-                        .restorableFocusGroup(historyFocusState, ready = false),
+                            .restorableFocusGroup(historyFocusState, ready = false),
                     horizontalArrangement = Arrangement.spacedBy(2.dp),
                 ) {
                     items(videos, key = { it.uriString }) { video ->
@@ -230,9 +242,9 @@ private fun HistorySection(
                             isRecentlyPlayedVideo = false,
                             textStyle = MaterialTheme.typography.bodySmall,
                             preferences = preferences,
-                            modifier = Modifier
-                                .width(140.dp)
-                                .restorableFocusItem(historyFocusState, video.uriString),
+                            modifier =
+                                Modifier.width(140.dp)
+                                    .restorableFocusItem(historyFocusState, video.uriString),
                             onClick = { onVideoClick(video) },
                         )
                     }

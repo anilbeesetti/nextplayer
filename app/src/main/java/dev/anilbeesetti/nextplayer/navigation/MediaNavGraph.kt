@@ -34,7 +34,6 @@ fun EntryProviderScope<NavKey>.mediaNavGraph(
         onPlayVideo = { uri -> context.startPlayback(uri) },
         onFolderClick = backStack::navigateToMediaPickerScreen,
     )
-
 }
 
 internal fun Context.startPlayback(uri: Uri, grantReadPermission: Boolean = false) {
@@ -56,11 +55,12 @@ private fun Context.startPlayback(uri: Uri, playlist: List<Uri>?, grantReadPermi
             grantUriPermission(packageName, it, Intent.FLAG_GRANT_READ_URI_PERMISSION)
         }
     }
-    val intent = Intent(this, PlayerActivity::class.java).apply {
-        action = Intent.ACTION_VIEW
-        data = uri
-        playlist?.let { putParcelableArrayListExtra(PlayerApi.API_PLAYLIST, ArrayList(it)) }
-        if (grantReadPermission) addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION)
-    }
+    val intent =
+        Intent(this, PlayerActivity::class.java).apply {
+            action = Intent.ACTION_VIEW
+            data = uri
+            playlist?.let { putParcelableArrayListExtra(PlayerApi.API_PLAYLIST, ArrayList(it)) }
+            if (grantReadPermission) addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION)
+        }
     startActivity(intent)
 }

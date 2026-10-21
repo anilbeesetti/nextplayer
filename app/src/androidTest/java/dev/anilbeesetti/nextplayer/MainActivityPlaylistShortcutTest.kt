@@ -26,8 +26,7 @@ class MainActivityPlaylistShortcutTest {
     @get:Rule(order = 0)
     val permissionRule: GrantPermissionRule = GrantPermissionRule.grant(storagePermission)
 
-    @get:Rule(order = 1)
-    val composeRule = createEmptyComposeRule()
+    @get:Rule(order = 1) val composeRule = createEmptyComposeRule()
 
     @Test
     fun shortcutOpensPlaylistOnColdAndWarmLaunchAndSurvivesRecreation() = runBlocking {
@@ -36,12 +35,14 @@ class MainActivityPlaylistShortcutTest {
         val first = repository.create("Shortcut first")
         val second = repository.create("Shortcut second")
         try {
-            val firstIntent = PlaylistShortcut.create(context, summary(first, "Shortcut first")).intent
+            val firstIntent =
+                PlaylistShortcut.create(context, summary(first, "Shortcut first")).intent
             ActivityScenario.launch<MainActivity>(firstIntent).use { scenario ->
                 awaitText("Shortcut first")
                 composeRule.onNodeWithText("This playlist is empty").assertIsDisplayed()
 
-                val secondIntent = PlaylistShortcut.create(context, summary(second, "Shortcut second")).intent
+                val secondIntent =
+                    PlaylistShortcut.create(context, summary(second, "Shortcut second")).intent
                 context.startActivity(secondIntent)
                 awaitText("Shortcut second")
                 scenario.recreate()
@@ -71,5 +72,6 @@ class MainActivityPlaylistShortcutTest {
         composeRule.onNodeWithText(text).assertIsDisplayed()
     }
 
-    private fun summary(id: Long, name: String) = PlaylistSummary(id, name, PlaylistType.LOCAL, 0, null)
+    private fun summary(id: Long, name: String) =
+        PlaylistSummary(id, name, PlaylistType.LOCAL, 0, null)
 }

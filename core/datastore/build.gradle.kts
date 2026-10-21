@@ -10,9 +10,7 @@ android {
     namespace = "dev.anilbeesetti.nextplayer.core.datastore"
     compileSdk = libs.versions.android.compileSdk.get().toInt()
 
-    defaultConfig {
-        minSdk = libs.versions.android.minSdk.get().toInt()
-    }
+    defaultConfig { minSdk = libs.versions.android.minSdk.get().toInt() }
 
     compileOptions {
         sourceCompatibility = JavaVersion.toVersion(libs.versions.android.jvm.get().toInt())
@@ -20,14 +18,9 @@ android {
     }
 }
 
-kotlin {
-    compilerOptions {
-        jvmTarget.set(JvmTarget.fromTarget(libs.versions.android.jvm.get()))
-    }
-}
+kotlin { compilerOptions { jvmTarget.set(JvmTarget.fromTarget(libs.versions.android.jvm.get())) } }
 
 dependencies {
-
     implementation(project(":core:common"))
     implementation(project(":core:model"))
 

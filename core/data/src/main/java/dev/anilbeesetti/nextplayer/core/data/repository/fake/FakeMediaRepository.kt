@@ -37,7 +37,9 @@ class FakeMediaRepository : MediaRepository {
     }
 
     override fun observePlaybackHistory(): Flow<List<Video>> {
-        return updates.map { videos.filter { it.lastPlayedAt != null }.sortedByDescending { it.lastPlayedAt?.time } }
+        return updates.map {
+            videos.filter { it.lastPlayedAt != null }.sortedByDescending { it.lastPlayedAt?.time }
+        }
     }
 
     override fun observeTrashVideos(): Flow<List<Video>> {
@@ -60,33 +62,27 @@ class FakeMediaRepository : MediaRepository {
         return null
     }
 
-    override suspend fun clearPlaybackHistory() {
-    }
+    override suspend fun clearPlaybackHistory() {}
 
-    override suspend fun updateMediumLastPlayedTime(uri: String, lastPlayedTime: Long, duration: Long?) {
-    }
+    override suspend fun updateMediumLastPlayedTime(
+        uri: String,
+        lastPlayedTime: Long,
+        duration: Long?,
+    ) {}
 
-    override suspend fun updateMediumPosition(uri: String, position: Long) {
-    }
+    override suspend fun updateMediumPosition(uri: String, position: Long) {}
 
-    override suspend fun updateMediumAudioTrack(uri: String, audioTrackIndex: Int) {
-    }
+    override suspend fun updateMediumAudioTrack(uri: String, audioTrackIndex: Int) {}
 
-    override suspend fun updateMediumSubtitleTrack(uri: String, subtitleTrackIndex: Int) {
-    }
+    override suspend fun updateMediumSubtitleTrack(uri: String, subtitleTrackIndex: Int) {}
 
-    override suspend fun updateMediumZoom(uri: String, zoom: Float) {
-    }
+    override suspend fun updateMediumZoom(uri: String, zoom: Float) {}
 
-    override suspend fun addExternalAudioToMedium(uri: String, audioUri: Uri) {
-    }
+    override suspend fun addExternalAudioToMedium(uri: String, audioUri: Uri) {}
 
-    override suspend fun addExternalSubtitleToMedium(uri: String, subtitleUri: Uri) {
-    }
+    override suspend fun addExternalSubtitleToMedium(uri: String, subtitleUri: Uri) {}
 
-    override suspend fun updateSubtitleDelay(uri: String, delay: Long) {
-    }
+    override suspend fun updateSubtitleDelay(uri: String, delay: Long) {}
 
-    override suspend fun updateSubtitleSpeed(uri: String, speed: Float) {
-    }
+    override suspend fun updateSubtitleSpeed(uri: String, speed: Float) {}
 }

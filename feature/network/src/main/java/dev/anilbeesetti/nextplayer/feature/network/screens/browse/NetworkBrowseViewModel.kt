@@ -64,6 +64,7 @@ class NetworkBrowseViewModel(
 ) : MviViewModel<NetworkBrowseUiState, NetworkBrowseAction>() {
 
     data class Input(val connectionId: Long, val path: String?)
+
     data class Output(
         val navigateUp: () -> Unit,
         val playVideos: (List<Uri>, Uri) -> Unit,
@@ -83,34 +84,52 @@ class NetworkBrowseViewModel(
     init {
         viewModelScope.launch {
             combine(connection, mediaRepository.observePlaybackHistory()) { conn, history ->
-                val folderPrefix = currentPath?.trimEnd('/').orEmpty()
-                if (conn == null) {
-                    emptyMap()
-                } else {
-                    history.mapNotNull { video ->
-                        val uri = video.uriString.toUri()
-                        if (!NetworkUri.isNetworkUri(uri) || NetworkUri.connectionIdOf(uri) != connectionId) return@mapNotNull null
-                        val filePath = NetworkUri.filePathOf(uri, conn.protocol)
-                        if (uri != NetworkUri.build(conn, filePath)) return@mapNotNull null
-                        if (folderPrefix.isNotEmpty() && !filePath.startsWith("$folderPrefix/")) return@mapNotNull null
-                        filePath to video
-                    }.toMap()
+                    val folderPrefix = currentPath?.trimEnd('/').orEmpty()
+                    if (conn == null) {
+                        emptyMap()
+                    } else {
+                        history
+                            .mapNotNull { video ->
+                                val uri = video.uriString.toUri()
+                                if (
+                                    !NetworkUri.isNetworkUri(uri) ||
+                                        NetworkUri.connectionIdOf(uri) != connectionId
+                                )
+                                    return@mapNotNull null
+                                val filePath = NetworkUri.filePathOf(uri, conn.protocol)
+                                if (uri != NetworkUri.build(conn, filePath)) return@mapNotNull null
+                                if (
+                                    folderPrefix.isNotEmpty() &&
+                                        !filePath.startsWith("$folderPrefix/")
+                                )
+                                    return@mapNotNull null
+                                filePath to video
+                            }
+                            .toMap()
+                    }
                 }
-            }.collect { playbackHistory ->
-                stateInternal.update {
-                    it.copy(
-                        playbackHistory = playbackHistory,
-                        recentlyPlayedPath = playbackHistory.maxByOrNull { it.value.lastPlayedAt?.time ?: Long.MIN_VALUE }?.key,
-                    )
+                .collect { playbackHistory ->
+                    stateInternal.update {
+                        it.copy(
+                            playbackHistory = playbackHistory,
+                            recentlyPlayedPath =
+                                playbackHistory
+                                    .maxByOrNull { it.value.lastPlayedAt?.time ?: Long.MIN_VALUE }
+                                    ?.key,
+                        )
+                    }
                 }
-            }
         }
         viewModelScope.launch {
             preferencesRepository.applicationPreferences.collect { preferences ->
                 stateInternal.update {
                     it.copy(
                         preferences = preferences,
-                        files = it.files.sortedWith(Sort(preferences.networkSortBy, preferences.networkSortOrder).networkFileComparator()),
+                        files =
+                            it.files.sortedWith(
+                                Sort(preferences.networkSortBy, preferences.networkSortOrder)
+                                    .networkFileComparator()
+                            ),
                     )
                 }
             }
@@ -158,23 +177,33 @@ class NetworkBrowseViewModel(
         val path = currentPath ?: return
         stateInternal.update { it.copy(isLoading = true, error = null) }
         viewModelScope.launch {
-            client.listFiles(path).fold(
-                onSuccess = { files ->
-                    val visible = files
-                        .filter { it.isDirectory || isNetworkVideoFile(it.name) }
+            client
+                .listFiles(path)
+                .fold(
+                    onSuccess = { files ->
+                        val visible = files.filter { it.isDirectory || isNetworkVideoFile(it.name) }
 
-                    stateInternal.update {
-                        it.copy(
-                            title = title(conn),
-                            files = visible.sortedWith(Sort(it.preferences.networkSortBy, it.preferences.networkSortOrder).networkFileComparator()),
-                            isLoading = false,
-                        )
-                    }
-                },
-                onFailure = { e ->
-                    stateInternal.update { it.copy(isLoading = false, error = e.toNetworkBrowseError()) }
-                },
-            )
+                        stateInternal.update {
+                            it.copy(
+                                title = title(conn),
+                                files =
+                                    visible.sortedWith(
+                                        Sort(
+                                                it.preferences.networkSortBy,
+                                                it.preferences.networkSortOrder,
+                                            )
+                                            .networkFileComparator()
+                                    ),
+                                isLoading = false,
+                            )
+                        }
+                    },
+                    onFailure = { e ->
+                        stateInternal.update {
+                            it.copy(isLoading = false, error = e.toNetworkBrowseError())
+                        }
+                    },
+                )
         }
     }
 
@@ -187,30 +216,36 @@ class NetworkBrowseViewModel(
             is NetworkBrowseAction.NavigateUp -> output.navigateUp()
             is NetworkBrowseAction.OpenFolder -> output.openFolder(connectionId, action.file.path)
 
-            is NetworkBrowseAction.UpdateQuickSettings -> viewModelScope.launch {
-                preferencesRepository.updateApplicationPreferences {
-                    it.copy(
-                        networkMediaLayoutMode = action.layoutMode,
-                        networkSortBy = action.sort.by,
-                        networkSortOrder = action.sort.order,
-                    )
+            is NetworkBrowseAction.UpdateQuickSettings ->
+                viewModelScope.launch {
+                    preferencesRepository.updateApplicationPreferences {
+                        it.copy(
+                            networkMediaLayoutMode = action.layoutMode,
+                            networkSortBy = action.sort.by,
+                            networkSortOrder = action.sort.order,
+                        )
+                    }
                 }
-            }
             is NetworkBrowseAction.Retry -> retry()
             is NetworkBrowseAction.PlayVideo -> playVideo(action.file)
-            is NetworkBrowseAction.PlayAll -> stateInternal.value.files.firstOrNull { !it.isDirectory }?.let(::playVideo)
+            is NetworkBrowseAction.PlayAll ->
+                stateInternal.value.files.firstOrNull { !it.isDirectory }?.let(::playVideo)
         }
     }
 
     private fun retry() {
-        if (currentPath == null || client?.isConnected() != true) connectAndLoad() else loadCurrent()
+        if (currentPath == null || client?.isConnected() != true) connectAndLoad()
+        else loadCurrent()
     }
 
     private fun playVideo(file: NetworkFile) {
         val conn = connection.value ?: return
         val videos = stateInternal.value.files.filter { !it.isDirectory }
         if (file !in videos) return
-        output.playVideos(videos.map { NetworkUri.build(conn, it.path) }, NetworkUri.build(conn, file.path))
+        output.playVideos(
+            videos.map { NetworkUri.build(conn, it.path) },
+            NetworkUri.build(conn, file.path),
+        )
     }
 
     override fun onCleared() {
@@ -222,25 +257,30 @@ class NetworkBrowseViewModel(
 
 sealed interface NetworkBrowseAction {
     data object NavigateUp : NetworkBrowseAction
+
     data class OpenFolder(val file: NetworkFile) : NetworkBrowseAction
 
-    data class UpdateQuickSettings(val layoutMode: MediaLayoutMode, val sort: Sort) : NetworkBrowseAction
+    data class UpdateQuickSettings(val layoutMode: MediaLayoutMode, val sort: Sort) :
+        NetworkBrowseAction
+
     data object Retry : NetworkBrowseAction
+
     data class PlayVideo(val file: NetworkFile) : NetworkBrowseAction
+
     data object PlayAll : NetworkBrowseAction
 }
 
 private fun Throwable.toNetworkBrowseError(): NetworkBrowseError {
-    val mismatch = generateSequence(this) { it.cause }
-        .filterIsInstance<HostKeyMismatch>()
-        .firstOrNull()
+    val mismatch =
+        generateSequence(this) { it.cause }.filterIsInstance<HostKeyMismatch>().firstOrNull()
     return NetworkBrowseError(
         message = message,
-        hostKeyMismatch = mismatch?.let {
-            NetworkBrowseHostKeyMismatch(
-                trustedFingerprint = it.expectedFingerprint,
-                presentedFingerprint = it.presentedFingerprint,
-            )
-        },
+        hostKeyMismatch =
+            mismatch?.let {
+                NetworkBrowseHostKeyMismatch(
+                    trustedFingerprint = it.expectedFingerprint,
+                    presentedFingerprint = it.presentedFingerprint,
+                )
+            },
     )
 }

@@ -30,8 +30,7 @@ class TvSettingsFocusTest {
     @get:Rule(order = 0)
     val permissionRule: GrantPermissionRule = GrantPermissionRule.grant(storagePermission)
 
-    @get:Rule(order = 1)
-    val composeRule = createAndroidComposeRule<MainActivity>()
+    @get:Rule(order = 1) val composeRule = createAndroidComposeRule<MainActivity>()
 
     @Before
     fun openSettings() {
@@ -71,23 +70,29 @@ class TvSettingsFocusTest {
 
     @Test
     fun everySettingsPageStartsInContentAndReturnsToItsRow() {
-        val rows = listOf(
-            R.string.appearance_name,
-            R.string.media_library,
-            R.string.player_name,
-            R.string.gestures_name,
-            R.string.audio,
-            R.string.subtitle,
-            R.string.general_name,
-            R.string.about_name,
-        )
+        val rows =
+            listOf(
+                R.string.appearance_name,
+                R.string.media_library,
+                R.string.player_name,
+                R.string.gestures_name,
+                R.string.audio,
+                R.string.subtitle,
+                R.string.general_name,
+                R.string.about_name,
+            )
         rows.forEachIndexed { index, row ->
             focused(row)
             press(Key.DirectionCenter)
             composeRule.waitUntil(5_000) {
-                composeRule.onAllNodes(
-                    isFocused() and hasClickAction() and !hasContentDescription(text(R.string.navigate_up)),
-                ).fetchSemanticsNodes().size == 1
+                composeRule
+                    .onAllNodes(
+                        isFocused() and
+                            hasClickAction() and
+                            !hasContentDescription(text(R.string.navigate_up))
+                    )
+                    .fetchSemanticsNodes()
+                    .size == 1
             }
             press(Key.Back)
             focused(row)
@@ -108,11 +113,16 @@ class TvSettingsFocusTest {
     private fun focused(id: Int) {
         try {
             composeRule.waitUntil(5_000) {
-                composeRule.onAllNodes(hasText(text(id)) and isFocused())
-                    .fetchSemanticsNodes().size == 1
+                composeRule
+                    .onAllNodes(hasText(text(id)) and isFocused())
+                    .fetchSemanticsNodes()
+                    .size == 1
             }
         } catch (failure: Throwable) {
-            throw AssertionError("Expected focus on ${text(id)}\n${composeRule.onRoot().printToString()}", failure)
+            throw AssertionError(
+                "Expected focus on ${text(id)}\n${composeRule.onRoot().printToString()}",
+                failure,
+            )
         }
     }
 

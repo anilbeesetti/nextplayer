@@ -27,9 +27,11 @@ internal fun VaultSettingsDialog(
         content = {
             PreferenceSwitch(
                 title = stringResource(R.string.unlock_with_biometrics),
-                description = stringResource(
-                    if (available || biometricEnabled) R.string.vault_biometric_description else R.string.vault_biometric_unavailable,
-                ),
+                description =
+                    stringResource(
+                        if (available || biometricEnabled) R.string.vault_biometric_description
+                        else R.string.vault_biometric_unavailable
+                    ),
                 isChecked = biometricEnabled,
                 enabled = !authenticating && (biometricEnabled || available),
                 isFirstItem = true,
@@ -39,11 +41,7 @@ internal fun VaultSettingsDialog(
                 },
             )
         },
-        confirmButton = {
-            TextButton(onClick = onDismiss) {
-                Text(stringResource(R.string.done))
-            }
-        },
+        confirmButton = { TextButton(onClick = onDismiss) { Text(stringResource(R.string.done)) } },
     )
 
     if (authenticating) {

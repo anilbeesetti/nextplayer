@@ -11,10 +11,11 @@ class SuspendActivityResultLauncher<I, O>(
     contract: ActivityResultContract<I, O>,
 ) {
     private var activityResultCallback: ((result: O) -> Unit)? = null
-    private var activityResultLauncher: ActivityResultLauncher<I> = activity.registerForActivityResult(
-        contract = contract,
-        callback = { result -> activityResultCallback?.invoke(result) },
-    )
+    private var activityResultLauncher: ActivityResultLauncher<I> =
+        activity.registerForActivityResult(
+            contract = contract,
+            callback = { result -> activityResultCallback?.invoke(result) },
+        )
 
     val isAwaitingResult: Boolean
         get() = activityResultCallback != null
@@ -25,14 +26,12 @@ class SuspendActivityResultLauncher<I, O>(
             activityResultCallback = null
         }
         activityResultLauncher.launch(input)
-        continuation.invokeOnCancellation {
-            activityResultCallback = null
-        }
+        continuation.invokeOnCancellation { activityResultCallback = null }
     }
 }
 
 fun <I, O> ComponentActivity.registerForSuspendActivityResult(
-    contract: ActivityResultContract<I, O>,
+    contract: ActivityResultContract<I, O>
 ): SuspendActivityResultLauncher<I, O> {
     return SuspendActivityResultLauncher(this, contract)
 }

@@ -20,14 +20,16 @@ fun PlayPauseButton(
     player: Player?,
 ) {
     val state = rememberPlayPauseButtonState(player)
-    val icon = when (state.showPlay) {
-        true -> painterResource(coreUiR.drawable.ic_play)
-        false -> painterResource(coreUiR.drawable.ic_pause)
-    }
-    val contentDescription = when (state.showPlay) {
-        true -> stringResource(coreUiR.string.play_pause)
-        false -> stringResource(coreUiR.string.play_pause)
-    }
+    val icon =
+        when (state.showPlay) {
+            true -> painterResource(coreUiR.drawable.ic_play)
+            false -> painterResource(coreUiR.drawable.ic_pause)
+        }
+    val contentDescription =
+        when (state.showPlay) {
+            true -> stringResource(coreUiR.string.play_pause)
+            false -> stringResource(coreUiR.string.play_pause)
+        }
 
     PlayerButton(
         modifier = modifier.size(64.dp),

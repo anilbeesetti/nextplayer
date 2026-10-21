@@ -23,10 +23,8 @@ interface VaultRepository {
 /**
  * Outcome of an unhide operation.
  *
- * @param relocatedCount number of videos that couldn't be restored to their original folder
- *   (e.g. a custom folder or storage root, which scoped storage disallows) and were instead
- *   placed in the fallback directory.
+ * @param relocatedCount number of videos that couldn't be restored to their original folder (e.g. a
+ *   custom folder or storage root, which scoped storage disallows) and were instead placed in the
+ *   fallback directory.
  */
-data class UnhideResult(
-    val relocatedCount: Int = 0,
-)
+data class UnhideResult(val relocatedCount: Int = 0)

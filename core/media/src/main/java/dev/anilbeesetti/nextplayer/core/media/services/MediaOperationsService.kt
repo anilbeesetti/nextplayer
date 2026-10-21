@@ -9,10 +9,15 @@ import kotlinx.coroutines.flow.Flow
 
 interface MediaOperationsService {
     fun initialize(activity: ComponentActivity)
+
     suspend fun deleteMedia(uris: List<Uri>, permanently: Boolean = false): Boolean
+
     suspend fun restoreMedia(uris: List<Uri>): Boolean
+
     suspend fun renameMedia(uri: Uri, to: String): Boolean
+
     suspend fun shareMedia(uris: List<Uri>)
+
     suspend fun moveMedia(targets: Map<Uri, File>): Map<Uri, File?>
 
     fun transferMedia(
@@ -34,10 +39,14 @@ interface MediaOperationsService {
     }
 }
 
-enum class TransferMode { COPY, MOVE }
+enum class TransferMode {
+    COPY,
+    MOVE,
+}
 
 sealed interface TransferEvent {
     data class Progress(val progress: TransferProgress) : TransferEvent
+
     data class Completed(val result: TransferResult) : TransferEvent
 }
 
@@ -51,16 +60,20 @@ data class TransferProgress(
     val overallBytesTotal: Long = 0,
 ) {
     val currentFraction: Float?
-        get() = if (currentBytesTotal > 0) (currentBytesCopied.toFloat() / currentBytesTotal).coerceIn(0f, 1f) else null
+        get() =
+            if (currentBytesTotal > 0)
+                (currentBytesCopied.toFloat() / currentBytesTotal).coerceIn(0f, 1f)
+            else null
 
     val overallFraction: Float
-        get() = if (overallBytesTotal > 0) {
-            (overallBytesCopied.toFloat() / overallBytesTotal).coerceIn(0f, 1f)
-        } else if (totalFiles > 0) {
-            (currentIndex.toFloat() / totalFiles).coerceIn(0f, 1f)
-        } else {
-            0f
-        }
+        get() =
+            if (overallBytesTotal > 0) {
+                (overallBytesCopied.toFloat() / overallBytesTotal).coerceIn(0f, 1f)
+            } else if (totalFiles > 0) {
+                (currentIndex.toFloat() / totalFiles).coerceIn(0f, 1f)
+            } else {
+                0f
+            }
 }
 
 data class TransferResult(
