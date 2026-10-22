@@ -27,7 +27,9 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
+import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalConfiguration
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.pluralStringResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.res.vectorResource
@@ -40,6 +42,9 @@ import androidx.compose.ui.tooling.preview.PreviewLightDark
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.min
 import androidx.compose.ui.unit.sp
+import coil3.compose.AsyncImage
+import coil3.request.ImageRequest
+import coil3.request.crossfade
 import dev.anilbeesetti.nextplayer.core.common.Utils
 import dev.anilbeesetti.nextplayer.core.model.ApplicationPreferences
 import dev.anilbeesetti.nextplayer.core.model.Folder
@@ -123,10 +128,9 @@ private fun FolderListItem(
         onLongClick = onLongClick,
         leadingContent = {
             Box(modifier = Modifier.padding(horizontal = 8.dp)) {
-                Icon(
-                    imageVector = ImageVector.vectorResource(id = R.drawable.folder_thumb),
-                    contentDescription = "",
-                    tint = MaterialTheme.colorScheme.surfaceContainerHigh,
+                FolderThumbnail(
+                    folder = folder,
+                    preferences = preferences,
                     modifier = Modifier
                         .width(min(90.dp, LocalConfiguration.current.screenWidthDp.dp * 0.3f))
                         .aspectRatio(20 / 17f),
@@ -240,10 +244,9 @@ private fun FolderGridItem(
                 horizontalAlignment = Alignment.CenterHorizontally,
             ) {
                 Box {
-                    Icon(
-                        imageVector = ImageVector.vectorResource(id = R.drawable.folder_thumb),
-                        contentDescription = "",
-                        tint = MaterialTheme.colorScheme.surfaceContainerHigh,
+                    FolderThumbnail(
+                        folder = folder,
+                        preferences = preferences,
                         modifier = Modifier
                             .width(min(90.dp, LocalConfiguration.current.screenWidthDp.dp * 0.3f))
                             .aspectRatio(20 / 17f),
@@ -320,6 +323,36 @@ private fun FolderGridItem(
             }
         },
     )
+}
+
+/** Folder icon, overlaid with the cover video's thumbnail when enabled in settings. */
+@Composable
+private fun FolderThumbnail(
+    folder: Folder,
+    preferences: ApplicationPreferences,
+    modifier: Modifier = Modifier,
+) {
+    Box(modifier = modifier) {
+        Icon(
+            imageVector = ImageVector.vectorResource(id = R.drawable.folder_thumb),
+            contentDescription = "",
+            tint = MaterialTheme.colorScheme.surfaceContainerHigh,
+            modifier = Modifier.matchParentSize(),
+        )
+        if (preferences.showFolderThumbnails && folder.coverVideoUri != null) {
+            AsyncImage(
+                model = ImageRequest.Builder(LocalContext.current)
+                    .data(folder.coverVideoUri)
+                    .crossfade(true)
+                    .build(),
+                contentDescription = null,
+                contentScale = ContentScale.Crop,
+                modifier = Modifier
+                    .matchParentSize()
+                    .clip(MaterialTheme.shapes.small),
+            )
+        }
+    }
 }
 
 /** Rounded badge showing the full number of new videos inside a folder. */

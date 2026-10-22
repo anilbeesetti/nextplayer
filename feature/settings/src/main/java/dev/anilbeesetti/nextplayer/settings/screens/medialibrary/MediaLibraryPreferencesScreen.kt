@@ -170,6 +170,16 @@ private fun MediaLibraryPreferencesScreenContent(
             Column(
                 verticalArrangement = Arrangement.spacedBy(ListItemDefaults.SegmentedGap),
             ) {
+                PreferenceSwitch(
+                    modifier = Modifier.restorableFocusItem(focusState, "folder_thumbnails"),
+                    title = stringResource(id = R.string.show_folder_thumbnails),
+                    description = stringResource(id = R.string.show_folder_thumbnails_desc),
+                    icon = NextIcons.Folder,
+                    isChecked = preferences.showFolderThumbnails,
+                    onClick = { onAction(MediaLibraryPreferencesUiEvent.ToggleShowFolderThumbnails) },
+                    isFirstItem = true,
+                    isLastItem = false,
+                )
                 ClickablePreferenceItem(
                     modifier = Modifier.restorableFocusItem(focusState, "thumbnail"),
                     title = stringResource(id = R.string.thumbnail_generation),
@@ -180,7 +190,7 @@ private fun MediaLibraryPreferencesScreenContent(
                     },
                     icon = NextIcons.Image,
                     onClick = { onAction(MediaLibraryPreferencesUiEvent.OpenThumbnails) },
-                    isFirstItem = true,
+                    isFirstItem = false,
                     isLastItem = true,
                 )
             }

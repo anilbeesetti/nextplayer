@@ -30,6 +30,7 @@ data class ApplicationPreferences(
     val showSizeField: Boolean = false,
     val showThumbnailField: Boolean = true,
     val showPlayedProgress: Boolean = true,
+    val showFolderThumbnails: Boolean = false,
 
     val newVideoThresholdDays: Int = 7,
 

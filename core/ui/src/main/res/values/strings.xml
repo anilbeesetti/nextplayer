@@ -326,6 +326,8 @@
     <string name="remove">Remove</string>
     <string name="unknown">Unknown</string>
     <string name="thumbnail_generation">Thumbnail generation</string>
+    <string name="show_folder_thumbnails">Folder thumbnails</string>
+    <string name="show_folder_thumbnails_desc">Show the most recent video\'s thumbnail as the folder cover</string>
     <string name="thumbnail_generation_strategy">Thumbnail generation strategy</string>
     <string name="first_frame">First frame</string>
     <string name="first_frame_desc">Use the first frame of the video</string>
