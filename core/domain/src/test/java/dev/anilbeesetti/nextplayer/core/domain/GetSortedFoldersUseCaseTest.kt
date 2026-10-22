@@ -41,7 +41,24 @@ class GetSortedFoldersUseCaseTest {
         assertEquals(1, folders.getValue("/storage/emulated/0/Movies/Action").newVideosCount)
     }
 
-    private fun video(id: Long, parentPath: String, addedDaysAgo: Long) = Video(
+    @Test
+    fun coverVideoUriIsMostRecentlyModifiedVideo() = runTest {
+        mediaRepository.videos.addAll(
+            listOf(
+                video(id = 1, parentPath = "/storage/emulated/0/Movies", addedDaysAgo = 2, modifiedDaysAgo = 10),
+                video(id = 2, parentPath = "/storage/emulated/0/Movies", addedDaysAgo = 5, modifiedDaysAgo = 1),
+            ),
+        )
+
+        val folders = useCase().first().associateBy { it.path }
+
+        assertEquals(
+            "content://media/external/video/media/2",
+            folders.getValue("/storage/emulated/0/Movies").coverVideoUri,
+        )
+    }
+
+    private fun video(id: Long, parentPath: String, addedDaysAgo: Long, modifiedDaysAgo: Long = 0) = Video(
         id = id,
         path = "$parentPath/video_$id.mp4",
         parentPath = parentPath,
@@ -52,5 +69,6 @@ class GetSortedFoldersUseCaseTest {
         height = 1080,
         size = 1_000,
         dateAdded = (now - addedDaysAgo * oneDayMillis) / 1000L,
+        dateModified = (now - modifiedDaysAgo * oneDayMillis) / 1000L,
     )
 }

@@ -46,6 +46,7 @@ class MediaLibraryPreferencesViewModel(
             is MediaLibraryPreferencesUiEvent.OpenThumbnails -> output.openThumbnails()
 
             is MediaLibraryPreferencesUiEvent.ToggleMarkLastPlayedMedia -> toggleMarkLastPlayedMedia()
+            is MediaLibraryPreferencesUiEvent.ToggleShowFolderThumbnails -> toggleShowFolderThumbnails()
             is MediaLibraryPreferencesUiEvent.SetWatchHistoryEnabled -> setWatchHistoryEnabled(action.enabled)
             is MediaLibraryPreferencesUiEvent.ToggleIncludeNetworkWatchHistory -> toggleIncludeNetworkWatchHistory()
             is MediaLibraryPreferencesUiEvent.UpdateNewVideoThreshold -> updateNewVideoThreshold(action.days)
@@ -56,6 +57,14 @@ class MediaLibraryPreferencesViewModel(
         viewModelScope.launch {
             preferencesRepository.updateApplicationPreferences {
                 it.copy(markLastPlayedMedia = !it.markLastPlayedMedia)
+            }
+        }
+    }
+
+    private fun toggleShowFolderThumbnails() {
+        viewModelScope.launch {
+            preferencesRepository.updateApplicationPreferences {
+                it.copy(showFolderThumbnails = !it.showFolderThumbnails)
             }
         }
     }
@@ -96,6 +105,7 @@ sealed interface MediaLibraryPreferencesUiEvent {
     data object OpenThumbnails : MediaLibraryPreferencesUiEvent
 
     data object ToggleMarkLastPlayedMedia : MediaLibraryPreferencesUiEvent
+    data object ToggleShowFolderThumbnails : MediaLibraryPreferencesUiEvent
     data class SetWatchHistoryEnabled(val enabled: Boolean) : MediaLibraryPreferencesUiEvent
     data object ToggleIncludeNetworkWatchHistory : MediaLibraryPreferencesUiEvent
     data class UpdateNewVideoThreshold(val days: Int) : MediaLibraryPreferencesUiEvent

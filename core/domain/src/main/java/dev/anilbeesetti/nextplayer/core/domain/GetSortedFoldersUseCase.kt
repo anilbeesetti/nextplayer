@@ -45,6 +45,7 @@ class GetSortedFoldersUseCase(
                                 thresholdDays = preferences.newVideoThresholdDays,
                             )
                         },
+                        coverVideoUri = folderVideos.maxByOrNull { it.dateModified }?.uriString,
                     )
                 }
                 .filterNot { it.path in preferences.excludeFolders }

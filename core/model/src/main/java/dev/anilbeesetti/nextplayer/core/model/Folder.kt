@@ -12,6 +12,7 @@ data class Folder(
     val videosCount: Int = 0,
     val foldersCount: Int = 0,
     val newVideosCount: Int = 0,
+    val coverVideoUri: String? = null,
 ) : Serializable {
     companion object {
         val sample = Folder(
