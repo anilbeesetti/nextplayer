@@ -914,6 +914,9 @@ class PlayerService : MediaSessionService() {
 
     private fun handleUnsupportedTrack(tracks: Tracks, trackType: DecoderTrackType) {
         val mediaTrackType = trackType.mediaTrackType
+        // A background queue can contain video that is unsupported by the current decoder.
+        // It must not trigger video recovery while only audio playback is requested.
+        if (mediaSession?.player?.trackSelectionParameters?.disabledTrackTypes?.contains(mediaTrackType) == true) return
         val groups = tracks.groups.filter { it.type == mediaTrackType }
         val hasTrack = groups.isNotEmpty() || trackSelector.unmappedTrackCount(mediaTrackType) > 0
         if (!hasTrack || groups.any { it.isSupported(true) }) return

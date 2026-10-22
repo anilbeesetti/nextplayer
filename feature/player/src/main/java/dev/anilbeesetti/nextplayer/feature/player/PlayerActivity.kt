@@ -32,6 +32,7 @@ import dev.anilbeesetti.nextplayer.core.ui.R as coreUiR
 import dev.anilbeesetti.nextplayer.core.ui.theme.NextPlayerTheme
 import dev.anilbeesetti.nextplayer.feature.player.extensions.OpenDocumentAtInitialUri
 import dev.anilbeesetti.nextplayer.feature.player.extensions.setExtras
+import dev.anilbeesetti.nextplayer.feature.player.extensions.setVideoPlaybackEnabled
 import dev.anilbeesetti.nextplayer.feature.player.extensions.uriToSubtitleConfiguration
 import dev.anilbeesetti.nextplayer.feature.player.service.addAudioTrack
 import dev.anilbeesetti.nextplayer.feature.player.service.addSubtitleTrack
@@ -221,6 +222,8 @@ class PlayerActivity : ComponentActivity() {
             if (subtitleFileSuspendLauncher.isAwaitingResult || audioFileSuspendLauncher.isAwaitingResult || !shouldPlayInBackground) {
                 pause()
             }
+            // Background audio must not depend on a video decoder with no visible surface.
+            setVideoPlaybackEnabled(false)
             if (isInPictureInPictureMode) {
                 finish()
                 if (!shouldPlayInBackground) stopPlayerSession()
@@ -232,6 +235,7 @@ class PlayerActivity : ComponentActivity() {
 
     private fun startPlayback() {
         val controller = mediaController ?: return
+        controller.setVideoPlaybackEnabled(true)
         if (!isIntentNew && (controller.currentMediaItem == null || controller.playbackState == Player.STATE_ENDED)) {
             // Completion can happen while the activity's playback listener is detached.
             isPlaybackFinished = true

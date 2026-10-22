@@ -11,6 +11,12 @@ import androidx.media3.session.MediaController
 import dev.anilbeesetti.nextplayer.core.common.Logger
 import dev.anilbeesetti.nextplayer.feature.player.service.setMediaControllerIsScrubbingModeEnabled
 
+internal fun Player.setVideoPlaybackEnabled(enabled: Boolean) {
+    trackSelectionParameters = trackSelectionParameters.buildUpon()
+        .setTrackTypeDisabled(C.TRACK_TYPE_VIDEO, !enabled)
+        .build()
+}
+
 /**
  * Switches to selected track.
  *
