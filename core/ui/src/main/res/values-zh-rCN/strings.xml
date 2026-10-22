@@ -522,4 +522,6 @@
     <string name="network_watch_history_desc">在观看历史中包括通过网络播放的视频</string>
     <string name="tunneled_playback">隧道式播放</string>
     <string name="tunneled_playback_description">设备和媒体支持时使用隧道式播放。可能改善 Android 电视上杜比视界和 HDR10+ 的播放效果。仅应用于新的播放会话。</string>
+    <string name="add_to_home_screen">添加到主屏幕</string>
+    <string name="playlist_shortcut_failed">无法添加播放列表快捷方式。请再试。</string>
 </resources>
