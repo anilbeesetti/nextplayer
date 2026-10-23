@@ -544,4 +544,6 @@
     <string name="turn_on_watch_history">Zapnout historii sledování</string>
     <string name="turn_off_watch_history">Vypnout historii sledování</string>
     <string name="watch_history_desc">Zaznamenat videa, které sledujete</string>
+    <string name="add_to_home_screen">Přidat na domovskou obrazovku</string>
+    <string name="playlist_shortcut_failed">Nešlo přidat zástupce pro playlist. Zkuste to znovu.</string>
 </resources>
