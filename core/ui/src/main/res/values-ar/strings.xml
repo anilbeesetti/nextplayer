@@ -560,4 +560,17 @@
         <item quantity="many">%1$d يومًا</item>
         <item quantity="other">%1$d يوم</item>
     </plurals>
+    <string name="tunneled_playback">التشغيل عبر النفق</string>
+    <string name="tunneled_playback_description">استخدم التشغيل عبر النفق عندما يدعمه الجهاز والوسائط. قد يحسّن تشغيل Dolby Vision وHDR10+ على أجهزة Android TV. ينطبق على جلسات التشغيل الجديدة.</string>
+    <string name="turn_off_watch_history">إيقاف سجل المشاهدة</string>
+    <string name="turn_on_watch_history">تشغيل سجل المشاهدة</string>
+    <string name="turn_off_watch_history_confirmation">إيقاف سجل المشاهدة سيمسح سجل المشاهدة لديك ويوقف تسجيل مقاطع الفيديو التي تشاهدها.</string>
+    <string name="turn_on_watch_history_confirmation">هل تريد بدء تسجيل مقاطع الفيديو التي تشاهدها في سجل المشاهدة؟</string>
+    <string name="watch_history_turned_off">سجل المشاهدة متوقف</string>
+    <string name="no_watch_history">لا يوجد سجل مشاهدة</string>
+    <string name="watch_history">سجل المشاهدة</string>
+    <string name="watch_history_desc">الاحتفاظ بسجل بمقاطع الفيديو التي تشاهدها</string>
+    <string name="network_watch_history">سجل مشاهدة الشبكة</string>
+    <string name="network_watch_history_desc">أدرج مقاطع الفيديو التي تُشغَّل عبر الشبكة في سجل المشاهدة.</string>
+    <string name="add_to_home_screen">إضافة إلى الشاشة الرئيسية</string>
 </resources>
