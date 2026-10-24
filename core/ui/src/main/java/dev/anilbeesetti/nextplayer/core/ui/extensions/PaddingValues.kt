@@ -23,4 +23,9 @@ fun PaddingValues.copy(
     bottom: Dp = this.calculateBottomPadding(),
     start: Dp = this.calculateStartPadding(LocalLayoutDirection.current),
     end: Dp = this.calculateEndPadding(LocalLayoutDirection.current),
-): PaddingValues = PaddingValues(start, top, end, bottom)
+): PaddingValues = PaddingValues(
+    start = start,
+    top = top,
+    end = end,
+    bottom = bottom,
+)

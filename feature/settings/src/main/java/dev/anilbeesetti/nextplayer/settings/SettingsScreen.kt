@@ -29,10 +29,7 @@ import dev.anilbeesetti.nextplayer.core.ui.components.restorableFocusItem
 import dev.anilbeesetti.nextplayer.core.ui.components.tvFocusDown
 import dev.anilbeesetti.nextplayer.core.ui.designsystem.NextIcons
 
-data class SettingsOutput(
-    val navigateUp: () -> Unit,
-    val openSetting: (Setting) -> Unit,
-)
+data class SettingsOutput(val navigateUp: () -> Unit, val openSetting: (Setting) -> Unit)
 
 private sealed interface SettingsAction {
     data object NavigateUp : SettingsAction
@@ -49,11 +46,12 @@ fun SettingsScreen(output: SettingsOutput) {
     }
 }
 
-@OptIn(ExperimentalMaterial3Api::class, ExperimentalMaterial3ExpressiveApi::class)
+@OptIn(
+    ExperimentalMaterial3Api::class,
+    ExperimentalMaterial3ExpressiveApi::class,
+)
 @Composable
-private fun SettingsScreenContent(
-    onAction: (SettingsAction) -> Unit,
-) {
+private fun SettingsScreenContent(onAction: (SettingsAction) -> Unit) {
     val settingRows = remember { SettingRow.entries }
     val focusState = rememberRestorableFocusState()
 
@@ -80,8 +78,8 @@ private fun SettingsScreenContent(
             modifier = Modifier
                 .fillMaxSize()
                 .verticalScroll(state = rememberScrollState())
-                .restorableFocusGroup(focusState)
-                .padding(innerPadding)
+                .restorableFocusGroup(state = focusState)
+                .padding(paddingValues = innerPadding)
                 .padding(horizontal = 16.dp)
                 .padding(vertical = 16.dp),
             verticalArrangement = Arrangement.spacedBy(ListItemDefaults.SegmentedGap),
@@ -89,7 +87,10 @@ private fun SettingsScreenContent(
             settingRows.forEachIndexed { index, row ->
                 key(row) {
                     ClickablePreferenceItem(
-                        modifier = Modifier.restorableFocusItem(focusState, row.name),
+                        modifier = Modifier.restorableFocusItem(
+                            state = focusState,
+                            row.name,
+                        ),
                         title = stringResource(id = row.titleResId),
                         description = stringResource(id = row.descriptionResId),
                         icon = row.icon,

@@ -26,32 +26,39 @@ class PlaybackSpeedButtonTest {
 
     @Test
     fun speedFollowsActivePlayerAcrossHiddenControlsAndPlayerReplacement() {
-        val first = composeRule.runOnIdle { TestPlayer(1.25f) }
-        val second = composeRule.runOnIdle { TestPlayer(2f) }
-        val player = mutableStateOf<Player?>(first)
-        val visible = mutableStateOf(true)
+        val first = composeRule.runOnIdle { TestPlayer(speed = 1.25f) }
+        val second = composeRule.runOnIdle { TestPlayer(speed = 2f) }
+        val player = mutableStateOf<Player?>(value = first)
+        val visible = mutableStateOf(value = true)
         try {
             composeRule.setContent {
                 NextPlayerTheme {
-                    if (visible.value) PlaybackSpeedButton(player = player.value, onClick = {})
+                    if (visible.value) {
+                        PlaybackSpeedButton(
+                            player = player.value,
+                            onClick = {},
+                        )
+                    }
                 }
             }
-            composeRule.onNodeWithText("1.25").assertExists()
-            composeRule.runOnIdle { first.updateSpeed(1.5f) }
-            composeRule.onNodeWithText("1.5").assertExists()
+            composeRule.onNodeWithText(text = "1.25").assertExists()
+            composeRule.runOnIdle { first.updateSpeed(speed = 1.5f) }
+            composeRule.onNodeWithText(text = "1.5").assertExists()
             composeRule.runOnIdle { visible.value = false }
             composeRule.waitForIdle()
             composeRule.runOnIdle {
-                first.updateSpeed(1.75f)
+                first.updateSpeed(speed = 1.75f)
                 visible.value = true
             }
-            composeRule.onNodeWithText("1.75").assertExists()
+            composeRule.onNodeWithText(text = "1.75").assertExists()
             composeRule.runOnIdle { player.value = second }
-            composeRule.onNodeWithText("2.0").assertExists()
-            composeRule.runOnIdle { first.updateSpeed(3f) }
-            composeRule.onNodeWithText("2.0").assertExists()
+            composeRule.onNodeWithText(text = "2.0").assertExists()
+            composeRule.runOnIdle { first.updateSpeed(speed = 3f) }
+            composeRule.onNodeWithText(text = "2.0").assertExists()
             composeRule.runOnIdle { player.value = null }
-            composeRule.onNodeWithContentDescription(composeRule.activity.getString(R.string.select_playback_speed))
+            composeRule.onNodeWithContentDescription(
+                composeRule.activity.getString(R.string.select_playback_speed),
+            )
                 .assertIsNotEnabled()
         } finally {
             composeRule.runOnIdle {
@@ -63,7 +70,9 @@ class PlaybackSpeedButtonTest {
 
     private class TestPlayer(speed: Float) : SimpleBasePlayer(Looper.getMainLooper()) {
         private var state = State.Builder()
-            .setAvailableCommands(Player.Commands.Builder().add(Player.COMMAND_SET_SPEED_AND_PITCH).build())
+            .setAvailableCommands(
+                Player.Commands.Builder().add(Player.COMMAND_SET_SPEED_AND_PITCH).build(),
+            )
             .setPlaybackParameters(PlaybackParameters(speed))
             .build()
 

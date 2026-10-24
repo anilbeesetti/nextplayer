@@ -9,7 +9,8 @@ import org.koin.core.annotation.Named
 
 @Factory(binds = [])
 class PlayerPreferencesDataSource(
-    @Named(DiQualifiers.PLAYER_PREFERENCES) private val preferencesDataStore: DataStore<PlayerPreferences>,
+    @Named(DiQualifiers.PLAYER_PREFERENCES) private val preferencesDataStore:
+    DataStore<PlayerPreferences>,
 ) : PreferencesDataSource<PlayerPreferences> {
 
     companion object {
@@ -20,9 +21,12 @@ class PlayerPreferencesDataSource(
 
     override suspend fun update(transform: suspend (PlayerPreferences) -> PlayerPreferences) {
         try {
-            preferencesDataStore.updateData(transform)
+            preferencesDataStore.updateData(transform = transform)
         } catch (ioException: Exception) {
-            Logger.logError(TAG, "Failed to update app preferences: $ioException")
+            Logger.logError(
+                tag = TAG,
+                message = "Failed to update app preferences: $ioException",
+            )
         }
     }
 }

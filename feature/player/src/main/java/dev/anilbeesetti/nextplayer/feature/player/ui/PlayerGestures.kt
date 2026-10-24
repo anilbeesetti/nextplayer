@@ -57,7 +57,10 @@ fun PlayerGestures(
                         },
                         onDoubleTap = {
                             if (controlsVisibilityState.controlsLocked) return@detectTapGestures
-                            tapGestureState.handleDoubleTap(offset = it, size = size)
+                            tapGestureState.handleDoubleTap(
+                                offset = it,
+                                size = size,
+                            )
                         },
                         onPress = {
                             tryAwaitRelease()
@@ -81,7 +84,14 @@ fun PlayerGestures(
                     if (pictureInPictureState.isInPictureInPictureMode) return@pointerInput
 
                     detectCustomHorizontalDragGestures(
-                        shouldStartGesture = { gestureInsets.isPlayerGestureStart(it, size, density, layoutDirection) },
+                        shouldStartGesture = {
+                            gestureInsets.isPlayerGestureStart(
+                                it,
+                                size,
+                                density,
+                                layoutDirection,
+                            )
+                        },
                         onDragStart = seekGestureState::onDragStart,
                         onHorizontalDrag = seekGestureState::onDrag,
                         onDragCancel = seekGestureState::onDragEnd,
@@ -99,8 +109,20 @@ fun PlayerGestures(
                     if (pictureInPictureState.isInPictureInPictureMode) return@pointerInput
 
                     detectCustomVerticalDragGestures(
-                        shouldStartGesture = { gestureInsets.isPlayerGestureStart(it, size, density, layoutDirection) },
-                        onDragStart = { volumeAndBrightnessGestureState.onDragStart(it, size) },
+                        shouldStartGesture = {
+                            gestureInsets.isPlayerGestureStart(
+                                it,
+                                size,
+                                density,
+                                layoutDirection,
+                            )
+                        },
+                        onDragStart = {
+                            volumeAndBrightnessGestureState.onDragStart(
+                                offset = it,
+                                size = size,
+                            )
+                        },
                         onVerticalDrag = volumeAndBrightnessGestureState::onDrag,
                         onDragCancel = volumeAndBrightnessGestureState::onDragEnd,
                         onDragEnd = volumeAndBrightnessGestureState::onDragEnd,
@@ -115,16 +137,16 @@ fun PlayerGestures(
 
                     detectCustomTransformGestures(
                         onGesture = { _, panChange, zoomChange, _ ->
-                            if (tapGestureState.isLongPressGestureInAction) return@detectCustomTransformGestures
+                            if (tapGestureState.isLongPressGestureInAction) {
+                                return@detectCustomTransformGestures
+                            }
                             videoZoomAndContentScaleState.onZoomPanGesture(
                                 constraints = this@BoxWithConstraints.constraints,
                                 panChange = panChange,
                                 zoomChange = zoomChange,
                             )
                         },
-                        onGestureEnd = {
-                            videoZoomAndContentScaleState.onZoomPanGestureEnd()
-                        },
+                        onGestureEnd = { videoZoomAndContentScaleState.onZoomPanGestureEnd() },
                     )
                 },
         )
@@ -136,7 +158,13 @@ internal fun WindowInsets.isPlayerGestureStart(
     size: IntSize,
     density: Density,
     layoutDirection: LayoutDirection,
-): Boolean = position.x >= getLeft(density, layoutDirection) &&
-    position.x < size.width - getRight(density, layoutDirection) &&
+): Boolean = position.x >= getLeft(
+    density,
+    layoutDirection,
+) &&
+    position.x < size.width - getRight(
+        density,
+        layoutDirection,
+    ) &&
     position.y >= getTop(density) &&
     position.y < size.height - getBottom(density)

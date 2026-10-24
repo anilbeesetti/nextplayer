@@ -14,10 +14,7 @@ import dev.anilbeesetti.nextplayer.feature.videopicker.navigation.navigateToVaul
 import dev.anilbeesetti.nextplayer.feature.videopicker.navigation.vaultEntry
 import dev.anilbeesetti.nextplayer.settings.navigation.navigateToSettings
 
-fun EntryProviderScope<NavKey>.moreNavGraph(
-    context: Context,
-    backStack: NavBackStack<NavKey>,
-) {
+fun EntryProviderScope<NavKey>.moreNavGraph(context: Context, backStack: NavBackStack<NavKey>) {
     moreEntry(
         onHistoryClick = backStack::navigateToHistory,
         onPlayVideo = { context.startPlayback(it.toUri()) },
@@ -40,7 +37,17 @@ fun EntryProviderScope<NavKey>.moreNavGraph(
         onNavigateUp = { backStack.removeLastIfNotRoot() },
         // Vault files are served through FileProvider, so read access must be granted at
         // playback time for both PlayerActivity and the (separate) PlayerService component.
-        onPlayVideo = { uri -> context.startPlayback(uri, grantReadPermission = true) },
-        onPlayVideos = { uris -> context.startPlayback(uris, grantReadPermission = true) },
+        onPlayVideo = { uri ->
+            context.startPlayback(
+                uri = uri,
+                grantReadPermission = true,
+            )
+        },
+        onPlayVideos = { uris ->
+            context.startPlayback(
+                uris = uris,
+                grantReadPermission = true,
+            )
+        },
     )
 }

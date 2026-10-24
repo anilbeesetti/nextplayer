@@ -26,15 +26,13 @@ class MediaLibraryPreferencesViewModel(
         val openThumbnails: () -> Unit,
     )
 
-    private val stateInternal = MutableStateFlow(MediaLibraryPreferencesUiState())
+    private val stateInternal = MutableStateFlow(value = MediaLibraryPreferencesUiState())
     override val state: StateFlow<MediaLibraryPreferencesUiState> = stateInternal.asStateFlow()
 
     init {
         viewModelScope.launch {
             preferencesRepository.applicationPreferences.collect {
-                stateInternal.update { currentState ->
-                    currentState.copy(preferences = it)
-                }
+                stateInternal.update { currentState -> currentState.copy(preferences = it) }
             }
         }
     }
@@ -42,13 +40,24 @@ class MediaLibraryPreferencesViewModel(
     override fun onAction(action: MediaLibraryPreferencesUiEvent) {
         when (action) {
             is MediaLibraryPreferencesUiEvent.NavigateUp -> output.navigateUp()
+
             is MediaLibraryPreferencesUiEvent.OpenFolders -> output.openFolders()
+
             is MediaLibraryPreferencesUiEvent.OpenThumbnails -> output.openThumbnails()
 
-            is MediaLibraryPreferencesUiEvent.ToggleMarkLastPlayedMedia -> toggleMarkLastPlayedMedia()
-            is MediaLibraryPreferencesUiEvent.SetWatchHistoryEnabled -> setWatchHistoryEnabled(action.enabled)
-            is MediaLibraryPreferencesUiEvent.ToggleIncludeNetworkWatchHistory -> toggleIncludeNetworkWatchHistory()
-            is MediaLibraryPreferencesUiEvent.UpdateNewVideoThreshold -> updateNewVideoThreshold(action.days)
+            is MediaLibraryPreferencesUiEvent.ToggleMarkLastPlayedMedia ->
+                toggleMarkLastPlayedMedia()
+
+            is MediaLibraryPreferencesUiEvent.SetWatchHistoryEnabled -> setWatchHistoryEnabled(
+                action.enabled,
+            )
+
+            is MediaLibraryPreferencesUiEvent.ToggleIncludeNetworkWatchHistory ->
+                toggleIncludeNetworkWatchHistory()
+
+            is MediaLibraryPreferencesUiEvent.UpdateNewVideoThreshold -> updateNewVideoThreshold(
+                action.days,
+            )
         }
     }
 
@@ -80,7 +89,12 @@ class MediaLibraryPreferencesViewModel(
     private fun updateNewVideoThreshold(days: Int) {
         viewModelScope.launch {
             preferencesRepository.updateApplicationPreferences {
-                it.copy(newVideoThresholdDays = days.coerceIn(0, 30))
+                it.copy(
+                    newVideoThresholdDays = days.coerceIn(
+                        minimumValue = 0,
+                        maximumValue = 30,
+                    ),
+                )
             }
         }
     }

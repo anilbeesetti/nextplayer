@@ -20,12 +20,10 @@ class SubtitlePreferencesViewModel(
     @InjectedParam internal var output: Output,
 ) : MviViewModel<SubtitlePreferencesUiState, SubtitlePreferencesUiEvent>() {
 
-    data class Output(
-        val navigateUp: () -> Unit,
-    )
+    data class Output(val navigateUp: () -> Unit)
 
     private val stateInternal = MutableStateFlow(
-        SubtitlePreferencesUiState(
+        value = SubtitlePreferencesUiState(
             preferences = preferencesRepository.playerPreferences.value,
         ),
     )
@@ -46,21 +44,34 @@ class SubtitlePreferencesViewModel(
             is SubtitlePreferencesUiEvent.NavigateUp -> output.navigateUp()
 
             is SubtitlePreferencesUiEvent.ShowDialog -> showDialog(action.value)
-            is SubtitlePreferencesUiEvent.UpdateSubtitleLanguage -> updateSubtitleLanguage(action.value)
+
+            is SubtitlePreferencesUiEvent.UpdateSubtitleLanguage -> updateSubtitleLanguage(
+                action.value,
+            )
+
             is SubtitlePreferencesUiEvent.UpdateSubtitleFont -> updateSubtitleFont(action.value)
+
             is SubtitlePreferencesUiEvent.ToggleSubtitleTextBold -> toggleSubtitleTextBold()
-            is SubtitlePreferencesUiEvent.UpdateSubtitleFontSize -> updateSubtitleFontSize(action.value)
+
+            is SubtitlePreferencesUiEvent.UpdateSubtitleFontSize -> updateSubtitleFontSize(
+                action.value,
+            )
+
             is SubtitlePreferencesUiEvent.ToggleSubtitleBackground -> toggleSubtitleBackground()
+
             is SubtitlePreferencesUiEvent.ToggleApplyEmbeddedStyles -> toggleApplyEmbeddedStyles()
-            is SubtitlePreferencesUiEvent.UpdateSubtitleEncoding -> updateSubtitleEncoding(action.value)
-            is SubtitlePreferencesUiEvent.ToggleUseSystemCaptionStyle -> toggleUseSystemCaptionStyle()
+
+            is SubtitlePreferencesUiEvent.UpdateSubtitleEncoding -> updateSubtitleEncoding(
+                action.value,
+            )
+
+            is SubtitlePreferencesUiEvent.ToggleUseSystemCaptionStyle ->
+                toggleUseSystemCaptionStyle()
         }
     }
 
     private fun showDialog(value: SubtitlePreferenceDialog?) {
-        stateInternal.update {
-            it.copy(showDialog = value)
-        }
+        stateInternal.update { it.copy(showDialog = value) }
     }
 
     private fun updateSubtitleLanguage(value: String) {
@@ -73,9 +84,7 @@ class SubtitlePreferencesViewModel(
 
     private fun updateSubtitleFont(value: Font) {
         viewModelScope.launch {
-            preferencesRepository.updatePlayerPreferences {
-                it.copy(subtitleFont = value)
-            }
+            preferencesRepository.updatePlayerPreferences { it.copy(subtitleFont = value) }
         }
     }
 
@@ -89,9 +98,7 @@ class SubtitlePreferencesViewModel(
 
     private fun updateSubtitleFontSize(value: Int) {
         viewModelScope.launch {
-            preferencesRepository.updatePlayerPreferences {
-                it.copy(subtitleTextSize = value)
-            }
+            preferencesRepository.updatePlayerPreferences { it.copy(subtitleTextSize = value) }
         }
     }
 
@@ -119,7 +126,9 @@ class SubtitlePreferencesViewModel(
 
     private fun toggleUseSystemCaptionStyle() {
         viewModelScope.launch {
-            preferencesRepository.updatePlayerPreferences { it.copy(useSystemCaptionStyle = !it.useSystemCaptionStyle) }
+            preferencesRepository.updatePlayerPreferences {
+                it.copy(useSystemCaptionStyle = !it.useSystemCaptionStyle)
+            }
         }
     }
 }

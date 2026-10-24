@@ -16,5 +16,7 @@ class DataModule {
     @Single
     fun providesNetworkConnectionResolver(
         repository: NetworkConnectionRepository,
-    ): NetworkConnectionResolver = NetworkConnectionResolver { id -> repository.getConnection(id) }
+    ): NetworkConnectionResolver = NetworkConnectionResolver { id ->
+        repository.getConnection(id = id)
+    }
 }

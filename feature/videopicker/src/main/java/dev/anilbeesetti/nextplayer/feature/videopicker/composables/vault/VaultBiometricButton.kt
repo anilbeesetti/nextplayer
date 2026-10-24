@@ -28,13 +28,10 @@ import dev.anilbeesetti.nextplayer.core.ui.R
 import dev.anilbeesetti.nextplayer.core.ui.designsystem.NextIcons
 
 @Composable
-internal fun VaultBiometricButton(
-    onAuthenticated: () -> Unit,
-    modifier: Modifier = Modifier,
-) {
+internal fun VaultBiometricButton(onAuthenticated: () -> Unit, modifier: Modifier = Modifier) {
     if (!rememberVaultBiometricAvailable()) return
 
-    var showPrompt by rememberSaveable { mutableStateOf(true) }
+    var showPrompt by rememberSaveable { mutableStateOf(value = true) }
     if (showPrompt) {
         VaultBiometricPrompt(
             title = stringResource(R.string.open_vault),
@@ -50,7 +47,10 @@ internal fun VaultBiometricButton(
         modifier = modifier,
         onClick = { showPrompt = true },
     ) {
-        Icon(imageVector = NextIcons.Fingerprint, contentDescription = null)
+        Icon(
+            imageVector = NextIcons.Fingerprint,
+            contentDescription = null,
+        )
         Spacer(Modifier.size(8.dp))
         Text(text = stringResource(R.string.unlock_with_biometrics))
     }
@@ -61,11 +61,13 @@ internal fun rememberVaultBiometricAvailable(): Boolean {
     val activity = LocalActivity.current as? FragmentActivity ?: return false
     val manager = remember(activity) { BiometricManager.from(activity) }
     var available by remember(manager) {
-        mutableStateOf(manager.canAuthenticate(BIOMETRIC_STRONG) == BiometricManager.BIOMETRIC_SUCCESS)
+        mutableStateOf(
+            value = manager.canAuthenticate(BIOMETRIC_STRONG) == BiometricManager.BIOMETRIC_SUCCESS,
+        )
     }
-    LifecycleResumeEffect(manager) {
+    LifecycleResumeEffect(key1 = manager) {
         available = manager.canAuthenticate(BIOMETRIC_STRONG) == BiometricManager.BIOMETRIC_SUCCESS
-        onPauseOrDispose { }
+        onPauseOrDispose {}
     }
     return available
 }
@@ -78,13 +80,15 @@ internal fun VaultBiometricPrompt(
 ) {
     val activity = LocalActivity.current as? FragmentActivity ?: return
 
-    val currentOnResult by rememberUpdatedState(onResult)
-    var active by remember(activity) { mutableStateOf(false) }
+    val currentOnResult by rememberUpdatedState(newValue = onResult)
+    var active by remember(activity) { mutableStateOf(value = false) }
     val prompt = remember(activity) {
         BiometricPrompt(
             activity,
             object : BiometricPrompt.AuthenticationCallback() {
-                override fun onAuthenticationSucceeded(result: BiometricPrompt.AuthenticationResult) {
+                override fun onAuthenticationSucceeded(
+                    result: BiometricPrompt.AuthenticationResult,
+                ) {
                     if (!active) return
                     active = false
                     currentOnResult(true)
@@ -94,16 +98,24 @@ internal fun VaultBiometricPrompt(
                     if (!active) return
                     active = false
                     if (errorCode != BiometricPrompt.ERROR_NEGATIVE_BUTTON &&
-                        errorCode != BiometricPrompt.ERROR_USER_CANCELED && errorCode != BiometricPrompt.ERROR_CANCELED
+                        errorCode != BiometricPrompt.ERROR_USER_CANCELED &&
+                        errorCode != BiometricPrompt.ERROR_CANCELED
                     ) {
-                        Toast.makeText(activity, errString, Toast.LENGTH_SHORT).show()
+                        Toast.makeText(
+                            activity,
+                            errString,
+                            Toast.LENGTH_SHORT,
+                        ).show()
                     }
                     currentOnResult(false)
                 }
             },
         )
     }
-    val promptInfo = remember(title, negativeButtonText) {
+    val promptInfo = remember(
+        title,
+        negativeButtonText,
+    ) {
         BiometricPrompt.PromptInfo.Builder()
             .setTitle(title)
             .setAllowedAuthenticators(BIOMETRIC_STRONG)
@@ -111,7 +123,7 @@ internal fun VaultBiometricPrompt(
             .build()
     }
 
-    DisposableEffect(prompt) {
+    DisposableEffect(key1 = prompt) {
         active = true
         onDispose {
             active = false
@@ -120,8 +132,8 @@ internal fun VaultBiometricPrompt(
         }
     }
 
-    var prompted by rememberSaveable { mutableStateOf(false) }
-    LaunchedEffect(prompt) {
+    var prompted by rememberSaveable { mutableStateOf(value = false) }
+    LaunchedEffect(key1 = prompt) {
         if (!prompted) {
             prompted = true
             prompt.authenticate(promptInfo)

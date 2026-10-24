@@ -32,8 +32,14 @@ fun rememberSubtitleOptionsState(
     onEvent: (SubtitleOptionsEvent) -> Unit = {},
 ): SubtitleOptionsState {
     val scope = rememberCoroutineScope()
-    val subtitleOptionsState = remember { SubtitleOptionsState(player, scope, onEvent) }
-    LaunchedEffect(player) { subtitleOptionsState.observe() }
+    val subtitleOptionsState = remember {
+        SubtitleOptionsState(
+            player = player,
+            scope = scope,
+            onEvent = onEvent,
+        )
+    }
+    LaunchedEffect(key1 = player) { subtitleOptionsState.observe() }
     return subtitleOptionsState
 }
 
@@ -44,16 +50,16 @@ class SubtitleOptionsState(
     val onEvent: (SubtitleOptionsEvent) -> Unit = {},
 ) {
 
-    var delayMilliseconds: Long by mutableLongStateOf(0L)
+    var delayMilliseconds: Long by mutableLongStateOf(value = 0L)
         private set
 
-    var speedMultiplier: Float by mutableFloatStateOf(1f)
+    var speedMultiplier: Float by mutableFloatStateOf(value = 1f)
         private set
 
     fun setDelay(delayMillis: Long) {
         scope.launch {
             when (player) {
-                is MediaController -> player.setSubtitleDelayMilliseconds(delayMillis)
+                is MediaController -> player.setSubtitleDelayMilliseconds(delayMillis = delayMillis)
                 is ExoPlayer -> player.subtitleDelayMilliseconds = delayMillis
                 else -> return@launch
             }
@@ -65,7 +71,7 @@ class SubtitleOptionsState(
     fun setSpeed(speed: Float) {
         scope.launch {
             when (player) {
-                is MediaController -> player.setSubtitleSpeed(speed)
+                is MediaController -> player.setSubtitleSpeed(speed = speed)
                 is ExoPlayer -> player.subtitleSpeed = speed
                 else -> return@launch
             }
@@ -78,7 +84,11 @@ class SubtitleOptionsState(
         updateSubtitleDelayMilliseconds()
         updateSubtitleSpeed()
         player.listen { events ->
-            if (events.containsAny(Player.EVENT_TRACKS_CHANGED, Player.EVENT_CUES)) {
+            if (events.containsAny(
+                    Player.EVENT_TRACKS_CHANGED,
+                    Player.EVENT_CUES,
+                )
+            ) {
                 scope.launch {
                     updateSubtitleDelayMilliseconds()
                     updateSubtitleSpeed()
@@ -109,7 +119,12 @@ class SubtitleOptionsState(
             player.currentMediaItemIndex,
             currentMediaItem.copy(subtitleDelayMilliseconds = delay),
         )
-        onEvent(SubtitleOptionsEvent.DelayChanged(currentMediaItem, delay))
+        onEvent(
+            SubtitleOptionsEvent.DelayChanged(
+                mediaItem = currentMediaItem,
+                delay = delay,
+            ),
+        )
     }
 
     private fun updateSpeedMetadataAndSendEvent(speed: Float = this.speedMultiplier) {
@@ -118,7 +133,12 @@ class SubtitleOptionsState(
             player.currentMediaItemIndex,
             currentMediaItem.copy(subtitleSpeed = speed),
         )
-        onEvent(SubtitleOptionsEvent.SpeedChanged(currentMediaItem, speed))
+        onEvent(
+            SubtitleOptionsEvent.SpeedChanged(
+                mediaItem = currentMediaItem,
+                speed = speed,
+            ),
+        )
     }
 }
 

@@ -33,7 +33,7 @@ class MediaViewWidthTest {
         var width by mutableStateOf(360.dp)
         composeRule.setContent {
             NextPlayerTheme {
-                Box(Modifier.requiredWidth(width)) {
+                Box(Modifier.requiredWidth(width = width)) {
                     MediaView(
                         mediaHolder = MediaHolder(
                             videos = listOf(Video.sample.copy(nameWithExtension = "Clip.mp4")),
@@ -56,12 +56,18 @@ class MediaViewWidthTest {
         }
 
         // 120dp leaves no video columns; 80dp and 0dp leave neither kind of column.
-        for (nextWidth in listOf(360, 80, 120, 0, 360)) {
+        for (nextWidth in listOf(
+            360,
+            80,
+            120,
+            0,
+            360,
+        )) {
             composeRule.runOnIdle { width = nextWidth.dp }
             composeRule.waitForIdle()
             if (nextWidth > 0) {
-                composeRule.onNodeWithText("Movies").assertIsDisplayed()
-                composeRule.onNodeWithText("Clip").assertIsDisplayed()
+                composeRule.onNodeWithText(text = "Movies").assertIsDisplayed()
+                composeRule.onNodeWithText(text = "Clip").assertIsDisplayed()
             }
         }
     }

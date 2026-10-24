@@ -25,12 +25,8 @@ import dev.anilbeesetti.nextplayer.core.ui.R
 
 @OptIn(UnstableApi::class)
 @Composable
-fun PlaybackSpeedButton(
-    player: Player?,
-    onClick: () -> Unit,
-    modifier: Modifier = Modifier,
-) {
-    val state = rememberPlaybackSpeedState(player)
+fun PlaybackSpeedButton(player: Player?, onClick: () -> Unit, modifier: Modifier = Modifier) {
+    val state = rememberPlaybackSpeedState(player = player)
     val description = stringResource(R.string.select_playback_speed)
     PlayerButton(
         modifier = modifier.semantics { contentDescription = description },
@@ -44,7 +40,7 @@ fun PlaybackSpeedButton(
             contentAlignment = Alignment.Center,
         ) {
             BasicText(
-                text = state.playbackSpeed.round(2).toString(),
+                text = state.playbackSpeed.round(decimalPlaces = 2).toString(),
                 style = MaterialTheme.typography.labelLarge.copy(
                     color = LocalContentColor.current,
                     textAlign = TextAlign.Center,

@@ -17,8 +17,8 @@ class GetFolderTreeMediaUseCaseTest {
     private val preferencesRepository = FakePreferencesRepository()
 
     private val getFolderTreeMediaUseCase = GetFolderTreeMediaUseCase(
-        mediaRepository,
-        preferencesRepository,
+        mediaRepository = mediaRepository,
+        preferencesRepository = preferencesRepository,
         Dispatchers.Unconfined,
     )
 
@@ -48,82 +48,148 @@ class GetFolderTreeMediaUseCaseTest {
     @Test
     fun folderNewVideosCount_onlyCountsUnwatchedVideosAddedWithinLast7Days() = runTest {
         mediaRepository.videos.addAll(
-            listOf(
-                video(id = 1, addedDaysAgo = 1, watched = false), // new
-                video(id = 2, addedDaysAgo = 6, watched = false), // new
-                video(id = 3, addedDaysAgo = 8, watched = false), // too old, not new
-                video(id = 4, addedDaysAgo = 1, watched = true), // watched, not new
+            elements = listOf(
+                video(
+                    id = 1,
+                    addedDaysAgo = 1,
+                    watched = false,
+                ), // new
+                video(
+                    id = 2,
+                    addedDaysAgo = 6,
+                    watched = false,
+                ), // new
+                video(
+                    id = 3,
+                    addedDaysAgo = 8,
+                    watched = false,
+                ), // too old, not new
+                video(
+                    id = 4,
+                    addedDaysAgo = 1,
+                    watched = true,
+                ), // watched, not new
             ),
         )
 
         val media = getFolderTreeMediaUseCase(folderPath = null).first()
 
         val moviesFolder = media.folders.first { it.path == folderPath }
-        assertEquals(4, moviesFolder.videosCount)
-        assertEquals(2, moviesFolder.newVideosCount)
+        assertEquals(
+            4,
+            moviesFolder.videosCount,
+        )
+        assertEquals(
+            2,
+            moviesFolder.newVideosCount,
+        )
     }
 
     @Test
     fun folderNewVideosCount_isZeroWhenNoVideosAreNew() = runTest {
         mediaRepository.videos.addAll(
-            listOf(
-                video(id = 1, addedDaysAgo = 10, watched = false),
-                video(id = 2, addedDaysAgo = 1, watched = true),
+            elements = listOf(
+                video(
+                    id = 1,
+                    addedDaysAgo = 10,
+                    watched = false,
+                ),
+                video(
+                    id = 2,
+                    addedDaysAgo = 1,
+                    watched = true,
+                ),
             ),
         )
 
         val media = getFolderTreeMediaUseCase(folderPath = null).first()
 
         val moviesFolder = media.folders.first { it.path == folderPath }
-        assertEquals(0, moviesFolder.newVideosCount)
+        assertEquals(
+            0,
+            moviesFolder.newVideosCount,
+        )
     }
 
     @Test
     fun folderNewVideosCount_includesNewVideosInNestedSubfolders() = runTest {
         val nestedFolder = "$folderPath/Action"
         mediaRepository.videos.addAll(
-            listOf(
-                video(id = 1, addedDaysAgo = 1, watched = false),
-                video(id = 2, addedDaysAgo = 2, watched = false, parent = nestedFolder),
+            elements = listOf(
+                video(
+                    id = 1,
+                    addedDaysAgo = 1,
+                    watched = false,
+                ),
+                video(
+                    id = 2,
+                    addedDaysAgo = 2,
+                    watched = false,
+                    parent = nestedFolder,
+                ),
             ),
         )
 
         val media = getFolderTreeMediaUseCase(folderPath = null).first()
 
         val moviesFolder = media.folders.first { it.path == folderPath }
-        assertEquals(1, moviesFolder.videosCount)
-        assertEquals(2, moviesFolder.newVideosCount)
+        assertEquals(
+            1,
+            moviesFolder.videosCount,
+        )
+        assertEquals(
+            2,
+            moviesFolder.newVideosCount,
+        )
     }
 
     @Test
     fun folderNewVideosCount_respectsNewVideoThresholdPreference() = runTest {
-        preferencesRepository.updateApplicationPreferences {
-            it.copy(newVideoThresholdDays = 3)
-        }
+        preferencesRepository.updateApplicationPreferences { it.copy(newVideoThresholdDays = 3) }
         mediaRepository.videos.addAll(
-            listOf(
-                video(id = 1, addedDaysAgo = 2, watched = false),
-                video(id = 2, addedDaysAgo = 5, watched = false),
+            elements = listOf(
+                video(
+                    id = 1,
+                    addedDaysAgo = 2,
+                    watched = false,
+                ),
+                video(
+                    id = 2,
+                    addedDaysAgo = 5,
+                    watched = false,
+                ),
             ),
         )
 
         val media = getFolderTreeMediaUseCase(folderPath = null).first()
 
         val moviesFolder = media.folders.first { it.path == folderPath }
-        assertEquals(1, moviesFolder.newVideosCount)
+        assertEquals(
+            1,
+            moviesFolder.newVideosCount,
+        )
     }
 
     @Test
     fun folderNewVideosCount_excludesVideosFromExcludedFolders() = runTest {
         preferencesRepository.updateApplicationPreferences {
-            it.copy(excludeFolders = listOf(folderPath))
+            it.copy(excludeFolders = listOf(element = folderPath))
         }
         mediaRepository.videos.addAll(
-            listOf(video(id = 1, addedDaysAgo = 1, watched = false)),
+            elements = listOf(
+                element = video(
+                    id = 1,
+                    addedDaysAgo = 1,
+                    watched = false,
+                ),
+            ),
         )
 
         val media = getFolderTreeMediaUseCase(folderPath = null).first()
 
-        assertEquals(emptyList<Folder>(), media.folders.filter { it.path == folderPath })
+        assertEquals(
+            emptyList<Folder>(),
+            media.folders.filter { it.path == folderPath },
+        )
     }
 }

@@ -34,7 +34,7 @@ fun BoxScope.OverlayShowView(
         modifier = Modifier
             .matchParentSize()
             .then(
-                if (overlayView != null) {
+                other = if (overlayView != null) {
                     Modifier.noRippleClickable(onClick = onDismiss)
                 } else {
                     Modifier

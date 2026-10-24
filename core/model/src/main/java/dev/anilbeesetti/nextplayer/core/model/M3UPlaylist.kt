@@ -1,9 +1,6 @@
 package dev.anilbeesetti.nextplayer.core.model
 
-data class M3UPlaylist(
-    val playlistName: String,
-    val items: List<M3UPlaylistItem>,
-)
+data class M3UPlaylist(val playlistName: String, val items: List<M3UPlaylistItem>)
 
 data class M3UPlaylistItem(
     val uri: String,

@@ -31,8 +31,6 @@ fun PermissionMissingView(
             ),
         )
 
-        LaunchedEffect(Unit) {
-            launchPermissionRequest()
-        }
+        LaunchedEffect(key1 = Unit) { launchPermissionRequest() }
     }
 }

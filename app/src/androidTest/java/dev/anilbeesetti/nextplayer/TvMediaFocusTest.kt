@@ -54,8 +54,8 @@ class TvMediaFocusTest {
     @get:Rule
     val composeRule = createAndroidComposeRule<ComponentActivity>()
 
-    private var videos by mutableStateOf(clips(48))
-    private var showContent by mutableStateOf(true)
+    private var videos by mutableStateOf(value = clips(count = 48))
+    private var showContent by mutableStateOf(value = true)
 
     @Before
     fun requireTv() = assumeTrue(composeRule.activity.isTelevision)
@@ -63,100 +63,100 @@ class TvMediaFocusTest {
     @Test
     fun toolbarReturnsToPreviouslyFocusedGridItem() {
         composeRule.setContent { Content(MediaLayoutMode.GRID) }
-        focused("Clip 01")
+        focused(text = "Clip 01")
         press(Key.DirectionRight)
-        focused("Clip 02")
-        composeRule.onNodeWithText("Toolbar").requestFocus()
+        focused(text = "Clip 02")
+        composeRule.onNodeWithText(text = "Toolbar").requestFocus()
         press(Key.DirectionDown)
-        focused("Clip 02")
+        focused(text = "Clip 02")
     }
 
     @Test
     fun longListScrollsBeforeExitingToActionsAndReturnsToLastItem() {
         composeRule.setContent { Content() }
-        focused("Clip 01")
-        repeat(47) { index ->
+        focused(text = "Clip 01")
+        repeat(times = 47) { index ->
             press(Key.DirectionDown)
             focused("Clip %02d".format(index + 2))
         }
         press(Key.DirectionDown)
-        focused("Action")
+        focused(text = "Action")
         press(Key.DirectionRight)
-        focused("Second action")
+        focused(text = "Second action")
         press(Key.DirectionUp)
-        focused("Clip 48")
+        focused(text = "Clip 48")
     }
 
     @Test
     fun recreatedDestinationRestoresScrolledItem() {
         composeRule.setContent { Content() }
-        focused("Clip 01")
-        repeat(18) { press(Key.DirectionDown) }
-        focused("Clip 19")
+        focused(text = "Clip 01")
+        repeat(times = 18) { press(Key.DirectionDown) }
+        focused(text = "Clip 19")
         composeRule.runOnIdle { showContent = false }
         composeRule.waitForIdle()
         composeRule.runOnIdle { showContent = true }
-        focused("Clip 19")
+        focused(text = "Clip 19")
     }
 
     @Test
     fun savedStateRestoresScrolledItem() {
-        val restoration = StateRestorationTester(composeRule)
+        val restoration = StateRestorationTester(composeTestRule = composeRule)
         restoration.setContent { Content() }
-        focused("Clip 01")
-        repeat(18) { press(Key.DirectionDown) }
-        focused("Clip 19")
+        focused(text = "Clip 01")
+        repeat(times = 18) { press(Key.DirectionDown) }
+        focused(text = "Clip 19")
         restoration.emulateSavedInstanceStateRestore()
-        focused("Clip 19")
+        focused(text = "Clip 19")
     }
 
     @Test
     fun resumingAfterAnotherActivityRestoresTheMediaItem() {
         composeRule.setContent { Content() }
-        focused("Clip 01")
-        repeat(18) { press(Key.DirectionDown) }
-        focused("Clip 19")
-        composeRule.onNodeWithText("Toolbar").requestFocus()
+        focused(text = "Clip 01")
+        repeat(times = 18) { press(Key.DirectionDown) }
+        focused(text = "Clip 19")
+        composeRule.onNodeWithText(text = "Toolbar").requestFocus()
         composeRule.activityRule.scenario.moveToState(Lifecycle.State.STARTED)
         composeRule.activityRule.scenario.moveToState(Lifecycle.State.RESUMED)
-        focused("Clip 19")
+        focused(text = "Clip 19")
     }
 
     @Test
     fun removedRestorationTargetFallsBackToAvailableContent() {
         composeRule.setContent { Content() }
-        focused("Clip 01")
+        focused(text = "Clip 01")
         press(Key.DirectionDown)
-        focused("Clip 02")
+        focused(text = "Clip 02")
         composeRule.runOnIdle { showContent = false }
         composeRule.waitForIdle()
         composeRule.runOnIdle {
             videos = videos.filterNot { it.id == 2L }
             showContent = true
         }
-        focused("Clip 01")
+        focused(text = "Clip 01")
     }
 
     @Test
     fun delayedContentGetsInitialFocusAndUpdatesDoNotStealIt() {
         videos = emptyList()
         composeRule.setContent { Content() }
-        composeRule.runOnIdle { videos = clips(3) }
-        focused("Clip 01")
-        composeRule.onNodeWithText("Toolbar").requestFocus()
-        composeRule.runOnIdle { videos = clips(6) }
-        composeRule.onNodeWithText("Toolbar").assertIsFocused()
+        composeRule.runOnIdle { videos = clips(count = 3) }
+        focused(text = "Clip 01")
+        composeRule.onNodeWithText(text = "Toolbar").requestFocus()
+        composeRule.runOnIdle { videos = clips(count = 6) }
+        composeRule.onNodeWithText(text = "Toolbar").assertIsFocused()
     }
 
     @Test
     fun searchResultsCanArriveWithoutTakingFocusFromTheQuery() {
         videos = emptyList()
         composeRule.setContent { Content(autoFocus = false) }
-        composeRule.onNodeWithText("Toolbar").requestFocus()
-        composeRule.runOnIdle { videos = clips(3) }
-        composeRule.onNodeWithText("Toolbar").assertIsFocused()
+        composeRule.onNodeWithText(text = "Toolbar").requestFocus()
+        composeRule.runOnIdle { videos = clips(count = 3) }
+        composeRule.onNodeWithText(text = "Toolbar").assertIsFocused()
         press(Key.DirectionDown)
-        focused("Clip 01")
+        focused(text = "Clip 01")
     }
 
     @Composable
@@ -164,17 +164,20 @@ class TvMediaFocusTest {
         val holder = rememberSaveableStateHolder()
         NextPlayerTheme {
             if (showContent) {
-                holder.SaveableStateProvider("media") {
+                holder.SaveableStateProvider(key = "media") {
                     val focus = rememberRestorableFocusState()
                     val firstAction = remember { FocusRequester() }
                     Column(Modifier.fillMaxSize()) {
                         Button(
                             modifier = Modifier.focusProperties { down = focus.requester },
                             onClick = {},
-                        ) { Text("Toolbar") }
-                        Box(Modifier.weight(1f)) {
+                        ) { Text(text = "Toolbar") }
+                        Box(Modifier.weight(weight = 1f)) {
                             MediaView(
-                                mediaHolder = MediaHolder(videos = videos, folders = emptyList()),
+                                mediaHolder = MediaHolder(
+                                    videos = videos,
+                                    folders = emptyList(),
+                                ),
                                 recentlyPlayedVideo = null,
                                 recentlyPlayedFolder = null,
                                 preferences = ApplicationPreferences(
@@ -189,34 +192,46 @@ class TvMediaFocusTest {
                             )
                         }
                         Row(
-                            Modifier.fillMaxWidth().focusRestorer(fallback = firstAction).focusGroup()
+                            Modifier.fillMaxWidth().focusRestorer(
+                                fallback = firstAction,
+                            ).focusGroup()
                                 .focusProperties { up = focus.requester },
                             horizontalArrangement = Arrangement.SpaceEvenly,
                         ) {
-                            Button(modifier = Modifier.focusRequester(firstAction), onClick = {}) { Text("Action") }
-                            Button(onClick = {}) { Text("Second action") }
-                            Button(onClick = {}) { Text("Third action") }
+                            Button(
+                                modifier = Modifier.focusRequester(
+                                    focusRequester = firstAction,
+                                ),
+                                onClick = {},
+                            ) { Text(text = "Action") }
+                            Button(onClick = {}) { Text(text = "Second action") }
+                            Button(onClick = {}) { Text(text = "Third action") }
                         }
                     }
                 }
             } else {
-                Button(onClick = {}) { Text("Other destination") }
+                Button(onClick = {}) { Text(text = "Other destination") }
             }
         }
     }
 
     private fun focused(text: String) {
         try {
-            composeRule.waitUntil(5_000) {
-                composeRule.onAllNodes(hasText(text) and isFocused()).fetchSemanticsNodes().size == 1
+            composeRule.waitUntil(timeoutMillis = 5_000) {
+                composeRule.onAllNodes(
+                    matcher = hasText(text = text) and isFocused(),
+                ).fetchSemanticsNodes().size == 1
             }
         } catch (failure: Throwable) {
-            throw AssertionError("Expected focus on $text\n${composeRule.onRoot().printToString()}", failure)
+            throw AssertionError(
+                "Expected focus on $text\n${composeRule.onRoot().printToString()}",
+                failure,
+            )
         }
     }
 
     private fun press(key: Key) {
-        composeRule.onRoot().performKeyInput { pressKey(key) }
+        composeRule.onRoot().performKeyInput { pressKey(key = key) }
         composeRule.waitForIdle()
     }
 

@@ -35,80 +35,143 @@ class PlaylistCompletionTest {
     private val instrumentation = InstrumentationRegistry.getInstrumentation()
 
     @Test
-    fun repeatAllAdvancesAndWrapsExplicitPlaylistWithAutoplayOff() = withPlaylist(LoopMode.ALL) { activity, player, uris ->
+    fun repeatAllAdvancesAndWrapsExplicitPlaylistWithAutoplayOff() = withPlaylist(LoopMode.ALL) {
+            activity,
+            player,
+            uris,
+        ->
         onMain { player.seekTo(59_500) }
-        await("second selected item") { player.currentMediaItem?.mediaId == uris[1].toString() && player.isPlaying }
+        await(description = "second selected item") {
+            player.currentMediaItem?.mediaId == uris[1].toString() &&
+                player.isPlaying
+        }
         onMain { player.seekTo(59_500) }
-        await("playlist wrapping to first item") { player.currentMediaItem?.mediaId == uris[0].toString() && player.isPlaying }
+        await(description = "playlist wrapping to first item") {
+            player.currentMediaItem?.mediaId == uris[0].toString() &&
+                player.isPlaying
+        }
         onMain {
-            assertEquals(2, player.mediaItemCount)
+            assertEquals(
+                2,
+                player.mediaItemCount,
+            )
             assertFalse(activity.isFinishing)
         }
     }
 
     @Test
-    fun repeatOffClosesOnlyAfterLastExplicitPlaylistItemWithAutoplayOff() = withPlaylist(LoopMode.OFF) { activity, player, uris ->
-        onMain { player.seekTo(59_500) }
-        await("second selected item") { player.currentMediaItem?.mediaId == uris[1].toString() && player.isPlaying }
-        onMain { assertFalse(activity.isFinishing) }
-        onMain { player.seekTo(59_500) }
-        await("activity closing after entire playlist") { activity.isDestroyed }
-    }
+    fun repeatOffClosesOnlyAfterLastExplicitPlaylistItemWithAutoplayOff() =
+        withPlaylist(LoopMode.OFF) {
+                activity,
+                player,
+                uris,
+            ->
+            onMain { player.seekTo(59_500) }
+            await(description = "second selected item") {
+                player.currentMediaItem?.mediaId == uris[1].toString() &&
+                    player.isPlaying
+            }
+            onMain { assertFalse(activity.isFinishing) }
+            onMain { player.seekTo(59_500) }
+            await(description = "activity closing after entire playlist") { activity.isDestroyed }
+        }
 
     @Test
-    fun repeatOneStillRepeatsCurrentExplicitPlaylistItemWithAutoplayOff() = withPlaylist(LoopMode.ONE) { activity, player, uris ->
-        var repeated = false
-        onMain {
-            player.addListener(object : Player.Listener {
-                override fun onMediaItemTransition(mediaItem: MediaItem?, reason: Int) {
-                    if (reason == Player.MEDIA_ITEM_TRANSITION_REASON_REPEAT) repeated = true
-                }
-            })
-            player.seekTo(59_500)
+    fun repeatOneStillRepeatsCurrentExplicitPlaylistItemWithAutoplayOff() =
+        withPlaylist(LoopMode.ONE) {
+                activity,
+                player,
+                uris,
+            ->
+            var repeated = false
+            onMain {
+                player.addListener(object : Player.Listener {
+                    override fun onMediaItemTransition(mediaItem: MediaItem?, reason: Int) {
+                        if (reason == Player.MEDIA_ITEM_TRANSITION_REASON_REPEAT) repeated = true
+                    }
+                })
+                player.seekTo(59_500)
+            }
+            await(description = "current item repeating") { repeated && player.isPlaying }
+            onMain {
+                assertEquals(
+                    uris[0].toString(),
+                    player.currentMediaItem?.mediaId,
+                )
+                assertFalse(activity.isFinishing)
+            }
         }
-        await("current item repeating") { repeated && player.isPlaying }
-        onMain {
-            assertEquals(uris[0].toString(), player.currentMediaItem?.mediaId)
-            assertFalse(activity.isFinishing)
-        }
-    }
 
     @Test
-    fun replacingExplicitPlaylistWithAutomaticQueueRestoresAutoplayOff() = withPlaylist(LoopMode.OFF) { activity, player, uris ->
-        onMain {
-            // Opening a single folder video supplies an unmarked queue for manual next/previous navigation.
-            player.setMediaItems(uris.map { MediaItem.Builder().setUri(it).setMediaId(it.toString()).build() })
-            player.prepare()
-            player.play()
+    fun replacingExplicitPlaylistWithAutomaticQueueRestoresAutoplayOff() =
+        withPlaylist(LoopMode.OFF) {
+                activity,
+                player,
+                uris,
+            ->
+            onMain {
+                // Opening a single folder video supplies an unmarked queue for manual next/previous navigation.
+                player.setMediaItems(
+                    uris.map { MediaItem.Builder().setUri(it).setMediaId(it.toString()).build() },
+                )
+                player.prepare()
+                player.play()
+            }
+            await(description = "automatic folder queue playback") { player.isPlaying }
+            onMain { player.seekTo(59_500) }
+            await(description = "activity closing after first automatic queue item") {
+                activity.isDestroyed
+            }
         }
-        await("automatic folder queue playback") { player.isPlaying }
-        onMain { player.seekTo(59_500) }
-        await("activity closing after first automatic queue item") { activity.isDestroyed }
-    }
 
-    private fun withPlaylist(loopMode: LoopMode, check: (PlayerActivity, MediaController, List<Uri>) -> Unit) {
+    private fun withPlaylist(
+        loopMode: LoopMode,
+        check: (PlayerActivity, MediaController, List<Uri>) -> Unit,
+    ) {
         val context = instrumentation.targetContext
         val preferences = GlobalContext.get().get<PreferencesRepository>()
         val originalPreferences = preferences.playerPreferences.value
         runBlocking {
             preferences.updatePlayerPreferences {
-                it.copy(autoplay = false, loopMode = loopMode, resume = Resume.NO, autoPip = false, autoBackgroundPlay = false)
+                it.copy(
+                    autoplay = false,
+                    loopMode = loopMode,
+                    resume = Resume.NO,
+                    autoPip = false,
+                    autoBackgroundPlay = false,
+                )
             }
         }
-        await("playlist preferences") { preferences.playerPreferences.value.let { !it.autoplay && it.loopMode == loopMode } }
-        val audioFiles = (1..2).map { index ->
-            File(context.cacheDir, "playlist-completion-$index-${System.nanoTime()}.wav").apply { writeSilentAudio(this) }
+        await(description = "playlist preferences") {
+            preferences.playerPreferences.value.let {
+                !it.autoplay &&
+                    it.loopMode == loopMode
+            }
         }
-        val uris = audioFiles.map(Uri::fromFile)
+        val audioFiles = (1..2).map { index ->
+            File(
+                context.cacheDir,
+                "playlist-completion-$index-${System.nanoTime()}.wav",
+            ).apply {
+                writeSilentAudio(file = this)
+            }
+        }
+        val uris = audioFiles.map(transform = Uri::fromFile)
         var activity: PlayerActivity? = null
         var player: MediaController? = null
         try {
-            val intent = Intent(context, PlayerActivity::class.java)
+            val intent = Intent(
+                context,
+                PlayerActivity::class.java,
+            )
                 .addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
                 .setData(uris[0])
-                .putParcelableArrayListExtra(PlayerApi.API_PLAYLIST, ArrayList(uris))
+                .putParcelableArrayListExtra(
+                    PlayerApi.API_PLAYLIST,
+                    ArrayList(uris),
+                )
             onMain { context.startActivity(intent) }
-            await("player activity to resume") {
+            await(description = "player activity to resume") {
                 activity = ActivityLifecycleMonitorRegistry.getInstance()
                     .getActivitiesInStage(Stage.RESUMED)
                     .filterIsInstance<PlayerActivity>()
@@ -117,32 +180,58 @@ class PlaylistCompletionTest {
             }
             lateinit var future: ListenableFuture<MediaController>
             onMain {
-                future = MediaController.Builder(context, SessionToken(context, ComponentName(context, PlayerService::class.java))).buildAsync()
+                future = MediaController.Builder(
+                    context,
+                    SessionToken(
+                        context,
+                        ComponentName(
+                            context,
+                            PlayerService::class.java,
+                        ),
+                    ),
+                ).buildAsync()
             }
-            val controller = future.get(30, TimeUnit.SECONDS)
+            val controller = future.get(
+                30,
+                TimeUnit.SECONDS,
+            )
             player = controller
-            await("explicit playlist playback") { controller.isPlaying && controller.mediaItemCount == 2 }
-            check(requireNotNull(activity), controller, uris)
+            await(description = "explicit playlist playback") {
+                controller.isPlaying &&
+                    controller.mediaItemCount == 2
+            }
+            check(
+                requireNotNull(value = activity),
+                controller,
+                uris,
+            )
         } finally {
             onMain {
-                Stage.entries.flatMap { ActivityLifecycleMonitorRegistry.getInstance().getActivitiesInStage(it) }
+                Stage.entries.flatMap {
+                    ActivityLifecycleMonitorRegistry.getInstance().getActivitiesInStage(it)
+                }
                     .filterIsInstance<PlayerActivity>()
                     .forEach { it.finish() }
             }
-            await("activity cleanup") { activity?.isDestroyed != false }
+            await(description = "activity cleanup") { activity?.isDestroyed != false }
             onMain {
                 player?.stop()
                 player?.clearMediaItems()
                 player?.release()
             }
-            context.stopService(Intent(context, PlayerService::class.java))
-            audioFiles.forEach(File::delete)
+            context.stopService(
+                Intent(
+                    context,
+                    PlayerService::class.java,
+                ),
+            )
+            audioFiles.forEach(action = File::delete)
             runBlocking { preferences.updatePlayerPreferences { originalPreferences } }
         }
     }
 
     private fun writeSilentAudio(file: File) {
-        val pcm = ByteArray(16_000 * 2 * 60)
+        val pcm = ByteArray(size = 16_000 * 2 * 60)
         val header = ByteBuffer.allocate(44).order(ByteOrder.LITTLE_ENDIAN)
             .put("RIFF".toByteArray()).putInt(36 + pcm.size).put("WAVEfmt ".toByteArray())
             .putInt(16).putShort(1).putShort(1).putInt(16_000).putInt(32_000)

@@ -46,7 +46,7 @@ fun rememberVideoZoomAndContentScaleState(
             coroutineScope = coroutineScope,
         )
     }
-    LaunchedEffect(player) { videoZoomAndContentScaleState.observe() }
+    LaunchedEffect(key1 = player) { videoZoomAndContentScaleState.observe() }
     return videoZoomAndContentScaleState
 }
 
@@ -65,19 +65,19 @@ class VideoZoomAndContentScaleState(
         private const val CONTENT_SCALE_INDICATOR_DURATION_MS = 1000L
     }
 
-    var videoContentScale: VideoContentScale by mutableStateOf(initialContentScale)
+    var videoContentScale: VideoContentScale by mutableStateOf(value = initialContentScale)
         private set
 
-    var zoom: Float by mutableFloatStateOf(1f)
+    var zoom: Float by mutableFloatStateOf(value = 1f)
         private set
 
     var offset: Offset by mutableStateOf(Offset.Zero)
         private set
 
-    var isZooming: Boolean by mutableStateOf(false)
+    var isZooming: Boolean by mutableStateOf(value = false)
         private set
 
-    var showContentScaleIndicator: Boolean by mutableStateOf(false)
+    var showContentScaleIndicator: Boolean by mutableStateOf(value = false)
         private set
 
     private var showContentScaleJob: Job? = null
@@ -86,7 +86,7 @@ class VideoZoomAndContentScaleState(
         videoContentScale = newContentScale
         zoom = 1f
         offset = Offset.Zero
-        onEvent(VideoZoomEvent.ContentScaleChanged(videoContentScale))
+        onEvent(VideoZoomEvent.ContentScaleChanged(contentScale = videoContentScale))
         updateVideoScaleMetadataAndSendEvent()
         showContentScaleIndicator()
     }
@@ -95,7 +95,7 @@ class VideoZoomAndContentScaleState(
         showContentScaleJob?.cancel()
         showContentScaleIndicator = true
         showContentScaleJob = coroutineScope.launch {
-            delay(CONTENT_SCALE_INDICATOR_DURATION_MS)
+            delay(timeMillis = CONTENT_SCALE_INDICATOR_DURATION_MS)
             showContentScaleIndicator = false
             showContentScaleJob = null
         }
@@ -110,18 +110,27 @@ class VideoZoomAndContentScaleState(
         if (!enableZoomGesture) return
 
         isZooming = true
-        zoom = (zoom * zoomChange).coerceIn(MIN_ZOOM, MAX_ZOOM)
+        zoom = (zoom * zoomChange).coerceIn(
+            minimumValue = MIN_ZOOM,
+            maximumValue = MAX_ZOOM,
+        )
 
         val extraWidth = (zoom - 1) * constraints.maxWidth
         val extraHeight = (zoom - 1) * constraints.maxHeight
 
-        val maxX = abs(extraWidth / 2)
-        val maxY = abs(extraHeight / 2)
+        val maxX = abs(x = extraWidth / 2)
+        val maxY = abs(x = extraHeight / 2)
 
         if (enablePanGesture) {
             offset = Offset(
-                x = (offset.x + zoom * panChange.x).coerceIn(-maxX, maxX),
-                y = (offset.y + zoom * panChange.y).coerceIn(-maxY, maxY),
+                x = (offset.x + zoom * panChange.x).coerceIn(
+                    minimumValue = -maxX,
+                    maximumValue = maxX,
+                ),
+                y = (offset.y + zoom * panChange.y).coerceIn(
+                    minimumValue = -maxY,
+                    maximumValue = maxY,
+                ),
             )
         }
     }
@@ -146,7 +155,12 @@ class VideoZoomAndContentScaleState(
             player.currentMediaItemIndex,
             currentMediaItem.copy(videoZoom = zoom),
         )
-        onEvent(VideoZoomEvent.ZoomChanged(currentMediaItem, zoom))
+        onEvent(
+            VideoZoomEvent.ZoomChanged(
+                mediaItem = currentMediaItem,
+                zoom = zoom,
+            ),
+        )
     }
 }
 

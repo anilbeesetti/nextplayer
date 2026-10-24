@@ -19,18 +19,17 @@ class GetSortedVideosUseCase(
     @Named(DiQualifiers.DEFAULT_DISPATCHER) private val defaultDispatcher: CoroutineDispatcher,
 ) {
 
-    operator fun invoke(folderPath: String? = null): Flow<List<Video>> {
-        return combine(
-            mediaRepository.observeVideos(folderPath),
-            preferencesRepository.applicationPreferences,
-        ) { videoItems, preferences ->
+    operator fun invoke(folderPath: String? = null): Flow<List<Video>> = combine(
+        mediaRepository.observeVideos(folderPath = folderPath),
+        preferencesRepository.applicationPreferences,
+    ) { videoItems, preferences ->
 
-            val nonExcludedVideos = videoItems.filterNot {
-                it.parentPath in preferences.excludeFolders
-            }
+        val nonExcludedVideos = videoItems.filterNot { it.parentPath in preferences.excludeFolders }
 
-            val sort = Sort(by = preferences.sortBy, order = preferences.sortOrder)
-            nonExcludedVideos.sortedWith(sort.videoComparator())
-        }.flowOn(defaultDispatcher)
-    }
+        val sort = Sort(
+            by = preferences.sortBy,
+            order = preferences.sortOrder,
+        )
+        nonExcludedVideos.sortedWith(sort.videoComparator())
+    }.flowOn(context = defaultDispatcher)
 }

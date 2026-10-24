@@ -13,7 +13,7 @@ import org.junit.Test
 
 class LocalNetworkConnectionRepositoryTest {
     private val dao = FakeNetworkConnectionDao()
-    private val repository = LocalNetworkConnectionRepository(dao)
+    private val repository = LocalNetworkConnectionRepository(networkConnectionDao = dao)
 
     @Test
     fun `upsert and get connection preserves authentication settings`() = runTest {
@@ -28,14 +28,20 @@ class LocalNetworkConnectionRepositoryTest {
             hostKeyFingerprint = "SHA256:abc",
         )
 
-        assertEquals(1L, repository.upsert(connection))
-        assertEquals(connection.copy(id = 1), repository.getConnection(1))
+        assertEquals(
+            1L,
+            repository.upsert(connection = connection),
+        )
+        assertEquals(
+            connection.copy(id = 1),
+            repository.getConnection(id = 1),
+        )
     }
 
     @Test
     fun `unknown stored authentication falls back to password`() = runTest {
         dao.seed(
-            NetworkConnectionEntity(
+            connection = NetworkConnectionEntity(
                 id = 7,
                 name = "Legacy",
                 protocol = NetworkProtocol.SFTP.name,
@@ -47,12 +53,13 @@ class LocalNetworkConnectionRepositoryTest {
 
         assertEquals(
             NetworkAuthentication.PASSWORD,
-            repository.getConnection(7)?.authentication,
+            repository.getConnection(id = 7)?.authentication,
         )
     }
 
     private class FakeNetworkConnectionDao : NetworkConnectionDao {
-        private val connections = MutableStateFlow<List<NetworkConnectionEntity>>(emptyList())
+        private val connections =
+            MutableStateFlow<List<NetworkConnectionEntity>>(value = emptyList())
 
         fun seed(connection: NetworkConnectionEntity) {
             connections.value = connections.value + connection

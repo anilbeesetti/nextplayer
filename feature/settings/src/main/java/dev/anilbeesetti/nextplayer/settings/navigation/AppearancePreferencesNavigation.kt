@@ -14,7 +14,7 @@ import org.koin.core.parameter.parametersOf
 object AppearancePreferencesRoute : NavKey
 
 fun NavBackStack<NavKey>.navigateToAppearancePreferences() {
-    add(AppearancePreferencesRoute)
+    add(element = AppearancePreferencesRoute)
 }
 
 fun EntryProviderScope<NavKey>.appearancePreferencesEntry(onNavigateUp: () -> Unit) {
