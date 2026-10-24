@@ -26,7 +26,10 @@ class GetSortedVideosUseCase(
 
         val nonExcludedVideos = videoItems.filterNot { it.parentPath in preferences.excludeFolders }
 
-        val sort = Sort(by = preferences.sortBy, order = preferences.sortOrder)
+        val sort = Sort(
+            by = preferences.sortBy,
+            order = preferences.sortOrder,
+        )
         nonExcludedVideos.sortedWith(sort.videoComparator())
     }.flowOn(context = defaultDispatcher)
 }

@@ -37,7 +37,17 @@ fun EntryProviderScope<NavKey>.moreNavGraph(context: Context, backStack: NavBack
         onNavigateUp = { backStack.removeLastIfNotRoot() },
         // Vault files are served through FileProvider, so read access must be granted at
         // playback time for both PlayerActivity and the (separate) PlayerService component.
-        onPlayVideo = { uri -> context.startPlayback(uri = uri, grantReadPermission = true) },
-        onPlayVideos = { uris -> context.startPlayback(uris = uris, grantReadPermission = true) },
+        onPlayVideo = { uri ->
+            context.startPlayback(
+                uri = uri,
+                grantReadPermission = true,
+            )
+        },
+        onPlayVideos = { uris ->
+            context.startPlayback(
+                uris = uris,
+                grantReadPermission = true,
+            )
+        },
     )
 }

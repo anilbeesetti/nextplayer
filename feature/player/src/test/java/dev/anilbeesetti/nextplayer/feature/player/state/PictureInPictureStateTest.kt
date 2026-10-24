@@ -47,14 +47,20 @@ class PictureInPictureStateTest {
     @Before
     fun setUp() {
         shadowOf(RuntimeEnvironment.getApplication().packageManager)
-            .setSystemFeature(PackageManager.FEATURE_PICTURE_IN_PICTURE, true)
+            .setSystemFeature(
+                PackageManager.FEATURE_PICTURE_IN_PICTURE,
+                true,
+            )
         controller = Robolectric.buildActivity(PipActivity::class.java).setup()
         activity = controller.get()
         shadowOf(
             activity.application,
         ).grantPermissions("${activity.packageName}.DYNAMIC_RECEIVER_NOT_EXPORTED_PERMISSION")
         player = TestPlayer()
-        state = PictureInPictureState(player = player, activity = activity)
+        state = PictureInPictureState(
+            player = player,
+            activity = activity,
+        )
         listeners = state.handleListeners(disposableEffectScope = DisposableEffectScope())
     }
 
@@ -77,30 +83,48 @@ class PictureInPictureStateTest {
         sendAction(title = "pause")
         assertFalse(player.playWhenReady)
         assertFalse(player.isPlaying)
-        assertEquals("play", activity.params!!.actions[1].title)
+        assertEquals(
+            "play",
+            activity.params!!.actions[1].title,
+        )
 
         sendAction(title = "play")
         assertTrue(player.playWhenReady)
         assertTrue(player.isPlaying)
-        assertEquals("pause", activity.params!!.actions[1].title)
+        assertEquals(
+            "pause",
+            activity.params!!.actions[1].title,
+        )
     }
 
     @Test
     fun pipSkipActionsControlThePlaylist() = withObservedState {
         enterPip()
         sendAction(title = "skip to next")
-        assertEquals(2, player.currentMediaItemIndex)
+        assertEquals(
+            2,
+            player.currentMediaItemIndex,
+        )
         sendAction(title = "skip to previous")
-        assertEquals(1, player.currentMediaItemIndex)
+        assertEquals(
+            1,
+            player.currentMediaItemIndex,
+        )
     }
 
     @Test
     fun exitingPipRemovesTheReceiverAndReentryRestoresControls() = withObservedState {
         enterPip()
-        assertEquals(1, pipReceiverCount())
+        assertEquals(
+            1,
+            pipReceiverCount(),
+        )
         exitPip()
         assertFalse(state.isInPictureInPictureMode)
-        assertEquals(0, pipReceiverCount())
+        assertEquals(
+            0,
+            pipReceiverCount(),
+        )
         sendAction(title = "pause")
         assertTrue(player.isPlaying)
 
@@ -112,9 +136,15 @@ class PictureInPictureStateTest {
     @Test
     fun disposalRemovesThePipReceiver() = withObservedState {
         enterPip()
-        assertEquals(1, pipReceiverCount())
+        assertEquals(
+            1,
+            pipReceiverCount(),
+        )
         listeners.dispose()
-        assertEquals(0, pipReceiverCount())
+        assertEquals(
+            0,
+            pipReceiverCount(),
+        )
         sendAction(title = "pause")
         assertTrue(player.isPlaying)
     }
@@ -126,20 +156,35 @@ class PictureInPictureStateTest {
             // The system constructs this state using a non-public constructor.
             ReflectionHelpers.callConstructor(
                 PictureInPictureUiState::class.java,
-                ClassParameter.from(Boolean::class.javaPrimitiveType, false),
-                ClassParameter.from(Boolean::class.javaPrimitiveType, true),
+                ClassParameter.from(
+                    Boolean::class.javaPrimitiveType,
+                    false,
+                ),
+                ClassParameter.from(
+                    Boolean::class.javaPrimitiveType,
+                    true,
+                ),
             ),
         )
         shadowOf(Looper.getMainLooper()).idle()
         assertTrue(state.isInPictureInPictureMode)
-        assertEquals(1, pipReceiverCount())
+        assertEquals(
+            1,
+            pipReceiverCount(),
+        )
 
         enterPip()
-        assertEquals(1, pipReceiverCount())
+        assertEquals(
+            1,
+            pipReceiverCount(),
+        )
         sendAction(title = "pause")
         assertFalse(player.isPlaying)
         exitPip()
-        assertEquals(0, pipReceiverCount())
+        assertEquals(
+            0,
+            pipReceiverCount(),
+        )
     }
 
     private fun withObservedState(block: suspend TestScope.() -> Unit) = runTest {
@@ -150,12 +195,18 @@ class PictureInPictureStateTest {
     }
 
     private fun enterPip() {
-        activity.onPictureInPictureModeChanged(true, Configuration())
+        activity.onPictureInPictureModeChanged(
+            true,
+            Configuration(),
+        )
         shadowOf(Looper.getMainLooper()).idle()
     }
 
     private fun exitPip() {
-        activity.onPictureInPictureModeChanged(false, Configuration())
+        activity.onPictureInPictureModeChanged(
+            false,
+            Configuration(),
+        )
         shadowOf(Looper.getMainLooper()).idle()
     }
 
@@ -190,14 +241,20 @@ class PictureInPictureStateTest {
             .setPlaylist((0..2).map { MediaItemData.Builder(it).setDurationUs(60_000_000).build() })
             .setCurrentMediaItemIndex(1)
             .setPlaybackState(Player.STATE_READY)
-            .setPlayWhenReady(true, Player.PLAY_WHEN_READY_CHANGE_REASON_USER_REQUEST)
+            .setPlayWhenReady(
+                true,
+                Player.PLAY_WHEN_READY_CHANGE_REASON_USER_REQUEST,
+            )
             .build()
 
         override fun getState(): State = state
 
         override fun handleSetPlayWhenReady(playWhenReady: Boolean): ListenableFuture<*> {
             state = state.buildUpon()
-                .setPlayWhenReady(playWhenReady, Player.PLAY_WHEN_READY_CHANGE_REASON_USER_REQUEST)
+                .setPlayWhenReady(
+                    playWhenReady,
+                    Player.PLAY_WHEN_READY_CHANGE_REASON_USER_REQUEST,
+                )
                 .build()
             return Futures.immediateVoidFuture()
         }

@@ -17,7 +17,10 @@ import org.junit.runner.RunWith
 private const val WINDOW_FOCUS_TIMEOUT_MS = 5_000L
 
 @RunWith(AndroidJUnit4::class)
-@SdkSuppress(minSdkVersion = 36, maxSdkVersion = 36)
+@SdkSuppress(
+    minSdkVersion = 36,
+    maxSdkVersion = 36,
+)
 class CrashLogClipboardInstrumentedTest {
 
     @Test
@@ -28,17 +31,29 @@ class CrashLogClipboardInstrumentedTest {
         val report = prefix + "x".repeat(n = 2_596_638)
 
         ActivityScenario.launch<CrashActivity>(
-            Intent(context, CrashActivity::class.java)
-                .putExtra("exception", "test"),
+            Intent(
+                context,
+                CrashActivity::class.java,
+            )
+                .putExtra(
+                    "exception",
+                    "test",
+                ),
         ).use { scenario ->
             scenario.awaitWindowFocus()
 
             InstrumentationRegistry.getInstrumentation().runOnMainSync {
-                copyCrashReportToClipboard(clipboard = clipboard, report = report)
+                copyCrashReportToClipboard(
+                    clipboard = clipboard,
+                    report = report,
+                )
             }
 
             val copied = clipboard.primaryClip?.getItemAt(0)?.text.toString()
-            assertEquals(MAX_CLIPBOARD_REPORT_CHARS, copied.length)
+            assertEquals(
+                MAX_CLIPBOARD_REPORT_CHARS,
+                copied.length,
+            )
             assertTrue(copied.startsWith(prefix = prefix))
             assertTrue(copied.endsWith(suffix = CLIPBOARD_REPORT_TRUNCATION_MARKER))
         }
@@ -59,5 +74,8 @@ private fun ActivityScenario<CrashActivity>.awaitWindowFocus() {
 
     var hasWindowFocus = false
     onActivity { activity -> hasWindowFocus = activity.hasWindowFocus() }
-    assertTrue("CrashActivity did not receive window focus", hasWindowFocus)
+    assertTrue(
+        "CrashActivity did not receive window focus",
+        hasWindowFocus,
+    )
 }

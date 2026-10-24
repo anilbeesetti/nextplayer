@@ -48,11 +48,27 @@ class PlayerApi(val activity: PlayerActivity) {
     fun getResult(isPlaybackFinished: Boolean, duration: Long, position: Long): Intent =
         Intent(API_RESULT_INTENT).apply {
             if (isPlaybackFinished) {
-                putExtra(API_END_BY, API_END_BY_COMPLETION)
+                putExtra(
+                    API_END_BY,
+                    API_END_BY_COMPLETION,
+                )
             } else {
-                putExtra(API_END_BY, API_END_BY_USER)
-                if (duration != C.TIME_UNSET) putExtra(API_DURATION, duration.toInt())
-                if (position != C.TIME_UNSET) putExtra(API_POSITION, position.toInt())
+                putExtra(
+                    API_END_BY,
+                    API_END_BY_USER,
+                )
+                if (duration != C.TIME_UNSET) {
+                    putExtra(
+                        API_DURATION,
+                        duration.toInt(),
+                    )
+                }
+                if (position != C.TIME_UNSET) {
+                    putExtra(
+                        API_POSITION,
+                        position.toInt(),
+                    )
+                }
             }
         }
 

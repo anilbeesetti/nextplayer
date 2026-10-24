@@ -73,7 +73,11 @@ class MediaStoreMediaService(
                 trySend(element = Unit)
             }
         }
-        context.contentResolver.registerContentObserver(VIDEO_COLLECTION_URI, true, observer)
+        context.contentResolver.registerContentObserver(
+            VIDEO_COLLECTION_URI,
+            true,
+            observer,
+        )
         trySend(element = Unit)
         awaitClose { context.contentResolver.unregisterContentObserver(observer) }
     }
@@ -193,7 +197,10 @@ class MediaStoreMediaService(
     @RequiresApi(Build.VERSION_CODES.R)
     private fun queryTrashVideos(): List<MediaVideo> {
         val queryArgs = Bundle().apply {
-            putInt(MediaStore.QUERY_ARG_MATCH_TRASHED, MediaStore.MATCH_ONLY)
+            putInt(
+                MediaStore.QUERY_ARG_MATCH_TRASHED,
+                MediaStore.MATCH_ONLY,
+            )
             putStringArray(
                 android.content.ContentResolver.QUERY_ARG_SORT_COLUMNS,
                 arrayOf(MediaStore.Video.Media.DATE_MODIFIED),
@@ -204,7 +211,12 @@ class MediaStoreMediaService(
             )
         }
         return queryVideoCursor {
-            context.contentResolver.query(VIDEO_COLLECTION_URI, VIDEO_PROJECTION, queryArgs, null)
+            context.contentResolver.query(
+                VIDEO_COLLECTION_URI,
+                VIDEO_PROJECTION,
+                queryArgs,
+                null,
+            )
         }
     }
 
@@ -253,7 +265,13 @@ class MediaStoreMediaService(
     private fun String.escapeLike(): String = replace(
         oldValue = "\\",
         newValue = "\\\\",
-    ).replace(oldValue = "%", newValue = "\\%").replace(oldValue = "_", newValue = "\\_")
+    ).replace(
+        oldValue = "%",
+        newValue = "\\%",
+    ).replace(
+        oldValue = "_",
+        newValue = "\\_",
+    )
 
     /**
      * Converts the current row to a [MediaVideo], or null if this cursor doesn't actually
@@ -296,7 +314,10 @@ class MediaStoreMediaService(
             path = path,
             title = file.name,
             parentPath = file.parent ?: "/",
-            uri = ContentUris.withAppendedId(VIDEO_COLLECTION_URI, id),
+            uri = ContentUris.withAppendedId(
+                VIDEO_COLLECTION_URI,
+                id,
+            ),
             displayName = getString(displayNameIndex) ?: file.name,
             duration = getLong(durationIndex),
             width = getInt(widthIndex),

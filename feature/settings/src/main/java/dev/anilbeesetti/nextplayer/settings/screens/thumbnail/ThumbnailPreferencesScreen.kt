@@ -56,7 +56,10 @@ fun ThumbnailPreferencesScreen(viewModel: ThumbnailPreferencesViewModel) {
     )
 }
 
-@OptIn(ExperimentalMaterial3Api::class, ExperimentalMaterial3ExpressiveApi::class)
+@OptIn(
+    ExperimentalMaterial3Api::class,
+    ExperimentalMaterial3ExpressiveApi::class,
+)
 @Composable
 private fun ThumbnailPreferencesScreenContent(
     state: ThumbnailPreferencesUiState,
@@ -68,7 +71,10 @@ private fun ThumbnailPreferencesScreenContent(
     }
     var pendingChange by remember { mutableStateOf<ThumbnailPreferenceChange?>(value = null) }
 
-    LaunchedEffect(preferences.thumbnailFramePosition, key2 = pendingChange) {
+    LaunchedEffect(
+        preferences.thumbnailFramePosition,
+        key2 = pendingChange,
+    ) {
         if (pendingChange == null) {
             frameSliderValue = preferences.thumbnailFramePosition * 100f
         }
@@ -80,9 +86,12 @@ private fun ThumbnailPreferencesScreenContent(
             NextTopAppBar(
                 title = stringResource(id = R.string.thumbnail_generation),
                 navigationIcon = {
-                    FilledTonalIconButton(onClick = {
-                        onAction(ThumbnailPreferencesEvent.NavigateUp)
-                    }, modifier = Modifier.tvFocusDown(target = listFocusRequester)) {
+                    FilledTonalIconButton(
+                        onClick = {
+                            onAction(ThumbnailPreferencesEvent.NavigateUp)
+                        },
+                        modifier = Modifier.tvFocusDown(target = listFocusRequester),
+                    ) {
                         Icon(
                             imageVector = NextIcons.ArrowBack,
                             contentDescription = stringResource(id = R.string.navigate_up),
@@ -119,10 +128,9 @@ private fun ThumbnailPreferencesScreenContent(
                         ) {
                             return@SingleSelectablePreference
                         }
-                        pendingChange =
-                            ThumbnailPreferenceChange.Strategy(
-                                ThumbnailGenerationStrategy.FIRST_FRAME,
-                            )
+                        pendingChange = ThumbnailPreferenceChange.Strategy(
+                            ThumbnailGenerationStrategy.FIRST_FRAME,
+                        )
                     },
                     isFirstItem = true,
                 )
@@ -138,10 +146,9 @@ private fun ThumbnailPreferencesScreenContent(
                         ) {
                             return@SingleSelectablePreference
                         }
-                        pendingChange =
-                            ThumbnailPreferenceChange.Strategy(
-                                ThumbnailGenerationStrategy.FRAME_AT_PERCENTAGE,
-                            )
+                        pendingChange = ThumbnailPreferenceChange.Strategy(
+                            ThumbnailGenerationStrategy.FRAME_AT_PERCENTAGE,
+                        )
                     },
                 )
                 SingleSelectablePreference(
@@ -169,7 +176,10 @@ private fun ThumbnailPreferencesScreenContent(
                         ThumbnailGenerationStrategy.FIRST_FRAME,
                 modifier = Modifier.padding(vertical = 16.dp),
                 title = stringResource(R.string.frame_position),
-                description = stringResource(R.string.frame_position_value, frameSliderValue),
+                description = stringResource(
+                    R.string.frame_position_value,
+                    frameSliderValue,
+                ),
                 icon = NextIcons.Frame,
                 value = frameSliderValue,
                 valueRange = 0f..100f,
@@ -195,10 +205,9 @@ private fun ThumbnailPreferencesScreenContent(
                                 0.0001f
                             ) {
                                 frameSliderValue = defaultPosition * 100f
-                                pendingChange =
-                                    ThumbnailPreferenceChange.FramePosition(
-                                        position = defaultPosition,
-                                    )
+                                pendingChange = ThumbnailPreferenceChange.FramePosition(
+                                    position = defaultPosition,
+                                )
                             }
                         },
                     ) {

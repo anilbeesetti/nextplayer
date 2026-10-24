@@ -25,7 +25,10 @@ internal fun VaultBiometricSetupDialog(onComplete: (Boolean) -> Unit) {
         title = { Text(text = stringResource(R.string.vault_biometric_setup_title)) },
         content = { Text(text = stringResource(R.string.vault_biometric_setup_description)) },
         confirmButton = {
-            TextButton(onClick = { authenticating = true }, enabled = !authenticating) {
+            TextButton(
+                onClick = { authenticating = true },
+                enabled = !authenticating,
+            ) {
                 Text(text = stringResource(R.string.enable_biometric_unlock))
             }
         },

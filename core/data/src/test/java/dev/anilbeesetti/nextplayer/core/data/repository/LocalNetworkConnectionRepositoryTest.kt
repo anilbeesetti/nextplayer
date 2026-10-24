@@ -28,8 +28,14 @@ class LocalNetworkConnectionRepositoryTest {
             hostKeyFingerprint = "SHA256:abc",
         )
 
-        assertEquals(1L, repository.upsert(connection = connection))
-        assertEquals(connection.copy(id = 1), repository.getConnection(id = 1))
+        assertEquals(
+            1L,
+            repository.upsert(connection = connection),
+        )
+        assertEquals(
+            connection.copy(id = 1),
+            repository.getConnection(id = 1),
+        )
     }
 
     @Test

@@ -125,12 +125,18 @@ internal fun PlaylistDetailScreenContent(
     LaunchedEffect(state.isSearching) {
         if (state.isSearching) searchFocusRequester.requestFocus()
     }
-    LaunchedEffect(key1 = isTv, state.isReordering) {
+    LaunchedEffect(
+        key1 = isTv,
+        state.isReordering,
+    ) {
         if (isTv && state.isReordering) {
             onAction(PlaylistDetailUiAction.OnFinishReorderingClick)
         }
     }
-    BackHandler(enabled = state.isSearching, onBack = exitSearch)
+    BackHandler(
+        enabled = state.isSearching,
+        onBack = exitSearch,
+    )
 
     Scaffold(
         topBar = {
@@ -287,12 +293,20 @@ internal fun PlaylistDetailScreenContent(
         val containerModifier = Modifier
             .fillMaxSize()
             .padding(scaffoldPadding.copy(bottom = 0.dp))
-            .clip(shape = RoundedCornerShape(topStart = 24.dp, topEnd = 24.dp))
+            .clip(
+                shape = RoundedCornerShape(
+                    topStart = 24.dp,
+                    topEnd = 24.dp,
+                ),
+            )
             .background(MaterialTheme.colorScheme.background)
 
         when (state.playlistDataState) {
             DataState.Loading ->
-                Box(modifier = containerModifier, contentAlignment = Alignment.Center) {
+                Box(
+                    modifier = containerModifier,
+                    contentAlignment = Alignment.Center,
+                ) {
                     CircularProgressIndicator()
                 }
 
@@ -358,14 +372,23 @@ private fun PlaylistDetailContent(
     var isDragging by remember { mutableStateOf(value = false) }
     val listState = rememberLazyListState()
     val hapticFeedback = LocalHapticFeedback.current
-    val visibleItems = remember(displayedItems, searchQuery) {
+    val visibleItems = remember(
+        displayedItems,
+        searchQuery,
+    ) {
         val query = searchQuery.trim()
         if (query.isEmpty()) {
             displayedItems
         } else {
             displayedItems.filter { item ->
-                item.displayTitle.contains(other = query, ignoreCase = true) ||
-                    item.supportingText.contains(other = query, ignoreCase = true)
+                item.displayTitle.contains(
+                    other = query,
+                    ignoreCase = true,
+                ) ||
+                    item.supportingText.contains(
+                        other = query,
+                        ignoreCase = true,
+                    )
             }
         }
     }
@@ -376,7 +399,10 @@ private fun PlaylistDetailContent(
 
     val reorderState = rememberReorderableLazyListState(lazyListState = listState) { from, to ->
         displayedItems = displayedItems.toMutableList().apply {
-            add(to.index, element = removeAt(from.index))
+            add(
+                to.index,
+                element = removeAt(from.index),
+            )
         }
         hapticFeedback.performHapticFeedback(HapticFeedbackType.SegmentFrequentTick)
     }
@@ -391,7 +417,10 @@ private fun PlaylistDetailContent(
                     ),
                     style = MaterialTheme.typography.bodySmall,
                     color = MaterialTheme.colorScheme.onSurfaceVariant,
-                    modifier = Modifier.padding(horizontal = 16.dp, vertical = 8.dp),
+                    modifier = Modifier.padding(
+                        horizontal = 16.dp,
+                        vertical = 8.dp,
+                    ),
                 )
             }
         }
@@ -559,7 +588,10 @@ private fun PlaylistVideoRow(
             .focusProperties {
                 if (isTv) right = overflowFocusRequester
             },
-        contentPadding = PaddingValues(horizontal = 12.dp, vertical = 8.dp),
+        contentPadding = PaddingValues(
+            horizontal = 12.dp,
+            vertical = 8.dp,
+        ),
         isFirstItem = isFirstItem,
         isLastItem = isLastItem,
         onClick = if (isReordering) {
@@ -652,7 +684,12 @@ private fun PlaylistVideoRow(
                         ) {
                             DropdownMenuItem(
                                 text = { Text(text = stringResource(R.string.remove)) },
-                                leadingIcon = { Icon(NextIcons.Delete, contentDescription = null) },
+                                leadingIcon = {
+                                    Icon(
+                                        NextIcons.Delete,
+                                        contentDescription = null,
+                                    )
+                                },
                                 onClick = {
                                     menuExpanded = false
                                     onRemove()
@@ -714,7 +751,10 @@ private fun PlaylistSearchEmptyState(modifier: Modifier = Modifier) {
 
 @Composable
 private fun PlaylistUnavailable(modifier: Modifier = Modifier) {
-    Box(modifier = modifier, contentAlignment = Alignment.Center) {
+    Box(
+        modifier = modifier,
+        contentAlignment = Alignment.Center,
+    ) {
         Text(
             text = stringResource(R.string.playlist_unavailable),
             color = MaterialTheme.colorScheme.onSurfaceVariant,

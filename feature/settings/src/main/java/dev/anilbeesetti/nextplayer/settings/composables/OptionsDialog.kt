@@ -30,6 +30,6 @@ fun OptionsDialog(text: String, onDismissClick: () -> Unit, options: LazyListSco
             HorizontalDivider()
         },
         dismissButton = { CancelButton(onClick = onDismissClick) },
-        confirmButton = { },
+        confirmButton = {},
     )
 }

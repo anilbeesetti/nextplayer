@@ -29,16 +29,36 @@ class ObservePlaylistUseCaseTest {
                 type = PlaylistType.LOCAL,
                 source = null,
                 items = listOf(
-                    PlaylistItemRecord(position = 0, uri = "content://two", lastPlayedAt = 200),
-                    PlaylistItemRecord(position = 1, uri = "content://missing", lastPlayedAt = 300),
-                    PlaylistItemRecord(position = 2, uri = "content://one", lastPlayedAt = 100),
+                    PlaylistItemRecord(
+                        position = 0,
+                        uri = "content://two",
+                        lastPlayedAt = 200,
+                    ),
+                    PlaylistItemRecord(
+                        position = 1,
+                        uri = "content://missing",
+                        lastPlayedAt = 300,
+                    ),
+                    PlaylistItemRecord(
+                        position = 2,
+                        uri = "content://one",
+                        lastPlayedAt = 100,
+                    ),
                 ),
                 lastRefreshedAt = null,
             ),
         )
         val mediaRepository = FakeMediaRepository().apply {
-            videos += video(uri = "content://one", name = "One.mp4", parentPath = "/Movies")
-            videos += video(uri = "content://two", name = "Two.mp4", parentPath = "/Downloads")
+            videos += video(
+                uri = "content://one",
+                name = "One.mp4",
+                parentPath = "/Movies",
+            )
+            videos += video(
+                uri = "content://two",
+                name = "Two.mp4",
+                parentPath = "/Downloads",
+            )
         }
 
         val playlist = ObservePlaylistUseCase(
@@ -46,11 +66,38 @@ class ObservePlaylistUseCaseTest {
             mediaRepository = mediaRepository,
         )(7).first()
 
-        assertEquals(listOf("Two", "One"), playlist?.items?.map { it.video?.displayName })
-        assertEquals(listOf("/Downloads", "/Movies"), playlist?.items?.map { it.video?.parentPath })
-        assertEquals(listOf(0, 1), playlist?.items?.map { it.position })
-        assertEquals(listOf(200L, 100L), playlist?.items?.map { it.lastPlayedAt })
-        assertEquals("content://two", playlist?.lastPlayedItem?.uri)
+        assertEquals(
+            listOf(
+                "Two",
+                "One",
+            ),
+            playlist?.items?.map { it.video?.displayName },
+        )
+        assertEquals(
+            listOf(
+                "/Downloads",
+                "/Movies",
+            ),
+            playlist?.items?.map { it.video?.parentPath },
+        )
+        assertEquals(
+            listOf(
+                0,
+                1,
+            ),
+            playlist?.items?.map { it.position },
+        )
+        assertEquals(
+            listOf(
+                200L,
+                100L,
+            ),
+            playlist?.items?.map { it.lastPlayedAt },
+        )
+        assertEquals(
+            "content://two",
+            playlist?.lastPlayedItem?.uri,
+        )
     }
 
     @Test
@@ -61,18 +108,26 @@ class ObservePlaylistUseCaseTest {
                 name = "Movies",
                 type = PlaylistType.LOCAL,
                 source = null,
-                items = listOf(element = PlaylistItemRecord(position = 0, uri = "content://one")),
+                items = listOf(
+                    element = PlaylistItemRecord(
+                        position = 0,
+                        uri = "content://one",
+                    ),
+                ),
                 lastRefreshedAt = null,
             ),
         )
         val mediaRepository = FakeMediaRepository().apply {
-            videos += video(uri = "content://one", name = "Before.mp4", parentPath = "/Movies")
-        }
-        val useCase =
-            ObservePlaylistUseCase(
-                playlistRepository = playlistRepository,
-                mediaRepository = mediaRepository,
+            videos += video(
+                uri = "content://one",
+                name = "Before.mp4",
+                parentPath = "/Movies",
             )
+        }
+        val useCase = ObservePlaylistUseCase(
+            playlistRepository = playlistRepository,
+            mediaRepository = mediaRepository,
+        )
 
         val before = useCase(7).first()
         mediaRepository.videos[0] = mediaRepository.videos[0].copy(
@@ -84,10 +139,22 @@ class ObservePlaylistUseCaseTest {
         mediaRepository.notifyMediaChanged()
         val after = useCase(7).first()
 
-        assertEquals("Before", before?.items?.single()?.video?.displayName)
-        assertEquals("After", after?.items?.single()?.video?.displayName)
-        assertEquals("/Renamed", after?.items?.single()?.video?.parentPath)
-        assertEquals(500L, after?.items?.single()?.video?.playbackPosition)
+        assertEquals(
+            "Before",
+            before?.items?.single()?.video?.displayName,
+        )
+        assertEquals(
+            "After",
+            after?.items?.single()?.video?.displayName,
+        )
+        assertEquals(
+            "/Renamed",
+            after?.items?.single()?.video?.parentPath,
+        )
+        assertEquals(
+            500L,
+            after?.items?.single()?.video?.playbackPosition,
+        )
         assertEquals(
             listOf(element = "content://one"),
             playlistRepository.record.value?.items?.map { it.uri },

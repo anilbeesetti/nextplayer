@@ -59,7 +59,10 @@ class BackgroundPlaybackCompletionTest {
             }
         }
 
-        val audio = File(context.cacheDir, "background-completion-${System.nanoTime()}.wav")
+        val audio = File(
+            context.cacheDir,
+            "background-completion-${System.nanoTime()}.wav",
+        )
         val pcm = ByteArray(size = 16_000 * 2 * 60)
         val header = ByteBuffer.allocate(44).order(ByteOrder.LITTLE_ENDIAN)
             .put("RIFF".toByteArray()).putInt(36 + pcm.size).put("WAVEfmt ".toByteArray())
@@ -69,10 +72,16 @@ class BackgroundPlaybackCompletionTest {
             it.write(header.array())
             it.write(pcm)
         }
-        val intent = Intent(context, PlayerActivity::class.java)
+        val intent = Intent(
+            context,
+            PlayerActivity::class.java,
+        )
             .addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
             .setData(Uri.fromFile(audio))
-            .putExtra(PlayerApi.API_POSITION, 45_000)
+            .putExtra(
+                PlayerApi.API_POSITION,
+                45_000,
+            )
         var activity: PlayerActivity? = null
         var player: MediaController? = null
         try {
@@ -84,10 +93,19 @@ class BackgroundPlaybackCompletionTest {
             onMain {
                 future = MediaController.Builder(
                     context,
-                    SessionToken(context, ComponentName(context, PlayerService::class.java)),
+                    SessionToken(
+                        context,
+                        ComponentName(
+                            context,
+                            PlayerService::class.java,
+                        ),
+                    ),
                 ).buildAsync()
             }
-            val controller = future.get(10, TimeUnit.SECONDS)
+            val controller = future.get(
+                10,
+                TimeUnit.SECONDS,
+            )
             player = controller
             await(description = "resumed playback") {
                 controller.isPlaying && controller.currentPosition >= 45_000
@@ -129,7 +147,12 @@ class BackgroundPlaybackCompletionTest {
                 player?.clearMediaItems()
                 player?.release()
             }
-            context.stopService(Intent(context, PlayerService::class.java))
+            context.stopService(
+                Intent(
+                    context,
+                    PlayerService::class.java,
+                ),
+            )
             audio.delete()
             runBlocking { preferences.updatePlayerPreferences { originalPreferences } }
         }

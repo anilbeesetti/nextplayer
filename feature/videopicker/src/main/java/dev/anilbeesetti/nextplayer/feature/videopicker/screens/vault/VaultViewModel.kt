@@ -65,7 +65,10 @@ class VaultViewModel(
         }
         viewModelScope.launch {
             preferencesRepository.applicationPreferences.collect { prefs ->
-                val inheritedSort = Sort(by = prefs.sortBy, order = prefs.sortOrder)
+                val inheritedSort = Sort(
+                    by = prefs.sortBy,
+                    order = prefs.sortOrder,
+                )
                 val shouldRefresh = !hasVaultSortOverride &&
                     stateInternal.value.stage == VaultStage.UNLOCKED &&
                     stateInternal.value.sort != inheritedSort
@@ -137,7 +140,11 @@ class VaultViewModel(
 
     private fun submitNewPin(pin: String) {
         stateInternal.update {
-            it.copy(pendingPin = pin, stage = VaultStage.CONFIRM_PIN, pinErrorCount = 0)
+            it.copy(
+                pendingPin = pin,
+                stage = VaultStage.CONFIRM_PIN,
+                pinErrorCount = 0,
+            )
         }
     }
 
@@ -196,7 +203,12 @@ class VaultViewModel(
     }
 
     private fun unlockVault() {
-        stateInternal.update { it.copy(stage = VaultStage.UNLOCKED, pinErrorCount = 0) }
+        stateInternal.update {
+            it.copy(
+                stage = VaultStage.UNLOCKED,
+                pinErrorCount = 0,
+            )
+        }
         collectHiddenVideos()
     }
 
@@ -205,7 +217,12 @@ class VaultViewModel(
         hiddenVideosJob = viewModelScope.launch {
             stateInternal.update { it.copy(isLoading = true) }
             getHiddenVideosUseCase(stateInternal.value.sort).collect { videos ->
-                stateInternal.update { it.copy(hiddenVideos = videos, isLoading = false) }
+                stateInternal.update {
+                    it.copy(
+                        hiddenVideos = videos,
+                        isLoading = false,
+                    )
+                }
             }
         }
     }
@@ -270,7 +287,10 @@ data class VaultUiState(
     val hiddenVideos: List<Video> = emptyList(),
     val isLoading: Boolean = false,
     val isUnhiding: Boolean = false,
-    val sort: Sort = Sort(by = Sort.By.DATE, order = Sort.Order.DESCENDING),
+    val sort: Sort = Sort(
+        by = Sort.By.DATE,
+        order = Sort.Order.DESCENDING,
+    ),
     val mediaInfo: MediaInfo? = null,
     val preferences: ApplicationPreferences = ApplicationPreferences(),
 )

@@ -22,10 +22,13 @@ import kotlinx.coroutines.launch
 fun rememberControlsVisibilityState(player: Player, hideAfter: Duration): ControlsVisibilityState {
     val activity = LocalActivity.current
     val coroutineScope = rememberCoroutineScope()
-    val controlsVisibilityState =
-        remember {
-            ControlsVisibilityState(player = player, hideAfter = hideAfter, scope = coroutineScope)
-        }
+    val controlsVisibilityState = remember {
+        ControlsVisibilityState(
+            player = player,
+            hideAfter = hideAfter,
+            scope = coroutineScope,
+        )
+    }
     LaunchedEffect(key1 = player) { controlsVisibilityState.observe() }
     LaunchedEffect(
         controlsVisibilityState.controlsVisible,

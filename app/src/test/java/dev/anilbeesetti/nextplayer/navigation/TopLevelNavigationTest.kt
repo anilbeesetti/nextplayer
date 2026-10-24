@@ -40,7 +40,10 @@ class TopLevelNavigationTest {
         state.switchTo(TopLevelDestination.PLAYLISTS.route)
 
         assertEquals(
-            listOf(TopLevelDestination.PLAYLISTS.route, PlaylistDetailRoute(playlistId = 7)),
+            listOf(
+                TopLevelDestination.PLAYLISTS.route,
+                PlaylistDetailRoute(playlistId = 7),
+            ),
             state.currentStack,
         )
     }
@@ -63,15 +66,27 @@ class TopLevelNavigationTest {
         state.openPlaylist(playlistId = 42)
         state.openPlaylist(playlistId = 42)
 
-        assertEquals(TopLevelDestination.PLAYLISTS.route, state.topLevelRoute)
         assertEquals(
-            listOf(TopLevelDestination.PLAYLISTS.route, PlaylistDetailRoute(playlistId = 42)),
+            TopLevelDestination.PLAYLISTS.route,
+            state.topLevelRoute,
+        )
+        assertEquals(
+            listOf(
+                TopLevelDestination.PLAYLISTS.route,
+                PlaylistDetailRoute(playlistId = 42),
+            ),
             state.currentStack,
         )
         state.goBack()
-        assertEquals(listOf(TopLevelDestination.PLAYLISTS.route), state.currentStack)
+        assertEquals(
+            listOf(TopLevelDestination.PLAYLISTS.route),
+            state.currentStack,
+        )
         state.goBack()
-        assertEquals(TopLevelDestination.MEDIA.route, state.topLevelRoute)
+        assertEquals(
+            TopLevelDestination.MEDIA.route,
+            state.topLevelRoute,
+        )
     }
 
     @Test
@@ -88,7 +103,10 @@ class TopLevelNavigationTest {
             assert(state.topLevelContentKeys.contains(dest.route))
             assert(
                 state.topLevelContentKeys.contains(
-                    element = Pair(first = "${dest.route}", second = "${dest.route::class}"),
+                    element = Pair(
+                        first = "${dest.route}",
+                        second = "${dest.route::class}",
+                    ),
                 ),
             )
         }

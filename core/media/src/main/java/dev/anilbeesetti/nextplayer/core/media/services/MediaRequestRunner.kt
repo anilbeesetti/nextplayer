@@ -21,7 +21,12 @@ internal suspend fun <T> runMediaRequests(
     require(value = maxBatchSize > 0)
 
     for (batch in items.distinct().chunked(size = maxBatchSize)) {
-        if (!runMediaRequestBatch(batch = batch, itemExists = itemExists, request = request)) {
+        if (!runMediaRequestBatch(
+                batch = batch,
+                itemExists = itemExists,
+                request = request,
+            )
+        ) {
             return false
         }
     }

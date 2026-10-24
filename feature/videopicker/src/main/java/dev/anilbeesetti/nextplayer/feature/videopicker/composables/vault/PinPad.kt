@@ -49,8 +49,17 @@ fun PinDotsIndicator(filledCount: Int, error: Boolean, modifier: Modifier = Modi
 
     LaunchedEffect(key1 = error) {
         if (error) {
-            for (target in listOf(16f, -16f, 10f, -10f, 0f)) {
-                offsetX.animateTo(targetValue = target, animationSpec = tween(durationMillis = 50))
+            for (target in listOf(
+                16f,
+                -16f,
+                10f,
+                -10f,
+                0f,
+            )) {
+                offsetX.animateTo(
+                    targetValue = target,
+                    animationSpec = tween(durationMillis = 50),
+                )
             }
         }
     }
@@ -97,9 +106,21 @@ fun PinKeypad(onDigit: (Char) -> Unit, onBackspace: () -> Unit, modifier: Modifi
     }
 
     val rows = listOf(
-        listOf('1', '2', '3'),
-        listOf('4', '5', '6'),
-        listOf('7', '8', '9'),
+        listOf(
+            '1',
+            '2',
+            '3',
+        ),
+        listOf(
+            '4',
+            '5',
+            '6',
+        ),
+        listOf(
+            '7',
+            '8',
+            '9',
+        ),
     )
     Column(
         modifier = modifier.fillMaxWidth(),
@@ -155,7 +176,10 @@ private fun PinKey(
     Column(
         modifier = modifier
             .aspectRatio(ratio = 1.4f)
-            .tvFocusRing(isTv = isTv, shape = MaterialTheme.shapes.large)
+            .tvFocusRing(
+                isTv = isTv,
+                shape = MaterialTheme.shapes.large,
+            )
             .clip(MaterialTheme.shapes.large)
             .background(MaterialTheme.colorScheme.surfaceContainerHigh)
             .clickable(onClick = onClick),
@@ -176,7 +200,10 @@ private fun PinKeyIcon(modifier: Modifier = Modifier, isTv: Boolean = false, onC
     Column(
         modifier = modifier
             .aspectRatio(ratio = 1.4f)
-            .tvFocusRing(isTv = isTv, shape = MaterialTheme.shapes.large)
+            .tvFocusRing(
+                isTv = isTv,
+                shape = MaterialTheme.shapes.large,
+            )
             .clip(MaterialTheme.shapes.large)
             .clickable(onClick = onClick),
         horizontalAlignment = Alignment.CenterHorizontally,

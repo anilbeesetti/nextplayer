@@ -22,7 +22,10 @@ import org.robolectric.RobolectricTestRunner
 import org.robolectric.annotation.Config
 
 @RunWith(RobolectricTestRunner::class)
-@Config(sdk = [36], qualifiers = "port")
+@Config(
+    sdk = [36],
+    qualifiers = "port",
+)
 class RotateButtonTest {
     @get:Rule
     val composeRule = createAndroidComposeRule<ComponentActivity>()
@@ -36,21 +39,34 @@ class RotateButtonTest {
                     ActivityInfo.SCREEN_ORIENTATION_UNSPECIFIED
             }
             composeRule.setContent {
-                PlayerOrientationEffect(player = player, ScreenOrientation.VIDEO_ORIENTATION)
+                PlayerOrientationEffect(
+                    player = player,
+                    ScreenOrientation.VIDEO_ORIENTATION,
+                )
             }
             composeRule.runOnIdle {
                 assertEquals(
                     ActivityInfo.SCREEN_ORIENTATION_SENSOR_LANDSCAPE,
                     composeRule.activity.requestedOrientation,
                 )
-                player.updateVideoSize(videoSize = VideoSize(360, 640))
+                player.updateVideoSize(
+                    videoSize = VideoSize(
+                        360,
+                        640,
+                    ),
+                )
             }
             composeRule.runOnIdle {
                 assertEquals(
                     ActivityInfo.SCREEN_ORIENTATION_SENSOR_PORTRAIT,
                     composeRule.activity.requestedOrientation,
                 )
-                player.updateVideoSize(videoSize = VideoSize(640, 360))
+                player.updateVideoSize(
+                    videoSize = VideoSize(
+                        640,
+                        360,
+                    ),
+                )
             }
             composeRule.runOnIdle {
                 assertEquals(
@@ -73,7 +89,10 @@ class RotateButtonTest {
                     ActivityInfo.SCREEN_ORIENTATION_UNSPECIFIED
             }
             composeRule.setContent {
-                PlayerOrientationEffect(player = player, ScreenOrientation.PORTRAIT)
+                PlayerOrientationEffect(
+                    player = player,
+                    ScreenOrientation.PORTRAIT,
+                )
                 NextPlayerTheme {
                     if (visible.value) RotateButton()
                 }
@@ -105,7 +124,12 @@ class RotateButtonTest {
     private class TestPlayer : SimpleBasePlayer(Looper.getMainLooper()) {
         private var state = State.Builder()
             .setAvailableCommands(Player.Commands.EMPTY)
-            .setVideoSize(VideoSize(640, 360))
+            .setVideoSize(
+                VideoSize(
+                    640,
+                    360,
+                ),
+            )
             .build()
 
         override fun getState(): State = state

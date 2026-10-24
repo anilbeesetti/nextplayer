@@ -118,7 +118,10 @@ class PlayerActivity : ComponentActivity() {
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        isIntentNew = savedInstanceState?.getBoolean("isIntentNew", true) ?: true
+        isIntentNew = savedInstanceState?.getBoolean(
+            "isIntentNew",
+            true,
+        ) ?: true
         enableEdgeToEdge(
             statusBarStyle = SystemBarStyle.dark(Color.TRANSPARENT),
             navigationBarStyle = SystemBarStyle.dark(Color.TRANSPARENT),
@@ -194,7 +197,10 @@ class PlayerActivity : ComponentActivity() {
                     initialUri = currentMediaDirectory(),
                 ),
             ) ?: return@launch
-            contentResolver.takePersistableUriPermission(uri, Intent.FLAG_GRANT_READ_URI_PERMISSION)
+            contentResolver.takePersistableUriPermission(
+                uri,
+                Intent.FLAG_GRANT_READ_URI_PERMISSION,
+            )
             snapshotFlow { mediaController }.filterNotNull().first().addSubtitleTrack(uri = uri)
         }
     }
@@ -203,7 +209,10 @@ class PlayerActivity : ComponentActivity() {
         lifecycleScope.launch {
             val uri = audioFileSuspendLauncher.launch(
                 OpenDocumentAtInitialUri.Input(
-                    mimeTypes = arrayOf("audio/*", "application/ogg"),
+                    mimeTypes = arrayOf(
+                        "audio/*",
+                        "application/ogg",
+                    ),
                     initialUri = currentMediaDirectory(),
                 ),
             ) ?: return@launch
@@ -306,7 +315,11 @@ class PlayerActivity : ComponentActivity() {
             ensureActive()
             withContext(Dispatchers.Main) {
                 mediaController?.run {
-                    setMediaItems(mediaItems, startIndex, C.TIME_UNSET)
+                    setMediaItems(
+                        mediaItems,
+                        startIndex,
+                        C.TIME_UNSET,
+                    )
                     playWhenReady = viewModel.state.value.playWhenReady
                     prepare()
                 }
@@ -323,7 +336,10 @@ class PlayerActivity : ComponentActivity() {
                     .toMutableList()
                     .apply {
                         if (!contains(mediaUri.toString())) {
-                            add(index = 0, element = mediaUri.toString())
+                            add(
+                                index = 0,
+                                element = mediaUri.toString(),
+                            )
                         }
                     }
             } ?: listOf(uri.toString())
@@ -382,7 +398,10 @@ class PlayerActivity : ComponentActivity() {
                 duration = mediaController?.duration ?: C.TIME_UNSET,
                 position = mediaController?.currentPosition ?: C.TIME_UNSET,
             )
-            setResult(RESULT_OK, result)
+            setResult(
+                RESULT_OK,
+                result,
+            )
         }
         super.finish()
     }
@@ -397,7 +416,10 @@ class PlayerActivity : ComponentActivity() {
     }
 
     override fun onSaveInstanceState(outState: Bundle) {
-        outState.putBoolean("isIntentNew", isIntentNew)
+        outState.putBoolean(
+            "isIntentNew",
+            isIntentNew,
+        )
         super.onSaveInstanceState(outState)
     }
 

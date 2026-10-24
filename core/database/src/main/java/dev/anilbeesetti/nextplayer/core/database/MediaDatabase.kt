@@ -38,7 +38,10 @@ abstract class MediaDatabase : RoomDatabase() {
     companion object {
         const val DATABASE_NAME = "media_db"
 
-        val MIGRATION_1_2 = object : Migration(1, 2) {
+        val MIGRATION_1_2 = object : Migration(
+            1,
+            2,
+        ) {
             override fun migrate(db: SupportSQLiteDatabase) {
                 // Create the new media_state table
                 db.execSQL(
@@ -165,7 +168,10 @@ abstract class MediaDatabase : RoomDatabase() {
             }
         }
 
-        val MIGRATION_2_3 = object : Migration(2, 3) {
+        val MIGRATION_2_3 = object : Migration(
+            2,
+            3,
+        ) {
             override fun migrate(db: SupportSQLiteDatabase) {
                 // Drop the unique index on path
                 db.execSQL(sql = "DROP INDEX IF EXISTS `index_media_path`")
@@ -179,7 +185,10 @@ abstract class MediaDatabase : RoomDatabase() {
             }
         }
 
-        val MIGRATION_3_4 = object : Migration(3, 4) {
+        val MIGRATION_3_4 = object : Migration(
+            3,
+            4,
+        ) {
             override fun migrate(db: SupportSQLiteDatabase) {
                 db.execSQL(
                     sql = "ALTER TABLE `media_state` ADD COLUMN `subtitle_delay` " +
@@ -192,7 +201,10 @@ abstract class MediaDatabase : RoomDatabase() {
             }
         }
 
-        val MIGRATION_4_5 = object : Migration(4, 5) {
+        val MIGRATION_4_5 = object : Migration(
+            4,
+            5,
+        ) {
             override fun migrate(db: SupportSQLiteDatabase) {
                 db.execSQL(sql = "DROP TABLE IF EXISTS `directories`")
                 db.execSQL(sql = "DROP TABLE IF EXISTS `media`")
@@ -202,7 +214,10 @@ abstract class MediaDatabase : RoomDatabase() {
             }
         }
 
-        val MIGRATION_5_6 = object : Migration(5, 6) {
+        val MIGRATION_5_6 = object : Migration(
+            5,
+            6,
+        ) {
             override fun migrate(db: SupportSQLiteDatabase) {
                 db.execSQL(
                     sql = """
@@ -227,7 +242,10 @@ abstract class MediaDatabase : RoomDatabase() {
             }
         }
 
-        val MIGRATION_6_7 = object : Migration(6, 7) {
+        val MIGRATION_6_7 = object : Migration(
+            6,
+            7,
+        ) {
             override fun migrate(db: SupportSQLiteDatabase) {
                 // Column definitions (order, types, nullability) must match the schema Room
                 // generates from NetworkConnectionEntity exactly, or migration validation fails.
@@ -250,7 +268,10 @@ abstract class MediaDatabase : RoomDatabase() {
             }
         }
 
-        val MIGRATION_7_8 = object : Migration(7, 8) {
+        val MIGRATION_7_8 = object : Migration(
+            7,
+            8,
+        ) {
             override fun migrate(db: SupportSQLiteDatabase) {
                 db.execSQL(
                     sql = """
@@ -289,7 +310,10 @@ abstract class MediaDatabase : RoomDatabase() {
             }
         }
 
-        val MIGRATION_8_9 = object : Migration(8, 9) {
+        val MIGRATION_8_9 = object : Migration(
+            8,
+            9,
+        ) {
             override fun migrate(db: SupportSQLiteDatabase) {
                 db.execSQL(
                     sql = "ALTER TABLE `network_connection` " +
@@ -310,7 +334,10 @@ abstract class MediaDatabase : RoomDatabase() {
             }
         }
 
-        val MIGRATION_9_10 = object : Migration(9, 10) {
+        val MIGRATION_9_10 = object : Migration(
+            9,
+            10,
+        ) {
             override fun migrate(db: SupportSQLiteDatabase) {
                 db.execSQL(
                     sql = "ALTER TABLE `playlist` ADD COLUMN `type` TEXT NOT NULL DEFAULT 'LOCAL'",
@@ -327,7 +354,10 @@ abstract class MediaDatabase : RoomDatabase() {
             }
         }
 
-        val MIGRATION_11_12 = object : Migration(11, 12) {
+        val MIGRATION_11_12 = object : Migration(
+            11,
+            12,
+        ) {
             override fun migrate(db: SupportSQLiteDatabase) {
                 db.execSQL(
                     sql = "ALTER TABLE `media_state` ADD COLUMN `external_audio` " +
@@ -336,13 +366,19 @@ abstract class MediaDatabase : RoomDatabase() {
             }
         }
 
-        val MIGRATION_10_11 = object : Migration(10, 11) {
+        val MIGRATION_10_11 = object : Migration(
+            10,
+            11,
+        ) {
             override fun migrate(db: SupportSQLiteDatabase) {
                 db.execSQL(sql = "ALTER TABLE `media_state` ADD COLUMN `duration` INTEGER")
             }
         }
 
-        val MIGRATION_12_13 = object : Migration(12, 13) {
+        val MIGRATION_12_13 = object : Migration(
+            12,
+            13,
+        ) {
             override fun migrate(db: SupportSQLiteDatabase) {
                 // Rebuild the table because older Android SQLite versions cannot drop columns.
                 db.execSQL(

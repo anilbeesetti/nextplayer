@@ -27,7 +27,10 @@ fun rememberVolumeAndBrightnessGestureState(
     brightnessGestureSensitivity: Float,
 ): VolumeAndBrightnessGestureState {
     val coroutineScope = rememberCoroutineScope()
-    val volumeAndBrightnessGestureState = remember(volumeState, brightnessState) {
+    val volumeAndBrightnessGestureState = remember(
+        volumeState,
+        brightnessState,
+    ) {
         VolumeAndBrightnessGestureState(
             volumeState = volumeState,
             brightnessState = brightnessState,

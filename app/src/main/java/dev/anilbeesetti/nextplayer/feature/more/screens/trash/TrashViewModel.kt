@@ -65,7 +65,10 @@ class TrashViewModel(
 
     private fun deletePermanently(selectionItems: Set<SelectionItem>) {
         viewModelScope.launch {
-            mediaOperationsService.deleteMedia(selectionItems.toUris(), permanently = true)
+            mediaOperationsService.deleteMedia(
+                selectionItems.toUris(),
+                permanently = true,
+            )
         }
     }
 

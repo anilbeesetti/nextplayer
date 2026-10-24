@@ -43,7 +43,10 @@ import dev.anilbeesetti.nextplayer.core.ui.components.NextDialog
 import dev.anilbeesetti.nextplayer.core.ui.designsystem.NextIcons
 import dev.anilbeesetti.nextplayer.feature.videopicker.extensions.name
 
-@OptIn(ExperimentalLayoutApi::class, ExperimentalMaterial3Api::class)
+@OptIn(
+    ExperimentalLayoutApi::class,
+    ExperimentalMaterial3Api::class,
+)
 @Composable
 fun QuickSettingsDialog(
     applicationPreferences: ApplicationPreferences,
@@ -81,11 +84,16 @@ fun QuickSettingsDialog(
                 }
                 MediaLayoutAndSortSettings(
                     layoutMode = preferences.mediaLayoutMode,
-                    sort = Sort(preferences.sortBy, preferences.sortOrder),
+                    sort = Sort(
+                        preferences.sortBy,
+                        preferences.sortOrder,
+                    ),
                     onLayoutModeChange = { preferences = preferences.copy(mediaLayoutMode = it) },
                     onSortChange = {
-                        preferences =
-                            preferences.copy(sortBy = it.by, sortOrder = it.order)
+                        preferences = preferences.copy(
+                            sortBy = it.by,
+                            sortOrder = it.order,
+                        )
                     },
                 )
                 HorizontalDivider(modifier = Modifier.padding(top = 16.dp))
@@ -108,20 +116,18 @@ fun QuickSettingsDialog(
                         label = stringResource(id = R.string.folder_duration),
                         selected = preferences.showFolderDurationField,
                         onClick = {
-                            preferences =
-                                preferences.copy(
-                                    showFolderDurationField = !preferences.showFolderDurationField,
-                                )
+                            preferences = preferences.copy(
+                                showFolderDurationField = !preferences.showFolderDurationField,
+                            )
                         },
                     )
                     FieldChip(
                         label = stringResource(id = R.string.extension),
                         selected = preferences.showExtensionField,
                         onClick = {
-                            preferences =
-                                preferences.copy(
-                                    showExtensionField = !preferences.showExtensionField,
-                                )
+                            preferences = preferences.copy(
+                                showExtensionField = !preferences.showExtensionField,
+                            )
                         },
                     )
                     FieldChip(
@@ -136,20 +142,18 @@ fun QuickSettingsDialog(
                         label = stringResource(id = R.string.played_progress),
                         selected = preferences.showPlayedProgress,
                         onClick = {
-                            preferences =
-                                preferences.copy(
-                                    showPlayedProgress = !preferences.showPlayedProgress,
-                                )
+                            preferences = preferences.copy(
+                                showPlayedProgress = !preferences.showPlayedProgress,
+                            )
                         },
                     )
                     FieldChip(
                         label = stringResource(id = R.string.resolution),
                         selected = preferences.showResolutionField,
                         onClick = {
-                            preferences =
-                                preferences.copy(
-                                    showResolutionField = !preferences.showResolutionField,
-                                )
+                            preferences = preferences.copy(
+                                showResolutionField = !preferences.showResolutionField,
+                            )
                         },
                     )
                     FieldChip(
@@ -164,10 +168,9 @@ fun QuickSettingsDialog(
                         label = stringResource(id = R.string.thumbnail),
                         selected = preferences.showThumbnailField,
                         onClick = {
-                            preferences =
-                                preferences.copy(
-                                    showThumbnailField = !preferences.showThumbnailField,
-                                )
+                            preferences = preferences.copy(
+                                showThumbnailField = !preferences.showThumbnailField,
+                            )
                         },
                     )
                 }
@@ -221,7 +224,10 @@ private fun DialogSectionTitle(text: String) {
     Text(
         text = text,
         style = MaterialTheme.typography.titleMedium,
-        modifier = Modifier.padding(top = 16.dp, bottom = 8.dp),
+        modifier = Modifier.padding(
+            top = 16.dp,
+            bottom = 8.dp,
+        ),
     )
 }
 
@@ -229,7 +235,10 @@ private fun DialogSectionTitle(text: String) {
 @Composable
 fun QuickSettingsPreview() {
     Surface {
-        QuickSettingsDialog(applicationPreferences = ApplicationPreferences(), onDismiss = {
-        }, updatePreferences = {})
+        QuickSettingsDialog(
+            applicationPreferences = ApplicationPreferences(),
+            onDismiss = {},
+            updatePreferences = {},
+        )
     }
 }

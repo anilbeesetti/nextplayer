@@ -58,10 +58,19 @@ class LocalVaultRepositoryTest {
     fun hideVideosKeepsSourceWhenDatabaseInsertFails() = runBlocking {
         val context = ApplicationProvider.getApplicationContext<Context>()
         val fileName = "issue-1828-${UUID.randomUUID()}.mp4"
-        val sourceFile = File(context.cacheDir, fileName).apply {
+        val sourceFile = File(
+            context.cacheDir,
+            fileName,
+        ).apply {
             writeText(text = "original video")
         }
-        val vaultFile = File(File(context.getExternalFilesDir(null), "vault"), fileName)
+        val vaultFile = File(
+            File(
+                context.getExternalFilesDir(null),
+                "vault",
+            ),
+            fileName,
+        )
         val mediaOperations = MovingMediaOperationsService()
         val repository = LocalVaultRepository(
             hiddenVideoDao = FailingInsertHiddenVideoDao,
@@ -84,14 +93,23 @@ class LocalVaultRepositoryTest {
                 )
             }
 
-            assertTrue("The repository must handle a rejected vault record", result.isSuccess)
+            assertTrue(
+                "The repository must handle a rejected vault record",
+                result.isSuccess,
+            )
             assertEquals(
                 "The video must not be moved before its vault record exists",
                 0,
                 mediaOperations.moveCalls,
             )
-            assertTrue("The original video must remain in place", sourceFile.exists())
-            assertFalse("A failed hide must not leave a private vault copy", vaultFile.exists())
+            assertTrue(
+                "The original video must remain in place",
+                sourceFile.exists(),
+            )
+            assertFalse(
+                "A failed hide must not leave a private vault copy",
+                vaultFile.exists(),
+            )
         } finally {
             sourceFile.delete()
             vaultFile.delete()
@@ -105,9 +123,21 @@ class LocalVaultRepositoryTest {
             requireNotNull(context.getExternalFilesDir(null)),
             "issue-1828-${UUID.randomUUID()}",
         )
-        val firstSource = File(File(testRoot, "first").apply { mkdirs() }, "duplicate.mp4")
+        val firstSource = File(
+            File(
+                testRoot,
+                "first",
+            ).apply { mkdirs() },
+            "duplicate.mp4",
+        )
             .apply { writeText(text = "first video") }
-        val secondSource = File(File(testRoot, "second").apply { mkdirs() }, "duplicate.mp4")
+        val secondSource = File(
+            File(
+                testRoot,
+                "second",
+            ).apply { mkdirs() },
+            "duplicate.mp4",
+        )
             .apply { writeText(text = "second video") }
         val dao = RecordingHiddenVideoDao()
         val repository = LocalVaultRepository(
@@ -126,10 +156,19 @@ class LocalVaultRepositoryTest {
             )
 
             val vaultFiles = dao.entities.values.map { File(it.vaultPath) }
-            assertEquals(2, vaultFiles.size)
-            assertNotEquals(vaultFiles[0].absolutePath, vaultFiles[1].absolutePath)
             assertEquals(
-                setOf("first video", "second video"),
+                2,
+                vaultFiles.size,
+            )
+            assertNotEquals(
+                vaultFiles[0].absolutePath,
+                vaultFiles[1].absolutePath,
+            )
+            assertEquals(
+                setOf(
+                    "first video",
+                    "second video",
+                ),
                 vaultFiles.map { it.readText() }.toSet(),
             )
             assertFalse(firstSource.exists())
@@ -143,7 +182,10 @@ class LocalVaultRepositoryTest {
     @Test
     fun hideVideosRemovesReservationAndKeepsSourceWhenMoveFails() = runBlocking {
         val context = ApplicationProvider.getApplicationContext<Context>()
-        val sourceFile = File(context.cacheDir, "issue-1828-${UUID.randomUUID()}.mp4")
+        val sourceFile = File(
+            context.cacheDir,
+            "issue-1828-${UUID.randomUUID()}.mp4",
+        )
             .apply { writeText(text = "original video") }
         val dao = RecordingHiddenVideoDao()
         val repository = LocalVaultRepository(
@@ -156,8 +198,14 @@ class LocalVaultRepositoryTest {
         try {
             repository.hideVideos(videos = listOf(element = videoFor(file = sourceFile)))
 
-            assertTrue("A failed move must preserve the source", sourceFile.exists())
-            assertTrue("A failed move must roll back its reserved row", dao.entities.isEmpty())
+            assertTrue(
+                "A failed move must preserve the source",
+                sourceFile.exists(),
+            )
+            assertTrue(
+                "A failed move must roll back its reserved row",
+                dao.entities.isEmpty(),
+            )
         } finally {
             sourceFile.delete()
         }
@@ -166,31 +214,38 @@ class LocalVaultRepositoryTest {
     @Test
     fun hideVideosCleansCommittedReservationWhenInsertIsCancelled() = runBlocking {
         val context = ApplicationProvider.getApplicationContext<Context>()
-        val sourceFile = File(context.cacheDir, "issue-1828-${UUID.randomUUID()}.mp4")
+        val sourceFile = File(
+            context.cacheDir,
+            "issue-1828-${UUID.randomUUID()}.mp4",
+        )
             .apply { writeText(text = "original video") }
         val dao = CommitThenCancelHiddenVideoDao()
         val mediaOperations = MovingMediaOperationsService()
-        val repository =
-            LocalVaultRepository(
-                hiddenVideoDao = dao,
-                database.mediumStateDao(),
-                mediaOperationsService = mediaOperations,
-                context = context,
-            )
+        val repository = LocalVaultRepository(
+            hiddenVideoDao = dao,
+            database.mediumStateDao(),
+            mediaOperationsService = mediaOperations,
+            context = context,
+        )
 
         try {
-            val result =
-                runCatching {
-                    repository.hideVideos(videos = listOf(element = videoFor(file = sourceFile)))
-                }
+            val result = runCatching {
+                repository.hideVideos(videos = listOf(element = videoFor(file = sourceFile)))
+            }
 
             assertTrue(result.exceptionOrNull() is CancellationException)
-            assertTrue("Cancellation before moving must preserve the source", sourceFile.exists())
+            assertTrue(
+                "Cancellation before moving must preserve the source",
+                sourceFile.exists(),
+            )
             assertTrue(
                 "A row committed before cancellation delivery must be cleaned up",
                 dao.entities.isEmpty(),
             )
-            assertEquals(0, mediaOperations.moveCalls)
+            assertEquals(
+                0,
+                mediaOperations.moveCalls,
+            )
         } finally {
             sourceFile.delete()
         }
@@ -199,7 +254,10 @@ class LocalVaultRepositoryTest {
     @Test
     fun hideVideosCleansReservationAndKeepsSourceWhenMoveIsCancelled() = runBlocking {
         val context = ApplicationProvider.getApplicationContext<Context>()
-        val sourceFile = File(context.cacheDir, "issue-1828-${UUID.randomUUID()}.mp4")
+        val sourceFile = File(
+            context.cacheDir,
+            "issue-1828-${UUID.randomUUID()}.mp4",
+        )
             .apply { writeText(text = "original video") }
         val dao = RecordingHiddenVideoDao()
         val repository = LocalVaultRepository(
@@ -212,14 +270,19 @@ class LocalVaultRepositoryTest {
         )
 
         try {
-            val result =
-                runCatching {
-                    repository.hideVideos(videos = listOf(element = videoFor(file = sourceFile)))
-                }
+            val result = runCatching {
+                repository.hideVideos(videos = listOf(element = videoFor(file = sourceFile)))
+            }
 
             assertTrue(result.exceptionOrNull() is CancellationException)
-            assertTrue("A cancelled move must preserve the source", sourceFile.exists())
-            assertTrue("A cancelled move must clean up its reservation", dao.entities.isEmpty())
+            assertTrue(
+                "A cancelled move must preserve the source",
+                sourceFile.exists(),
+            )
+            assertTrue(
+                "A cancelled move must clean up its reservation",
+                dao.entities.isEmpty(),
+            )
         } finally {
             sourceFile.delete()
         }
@@ -244,16 +307,24 @@ class LocalVaultRepositoryTest {
         )
 
         try {
-            val result =
-                runCatching {
-                    repository.hideVideos(videos = listOf(element = videoFor(file = sourceFile)))
-                }
+            val result = runCatching {
+                repository.hideVideos(videos = listOf(element = videoFor(file = sourceFile)))
+            }
             val vaultFile = File(dao.entities.getValue(key = 1L).vaultPath)
 
             assertTrue(result.exceptionOrNull() is CancellationException)
-            assertFalse("A committed move must not retain the source", sourceFile.exists())
-            assertTrue("A committed move must retain its reservation", dao.entities.containsKey(1L))
-            assertTrue("A committed move must retain its vault file", vaultFile.exists())
+            assertFalse(
+                "A committed move must not retain the source",
+                sourceFile.exists(),
+            )
+            assertTrue(
+                "A committed move must retain its reservation",
+                dao.entities.containsKey(1L),
+            )
+            assertTrue(
+                "A committed move must retain its vault file",
+                vaultFile.exists(),
+            )
         } finally {
             sourceFile.delete()
             dao.entities.values.forEach { File(it.vaultPath).delete() }
@@ -267,9 +338,21 @@ class LocalVaultRepositoryTest {
             requireNotNull(context.getExternalFilesDir(null)),
             "issue-1828-partial-${UUID.randomUUID()}",
         )
-        val firstSource = File(File(testRoot, "first").apply { mkdirs() }, "first.mp4")
+        val firstSource = File(
+            File(
+                testRoot,
+                "first",
+            ).apply { mkdirs() },
+            "first.mp4",
+        )
             .apply { writeText(text = "first video") }
-        val secondSource = File(File(testRoot, "second").apply { mkdirs() }, "second.mp4")
+        val secondSource = File(
+            File(
+                testRoot,
+                "second",
+            ).apply { mkdirs() },
+            "second.mp4",
+        )
             .apply { writeText(text = "second video") }
         val dao = RecordingHiddenVideoDao()
         val repository = LocalVaultRepository(
@@ -294,16 +377,28 @@ class LocalVaultRepositoryTest {
 
         try {
             repository.hideVideos(
-                videos = listOf(videoFor(file = firstSource), videoFor(file = secondSource)),
+                videos = listOf(
+                    videoFor(file = firstSource),
+                    videoFor(file = secondSource),
+                ),
             )
 
-            assertEquals(listOf(element = 1L), dao.entities.keys.toList())
-            assertFalse("The first source must be committed", firstSource.exists())
+            assertEquals(
+                listOf(element = 1L),
+                dao.entities.keys.toList(),
+            )
+            assertFalse(
+                "The first source must be committed",
+                firstSource.exists(),
+            )
             assertTrue(
                 "The first reservation must retain its vault file",
                 File(dao.entities.getValue(key = 1L).vaultPath).exists(),
             )
-            assertTrue("The later uncommitted source must remain", secondSource.exists())
+            assertTrue(
+                "The later uncommitted source must remain",
+                secondSource.exists(),
+            )
             assertNull(
                 database.mediumStateDao().get(firstSource.toUri().toString())?.lastPlayedTime,
             )
@@ -362,13 +457,12 @@ class LocalVaultRepositoryTest {
         ).apply { writeText(text = "original video") }
         val dao = RecordingHiddenVideoDao()
         val mediaOperations = PausedMovingMediaOperationsService()
-        val repository =
-            LocalVaultRepository(
-                hiddenVideoDao = dao,
-                database.mediumStateDao(),
-                mediaOperationsService = mediaOperations,
-                context = context,
-            )
+        val repository = LocalVaultRepository(
+            hiddenVideoDao = dao,
+            database.mediumStateDao(),
+            mediaOperationsService = mediaOperations,
+            context = context,
+        )
 
         try {
             val hideJob = launch(start = CoroutineStart.UNDISPATCHED) {
@@ -383,7 +477,10 @@ class LocalVaultRepositoryTest {
 
             mediaOperations.allowMove.complete(value = Unit)
             withTimeout(timeMillis = TEST_TIMEOUT_MILLIS) { hideJob.join() }
-            assertEquals(1, repository.observeHiddenVideos().first().size)
+            assertEquals(
+                1,
+                repository.observeHiddenVideos().first().size,
+            )
         } finally {
             mediaOperations.allowMove.complete(value = Unit)
             sourceFile.delete()
@@ -400,13 +497,12 @@ class LocalVaultRepositoryTest {
         ).apply { writeText(text = "original video") }
         val dao = RecordingHiddenVideoDao()
         val mediaOperations = PausedMovingMediaOperationsService()
-        val repository =
-            LocalVaultRepository(
-                hiddenVideoDao = dao,
-                database.mediumStateDao(),
-                mediaOperationsService = mediaOperations,
-                context = context,
-            )
+        val repository = LocalVaultRepository(
+            hiddenVideoDao = dao,
+            database.mediumStateDao(),
+            mediaOperationsService = mediaOperations,
+            context = context,
+        )
 
         try {
             val hideJob = launch(start = CoroutineStart.UNDISPATCHED) {
@@ -420,7 +516,10 @@ class LocalVaultRepositoryTest {
                 )
             }
 
-            assertTrue("Delete must wait for the in-progress hide operation", deleteJob.isActive)
+            assertTrue(
+                "Delete must wait for the in-progress hide operation",
+                deleteJob.isActive,
+            )
             assertTrue(
                 "Delete must not remove an in-progress reservation",
                 dao.entities.containsKey(1L),

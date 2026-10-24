@@ -117,7 +117,12 @@ internal fun PlaylistListScreenContent(
             modifier = Modifier
                 .fillMaxSize()
                 .padding(scaffoldPadding.copy(bottom = 0.dp))
-                .clip(shape = RoundedCornerShape(topStart = 24.dp, topEnd = 24.dp))
+                .clip(
+                    shape = RoundedCornerShape(
+                        topStart = 24.dp,
+                        topEnd = 24.dp,
+                    ),
+                )
                 .background(MaterialTheme.colorScheme.background),
         ) {
             when (state.playlistsDataState) {
@@ -221,7 +226,14 @@ internal fun PlaylistListScreenContent(
             isSaving = state.saveActionState.isRunning,
             error = state.saveActionState.errorMessage,
             onDismissRequest = { onAction(PlaylistUiAction.DismissRenameDialog) },
-            onConfirm = { onAction(PlaylistUiAction.Rename(playlist.id, name = it)) },
+            onConfirm = {
+                onAction(
+                    PlaylistUiAction.Rename(
+                        playlist.id,
+                        name = it,
+                    ),
+                )
+            },
         )
     }
 
@@ -230,7 +242,10 @@ internal fun PlaylistListScreenContent(
             title = { Text(text = stringResource(R.string.delete_playlist)) },
             content = {
                 Text(
-                    text = stringResource(R.string.delete_playlist_confirmation, playlist.name),
+                    text = stringResource(
+                        R.string.delete_playlist_confirmation,
+                        playlist.name,
+                    ),
                 )
             },
             confirmButton = {
@@ -281,7 +296,10 @@ private fun CreationChooserDialog(
         },
         confirmButton = {},
         dismissButton = {
-            TextButton(onClick = onDismissRequest, modifier = Modifier.tvFocusRing()) {
+            TextButton(
+                onClick = onDismissRequest,
+                modifier = Modifier.tvFocusRing(),
+            ) {
                 Text(text = stringResource(R.string.cancel))
             }
         },
@@ -296,7 +314,12 @@ private fun CreationChoice(
 ) {
     DropdownMenuItem(
         text = { Text(text = label) },
-        leadingIcon = { Icon(imageVector = icon, contentDescription = null) },
+        leadingIcon = {
+            Icon(
+                imageVector = icon,
+                contentDescription = null,
+            )
+        },
         onClick = onClick,
         modifier = Modifier.fillMaxWidth(),
     )
@@ -486,7 +509,12 @@ private fun PlaylistRow(
                     onAddToHomeScreen?.let { addShortcut ->
                         DropdownMenuItem(
                             text = { Text(text = stringResource(R.string.add_to_home_screen)) },
-                            leadingIcon = { Icon(NextIcons.Home, contentDescription = null) },
+                            leadingIcon = {
+                                Icon(
+                                    NextIcons.Home,
+                                    contentDescription = null,
+                                )
+                            },
                             onClick = {
                                 menuExpanded = false
                                 addShortcut()
@@ -495,7 +523,12 @@ private fun PlaylistRow(
                     }
                     DropdownMenuItem(
                         text = { Text(text = stringResource(R.string.rename_playlist)) },
-                        leadingIcon = { Icon(NextIcons.Edit, contentDescription = null) },
+                        leadingIcon = {
+                            Icon(
+                                NextIcons.Edit,
+                                contentDescription = null,
+                            )
+                        },
                         onClick = {
                             menuExpanded = false
                             onRename()
@@ -503,7 +536,12 @@ private fun PlaylistRow(
                     )
                     DropdownMenuItem(
                         text = { Text(text = stringResource(R.string.delete)) },
-                        leadingIcon = { Icon(NextIcons.Delete, contentDescription = null) },
+                        leadingIcon = {
+                            Icon(
+                                NextIcons.Delete,
+                                contentDescription = null,
+                            )
+                        },
                         onClick = {
                             menuExpanded = false
                             onDelete()
@@ -527,8 +565,14 @@ private fun PlaylistType.label(): String = stringResource(
 private fun String.isHttpUrl(): Boolean = runCatching {
     val uri = Uri.parse(this)
     (
-        uri.scheme.equals(other = "http", ignoreCase = true) ||
-            uri.scheme.equals(other = "https", ignoreCase = true)
+        uri.scheme.equals(
+            other = "http",
+            ignoreCase = true,
+        ) ||
+            uri.scheme.equals(
+                other = "https",
+                ignoreCase = true,
+            )
         ) && !uri.host.isNullOrBlank()
 }.getOrDefault(defaultValue = false)
 

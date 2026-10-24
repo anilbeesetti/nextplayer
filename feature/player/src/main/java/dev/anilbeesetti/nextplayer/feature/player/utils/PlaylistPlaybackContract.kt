@@ -20,7 +20,10 @@ internal fun MediaItem.asExplicitPlaylistItem(): MediaItem = buildUpon()
     .setRequestMetadata(
         requestMetadata.buildUpon().setExtras(
             (requestMetadata.extras?.let(block = ::Bundle) ?: Bundle()).apply {
-                putBoolean(EXPLICIT_PLAYLIST_KEY, true)
+                putBoolean(
+                    EXPLICIT_PLAYLIST_KEY,
+                    true,
+                )
             },
         ).build(),
     ).build()

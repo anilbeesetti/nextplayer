@@ -103,10 +103,30 @@ enum class TopLevelDestination(
     @StringRes val labelRes: Int,
     val fabKey: String? = null,
 ) {
-    MEDIA(MediaPickerRoute(), NextIcons.Home, R.string.home, TopLevelFabKey.MEDIA),
-    PLAYLISTS(PlaylistListRoute, NextIcons.Playlist, R.string.playlists, TopLevelFabKey.PLAYLISTS),
-    NETWORK(NetworkRoute, NextIcons.Network, R.string.network, TopLevelFabKey.NETWORK),
-    MORE(MoreRoute, NextIcons.More, R.string.more, TopLevelFabKey.MORE),
+    MEDIA(
+        MediaPickerRoute(),
+        NextIcons.Home,
+        R.string.home,
+        TopLevelFabKey.MEDIA,
+    ),
+    PLAYLISTS(
+        PlaylistListRoute,
+        NextIcons.Playlist,
+        R.string.playlists,
+        TopLevelFabKey.PLAYLISTS,
+    ),
+    NETWORK(
+        NetworkRoute,
+        NextIcons.Network,
+        R.string.network,
+        TopLevelFabKey.NETWORK,
+    ),
+    MORE(
+        MoreRoute,
+        NextIcons.More,
+        R.string.more,
+        TopLevelFabKey.MORE,
+    ),
 }
 
 @Composable
@@ -120,7 +140,10 @@ fun rememberTopLevelNavState(): TopLevelNavState {
         dest.route to backStack
     }
     val selectedIndex = rememberSaveable { mutableIntStateOf(value = 0) }
-    return remember(backStacks, selectedIndex) {
+    return remember(
+        backStacks,
+        selectedIndex,
+    ) {
         TopLevelNavState(
             destinations = destinations,
             backStacks = backStacks,
@@ -156,7 +179,10 @@ class TopLevelNavState(
         get() = if (selectedIndex == 0) {
             listOf(element = startRoute)
         } else {
-            listOf(startRoute, topLevelRoute)
+            listOf(
+                startRoute,
+                topLevelRoute,
+            )
         }
 
     /**
@@ -168,7 +194,10 @@ class TopLevelNavState(
         listOf(
             dest.route,
             dest.route.toString(),
-            Pair(first = "${dest.route}", second = "${dest.route::class}"),
+            Pair(
+                first = "${dest.route}",
+                second = "${dest.route::class}",
+            ),
         )
     }.toSet()
 
@@ -224,9 +253,17 @@ internal fun TopLevelNavState.navigationTransition(
         )
     ) {
         return fadeIn(
-            animationSpec = tween(durationMillis = 200, easing = LinearEasing),
+            animationSpec = tween(
+                durationMillis = 200,
+                easing = LinearEasing,
+            ),
         ) togetherWith
-            fadeOut(animationSpec = tween(durationMillis = 200, easing = LinearEasing))
+            fadeOut(
+                animationSpec = tween(
+                    durationMillis = 200,
+                    easing = LinearEasing,
+                ),
+            )
     }
 
     // Quick Back can select the pop spec while the animated scenes still describe the push.
@@ -236,10 +273,16 @@ internal fun TopLevelNavState.navigationTransition(
     }
     return slideInHorizontally(
         initialOffsetX = { if (isPop) -(it * 0.3f).toInt() else it },
-        animationSpec = tween(durationMillis = 200, easing = LinearEasing),
+        animationSpec = tween(
+            durationMillis = 200,
+            easing = LinearEasing,
+        ),
     ) togetherWith slideOutHorizontally(
         targetOffsetX = { if (isPop) it else -(it * 0.3f).toInt() },
-        animationSpec = tween(durationMillis = 200, easing = LinearEasing),
+        animationSpec = tween(
+            durationMillis = 200,
+            easing = LinearEasing,
+        ),
     )
 }
 
@@ -407,7 +450,10 @@ fun NavigationView(
                                     indication = null,
                                     interactionSource = null,
                                 )
-                                .padding(horizontal = 16.dp, vertical = 12.dp),
+                                .padding(
+                                    horizontal = 16.dp,
+                                    vertical = 12.dp,
+                                ),
                             horizontalAlignment = Alignment.CenterHorizontally,
                             verticalArrangement = Arrangement.spacedBy(2.dp),
                         ) {
@@ -441,7 +487,10 @@ fun NextNavigationRail(state: TopLevelNavState, modifier: Modifier = Modifier) {
         Column(
             modifier = Modifier.fillMaxHeight(),
             horizontalAlignment = Alignment.CenterHorizontally,
-            verticalArrangement = Arrangement.spacedBy(8.dp, Alignment.CenterVertically),
+            verticalArrangement = Arrangement.spacedBy(
+                8.dp,
+                Alignment.CenterVertically,
+            ),
         ) {
             state.destinations.forEach { dest ->
                 val selected = state.topLevelRoute == dest.route

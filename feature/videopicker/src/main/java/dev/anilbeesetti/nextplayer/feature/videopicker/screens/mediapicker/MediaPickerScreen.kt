@@ -416,7 +416,12 @@ internal fun MediaPickerScreenContent(
             Modifier
                 .fillMaxSize()
                 .padding(scaffoldPadding.copy(bottom = 0.dp))
-                .clip(shape = RoundedCornerShape(topStart = 24.dp, topEnd = 24.dp))
+                .clip(
+                    shape = RoundedCornerShape(
+                        topStart = 24.dp,
+                        topEnd = 24.dp,
+                    ),
+                )
                 .background(MaterialTheme.colorScheme.background),
         ) {
             if (!permissionState.status.isGranted) {
@@ -498,7 +503,12 @@ internal fun MediaPickerScreenContent(
             name = video.displayName,
             onDismiss = { showRenameActionFor = null },
             onDone = {
-                onAction(MediaPickerAction.RenameVideo(video.uriString.toUri(), to = it))
+                onAction(
+                    MediaPickerAction.RenameVideo(
+                        video.uriString.toUri(),
+                        to = it,
+                    ),
+                )
                 selectionManager.exitSelectionMode()
                 showRenameActionFor = null
             },
@@ -582,7 +592,10 @@ private fun TransferProgressDialog(
             Column(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .padding(horizontal = 24.dp, vertical = 24.dp),
+                    .padding(
+                        horizontal = 24.dp,
+                        vertical = 24.dp,
+                    ),
                 verticalArrangement = Arrangement.spacedBy(20.dp),
             ) {
                 Text(
@@ -624,7 +637,10 @@ private fun TransferProgressDialog(
  */
 @Composable
 private fun ProgressSection(label: String, fraction: Float?) {
-    val animatedFraction by animateFloatAsState(targetValue = fraction ?: 0f, label = "progress")
+    val animatedFraction by animateFloatAsState(
+        targetValue = fraction ?: 0f,
+        label = "progress",
+    )
 
     Column(verticalArrangement = Arrangement.spacedBy(6.dp)) {
         Row(
@@ -653,7 +669,10 @@ private fun ProgressSection(label: String, fraction: Float?) {
             .fillMaxWidth()
             .clip(shape = CircleShape)
         if (fraction != null) {
-            LinearProgressIndicator(progress = { animatedFraction }, modifier = barModifier)
+            LinearProgressIndicator(
+                progress = { animatedFraction },
+                modifier = barModifier,
+            )
         } else {
             LinearProgressIndicator(modifier = barModifier)
         }
@@ -679,12 +698,20 @@ private fun DeleteConfirmationDialog(
                 text = when {
                     selectedVideos.isEmpty() -> when (selectedFolders.size) {
                         1 -> stringResource(R.string.delete_one_folder)
-                        else -> stringResource(R.string.delete_folders, selectedFolders.size)
+
+                        else -> stringResource(
+                            R.string.delete_folders,
+                            selectedFolders.size,
+                        )
                     }
 
                     selectedFolders.isEmpty() -> when (selectedVideos.size) {
                         1 -> stringResource(R.string.delete_one_video)
-                        else -> stringResource(R.string.delete_videos, selectedVideos.size)
+
+                        else -> stringResource(
+                            R.string.delete_videos,
+                            selectedVideos.size,
+                        )
                     }
 
                     else -> stringResource(
@@ -763,7 +790,10 @@ private fun HideFlowDialogs(
                         text = if (count == 1) {
                             stringResource(R.string.hide_one_video_confirmation)
                         } else {
-                            stringResource(R.string.hide_videos_confirmation, count)
+                            stringResource(
+                                R.string.hide_videos_confirmation,
+                                count,
+                            )
                         },
                     )
                 },
@@ -868,7 +898,10 @@ private fun SetupVaultPinDialog(onDismiss: () -> Unit, onPinConfirmed: (String) 
                 Column(
                     modifier = Modifier
                         .fillMaxWidth()
-                        .padding(horizontal = 24.dp, vertical = 28.dp),
+                        .padding(
+                            horizontal = 24.dp,
+                            vertical = 28.dp,
+                        ),
                     horizontalAlignment = Alignment.CenterHorizontally,
                 ) {
                     SetupPinHeader(
@@ -1024,7 +1057,10 @@ private fun PlaylistTargetDialog(
                         .fillMaxWidth()
                         .tvFocusRing(),
                 ) {
-                    Icon(NextIcons.Add, contentDescription = null)
+                    Icon(
+                        NextIcons.Add,
+                        contentDescription = null,
+                    )
                     Spacer(Modifier.size(8.dp))
                     Text(
                         text = stringResource(R.string.create_new_playlist),
@@ -1044,7 +1080,10 @@ private fun PlaylistTargetDialog(
                             )
                         }
                     }
-                    items(items = playlists, key = PlaylistSummary::id) { playlist ->
+                    items(
+                        items = playlists,
+                        key = PlaylistSummary::id,
+                    ) { playlist ->
                         TextButton(
                             onClick = { onPlaylistSelected(playlist.id) },
                             enabled = !state.isSaving && state.hasVideos,

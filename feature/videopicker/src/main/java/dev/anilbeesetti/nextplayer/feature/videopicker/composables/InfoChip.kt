@@ -28,6 +28,9 @@ fun InfoChip(
         modifier = modifier
             .clip(shape = shape)
             .background(color = backgroundColor)
-            .padding(vertical = 1.dp, horizontal = 3.dp),
+            .padding(
+                vertical = 1.dp,
+                horizontal = 3.dp,
+            ),
     )
 }

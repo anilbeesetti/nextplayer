@@ -32,8 +32,13 @@ fun rememberSubtitleOptionsState(
     onEvent: (SubtitleOptionsEvent) -> Unit = {},
 ): SubtitleOptionsState {
     val scope = rememberCoroutineScope()
-    val subtitleOptionsState =
-        remember { SubtitleOptionsState(player = player, scope = scope, onEvent = onEvent) }
+    val subtitleOptionsState = remember {
+        SubtitleOptionsState(
+            player = player,
+            scope = scope,
+            onEvent = onEvent,
+        )
+    }
     LaunchedEffect(key1 = player) { subtitleOptionsState.observe() }
     return subtitleOptionsState
 }
@@ -79,7 +84,11 @@ class SubtitleOptionsState(
         updateSubtitleDelayMilliseconds()
         updateSubtitleSpeed()
         player.listen { events ->
-            if (events.containsAny(Player.EVENT_TRACKS_CHANGED, Player.EVENT_CUES)) {
+            if (events.containsAny(
+                    Player.EVENT_TRACKS_CHANGED,
+                    Player.EVENT_CUES,
+                )
+            ) {
                 scope.launch {
                     updateSubtitleDelayMilliseconds()
                     updateSubtitleSpeed()
@@ -110,7 +119,12 @@ class SubtitleOptionsState(
             player.currentMediaItemIndex,
             currentMediaItem.copy(subtitleDelayMilliseconds = delay),
         )
-        onEvent(SubtitleOptionsEvent.DelayChanged(mediaItem = currentMediaItem, delay = delay))
+        onEvent(
+            SubtitleOptionsEvent.DelayChanged(
+                mediaItem = currentMediaItem,
+                delay = delay,
+            ),
+        )
     }
 
     private fun updateSpeedMetadataAndSendEvent(speed: Float = this.speedMultiplier) {
@@ -119,7 +133,12 @@ class SubtitleOptionsState(
             player.currentMediaItemIndex,
             currentMediaItem.copy(subtitleSpeed = speed),
         )
-        onEvent(SubtitleOptionsEvent.SpeedChanged(mediaItem = currentMediaItem, speed = speed))
+        onEvent(
+            SubtitleOptionsEvent.SpeedChanged(
+                mediaItem = currentMediaItem,
+                speed = speed,
+            ),
+        )
     }
 }
 

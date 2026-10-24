@@ -59,8 +59,14 @@ fun BoxScope.SubtitleSelectorView(
     onEvent: (SubtitleOptionsEvent) -> Unit = {},
     onDismiss: () -> Unit,
 ) {
-    val subtitleTracksState = rememberTracksState(player = player, C.TRACK_TYPE_TEXT)
-    val subtitleOptionsState = rememberSubtitleOptionsState(player = player, onEvent = onEvent)
+    val subtitleTracksState = rememberTracksState(
+        player = player,
+        C.TRACK_TYPE_TEXT,
+    )
+    val subtitleOptionsState = rememberSubtitleOptionsState(
+        player = player,
+        onEvent = onEvent,
+    )
 
     OverlayView(
         modifier = modifier,
@@ -77,7 +83,10 @@ fun BoxScope.SubtitleSelectorView(
             subtitleTracksState.tracks.forEachIndexed { index, track ->
                 RadioButtonRow(
                     selected = track.isSelected,
-                    text = track.mediaTrackGroup.getName(C.TRACK_TYPE_TEXT, index = index),
+                    text = track.mediaTrackGroup.getName(
+                        C.TRACK_TYPE_TEXT,
+                        index = index,
+                    ),
                     onClick = {
                         subtitleTracksState.switchTrack(index = index)
                         onDismiss()
@@ -225,7 +234,7 @@ private fun NumberChooserInput(
         horizontalArrangement = Arrangement.spacedBy(16.dp),
     ) {
         FilledTonalIconButton(
-            onClick = { },
+            onClick = {},
             modifier = Modifier.repeatingClickable(onClick = onDecrement),
         ) {
             Icon(
@@ -245,7 +254,7 @@ private fun NumberChooserInput(
             ),
         )
         FilledTonalIconButton(
-            onClick = { },
+            onClick = {},
             modifier = Modifier.repeatingClickable(onClick = onIncrement),
         ) {
             Icon(

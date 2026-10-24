@@ -162,10 +162,16 @@ suspend fun PointerInputScope.detectCustomHorizontalDragGestures(
         if (drag != null && currentEvent.changes.count { it.pressed } == 1) {
             onDragStart.invoke(drag.position)
             try {
-                onHorizontalDrag(drag, overSlop)
+                onHorizontalDrag(
+                    drag,
+                    overSlop,
+                )
                 if (
                     horizontalDrag(drag.id) {
-                        onHorizontalDrag(it, it.positionChange().x)
+                        onHorizontalDrag(
+                            it,
+                            it.positionChange().x,
+                        )
                         it.consume()
                     }
                 ) {
@@ -197,9 +203,15 @@ suspend fun PointerInputScope.detectCustomVerticalDragGestures(
         }
         if (drag != null && currentEvent.changes.count { it.pressed } == 1) {
             onDragStart.invoke(drag.position)
-            onVerticalDrag.invoke(drag, overSlop)
+            onVerticalDrag.invoke(
+                drag,
+                overSlop,
+            )
             if (verticalDrag(drag.id) {
-                    onVerticalDrag(it, it.positionChange().y)
+                    onVerticalDrag(
+                        it,
+                        it.positionChange().y,
+                    )
                     it.consume()
                 }
             ) {

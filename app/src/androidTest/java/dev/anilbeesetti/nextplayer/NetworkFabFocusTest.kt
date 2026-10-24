@@ -40,7 +40,12 @@ class NetworkFabFocusTest {
     @Before
     fun openNetwork() {
         assumeTrue(composeRule.activity.isTelevision)
-        composeRule.onAllNodes(SemanticsMatcher.expectValue(SemanticsProperties.Role, Role.Tab))[2]
+        composeRule.onAllNodes(
+            SemanticsMatcher.expectValue(
+                SemanticsProperties.Role,
+                Role.Tab,
+            ),
+        )[2]
             .performClick()
         composeRule.onNodeWithText(text = text(R.string.example_url)).assertIsFocused()
     }

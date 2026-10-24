@@ -87,7 +87,10 @@ fun FolderItem(
     }
 }
 
-@OptIn(ExperimentalLayoutApi::class, ExperimentalMaterial3ExpressiveApi::class)
+@OptIn(
+    ExperimentalLayoutApi::class,
+    ExperimentalMaterial3ExpressiveApi::class,
+)
 @Composable
 private fun FolderListItem(
     folder: Folder,
@@ -364,7 +367,11 @@ private fun NewVideosCountBadge(count: Int, modifier: Modifier = Modifier) {
         "NewVideosCountBadge should only be shown for a positive count, was $count"
     }
 
-    val description = pluralStringResource(R.plurals.new_videos_count, count = count, count)
+    val description = pluralStringResource(
+        R.plurals.new_videos_count,
+        count = count,
+        count,
+    )
 
     Box(
         modifier = modifier

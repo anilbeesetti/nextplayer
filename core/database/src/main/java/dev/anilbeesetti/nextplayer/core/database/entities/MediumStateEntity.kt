@@ -8,7 +8,10 @@ import androidx.room.PrimaryKey
 @Entity(
     tableName = "media_state",
     indices = [
-        Index(value = ["uri"], unique = true),
+        Index(
+            value = ["uri"],
+            unique = true,
+        ),
     ],
 )
 data class MediumStateEntity(
@@ -27,7 +30,10 @@ data class MediumStateEntity(
     val duration: Long? = null,
     @ColumnInfo(name = "external_subs")
     val externalSubs: String = "",
-    @ColumnInfo(name = "external_audio", defaultValue = "''")
+    @ColumnInfo(
+        name = "external_audio",
+        defaultValue = "''",
+    )
     val externalAudio: String = "",
     @ColumnInfo(name = "video_scale")
     val videoScale: Float = 1f,

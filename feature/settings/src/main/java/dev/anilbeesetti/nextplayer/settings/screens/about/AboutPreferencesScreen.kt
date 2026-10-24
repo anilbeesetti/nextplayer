@@ -76,10 +76,16 @@ private const val UPI_ID = "anilbeesetti10@oksbi"
 @Composable
 fun AboutPreferencesScreen(viewModel: AboutPreferencesViewModel) {
     val state by viewModel.state.collectAsStateWithLifecycle()
-    AboutPreferencesScreenContent(state = state, onAction = viewModel::onAction)
+    AboutPreferencesScreenContent(
+        state = state,
+        onAction = viewModel::onAction,
+    )
 }
 
-@OptIn(ExperimentalMaterial3Api::class, ExperimentalMaterial3ExpressiveApi::class)
+@OptIn(
+    ExperimentalMaterial3Api::class,
+    ExperimentalMaterial3ExpressiveApi::class,
+)
 @Composable
 private fun AboutPreferencesScreenContent(
     state: AboutPreferencesUiState,
@@ -96,9 +102,12 @@ private fun AboutPreferencesScreenContent(
             NextTopAppBar(
                 title = stringResource(id = R.string.about_name),
                 navigationIcon = {
-                    FilledTonalIconButton(onClick = {
-                        onAction(AboutPreferencesAction.NavigateUp)
-                    }, modifier = Modifier.tvFocusDown(target = listFocusRequester)) {
+                    FilledTonalIconButton(
+                        onClick = {
+                            onAction(AboutPreferencesAction.NavigateUp)
+                        },
+                        modifier = Modifier.tvFocusDown(target = listFocusRequester),
+                    ) {
                         Icon(
                             imageVector = NextIcons.ArrowBack,
                             contentDescription = stringResource(id = R.string.navigate_up),
@@ -168,7 +177,12 @@ private fun AboutPreferencesScreenContent(
                     onClick = {
                         scope.launch {
                             clipboard.setClipEntry(
-                                clipEntry = ClipEntry(ClipData.newPlainText("text", UPI_ID)),
+                                clipEntry = ClipEntry(
+                                    ClipData.newPlainText(
+                                        "text",
+                                        UPI_ID,
+                                    ),
+                                ),
                             )
                             Toast.makeText(
                                 context,
@@ -219,8 +233,14 @@ fun AboutApp(
                 val cy = size.height * fraction
 
                 val gradient = Brush.radialGradient(
-                    colors = listOf(colorPrimary, colorTertiary),
-                    center = Offset(x = cx, y = cy),
+                    colors = listOf(
+                        colorPrimary,
+                        colorTertiary,
+                    ),
+                    center = Offset(
+                        x = cx,
+                        y = cy,
+                    ),
                     radius = 800f,
                 )
 
@@ -268,7 +288,10 @@ fun AboutApp(
                         fontSize = 12.sp,
                     )
                     Text(
-                        text = stringResource(R.string.by, stringResource(R.string.app_developer)),
+                        text = stringResource(
+                            R.string.by,
+                            stringResource(R.string.app_developer),
+                        ),
                         style = MaterialTheme.typography.bodyMedium,
                         color = MaterialTheme.colorScheme.onSurfaceVariant,
                     )

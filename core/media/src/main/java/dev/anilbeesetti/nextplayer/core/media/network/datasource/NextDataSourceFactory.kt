@@ -47,7 +47,11 @@ private class SchemeDispatchingDataSource(
     }
 
     override fun read(buffer: ByteArray, offset: Int, length: Int): Int =
-        checkNotNull(value = delegate) { "read() before open()" }.read(buffer, offset, length)
+        checkNotNull(value = delegate) { "read() before open()" }.read(
+            buffer,
+            offset,
+            length,
+        )
 
     override fun getUri(): Uri? = delegate?.uri
 

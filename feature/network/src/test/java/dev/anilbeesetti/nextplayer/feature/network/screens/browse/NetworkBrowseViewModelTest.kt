@@ -49,7 +49,10 @@ class NetworkBrowseViewModelTest {
             )
             val viewModel = viewModel(
                 connectResult = Result.failure(
-                    exception = IllegalStateException("SSH failed", mismatch),
+                    exception = IllegalStateException(
+                        "SSH failed",
+                        mismatch,
+                    ),
                 ),
             )
 
@@ -78,7 +81,10 @@ class NetworkBrowseViewModelTest {
 
             advanceUntilIdle()
 
-            assertEquals("Server unavailable", viewModel.state.value.error?.message)
+            assertEquals(
+                "Server unavailable",
+                viewModel.state.value.error?.message,
+            )
             assertNull(viewModel.state.value.error?.hostKeyMismatch)
         }
 
@@ -86,18 +92,32 @@ class NetworkBrowseViewModelTest {
     fun `play queues folder videos in display order and preserves selection`() =
         runTest(mainDispatcherRule.testDispatcher) {
             val conn = connection().copy(protocol = NetworkProtocol.WEBDAV)
-            val first =
-                NetworkFile(name = "a #1.mp4", path = "Series/a #1.mp4", isDirectory = false)
-            val second = NetworkFile(name = "B.mp4", path = "Series/B.mp4", isDirectory = false)
-            val folder =
-                NetworkFile(name = "Subfolder", path = "Series/Subfolder", isDirectory = true)
+            val first = NetworkFile(
+                name = "a #1.mp4",
+                path = "Series/a #1.mp4",
+                isDirectory = false,
+            )
+            val second = NetworkFile(
+                name = "B.mp4",
+                path = "Series/B.mp4",
+                isDirectory = false,
+            )
+            val folder = NetworkFile(
+                name = "Subfolder",
+                path = "Series/Subfolder",
+                isDirectory = true,
+            )
             val requests = mutableListOf<Pair<List<Uri>, Uri>>()
             val viewModel = viewModel(
                 conn = conn,
                 files = listOf(
                     second,
                     folder,
-                    NetworkFile(name = "Notes.txt", path = "Series/Notes.txt", isDirectory = false),
+                    NetworkFile(
+                        name = "Notes.txt",
+                        path = "Series/Notes.txt",
+                        isDirectory = false,
+                    ),
                     first,
                 ),
                 onPlayVideos = { uris, startUri -> requests.add(element = uris to startUri) },
@@ -117,8 +137,22 @@ class NetworkBrowseViewModelTest {
                 ),
             )
 
-            val queue = listOf(first, second).map { NetworkUri.build(connection = conn, it.path) }
-            assertEquals(listOf(queue to queue[1], queue to queue[0]), requests)
+            val queue = listOf(
+                first,
+                second,
+            ).map {
+                NetworkUri.build(
+                    connection = conn,
+                    it.path,
+                )
+            }
+            assertEquals(
+                listOf(
+                    queue to queue[1],
+                    queue to queue[0],
+                ),
+                requests,
+            )
         }
 
     @Test
@@ -193,13 +227,12 @@ class NetworkBrowseViewModelTest {
                         ),
                     ),
                 )
-                val viewModel =
-                    viewModel(
-                        conn = conn,
-                        path = path,
-                        mediaRepository = mediaRepository,
-                        connectionDelayMillis = 1_000,
-                    )
+                val viewModel = viewModel(
+                    conn = conn,
+                    path = path,
+                    mediaRepository = mediaRepository,
+                    connectionDelayMillis = 1_000,
+                )
                 advanceUntilIdle()
 
                 assertEquals(
@@ -229,7 +262,10 @@ class NetworkBrowseViewModelTest {
                 viewModel.onAction(action = NetworkBrowseAction.Retry)
                 advanceUntilIdle()
 
-                assertEquals("$path/Episode 2.mp4", viewModel.state.value.recentlyPlayedPath)
+                assertEquals(
+                    "$path/Episode 2.mp4",
+                    viewModel.state.value.recentlyPlayedPath,
+                )
                 assertEquals(
                     1f,
                     viewModel.state.value.playbackHistory["$path/Episode 2.mp4"]?.playedPercentage,
@@ -248,7 +284,10 @@ class NetworkBrowseViewModelTest {
         runTest(mainDispatcherRule.testDispatcher) {
             val preferences = FakePreferencesRepository()
             preferences.updateApplicationPreferences {
-                it.copy(markLastPlayedMedia = false, showPlayedProgress = false)
+                it.copy(
+                    markLastPlayedMedia = false,
+                    showPlayedProgress = false,
+                )
             }
             val viewModel = viewModel(preferencesRepository = preferences)
             advanceUntilIdle()
@@ -257,7 +296,10 @@ class NetworkBrowseViewModelTest {
             assertFalse(viewModel.state.value.preferences.showPlayedProgress)
 
             preferences.updateApplicationPreferences {
-                it.copy(markLastPlayedMedia = true, showPlayedProgress = true)
+                it.copy(
+                    markLastPlayedMedia = true,
+                    showPlayedProgress = true,
+                )
             }
             advanceUntilIdle()
 
@@ -270,11 +312,23 @@ class NetworkBrowseViewModelTest {
         runTest(mainDispatcherRule.testDispatcher) {
             val preferences = FakePreferencesRepository()
             val conn = connection().copy(protocol = NetworkProtocol.WEBDAV)
-            val small =
-                NetworkFile(name = "Small.mp4", path = "small.mp4", isDirectory = false, size = 10)
-            val large =
-                NetworkFile(name = "Large.mp4", path = "large.mp4", isDirectory = false, size = 100)
-            val folder = NetworkFile(name = "Folder", path = "folder", isDirectory = true)
+            val small = NetworkFile(
+                name = "Small.mp4",
+                path = "small.mp4",
+                isDirectory = false,
+                size = 10,
+            )
+            val large = NetworkFile(
+                name = "Large.mp4",
+                path = "large.mp4",
+                isDirectory = false,
+                size = 100,
+            )
+            val folder = NetworkFile(
+                name = "Folder",
+                path = "folder",
+                isDirectory = true,
+            )
             var loads = 0
             val requests = mutableListOf<Pair<List<Uri>, Uri>>()
             val viewModel = viewModel(
@@ -283,7 +337,11 @@ class NetworkBrowseViewModelTest {
                     small,
                     folder,
                     large,
-                    NetworkFile(name = "Notes.txt", path = "notes.txt", isDirectory = false),
+                    NetworkFile(
+                        name = "Notes.txt",
+                        path = "notes.txt",
+                        isDirectory = false,
+                    ),
                 ),
                 preferencesRepository = preferences,
                 onListFiles = { loads++ },
@@ -294,41 +352,88 @@ class NetworkBrowseViewModelTest {
             viewModel.onAction(
                 NetworkBrowseAction.UpdateQuickSettings(
                     MediaLayoutMode.GRID,
-                    sort = Sort(Sort.By.SIZE, Sort.Order.ASCENDING),
+                    sort = Sort(
+                        Sort.By.SIZE,
+                        Sort.Order.ASCENDING,
+                    ),
                 ),
             )
             advanceUntilIdle()
 
-            assertEquals(listOf(folder, small, large), viewModel.state.value.files)
+            assertEquals(
+                listOf(
+                    folder,
+                    small,
+                    large,
+                ),
+                viewModel.state.value.files,
+            )
             assertEquals(
                 MediaLayoutMode.GRID,
                 preferences.applicationPreferences.value.networkMediaLayoutMode,
             )
-            assertEquals(Sort.By.SIZE, preferences.applicationPreferences.value.networkSortBy)
-            assertEquals(Sort.By.TITLE, preferences.applicationPreferences.value.sortBy)
+            assertEquals(
+                Sort.By.SIZE,
+                preferences.applicationPreferences.value.networkSortBy,
+            )
+            assertEquals(
+                Sort.By.TITLE,
+                preferences.applicationPreferences.value.sortBy,
+            )
             assertEquals(
                 MediaLayoutMode.LIST,
                 preferences.applicationPreferences.value.mediaLayoutMode,
             )
             viewModel.onAction(action = NetworkBrowseAction.PlayAll)
-            val queue = listOf(small, large).map { NetworkUri.build(connection = conn, it.path) }
-            assertEquals(listOf(element = queue to queue.first()), requests)
+            val queue = listOf(
+                small,
+                large,
+            ).map {
+                NetworkUri.build(
+                    connection = conn,
+                    it.path,
+                )
+            }
+            assertEquals(
+                listOf(element = queue to queue.first()),
+                requests,
+            )
 
             preferences.updateApplicationPreferences {
                 it.copy(networkSortOrder = Sort.Order.DESCENDING)
             }
             advanceUntilIdle()
-            assertEquals(listOf(folder, large, small), viewModel.state.value.files)
-            assertEquals(1, loads)
+            assertEquals(
+                listOf(
+                    folder,
+                    large,
+                    small,
+                ),
+                viewModel.state.value.files,
+            )
+            assertEquals(
+                1,
+                loads,
+            )
 
-            val reopened =
-                viewModel(
-                    conn = conn,
-                    files = listOf(small, large, folder),
-                    preferencesRepository = preferences,
-                )
+            val reopened = viewModel(
+                conn = conn,
+                files = listOf(
+                    small,
+                    large,
+                    folder,
+                ),
+                preferencesRepository = preferences,
+            )
             advanceUntilIdle()
-            assertEquals(listOf(folder, large, small), reopened.state.value.files)
+            assertEquals(
+                listOf(
+                    folder,
+                    large,
+                    small,
+                ),
+                reopened.state.value.files,
+            )
             assertEquals(
                 MediaLayoutMode.GRID,
                 reopened.state.value.preferences.networkMediaLayoutMode,
@@ -346,17 +451,22 @@ class NetworkBrowseViewModelTest {
         connectionDelayMillis: Long = 0,
         onListFiles: () -> Unit = {},
     ): NetworkBrowseViewModel {
-        val client =
-            FakeNetworkClient(
-                connectResult = connectResult,
-                files = files,
-                onListFiles = onListFiles,
-            )
+        val client = FakeNetworkClient(
+            connectResult = connectResult,
+            files = files,
+            onListFiles = onListFiles,
+        )
         val factory = NetworkClientFactory { client }
         return NetworkBrowseViewModel(
-            input = NetworkBrowseViewModel.Input(connectionId = conn.id, path = path),
-            output = NetworkBrowseViewModel.Output(navigateUp = {
-            }, playVideos = onPlayVideos, openFolder = { _, _ -> }),
+            input = NetworkBrowseViewModel.Input(
+                connectionId = conn.id,
+                path = path,
+            ),
+            output = NetworkBrowseViewModel.Output(
+                navigateUp = {},
+                playVideos = onPlayVideos,
+                openFolder = { _, _ -> },
+            ),
             repository = FakeRepository(
                 connection = conn,
                 connectionDelayMillis = connectionDelayMillis,

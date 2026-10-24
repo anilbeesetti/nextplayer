@@ -106,7 +106,10 @@ fun VaultScreen(viewModel: VaultViewModel) {
     val context = LocalContext.current
     val lifecycleOwner = LocalLifecycleOwner.current
 
-    LaunchedEffect(key1 = lifecycleOwner, key2 = viewModel) {
+    LaunchedEffect(
+        key1 = lifecycleOwner,
+        key2 = viewModel,
+    ) {
         lifecycleOwner.repeatOnLifecycle(Lifecycle.State.STARTED) {
             viewModel.events.collect { event ->
                 when (event) {
@@ -116,7 +119,11 @@ fun VaultScreen(viewModel: VaultViewModel) {
                             event.count,
                             event.count,
                         )
-                        Toast.makeText(context, message, Toast.LENGTH_LONG).show()
+                        Toast.makeText(
+                            context,
+                            message,
+                            Toast.LENGTH_LONG,
+                        ).show()
                     }
                 }
             }
@@ -215,7 +222,10 @@ private fun VaultPinContent(
                     modifier = Modifier
                         .fillMaxWidth()
                         .navigationBarsPadding()
-                        .padding(horizontal = 24.dp, vertical = 8.dp),
+                        .padding(
+                            horizontal = 24.dp,
+                            vertical = 8.dp,
+                        ),
                 )
             }
         },
@@ -279,7 +289,10 @@ private fun PinEntryContent(
                 showError = showError,
                 errorMessage = errorMessage,
             )
-            Box(modifier = Modifier.weight(weight = 1f), contentAlignment = Alignment.Center) {
+            Box(
+                modifier = Modifier.weight(weight = 1f),
+                contentAlignment = Alignment.Center,
+            ) {
                 PinKeypad(
                     modifier = Modifier.widthIn(max = 360.dp),
                     onDigit = onDigit,
@@ -355,7 +368,10 @@ private fun PinEntryHeader(
             textAlign = TextAlign.Center,
         )
         Spacer(modifier = Modifier.size(32.dp))
-        PinDotsIndicator(filledCount = filledCount, error = showError)
+        PinDotsIndicator(
+            filledCount = filledCount,
+            error = showError,
+        )
         Spacer(modifier = Modifier.size(8.dp))
         if (showError && errorMessage.isNotEmpty()) {
             Text(
@@ -368,7 +384,10 @@ private fun PinEntryHeader(
     }
 }
 
-@OptIn(ExperimentalMaterial3Api::class, ExperimentalMaterial3ExpressiveApi::class)
+@OptIn(
+    ExperimentalMaterial3Api::class,
+    ExperimentalMaterial3ExpressiveApi::class,
+)
 @Composable
 private fun VaultGalleryContent(state: VaultUiState, onAction: (VaultAction) -> Unit) {
     val context = LocalContext.current
@@ -520,10 +539,18 @@ private fun VaultGalleryContent(state: VaultUiState, onAction: (VaultAction) -> 
                 .fillMaxSize()
                 .padding(top = padding.calculateTopPadding())
                 .padding(start = padding.calculateStartPadding(LocalLayoutDirection.current))
-                .clip(shape = RoundedCornerShape(topStart = 24.dp, topEnd = 24.dp))
+                .clip(
+                    shape = RoundedCornerShape(
+                        topStart = 24.dp,
+                        topEnd = 24.dp,
+                    ),
+                )
                 .background(MaterialTheme.colorScheme.background),
         ) {
-            val updatedPadding = padding.copy(top = 0.dp, start = 0.dp)
+            val updatedPadding = padding.copy(
+                top = 0.dp,
+                start = 0.dp,
+            )
             when {
                 state.isLoading -> {
                     Box(
@@ -559,7 +586,10 @@ private fun VaultGalleryContent(state: VaultUiState, onAction: (VaultAction) -> 
                             VideoItem(
                                 modifier = Modifier
                                     .padding(2.dp)
-                                    .restorableFocusItem(state = focusState, video.uriString),
+                                    .restorableFocusItem(
+                                        state = focusState,
+                                        video.uriString,
+                                    ),
                                 video = video,
                                 isRecentlyPlayedVideo = false,
                                 preferences = state.preferences,
@@ -594,11 +624,21 @@ private fun VaultGalleryContent(state: VaultUiState, onAction: (VaultAction) -> 
         MediaQuickSettingsDialog(
             layoutMode = state.preferences.mediaLayoutMode,
             sort = state.sort,
-            sortOptions = listOf(Sort.By.TITLE, Sort.By.LENGTH, Sort.By.DATE, Sort.By.SIZE),
+            sortOptions = listOf(
+                Sort.By.TITLE,
+                Sort.By.LENGTH,
+                Sort.By.DATE,
+                Sort.By.SIZE,
+            ),
             dateLabel = R.string.date_hidden,
             onDismiss = { showQuickSettings = false },
             onConfirm = { layout, sort ->
-                onAction(VaultAction.UpdateQuickSettings(layoutMode = layout, sort = sort))
+                onAction(
+                    VaultAction.UpdateQuickSettings(
+                        layoutMode = layout,
+                        sort = sort,
+                    ),
+                )
             },
         )
     }
@@ -611,7 +651,10 @@ private fun VaultGalleryContent(state: VaultUiState, onAction: (VaultAction) -> 
                     text = if (selectedCount == 1) {
                         stringResource(R.string.delete_one_video_from_vault)
                     } else {
-                        stringResource(R.string.delete_videos_from_vault, selectedCount)
+                        stringResource(
+                            R.string.delete_videos_from_vault,
+                            selectedCount,
+                        )
                     },
                 )
             },
@@ -638,7 +681,10 @@ private fun VaultGalleryContent(state: VaultUiState, onAction: (VaultAction) -> 
                     text = if (selectedCount == 1) {
                         stringResource(R.string.unhide_one_video_confirmation)
                     } else {
-                        stringResource(R.string.unhide_videos_confirmation, selectedCount)
+                        stringResource(
+                            R.string.unhide_videos_confirmation,
+                            selectedCount,
+                        )
                     },
                 )
             },
@@ -670,7 +716,10 @@ private fun VaultEmptyState(contentPadding: PaddingValues) {
             .fillMaxSize()
             .verticalScroll(state = rememberScrollState())
             .padding(paddingValues = contentPadding)
-            .padding(horizontal = 24.dp, vertical = 40.dp),
+            .padding(
+                horizontal = 24.dp,
+                vertical = 40.dp,
+            ),
         verticalArrangement = Arrangement.Center,
         horizontalAlignment = Alignment.CenterHorizontally,
     ) {

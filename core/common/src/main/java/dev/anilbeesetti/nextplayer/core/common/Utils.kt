@@ -32,9 +32,18 @@ object Utils {
             TimeUnit.MINUTES.toSeconds(minutes) -
             TimeUnit.HOURS.toSeconds(hours)
         return if (hours > 0) {
-            String.format(format = "%02d:%02d:%02d", hours, minutes, seconds)
+            String.format(
+                format = "%02d:%02d:%02d",
+                hours,
+                minutes,
+                seconds,
+            )
         } else {
-            String.format(format = "%02d:%02d", minutes, seconds)
+            String.format(
+                format = "%02d:%02d",
+                minutes,
+                seconds,
+            )
         }
     }
 
@@ -71,10 +80,25 @@ object Utils {
         val gigaBitrate = megaBitrate / 1000.0
 
         return when {
-            gigaBitrate >= 1.0 -> String.format(format = "%.1f Gbps", gigaBitrate)
-            megaBitrate >= 1.0 -> String.format(format = "%.1f Mbps", megaBitrate)
-            kiloBitrate >= 1.0 -> String.format(format = "%.1f kbps", kiloBitrate)
-            else -> String.format(format = "%d bps", bitrate)
+            gigaBitrate >= 1.0 -> String.format(
+                format = "%.1f Gbps",
+                gigaBitrate,
+            )
+
+            megaBitrate >= 1.0 -> String.format(
+                format = "%.1f Mbps",
+                megaBitrate,
+            )
+
+            kiloBitrate >= 1.0 -> String.format(
+                format = "%.1f kbps",
+                kiloBitrate,
+            )
+
+            else -> String.format(
+                format = "%d bps",
+                bitrate,
+            )
         }
     }
 

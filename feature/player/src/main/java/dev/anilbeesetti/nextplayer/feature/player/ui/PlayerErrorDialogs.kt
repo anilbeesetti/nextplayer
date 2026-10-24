@@ -29,7 +29,7 @@ internal fun PlayerErrorDialogs(
         recoveryTrackType != null
     ) {
         AlertDialog(
-            onDismissRequest = { },
+            onDismissRequest = {},
             title = { Text(text = stringResource(coreUiR.string.decoder)) },
             text = {
                 Text(
@@ -61,7 +61,7 @@ internal fun PlayerErrorDialogs(
             )
     if (showPlayerError) {
         AlertDialog(
-            onDismissRequest = { },
+            onDismissRequest = {},
             title = { Text(text = stringResource(coreUiR.string.error_playing_video)) },
             text = {
                 Text(

@@ -42,7 +42,12 @@ class SeekGestureStateTest {
         var visible by mutableStateOf(value = true)
         var state: SeekGestureState? = null
         composeRule.setContent {
-            if (visible) state = rememberSeekGestureState(player = player, enableSeekGesture = true)
+            if (visible) {
+                state = rememberSeekGestureState(
+                    player = player,
+                    enableSeekGesture = true,
+                )
+            }
         }
         val first = composeRule.runOnIdle {
             requireNotNull(value = state).also { it.onSeek(value = 5_000) }
@@ -53,9 +58,15 @@ class SeekGestureStateTest {
         }
         composeRule.runOnIdle {
             assertFalse(first.isSeeking)
-            assertNotSame(first, state)
+            assertNotSame(
+                first,
+                state,
+            )
             requireNotNull(value = state).onSeek(value = 8_000)
-            assertEquals(8_000, player.currentPosition)
+            assertEquals(
+                8_000,
+                player.currentPosition,
+            )
             visible = false
         }
         composeRule.runOnIdle { assertFalse(requireNotNull(value = state).isSeeking) }
@@ -80,9 +91,24 @@ class SeekGestureStateTest {
             )
         }
         composeRule.onNodeWithTag(testTag = "gesture").performTouchInput {
-            down(position = Offset(x = width * 0.2f, y = centerY))
-            moveTo(position = Offset(x = width * 0.5f, y = centerY))
-            moveTo(position = Offset(x = width * 0.7f, y = centerY))
+            down(
+                position = Offset(
+                    x = width * 0.2f,
+                    y = centerY,
+                ),
+            )
+            moveTo(
+                position = Offset(
+                    x = width * 0.5f,
+                    y = centerY,
+                ),
+            )
+            moveTo(
+                position = Offset(
+                    x = width * 0.7f,
+                    y = centerY,
+                ),
+            )
         }
         composeRule.runOnIdle {
             assertTrue(state.isSeeking)

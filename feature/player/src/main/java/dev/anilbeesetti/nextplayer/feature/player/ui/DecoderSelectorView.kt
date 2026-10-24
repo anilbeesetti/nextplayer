@@ -87,7 +87,10 @@ private fun DecoderTrackTypeSelector(
             SegmentedButton(
                 selected = selectedTrackType == trackType,
                 onClick = { onTrackTypeSelected(trackType) },
-                shape = SegmentedButtonDefaults.itemShape(index = index, trackTypes.size),
+                shape = SegmentedButtonDefaults.itemShape(
+                    index = index,
+                    trackTypes.size,
+                ),
             ) {
                 Text(
                     text = stringResource(
@@ -121,8 +124,15 @@ private fun DecoderModeRow(mode: DecoderMode, selected: Boolean, onClick: () -> 
         modifier = Modifier
             .fillMaxWidth()
             .clip(shape = RoundedCornerShape(4.dp))
-            .selectable(selected = selected, onClick = onClick, role = Role.RadioButton)
-            .padding(horizontal = 4.dp, vertical = 8.dp),
+            .selectable(
+                selected = selected,
+                onClick = onClick,
+                role = Role.RadioButton,
+            )
+            .padding(
+                horizontal = 4.dp,
+                vertical = 8.dp,
+            ),
         verticalAlignment = Alignment.CenterVertically,
         horizontalArrangement = Arrangement.spacedBy(8.dp),
     ) {

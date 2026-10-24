@@ -12,9 +12,8 @@ plugins {
     alias(libs.plugins.ktlint) apply false
 }
 
-subprojects {
+allprojects {
     apply(plugin = rootProject.libs.plugins.ktlint.get().pluginId)
-    apply(plugin = rootProject.libs.plugins.aboutLibraries.get().pluginId)
 
     configure<org.jlleitschuh.gradle.ktlint.KtlintExtension> {
         version.set(rootProject.libs.versions.ktlintCli.get())
@@ -22,6 +21,15 @@ subprojects {
         outputColorName.set("RED")
         ignoreFailures.set(false)
     }
+
+    dependencies.add(
+        "ktlintRuleset",
+        project(":ktlint-rules"),
+    )
+}
+
+subprojects {
+    apply(plugin = rootProject.libs.plugins.aboutLibraries.get().pluginId)
 
     configure<com.mikepenz.aboutlibraries.plugin.AboutLibrariesExtension> {
         offlineMode.set(true)

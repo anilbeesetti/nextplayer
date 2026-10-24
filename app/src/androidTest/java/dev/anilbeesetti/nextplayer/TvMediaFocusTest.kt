@@ -174,7 +174,10 @@ class TvMediaFocusTest {
                         ) { Text(text = "Toolbar") }
                         Box(Modifier.weight(weight = 1f)) {
                             MediaView(
-                                mediaHolder = MediaHolder(videos = videos, folders = emptyList()),
+                                mediaHolder = MediaHolder(
+                                    videos = videos,
+                                    folders = emptyList(),
+                                ),
                                 recentlyPlayedVideo = null,
                                 recentlyPlayedFolder = null,
                                 preferences = ApplicationPreferences(
@@ -199,8 +202,7 @@ class TvMediaFocusTest {
                                 modifier = Modifier.focusRequester(
                                     focusRequester = firstAction,
                                 ),
-                                onClick = {
-                                },
+                                onClick = {},
                             ) { Text(text = "Action") }
                             Button(onClick = {}) { Text(text = "Second action") }
                             Button(onClick = {}) { Text(text = "Third action") }

@@ -84,7 +84,10 @@ class PictureInPictureState(
 
     val hasPipPermission: Boolean
         get() = if (isPipSupported) {
-            val appOps = getSystemService(activity, AppOpsManager::class.java) ?: return true
+            val appOps = getSystemService(
+                activity,
+                AppOpsManager::class.java,
+            ) ?: return true
             appOps.checkOpNoThrow(
                 AppOpsManager.OPSTR_PICTURE_IN_PICTURE,
                 Process.myUid(),
@@ -98,7 +101,10 @@ class PictureInPictureState(
         private set
 
     private val pictureInPicture: VideoPlaybackPictureInPicture? = if (isPipSupported) {
-        VideoPlaybackPictureInPicture(provider = activity, ContextCompat.getMainExecutor(activity))
+        VideoPlaybackPictureInPicture(
+            provider = activity,
+            ContextCompat.getMainExecutor(activity),
+        )
     } else {
         null
     }
@@ -112,7 +118,10 @@ class PictureInPictureState(
         if (rect.width() <= 0 || rect.height() <= 0) return
 
         val newSourceRectHint = Rect(rect)
-        val newAspectRatio = Rational(newSourceRectHint.width(), newSourceRectHint.height())
+        val newAspectRatio = Rational(
+            newSourceRectHint.width(),
+            newSourceRectHint.height(),
+        )
             .takeIf { it.toFloat() in 0.5f..2.39f }
 
         var changed = false
@@ -147,7 +156,12 @@ class PictureInPictureState(
             val pipBroadcastReceiver = object : BroadcastReceiver() {
                 override fun onReceive(context: Context?, intent: Intent?) {
                     if (intent == null || intent.action != PIP_INTENT_ACTION) return
-                    when (intent.getIntExtra(PIP_INTENT_ACTION_CODE, 0)) {
+                    when (
+                        intent.getIntExtra(
+                            PIP_INTENT_ACTION_CODE,
+                            0,
+                        )
+                    ) {
                         PIP_ACTION_PLAY -> player.play()
                         PIP_ACTION_PAUSE -> player.pause()
                         PIP_ACTION_NEXT -> player.seekToNext()
@@ -278,14 +292,20 @@ class PictureInPictureState(
         @DrawableRes icon: Int,
         actionCode: Int,
     ): RemoteAction = RemoteAction(
-        Icon.createWithResource(context, icon),
+        Icon.createWithResource(
+            context,
+            icon,
+        ),
         title,
         title,
         PendingIntent.getBroadcast(
             context,
             actionCode,
             Intent(PIP_INTENT_ACTION).apply {
-                putExtra(PIP_INTENT_ACTION_CODE, actionCode)
+                putExtra(
+                    PIP_INTENT_ACTION_CODE,
+                    actionCode,
+                )
                 setPackage(context.packageName)
             },
             PendingIntent.FLAG_IMMUTABLE,

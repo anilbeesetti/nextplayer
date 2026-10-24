@@ -50,7 +50,10 @@ fun MediaLibraryPreferencesScreen(viewModel: MediaLibraryPreferencesViewModel) {
     )
 }
 
-@OptIn(ExperimentalMaterial3Api::class, ExperimentalMaterial3ExpressiveApi::class)
+@OptIn(
+    ExperimentalMaterial3Api::class,
+    ExperimentalMaterial3ExpressiveApi::class,
+)
 @Composable
 private fun MediaLibraryPreferencesScreenContent(
     state: MediaLibraryPreferencesUiState,
@@ -66,9 +69,12 @@ private fun MediaLibraryPreferencesScreenContent(
             NextTopAppBar(
                 title = stringResource(id = R.string.media_library),
                 navigationIcon = {
-                    FilledTonalIconButton(onClick = {
-                        onAction(MediaLibraryPreferencesUiEvent.NavigateUp)
-                    }, modifier = Modifier.tvFocusDown(focusState.requester)) {
+                    FilledTonalIconButton(
+                        onClick = {
+                            onAction(MediaLibraryPreferencesUiEvent.NavigateUp)
+                        },
+                        modifier = Modifier.tvFocusDown(focusState.requester),
+                    ) {
                         Icon(
                             imageVector = NextIcons.ArrowBack,
                             contentDescription = stringResource(id = R.string.navigate_up),
@@ -192,7 +198,10 @@ private fun MediaLibraryPreferencesScreenContent(
                 verticalArrangement = Arrangement.spacedBy(ListItemDefaults.SegmentedGap),
             ) {
                 ClickablePreferenceItem(
-                    modifier = Modifier.restorableFocusItem(state = focusState, key = "thumbnail"),
+                    modifier = Modifier.restorableFocusItem(
+                        state = focusState,
+                        key = "thumbnail",
+                    ),
                     title = stringResource(id = R.string.thumbnail_generation),
                     description = when (preferences.thumbnailGenerationStrategy) {
                         ThumbnailGenerationStrategy.FIRST_FRAME -> stringResource(

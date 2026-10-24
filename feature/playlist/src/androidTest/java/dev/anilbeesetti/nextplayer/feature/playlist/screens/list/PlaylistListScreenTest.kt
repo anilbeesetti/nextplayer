@@ -54,7 +54,10 @@ class PlaylistListScreenTest {
 
         composeRule.runOnIdle { checkNotNull(value = fabState).onClick() }
 
-        assertEquals(listOf(element = PlaylistUiAction.ShowCreationChooser), actions)
+        assertEquals(
+            listOf(element = PlaylistUiAction.ShowCreationChooser),
+            actions,
+        )
     }
 
     @Test
@@ -81,7 +84,10 @@ class PlaylistListScreenTest {
         nameField.performTextInput(text = "Movies")
         composeRule.onNodeWithText(text = "Create").performClick()
 
-        assertEquals(listOf(PlaylistUiAction.CreateLocal(name = "Movies")), actions)
+        assertEquals(
+            listOf(PlaylistUiAction.CreateLocal(name = "Movies")),
+            actions,
+        )
         composeRule.onAllNodesWithText(text = "M3U URL").assertCountEquals(expectedSize = 0)
     }
 
@@ -125,7 +131,10 @@ class PlaylistListScreenTest {
         composeRule.onNodeWithText(text = "Delete").assertIsDisplayed()
         composeRule.onNodeWithText(text = "Rename playlist").performClick()
 
-        assertEquals(listOf(PlaylistUiAction.ShowRenameDialogFor(playlist = playlist)), actions)
+        assertEquals(
+            listOf(PlaylistUiAction.ShowRenameDialogFor(playlist = playlist)),
+            actions,
+        )
     }
 
     @Test
@@ -146,7 +155,12 @@ class PlaylistListScreenTest {
         composeRule.onNodeWithContentDescription(label = "Playlist actions").performClick()
         composeRule.onNodeWithText(text = "Add to home screen").performClick()
 
-        composeRule.runOnIdle { assertEquals(playlist, selectedPlaylist) }
+        composeRule.runOnIdle {
+            assertEquals(
+                playlist,
+                selectedPlaylist,
+            )
+        }
         composeRule.onAllNodesWithText(
             text = "Add to home screen",
         ).assertCountEquals(expectedSize = 0)
@@ -192,7 +206,10 @@ class PlaylistListScreenTest {
 
         composeRule.onNodeWithText(text = "Delete").performClick()
 
-        assertEquals(listOf(PlaylistUiAction.Delete(playlist.id)), actions)
+        assertEquals(
+            listOf(PlaylistUiAction.Delete(playlist.id)),
+            actions,
+        )
     }
 
     @Test

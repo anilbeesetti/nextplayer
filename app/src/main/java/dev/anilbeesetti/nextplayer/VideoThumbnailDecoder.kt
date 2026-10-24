@@ -56,7 +56,13 @@ class VideoThumbnailDecoder(
 
             // Read cached image dimensions (no pixel allocation)
             val boundsOpts = BitmapFactory.Options().apply { inJustDecodeBounds = true }
-            file.inputStream().use { BitmapFactory.decodeStream(it, null, boundsOpts) }
+            file.inputStream().use {
+                BitmapFactory.decodeStream(
+                    it,
+                    null,
+                    boundsOpts,
+                )
+            }
             val cachedWidth = boundsOpts.outWidth
             val cachedHeight = boundsOpts.outHeight
 
@@ -69,7 +75,10 @@ class VideoThumbnailDecoder(
                 (requestedHeight == 0 || requestedHeight <= cachedHeight)
 
             if (cacheIsSufficient) {
-                val dstSize = computeDstSize(srcWidth = cachedWidth, srcHeight = cachedHeight)
+                val dstSize = computeDstSize(
+                    srcWidth = cachedWidth,
+                    srcHeight = cachedHeight,
+                )
                 val sampledBitmap = file.inputStream().use { BitmapFactory.decodeStream(it) }
                 val normalizedBitmap = normalizeBitmap(
                     inBitmap = sampledBitmap,
@@ -108,7 +117,11 @@ class VideoThumbnailDecoder(
                 val embeddedPicture =
                     nativeRetriever.embeddedPicture ?: fallbackRetriever?.getEmbeddedPicture()
                 val embeddedPictureBitmap = embeddedPicture?.let { pictureBytes ->
-                    BitmapFactory.decodeByteArray(pictureBytes, 0, pictureBytes.size)
+                    BitmapFactory.decodeByteArray(
+                        pictureBytes,
+                        0,
+                        pictureBytes.size,
+                    )
                 }
 
                 if (embeddedPictureBitmap != null) return@use embeddedPictureBitmap
@@ -145,7 +158,10 @@ class VideoThumbnailDecoder(
 
         val srcWidth = rawBitmap.width
         val srcHeight = rawBitmap.height
-        val dstSize = computeDstSize(srcWidth = srcWidth, srcHeight = srcHeight)
+        val dstSize = computeDstSize(
+            srcWidth = srcWidth,
+            srcHeight = srcHeight,
+        )
         val scaledBitmap = normalizeBitmap(
             inBitmap = rawBitmap,
             srcWidth = srcWidth,
@@ -172,7 +188,10 @@ class VideoThumbnailDecoder(
         val metadata = source.metadata
         when {
             metadata is ContentMetadata -> {
-                setDataSource(options.context, metadata.uri.toAndroidUri())
+                setDataSource(
+                    options.context,
+                    metadata.uri.toAndroidUri(),
+                )
             }
 
             source.fileSystem === FileSystem.SYSTEM -> {
@@ -212,7 +231,11 @@ class VideoThumbnailDecoder(
         val editor = diskCache.value?.openEditor(key = diskCacheKey) ?: return
         try {
             editor.data.toFile().outputStream().use { output ->
-                inBitmap.compress(Bitmap.CompressFormat.JPEG, 90, output)
+                inBitmap.compress(
+                    Bitmap.CompressFormat.JPEG,
+                    90,
+                    output,
+                )
             }
             editor.commit()
         } catch (_: Exception) {
@@ -241,16 +264,23 @@ class VideoThumbnailDecoder(
         val dstHeight = (scale * inBitmap.height).roundToInt()
 
         val paint = Paint(Paint.ANTI_ALIAS_FLAG or Paint.FILTER_BITMAP_FLAG)
-        val outBitmap =
-            createBitmap(
-                width = dstWidth,
-                height = dstHeight,
-                config =
-                    inBitmap.config ?: Bitmap.Config.ARGB_8888,
-            )
+        val outBitmap = createBitmap(
+            width = dstWidth,
+            height = dstHeight,
+            config =
+                inBitmap.config ?: Bitmap.Config.ARGB_8888,
+        )
         outBitmap.applyCanvas {
-            scale(scale, scale)
-            drawBitmap(inBitmap, 0f, 0f, paint)
+            scale(
+                scale,
+                scale,
+            )
+            drawBitmap(
+                inBitmap,
+                0f,
+                0f,
+                paint,
+            )
         }
         inBitmap.recycle()
         return outBitmap

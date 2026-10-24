@@ -61,7 +61,10 @@ fun MediaQuickSettingsDialog(
         },
         confirmButton = {
             DoneButton(onClick = {
-                onConfirm(selectedLayout, selectedSort)
+                onConfirm(
+                    selectedLayout,
+                    selectedSort,
+                )
                 onDismiss()
             })
         },
@@ -77,7 +80,13 @@ fun MediaLayoutAndSortSettings(
     onLayoutModeChange: (MediaLayoutMode) -> Unit,
     onSortChange: (Sort) -> Unit,
     sortOptions: List<Sort.By> =
-        listOf(Sort.By.TITLE, Sort.By.LENGTH, Sort.By.DATE, Sort.By.SIZE, Sort.By.PATH),
+        listOf(
+            Sort.By.TITLE,
+            Sort.By.LENGTH,
+            Sort.By.DATE,
+            Sort.By.SIZE,
+            Sort.By.PATH,
+        ),
     dateLabel: Int = R.string.date,
 ) {
     SectionTitle(text = stringResource(R.string.media_layout))
@@ -135,7 +144,10 @@ fun MediaLayoutAndSortSettings(
             SegmentedButton(
                 selected = sort.order == order,
                 onClick = { onSortChange(sort.copy(order = order)) },
-                shape = SegmentedButtonDefaults.itemShape(index = index, Sort.Order.entries.size),
+                shape = SegmentedButtonDefaults.itemShape(
+                    index = index,
+                    Sort.Order.entries.size,
+                ),
                 colors = SegmentedButtonDefaults.colors(
                     activeContentColor = MaterialTheme.colorScheme.primary,
                     activeBorderColor = MaterialTheme.colorScheme.primary,
@@ -169,6 +181,9 @@ private fun SectionTitle(text: String) {
     Text(
         text = text,
         style = MaterialTheme.typography.titleMedium,
-        modifier = Modifier.padding(top = 16.dp, bottom = 8.dp),
+        modifier = Modifier.padding(
+            top = 16.dp,
+            bottom = 8.dp,
+        ),
     )
 }

@@ -38,7 +38,10 @@ class MainActivityPlaylistShortcutTest {
         try {
             val firstIntent = PlaylistShortcut.create(
                 context = context,
-                playlist = summary(id = first, name = "Shortcut first"),
+                playlist = summary(
+                    id = first,
+                    name = "Shortcut first",
+                ),
             ).intent
             ActivityScenario.launch<MainActivity>(firstIntent).use { scenario ->
                 awaitText(text = "Shortcut first")
@@ -46,7 +49,10 @@ class MainActivityPlaylistShortcutTest {
 
                 val secondIntent = PlaylistShortcut.create(
                     context = context,
-                    playlist = summary(id = second, name = "Shortcut second"),
+                    playlist = summary(
+                        id = second,
+                        name = "Shortcut second",
+                    ),
                 ).intent
                 context.startActivity(secondIntent)
                 awaitText(text = "Shortcut second")

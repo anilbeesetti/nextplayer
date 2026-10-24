@@ -30,11 +30,26 @@ class LocalMediaOperationsServiceTest {
     @Test
     fun moveMediaDoesNotOverwriteAnExistingVaultFile() = runBlocking {
         val context = ApplicationProvider.getApplicationContext<Context>()
-        val testRoot = File(context.cacheDir, "issue-1828-${UUID.randomUUID()}")
-        val sourceDir = File(testRoot, "source").apply { mkdirs() }
-        val targetDir = File(testRoot, "vault").apply { mkdirs() }
-        val sourceFile = File(sourceDir, "duplicate.mp4").apply { writeText(text = "new source") }
-        val existingVaultFile = File(targetDir, sourceFile.name).apply {
+        val testRoot = File(
+            context.cacheDir,
+            "issue-1828-${UUID.randomUUID()}",
+        )
+        val sourceDir = File(
+            testRoot,
+            "source",
+        ).apply { mkdirs() }
+        val targetDir = File(
+            testRoot,
+            "vault",
+        ).apply { mkdirs() }
+        val sourceFile = File(
+            sourceDir,
+            "duplicate.mp4",
+        ).apply { writeText(text = "new source") }
+        val existingVaultFile = File(
+            targetDir,
+            sourceFile.name,
+        ).apply {
             writeText(text = "existing vault video")
         }
         val sourceUri = sourceFile.toUri()
@@ -44,12 +59,18 @@ class LocalMediaOperationsServiceTest {
                 context = context,
             ).moveMedia(targets = mapOf(pair = sourceUri to existingVaultFile))
 
-            assertNull("A colliding source must be reported as not moved", moved[sourceUri])
+            assertNull(
+                "A colliding source must be reported as not moved",
+                moved[sourceUri],
+            )
             assertTrue(
                 "The colliding source must remain in its original location",
                 sourceFile.exists(),
             )
-            assertEquals("existing vault video", existingVaultFile.readText())
+            assertEquals(
+                "existing vault video",
+                existingVaultFile.readText(),
+            )
         } finally {
             testRoot.deleteRecursively()
         }
@@ -58,12 +79,30 @@ class LocalMediaOperationsServiceTest {
     @Test
     fun concurrentMovesToOneDestinationPreserveTheLosingSource() = runBlocking {
         val context = ApplicationProvider.getApplicationContext<Context>()
-        val testRoot = File(context.cacheDir, "issue-1828-race-${UUID.randomUUID()}")
-        val sourceFiles = listOf("first video", "second video").mapIndexed { index, content ->
-            File(File(testRoot, "source-$index").apply { mkdirs() }, "duplicate.mp4")
+        val testRoot = File(
+            context.cacheDir,
+            "issue-1828-race-${UUID.randomUUID()}",
+        )
+        val sourceFiles = listOf(
+            "first video",
+            "second video",
+        ).mapIndexed { index, content ->
+            File(
+                File(
+                    testRoot,
+                    "source-$index",
+                ).apply { mkdirs() },
+                "duplicate.mp4",
+            )
                 .apply { writeText(text = content) }
         }
-        val destination = File(File(testRoot, "vault").apply { mkdirs() }, "shared.mp4")
+        val destination = File(
+            File(
+                testRoot,
+                "vault",
+            ).apply { mkdirs() },
+            "shared.mp4",
+        )
         val barrier = CyclicBarrier(sourceFiles.size)
         val service = LocalMediaOperationsService(context = context)
 
@@ -78,13 +117,21 @@ class LocalMediaOperationsServiceTest {
                 }.awaitAll()
             }
 
-            assertEquals(1, results.count { it != null })
+            assertEquals(
+                1,
+                results.count { it != null },
+            )
             assertEquals(
                 "Exactly one losing source must remain",
                 1,
                 sourceFiles.count { it.exists() },
             )
-            assertTrue(destination.readText() in setOf("first video", "second video"))
+            assertTrue(
+                destination.readText() in setOf(
+                    "first video",
+                    "second video",
+                ),
+            )
         } finally {
             testRoot.deleteRecursively()
         }
@@ -93,25 +140,52 @@ class LocalMediaOperationsServiceTest {
     @Test
     fun cancellationDuringCopyPreservesSourceAndRemovesPartialDestination() {
         val context = ApplicationProvider.getApplicationContext<Context>()
-        val testRoot = File(context.cacheDir, "issue-1828-cancel-${UUID.randomUUID()}")
-        val source = File(File(testRoot, "source").apply { mkdirs() }, "large.mp4")
+        val testRoot = File(
+            context.cacheDir,
+            "issue-1828-cancel-${UUID.randomUUID()}",
+        )
+        val source = File(
+            File(
+                testRoot,
+                "source",
+            ).apply { mkdirs() },
+            "large.mp4",
+        )
             .apply { writeBytes(array = ByteArray(size = DEFAULT_BUFFER_SIZE * 4) { it.toByte() }) }
-        val destination = File(File(testRoot, "vault").apply { mkdirs() }, "unique.mp4")
+        val destination = File(
+            File(
+                testRoot,
+                "vault",
+            ).apply { mkdirs() },
+            "unique.mp4",
+        )
         var cancellationChecks = 0
 
         try {
             assertThrows(CancellationException::class.java) {
                 LocalMediaOperationsService(
                     context = context,
-                ).moveFileWithoutOverwrite(source = source, destination = destination) {
+                ).moveFileWithoutOverwrite(
+                    source = source,
+                    destination = destination,
+                ) {
                     cancellationChecks += 1
                     if (cancellationChecks == 2) throw CancellationException("cancel during copy")
                 }
             }
 
-            assertTrue("Cancellation must leave the source video untouched", source.exists())
-            assertEquals(DEFAULT_BUFFER_SIZE * 4L, source.length())
-            assertTrue("A partial vault copy must be removed", !destination.exists())
+            assertTrue(
+                "Cancellation must leave the source video untouched",
+                source.exists(),
+            )
+            assertEquals(
+                DEFAULT_BUFFER_SIZE * 4L,
+                source.length(),
+            )
+            assertTrue(
+                "A partial vault copy must be removed",
+                !destination.exists(),
+            )
         } finally {
             testRoot.deleteRecursively()
         }
@@ -120,14 +194,38 @@ class LocalMediaOperationsServiceTest {
     @Test
     fun cancellationAfterCommittedMovePreservesRemainingSource() = runBlocking {
         val context = ApplicationProvider.getApplicationContext<Context>()
-        val testRoot = File(context.cacheDir, "issue-1828-batch-cancel-${UUID.randomUUID()}")
-        val firstSource = File(File(testRoot, "source-1").apply { mkdirs() }, "first.mp4")
+        val testRoot = File(
+            context.cacheDir,
+            "issue-1828-batch-cancel-${UUID.randomUUID()}",
+        )
+        val firstSource = File(
+            File(
+                testRoot,
+                "source-1",
+            ).apply { mkdirs() },
+            "first.mp4",
+        )
             .apply { writeText(text = "first video") }
-        val secondSource = File(File(testRoot, "source-2").apply { mkdirs() }, "second.mp4")
+        val secondSource = File(
+            File(
+                testRoot,
+                "source-2",
+            ).apply { mkdirs() },
+            "second.mp4",
+        )
             .apply { writeText(text = "second video") }
-        val vaultDir = File(testRoot, "vault").apply { mkdirs() }
-        val firstDestination = File(vaultDir, "first.mp4")
-        val secondDestination = File(vaultDir, "second.mp4")
+        val vaultDir = File(
+            testRoot,
+            "vault",
+        ).apply { mkdirs() }
+        val firstDestination = File(
+            vaultDir,
+            "first.mp4",
+        )
+        val secondDestination = File(
+            vaultDir,
+            "second.mp4",
+        )
         val service = LocalMediaOperationsService(context = context)
         val firstMoveCommitted = CompletableDeferred<Unit>()
         val allowSecondMove = CompletableDeferred<Unit>()
@@ -149,9 +247,18 @@ class LocalMediaOperationsServiceTest {
             allowSecondMove.complete(value = Unit)
             withTimeout(timeMillis = TEST_TIMEOUT_MILLIS) { moveJob.cancelAndJoin() }
 
-            assertTrue("The committed first vault copy must remain", firstDestination.exists())
-            assertTrue("The uncommitted second source must remain", secondSource.exists())
-            assertTrue("A cancelled second vault copy must be removed", !secondDestination.exists())
+            assertTrue(
+                "The committed first vault copy must remain",
+                firstDestination.exists(),
+            )
+            assertTrue(
+                "The uncommitted second source must remain",
+                secondSource.exists(),
+            )
+            assertTrue(
+                "A cancelled second vault copy must be removed",
+                !secondDestination.exists(),
+            )
         } finally {
             testRoot.deleteRecursively()
         }

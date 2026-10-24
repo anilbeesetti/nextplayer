@@ -30,16 +30,25 @@ import org.robolectric.annotation.Config
 import org.robolectric.shadows.ShadowContentResolver
 
 @RunWith(RobolectricTestRunner::class)
-@Config(sdk = [30], manifest = Config.NONE)
+@Config(
+    sdk = [30],
+    manifest = Config.NONE,
+)
 class MediaStoreMediaServiceTest {
     private val scope = CoroutineScope(context = SupervisorJob() + Dispatchers.Default)
     private val context = RuntimeEnvironment.getApplication()
     private val provider = VideoProvider()
-    private val service = MediaStoreMediaService(context = context, applicationScope = scope)
+    private val service = MediaStoreMediaService(
+        context = context,
+        applicationScope = scope,
+    )
 
     @Before
     fun setUp() {
-        ShadowContentResolver.registerProviderInternal("media", provider)
+        ShadowContentResolver.registerProviderInternal(
+            "media",
+            provider,
+        )
     }
 
     @After
@@ -67,14 +76,16 @@ class MediaStoreMediaServiceTest {
 
     @Test
     fun `observers recover after a missing volume becomes available`() = runBlocking {
-        val video = File(context.cacheDir, "video.mp4").apply { writeText(text = "video") }
+        val video = File(
+            context.cacheDir,
+            "video.mp4",
+        ).apply { writeText(text = "video") }
         try {
-            val flows =
-                listOf<Flow<List<*>>>(
-                    service.observeVideos(),
-                    service.observeFolders(),
-                    service.observeTrashVideos(),
-                )
+            val flows = listOf<Flow<List<*>>>(
+                service.observeVideos(),
+                service.observeFolders(),
+                service.observeTrashVideos(),
+            )
             for ((index, flow) in flows.withIndex()) {
                 val volume = if (index == 1) "1234-5678" else "external_primary"
                 provider.failure = IllegalArgumentException("Volume $volume not found")
@@ -83,10 +94,19 @@ class MediaStoreMediaServiceTest {
                 val collector = launch { flow.collect { emissions.send(element = it) } }
                 try {
                     withTimeout(timeMillis = 5_000) {
-                        assertEquals(emptyList<Any>(), emissions.receive())
+                        assertEquals(
+                            emptyList<Any>(),
+                            emissions.receive(),
+                        )
                         provider.failure = null
-                        context.contentResolver.notifyChange(VIDEO_COLLECTION_URI, null)
-                        assertEquals(1, emissions.receive().size)
+                        context.contentResolver.notifyChange(
+                            VIDEO_COLLECTION_URI,
+                            null,
+                        )
+                        assertEquals(
+                            1,
+                            emissions.receive().size,
+                        )
                     }
                 } finally {
                     collector.cancelAndJoin()
@@ -136,7 +156,17 @@ class MediaStoreMediaServiceTest {
             return MatrixCursor(projection).apply {
                 video?.let {
                     addRow(
-                        arrayOf<Any>(1L, it.path, it.name, 100L, 1080, 1920, it.length(), 1L, 2L),
+                        arrayOf<Any>(
+                            1L,
+                            it.path,
+                            it.name,
+                            100L,
+                            1080,
+                            1920,
+                            it.length(),
+                            1L,
+                            2L,
+                        ),
                     )
                 }
             }

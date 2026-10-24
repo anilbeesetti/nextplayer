@@ -49,7 +49,12 @@ fun TextIconToggleButton(
             checked = isSelected,
             onCheckedChange = onClick,
             interactionSource = interactionSource,
-        ) { Icon(imageVector = icon, contentDescription = text) }
+        ) {
+            Icon(
+                imageVector = icon,
+                contentDescription = text,
+            )
+        }
         Text(
             text = text,
             style = MaterialTheme.typography.bodySmall,

@@ -34,7 +34,10 @@ class VideoThumbnailDecoderTest {
     @Test
     fun contentVideoWithInaccessiblePathDecodesWithoutCachedThumbnail() = runBlocking {
         val targetContext = ApplicationProvider.getApplicationContext<Context>()
-        val file = File(targetContext.cacheDir, "thumbnail-test.mp4")
+        val file = File(
+            targetContext.cacheDir,
+            "thumbnail-test.mp4",
+        )
         InstrumentationRegistry.getInstrumentation().context.assets.open(
             "thumbnail-test.mp4",
         ).use { input -> file.outputStream().use { input.copyTo(out = it) } }
@@ -42,7 +45,10 @@ class VideoThumbnailDecoderTest {
             override fun onCreate(): Boolean = true
 
             override fun openFile(uri: Uri, mode: String): ParcelFileDescriptor =
-                ParcelFileDescriptor.open(file, ParcelFileDescriptor.MODE_READ_ONLY)
+                ParcelFileDescriptor.open(
+                    file,
+                    ParcelFileDescriptor.MODE_READ_ONLY,
+                )
 
             override fun getType(uri: Uri): String = "video/mp4"
 
@@ -94,10 +100,22 @@ class VideoThumbnailDecoderTest {
             context.contentResolver.insert(
                 MediaStore.Video.Media.EXTERNAL_CONTENT_URI,
                 ContentValues().apply {
-                    put(MediaStore.MediaColumns.DISPLAY_NAME, name)
-                    put(MediaStore.MediaColumns.MIME_TYPE, "video/mp4")
-                    put(MediaStore.MediaColumns.RELATIVE_PATH, "Movies/")
-                    put(MediaStore.MediaColumns.IS_PENDING, 1)
+                    put(
+                        MediaStore.MediaColumns.DISPLAY_NAME,
+                        name,
+                    )
+                    put(
+                        MediaStore.MediaColumns.MIME_TYPE,
+                        "video/mp4",
+                    )
+                    put(
+                        MediaStore.MediaColumns.RELATIVE_PATH,
+                        "Movies/",
+                    )
+                    put(
+                        MediaStore.MediaColumns.IS_PENDING,
+                        1,
+                    )
                 },
             ),
         )
@@ -113,7 +131,12 @@ class VideoThumbnailDecoderTest {
             }
             context.contentResolver.update(
                 uri,
-                ContentValues().apply { put(MediaStore.MediaColumns.IS_PENDING, 0) },
+                ContentValues().apply {
+                    put(
+                        MediaStore.MediaColumns.IS_PENDING,
+                        0,
+                    )
+                },
                 null,
                 null,
             )
@@ -133,11 +156,20 @@ class VideoThumbnailDecoderTest {
                 null,
             )!!.use { cursor ->
                 assertTrue(cursor.moveToFirst())
-                assertEquals(1, cursor.getInt(0))
-                assertEquals("com.android.shell", cursor.getString(1))
+                assertEquals(
+                    1,
+                    cursor.getInt(0),
+                )
+                assertEquals(
+                    "com.android.shell",
+                    cursor.getString(1),
+                )
             }
 
-            assertDecodesAllStrategies(context = context, uri.toString())
+            assertDecodesAllStrategies(
+                context = context,
+                uri.toString(),
+            )
         } finally {
             shell(command = "content delete --uri $uri")
             instrumentation.uiAutomation.dropShellPermissionIdentity()
@@ -157,12 +189,18 @@ class VideoThumbnailDecoderTest {
                 val result = imageLoader.execute(
                     ImageRequest.Builder(context = context)
                         .data(data = uri)
-                        .size(width = 160, height = 90)
+                        .size(
+                            width = 160,
+                            height = 90,
+                        )
                         .memoryCachePolicy(CachePolicy.DISABLED)
                         .diskCachePolicy(CachePolicy.DISABLED)
                         .build(),
                 )
-                assertTrue("$strategy: $result", result is SuccessResult)
+                assertTrue(
+                    "$strategy: $result",
+                    result is SuccessResult,
+                )
                 assertTrue((result as SuccessResult).image.width > 0)
                 assertTrue(result.image.height > 0)
             } finally {

@@ -69,7 +69,10 @@ fun DoubleTapIndicator(modifier: Modifier = Modifier, tapGestureState: TapGestur
                     },
                 )
                 .background(Color.White.copy(alpha = 0.2f))
-                .indication(tapGestureState.interactionSource, indication = ripple()),
+                .indication(
+                    tapGestureState.interactionSource,
+                    indication = ripple(),
+                ),
             contentAlignment = Alignment.Center,
         ) {
             Column(
@@ -141,9 +144,18 @@ private class RightSideOvalShape : Shape {
         density: Density,
     ): Outline {
         val path = Path().apply {
-            moveTo(size.width, size.height)
-            lineTo(size.width, y = 0f)
-            lineTo(x = size.width * 0.1f, y = 0f)
+            moveTo(
+                size.width,
+                size.height,
+            )
+            lineTo(
+                size.width,
+                y = 0f,
+            )
+            lineTo(
+                x = size.width * 0.1f,
+                y = 0f,
+            )
             cubicTo(
                 x1 = size.width * 0.1f,
                 y1 = 0f,
@@ -165,8 +177,14 @@ private class LeftSideOvalShape : Shape {
         density: Density,
     ): Outline {
         val path = Path().apply {
-            moveTo(x = 0f, y = 0f)
-            lineTo(x = size.width * 0.9f, y = 0f)
+            moveTo(
+                x = 0f,
+                y = 0f,
+            )
+            lineTo(
+                x = size.width * 0.9f,
+                y = 0f,
+            )
             cubicTo(
                 x1 = size.width * 0.9f,
                 y1 = 0f,
@@ -175,7 +193,10 @@ private class LeftSideOvalShape : Shape {
                 x3 = size.width * 0.9f,
                 size.height,
             )
-            lineTo(x = 0f, size.height)
+            lineTo(
+                x = 0f,
+                size.height,
+            )
             close()
         }
         return Outline.Generic(path = path)

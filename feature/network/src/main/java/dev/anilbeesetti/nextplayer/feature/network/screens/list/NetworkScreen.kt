@@ -93,9 +93,12 @@ internal fun NetworkScreenContent(state: NetworkUiState, onAction: (NetworkActio
                 title = stringResource(R.string.network),
                 fontWeight = FontWeight.Bold,
                 actions = {
-                    IconButton(onClick = {
-                        onAction(NetworkAction.OpenSettings)
-                    }, modifier = Modifier.tvFocusRing()) {
+                    IconButton(
+                        onClick = {
+                            onAction(NetworkAction.OpenSettings)
+                        },
+                        modifier = Modifier.tvFocusRing(),
+                    ) {
                         Icon(
                             imageVector = NextIcons.Settings,
                             contentDescription = stringResource(R.string.settings),
@@ -110,7 +113,12 @@ internal fun NetworkScreenContent(state: NetworkUiState, onAction: (NetworkActio
             modifier = Modifier
                 .fillMaxSize()
                 .padding(scaffoldPadding.copy(bottom = 0.dp))
-                .clip(shape = RoundedCornerShape(topStart = 24.dp, topEnd = 24.dp))
+                .clip(
+                    shape = RoundedCornerShape(
+                        topStart = 24.dp,
+                        topEnd = 24.dp,
+                    ),
+                )
                 .background(MaterialTheme.colorScheme.background),
         ) {
             LazyColumn(
@@ -160,7 +168,10 @@ internal fun NetworkScreenContent(state: NetworkUiState, onAction: (NetworkActio
             title = { Text(text = stringResource(R.string.delete_connection)) },
             content = {
                 Text(
-                    text = stringResource(R.string.delete_connection_confirmation, connection.name),
+                    text = stringResource(
+                        R.string.delete_connection_confirmation,
+                        connection.name,
+                    ),
                 )
             },
             confirmButton = {
@@ -283,12 +294,23 @@ private fun ConnectionItem(
         trailingContent = {
             Box {
                 IconButton(onClick = { menuExpanded = true }) {
-                    Icon(NextIcons.ExtraSettings, contentDescription = null)
+                    Icon(
+                        NextIcons.ExtraSettings,
+                        contentDescription = null,
+                    )
                 }
-                DropdownMenu(expanded = menuExpanded, onDismissRequest = { menuExpanded = false }) {
+                DropdownMenu(
+                    expanded = menuExpanded,
+                    onDismissRequest = { menuExpanded = false },
+                ) {
                     DropdownMenuItem(
                         text = { Text(text = stringResource(R.string.edit)) },
-                        leadingIcon = { Icon(NextIcons.Edit, contentDescription = null) },
+                        leadingIcon = {
+                            Icon(
+                                NextIcons.Edit,
+                                contentDescription = null,
+                            )
+                        },
                         onClick = {
                             menuExpanded = false
                             onEdit()
@@ -296,7 +318,12 @@ private fun ConnectionItem(
                     )
                     DropdownMenuItem(
                         text = { Text(text = stringResource(R.string.delete)) },
-                        leadingIcon = { Icon(NextIcons.Delete, contentDescription = null) },
+                        leadingIcon = {
+                            Icon(
+                                NextIcons.Delete,
+                                contentDescription = null,
+                            )
+                        },
                         onClick = {
                             menuExpanded = false
                             onDelete()
@@ -311,7 +338,10 @@ private fun ConnectionItem(
 @Composable
 private fun NetworkEmptyState(modifier: Modifier = Modifier) {
     Column(
-        modifier = modifier.padding(horizontal = 32.dp, vertical = 48.dp),
+        modifier = modifier.padding(
+            horizontal = 32.dp,
+            vertical = 48.dp,
+        ),
         verticalArrangement = Arrangement.Center,
         horizontalAlignment = Alignment.CenterHorizontally,
     ) {

@@ -35,7 +35,11 @@ class SmbClient internal constructor(
     private val listShares: (Session) -> List<NetworkFile>,
 ) : NetworkClient {
 
-    constructor(connection: NetworkConnection) : this(connection, ::SMBClient, ::listSmbShares)
+    constructor(connection: NetworkConnection) : this(
+        connection,
+        ::SMBClient,
+        ::listSmbShares,
+    )
 
     private var client: SMBClient? = null
     private var smbConnection: Connection? = null
@@ -54,8 +58,14 @@ class SmbClient internal constructor(
             ) { "Path must be / or just the share name (e.g. Media), without any folders." }
             // Disable signing/encryption: avoids Key.getEncoded() crashes on Android.
             val config = SmbConfig.builder()
-                .withTimeout(30, TimeUnit.SECONDS)
-                .withSoTimeout(35, TimeUnit.SECONDS)
+                .withTimeout(
+                    30,
+                    TimeUnit.SECONDS,
+                )
+                .withSoTimeout(
+                    35,
+                    TimeUnit.SECONDS,
+                )
                 .withDialects(
                     SMB2Dialect.SMB_3_1_1,
                     SMB2Dialect.SMB_3_0_2,
@@ -75,7 +85,10 @@ class SmbClient internal constructor(
             val smbClient = createClient(config)
             client = smbClient
             try {
-                val conn = smbClient.connect(connection.host, connection.effectivePort)
+                val conn = smbClient.connect(
+                    connection.host,
+                    connection.effectivePort,
+                )
                 smbConnection = conn
                 val authContext = if (connection.isAnonymous) {
                     AuthenticationContext.anonymous()
@@ -150,7 +163,10 @@ class SmbClient internal constructor(
             val sess = session ?: error(message = "Not connected")
             val (selectedShare, sharePath) = shareAndPath(path = path)
             (sess.connectShare(selectedShare) as DiskShare).use { share ->
-                openReadFile(share = share, path = sharePath).use {
+                openReadFile(
+                    share = share,
+                    path = sharePath,
+                ).use {
                     it.fileInformation.standardInformation.endOfFile
                 }
             }
@@ -164,7 +180,10 @@ class SmbClient internal constructor(
             val (selectedShare, sharePath) = shareAndPath(path = path)
             val share = sess.connectShare(selectedShare) as DiskShare
             val file = try {
-                openReadFile(share = share, path = sharePath)
+                openReadFile(
+                    share = share,
+                    path = sharePath,
+                )
             } catch (error: Throwable) {
                 runCatching { share.close() }
                 throw error
@@ -175,11 +194,25 @@ class SmbClient internal constructor(
 
                 override fun read(): Int {
                     val one = ByteArray(size = 1)
-                    return if (read(one, 0, 1) == -1) -1 else one[0].toInt() and 0xFF
+                    return if (read(
+                            one,
+                            0,
+                            1,
+                        ) == -1
+                    ) {
+                        -1
+                    } else {
+                        one[0].toInt() and 0xFF
+                    }
                 }
 
                 override fun read(b: ByteArray, off: Int, len: Int): Int {
-                    val read = file.read(b, position, off, len)
+                    val read = file.read(
+                        b,
+                        position,
+                        off,
+                        len,
+                    )
                     if (read > 0) position += read
                     return read
                 }
@@ -203,24 +236,43 @@ class SmbClient internal constructor(
         null,
     )
 
-    private fun smbPath(relative: String): String = relative.replace(oldChar = '/', newChar = '\\')
+    private fun smbPath(relative: String): String = relative.replace(
+        oldChar = '/',
+        newChar = '\\',
+    )
 
     private fun shareAndPath(path: String): Pair<String, String> {
         val relative = path.trim('/')
         if (!isServerRoot) return shareName to relative
         require(relative.isNotEmpty()) { "Select a share before opening a file." }
         return relative.substringBefore(delimiter = '/') to
-            relative.substringAfter(delimiter = '/', missingDelimiterValue = "")
+            relative.substringAfter(
+                delimiter = '/',
+                missingDelimiterValue = "",
+            )
     }
 }
 
 private fun listSmbShares(session: Session): List<NetworkFile> =
     (session.connectShare("IPC$") as PipeShare).use { share ->
-        NamedPipe(session, share, "srvsvc").use { pipe ->
+        NamedPipe(
+            session,
+            share,
+            "srvsvc",
+        ).use { pipe ->
             val transport = SMBTransport(pipe)
-            transport.bind(Interface.SRVSVC_V3_0, Interface.NDR_32BIT_V2)
+            transport.bind(
+                Interface.SRVSVC_V3_0,
+                Interface.NDR_32BIT_V2,
+            )
             ServerService(transport).shares1
                 .filter { it.type and 0xFFFF == 0 && !it.netName.endsWith(suffix = "$") }
-                .map { NetworkFile(name = it.netName, path = it.netName, isDirectory = true) }
+                .map {
+                    NetworkFile(
+                        name = it.netName,
+                        path = it.netName,
+                        isDirectory = true,
+                    )
+                }
         }
     }

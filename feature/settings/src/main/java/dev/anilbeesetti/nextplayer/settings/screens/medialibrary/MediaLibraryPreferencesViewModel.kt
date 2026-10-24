@@ -89,7 +89,12 @@ class MediaLibraryPreferencesViewModel(
     private fun updateNewVideoThreshold(days: Int) {
         viewModelScope.launch {
             preferencesRepository.updateApplicationPreferences {
-                it.copy(newVideoThresholdDays = days.coerceIn(minimumValue = 0, maximumValue = 30))
+                it.copy(
+                    newVideoThresholdDays = days.coerceIn(
+                        minimumValue = 0,
+                        maximumValue = 30,
+                    ),
+                )
             }
         }
     }

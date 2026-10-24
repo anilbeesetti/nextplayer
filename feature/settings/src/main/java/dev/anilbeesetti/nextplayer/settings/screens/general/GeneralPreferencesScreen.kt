@@ -43,7 +43,10 @@ fun GeneralPreferencesScreen(viewModel: GeneralPreferencesViewModel) {
     )
 }
 
-@OptIn(ExperimentalMaterial3Api::class, ExperimentalMaterial3ExpressiveApi::class)
+@OptIn(
+    ExperimentalMaterial3Api::class,
+    ExperimentalMaterial3ExpressiveApi::class,
+)
 @Composable
 private fun GeneralPreferencesScreenContent(
     state: GeneralPreferencesUiState,
@@ -55,9 +58,12 @@ private fun GeneralPreferencesScreenContent(
             NextTopAppBar(
                 title = stringResource(id = R.string.general_name),
                 navigationIcon = {
-                    FilledTonalIconButton(onClick = {
-                        onAction(GeneralPreferencesUiEvent.NavigateUp)
-                    }, modifier = Modifier.tvFocusDown(target = listFocusRequester)) {
+                    FilledTonalIconButton(
+                        onClick = {
+                            onAction(GeneralPreferencesUiEvent.NavigateUp)
+                        },
+                        modifier = Modifier.tvFocusDown(target = listFocusRequester),
+                    ) {
                         Icon(
                             imageVector = NextIcons.ArrowBack,
                             contentDescription = stringResource(id = R.string.navigate_up),

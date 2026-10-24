@@ -51,7 +51,11 @@ class VaultPlaybackOutputTest {
         runTest(testDispatcher.scheduler) {
             val uri = "content://dev.anilbeesetti.nextplayer.fileprovider/vault/1821".toUri()
             val viewModel = VaultViewModel(
-                output = VaultViewModel.Output(navigateUp = {}, playVideo = {}, playVideos = {}),
+                output = VaultViewModel.Output(
+                    navigateUp = {},
+                    playVideo = {},
+                    playVideos = {},
+                ),
                 vaultRepository = FakeVaultRepository,
                 vaultPinRepository = FakeVaultPinRepository,
                 getHiddenVideosUseCase = GetHiddenVideosUseCase(
@@ -61,14 +65,22 @@ class VaultPlaybackOutputTest {
                 preferencesRepository = FakePreferencesRepository(),
             )
             val played = mutableListOf<Uri>()
-            viewModel.output =
-                VaultViewModel.Output(navigateUp = {
-                }, playVideo = { error(message = "Stale output") }, playVideos = {})
-            viewModel.output =
-                VaultViewModel.Output(navigateUp = {}, playVideo = played::add, playVideos = {})
+            viewModel.output = VaultViewModel.Output(
+                navigateUp = {},
+                playVideo = { error(message = "Stale output") },
+                playVideos = {},
+            )
+            viewModel.output = VaultViewModel.Output(
+                navigateUp = {},
+                playVideo = played::add,
+                playVideos = {},
+            )
 
             viewModel.onAction(VaultAction.PlayVideo(Video.sample.copy(uriString = uri.toString())))
-            assertEquals(listOf(element = uri), played)
+            assertEquals(
+                listOf(element = uri),
+                played,
+            )
         }
 
     @Test
@@ -76,8 +88,11 @@ class VaultPlaybackOutputTest {
         runTest(testDispatcher.scheduler) {
             val played = mutableListOf<List<Uri>>()
             val viewModel = VaultViewModel(
-                output = VaultViewModel.Output(navigateUp = {
-                }, playVideo = {}, playVideos = played::add),
+                output = VaultViewModel.Output(
+                    navigateUp = {},
+                    playVideo = {},
+                    playVideos = played::add,
+                ),
                 vaultRepository = FakeVaultRepository,
                 vaultPinRepository = FakeVaultPinRepository,
                 getHiddenVideosUseCase = GetHiddenVideosUseCase(
@@ -103,7 +118,10 @@ class VaultPlaybackOutputTest {
                 ),
             )
 
-            assertEquals(listOf(element = listOf(Video.sample.uriString.toUri())), played)
+            assertEquals(
+                listOf(element = listOf(Video.sample.uriString.toUri())),
+                played,
+            )
         }
 
     private data object FakeVaultRepository : VaultRepository {

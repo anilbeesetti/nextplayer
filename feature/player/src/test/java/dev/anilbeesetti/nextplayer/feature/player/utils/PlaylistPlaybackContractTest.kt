@@ -19,10 +19,16 @@ class PlaylistPlaybackContractTest {
         val queue = playlistRecord().toMediaQueue(selectedUri = "https://example.com/two")
 
         assertEquals(
-            listOf("https://example.com/one", "https://example.com/two"),
+            listOf(
+                "https://example.com/one",
+                "https://example.com/two",
+            ),
             queue?.mediaItems?.map { it.mediaId },
         )
-        assertEquals(1, queue?.startIndex)
+        assertEquals(
+            1,
+            queue?.startIndex,
+        )
     }
 
     @Test
@@ -30,7 +36,10 @@ class PlaylistPlaybackContractTest {
         val queue = playlistRecord().toMediaQueue(selectedUri = "https://example.com/one")
 
         val item = queue?.mediaItems?.first()
-        assertEquals("One", item?.mediaMetadata?.title)
+        assertEquals(
+            "One",
+            item?.mediaMetadata?.title,
+        )
         assertEquals(
             "https://example.com/one.png",
             item?.mediaMetadata?.artworkUri?.toString(),

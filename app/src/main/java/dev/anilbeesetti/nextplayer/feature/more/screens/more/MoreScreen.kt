@@ -75,7 +75,10 @@ fun MoreScreen(viewModel: MoreViewModel) {
 
 @Composable
 internal fun MoreScreenContent(state: MoreUiState, onAction: (MoreAction) -> Unit) {
-    BindTopLevelFab(TopLevelFabKey.MORE, NextIcons.Settings) { onAction(MoreAction.OpenSettings) }
+    BindTopLevelFab(
+        TopLevelFabKey.MORE,
+        NextIcons.Settings,
+    ) { onAction(MoreAction.OpenSettings) }
     val filePicker =
         rememberLauncherForActivityResult(ActivityResultContracts.GetContent()) { uri ->
             uri?.let { onAction(MoreAction.PlayVideo(it.toString())) }
@@ -94,7 +97,12 @@ internal fun MoreScreenContent(state: MoreUiState, onAction: (MoreAction) -> Uni
             modifier = Modifier
                 .fillMaxSize()
                 .padding(scaffoldPadding.copy(bottom = 0.dp))
-                .clip(shape = RoundedCornerShape(topStart = 24.dp, topEnd = 24.dp))
+                .clip(
+                    shape = RoundedCornerShape(
+                        topStart = 24.dp,
+                        topEnd = 24.dp,
+                    ),
+                )
                 .background(MaterialTheme.colorScheme.background),
         ) {
             Column(
@@ -231,10 +239,16 @@ private fun HistorySection(
                                 }
                             }
                         }
-                        .restorableFocusGroup(state = historyFocusState, ready = false),
+                        .restorableFocusGroup(
+                            state = historyFocusState,
+                            ready = false,
+                        ),
                     horizontalArrangement = Arrangement.spacedBy(2.dp),
                 ) {
-                    items(items = videos, key = { it.uriString }) { video ->
+                    items(
+                        items = videos,
+                        key = { it.uriString },
+                    ) { video ->
                         VideoGridItem(
                             video = video,
                             isRecentlyPlayedVideo = false,
@@ -242,7 +256,10 @@ private fun HistorySection(
                             preferences = preferences,
                             modifier = Modifier
                                 .width(140.dp)
-                                .restorableFocusItem(state = historyFocusState, video.uriString),
+                                .restorableFocusItem(
+                                    state = historyFocusState,
+                                    video.uriString,
+                                ),
                             onClick = { onVideoClick(video) },
                         )
                     }
@@ -259,7 +276,6 @@ private fun MoreScreenContentPreview() {
         state = MoreUiState(
             history = DataState.Success(value = emptyList()),
         ),
-        onAction = {
-        },
+        onAction = {},
     )
 }

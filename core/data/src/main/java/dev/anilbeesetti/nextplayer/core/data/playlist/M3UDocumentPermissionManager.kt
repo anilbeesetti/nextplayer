@@ -19,7 +19,10 @@ class M3UDocumentPermissionManager(private val context: Context) {
                 Intent.FLAG_GRANT_READ_URI_PERMISSION,
             )
         }
-        PersistedM3UGrant(uri = uri, newlyPersisted = !alreadyPersisted)
+        PersistedM3UGrant(
+            uri = uri,
+            newlyPersisted = !alreadyPersisted,
+        )
     }
 
     fun release(grant: PersistedM3UGrant) {

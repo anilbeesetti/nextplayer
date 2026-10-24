@@ -90,7 +90,10 @@ class MediaControllerTest {
             val second = composeRule.runOnIdle { requireNotNull(value = controller) }
             composeRule.runOnIdle { second.setIsScrubbingModeEnabled(enabled = true) }
             composeRule.runOnIdle {
-                assertNotSame(first, second)
+                assertNotSame(
+                    first,
+                    second,
+                )
                 assertTrue(second.isConnected)
                 assertTrue(player.isScrubbingModeEnabled)
                 visible.value = false
@@ -110,40 +113,45 @@ class MediaControllerTest {
         }
     }
 
-    private fun scrubbingSession(player: ExoPlayer): MediaSession =
-        MediaSession.Builder(composeRule.activity, player)
-            .setCallback(object : MediaSession.Callback {
-                override fun onConnect(
-                    session: MediaSession,
-                    controller: MediaSession.ControllerInfo,
-                ): MediaSession.ConnectionResult =
-                    MediaSession.ConnectionResult.AcceptedResultBuilder(session)
-                        .setAvailableSessionCommands(
-                            MediaSession.ConnectionResult.DEFAULT_SESSION_COMMANDS.buildUpon()
-                                .add(CustomCommands.SET_IS_SCRUBBING_MODE_ENABLED.sessionCommand)
-                                .build(),
-                        )
-                        .build()
-
-                override fun onCustomCommand(
-                    session: MediaSession,
-                    controller: MediaSession.ControllerInfo,
-                    customCommand: SessionCommand,
-                    args: Bundle,
-                ): ListenableFuture<SessionResult> {
-                    player.setIsScrubbingModeEnabled(
-                        args.getBoolean(CustomCommands.IS_SCRUBBING_MODE_ENABLED_KEY),
+    private fun scrubbingSession(player: ExoPlayer): MediaSession = MediaSession.Builder(
+        composeRule.activity,
+        player,
+    )
+        .setCallback(object : MediaSession.Callback {
+            override fun onConnect(
+                session: MediaSession,
+                controller: MediaSession.ControllerInfo,
+            ): MediaSession.ConnectionResult =
+                MediaSession.ConnectionResult.AcceptedResultBuilder(session)
+                    .setAvailableSessionCommands(
+                        MediaSession.ConnectionResult.DEFAULT_SESSION_COMMANDS.buildUpon()
+                            .add(CustomCommands.SET_IS_SCRUBBING_MODE_ENABLED.sessionCommand)
+                            .build(),
                     )
-                    return Futures.immediateFuture(SessionResult(SessionResult.RESULT_SUCCESS))
-                }
-            })
-            .build()
+                    .build()
+
+            override fun onCustomCommand(
+                session: MediaSession,
+                controller: MediaSession.ControllerInfo,
+                customCommand: SessionCommand,
+                args: Bundle,
+            ): ListenableFuture<SessionResult> {
+                player.setIsScrubbingModeEnabled(
+                    args.getBoolean(CustomCommands.IS_SCRUBBING_MODE_ENABLED_KEY),
+                )
+                return Futures.immediateFuture(SessionResult(SessionResult.RESULT_SUCCESS))
+            }
+        })
+        .build()
 
     @Test
     fun connectionCompletingAfterStopIsReleasedWithoutBeingPublished() {
         val player = composeRule.runOnIdle { ExoPlayer.Builder(composeRule.activity).build() }
         val session = composeRule.runOnIdle {
-            MediaSession.Builder(composeRule.activity, player).build()
+            MediaSession.Builder(
+                composeRule.activity,
+                player,
+            ).build()
         }
         val application = shadowOf(composeRule.activity.application)
         val service = composeRule.runOnIdle { bindSessionService(session = session) }
@@ -184,7 +192,10 @@ class MediaControllerTest {
         service.get().session = session
         val application = composeRule.activity.applicationContext as Application
         shadowOf(application).setComponentNameAndServiceForBindService(
-            ComponentName(application, PlayerService::class.java),
+            ComponentName(
+                application,
+                PlayerService::class.java,
+            ),
             service.get().onBind(Intent(MediaSessionService.SERVICE_INTERFACE)),
         )
         return service

@@ -61,7 +61,10 @@ class ControlsBottomViewTest {
             repeat(times = 3) { index ->
                 seekbar.performKeyInput { pressKey(Key.DirectionRight) }
                 composeRule.runOnIdle {
-                    assertEquals((index + 1) * 600L, player.currentPosition)
+                    assertEquals(
+                        (index + 1) * 600L,
+                        player.currentPosition,
+                    )
                     assertFalse(player.playWhenReady)
                 }
             }
@@ -171,7 +174,12 @@ class ControlsBottomViewTest {
             1_500L to "Second",
             1_750L to "Third",
         ).map { (start, title) ->
-            Chapter.Builder().setStartTimeMs(start).setTitle(Label(null, title)).build()
+            Chapter.Builder().setStartTimeMs(start).setTitle(
+                Label(
+                    null,
+                    title,
+                ),
+            ).build()
         }
         private val tracks = Tracks(
             listOf(
@@ -219,7 +227,10 @@ class ControlsBottomViewTest {
         ): ListenableFuture<*> {
             state = state.buildUpon()
                 .setContentPositionMs(positionMs)
-                .setPositionDiscontinuity(Player.DISCONTINUITY_REASON_SEEK, positionMs)
+                .setPositionDiscontinuity(
+                    Player.DISCONTINUITY_REASON_SEEK,
+                    positionMs,
+                )
                 .build()
             return Futures.immediateVoidFuture()
         }

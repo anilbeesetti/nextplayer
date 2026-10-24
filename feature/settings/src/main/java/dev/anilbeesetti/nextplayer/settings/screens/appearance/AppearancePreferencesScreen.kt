@@ -47,7 +47,10 @@ fun AppearancePreferencesScreen(viewModel: AppearancePreferencesViewModel) {
     )
 }
 
-@OptIn(ExperimentalMaterial3Api::class, ExperimentalMaterial3ExpressiveApi::class)
+@OptIn(
+    ExperimentalMaterial3Api::class,
+    ExperimentalMaterial3ExpressiveApi::class,
+)
 @Composable
 private fun AppearancePreferencesScreenContent(
     state: AppearancePreferencesUiState,
@@ -59,9 +62,12 @@ private fun AppearancePreferencesScreenContent(
             NextTopAppBar(
                 title = stringResource(id = R.string.appearance_name),
                 navigationIcon = {
-                    FilledTonalIconButton(onClick = {
-                        onAction(AppearancePreferencesEvent.NavigateUp)
-                    }, modifier = Modifier.tvFocusDown(target = listFocusRequester)) {
+                    FilledTonalIconButton(
+                        onClick = {
+                            onAction(AppearancePreferencesEvent.NavigateUp)
+                        },
+                        modifier = Modifier.tvFocusDown(target = listFocusRequester),
+                    ) {
                         Icon(
                             imageVector = NextIcons.ArrowBack,
                             contentDescription = stringResource(id = R.string.navigate_up),

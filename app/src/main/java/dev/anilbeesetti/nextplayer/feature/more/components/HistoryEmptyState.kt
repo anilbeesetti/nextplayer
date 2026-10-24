@@ -25,7 +25,10 @@ import dev.anilbeesetti.nextplayer.core.ui.designsystem.NextIcons
 @Composable
 internal fun HistoryEmptyState(isHistoryOff: Boolean, modifier: Modifier = Modifier) {
     Column(
-        modifier = modifier.padding(horizontal = 24.dp, vertical = 40.dp),
+        modifier = modifier.padding(
+            horizontal = 24.dp,
+            vertical = 40.dp,
+        ),
         verticalArrangement = Arrangement.Center,
         horizontalAlignment = Alignment.CenterHorizontally,
     ) {

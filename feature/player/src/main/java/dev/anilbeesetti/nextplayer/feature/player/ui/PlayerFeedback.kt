@@ -80,7 +80,10 @@ internal fun BoxScope.DpadSeekIndicator(visible: Boolean, offsetMs: Long, positi
             color = Color.Black.copy(alpha = 0.6f),
         ) {
             Row(
-                modifier = Modifier.padding(horizontal = 20.dp, vertical = 12.dp),
+                modifier = Modifier.padding(
+                    horizontal = 20.dp,
+                    vertical = 12.dp,
+                ),
                 verticalAlignment = Alignment.CenterVertically,
                 horizontalArrangement = Arrangement.spacedBy(12.dp),
             ) {
@@ -155,7 +158,12 @@ internal fun BoxScope.PlayerVerticalGestureIndicators(
         modifier = Modifier
             .fillMaxSize()
             .displayCutoutPadding()
-            .padding(systemBarsPadding.copy(top = 0.dp, bottom = 0.dp))
+            .padding(
+                systemBarsPadding.copy(
+                    top = 0.dp,
+                    bottom = 0.dp,
+                ),
+            )
             .padding(24.dp),
     ) {
         AnimatedVisibility(

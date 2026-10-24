@@ -87,7 +87,11 @@ fun MediaView(
         val maxVideos = (maxWidth / videoMinWidth).toInt().coerceAtLeast(minimumValue = 1)
         val spans = when (preferences.mediaLayoutMode) {
             MediaLayoutMode.LIST -> 1
-            MediaLayoutMode.GRID -> lcm(a = maxFolders, b = maxVideos)
+
+            MediaLayoutMode.GRID -> lcm(
+                a = maxFolders,
+                b = maxVideos,
+            )
         }
 
         val singleFolderSpan = when (preferences.mediaLayoutMode) {
@@ -110,7 +114,10 @@ fun MediaView(
             columns = GridCells.Fixed(count = spans),
             contentPadding =
                 contentPadding +
-                    PaddingValues(horizontal = contentHorizontalPadding, vertical = 8.dp),
+                    PaddingValues(
+                        horizontal = contentHorizontalPadding,
+                        vertical = 8.dp,
+                    ),
             verticalArrangement = Arrangement.spacedBy(space = itemSpacing),
             horizontalArrangement = Arrangement.spacedBy(space = itemSpacing),
         ) {
@@ -136,7 +143,10 @@ fun MediaView(
                     folder = folder,
                     isRecentlyPlayedFolder = folder.path == recentlyPlayedFolder?.path,
                     preferences = preferences,
-                    modifier = Modifier.restorableFocusItem(state = focusState, folder.path),
+                    modifier = Modifier.restorableFocusItem(
+                        state = focusState,
+                        folder.path,
+                    ),
                     selected = selected,
                     isFirstItem = index == 0,
                     isLastItem = index == mediaHolder.folders.lastIndex,
@@ -184,7 +194,10 @@ fun MediaView(
                     video = video,
                     preferences = preferences,
                     isRecentlyPlayedVideo = video.path == recentlyPlayedVideo?.path,
-                    modifier = Modifier.restorableFocusItem(state = focusState, video.uriString),
+                    modifier = Modifier.restorableFocusItem(
+                        state = focusState,
+                        video.uriString,
+                    ),
                     isFirstItem = index == 0,
                     isLastItem = index == mediaHolder.videos.lastIndex,
                     selected = selected,
@@ -206,6 +219,16 @@ fun MediaView(
     }
 }
 
-fun lcm(a: Int, b: Int): Int = abs(n = a * b) / gcd(a = a, b = b)
+fun lcm(a: Int, b: Int): Int = abs(n = a * b) / gcd(
+    a = a,
+    b = b,
+)
 
-fun gcd(a: Int, b: Int): Int = if (b == 0) a else gcd(a = b, b = a % b)
+fun gcd(a: Int, b: Int): Int = if (b == 0) {
+    a
+} else {
+    gcd(
+        a = b,
+        b = a % b,
+    )
+}

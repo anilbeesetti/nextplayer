@@ -44,7 +44,10 @@ class SmbClientTest {
         try {
             val result = client.connect()
 
-            assertTrue("The unavailable server should fail the connection test", result.isFailure)
+            assertTrue(
+                "The unavailable server should fail the connection test",
+                result.isFailure,
+            )
             assertFalse(
                 "SMB server root must not fail local path validation: ${result.exceptionOrNull()}",
                 result.exceptionOrNull() is IllegalArgumentException,
@@ -63,15 +66,29 @@ class SmbClientTest {
     fun `server root connects and lists shares as folders`() = runBlocking {
         val server = TestServer()
         val shares = listOf(
-            NetworkFile(name = "Media", path = "Media", isDirectory = true),
-            NetworkFile(name = "Other", path = "Other", isDirectory = true),
+            NetworkFile(
+                name = "Media",
+                path = "Media",
+                isDirectory = true,
+            ),
+            NetworkFile(
+                name = "Other",
+                path = "Other",
+                isDirectory = true,
+            ),
         )
         val client = server.client(path = "/") { shares }
 
         assertTrue(client.connect().isSuccess)
         assertTrue(client.isConnected())
-        assertEquals(shares, client.listFiles(client.rootPath).getOrThrow())
-        verify(server.session, never()).connectShare("")
+        assertEquals(
+            shares,
+            client.listFiles(client.rootPath).getOrThrow(),
+        )
+        verify(
+            server.session,
+            never(),
+        ).connectShare("")
         client.disconnect()
         verify(server.session).close()
         verify(server.connection).close()
@@ -85,7 +102,10 @@ class SmbClientTest {
         val error = IOException("Share enumeration denied")
         val client = server.client(path = "/") { throw error }
 
-        assertEquals(error, client.connect().exceptionOrNull())
+        assertEquals(
+            error,
+            client.connect().exceptionOrNull(),
+        )
         assertFalse(client.isConnected())
         verify(server.session).close()
         verify(server.connection).close()
@@ -124,13 +144,28 @@ class SmbClientTest {
     fun `server root reads size and stream from the selected share at the requested offset`() =
         runBlocking {
             val server = TestServer()
-            val file = mock(com.hierynomus.smbj.share.File::class.java, RETURNS_DEEP_STUBS)
+            val file = mock(
+                com.hierynomus.smbj.share.File::class.java,
+                RETURNS_DEEP_STUBS,
+            )
             `when`(file.fileInformation.standardInformation.endOfFile).thenReturn(123L)
             `when`(
-                server.share.openFile(anyString(), any(), any(), any(), any(), any()),
+                server.share.openFile(
+                    anyString(),
+                    any(),
+                    any(),
+                    any(),
+                    any(),
+                    any(),
+                ),
             ).thenReturn(file)
             `when`(
-                file.read(any(ByteArray::class.java), eq(4L), anyInt(), anyInt()),
+                file.read(
+                    any(ByteArray::class.java),
+                    eq(4L),
+                    anyInt(),
+                    anyInt(),
+                ),
             ).thenAnswer { call ->
                 val buffer = call.getArgument<ByteArray>(0)
                 buffer[0] = 4
@@ -140,18 +175,43 @@ class SmbClientTest {
             val client = server.client(path = "/")
             assertTrue(client.connect().isSuccess)
 
-            assertEquals(123L, client.fileSize(path = "Media/folder/clip.mp4"))
-            client.openStream(path = "Media/folder/clip.mp4", offset = 4L).use { stream ->
-                assertEquals(4, stream.read())
-                assertEquals(5, stream.read())
+            assertEquals(
+                123L,
+                client.fileSize(path = "Media/folder/clip.mp4"),
+            )
+            client.openStream(
+                path = "Media/folder/clip.mp4",
+                offset = 4L,
+            ).use { stream ->
+                assertEquals(
+                    4,
+                    stream.read(),
+                )
+                assertEquals(
+                    5,
+                    stream.read(),
+                )
             }
 
-            verify(server.session, times(2)).connectShare("Media")
+            verify(
+                server.session,
+                times(2),
+            ).connectShare("Media")
             verify(
                 server.share,
                 times(2),
-            ).openFile(eq("folder\\clip.mp4"), any(), any(), any(), any(), any())
-            verify(file, times(2)).close()
+            ).openFile(
+                eq("folder\\clip.mp4"),
+                any(),
+                any(),
+                any(),
+                any(),
+                any(),
+            )
+            verify(
+                file,
+                times(2),
+            ).close()
             client.disconnect()
         }
 
@@ -163,9 +223,15 @@ class SmbClientTest {
         }
 
         assertTrue(client.connect().isSuccess)
-        assertEquals(emptyList<NetworkFile>(), client.listFiles(path = "folder").getOrThrow())
+        assertEquals(
+            emptyList<NetworkFile>(),
+            client.listFiles(path = "folder").getOrThrow(),
+        )
 
-        verify(server.session, times(2)).connectShare("Media")
+        verify(
+            server.session,
+            times(2),
+        ).connectShare("Media")
         verify(server.share).list("")
         verify(server.share).list("folder")
         client.disconnect()
@@ -173,12 +239,21 @@ class SmbClientTest {
 
     @Test
     fun `blank and nested share names still fail local validation`() = runBlocking {
-        for (path in listOf("", "Media/folder")) {
+        for (path in listOf(
+            "",
+            "Media/folder",
+        )) {
             val server = TestServer()
             val client = server.client(path = path)
 
             assertTrue(client.connect().exceptionOrNull() is IllegalArgumentException)
-            verify(server.smbClient, never()).connect(anyString(), anyInt())
+            verify(
+                server.smbClient,
+                never(),
+            ).connect(
+                anyString(),
+                anyInt(),
+            )
         }
     }
 
@@ -189,7 +264,12 @@ class SmbClientTest {
         val share: DiskShare = mock(DiskShare::class.java)
 
         init {
-            `when`(smbClient.connect("server", 445)).thenReturn(connection)
+            `when`(
+                smbClient.connect(
+                    "server",
+                    445,
+                ),
+            ).thenReturn(connection)
             `when`(connection.authenticate(any())).thenReturn(session)
             `when`(connection.isConnected).thenReturn(true)
             `when`(session.connectShare("Media")).thenReturn(share)

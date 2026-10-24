@@ -19,10 +19,16 @@ class OpenDocumentAtInitialUri : ActivityResultContract<OpenDocumentAtInitialUri
     override fun createIntent(context: Context, input: Input): Intent =
         Intent(Intent.ACTION_OPEN_DOCUMENT)
             .setType("*/*")
-            .putExtra(Intent.EXTRA_MIME_TYPES, input.mimeTypes)
+            .putExtra(
+                Intent.EXTRA_MIME_TYPES,
+                input.mimeTypes,
+            )
             .apply {
                 if (input.initialUri != null && Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
-                    putExtra(DocumentsContract.EXTRA_INITIAL_URI, input.initialUri)
+                    putExtra(
+                        DocumentsContract.EXTRA_INITIAL_URI,
+                        input.initialUri,
+                    )
                 }
             }
 

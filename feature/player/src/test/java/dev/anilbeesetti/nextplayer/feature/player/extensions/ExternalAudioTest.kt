@@ -14,18 +14,30 @@ import org.robolectric.RobolectricTestRunner
 import org.robolectric.annotation.Config
 
 @RunWith(RobolectricTestRunner::class)
-@Config(manifest = Config.NONE, sdk = [28])
+@Config(
+    manifest = Config.NONE,
+    sdk = [28],
+)
 @UnstableApi
 class ExternalAudioTest {
     @Test
     fun externalAudioIndexSurvivesSessionTrackGroupIds() {
-        val track = TrackGroup("session-id-1:0", Format.Builder().setId("1:0").build())
-        assertEquals(0, track.externalAudioIndex)
+        val track = TrackGroup(
+            "session-id-1:0",
+            Format.Builder().setId("1:0").build(),
+        )
+        assertEquals(
+            0,
+            track.externalAudioIndex,
+        )
     }
 
     @Test
     fun audioSurvivesMetadataAndSubtitleChanges() {
-        val audio = listOf(Uri.parse("content://documents/audio/one"), Uri.parse("file:///two.mp3"))
+        val audio = listOf(
+            Uri.parse("content://documents/audio/one"),
+            Uri.parse("file:///two.mp3"),
+        )
         val subtitle = MediaItem.SubtitleConfiguration.Builder(
             Uri.parse("file:///captions.srt"),
         ).build()
@@ -44,14 +56,38 @@ class ExternalAudioTest {
             .copy(durationMs = 60000)
             .buildUpon().setSubtitleConfigurations(listOf(element = subtitle)).build()
 
-        assertEquals(audio, item.mediaMetadata.externalAudio)
-        assertEquals(12000L, item.mediaMetadata.positionMs)
-        assertEquals(2, item.mediaMetadata.audioTrackIndex)
-        assertEquals(60000L, item.mediaMetadata.durationMs)
-        assertEquals(DecoderMode.HARDWARE, item.mediaMetadata.videoDecoderMode)
-        assertEquals(DecoderMode.SOFTWARE, item.mediaMetadata.audioDecoderMode)
-        assertEquals("Video", item.mediaMetadata.title)
-        assertEquals(listOf(element = subtitle), item.localConfiguration!!.subtitleConfigurations)
+        assertEquals(
+            audio,
+            item.mediaMetadata.externalAudio,
+        )
+        assertEquals(
+            12000L,
+            item.mediaMetadata.positionMs,
+        )
+        assertEquals(
+            2,
+            item.mediaMetadata.audioTrackIndex,
+        )
+        assertEquals(
+            60000L,
+            item.mediaMetadata.durationMs,
+        )
+        assertEquals(
+            DecoderMode.HARDWARE,
+            item.mediaMetadata.videoDecoderMode,
+        )
+        assertEquals(
+            DecoderMode.SOFTWARE,
+            item.mediaMetadata.audioDecoderMode,
+        )
+        assertEquals(
+            "Video",
+            item.mediaMetadata.title,
+        )
+        assertEquals(
+            listOf(element = subtitle),
+            item.localConfiguration!!.subtitleConfigurations,
+        )
         assertEquals(
             emptyList<Uri>(),
             item.withExternalAudio(uris = emptyList()).mediaMetadata.externalAudio,

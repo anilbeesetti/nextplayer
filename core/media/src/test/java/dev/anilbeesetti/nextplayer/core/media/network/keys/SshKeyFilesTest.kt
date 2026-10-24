@@ -33,28 +33,54 @@ class SshKeyFilesTest {
 
         val staged = store.stage("private-key".byteInputStream())
 
-        assertEquals("feed.key", staged)
-        assertEquals("private-key", store.resolve(fileName = staged).readText())
+        assertEquals(
+            "feed.key",
+            staged,
+        )
+        assertEquals(
+            "private-key",
+            store.resolve(fileName = staged).readText(),
+        )
 
         val committed = store.commit(fileName = staged)
 
-        assertEquals("feed.key", committed)
-        assertEquals("private-key", store.resolve(fileName = committed).readText())
+        assertEquals(
+            "feed.key",
+            committed,
+        )
+        assertEquals(
+            "private-key",
+            store.resolve(fileName = committed).readText(),
+        )
         store.delete(fileName = committed)
-        assertFalse(File(committedDirectory(), committed).exists())
+        assertFalse(
+            File(
+                committedDirectory(),
+                committed,
+            ).exists(),
+        )
     }
 
     @Test
     fun `resolve prefers staged key over committed key`() {
         val store = createStore()
         committedDirectory().mkdirs()
-        File(committedDirectory(), "feed.key").writeText(text = "committed")
-        File(stagingDirectory(), "feed.key").apply {
+        File(
+            committedDirectory(),
+            "feed.key",
+        ).writeText(text = "committed")
+        File(
+            stagingDirectory(),
+            "feed.key",
+        ).apply {
             parentFile?.mkdirs()
             writeText(text = "staged")
         }
 
-        assertEquals("staged", store.resolve(fileName = "feed.key").readText())
+        assertEquals(
+            "staged",
+            store.resolve(fileName = "feed.key").readText(),
+        )
     }
 
     @Test
@@ -63,14 +89,22 @@ class SshKeyFilesTest {
             createStore().resolve(fileName = "feed.key")
         }
 
-        assertEquals("Private key is missing", exception.message)
+        assertEquals(
+            "Private key is missing",
+            exception.message,
+        )
     }
 
     @Test
     fun `generated filename rejects traversal and malformed names`() {
         val store = createStore()
 
-        listOf("../secret", "fixed.pem", "fixed.key/other", "fixed key.key").forEach { fileName ->
+        listOf(
+            "../secret",
+            "fixed.pem",
+            "fixed.key/other",
+            "fixed key.key",
+        ).forEach { fileName ->
             assertThrows(IllegalArgumentException::class.java) {
                 store.resolve(fileName = fileName)
             }
@@ -82,12 +116,25 @@ class SshKeyFilesTest {
         val store = createStore()
         val staged = store.stage("staged".byteInputStream())
         committedDirectory().mkdirs()
-        File(committedDirectory(), staged).writeText(text = "committed")
+        File(
+            committedDirectory(),
+            staged,
+        ).writeText(text = "committed")
 
         store.delete(fileName = staged)
 
-        assertFalse(File(stagingDirectory(), staged).exists())
-        assertFalse(File(committedDirectory(), staged).exists())
+        assertFalse(
+            File(
+                stagingDirectory(),
+                staged,
+            ).exists(),
+        )
+        assertFalse(
+            File(
+                committedDirectory(),
+                staged,
+            ).exists(),
+        )
         assertTrue(stagingDirectory().isDirectory)
     }
 
@@ -106,7 +153,12 @@ class SshKeyFilesTest {
 
         assertThrows(IOException::class.java) { store.stage(inputStream = failingInput) }
 
-        assertFalse(File(stagingDirectory(), "feed.key").exists())
+        assertFalse(
+            File(
+                stagingDirectory(),
+                "feed.key",
+            ).exists(),
+        )
     }
 
     @Test
@@ -115,8 +167,16 @@ class SshKeyFilesTest {
             createStore().stage(ByteArray(size = 1024 * 1024 + 1).inputStream())
         }
 
-        assertEquals("Private key exceeds 1 MiB", exception.message)
-        assertFalse(File(stagingDirectory(), "feed.key").exists())
+        assertEquals(
+            "Private key exceeds 1 MiB",
+            exception.message,
+        )
+        assertFalse(
+            File(
+                stagingDirectory(),
+                "feed.key",
+            ).exists(),
+        )
     }
 
     @Test
@@ -125,37 +185,70 @@ class SshKeyFilesTest {
 
         val staged = store.stage(ByteArray(size = 1024 * 1024).inputStream())
 
-        assertEquals(1024L * 1024L, store.resolve(fileName = staged).length())
+        assertEquals(
+            1024L * 1024L,
+            store.resolve(fileName = staged).length(),
+        )
     }
 
     @Test
     fun `startup reconciliation removes staged and unreferenced committed keys`() {
-        File(stagingDirectory(), "staged.key").apply {
+        File(
+            stagingDirectory(),
+            "staged.key",
+        ).apply {
             parentFile?.mkdirs()
             writeText(text = "staged")
         }
-        File(committedDirectory(), "keep.key").apply {
+        File(
+            committedDirectory(),
+            "keep.key",
+        ).apply {
             parentFile?.mkdirs()
             writeText(text = "keep")
         }
-        File(committedDirectory(), "orphan.key").writeText(text = "orphan")
+        File(
+            committedDirectory(),
+            "orphan.key",
+        ).writeText(text = "orphan")
 
         createStore(
             reconciliationRequired = true,
         ).initialize(referencedFileNames = setOf(element = "keep.key"))
 
-        assertFalse(File(stagingDirectory(), "staged.key").exists())
-        assertTrue(File(committedDirectory(), "keep.key").isFile)
-        assertFalse(File(committedDirectory(), "orphan.key").exists())
+        assertFalse(
+            File(
+                stagingDirectory(),
+                "staged.key",
+            ).exists(),
+        )
+        assertTrue(
+            File(
+                committedDirectory(),
+                "keep.key",
+            ).isFile,
+        )
+        assertFalse(
+            File(
+                committedDirectory(),
+                "orphan.key",
+            ).exists(),
+        )
     }
 
     @Test
     fun `failed database enumeration releases barrier without deleting keys`() {
-        File(stagingDirectory(), "staged.key").apply {
+        File(
+            stagingDirectory(),
+            "staged.key",
+        ).apply {
             parentFile?.mkdirs()
             writeText(text = "staged")
         }
-        File(committedDirectory(), "committed.key").apply {
+        File(
+            committedDirectory(),
+            "committed.key",
+        ).apply {
             parentFile?.mkdirs()
             writeText(text = "committed")
         }
@@ -163,8 +256,18 @@ class SshKeyFilesTest {
 
         store.initialize(referencedFileNames = null)
 
-        assertTrue(File(stagingDirectory(), "staged.key").isFile)
-        assertTrue(File(committedDirectory(), "committed.key").isFile)
+        assertTrue(
+            File(
+                stagingDirectory(),
+                "staged.key",
+            ).isFile,
+        )
+        assertTrue(
+            File(
+                committedDirectory(),
+                "committed.key",
+            ).isFile,
+        )
         assertEquals(
             "new",
             store.stage("new".byteInputStream()).let(block = store::resolve).readText(),
@@ -187,14 +290,32 @@ class SshKeyFilesTest {
                 stageFinished.countDown()
             }
 
-            assertTrue(stageStarted.await(5, TimeUnit.SECONDS))
-            assertFalse(stageFinished.await(100, TimeUnit.MILLISECONDS))
+            assertTrue(
+                stageStarted.await(
+                    5,
+                    TimeUnit.SECONDS,
+                ),
+            )
+            assertFalse(
+                stageFinished.await(
+                    100,
+                    TimeUnit.MILLISECONDS,
+                ),
+            )
 
             store.initialize(referencedFileNames = emptySet())
 
-            assertTrue(stageFinished.await(5, TimeUnit.SECONDS))
+            assertTrue(
+                stageFinished.await(
+                    5,
+                    TimeUnit.SECONDS,
+                ),
+            )
             assertTrue(stageSucceeded.get())
-            assertEquals("new", store.resolve(fileName = "feed.key").readText())
+            assertEquals(
+                "new",
+                store.resolve(fileName = "feed.key").readText(),
+            )
         } finally {
             executor.shutdownNow()
         }
@@ -203,7 +324,10 @@ class SshKeyFilesTest {
     @Test
     fun `blocked import does not prevent resolving committed key`() {
         committedDirectory().mkdirs()
-        File(committedDirectory(), "cafe.key").writeText(text = "committed")
+        File(
+            committedDirectory(),
+            "cafe.key",
+        ).writeText(text = "committed")
         val importStarted = CountDownLatch(1)
         val allowImport = CountDownLatch(1)
         val blockingInput = object : InputStream() {
@@ -218,14 +342,25 @@ class SshKeyFilesTest {
 
         try {
             val import = executor.submit<String> { store.stage(inputStream = blockingInput) }
-            assertTrue(importStarted.await(5, TimeUnit.SECONDS))
+            assertTrue(
+                importStarted.await(
+                    5,
+                    TimeUnit.SECONDS,
+                ),
+            )
 
             val resolved = executor.submit<String> {
                 store.resolve(fileName = "cafe.key").readText()
             }
 
             try {
-                assertEquals("committed", resolved.get(1, TimeUnit.SECONDS))
+                assertEquals(
+                    "committed",
+                    resolved.get(
+                        1,
+                        TimeUnit.SECONDS,
+                    ),
+                )
             } catch (error: TimeoutException) {
                 throw AssertionError(
                     "Resolving a committed key waited for the import stream",
@@ -233,7 +368,13 @@ class SshKeyFilesTest {
                 )
             }
             allowImport.countDown()
-            assertEquals("feed.key", import.get(5, TimeUnit.SECONDS))
+            assertEquals(
+                "feed.key",
+                import.get(
+                    5,
+                    TimeUnit.SECONDS,
+                ),
+            )
         } finally {
             allowImport.countDown()
             executor.shutdownNow()
@@ -256,12 +397,23 @@ class SshKeyFilesTest {
 
         try {
             val import = executor.submit<String> { store.stage(inputStream = blockingInput) }
-            assertTrue(importStarted.await(5, TimeUnit.SECONDS))
+            assertTrue(
+                importStarted.await(
+                    5,
+                    TimeUnit.SECONDS,
+                ),
+            )
 
             assertThrows(FileNotFoundException::class.java) { store.resolve(fileName = "feed.key") }
 
             allowImport.countDown()
-            assertEquals("feed.key", import.get(5, TimeUnit.SECONDS))
+            assertEquals(
+                "feed.key",
+                import.get(
+                    5,
+                    TimeUnit.SECONDS,
+                ),
+            )
             assertTrue(store.resolve(fileName = "feed.key").isFile)
         } finally {
             allowImport.countDown()
@@ -271,7 +423,10 @@ class SshKeyFilesTest {
 
     @Test
     fun `stage rejects generated filename collision without changing existing key`() {
-        val existing = File(stagingDirectory(), "feed.key").apply {
+        val existing = File(
+            stagingDirectory(),
+            "feed.key",
+        ).apply {
             parentFile?.mkdirs()
             writeText(text = "existing")
         }
@@ -280,13 +435,22 @@ class SshKeyFilesTest {
             createStore().stage("replacement".byteInputStream())
         }
 
-        assertEquals("Private key filename is already in use", exception.message)
-        assertEquals("existing", existing.readText())
+        assertEquals(
+            "Private key filename is already in use",
+            exception.message,
+        )
+        assertEquals(
+            "existing",
+            existing.readText(),
+        )
     }
 
     @Test
     fun `stage surfaces partial cleanup failure without masking import error`() {
-        File(stagingDirectory(), ".feed.key.importing").apply {
+        File(
+            stagingDirectory(),
+            ".feed.key.importing",
+        ).apply {
             mkdirs()
             resolve(relative = "undeletable").writeText(text = "content")
         }
@@ -295,24 +459,43 @@ class SshKeyFilesTest {
             createStore().stage("private-key".byteInputStream())
         }
 
-        assertEquals("Couldn't delete partial private key", exception.suppressed.single().message)
+        assertEquals(
+            "Couldn't delete partial private key",
+            exception.suppressed.single().message,
+        )
     }
 
     @Test
     fun `delete missing key is idempotent`() {
         createStore().delete(fileName = "feed.key")
 
-        assertFalse(File(stagingDirectory(), "feed.key").exists())
-        assertFalse(File(committedDirectory(), "feed.key").exists())
+        assertFalse(
+            File(
+                stagingDirectory(),
+                "feed.key",
+            ).exists(),
+        )
+        assertFalse(
+            File(
+                committedDirectory(),
+                "feed.key",
+            ).exists(),
+        )
     }
 
     @Test
     fun `delete failure still attempts both lifecycle copies`() {
-        val staged = File(stagingDirectory(), "feed.key").apply {
+        val staged = File(
+            stagingDirectory(),
+            "feed.key",
+        ).apply {
             mkdirs()
             resolve(relative = "undeletable").writeText(text = "content")
         }
-        val committed = File(committedDirectory(), "feed.key").apply {
+        val committed = File(
+            committedDirectory(),
+            "feed.key",
+        ).apply {
             parentFile?.mkdirs()
             writeText(text = "committed")
         }
@@ -321,7 +504,10 @@ class SshKeyFilesTest {
             createStore().delete(fileName = "feed.key")
         }
 
-        assertEquals("Couldn't delete private key", exception.message)
+        assertEquals(
+            "Couldn't delete private key",
+            exception.message,
+        )
         assertTrue(staged.exists())
         assertFalse(committed.exists())
     }
@@ -338,8 +524,14 @@ class SshKeyFilesTest {
             }
         }
         val dispatcher = Executors.newSingleThreadExecutor().asCoroutineDispatcher()
-        val stagedFile = File(stagingDirectory(), "feed.key")
-        val importingFile = File(stagingDirectory(), ".feed.key.importing")
+        val stagedFile = File(
+            stagingDirectory(),
+            "feed.key",
+        )
+        val importingFile = File(
+            stagingDirectory(),
+            ".feed.key.importing",
+        )
 
         try {
             val import = launch(Dispatchers.Default) {
@@ -351,7 +543,12 @@ class SshKeyFilesTest {
                 )
             }
 
-            assertTrue(copyCompleted.await(5, TimeUnit.SECONDS))
+            assertTrue(
+                copyCompleted.await(
+                    5,
+                    TimeUnit.SECONDS,
+                ),
+            )
             assertTrue(importingFile.isFile)
             assertFalse(stagedFile.exists())
             import.cancel()
@@ -374,7 +571,13 @@ class SshKeyFilesTest {
         reconciliationRequired = reconciliationRequired,
     )
 
-    private fun stagingDirectory() = File(temporaryFolder.root, "staging")
+    private fun stagingDirectory() = File(
+        temporaryFolder.root,
+        "staging",
+    )
 
-    private fun committedDirectory() = File(temporaryFolder.root, "committed")
+    private fun committedDirectory() = File(
+        temporaryFolder.root,
+        "committed",
+    )
 }

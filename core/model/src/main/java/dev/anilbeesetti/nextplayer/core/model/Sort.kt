@@ -23,10 +23,18 @@ data class Sort(val by: By, val order: Order) {
         val str2Length = str2.length
 
         while (str1Marker < str1Length && str2Marker < str2Length) {
-            val thisChunk = getChunk(string = str1, length = str1Length, marker = str1Marker)
+            val thisChunk = getChunk(
+                string = str1,
+                length = str1Length,
+                marker = str1Marker,
+            )
             str1Marker += thisChunk.length
 
-            val thatChunk = getChunk(string = str2, length = str2Length, marker = str2Marker)
+            val thatChunk = getChunk(
+                string = str2,
+                length = str2Length,
+                marker = str2Marker,
+            )
             str2Marker += thatChunk.length
 
             // If both chunks contain numeric characters, sort them numerically.
@@ -125,13 +133,19 @@ data class Sort(val by: By, val order: Order) {
 
     fun networkFileComparator(): Comparator<NetworkFile> {
         val nameComparator = Comparator<NetworkFile> { first, second ->
-            stringComparator.compare(first.name.lowercase(), second.name.lowercase())
+            stringComparator.compare(
+                first.name.lowercase(),
+                second.name.lowercase(),
+            )
         }
         val comparator = when (by) {
             By.TITLE, By.LENGTH -> nameComparator
 
             By.PATH -> Comparator<NetworkFile> { first, second ->
-                stringComparator.compare(first.path.lowercase(), second.path.lowercase())
+                stringComparator.compare(
+                    first.path.lowercase(),
+                    second.path.lowercase(),
+                )
             }
 
             By.SIZE -> compareBy<NetworkFile> { it.size }.then(comparator = nameComparator)

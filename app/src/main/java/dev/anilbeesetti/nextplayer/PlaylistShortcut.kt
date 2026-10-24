@@ -17,19 +17,36 @@ internal object PlaylistShortcut {
     fun requestPin(context: Context, playlist: PlaylistSummary): Boolean =
         ShortcutManagerCompat.requestPinShortcut(
             context,
-            create(context = context, playlist = playlist),
+            create(
+                context = context,
+                playlist = playlist,
+            ),
             null,
         )
 
     fun create(context: Context, playlist: PlaylistSummary): ShortcutInfoCompat =
-        ShortcutInfoCompat.Builder(context, "playlist_${playlist.id}")
+        ShortcutInfoCompat.Builder(
+            context,
+            "playlist_${playlist.id}",
+        )
             .setShortLabel(playlist.name)
             .setLongLabel(playlist.name)
-            .setIcon(IconCompat.createWithResource(context, R.mipmap.ic_launcher))
+            .setIcon(
+                IconCompat.createWithResource(
+                    context,
+                    R.mipmap.ic_launcher,
+                ),
+            )
             .setIntent(
-                Intent(context, MainActivity::class.java).apply {
+                Intent(
+                    context,
+                    MainActivity::class.java,
+                ).apply {
                     action = ACTION_OPEN_PLAYLIST
-                    putExtra(EXTRA_PLAYLIST_ID, playlist.id)
+                    putExtra(
+                        EXTRA_PLAYLIST_ID,
+                        playlist.id,
+                    )
                     flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TOP or
                         Intent.FLAG_ACTIVITY_SINGLE_TOP
                 },
@@ -37,7 +54,10 @@ internal object PlaylistShortcut {
             .build()
 
     fun playlistId(intent: Intent): Long? = if (intent.action == ACTION_OPEN_PLAYLIST) {
-        intent.getLongExtra(EXTRA_PLAYLIST_ID, -1).takeIf { it > 0 }
+        intent.getLongExtra(
+            EXTRA_PLAYLIST_ID,
+            -1,
+        ).takeIf { it > 0 }
     } else {
         null
     }

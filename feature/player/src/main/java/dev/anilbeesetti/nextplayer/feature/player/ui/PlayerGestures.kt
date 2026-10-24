@@ -41,7 +41,10 @@ fun PlayerGestures(
                         },
                         onDoubleTap = {
                             if (controlsVisibilityState.controlsLocked) return@detectTapGestures
-                            tapGestureState.handleDoubleTap(offset = it, size = size)
+                            tapGestureState.handleDoubleTap(
+                                offset = it,
+                                size = size,
+                            )
                         },
                         onPress = {
                             tryAwaitRelease()
@@ -77,7 +80,10 @@ fun PlayerGestures(
 
                     detectCustomVerticalDragGestures(
                         onDragStart = {
-                            volumeAndBrightnessGestureState.onDragStart(offset = it, size = size)
+                            volumeAndBrightnessGestureState.onDragStart(
+                                offset = it,
+                                size = size,
+                            )
                         },
                         onVerticalDrag = volumeAndBrightnessGestureState::onDrag,
                         onDragCancel = volumeAndBrightnessGestureState::onDragEnd,

@@ -110,7 +110,10 @@ class VideoZoomAndContentScaleState(
         if (!enableZoomGesture) return
 
         isZooming = true
-        zoom = (zoom * zoomChange).coerceIn(minimumValue = MIN_ZOOM, maximumValue = MAX_ZOOM)
+        zoom = (zoom * zoomChange).coerceIn(
+            minimumValue = MIN_ZOOM,
+            maximumValue = MAX_ZOOM,
+        )
 
         val extraWidth = (zoom - 1) * constraints.maxWidth
         val extraHeight = (zoom - 1) * constraints.maxHeight
@@ -152,7 +155,12 @@ class VideoZoomAndContentScaleState(
             player.currentMediaItemIndex,
             currentMediaItem.copy(videoZoom = zoom),
         )
-        onEvent(VideoZoomEvent.ZoomChanged(mediaItem = currentMediaItem, zoom = zoom))
+        onEvent(
+            VideoZoomEvent.ZoomChanged(
+                mediaItem = currentMediaItem,
+                zoom = zoom,
+            ),
+        )
     }
 }
 

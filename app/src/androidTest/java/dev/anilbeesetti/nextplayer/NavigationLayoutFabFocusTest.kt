@@ -89,7 +89,10 @@ class NavigationLayoutFabFocusTest {
         composeRule.onRoot().performKeyInput { pressKey(Key.DirectionLeft) }
         composeRule.onNode(
             matcher =
-                isFocused() and SemanticsMatcher.expectValue(SemanticsProperties.Role, Role.Tab),
+                isFocused() and SemanticsMatcher.expectValue(
+                    SemanticsProperties.Role,
+                    Role.Tab,
+                ),
         ).assertExists()
     }
 
@@ -99,10 +102,17 @@ class NavigationLayoutFabFocusTest {
                 val state = rememberTopLevelNavState()
                 val fabs = remember {
                     mutableStateMapOf(
-                        TopLevelFabKey.MEDIA to TopLevelFabState(NextIcons.Play, onClick = {}),
+                        TopLevelFabKey.MEDIA to TopLevelFabState(
+                            NextIcons.Play,
+                            onClick = {},
+                        ),
                     )
                 }
-                NavigationLayout(state = state, fabStates = fabs, showBottomBar = true) {
+                NavigationLayout(
+                    state = state,
+                    fabStates = fabs,
+                    showBottomBar = true,
+                ) {
                     Column(
                         Modifier.fillMaxSize().padding(
                             start = it.calculateStartPadding(LocalLayoutDirection.current),

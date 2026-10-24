@@ -31,7 +31,11 @@ class PlayerTest {
             })
             .build()
         try {
-            val items = listOf("before", "current", "after").map {
+            val items = listOf(
+                "before",
+                "current",
+                "after",
+            ).map {
                 MediaItem.Builder().setMediaId(
                     it,
                 ).setUri("file:///$it.mp4").build().copy(positionMs = 2_000)
@@ -40,7 +44,11 @@ class PlayerTest {
                 android.net.Uri.parse("file:///test.srt"),
             )
                 .setId("test").setMimeType(MimeTypes.APPLICATION_SUBRIP).build()
-            player.setMediaItems(items, 1, 12_000)
+            player.setMediaItems(
+                items,
+                1,
+                12_000,
+            )
             player.replaceMediaItem(
                 1,
                 items[1].copy(
@@ -48,7 +56,14 @@ class PlayerTest {
                     audioDecoderMode = DecoderMode.FFMPEG,
                 ),
             )
-            val shuffleOrder = ShuffleOrder.DefaultShuffleOrder(intArrayOf(2, 1, 0), 0)
+            val shuffleOrder = ShuffleOrder.DefaultShuffleOrder(
+                intArrayOf(
+                    2,
+                    1,
+                    0,
+                ),
+                0,
+            )
             player.setShuffleOrder(shuffleOrder)
             player.shuffleModeEnabled = true
             val transitions = mutableListOf<MediaItem?>()
@@ -58,7 +73,10 @@ class PlayerTest {
                 }
             })
 
-            for (playing in listOf(false, true)) {
+            for (playing in listOf(
+                false,
+                true,
+            )) {
                 player.playWhenReady = playing
                 createdItems.clear()
                 player.addAdditionalSubtitleConfiguration(
@@ -70,16 +88,31 @@ class PlayerTest {
                     listOf(player.currentMediaItem),
                     createdItems,
                 )
-                assertEquals(shuffleOrder, player.shuffleOrder)
+                assertEquals(
+                    shuffleOrder,
+                    player.shuffleOrder,
+                )
                 assertTrue(player.shuffleModeEnabled)
                 assertEquals(
                     items.map { it.mediaId },
                     (0 until player.mediaItemCount).map { player.getMediaItemAt(it).mediaId },
                 )
-                assertEquals(1, player.currentMediaItemIndex)
-                assertEquals(12_000L, player.currentPosition)
-                assertEquals(12_000L, player.mediaMetadata.positionMs)
-                assertEquals(playing, player.playWhenReady)
+                assertEquals(
+                    1,
+                    player.currentMediaItemIndex,
+                )
+                assertEquals(
+                    12_000L,
+                    player.currentPosition,
+                )
+                assertEquals(
+                    12_000L,
+                    player.mediaMetadata.positionMs,
+                )
+                assertEquals(
+                    playing,
+                    player.playWhenReady,
+                )
                 assertTrue(transitions.isNotEmpty())
                 assertTrue(
                     transitions.all {
@@ -93,14 +126,20 @@ class PlayerTest {
                 2,
                 player.currentMediaItem?.localConfiguration?.subtitleConfigurations?.size,
             )
-            assertEquals(0, player.mediaMetadata.subtitleTrackIndex)
+            assertEquals(
+                0,
+                player.mediaMetadata.subtitleTrackIndex,
+            )
 
             val currentItem = player.currentMediaItem
             createdItems.clear()
             player.addAdditionalSubtitleConfiguration(
                 subtitle.buildUpon().setId("test-true").build(),
             )
-            assertEquals(currentItem, player.currentMediaItem)
+            assertEquals(
+                currentItem,
+                player.currentMediaItem,
+            )
             assertTrue(createdItems.isEmpty())
         } finally {
             player.release()

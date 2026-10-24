@@ -30,7 +30,11 @@ internal fun rememberPlayerKeyInputState(
     seekIncrementMs: Long,
 ): PlayerKeyInputState {
     val coroutineScope = rememberCoroutineScope()
-    val state = remember(player, controls, seekIncrementMs) {
+    val state = remember(
+        player,
+        controls,
+        seekIncrementMs,
+    ) {
         PlayerKeyInputState(
             player = player,
             controls = controls,

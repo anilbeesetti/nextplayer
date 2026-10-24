@@ -68,7 +68,10 @@ fun BoxScope.PlaylistView(modifier: Modifier = Modifier, show: Boolean, player: 
     val lazyListState = rememberLazyListState()
     val reorderableLazyListState =
         rememberReorderableLazyListState(lazyListState = lazyListState) { from, to ->
-            playlistState.moveItem(from.index, to.index)
+            playlistState.moveItem(
+                from.index,
+                to.index,
+            )
             hapticFeedback.performHapticFeedback(HapticFeedbackType.SegmentFrequentTick)
         }
 
@@ -262,7 +265,10 @@ private fun ThumbnailView(modifier: Modifier = Modifier, mediaItem: MediaItem) {
                         .padding(4.dp)
                         .clip(MaterialTheme.shapes.extraSmall)
                         .background(Color.Black.copy(alpha = 0.6f))
-                        .padding(vertical = 1.dp, horizontal = 3.dp),
+                        .padding(
+                            vertical = 1.dp,
+                            horizontal = 3.dp,
+                        ),
                 )
             }
         }

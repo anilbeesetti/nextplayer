@@ -96,7 +96,10 @@ interface PlaylistDao {
     @Transaction
     suspend fun createPlaylist(name: String, uris: List<String>): Long {
         val playlistId = insertPlaylist(playlist = PlaylistEntity(name = name))
-        addItems(playlistId = playlistId, uris = uris)
+        addItems(
+            playlistId = playlistId,
+            uris = uris,
+        )
         return playlistId
     }
 
@@ -131,7 +134,10 @@ interface PlaylistDao {
                 )
             },
         )
-        updateLastRefreshedAt(playlistId = playlistId, refreshedAt = refreshedAt)
+        updateLastRefreshedAt(
+            playlistId = playlistId,
+            refreshedAt = refreshedAt,
+        )
     }
 
     suspend fun requireLocalPlaylist(playlistId: Long) {
@@ -161,7 +167,10 @@ interface PlaylistDao {
 
     @Transaction
     suspend fun removeItem(playlistId: Long, uri: String) {
-        deleteItem(playlistId = playlistId, uri = uri)
+        deleteItem(
+            playlistId = playlistId,
+            uri = uri,
+        )
         normalizePositions(playlistId = playlistId)
     }
 
@@ -169,7 +178,11 @@ interface PlaylistDao {
     suspend fun markItemPlayed(playlistId: Long, uri: String, playedAt: Long) {
         require(
             value =
-                updateLastPlayedAt(playlistId = playlistId, uri = uri, playedAt = playedAt) == 1,
+                updateLastPlayedAt(
+                    playlistId = playlistId,
+                    uri = uri,
+                    playedAt = playedAt,
+                ) == 1,
         ) { "Last played URI must belong to the playlist" }
     }
 
@@ -185,7 +198,10 @@ interface PlaylistDao {
         ) { "Playlist order must contain every current item exactly once" }
         if (orderedUris == currentItems.map { it.uri }) return
 
-        shiftPositions(playlistId = playlistId, offset = currentItems.size + 1)
+        shiftPositions(
+            playlistId = playlistId,
+            offset = currentItems.size + 1,
+        )
         val itemsByUri = currentItems.associateBy { it.uri }
         updateItems(
             orderedUris.mapIndexed { position, uri ->
@@ -212,7 +228,10 @@ interface PlaylistDao {
         val items = getItems(playlistId = playlistId)
         if (items.withIndex().all { (index, item) -> item.position == index }) return
 
-        shiftPositions(playlistId = playlistId, offset = items.size + 1)
+        shiftPositions(
+            playlistId = playlistId,
+            offset = items.size + 1,
+        )
         updateItems(items.mapIndexed { position, item -> item.copy(position = position) })
     }
 
@@ -221,6 +240,9 @@ interface PlaylistDao {
 
     companion object {
         private const val LOCAL_PLAYLIST_TYPE = "LOCAL"
-        private val LINKED_PLAYLIST_TYPES = setOf("M3U_URL", "M3U_FILE")
+        private val LINKED_PLAYLIST_TYPES = setOf(
+            "M3U_URL",
+            "M3U_FILE",
+        )
     }
 }

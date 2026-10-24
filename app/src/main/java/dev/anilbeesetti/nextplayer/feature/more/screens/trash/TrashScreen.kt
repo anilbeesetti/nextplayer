@@ -119,7 +119,12 @@ internal fun TrashScreenContent(state: TrashUiState, onAction: (TrashAction) -> 
             modifier = Modifier
                 .fillMaxSize()
                 .padding(scaffoldPadding.copy(bottom = 0.dp))
-                .clip(shape = RoundedCornerShape(topStart = 24.dp, topEnd = 24.dp))
+                .clip(
+                    shape = RoundedCornerShape(
+                        topStart = 24.dp,
+                        topEnd = 24.dp,
+                    ),
+                )
                 .background(MaterialTheme.colorScheme.background),
         ) {
             when (val videos = state.videos) {
@@ -138,9 +143,12 @@ internal fun TrashScreenContent(state: TrashUiState, onAction: (TrashAction) -> 
                         contentPadding = PaddingValues(8.dp),
                         verticalArrangement = Arrangement.spacedBy(2.dp),
                     ) {
-                        itemsIndexed(videos.value, key = { _, video ->
-                            video.uriString
-                        }) { index, video ->
+                        itemsIndexed(
+                            videos.value,
+                            key = { _, video ->
+                                video.uriString
+                            },
+                        ) { index, video ->
                             VideoListItem(
                                 video = video,
                                 isRecentlyPlayedVideo = false,
@@ -195,7 +203,10 @@ private fun TrashEmptyState() {
         modifier = Modifier
             .fillMaxSize()
             .verticalScroll(state = rememberScrollState())
-            .padding(horizontal = 24.dp, vertical = 40.dp),
+            .padding(
+                horizontal = 24.dp,
+                vertical = 40.dp,
+            ),
         verticalArrangement = Arrangement.Center,
         horizontalAlignment = Alignment.CenterHorizontally,
     ) {

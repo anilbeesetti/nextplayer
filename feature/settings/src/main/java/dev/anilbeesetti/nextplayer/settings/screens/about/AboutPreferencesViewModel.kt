@@ -35,7 +35,10 @@ sealed interface AboutPreferencesAction {
 }
 
 private fun Context.appVersion(): String {
-    val packageInfo = packageManager.getPackageInfo(packageName, 0)
+    val packageInfo = packageManager.getPackageInfo(
+        packageName,
+        0,
+    )
 
     @Suppress("DEPRECATION")
     val versionCode = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.P) {

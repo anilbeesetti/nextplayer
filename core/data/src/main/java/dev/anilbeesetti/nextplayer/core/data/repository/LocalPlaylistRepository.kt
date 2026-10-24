@@ -62,7 +62,10 @@ class LocalPlaylistRepository(private val playlistDao: PlaylistDao) : PlaylistRe
     }
 
     override suspend fun rename(playlistId: Long, name: String) {
-        playlistDao.renamePlaylist(playlistId = playlistId, name.validatedName())
+        playlistDao.renamePlaylist(
+            playlistId = playlistId,
+            name.validatedName(),
+        )
     }
 
     override suspend fun delete(playlistId: Long) {
@@ -71,17 +74,26 @@ class LocalPlaylistRepository(private val playlistDao: PlaylistDao) : PlaylistRe
 
     override suspend fun addVideos(playlistId: Long, videoUris: List<String>): Int {
         playlistDao.requireLocalPlaylist(playlistId = playlistId)
-        return playlistDao.addItems(playlistId = playlistId, videoUris.distinct())
+        return playlistDao.addItems(
+            playlistId = playlistId,
+            videoUris.distinct(),
+        )
     }
 
     override suspend fun removeVideo(playlistId: Long, videoUri: String) {
         playlistDao.requireLocalPlaylist(playlistId = playlistId)
-        playlistDao.removeItem(playlistId = playlistId, uri = videoUri)
+        playlistDao.removeItem(
+            playlistId = playlistId,
+            uri = videoUri,
+        )
     }
 
     override suspend fun replaceOrder(playlistId: Long, orderedUris: List<String>) {
         playlistDao.requireLocalPlaylist(playlistId = playlistId)
-        playlistDao.replaceOrder(playlistId = playlistId, orderedUris = orderedUris)
+        playlistDao.replaceOrder(
+            playlistId = playlistId,
+            orderedUris = orderedUris,
+        )
     }
 
     override suspend fun markVideoPlayed(playlistId: Long, videoUri: String) {
@@ -93,7 +105,10 @@ class LocalPlaylistRepository(private val playlistDao: PlaylistDao) : PlaylistRe
     }
 
     override suspend fun countFilePlaylistsBySource(source: String): Int =
-        playlistDao.countPlaylistsByTypeAndSource(PlaylistType.M3U_FILE.name, source = source)
+        playlistDao.countPlaylistsByTypeAndSource(
+            PlaylistType.M3U_FILE.name,
+            source = source,
+        )
 }
 
 private fun String.validatedName(): String =

@@ -40,7 +40,10 @@ fun PreferenceSlider(
     val keyStep = if (span <= 5f) 0.1f else 1f
 
     fun nudged(direction: Int): Float {
-        val raw = (value + direction * keyStep).coerceIn(valueRange.start, valueRange.endInclusive)
+        val raw = (value + direction * keyStep).coerceIn(
+            valueRange.start,
+            valueRange.endInclusive,
+        )
         return if (keyStep < 1f) (raw * 10).roundToInt() / 10f else raw.roundToInt().toFloat()
     }
 

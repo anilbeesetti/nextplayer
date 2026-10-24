@@ -25,7 +25,11 @@ fun rememberSeekGestureState(
     sensitivity: Float = 0.5f,
     enableSeekGesture: Boolean,
 ): SeekGestureState {
-    val seekGestureState = remember(player, sensitivity, enableSeekGesture) {
+    val seekGestureState = remember(
+        player,
+        sensitivity,
+        enableSeekGesture,
+    ) {
         SeekGestureState(
             player = player,
             sensitivity = sensitivity,
@@ -105,7 +109,12 @@ class SeekGestureState(
             maximumValue = player.duration - seekStartPosition!!,
         )
 
-        player.seekTo(newPosition.coerceIn(minimumValue = 0L, player.duration))
+        player.seekTo(
+            newPosition.coerceIn(
+                minimumValue = 0L,
+                player.duration,
+            ),
+        )
     }
 
     fun onDragEnd() {

@@ -35,7 +35,11 @@ class RotationState(private val activity: Activity) {
 @Composable
 fun PlayerOrientationEffect(player: Player, screenOrientation: ScreenOrientation) {
     val activity = LocalActivity.current ?: return
-    LaunchedEffect(key1 = activity, key2 = player, key3 = screenOrientation) {
+    LaunchedEffect(
+        key1 = activity,
+        key2 = player,
+        key3 = screenOrientation,
+    ) {
         if (activity.requestedOrientation == ActivityInfo.SCREEN_ORIENTATION_UNSPECIFIED) {
             activity.requestedOrientation = when (screenOrientation) {
                 ScreenOrientation.AUTOMATIC -> ActivityInfo.SCREEN_ORIENTATION_SENSOR

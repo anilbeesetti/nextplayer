@@ -36,7 +36,10 @@ class NetworkSessions(
     /** Resolves [uri] to a connected client, reusing the current one when it already fits. */
     suspend fun target(uri: Uri): NetworkTarget = mutex.withLock {
         val target = resolve(uri = uri)
-        NetworkTarget(client = clientFor(target.connection), target.filePath)
+        NetworkTarget(
+            client = clientFor(target.connection),
+            target.filePath,
+        )
     }
 
     /** Disconnects the active client. The cache stays usable — the next [target] reconnects. */
@@ -55,7 +58,10 @@ class NetworkSessions(
             ?: error(message = "No saved network connection with id $connectionId")
         return NetworkUri.Target(
             connection = saved,
-            NetworkUri.filePathOf(uri = uri, saved.protocol),
+            NetworkUri.filePathOf(
+                uri = uri,
+                saved.protocol,
+            ),
         )
     }
 

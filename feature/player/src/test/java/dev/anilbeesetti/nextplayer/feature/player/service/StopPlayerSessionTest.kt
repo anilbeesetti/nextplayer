@@ -25,7 +25,10 @@ import org.robolectric.Shadows.shadowOf
 import org.robolectric.annotation.Config
 
 @RunWith(RobolectricTestRunner::class)
-@Config(manifest = Config.NONE, sdk = [28])
+@Config(
+    manifest = Config.NONE,
+    sdk = [28],
+)
 class StopPlayerSessionTest {
     @After
     fun tearDown() {
@@ -50,9 +53,18 @@ class StopPlayerSessionTest {
             )
             shadowOf(Looper.getMainLooper()).idle()
 
-            assertEquals(listOf(element = VIDEO_URI to 120_000L), saved)
-            assertEquals(0, player.mediaItemCount)
-            assertEquals(SessionResult.RESULT_SUCCESS, result.get().resultCode)
+            assertEquals(
+                listOf(element = VIDEO_URI to 120_000L),
+                saved,
+            )
+            assertEquals(
+                0,
+                player.mediaItemCount,
+            )
+            assertEquals(
+                SessionResult.RESULT_SUCCESS,
+                result.get().resultCode,
+            )
         }
     }
 
@@ -80,15 +92,27 @@ class StopPlayerSessionTest {
             assertTrue(saveStarted.isCompleted)
             assertFalse(result.isDone)
             assertFalse(shadowOf(service).isStoppedBySelf)
-            assertEquals(1, player.mediaItemCount)
+            assertEquals(
+                1,
+                player.mediaItemCount,
+            )
             assertTrue(saved.isEmpty())
 
             finishSave.complete(value = Unit)
             shadowOf(Looper.getMainLooper()).idle()
 
-            assertEquals(listOf(element = VIDEO_URI to 120_000L), saved)
-            assertEquals(0, player.mediaItemCount)
-            assertEquals(SessionResult.RESULT_SUCCESS, result.get().resultCode)
+            assertEquals(
+                listOf(element = VIDEO_URI to 120_000L),
+                saved,
+            )
+            assertEquals(
+                0,
+                player.mediaItemCount,
+            )
+            assertEquals(
+                SessionResult.RESULT_SUCCESS,
+                result.get().resultCode,
+            )
             assertTrue(shadowOf(service).isStoppedBySelf)
         }
     }
@@ -106,8 +130,14 @@ class StopPlayerSessionTest {
             )
             shadowOf(Looper.getMainLooper()).idle()
 
-            assertEquals(0, player.mediaItemCount)
-            assertEquals(SessionResult.RESULT_SUCCESS, result.get().resultCode)
+            assertEquals(
+                0,
+                player.mediaItemCount,
+            )
+            assertEquals(
+                SessionResult.RESULT_SUCCESS,
+                result.get().resultCode,
+            )
         }
     }
 
@@ -127,12 +157,18 @@ class StopPlayerSessionTest {
             shadowOf(Looper.getMainLooper()).idle()
 
             assertFalse(shadowOf(service).isStoppedBySelf)
-            assertEquals(1, player.mediaItemCount)
+            assertEquals(
+                1,
+                player.mediaItemCount,
+            )
 
             finishSave.complete(value = Unit)
             shadowOf(Looper.getMainLooper()).idle()
 
-            assertEquals(listOf(element = VIDEO_URI to 120_000L), saved)
+            assertEquals(
+                listOf(element = VIDEO_URI to 120_000L),
+                saved,
+            )
             assertTrue(shadowOf(service).isStoppedBySelf)
         }
     }
@@ -147,22 +183,36 @@ class StopPlayerSessionTest {
                     single<MediaRepository> {
                         object : MediaRepository by FakeMediaRepository() {
                             override suspend fun updateMediumPosition(uri: String, position: Long) =
-                                savePosition(uri, position)
+                                savePosition(
+                                    uri,
+                                    position,
+                                )
                         }
                     }
                 },
             )
         }
         val player = ExoPlayer.Builder(RuntimeEnvironment.getApplication()).build()
-        val session = MediaSession.Builder(RuntimeEnvironment.getApplication(), player).build()
+        val session = MediaSession.Builder(
+            RuntimeEnvironment.getApplication(),
+            player,
+        ).build()
         val service = PlayerService()
         PlayerService::class.java.getDeclaredField("mediaSession").apply {
             isAccessible = true
-        }.set(service, session)
+        }.set(
+            service,
+            session,
+        )
         val callback = PlayerService::class.java.getDeclaredField("mediaSessionCallback")
             .apply { isAccessible = true }.get(service) as MediaSession.Callback
         try {
-            check(player, session, callback, service)
+            check(
+                player,
+                session,
+                callback,
+                service,
+            )
         } finally {
             session.release()
             player.release()

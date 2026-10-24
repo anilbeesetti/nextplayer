@@ -55,11 +55,20 @@ class VaultAuthenticationTest {
 
             viewModel.onAction(action = VaultAction.BiometricAuthenticated)
 
-            assertEquals(VaultStage.LOADING, viewModel.state.value.stage)
-            assertEquals(0, vaultRepository.observations)
+            assertEquals(
+                VaultStage.LOADING,
+                viewModel.state.value.stage,
+            )
+            assertEquals(
+                0,
+                vaultRepository.observations,
+            )
             hasPin.complete(value = true)
             advanceUntilIdle()
-            assertEquals(VaultStage.LOCKED, viewModel.state.value.stage)
+            assertEquals(
+                VaultStage.LOCKED,
+                viewModel.state.value.stage,
+            )
         }
 
     @Test
@@ -68,11 +77,20 @@ class VaultAuthenticationTest {
         advanceUntilIdle()
 
         viewModel.onAction(action = VaultAction.BiometricAuthenticated)
-        assertEquals(VaultStage.SET_PIN, viewModel.state.value.stage)
+        assertEquals(
+            VaultStage.SET_PIN,
+            viewModel.state.value.stage,
+        )
         viewModel.onAction(VaultAction.SubmitNewPin(pin = "1234"))
         viewModel.onAction(action = VaultAction.BiometricAuthenticated)
-        assertEquals(VaultStage.CONFIRM_PIN, viewModel.state.value.stage)
-        assertEquals(0, vaultRepository.observations)
+        assertEquals(
+            VaultStage.CONFIRM_PIN,
+            viewModel.state.value.stage,
+        )
+        assertEquals(
+            0,
+            vaultRepository.observations,
+        )
     }
 
     @Test
@@ -83,18 +101,36 @@ class VaultAuthenticationTest {
             advanceUntilIdle()
             viewModel.onAction(VaultAction.SubmitUnlockPin(pin = "0000"))
             advanceUntilIdle()
-            assertEquals(VaultStage.LOCKED, viewModel.state.value.stage)
-            assertEquals(1, viewModel.state.value.pinErrorCount)
+            assertEquals(
+                VaultStage.LOCKED,
+                viewModel.state.value.stage,
+            )
+            assertEquals(
+                1,
+                viewModel.state.value.pinErrorCount,
+            )
 
             viewModel.onAction(action = VaultAction.BiometricAuthenticated)
             advanceUntilIdle()
             viewModel.onAction(action = VaultAction.BiometricAuthenticated)
             advanceUntilIdle()
 
-            assertEquals(VaultStage.UNLOCKED, viewModel.state.value.stage)
-            assertEquals(0, viewModel.state.value.pinErrorCount)
-            assertEquals(listOf(Video.sample), viewModel.state.value.hiddenVideos)
-            assertEquals(1, vaultRepository.observations)
+            assertEquals(
+                VaultStage.UNLOCKED,
+                viewModel.state.value.stage,
+            )
+            assertEquals(
+                0,
+                viewModel.state.value.pinErrorCount,
+            )
+            assertEquals(
+                listOf(Video.sample),
+                viewModel.state.value.hiddenVideos,
+            )
+            assertEquals(
+                1,
+                vaultRepository.observations,
+            )
         }
 
     @Test
@@ -106,8 +142,14 @@ class VaultAuthenticationTest {
         viewModel.onAction(VaultAction.SubmitUnlockPin(pin = "1234"))
         advanceUntilIdle()
 
-        assertEquals(VaultStage.UNLOCKED, viewModel.state.value.stage)
-        assertEquals(listOf(Video.sample), viewModel.state.value.hiddenVideos)
+        assertEquals(
+            VaultStage.UNLOCKED,
+            viewModel.state.value.stage,
+        )
+        assertEquals(
+            listOf(Video.sample),
+            viewModel.state.value.hiddenVideos,
+        )
     }
 
     @Test
@@ -118,8 +160,14 @@ class VaultAuthenticationTest {
         viewModel.onAction(action = VaultAction.BiometricAuthenticated)
         advanceUntilIdle()
 
-        assertEquals(VaultStage.LOCKED, viewModel.state.value.stage)
-        assertEquals(0, vaultRepository.observations)
+        assertEquals(
+            VaultStage.LOCKED,
+            viewModel.state.value.stage,
+        )
+        assertEquals(
+            0,
+            vaultRepository.observations,
+        )
     }
 
     @Test
@@ -131,20 +179,38 @@ class VaultAuthenticationTest {
             viewModel.onAction(VaultAction.SubmitPinConfirmation(pin = "1234"))
             advanceUntilIdle()
 
-            assertEquals(VaultStage.BIOMETRIC_SETUP, viewModel.state.value.stage)
+            assertEquals(
+                VaultStage.BIOMETRIC_SETUP,
+                viewModel.state.value.stage,
+            )
             assertFalse(biometricEnabled)
             viewModel.onAction(action = VaultAction.BiometricAuthenticated)
-            assertEquals(VaultStage.BIOMETRIC_SETUP, viewModel.state.value.stage)
-            assertEquals(0, vaultRepository.observations)
+            assertEquals(
+                VaultStage.BIOMETRIC_SETUP,
+                viewModel.state.value.stage,
+            )
+            assertEquals(
+                0,
+                vaultRepository.observations,
+            )
 
             viewModel.onAction(VaultAction.CompleteBiometricSetup(enabled = true))
             advanceUntilIdle()
 
             assertTrue(biometricEnabled)
             assertTrue(viewModel.state.value.biometricEnabled)
-            assertEquals(VaultStage.UNLOCKED, viewModel.state.value.stage)
-            assertEquals(listOf(Video.sample), viewModel.state.value.hiddenVideos)
-            assertEquals(1, vaultRepository.observations)
+            assertEquals(
+                VaultStage.UNLOCKED,
+                viewModel.state.value.stage,
+            )
+            assertEquals(
+                listOf(Video.sample),
+                viewModel.state.value.hiddenVideos,
+            )
+            assertEquals(
+                1,
+                vaultRepository.observations,
+            )
             val reopened = createViewModel()
             advanceUntilIdle()
             assertTrue(reopened.state.value.biometricEnabled)
@@ -162,13 +228,25 @@ class VaultAuthenticationTest {
             advanceUntilIdle()
 
             assertFalse(biometricEnabled)
-            assertEquals(VaultStage.UNLOCKED, viewModel.state.value.stage)
-            assertEquals(listOf(Video.sample), viewModel.state.value.hiddenVideos)
-            assertEquals(1, vaultRepository.observations)
+            assertEquals(
+                VaultStage.UNLOCKED,
+                viewModel.state.value.stage,
+            )
+            assertEquals(
+                listOf(Video.sample),
+                viewModel.state.value.hiddenVideos,
+            )
+            assertEquals(
+                1,
+                vaultRepository.observations,
+            )
             val reopened = createViewModel()
             advanceUntilIdle()
             reopened.onAction(action = VaultAction.BiometricAuthenticated)
-            assertEquals(VaultStage.LOCKED, reopened.state.value.stage)
+            assertEquals(
+                VaultStage.LOCKED,
+                reopened.state.value.stage,
+            )
         }
 
     @Test
@@ -182,7 +260,10 @@ class VaultAuthenticationTest {
             advanceUntilIdle()
 
             assertFalse(biometricEnabled)
-            assertEquals(VaultStage.LOCKED, viewModel.state.value.stage)
+            assertEquals(
+                VaultStage.LOCKED,
+                viewModel.state.value.stage,
+            )
         }
 
     @Test
@@ -204,16 +285,26 @@ class VaultAuthenticationTest {
             val reopened = createViewModel()
             advanceUntilIdle()
             reopened.onAction(action = VaultAction.BiometricAuthenticated)
-            assertEquals(VaultStage.LOCKED, reopened.state.value.stage)
+            assertEquals(
+                VaultStage.LOCKED,
+                reopened.state.value.stage,
+            )
             reopened.onAction(VaultAction.SubmitUnlockPin(pin = "1234"))
             advanceUntilIdle()
-            assertEquals(VaultStage.UNLOCKED, reopened.state.value.stage)
+            assertEquals(
+                VaultStage.UNLOCKED,
+                reopened.state.value.stage,
+            )
         }
 
     private fun createViewModel(
         hasPin: CompletableDeferred<Boolean> = CompletableDeferred(value = true),
     ) = VaultViewModel(
-        output = VaultViewModel.Output(navigateUp = {}, playVideo = {}, playVideos = {}),
+        output = VaultViewModel.Output(
+            navigateUp = {},
+            playVideo = {},
+            playVideos = {},
+        ),
         vaultRepository = vaultRepository,
         vaultPinRepository = object : VaultPinRepository {
             override suspend fun hasPinSet(): Boolean = hasPin.await()

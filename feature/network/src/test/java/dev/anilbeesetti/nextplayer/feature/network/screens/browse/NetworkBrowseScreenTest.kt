@@ -46,7 +46,10 @@ class NetworkBrowseScreenTest {
             listOf(
                 NetworkBrowseAction.UpdateQuickSettings(
                     MediaLayoutMode.GRID,
-                    sort = Sort(Sort.By.SIZE, Sort.Order.DESCENDING),
+                    sort = Sort(
+                        Sort.By.SIZE,
+                        Sort.Order.DESCENDING,
+                    ),
                 ),
             ),
             actions,
@@ -67,7 +70,10 @@ class NetworkBrowseScreenTest {
             listOf(
                 NetworkBrowseAction.UpdateQuickSettings(
                     MediaLayoutMode.LIST,
-                    sort = Sort(Sort.By.TITLE, Sort.Order.ASCENDING),
+                    sort = Sort(
+                        Sort.By.TITLE,
+                        Sort.Order.ASCENDING,
+                    ),
                 ),
             ),
             actions,
@@ -92,12 +98,23 @@ class NetworkBrowseScreenTest {
     @Config(qualifiers = "w400dp-h800dp")
     fun `grid fits more folder tiles than video tiles per row`() {
         val folders = (1..4).map {
-            NetworkFile(name = "Folder $it", path = "folder$it", isDirectory = true)
+            NetworkFile(
+                name = "Folder $it",
+                path = "folder$it",
+                isDirectory = true,
+            )
         }
         val videos = (1..2).map {
-            NetworkFile(name = "Movie $it.mp4", path = "movie$it.mp4", isDirectory = false)
+            NetworkFile(
+                name = "Movie $it.mp4",
+                path = "movie$it.mp4",
+                isDirectory = false,
+            )
         }
-        showScreen(MediaLayoutMode.GRID, files = folders + videos)
+        showScreen(
+            MediaLayoutMode.GRID,
+            files = folders + videos,
+        )
 
         val folderBounds = folders.map {
             composeRule.onNode(
@@ -110,17 +127,33 @@ class NetworkBrowseScreenTest {
             ).fetchSemanticsNode().boundsInRoot
         }
         assertTrue(folderBounds.first().width < videoBounds.first().width)
-        assertEquals(1, folderBounds.map { it.top }.distinct().size)
-        assertEquals(1, videoBounds.map { it.top }.distinct().size)
+        assertEquals(
+            1,
+            folderBounds.map { it.top }.distinct().size,
+        )
+        assertEquals(
+            1,
+            videoBounds.map { it.top }.distinct().size,
+        )
         assertTrue(videoBounds.first().top > folderBounds.first().bottom)
     }
 
     @Test
     @Config(qualifiers = "w400dp-h800dp")
     fun `video section starts below an incomplete folder grid row`() {
-        val secondVideo =
-            NetworkFile(name = "Another.mp4", path = "another.mp4", isDirectory = false)
-        showScreen(MediaLayoutMode.GRID, files = listOf(folder, video, secondVideo))
+        val secondVideo = NetworkFile(
+            name = "Another.mp4",
+            path = "another.mp4",
+            isDirectory = false,
+        )
+        showScreen(
+            MediaLayoutMode.GRID,
+            files = listOf(
+                folder,
+                video,
+                secondVideo,
+            ),
+        )
 
         val folderHeader = composeRule.onNodeWithText(
             text = "Folders (1)",
@@ -141,7 +174,10 @@ class NetworkBrowseScreenTest {
         assertTrue(folderHeader.bottom <= folderBounds.top)
         assertTrue(folderBounds.bottom < videoHeader.top)
         assertTrue(videoHeader.bottom <= videoBounds.top)
-        assertEquals(videoBounds.top, secondVideoBounds.top)
+        assertEquals(
+            videoBounds.top,
+            secondVideoBounds.top,
+        )
     }
 
     @Test
@@ -168,7 +204,10 @@ class NetworkBrowseScreenTest {
 
     @Test
     fun `folders only shows its count without an empty video section`() {
-        showScreen(MediaLayoutMode.GRID, files = listOf(element = folder))
+        showScreen(
+            MediaLayoutMode.GRID,
+            files = listOf(element = folder),
+        )
 
         composeRule.onNodeWithText(text = "Folders (1)").assertIsDisplayed()
         composeRule.onNodeWithText(text = "Videos (0)").assertDoesNotExist()
@@ -176,7 +215,10 @@ class NetworkBrowseScreenTest {
 
     @Test
     fun `videos only shows its count without an empty folder section`() {
-        showScreen(MediaLayoutMode.GRID, files = listOf(element = video))
+        showScreen(
+            MediaLayoutMode.GRID,
+            files = listOf(element = video),
+        )
 
         composeRule.onNodeWithText(text = "Videos (1)").assertIsDisplayed()
         composeRule.onNodeWithText(text = "Folders (0)").assertDoesNotExist()
@@ -193,7 +235,10 @@ class NetworkBrowseScreenTest {
 
     private fun showScreen(
         layout: MediaLayoutMode = MediaLayoutMode.LIST,
-        files: List<NetworkFile> = listOf(folder, video),
+        files: List<NetworkFile> = listOf(
+            folder,
+            video,
+        ),
     ): MutableList<NetworkBrowseAction> {
         val actions = mutableListOf<NetworkBrowseAction>()
         composeRule.setContent {
@@ -212,6 +257,14 @@ class NetworkBrowseScreenTest {
         return actions
     }
 
-    private val folder = NetworkFile(name = "Folder", path = "folder", isDirectory = true)
-    private val video = NetworkFile(name = "Movie.mp4", path = "movie.mp4", isDirectory = false)
+    private val folder = NetworkFile(
+        name = "Folder",
+        path = "folder",
+        isDirectory = true,
+    )
+    private val video = NetworkFile(
+        name = "Movie.mp4",
+        path = "movie.mp4",
+        isDirectory = false,
+    )
 }

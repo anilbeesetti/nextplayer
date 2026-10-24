@@ -38,7 +38,10 @@ fun EntryProviderScope<NavKey>.playlistListEntry(
             parameters = { parametersOf(output) },
         )
         SideEffect { viewModel.output = output }
-        PlaylistListScreen(viewModel = viewModel, onAddToHomeScreen = onAddToHomeScreen)
+        PlaylistListScreen(
+            viewModel = viewModel,
+            onAddToHomeScreen = onAddToHomeScreen,
+        )
     }
 }
 

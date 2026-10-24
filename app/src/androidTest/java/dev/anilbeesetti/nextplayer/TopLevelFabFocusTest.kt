@@ -33,7 +33,10 @@ class TopLevelFabFocusTest {
     @get:Rule(order = 1)
     val composeRule = createAndroidComposeRule<MainActivity>()
 
-    private val tab = SemanticsMatcher.expectValue(SemanticsProperties.Role, Role.Tab)
+    private val tab = SemanticsMatcher.expectValue(
+        SemanticsProperties.Role,
+        Role.Tab,
+    )
 
     @Before
     fun requireTv() {
@@ -61,7 +64,15 @@ class TopLevelFabFocusTest {
 
     @Test
     fun switchingTabsKeepsFabUpInTheCurrentScreen() {
-        listOf(2, 0, 3, 1, 0, 2, 3).forEach(action = ::checkFabUp)
+        listOf(
+            2,
+            0,
+            3,
+            1,
+            0,
+            2,
+            3,
+        ).forEach(action = ::checkFabUp)
     }
 
     private fun checkFabUp(tabIndex: Int) {

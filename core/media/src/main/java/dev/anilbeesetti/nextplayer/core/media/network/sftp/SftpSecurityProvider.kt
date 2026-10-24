@@ -23,7 +23,12 @@ internal object SftpSecurityProvider {
     }
 
     @Suppress("DEPRECATION")
-    private class DelegatingBouncyCastleProvider : Provider(NAME, VERSION, DESCRIPTION) {
+    private class DelegatingBouncyCastleProvider :
+        Provider(
+            NAME,
+            VERSION,
+            DESCRIPTION,
+        ) {
         init {
             putAll(BouncyCastleProvider())
         }

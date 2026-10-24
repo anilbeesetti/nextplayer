@@ -17,8 +17,14 @@ class DefaultSshKeyStore(context: Context) : SshKeyStore {
 
     private val contentResolver = context.contentResolver
     private val keyFiles = SshKeyFiles(
-        stagingDirectory = File(context.noBackupFilesDir, "$KEY_DIRECTORY/staging"),
-        committedDirectory = File(context.noBackupFilesDir, "$KEY_DIRECTORY/committed"),
+        stagingDirectory = File(
+            context.noBackupFilesDir,
+            "$KEY_DIRECTORY/staging",
+        ),
+        committedDirectory = File(
+            context.noBackupFilesDir,
+            "$KEY_DIRECTORY/committed",
+        ),
         reconciliationRequired = true,
     )
 
@@ -46,7 +52,13 @@ class DefaultSshKeyStore(context: Context) : SshKeyStore {
 
     private fun queryDisplayName(uri: Uri): String {
         val projection = arrayOf(OpenableColumns.DISPLAY_NAME)
-        return contentResolver.query(uri, projection, null, null, null)?.use { cursor ->
+        return contentResolver.query(
+            uri,
+            projection,
+            null,
+            null,
+            null,
+        )?.use { cursor ->
             val displayNameColumn = cursor.getColumnIndex(OpenableColumns.DISPLAY_NAME)
             if (displayNameColumn >= 0 && cursor.moveToFirst()) {
                 cursor.getString(displayNameColumn)
@@ -75,7 +87,10 @@ internal suspend fun stageSshKey(
             val fileName = inputStream()?.let(block = keyFiles::stage)
                 ?: throw FileNotFoundException("Private key is missing")
             stagedFileName = fileName
-            StagedSshKey(fileName = fileName, displayName = resolvedDisplayName)
+            StagedSshKey(
+                fileName = fileName,
+                displayName = resolvedDisplayName,
+            )
         }
     } catch (throwable: Throwable) {
         stagedFileName?.let { fileName ->

@@ -136,7 +136,10 @@ class MediaPickerScreenTest {
     fun tvFolderFabUpReturnsToTheVideoInsteadOfSettings() {
         val application = ApplicationProvider.getApplicationContext<Application>()
         shadowOf(application).grantPermissions(Manifest.permission.READ_MEDIA_VIDEO)
-        shadowOf(application.packageManager).setSystemFeature(PackageManager.FEATURE_LEANBACK, true)
+        shadowOf(application.packageManager).setSystemFeature(
+            PackageManager.FEATURE_LEANBACK,
+            true,
+        )
         val video = Video.sample.copy(
             nameWithExtension = "Clip.mp4",
             uriString = "content://video/1",

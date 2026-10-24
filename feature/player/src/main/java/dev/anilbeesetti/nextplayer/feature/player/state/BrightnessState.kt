@@ -39,14 +39,19 @@ class BrightnessState(private val activity: PlayerActivity) {
     fun updateBrightnessPercentage(percentage: Int) {
         setBrightness(
             brightness =
-                percentage.coerceIn(minimumValue = 0, maximumValue = 100) * maxBrightness / 100,
+                percentage.coerceIn(
+                    minimumValue = 0,
+                    maximumValue = 100,
+                ) * maxBrightness / 100,
         )
     }
 
     fun setBrightness(brightness: Float) {
         val windowAttributes = activity.window.attributes
-        windowAttributes.screenBrightness =
-            brightness.coerceIn(minimumValue = 0f, maximumValue = maxBrightness)
+        windowAttributes.screenBrightness = brightness.coerceIn(
+            minimumValue = 0f,
+            maximumValue = maxBrightness,
+        )
         activity.window.attributes = windowAttributes
     }
 

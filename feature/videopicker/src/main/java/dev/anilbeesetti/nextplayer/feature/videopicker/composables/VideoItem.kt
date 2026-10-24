@@ -96,7 +96,10 @@ fun VideoItem(
     }
 }
 
-@OptIn(ExperimentalLayoutApi::class, ExperimentalMaterial3ExpressiveApi::class)
+@OptIn(
+    ExperimentalLayoutApi::class,
+    ExperimentalMaterial3ExpressiveApi::class,
+)
 @Composable
 fun VideoListItem(
     video: Video,
@@ -265,8 +268,14 @@ fun VideoGridItem(
 /** True if the video is local. Remote videos avoid full download and use a placeholder. */
 private fun Video.isLocalUri(): Boolean {
     val scheme = uriString.toUri().scheme
-    return scheme.equals(other = "content", ignoreCase = true) ||
-        scheme.equals(other = "file", ignoreCase = true)
+    return scheme.equals(
+        other = "content",
+        ignoreCase = true,
+    ) ||
+        scheme.equals(
+            other = "file",
+            ignoreCase = true,
+        )
 }
 
 @Composable

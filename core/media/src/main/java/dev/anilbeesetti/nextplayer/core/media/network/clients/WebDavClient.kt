@@ -46,7 +46,12 @@ class WebDavClient(private val connection: NetworkConnection) : NetworkClient {
                     connection.password,
                 )
             }
-            client.exists(buildUrl(path = "", isDirectory = true))
+            client.exists(
+                buildUrl(
+                    path = "",
+                    isDirectory = true,
+                ),
+            )
             sardine = client
         }
     }
@@ -61,7 +66,12 @@ class WebDavClient(private val connection: NetworkConnection) : NetworkClient {
         withContext(Dispatchers.IO) {
             runCatching {
                 val client = sardine ?: error(message = "Not connected")
-                client.list(buildUrl(path = path, isDirectory = true)).drop(n = 1).map { resource ->
+                client.list(
+                    buildUrl(
+                        path = path,
+                        isDirectory = true,
+                    ),
+                ).drop(n = 1).map { resource ->
                     val name = resource.name ?: ""
                     NetworkFile(
                         name = name,
@@ -77,7 +87,10 @@ class WebDavClient(private val connection: NetworkConnection) : NetworkClient {
     override suspend fun fileSize(path: String): Long = withContext(Dispatchers.IO) {
         runCatching {
             val client = sardine ?: error(message = "Not connected")
-            client.list(buildUrl(path = path), 0).firstOrNull { !it.isDirectory }?.contentLength
+            client.list(
+                buildUrl(path = path),
+                0,
+            ).firstOrNull { !it.isDirectory }?.contentLength
                 ?: -1L
         }.getOrDefault(defaultValue = -1L)
     }
@@ -88,10 +101,18 @@ class WebDavClient(private val connection: NetworkConnection) : NetworkClient {
             if (!connection.isAnonymous) {
                 builder.header(
                     name = "Authorization",
-                    Credentials.basic(connection.username, connection.password),
+                    Credentials.basic(
+                        connection.username,
+                        connection.password,
+                    ),
                 )
             }
-            if (offset > 0) builder.header(name = "Range", value = "bytes=$offset-")
+            if (offset > 0) {
+                builder.header(
+                    name = "Range",
+                    value = "bytes=$offset-",
+                )
+            }
             val response = httpClient.newCall(builder.build()).execute()
             if (!response.isSuccessful) {
                 response.close()

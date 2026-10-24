@@ -24,11 +24,19 @@ fun rememberChaptersState(
     player: Player?,
     progressState: ProgressStateWithTickInterval,
 ): ChaptersState {
-    val chaptersState =
-        remember(player, progressState) {
-            ChaptersState(player = player, progressState = progressState)
-        }
-    LaunchedEffect(key1 = player, key2 = progressState) { chaptersState.observe() }
+    val chaptersState = remember(
+        player,
+        progressState,
+    ) {
+        ChaptersState(
+            player = player,
+            progressState = progressState,
+        )
+    }
+    LaunchedEffect(
+        key1 = player,
+        key2 = progressState,
+    ) { chaptersState.observe() }
     return chaptersState
 }
 
@@ -44,14 +52,13 @@ class ChaptersState(
         chapters.currentChapterIndex(progressState.currentPositionMs)
     }
 
-    private val playerStateObserver: PlayerStateObserver? =
-        player?.observeState(
-            Player.EVENT_TRACKS_CHANGED,
-            Player.EVENT_TIMELINE_CHANGED,
-            Player.EVENT_MEDIA_ITEM_TRANSITION,
-            Player.EVENT_POSITION_DISCONTINUITY,
-            Player.EVENT_PLAYBACK_STATE_CHANGED,
-        ) { updateChapters() }
+    private val playerStateObserver: PlayerStateObserver? = player?.observeState(
+        Player.EVENT_TRACKS_CHANGED,
+        Player.EVENT_TIMELINE_CHANGED,
+        Player.EVENT_MEDIA_ITEM_TRANSITION,
+        Player.EVENT_POSITION_DISCONTINUITY,
+        Player.EVENT_PLAYBACK_STATE_CHANGED,
+    ) { updateChapters() }
 
     suspend fun observe() {
         updateChapters()
@@ -67,7 +74,10 @@ class ChaptersState(
                     player.currentPeriodIndex,
                     Timeline.Period(),
                 ).positionInWindowMs
-                player.currentTracks.chapters(player.duration, periodOffsetMs = periodOffsetMs)
+                player.currentTracks.chapters(
+                    player.duration,
+                    periodOffsetMs = periodOffsetMs,
+                )
             }
         } ?: emptyList()
     }

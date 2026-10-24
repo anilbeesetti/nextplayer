@@ -35,7 +35,10 @@ class SshKeyFiles(
 
     fun stage(inputStream: InputStream): String {
         awaitReconciliation()
-        val pendingImport = synchronized(lock = lifecycleLock, block = ::reserveImport)
+        val pendingImport = synchronized(
+            lock = lifecycleLock,
+            block = ::reserveImport,
+        )
         try {
             inputStream.use { input ->
                 pendingImport.temporaryFile.outputStream().use { output ->
@@ -48,7 +51,11 @@ class SshKeyFiles(
                         if (bytesCopied > MAX_PRIVATE_KEY_BYTES) {
                             throw IOException("Private key exceeds 1 MiB")
                         }
-                        output.write(buffer, 0, read)
+                        output.write(
+                            buffer,
+                            0,
+                            read,
+                        )
                     }
                 }
             }
@@ -133,17 +140,24 @@ class SshKeyFiles(
         importsInProgress += generatedName
         return PendingImport(
             fileName = generatedName,
-            temporaryFile = File(stagingDirectory, ".$generatedName.importing"),
+            temporaryFile = File(
+                stagingDirectory,
+                ".$generatedName.importing",
+            ),
         )
     }
 
     private fun awaitReconciliation() = reconciliationComplete.await()
 
-    private fun stagedFile(fileName: String) =
-        File(stagingDirectory, validated(fileName = fileName))
+    private fun stagedFile(fileName: String) = File(
+        stagingDirectory,
+        validated(fileName = fileName),
+    )
 
-    private fun committedFile(fileName: String) =
-        File(committedDirectory, validated(fileName = fileName))
+    private fun committedFile(fileName: String) = File(
+        committedDirectory,
+        validated(fileName = fileName),
+    )
 
     private fun File.deleteIfPresent() = !exists() || delete() || !exists()
 

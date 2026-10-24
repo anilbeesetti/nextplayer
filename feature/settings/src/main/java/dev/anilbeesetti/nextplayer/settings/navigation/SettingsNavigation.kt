@@ -21,7 +21,10 @@ fun EntryProviderScope<NavKey>.settingsEntry(
 ) {
     entry<SettingsRoute> {
         SettingsScreen(
-            output = SettingsOutput(navigateUp = onNavigateUp, openSetting = onItemClick),
+            output = SettingsOutput(
+                navigateUp = onNavigateUp,
+                openSetting = onItemClick,
+            ),
         )
     }
 }

@@ -73,7 +73,11 @@ fun NextSegmentedListItem(
         onLongClick = onLongClick,
         enabled = enabled,
         verticalAlignment = Alignment.CenterVertically,
-        shapes = remember(isFirstItem, isLastItem, shapes) {
+        shapes = remember(
+            isFirstItem,
+            isLastItem,
+            shapes,
+        ) {
             val defaultBaseShape = shapes.shape
             if (defaultBaseShape is CornerBasedShape) {
                 shapes.copy(

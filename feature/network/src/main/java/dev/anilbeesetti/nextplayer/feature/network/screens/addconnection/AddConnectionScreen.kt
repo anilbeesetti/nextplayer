@@ -124,7 +124,10 @@ internal fun AddConnectionScreenContent(
             name = it.name
             host = it.host
             port = it.port?.toString() ?: ""
-            path = normalizedPathFor(it.protocol, it.path)
+            path = normalizedPathFor(
+                it.protocol,
+                it.path,
+            )
             username = it.username
             password = it.password
             useHttps = it.useHttps
@@ -160,7 +163,10 @@ internal fun AddConnectionScreenContent(
                     protocol = protocol,
                     host = host.trim(),
                     port = port.toIntOrNull(),
-                    path = normalizedPathFor(protocol = protocol, path = path),
+                    path = normalizedPathFor(
+                        protocol = protocol,
+                        path = path,
+                    ),
                     username = username.trim(),
                     password = if (
                         protocol == NetworkProtocol.SFTP &&
@@ -214,9 +220,12 @@ internal fun AddConnectionScreenContent(
                     id = if (isEdit) R.string.edit_connection else R.string.add_connection,
                 ),
                 navigationIcon = {
-                    FilledTonalIconButton(onClick = {
-                        onAction(AddConnectionAction.Cancel)
-                    }, modifier = Modifier.tvFocusRing()) {
+                    FilledTonalIconButton(
+                        onClick = {
+                            onAction(AddConnectionAction.Cancel)
+                        },
+                        modifier = Modifier.tvFocusRing(),
+                    ) {
                         Icon(
                             imageVector = NextIcons.Close,
                             contentDescription = stringResource(R.string.navigate_up),
@@ -233,7 +242,10 @@ internal fun AddConnectionScreenContent(
                 .padding(paddingValues = padding)
                 .imePadding()
                 .verticalScroll(state = rememberScrollState())
-                .padding(horizontal = 20.dp, vertical = 12.dp),
+                .padding(
+                    horizontal = 20.dp,
+                    vertical = 12.dp,
+                ),
             verticalArrangement = Arrangement.spacedBy(12.dp),
         ) {
             Text(
@@ -242,8 +254,11 @@ internal fun AddConnectionScreenContent(
                 color = MaterialTheme.colorScheme.onSurfaceVariant,
             )
             SingleChoiceSegmentedButtonRow(modifier = Modifier.fillMaxWidth()) {
-                val protocols =
-                    listOf(NetworkProtocol.SMB, NetworkProtocol.FTP, NetworkProtocol.WEBDAV)
+                val protocols = listOf(
+                    NetworkProtocol.SMB,
+                    NetworkProtocol.FTP,
+                    NetworkProtocol.WEBDAV,
+                )
                 protocols.forEachIndexed { index, entry ->
                     SegmentedButton(
                         selected = if (entry == NetworkProtocol.FTP) {
@@ -273,7 +288,10 @@ internal fun AddConnectionScreenContent(
                                 protocol = entry
                             }
                         },
-                        shape = SegmentedButtonDefaults.itemShape(index = index, protocols.size),
+                        shape = SegmentedButtonDefaults.itemShape(
+                            index = index,
+                            protocols.size,
+                        ),
                         modifier = Modifier.tvFocusRing(
                             shape = SegmentedButtonDefaults.itemShape(
                                 index = index,
@@ -372,7 +390,14 @@ internal fun AddConnectionScreenContent(
                         port = newPort
                     }
                 },
-                label = { Text(text = stringResource(R.string.port_hint, protocol.defaultPort)) },
+                label = {
+                    Text(
+                        text = stringResource(
+                            R.string.port_hint,
+                            protocol.defaultPort,
+                        ),
+                    )
+                },
                 singleLine = true,
                 keyboardOptions = KeyboardOptions(
                     keyboardType = KeyboardType.Number,
@@ -410,7 +435,10 @@ internal fun AddConnectionScreenContent(
                 SingleChoiceSegmentedButtonRow(modifier = Modifier.fillMaxWidth()) {
                     val methods = NetworkAuthentication.entries
                     methods.forEachIndexed { index, method ->
-                        val shape = SegmentedButtonDefaults.itemShape(index = index, methods.size)
+                        val shape = SegmentedButtonDefaults.itemShape(
+                            index = index,
+                            methods.size,
+                        )
                         SegmentedButton(
                             selected = authentication == method,
                             enabled = !isTesting,
@@ -507,7 +535,10 @@ internal fun AddConnectionScreenContent(
                 if (activeKeyName.isNotBlank()) {
                     Text(
                         text = selectedPrivateKey?.let {
-                            stringResource(R.string.selected_private_key, it.displayName)
+                            stringResource(
+                                R.string.selected_private_key,
+                                it.displayName,
+                            )
                         } ?: stringResource(R.string.private_key_stored),
                         style = MaterialTheme.typography.bodyMedium,
                         color = MaterialTheme.colorScheme.onSurfaceVariant,
@@ -613,7 +644,12 @@ internal fun AddConnectionScreenContent(
                 Text(text = stringResource(R.string.confirm_ssh_host_key_description))
                 Spacer(Modifier.size(12.dp))
                 Text(text = "${confirmation.host}:${confirmation.port}")
-                Text(text = stringResource(R.string.ssh_host_key_algorithm, confirmation.algorithm))
+                Text(
+                    text = stringResource(
+                        R.string.ssh_host_key_algorithm,
+                        confirmation.algorithm,
+                    ),
+                )
                 SelectionContainer {
                     Text(
                         text = stringResource(

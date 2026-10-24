@@ -49,12 +49,15 @@ class PlayerViewModelTest {
                 context = RuntimeEnvironment.getApplication(),
                 defaultDispatcher = dispatcher,
             ),
-            output = PlayerViewModel.Output(navigateUp = {
-            }, selectSubtitle = {
-            }, selectAudio = {
-            }, playInBackground = {
-            }, setVideoDecoderMode = {
-            }, setAudioDecoderMode = {}, tryDecoderFallback = {}),
+            output = PlayerViewModel.Output(
+                navigateUp = {},
+                selectSubtitle = {},
+                selectAudio = {},
+                playInBackground = {},
+                setVideoDecoderMode = {},
+                setAudioDecoderMode = {},
+                tryDecoderFallback = {},
+            ),
         )
     }
 
@@ -76,12 +79,21 @@ class PlayerViewModelTest {
             runCurrent()
 
             assertFalse(viewModel.state.value.playWhenReady)
-            assertEquals(0.4f, viewModel.state.value.playerPreferences.playerBrightness)
-            assertEquals(decoderState, viewModel.state.value.decoderServiceState)
+            assertEquals(
+                0.4f,
+                viewModel.state.value.playerPreferences.playerBrightness,
+            )
+            assertEquals(
+                decoderState,
+                viewModel.state.value.decoderServiceState,
+            )
 
             viewModel.onAction(PlayerAction.UpdatePlayWhenReady(playWhenReady = true))
             assertTrue(viewModel.state.value.playWhenReady)
-            assertEquals(0.4f, viewModel.state.value.playerPreferences.playerBrightness)
+            assertEquals(
+                0.4f,
+                viewModel.state.value.playerPreferences.playerBrightness,
+            )
         }
 
     @Test
@@ -95,7 +107,10 @@ class PlayerViewModelTest {
             runCurrent()
 
             assertFalse(viewModel.state.value.playerPreferences.showRemainingTime)
-            assertEquals(0.7f, viewModel.state.value.playerPreferences.playerBrightness)
+            assertEquals(
+                0.7f,
+                viewModel.state.value.playerPreferences.playerBrightness,
+            )
             assertFalse(viewModel.state.value.playWhenReady)
 
             viewModel.onAction(action = PlayerAction.ToggleTimeDisplay)

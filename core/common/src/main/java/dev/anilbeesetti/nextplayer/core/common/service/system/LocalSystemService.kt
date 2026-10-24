@@ -35,9 +35,17 @@ class LocalSystemService(private val context: Context) : SystemService {
         pluralsResId: Int,
         quantity: Int,
         vararg formatArgs: Any,
-    ): String = context.resources.getQuantityString(pluralsResId, quantity, *formatArgs)
+    ): String = context.resources.getQuantityString(
+        pluralsResId,
+        quantity,
+        *formatArgs,
+    )
 
     override fun showToast(text: String, duration: Int) {
-        Toast.makeText(context, text, duration).show()
+        Toast.makeText(
+            context,
+            text,
+            duration,
+        ).show()
     }
 }

@@ -58,14 +58,22 @@ fun SubtitlePreferencesScreen(viewModel: SubtitlePreferencesViewModel) {
     )
 }
 
-@OptIn(ExperimentalMaterial3Api::class, ExperimentalMaterial3ExpressiveApi::class)
+@OptIn(
+    ExperimentalMaterial3Api::class,
+    ExperimentalMaterial3ExpressiveApi::class,
+)
 @Composable
 private fun SubtitlePreferencesScreenContent(
     state: SubtitlePreferencesUiState,
     onAction: (SubtitlePreferencesUiEvent) -> Unit,
 ) {
     val languages = remember {
-        listOf(element = Pair(first = "None", second = "")) +
+        listOf(
+            element = Pair(
+                first = "None",
+                second = "",
+            ),
+        ) +
             LocalesHelper.getAvailableLocales()
     }
     val charsetResource = stringArrayResource(id = R.array.charsets_list)
@@ -77,9 +85,12 @@ private fun SubtitlePreferencesScreenContent(
             NextTopAppBar(
                 title = stringResource(id = R.string.subtitle),
                 navigationIcon = {
-                    FilledTonalIconButton(onClick = {
-                        onAction(SubtitlePreferencesUiEvent.NavigateUp)
-                    }, modifier = Modifier.tvFocusDown(target = listFocusRequester)) {
+                    FilledTonalIconButton(
+                        onClick = {
+                            onAction(SubtitlePreferencesUiEvent.NavigateUp)
+                        },
+                        modifier = Modifier.tvFocusDown(target = listFocusRequester),
+                    ) {
                         Icon(
                             imageVector = NextIcons.ArrowBack,
                             contentDescription = stringResource(id = R.string.navigate_up),

@@ -40,7 +40,10 @@ class NextPlayerApplication :
             androidContext(androidContext = this@NextPlayerApplication)
         }
         Thread.setDefaultUncaughtExceptionHandler(
-            GlobalExceptionHandler(context = applicationContext, CrashActivity::class.java),
+            GlobalExceptionHandler(
+                context = applicationContext,
+                CrashActivity::class.java,
+            ),
         )
         applicationScope.launch {
             runCatching {

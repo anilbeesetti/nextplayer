@@ -13,7 +13,10 @@ internal class DecoderRecoveryManager {
 
     // Terminal errors and confirmation take precedence over background recovery.
     val state: DecoderRecoveryState
-        get() = listOf(videoRecovery.state, audioRecovery.state).maxBy { it.status }
+        get() = listOf(
+            videoRecovery.state,
+            audioRecovery.state,
+        ).maxBy { it.status }
 
     fun onUserSelection(trackType: DecoderTrackType, mode: DecoderMode) {
         recoveryFor(trackType = trackType).apply {
@@ -54,7 +57,10 @@ internal class DecoderRecoveryManager {
             status = DecoderRecoveryStatus.RECOVERING,
             trackType = trackType,
         )
-        return DecoderRetry(trackType = trackType, mode = fallbackMode)
+        return DecoderRetry(
+            trackType = trackType,
+            mode = fallbackMode,
+        )
     }
 
     fun confirmFallback(): DecoderRetry? {
@@ -111,7 +117,13 @@ private class TrackRecovery {
 
 private fun DecoderMode.fallbackModes(): List<DecoderMode> = when (this) {
     DecoderMode.AUTO -> listOf(DecoderMode.FFMPEG)
-    DecoderMode.HARDWARE -> listOf(DecoderMode.SOFTWARE, DecoderMode.FFMPEG)
+
+    DecoderMode.HARDWARE -> listOf(
+        DecoderMode.SOFTWARE,
+        DecoderMode.FFMPEG,
+    )
+
     DecoderMode.SOFTWARE -> listOf(DecoderMode.FFMPEG)
+
     DecoderMode.FFMPEG -> listOf(DecoderMode.AUTO)
 }

@@ -43,10 +43,16 @@ fun BoxScope.AudioTrackSelectorView(
     onSelectAudioClick: () -> Unit,
     onDismiss: () -> Unit,
 ) {
-    val audioTracksState = rememberTracksState(player = player, C.TRACK_TYPE_AUDIO)
+    val audioTracksState = rememberTracksState(
+        player = player,
+        C.TRACK_TYPE_AUDIO,
+    )
     val context = LocalContext.current
     var audioNames by remember { mutableStateOf(value = emptyList<String>()) }
-    LaunchedEffect(key1 = player, audioTracksState.tracks) {
+    LaunchedEffect(
+        key1 = player,
+        audioTracksState.tracks,
+    ) {
         val uris = player.currentMediaItem?.mediaMetadata?.externalAudio.orEmpty()
         audioNames =
             withContext(Dispatchers.IO) { uris.map { context.getFilenameFromUri(uri = it) } }
@@ -69,7 +75,10 @@ fun BoxScope.AudioTrackSelectorView(
                     selected = track.isSelected,
                     text = track.mediaTrackGroup.externalAudioIndex
                         ?.let { audioNames.getOrNull(index = it) }
-                        ?: track.mediaTrackGroup.getName(C.TRACK_TYPE_AUDIO, index = index),
+                        ?: track.mediaTrackGroup.getName(
+                            C.TRACK_TYPE_AUDIO,
+                            index = index,
+                        ),
                     onClick = {
                         audioTracksState.switchTrack(index = index)
                         onDismiss()

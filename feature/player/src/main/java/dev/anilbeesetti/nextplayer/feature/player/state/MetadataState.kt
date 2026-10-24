@@ -30,14 +30,13 @@ class MetadataState(private val player: Player?) {
     var title: String? by mutableStateOf(value = null)
         private set
 
-    private val playerStateObserver: PlayerStateObserver? =
-        player?.observeState(
-            Player.EVENT_MEDIA_METADATA_CHANGED,
-            Player.EVENT_MEDIA_ITEM_TRANSITION,
-        ) {
-            mediaId = player.currentMediaItem?.mediaId
-            title = player.mediaMetadata.title?.toString()
-        }
+    private val playerStateObserver: PlayerStateObserver? = player?.observeState(
+        Player.EVENT_MEDIA_METADATA_CHANGED,
+        Player.EVENT_MEDIA_ITEM_TRANSITION,
+    ) {
+        mediaId = player.currentMediaItem?.mediaId
+        title = player.mediaMetadata.title?.toString()
+    }
 
     suspend fun observe() {
         mediaId = player?.currentMediaItem?.mediaId

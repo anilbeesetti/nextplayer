@@ -28,7 +28,10 @@ class SshKeyStoreInitializerTest {
                     connection(fileName = " dead-beef.key "),
                     connection(fileName = ""),
                     connection(fileName = "../invalid.key"),
-                    connection(fileName = "cafe.key", protocol = NetworkProtocol.SMB),
+                    connection(
+                        fileName = "cafe.key",
+                        protocol = NetworkProtocol.SMB,
+                    ),
                     connection(
                         fileName = "beef.key",
                         authentication = NetworkAuthentication.PASSWORD,
@@ -38,9 +41,18 @@ class SshKeyStoreInitializerTest {
         )
         val store = FakeSshKeyStore()
 
-        initializeSshKeyStore(repository = repository, sshKeyStore = store)
+        initializeSshKeyStore(
+            repository = repository,
+            sshKeyStore = store,
+        )
 
-        assertEquals(setOf("feed.key", "dead-beef.key"), store.referencedFileNames)
+        assertEquals(
+            setOf(
+                "feed.key",
+                "dead-beef.key",
+            ),
+            store.referencedFileNames,
+        )
     }
 
     @Test
@@ -50,9 +62,15 @@ class SshKeyStoreInitializerTest {
         )
         val store = FakeSshKeyStore()
 
-        initializeSshKeyStore(repository = repository, sshKeyStore = store)
+        initializeSshKeyStore(
+            repository = repository,
+            sshKeyStore = store,
+        )
 
-        assertEquals(null, store.referencedFileNames)
+        assertEquals(
+            null,
+            store.referencedFileNames,
+        )
     }
 
     private fun connection(

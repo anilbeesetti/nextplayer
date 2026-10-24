@@ -176,10 +176,18 @@ internal fun SearchScreenContent(state: SearchUiState, onAction: (SearchUiEvent)
             Box(
                 modifier = Modifier
                     .fillMaxSize()
-                    .clip(shape = RoundedCornerShape(topStart = 24.dp, topEnd = 24.dp))
+                    .clip(
+                        shape = RoundedCornerShape(
+                            topStart = 24.dp,
+                            topEnd = 24.dp,
+                        ),
+                    )
                     .background(MaterialTheme.colorScheme.background),
             ) {
-                val updatedScaffoldPadding = scaffoldPadding.copy(top = 0.dp, start = 0.dp)
+                val updatedScaffoldPadding = scaffoldPadding.copy(
+                    top = 0.dp,
+                    start = 0.dp,
+                )
                 if (state.query.isBlank()) {
                     SuggestionsContent(
                         searchHistory = state.searchHistory,
@@ -237,7 +245,10 @@ private fun SuggestionsContent(
                 ) {
                     ListSectionTitle(
                         text = stringResource(R.string.recent_searches),
-                        contentPadding = PaddingValues(top = 12.dp, bottom = 8.dp),
+                        contentPadding = PaddingValues(
+                            top = 12.dp,
+                            bottom = 8.dp,
+                        ),
                     )
                     TextButton(onClick = onClearHistory) {
                         Text(text = stringResource(R.string.clear_history))
@@ -321,7 +332,10 @@ private fun SuggestionsContent(
 private fun SearchHistoryItem(query: String, onClick: () -> Unit, onRemove: () -> Unit) {
     NextSegmentedListItem(
         modifier = Modifier.padding(horizontal = 8.dp),
-        contentPadding = PaddingValues(horizontal = 16.dp, vertical = 12.dp),
+        contentPadding = PaddingValues(
+            horizontal = 16.dp,
+            vertical = 12.dp,
+        ),
         onClick = onClick,
         leadingContent = {
             Icon(
@@ -441,7 +455,11 @@ private fun SearchScreenWithHistoryPreview() {
         SearchScreenContent(
             onAction = {},
             state = SearchUiState(
-                searchHistory = listOf("avengers", "movie", "trailer"),
+                searchHistory = listOf(
+                    "avengers",
+                    "movie",
+                    "trailer",
+                ),
                 popularFolders = listOf(
                     Folder(
                         name = "Movies",

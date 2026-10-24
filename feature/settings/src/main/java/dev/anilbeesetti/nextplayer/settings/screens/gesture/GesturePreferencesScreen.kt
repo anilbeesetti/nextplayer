@@ -59,7 +59,10 @@ fun GesturePreferencesScreen(viewModel: GesturePreferencesViewModel) {
     )
 }
 
-@OptIn(ExperimentalMaterial3Api::class, ExperimentalMaterial3ExpressiveApi::class)
+@OptIn(
+    ExperimentalMaterial3Api::class,
+    ExperimentalMaterial3ExpressiveApi::class,
+)
 @Composable
 private fun GesturePreferencesScreenContent(
     state: GesturePreferencesUiState,
@@ -71,9 +74,12 @@ private fun GesturePreferencesScreenContent(
             NextTopAppBar(
                 title = stringResource(id = R.string.gestures),
                 navigationIcon = {
-                    FilledTonalIconButton(onClick = {
-                        onAction(GesturePreferencesUiEvent.NavigateUp)
-                    }, modifier = Modifier.tvFocusDown(target = listFocusRequester)) {
+                    FilledTonalIconButton(
+                        onClick = {
+                            onAction(GesturePreferencesUiEvent.NavigateUp)
+                        },
+                        modifier = Modifier.tvFocusDown(target = listFocusRequester),
+                    ) {
                         Icon(
                             imageVector = NextIcons.ArrowBack,
                             contentDescription = stringResource(id = R.string.navigate_up),
@@ -270,7 +276,10 @@ private fun GesturePreferencesScreenContent(
                 )
                 PreferenceSlider(
                     title = stringResource(R.string.seek_increment),
-                    description = stringResource(R.string.seconds, state.preferences.seekIncrement),
+                    description = stringResource(
+                        R.string.seconds,
+                        state.preferences.seekIncrement,
+                    ),
                     isLastItem = true,
                     icon = NextIcons.Replay,
                     value = state.preferences.seekIncrement.toFloat(),

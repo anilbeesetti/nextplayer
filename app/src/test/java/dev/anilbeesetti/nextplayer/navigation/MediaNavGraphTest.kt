@@ -63,12 +63,24 @@ class MediaNavGraphTest {
         val first = "content://media/external/video/media/1".toUri()
         val second = "content://media/external/video/media/2".toUri()
 
-        context.startPlayback(uris = listOf(first, second), startUri = second)
+        context.startPlayback(
+            uris = listOf(
+                first,
+                second,
+            ),
+            startUri = second,
+        )
 
         val intent = shadowOf(context).nextStartedActivity
-        assertEquals(second, intent.data)
         assertEquals(
-            arrayListOf(first, second),
+            second,
+            intent.data,
+        )
+        assertEquals(
+            arrayListOf(
+                first,
+                second,
+            ),
             IntentCompat.getParcelableArrayListExtra(
                 intent,
                 PlayerApi.API_PLAYLIST,
@@ -88,11 +100,20 @@ class MediaNavGraphTest {
         )
 
         val intent = shadowOf(context).nextStartedActivity
-        assertEquals(Intent.ACTION_VIEW, intent.action)
-        assertEquals(selected, intent.data)
+        assertEquals(
+            Intent.ACTION_VIEW,
+            intent.action,
+        )
+        assertEquals(
+            selected,
+            intent.data,
+        )
         assertEquals(
             42L,
-            intent.getLongExtra(PlaylistPlaybackContract.EXTRA_PLAYLIST_ID, -1),
+            intent.getLongExtra(
+                PlaylistPlaybackContract.EXTRA_PLAYLIST_ID,
+                -1,
+            ),
         )
         assertFalse(intent.hasExtra(PlayerApi.API_PLAYLIST))
     }

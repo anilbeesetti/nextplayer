@@ -74,7 +74,10 @@ class SearchViewModel(
         }
     }
 
-    @OptIn(FlowPreview::class, ExperimentalCoroutinesApi::class)
+    @OptIn(
+        FlowPreview::class,
+        ExperimentalCoroutinesApi::class,
+    )
     private fun collectSearchResults() {
         viewModelScope.launch {
             searchQuery
@@ -105,7 +108,12 @@ class SearchViewModel(
     }
 
     private fun onQueryChange(query: String) {
-        stateInternal.update { it.copy(query = query, isSearching = query.isNotBlank()) }
+        stateInternal.update {
+            it.copy(
+                query = query,
+                isSearching = query.isNotBlank(),
+            )
+        }
         searchQuery.value = query
     }
 
@@ -115,7 +123,12 @@ class SearchViewModel(
     }
 
     private fun onHistoryItemClick(query: String) {
-        stateInternal.update { it.copy(query = query, isSearching = true) }
+        stateInternal.update {
+            it.copy(
+                query = query,
+                isSearching = true,
+            )
+        }
         searchQuery.value = query
         onSearch(query = query)
     }

@@ -48,7 +48,10 @@ import androidx.media3.extractor.metadata.Chapter
 import dev.anilbeesetti.nextplayer.feature.player.LocalUseMaterialYouControls
 import dev.anilbeesetti.nextplayer.feature.player.state.currentChapterIndex
 
-@OptIn(ExperimentalMaterial3Api::class, UnstableApi::class)
+@OptIn(
+    ExperimentalMaterial3Api::class,
+    UnstableApi::class,
+)
 @Composable
 internal fun PlayerSeekbar(
     modifier: Modifier = Modifier,
@@ -157,7 +160,10 @@ private fun MaterialYouSlider(
                 modifier = Modifier
                     .fillMaxWidth()
                     .height(height = trackHeight)
-                    .chapterGaps(chapters = chapters, valueRange.endInclusive),
+                    .chapterGaps(
+                        chapters = chapters,
+                        valueRange.endInclusive,
+                    ),
             ) {
                 val min = sliderState.valueRange.start
                 val max = sliderState.valueRange.endInclusive
@@ -171,14 +177,26 @@ private fun MaterialYouSlider(
                 val endCornerRadius = size.height / 2f
                 val insideCornerRadius = 2.dp.toPx()
                 val gapHalf = trackThumbGapWidth.toPx() / 2f
-                val leftEnd = (playedPixels - gapHalf).coerceIn(minimumValue = 0f, size.width)
-                val rightStart = (playedPixels + gapHalf).coerceIn(minimumValue = 0f, size.width)
+                val leftEnd = (playedPixels - gapHalf).coerceIn(
+                    minimumValue = 0f,
+                    size.width,
+                )
+                val rightStart = (playedPixels + gapHalf).coerceIn(
+                    minimumValue = 0f,
+                    size.width,
+                )
 
                 // Inactive track left side
                 if (leftEnd > 0f) {
                     drawRoundedRect(
-                        offset = Offset(x = 0f, y = 0f),
-                        size = Size(width = leftEnd, size.height),
+                        offset = Offset(
+                            x = 0f,
+                            y = 0f,
+                        ),
+                        size = Size(
+                            width = leftEnd,
+                            size.height,
+                        ),
                         color = primaryColor.copy(alpha = disabledAlpha),
                         startCornerRadius = endCornerRadius,
                         endCornerRadius = insideCornerRadius,
@@ -188,8 +206,14 @@ private fun MaterialYouSlider(
                 // Inactive track right side
                 if (rightStart < size.width) {
                     drawRoundedRect(
-                        offset = Offset(x = rightStart, y = 0f),
-                        size = Size(width = size.width - rightStart, size.height),
+                        offset = Offset(
+                            x = rightStart,
+                            y = 0f,
+                        ),
+                        size = Size(
+                            width = size.width - rightStart,
+                            size.height,
+                        ),
                         color = primaryColor.copy(alpha = disabledAlpha),
                         startCornerRadius = insideCornerRadius,
                         endCornerRadius = endCornerRadius,
@@ -199,8 +223,14 @@ private fun MaterialYouSlider(
                 // Active track
                 if (leftEnd > 0f) {
                     drawRoundedRect(
-                        offset = Offset(x = 0f, y = 0f),
-                        size = Size(width = leftEnd, size.height),
+                        offset = Offset(
+                            x = 0f,
+                            y = 0f,
+                        ),
+                        size = Size(
+                            width = leftEnd,
+                            size.height,
+                        ),
                         color = primaryColor,
                         startCornerRadius = endCornerRadius,
                         endCornerRadius = insideCornerRadius,
@@ -213,10 +243,17 @@ private fun MaterialYouSlider(
                 modifier = Modifier
                     .width(width = focusedThumbWidth)
                     .height(height = focusedThumbHeight)
-                    .background(color = primaryColor, shape = CircleShape)
+                    .background(
+                        color = primaryColor,
+                        shape = CircleShape,
+                    )
                     .then(
                         other = if (isFocused) {
-                            Modifier.border(2.dp, Color.White, shape = CircleShape)
+                            Modifier.border(
+                                2.dp,
+                                Color.White,
+                                shape = CircleShape,
+                            )
                         } else {
                             Modifier
                         },
@@ -233,10 +270,25 @@ private fun DrawScope.drawRoundedRect(
     startCornerRadius: Float,
     endCornerRadius: Float,
 ) {
-    val startCorner = CornerRadius(x = startCornerRadius, y = startCornerRadius)
-    val endCorner = CornerRadius(x = endCornerRadius, y = endCornerRadius)
+    val startCorner = CornerRadius(
+        x = startCornerRadius,
+        y = startCornerRadius,
+    )
+    val endCorner = CornerRadius(
+        x = endCornerRadius,
+        y = endCornerRadius,
+    )
     val track = RoundRect(
-        rect = Rect(offset = Offset(offset.x, y = 0f), size = Size(size.width, size.height)),
+        rect = Rect(
+            offset = Offset(
+                offset.x,
+                y = 0f,
+            ),
+            size = Size(
+                size.width,
+                size.height,
+            ),
+        ),
         topLeft = startCorner,
         topRight = endCorner,
         bottomRight = endCorner,
@@ -273,7 +325,10 @@ private fun SimpleSlider(
             Box(
                 modifier = Modifier
                     .size(size = thumbSize)
-                    .shadow(4.dp, shape = CircleShape)
+                    .shadow(
+                        4.dp,
+                        shape = CircleShape,
+                    )
                     .background(Color.White)
                     .then(
                         other = if (isFocused) {
@@ -293,7 +348,10 @@ private fun SimpleSlider(
                 modifier = Modifier
                     .fillMaxWidth()
                     .height(4.dp)
-                    .chapterGaps(chapters = chapters, valueRange.endInclusive)
+                    .chapterGaps(
+                        chapters = chapters,
+                        valueRange.endInclusive,
+                    )
                     .clip(MaterialTheme.shapes.extraSmall)
                     .background(Color.White.copy(alpha = 0.5f)),
             ) {
@@ -320,12 +378,20 @@ private fun Modifier.chapterGaps(chapters: List<Chapter>, duration: Float): Modi
                 if (chapter.startTimeMs > 0 && chapter.startTimeMs < duration) {
                     val x = size.width * (chapter.startTimeMs / duration)
                     gaps.addRect(
-                        rect = Rect(left = x - halfGap, top = 0f, right = x + halfGap, size.height),
+                        rect = Rect(
+                            left = x - halfGap,
+                            top = 0f,
+                            right = x + halfGap,
+                            size.height,
+                        ),
                     )
                 }
             }
         }
         onDrawWithContent {
-            clipPath(path = gaps, ClipOp.Difference) { this@onDrawWithContent.drawContent() }
+            clipPath(
+                path = gaps,
+                ClipOp.Difference,
+            ) { this@onDrawWithContent.drawContent() }
         }
     }

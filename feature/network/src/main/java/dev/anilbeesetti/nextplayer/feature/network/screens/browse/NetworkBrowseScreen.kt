@@ -98,9 +98,12 @@ internal fun NetworkBrowseScreenContent(
             NextTopAppBar(
                 title = state.title,
                 navigationIcon = {
-                    FilledTonalIconButton(onClick = {
-                        onAction(NetworkBrowseAction.NavigateUp)
-                    }, modifier = Modifier.tvFocusRing()) {
+                    FilledTonalIconButton(
+                        onClick = {
+                            onAction(NetworkBrowseAction.NavigateUp)
+                        },
+                        modifier = Modifier.tvFocusRing(),
+                    ) {
                         Icon(
                             imageVector = NextIcons.ArrowBack,
                             contentDescription = stringResource(R.string.navigate_up),
@@ -207,7 +210,12 @@ internal fun NetworkBrowseScreenContent(
                 val containerModifier = Modifier
                     .fillMaxSize()
                     .padding(scaffoldPadding.copy(bottom = 0.dp))
-                    .clip(shape = RoundedCornerShape(topStart = 24.dp, topEnd = 24.dp))
+                    .clip(
+                        shape = RoundedCornerShape(
+                            topStart = 24.dp,
+                            topEnd = 24.dp,
+                        ),
+                    )
                     .background(MaterialTheme.colorScheme.background)
 
                 BoxWithConstraints(modifier = containerModifier) {
@@ -235,7 +243,10 @@ internal fun NetworkBrowseScreenContent(
                     val (folders, videos) = state.files.partition { it.isDirectory }
 
                     if (state.files.isEmpty()) {
-                        Box(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
+                        Box(
+                            Modifier.fillMaxSize(),
+                            contentAlignment = Alignment.Center,
+                        ) {
                             Text(
                                 text = stringResource(R.string.empty_folder),
                                 color = MaterialTheme.colorScheme.onSurfaceVariant,
@@ -326,11 +337,23 @@ internal fun NetworkBrowseScreenContent(
     if (showQuickSettings) {
         MediaQuickSettingsDialog(
             layoutMode = state.preferences.networkMediaLayoutMode,
-            sort = Sort(state.preferences.networkSortBy, state.preferences.networkSortOrder),
-            sortOptions = listOf(Sort.By.TITLE, Sort.By.DATE, Sort.By.SIZE),
+            sort = Sort(
+                state.preferences.networkSortBy,
+                state.preferences.networkSortOrder,
+            ),
+            sortOptions = listOf(
+                Sort.By.TITLE,
+                Sort.By.DATE,
+                Sort.By.SIZE,
+            ),
             onDismiss = { showQuickSettings = false },
             onConfirm = { layout, sort ->
-                onAction(NetworkBrowseAction.UpdateQuickSettings(layoutMode = layout, sort = sort))
+                onAction(
+                    NetworkBrowseAction.UpdateQuickSettings(
+                        layoutMode = layout,
+                        sort = sort,
+                    ),
+                )
             },
         )
     }
@@ -480,7 +503,10 @@ private fun NetworkFileThumbnail(file: NetworkFile, playedPercentage: Float?, is
                         Box(
                             modifier = Modifier
                                 .fillMaxWidth(
-                                    playedPercentage.coerceIn(minimumValue = 0f, maximumValue = 1f),
+                                    playedPercentage.coerceIn(
+                                        minimumValue = 0f,
+                                        maximumValue = 1f,
+                                    ),
                                 )
                                 .fillMaxHeight()
                                 .clip(shape = CircleShape)
@@ -490,7 +516,10 @@ private fun NetworkFileThumbnail(file: NetworkFile, playedPercentage: Float?, is
                 } else {
                     LinearProgressIndicator(
                         progress = {
-                            playedPercentage.coerceIn(minimumValue = 0f, maximumValue = 1f)
+                            playedPercentage.coerceIn(
+                                minimumValue = 0f,
+                                maximumValue = 1f,
+                            )
                         },
                         modifier = Modifier.align(
                             Alignment.BottomCenter,

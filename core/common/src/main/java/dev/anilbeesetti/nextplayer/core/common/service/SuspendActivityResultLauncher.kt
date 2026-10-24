@@ -32,5 +32,7 @@ class SuspendActivityResultLauncher<I, O>(
 
 fun <I, O> ComponentActivity.registerForSuspendActivityResult(
     contract: ActivityResultContract<I, O>,
-): SuspendActivityResultLauncher<I, O> =
-    SuspendActivityResultLauncher(activity = this, contract = contract)
+): SuspendActivityResultLauncher<I, O> = SuspendActivityResultLauncher(
+    activity = this,
+    contract = contract,
+)

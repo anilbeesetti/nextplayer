@@ -19,9 +19,18 @@ class SftpHostKeyVerifierTest {
 
         val confirmation = confirmationFor(keyPair = keyPair)
 
-        assertEquals("host", confirmation.host)
-        assertEquals(22, confirmation.port)
-        assertEquals(keyPair.public.algorithm, confirmation.algorithm)
+        assertEquals(
+            "host",
+            confirmation.host,
+        )
+        assertEquals(
+            22,
+            confirmation.port,
+        )
+        assertEquals(
+            keyPair.public.algorithm,
+            confirmation.algorithm,
+        )
         assertTrue(confirmation.fingerprint.startsWith(prefix = "SHA256:"))
     }
 
@@ -33,7 +42,11 @@ class SftpHostKeyVerifierTest {
         assertTrue(
             SftpHostKeyVerifier(
                 expectedFingerprint = fingerprint,
-            ).verify("host", 22, keyPair.public),
+            ).verify(
+                "host",
+                22,
+                keyPair.public,
+            ),
         )
     }
 
@@ -46,12 +59,22 @@ class SftpHostKeyVerifierTest {
         val mismatch = assertThrows(HostKeyMismatch::class.java) {
             SftpHostKeyVerifier(
                 expectedFingerprint = expectedFingerprint,
-            ).verify("host", 22, presentedKeyPair.public)
+            ).verify(
+                "host",
+                22,
+                presentedKeyPair.public,
+            )
         }
 
-        assertEquals(expectedFingerprint, mismatch.expectedFingerprint)
+        assertEquals(
+            expectedFingerprint,
+            mismatch.expectedFingerprint,
+        )
         assertTrue(mismatch.presentedFingerprint.startsWith(prefix = "SHA256:"))
-        assertNotEquals(expectedFingerprint, mismatch.presentedFingerprint)
+        assertNotEquals(
+            expectedFingerprint,
+            mismatch.presentedFingerprint,
+        )
     }
 
     @Test
@@ -61,20 +84,35 @@ class SftpHostKeyVerifierTest {
         )
 
         val confirmation = assertThrows(HostKeyConfirmationRequired::class.java) {
-            SftpHostKeyVerifier(expectedFingerprint = "").verify("host", 22, publicKey)
+            SftpHostKeyVerifier(expectedFingerprint = "").verify(
+                "host",
+                22,
+                publicKey,
+            )
         }
 
-        assertEquals(OPENSSH_SHA256_FINGERPRINT, confirmation.fingerprint)
+        assertEquals(
+            OPENSSH_SHA256_FINGERPRINT,
+            confirmation.fingerprint,
+        )
         assertTrue(
             SftpHostKeyVerifier(
                 expectedFingerprint = OPENSSH_SHA256_FINGERPRINT,
-            ).verify("host", 22, publicKey),
+            ).verify(
+                "host",
+                22,
+                publicKey,
+            ),
         )
     }
 
     private fun confirmationFor(keyPair: KeyPair) =
         assertThrows(HostKeyConfirmationRequired::class.java) {
-            SftpHostKeyVerifier(expectedFingerprint = "").verify("host", 22, keyPair.public)
+            SftpHostKeyVerifier(expectedFingerprint = "").verify(
+                "host",
+                22,
+                keyPair.public,
+            )
         }
 
     private fun generateRsaKeyPair(): KeyPair = KeyPairGenerator.getInstance("RSA").run {

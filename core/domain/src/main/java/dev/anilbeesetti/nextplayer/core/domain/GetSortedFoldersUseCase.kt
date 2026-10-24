@@ -48,7 +48,10 @@ class GetSortedFoldersUseCase(
             }
             .filterNot { it.path in preferences.excludeFolders }
 
-        val sort = Sort(by = preferences.sortBy, order = preferences.sortOrder)
+        val sort = Sort(
+            by = preferences.sortBy,
+            order = preferences.sortOrder,
+        )
         folders.sortedWith(sort.folderComparator())
     }.flowOn(context = defaultDispatcher)
 }

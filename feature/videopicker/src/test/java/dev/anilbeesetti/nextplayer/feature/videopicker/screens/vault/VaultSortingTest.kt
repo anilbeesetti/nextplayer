@@ -33,8 +33,14 @@ import org.robolectric.RobolectricTestRunner
 class VaultSortingTest {
 
     private val testDispatcher = StandardTestDispatcher()
-    private val titleAscending = Sort(by = Sort.By.TITLE, order = Sort.Order.ASCENDING)
-    private val sizeAscending = Sort(by = Sort.By.SIZE, order = Sort.Order.ASCENDING)
+    private val titleAscending = Sort(
+        by = Sort.By.TITLE,
+        order = Sort.Order.ASCENDING,
+    )
+    private val sizeAscending = Sort(
+        by = Sort.By.SIZE,
+        order = Sort.Order.ASCENDING,
+    )
 
     @Before
     fun setUp() {
@@ -60,9 +66,16 @@ class VaultSortingTest {
             viewModel.onAction(VaultAction.SubmitUnlockPin(pin = "1234"))
             advanceUntilIdle()
 
-            assertEquals(titleAscending, viewModel.state.value.sort)
             assertEquals(
-                listOf("Alpha.mp4", "Bravo.mp4", "Zebra.mp4"),
+                titleAscending,
+                viewModel.state.value.sort,
+            )
+            assertEquals(
+                listOf(
+                    "Alpha.mp4",
+                    "Bravo.mp4",
+                    "Zebra.mp4",
+                ),
                 viewModel.state.value.hiddenVideos.map { it.nameWithExtension },
             )
         }
@@ -80,9 +93,16 @@ class VaultSortingTest {
             viewModel.onAction(VaultAction.SubmitUnlockPin(pin = "1234"))
             advanceUntilIdle()
 
-            assertEquals(titleAscending, viewModel.state.value.sort)
             assertEquals(
-                listOf("Alpha.mp4", "Bravo.mp4", "Zebra.mp4"),
+                titleAscending,
+                viewModel.state.value.sort,
+            )
+            assertEquals(
+                listOf(
+                    "Alpha.mp4",
+                    "Bravo.mp4",
+                    "Zebra.mp4",
+                ),
                 viewModel.state.value.hiddenVideos.map { it.nameWithExtension },
             )
 
@@ -93,13 +113,26 @@ class VaultSortingTest {
             )
             advanceUntilIdle()
 
-            assertEquals(sizeAscending, viewModel.state.value.sort)
             assertEquals(
-                listOf("Zebra.mp4", "Alpha.mp4", "Bravo.mp4"),
+                sizeAscending,
+                viewModel.state.value.sort,
+            )
+            assertEquals(
+                listOf(
+                    "Zebra.mp4",
+                    "Alpha.mp4",
+                    "Bravo.mp4",
+                ),
                 viewModel.state.value.hiddenVideos.map { it.nameWithExtension },
             )
-            assertEquals(0, preferencesRepository.applicationUpdateCount)
-            assertEquals(Sort.By.TITLE, preferencesRepository.applicationPreferences.value.sortBy)
+            assertEquals(
+                0,
+                preferencesRepository.applicationUpdateCount,
+            )
+            assertEquals(
+                Sort.By.TITLE,
+                preferencesRepository.applicationPreferences.value.sortBy,
+            )
             assertEquals(
                 Sort.Order.ASCENDING,
                 preferencesRepository.applicationPreferences.value.sortOrder,
@@ -127,9 +160,16 @@ class VaultSortingTest {
             )
             advanceUntilIdle()
 
-            assertEquals(sizeAscending, viewModel.state.value.sort)
             assertEquals(
-                listOf("Zebra.mp4", "Alpha.mp4", "Bravo.mp4"),
+                sizeAscending,
+                viewModel.state.value.sort,
+            )
+            assertEquals(
+                listOf(
+                    "Zebra.mp4",
+                    "Alpha.mp4",
+                    "Bravo.mp4",
+                ),
                 viewModel.state.value.hiddenVideos.map { it.nameWithExtension },
             )
         }
@@ -157,11 +197,24 @@ class VaultSortingTest {
             )
             advanceUntilIdle()
 
-            assertEquals(Sort.By.DATE, viewModel.state.value.preferences.sortBy)
-            assertEquals(Sort.Order.DESCENDING, viewModel.state.value.preferences.sortOrder)
-            assertEquals(sizeAscending, viewModel.state.value.sort)
             assertEquals(
-                listOf("Zebra.mp4", "Alpha.mp4", "Bravo.mp4"),
+                Sort.By.DATE,
+                viewModel.state.value.preferences.sortBy,
+            )
+            assertEquals(
+                Sort.Order.DESCENDING,
+                viewModel.state.value.preferences.sortOrder,
+            )
+            assertEquals(
+                sizeAscending,
+                viewModel.state.value.sort,
+            )
+            assertEquals(
+                listOf(
+                    "Zebra.mp4",
+                    "Alpha.mp4",
+                    "Bravo.mp4",
+                ),
                 viewModel.state.value.hiddenVideos.map { it.nameWithExtension },
             )
         }
@@ -188,11 +241,24 @@ class VaultSortingTest {
             )
             advanceUntilIdle()
 
-            assertEquals(Sort.By.SIZE, viewModel.state.value.preferences.sortBy)
-            assertEquals(Sort.Order.ASCENDING, viewModel.state.value.preferences.sortOrder)
-            assertEquals(titleAscending, viewModel.state.value.sort)
             assertEquals(
-                listOf("Alpha.mp4", "Bravo.mp4", "Zebra.mp4"),
+                Sort.By.SIZE,
+                viewModel.state.value.preferences.sortBy,
+            )
+            assertEquals(
+                Sort.Order.ASCENDING,
+                viewModel.state.value.preferences.sortOrder,
+            )
+            assertEquals(
+                titleAscending,
+                viewModel.state.value.sort,
+            )
+            assertEquals(
+                listOf(
+                    "Alpha.mp4",
+                    "Bravo.mp4",
+                    "Zebra.mp4",
+                ),
                 viewModel.state.value.hiddenVideos.map { it.nameWithExtension },
             )
         }
@@ -212,16 +278,29 @@ class VaultSortingTest {
             advanceUntilIdle()
 
             viewModel.onAction(
-                VaultAction.UpdateQuickSettings(MediaLayoutMode.GRID, sort = sizeAscending),
+                VaultAction.UpdateQuickSettings(
+                    MediaLayoutMode.GRID,
+                    sort = sizeAscending,
+                ),
             )
             advanceUntilIdle()
 
-            assertEquals(sizeAscending, viewModel.state.value.sort)
             assertEquals(
-                listOf("Zebra.mp4", "Alpha.mp4", "Bravo.mp4"),
+                sizeAscending,
+                viewModel.state.value.sort,
+            )
+            assertEquals(
+                listOf(
+                    "Zebra.mp4",
+                    "Alpha.mp4",
+                    "Bravo.mp4",
+                ),
                 viewModel.state.value.hiddenVideos.map { it.nameWithExtension },
             )
-            assertEquals(MediaLayoutMode.GRID, viewModel.state.value.preferences.mediaLayoutMode)
+            assertEquals(
+                MediaLayoutMode.GRID,
+                viewModel.state.value.preferences.mediaLayoutMode,
+            )
             assertEquals(
                 ApplicationPreferences(
                     sortBy = titleAscending.by,
@@ -231,7 +310,10 @@ class VaultSortingTest {
                 ),
                 preferencesRepository.applicationPreferences.value,
             )
-            assertEquals(1, preferencesRepository.applicationUpdateCount)
+            assertEquals(
+                1,
+                preferencesRepository.applicationUpdateCount,
+            )
         }
 
     private fun createViewModel(preferencesRepository: FakePreferencesRepository): VaultViewModel {
@@ -264,7 +346,11 @@ class VaultSortingTest {
             ),
         )
         return VaultViewModel(
-            output = VaultViewModel.Output(navigateUp = {}, playVideo = {}, playVideos = {}),
+            output = VaultViewModel.Output(
+                navigateUp = {},
+                playVideo = {},
+                playVideos = {},
+            ),
             vaultRepository = vaultRepository,
             vaultPinRepository = FakeVaultPinRepository,
             getHiddenVideosUseCase = GetHiddenVideosUseCase(

@@ -47,7 +47,10 @@ class PlayerSeekbarScrubbingTest {
             val slider = composeRule.onNode(
                 SemanticsMatcher.keyIsDefined(SemanticsProperties.ProgressBarRangeInfo),
             )
-            for (material in listOf(false, true)) {
+            for (material in listOf(
+                false,
+                true,
+            )) {
                 composeRule.runOnIdle { setMaterial(material) }
                 composeRule.runOnIdle { sliderFocus.requestFocus() }
                 slider.performKeyInput { keyDown(Key.DirectionRight) }
@@ -81,7 +84,10 @@ class PlayerSeekbarScrubbingTest {
             val slider = composeRule.onNode(
                 SemanticsMatcher.keyIsDefined(SemanticsProperties.ProgressBarRangeInfo),
             )
-            for (material in listOf(false, true)) {
+            for (material in listOf(
+                false,
+                true,
+            )) {
                 composeRule.runOnIdle {
                     player.pause()
                     setMaterial(material)
@@ -104,14 +110,27 @@ class PlayerSeekbarScrubbingTest {
             val slider = composeRule.onNode(
                 SemanticsMatcher.keyIsDefined(SemanticsProperties.ProgressBarRangeInfo),
             )
-            for (material in listOf(false, true)) {
+            for (material in listOf(
+                false,
+                true,
+            )) {
                 composeRule.runOnIdle {
                     setMaterial(material)
                     setVisible(true)
                 }
                 slider.performTouchInput {
-                    down(position = Offset(x = width * 0.2f, y = centerY))
-                    moveTo(position = Offset(x = width * 0.7f, y = centerY))
+                    down(
+                        position = Offset(
+                            x = width * 0.2f,
+                            y = centerY,
+                        ),
+                    )
+                    moveTo(
+                        position = Offset(
+                            x = width * 0.7f,
+                            y = centerY,
+                        ),
+                    )
                 }
                 composeRule.runOnIdle {
                     assertTrue(player.isScrubbingModeEnabled)
@@ -175,14 +194,19 @@ class PlayerSeekbarScrubbingTest {
                                 modifier = Modifier.focusRequester(
                                     focusRequester = otherFocus,
                                 ),
-                                onClick = {
-                                },
+                                onClick = {},
                             ) { Text(text = "Other control") }
                         }
                     }
                 }
             }
-            check(player, sliderFocus, otherFocus, { material = it }, { visible = it })
+            check(
+                player,
+                sliderFocus,
+                otherFocus,
+                { material = it },
+                { visible = it },
+            )
         } finally {
             composeRule.runOnIdle { visible = false }
             composeRule.runOnIdle { player.release() }

@@ -47,7 +47,10 @@ fun FolderPreferencesScreen(viewModel: FolderPreferencesViewModel) {
     )
 }
 
-@OptIn(ExperimentalMaterial3Api::class, ExperimentalMaterial3ExpressiveApi::class)
+@OptIn(
+    ExperimentalMaterial3Api::class,
+    ExperimentalMaterial3ExpressiveApi::class,
+)
 @Composable
 private fun FolderPreferencesScreenContent(
     state: FolderPreferencesUiState,

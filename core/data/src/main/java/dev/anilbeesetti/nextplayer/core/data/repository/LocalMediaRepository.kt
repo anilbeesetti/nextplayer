@@ -47,17 +47,19 @@ class LocalMediaRepository(
             mediaFolders.map { it.toFolder() }
         }
 
-    override fun observeVideos(folderPath: String?): Flow<List<Video>> =
-        combine(mediaService.observeVideos(folderPath = folderPath), mediumStateDao.getAll()) {
-                mediaVideos,
-                mediumStates,
-            ->
-            val statesMap = mediumStates.associateBy { it.uriString }
-            mediaVideos.map { mediaVideo ->
-                val mediaState = statesMap[mediaVideo.uri.toString()]
-                mediaVideo.toVideo(mediaState = mediaState)
-            }
+    override fun observeVideos(folderPath: String?): Flow<List<Video>> = combine(
+        mediaService.observeVideos(folderPath = folderPath),
+        mediumStateDao.getAll(),
+    ) {
+            mediaVideos,
+            mediumStates,
+        ->
+        val statesMap = mediumStates.associateBy { it.uriString }
+        mediaVideos.map { mediaVideo ->
+            val mediaState = statesMap[mediaVideo.uri.toString()]
+            mediaVideo.toVideo(mediaState = mediaState)
         }
+    }
 
     override suspend fun fetchFolders(folderPath: String?): List<Folder> =
         mediaService.fetchFolders(folderPath = folderPath).map { it.toFolder() }
@@ -68,20 +70,22 @@ class LocalMediaRepository(
             mediaVideo.toVideo(mediaState = mediaState)
         }
 
-    override fun observePlaybackHistory(): Flow<List<Video>> =
-        combine(mediaService.observeVideos(), mediumStateDao.getAll()) {
-                mediaVideos,
-                mediumStates,
-            ->
-            val videosByUri = mediaVideos.associateBy { it.uri.toString() }
-            mediumStates
-                .filter { it.lastPlayedTime != null && !it.uriString.toUri().isVaultUri() }
-                .sortedByDescending { it.lastPlayedTime }
-                .map { state ->
-                    videosByUri[state.uriString]?.toVideo(mediaState = state)
-                        ?: state.toHistoryVideo()
-                }
-        }
+    override fun observePlaybackHistory(): Flow<List<Video>> = combine(
+        mediaService.observeVideos(),
+        mediumStateDao.getAll(),
+    ) {
+            mediaVideos,
+            mediumStates,
+        ->
+        val videosByUri = mediaVideos.associateBy { it.uri.toString() }
+        mediumStates
+            .filter { it.lastPlayedTime != null && !it.uriString.toUri().isVaultUri() }
+            .sortedByDescending { it.lastPlayedTime }
+            .map { state ->
+                videosByUri[state.uriString]?.toVideo(mediaState = state)
+                    ?: state.toHistoryVideo()
+            }
+    }
 
     override fun observeTrashVideos(): Flow<List<Video>> =
         mediaService.observeTrashVideos().map { videos -> videos.map { it.toVideo() } }
@@ -102,7 +106,10 @@ class LocalMediaRepository(
     override suspend fun getMediaInfo(uri: String): MediaInfo? = withContext(Dispatchers.IO) {
         val video = getVideoByUri(uri = uri) ?: return@withContext null
         val mediaInfo = runCatching {
-            MediaInfoBuilder().from(context = context, uri = uri.toUri()).build()
+            MediaInfoBuilder().from(
+                context = context,
+                uri = uri.toUri(),
+            ).build()
         }.getOrNull()
         val result = MediaInfo(
             video = video.copy(format = mediaInfo?.format),

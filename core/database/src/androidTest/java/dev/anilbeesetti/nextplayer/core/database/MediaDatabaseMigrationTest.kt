@@ -19,7 +19,10 @@ class MediaDatabaseMigrationTest {
 
     @Test
     fun migrate8To9_preservesConnectionAndAddsPasswordDefaults() {
-        helper.createDatabase(name = TEST_DB, version = 8).apply {
+        helper.createDatabase(
+            name = TEST_DB,
+            version = 8,
+        ).apply {
             execSQL(
                 sql = "INSERT INTO network_connection " +
                     "(id,name,protocol,host,port,path,username,password,use_https,created_at) " +
@@ -36,16 +39,46 @@ class MediaDatabaseMigrationTest {
         ).use { db ->
             db.query(query = "SELECT * FROM network_connection WHERE id = 1").use { cursor ->
                 check(cursor.moveToFirst())
-                assertEquals(1L, cursor.getLong(cursor.getColumnIndexOrThrow("id")))
-                assertEquals("NAS", cursor.getString(cursor.getColumnIndexOrThrow("name")))
-                assertEquals("FTP", cursor.getString(cursor.getColumnIndexOrThrow("protocol")))
-                assertEquals("10.0.2.2", cursor.getString(cursor.getColumnIndexOrThrow("host")))
-                assertEquals(2121, cursor.getInt(cursor.getColumnIndexOrThrow("port")))
-                assertEquals("/media", cursor.getString(cursor.getColumnIndexOrThrow("path")))
-                assertEquals("alice", cursor.getString(cursor.getColumnIndexOrThrow("username")))
-                assertEquals("secret", cursor.getString(cursor.getColumnIndexOrThrow("password")))
-                assertEquals(0, cursor.getInt(cursor.getColumnIndexOrThrow("use_https")))
-                assertEquals(123L, cursor.getLong(cursor.getColumnIndexOrThrow("created_at")))
+                assertEquals(
+                    1L,
+                    cursor.getLong(cursor.getColumnIndexOrThrow("id")),
+                )
+                assertEquals(
+                    "NAS",
+                    cursor.getString(cursor.getColumnIndexOrThrow("name")),
+                )
+                assertEquals(
+                    "FTP",
+                    cursor.getString(cursor.getColumnIndexOrThrow("protocol")),
+                )
+                assertEquals(
+                    "10.0.2.2",
+                    cursor.getString(cursor.getColumnIndexOrThrow("host")),
+                )
+                assertEquals(
+                    2121,
+                    cursor.getInt(cursor.getColumnIndexOrThrow("port")),
+                )
+                assertEquals(
+                    "/media",
+                    cursor.getString(cursor.getColumnIndexOrThrow("path")),
+                )
+                assertEquals(
+                    "alice",
+                    cursor.getString(cursor.getColumnIndexOrThrow("username")),
+                )
+                assertEquals(
+                    "secret",
+                    cursor.getString(cursor.getColumnIndexOrThrow("password")),
+                )
+                assertEquals(
+                    0,
+                    cursor.getInt(cursor.getColumnIndexOrThrow("use_https")),
+                )
+                assertEquals(
+                    123L,
+                    cursor.getLong(cursor.getColumnIndexOrThrow("created_at")),
+                )
                 assertEquals(
                     "PASSWORD",
                     cursor.getString(cursor.getColumnIndexOrThrow("authentication")),
@@ -68,7 +101,10 @@ class MediaDatabaseMigrationTest {
 
     @Test
     fun migrate11To12_preservesPlaybackAndAddsEmptyAudio() {
-        helper.createDatabase(name = "audio-migration", version = 11).apply {
+        helper.createDatabase(
+            name = "audio-migration",
+            version = 11,
+        ).apply {
             execSQL(
                 sql = "INSERT INTO media_state " +
                     "(uri, playback_position, external_subs, " +
@@ -87,16 +123,28 @@ class MediaDatabaseMigrationTest {
                 query = "SELECT playback_position, external_subs, external_audio FROM media_state",
             ).use { cursor ->
                 check(cursor.moveToFirst())
-                assertEquals(12345L, cursor.getLong(0))
-                assertEquals("file:///captions.srt", cursor.getString(1))
-                assertEquals("", cursor.getString(2))
+                assertEquals(
+                    12345L,
+                    cursor.getLong(0),
+                )
+                assertEquals(
+                    "file:///captions.srt",
+                    cursor.getString(1),
+                )
+                assertEquals(
+                    "",
+                    cursor.getString(2),
+                )
             }
         }
     }
 
     @Test
     fun migrate12To13_removesVideoSpeedAndPreservesOtherState() {
-        helper.createDatabase(name = "speed-migration", version = 12).apply {
+        helper.createDatabase(
+            name = "speed-migration",
+            version = 12,
+        ).apply {
             execSQL(
                 """
                 INSERT INTO media_state (
@@ -125,8 +173,14 @@ class MediaDatabaseMigrationTest {
             MediaDatabase.MIGRATION_12_13,
         ).use { db ->
             db.query(query = "SELECT * FROM media_state ORDER BY uri").use { cursor ->
-                assertEquals(2, cursor.count)
-                assertEquals(-1, cursor.getColumnIndex("playback_speed"))
+                assertEquals(
+                    2,
+                    cursor.count,
+                )
+                assertEquals(
+                    -1,
+                    cursor.getColumnIndex("playback_speed"),
+                )
                 check(cursor.moveToFirst())
                 assertEquals(
                     "content://video/one",
@@ -136,13 +190,22 @@ class MediaDatabaseMigrationTest {
                     12345L,
                     cursor.getLong(cursor.getColumnIndexOrThrow("playback_position")),
                 )
-                assertEquals(2, cursor.getInt(cursor.getColumnIndexOrThrow("audio_track_index")))
-                assertEquals(3, cursor.getInt(cursor.getColumnIndexOrThrow("subtitle_track_index")))
+                assertEquals(
+                    2,
+                    cursor.getInt(cursor.getColumnIndexOrThrow("audio_track_index")),
+                )
+                assertEquals(
+                    3,
+                    cursor.getInt(cursor.getColumnIndexOrThrow("subtitle_track_index")),
+                )
                 assertEquals(
                     67890L,
                     cursor.getLong(cursor.getColumnIndexOrThrow("last_played_time")),
                 )
-                assertEquals(90000L, cursor.getLong(cursor.getColumnIndexOrThrow("duration")))
+                assertEquals(
+                    90000L,
+                    cursor.getLong(cursor.getColumnIndexOrThrow("duration")),
+                )
                 assertEquals(
                     "file:///captions.srt",
                     cursor.getString(cursor.getColumnIndexOrThrow("external_subs")),
@@ -151,9 +214,18 @@ class MediaDatabaseMigrationTest {
                     "file:///audio.aac",
                     cursor.getString(cursor.getColumnIndexOrThrow("external_audio")),
                 )
-                assertEquals(1.5f, cursor.getFloat(cursor.getColumnIndexOrThrow("video_scale")))
-                assertEquals(250L, cursor.getLong(cursor.getColumnIndexOrThrow("subtitle_delay")))
-                assertEquals(0.75f, cursor.getFloat(cursor.getColumnIndexOrThrow("subtitle_speed")))
+                assertEquals(
+                    1.5f,
+                    cursor.getFloat(cursor.getColumnIndexOrThrow("video_scale")),
+                )
+                assertEquals(
+                    250L,
+                    cursor.getLong(cursor.getColumnIndexOrThrow("subtitle_delay")),
+                )
+                assertEquals(
+                    0.75f,
+                    cursor.getFloat(cursor.getColumnIndexOrThrow("subtitle_speed")),
+                )
                 check(cursor.moveToNext())
                 assertEquals(
                     "content://video/two",
@@ -161,7 +233,10 @@ class MediaDatabaseMigrationTest {
                 )
                 assertTrue(cursor.isNull(cursor.getColumnIndexOrThrow("audio_track_index")))
                 assertTrue(cursor.isNull(cursor.getColumnIndexOrThrow("last_played_time")))
-                assertEquals("", cursor.getString(cursor.getColumnIndexOrThrow("external_audio")))
+                assertEquals(
+                    "",
+                    cursor.getString(cursor.getColumnIndexOrThrow("external_audio")),
+                )
             }
         }
     }

@@ -57,7 +57,10 @@ class VolumeState(
     private val showVolumePanelIfHeadsetIsOn: Boolean,
     private val scope: CoroutineScope,
 ) {
-    private val audioManager = getSystemService(context, AudioManager::class.java)!!
+    private val audioManager = getSystemService(
+        context,
+        AudioManager::class.java,
+    )!!
 
     private val systemMaxVolume: Int = audioManager.getStreamMaxVolume(AudioManager.STREAM_MUSIC)
 
@@ -90,18 +93,27 @@ class VolumeState(
 
     fun updateVolumePercentage(percentage: Int) {
         val maxPercentage = maxVolumePercentage
-        val clampedPercentage = percentage.coerceIn(minimumValue = 0, maximumValue = maxPercentage)
+        val clampedPercentage = percentage.coerceIn(
+            minimumValue = 0,
+            maximumValue = maxPercentage,
+        )
         val targetVolume = (clampedPercentage * systemMaxVolume) / MAX_VOLUME_PERCENTAGE_NORMAL
 
         setVolume(volume = targetVolume)
     }
 
     fun increaseVolume(showVolumePanel: Boolean = false) {
-        setVolume(volume = currentVolume + 1, showVolumePanel = showVolumePanel)
+        setVolume(
+            volume = currentVolume + 1,
+            showVolumePanel = showVolumePanel,
+        )
     }
 
     fun decreaseVolume(showVolumePanel: Boolean = false) {
-        setVolume(volume = currentVolume - 1, showVolumePanel = showVolumePanel)
+        setVolume(
+            volume = currentVolume - 1,
+            showVolumePanel = showVolumePanel,
+        )
     }
 
     fun handleLifecycle(disposableEffectScope: DisposableEffectScope): DisposableEffectResult =
@@ -117,7 +129,10 @@ class VolumeState(
                 }
             }
 
-            context.registerReceiver(receiver, IntentFilter(VOLUME_CHANGED_ACTION))
+            context.registerReceiver(
+                receiver,
+                IntentFilter(VOLUME_CHANGED_ACTION),
+            )
 
             onDispose { context.unregisterReceiver(receiver) }
         }
@@ -148,15 +163,24 @@ class VolumeState(
     }
 
     private fun setVolume(volume: Int, showVolumePanel: Boolean = false) {
-        val clampedVolume = volume.coerceIn(minimumValue = 0, maximumValue = maxVolume)
+        val clampedVolume = volume.coerceIn(
+            minimumValue = 0,
+            maximumValue = maxVolume,
+        )
         currentVolume = clampedVolume
         volumePercentage = calculateVolumePercentage()
 
         if (clampedVolume <= systemMaxVolume) {
-            setSystemVolume(volume = clampedVolume, showVolumePanel = showVolumePanel)
+            setSystemVolume(
+                volume = clampedVolume,
+                showVolumePanel = showVolumePanel,
+            )
             applyVolumeBoost(volume = 0)
         } else {
-            setSystemVolume(volume = systemMaxVolume, showVolumePanel = showVolumePanel)
+            setSystemVolume(
+                volume = systemMaxVolume,
+                showVolumePanel = showVolumePanel,
+            )
             applyVolumeBoost(volume = clampedVolume - systemMaxVolume)
         }
     }
@@ -166,7 +190,10 @@ class VolumeState(
             showVolumePanel || (showVolumePanelIfHeadsetIsOn && audioManager.isHeadsetOn)
         audioManager.setStreamVolume(
             AudioManager.STREAM_MUSIC,
-            volume.coerceIn(minimumValue = 0, maximumValue = systemMaxVolume),
+            volume.coerceIn(
+                minimumValue = 0,
+                maximumValue = systemMaxVolume,
+            ),
             if (shouldShowUi) AudioManager.FLAG_SHOW_UI else 0,
         )
     }

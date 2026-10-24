@@ -61,9 +61,11 @@ class LocalMediaSynchronizer(
         mediaSyncingJob?.cancel()
     }
 
-    private fun Context.hasStoragePermission(): Boolean =
-        ContextCompat.checkSelfPermission(this, storagePermission) ==
-            PackageManager.PERMISSION_GRANTED
+    private fun Context.hasStoragePermission(): Boolean = ContextCompat.checkSelfPermission(
+        this,
+        storagePermission,
+    ) ==
+        PackageManager.PERMISSION_GRANTED
 
     private suspend fun updateMedia(media: List<MediaVideo>) = withContext(Dispatchers.Default) {
         if (!context.hasStoragePermission()) return@withContext

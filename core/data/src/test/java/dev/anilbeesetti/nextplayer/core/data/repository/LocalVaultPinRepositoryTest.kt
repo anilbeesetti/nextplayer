@@ -17,8 +17,14 @@ class LocalVaultPinRepositoryTest {
 
     @Test
     fun `biometrics default to disabled for existing vaults`() = runTest {
-        context.getSharedPreferences("vault_security_prefs", Context.MODE_PRIVATE).edit {
-            putString("vault_pin_hash", "existing hash")
+        context.getSharedPreferences(
+            "vault_security_prefs",
+            Context.MODE_PRIVATE,
+        ).edit {
+            putString(
+                "vault_pin_hash",
+                "existing hash",
+            )
         }
 
         assertTrue(repository.hasPinSet())

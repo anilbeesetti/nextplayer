@@ -28,10 +28,16 @@ fun Player.switchTrack(trackType: @C.TrackType Int, trackIndex: Int) {
     }
 
     if (trackIndex < 0) {
-        Logger.logDebug(tag = "Player", message = "Disabling $trackTypeText")
+        Logger.logDebug(
+            tag = "Player",
+            message = "Disabling $trackTypeText",
+        )
         trackSelectionParameters = trackSelectionParameters
             .buildUpon()
-            .setTrackTypeDisabled(trackType, true)
+            .setTrackTypeDisabled(
+                trackType,
+                true,
+            )
             .build()
     } else {
         val tracks = currentTracks.groups.filter { it.type == trackType }
@@ -44,13 +50,22 @@ fun Player.switchTrack(trackType: @C.TrackType Int, trackIndex: Int) {
             return
         }
 
-        Logger.logDebug(tag = "Player", message = "Setting $trackTypeText track: $trackIndex")
-        val trackSelectionOverride = TrackSelectionOverride(tracks[trackIndex].mediaTrackGroup, 0)
+        Logger.logDebug(
+            tag = "Player",
+            message = "Setting $trackTypeText track: $trackIndex",
+        )
+        val trackSelectionOverride = TrackSelectionOverride(
+            tracks[trackIndex].mediaTrackGroup,
+            0,
+        )
 
         // Override the track selection parameters to force the selection of the specified track.
         trackSelectionParameters = trackSelectionParameters
             .buildUpon()
-            .setTrackTypeDisabled(trackType, false)
+            .setTrackTypeDisabled(
+                trackType,
+                false,
+            )
             .setOverrideForType(trackSelectionOverride)
             .build()
     }
@@ -84,14 +99,23 @@ fun Player.addAdditionalSubtitleConfiguration(subtitle: MediaItem.SubtitleConfig
         .buildUpon()
         .setSubtitleConfigurations(existingSubConfigurations + listOf(element = subtitle))
         .build()
-        .copy(positionMs = position, subtitleTrackIndex = textTracks.size)
+        .copy(
+            positionMs = position,
+            subtitleTrackIndex = textTracks.size,
+        )
 
     val index = currentMediaItemIndex
     val exoPlayer = this as? ExoPlayer
     val shuffleOrder = exoPlayer?.shuffleOrder
     // Create a new source so Media3 loads the added subtitle; metadata carries decoder choices.
-    addMediaItem(index + 1, updateMediaItem)
-    seekTo(index + 1, position)
+    addMediaItem(
+        index + 1,
+        updateMediaItem,
+    )
+    seekTo(
+        index + 1,
+        position,
+    )
     removeMediaItem(index)
     shuffleOrder?.let { exoPlayer.setShuffleOrder(it) }
 }

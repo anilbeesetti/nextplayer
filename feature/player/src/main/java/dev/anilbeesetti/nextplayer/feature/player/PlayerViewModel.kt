@@ -95,7 +95,12 @@ class PlayerViewModel(
     suspend fun getPlaylistFromUri(uri: Uri): List<Video> = getSortedPlaylistUseCase.invoke(uri)
 
     private fun updateVideoZoom(uri: String, zoom: Float) {
-        viewModelScope.launch { mediaRepository.updateMediumZoom(uri = uri, zoom = zoom) }
+        viewModelScope.launch {
+            mediaRepository.updateMediumZoom(
+                uri = uri,
+                zoom = zoom,
+            )
+        }
     }
 
     private fun updatePlayerBrightness(value: Float) {
@@ -133,7 +138,10 @@ class PlayerViewModel(
             }
 
             is VideoZoomEvent.ZoomChanged -> {
-                updateVideoZoom(event.mediaItem.mediaId, event.zoom)
+                updateVideoZoom(
+                    event.mediaItem.mediaId,
+                    event.zoom,
+                )
             }
         }
     }
@@ -141,21 +149,37 @@ class PlayerViewModel(
     private fun onSubtitleOptionEvent(event: SubtitleOptionsEvent) {
         when (event) {
             is SubtitleOptionsEvent.DelayChanged -> {
-                updateSubtitleDelay(event.mediaItem.mediaId, event.delay)
+                updateSubtitleDelay(
+                    event.mediaItem.mediaId,
+                    event.delay,
+                )
             }
 
             is SubtitleOptionsEvent.SpeedChanged -> {
-                updateSubtitleSpeed(event.mediaItem.mediaId, event.speed)
+                updateSubtitleSpeed(
+                    event.mediaItem.mediaId,
+                    event.speed,
+                )
             }
         }
     }
 
     private fun updateSubtitleDelay(uri: String, delay: Long) {
-        viewModelScope.launch { mediaRepository.updateSubtitleDelay(uri = uri, delay = delay) }
+        viewModelScope.launch {
+            mediaRepository.updateSubtitleDelay(
+                uri = uri,
+                delay = delay,
+            )
+        }
     }
 
     private fun updateSubtitleSpeed(uri: String, speed: Float) {
-        viewModelScope.launch { mediaRepository.updateSubtitleSpeed(uri = uri, speed = speed) }
+        viewModelScope.launch {
+            mediaRepository.updateSubtitleSpeed(
+                uri = uri,
+                speed = speed,
+            )
+        }
     }
 }
 

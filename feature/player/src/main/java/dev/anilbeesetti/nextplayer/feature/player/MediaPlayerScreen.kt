@@ -231,8 +231,16 @@ internal fun MediaPlayerContent(
 }
 
 @OptIn(UnstableApi::class)
-@Preview(name = "Landscape", widthDp = 960, heightDp = 540)
-@Preview(name = "Portrait", widthDp = 540, heightDp = 960)
+@Preview(
+    name = "Landscape",
+    widthDp = 960,
+    heightDp = 540,
+)
+@Preview(
+    name = "Portrait",
+    widthDp = 540,
+    heightDp = 960,
+)
 @Composable
 private fun MediaPlayerContentPreview() {
     NextPlayerTheme(darkTheme = true) {

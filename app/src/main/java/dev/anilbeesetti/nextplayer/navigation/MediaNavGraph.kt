@@ -34,7 +34,11 @@ fun EntryProviderScope<NavKey>.mediaNavGraph(context: Context, backStack: NavBac
 }
 
 internal fun Context.startPlayback(uri: Uri, grantReadPermission: Boolean = false) {
-    startPlayback(uri = uri, playlist = null, grantReadPermission = grantReadPermission)
+    startPlayback(
+        uri = uri,
+        playlist = null,
+        grantReadPermission = grantReadPermission,
+    )
 }
 
 internal fun Context.startPlayback(
@@ -43,19 +47,35 @@ internal fun Context.startPlayback(
     grantReadPermission: Boolean = false,
 ) {
     val uri = startUri?.takeIf(predicate = uris::contains) ?: uris.firstOrNull() ?: return
-    startPlayback(uri = uri, playlist = uris, grantReadPermission = grantReadPermission)
+    startPlayback(
+        uri = uri,
+        playlist = uris,
+        grantReadPermission = grantReadPermission,
+    )
 }
 
 private fun Context.startPlayback(uri: Uri, playlist: List<Uri>?, grantReadPermission: Boolean) {
     if (grantReadPermission) {
         (playlist ?: listOf(element = uri)).forEach {
-            grantUriPermission(packageName, it, Intent.FLAG_GRANT_READ_URI_PERMISSION)
+            grantUriPermission(
+                packageName,
+                it,
+                Intent.FLAG_GRANT_READ_URI_PERMISSION,
+            )
         }
     }
-    val intent = Intent(this, PlayerActivity::class.java).apply {
+    val intent = Intent(
+        this,
+        PlayerActivity::class.java,
+    ).apply {
         action = Intent.ACTION_VIEW
         data = uri
-        playlist?.let { putParcelableArrayListExtra(PlayerApi.API_PLAYLIST, ArrayList(it)) }
+        playlist?.let {
+            putParcelableArrayListExtra(
+                PlayerApi.API_PLAYLIST,
+                ArrayList(it),
+            )
+        }
         if (grantReadPermission) addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION)
     }
     startActivity(intent)

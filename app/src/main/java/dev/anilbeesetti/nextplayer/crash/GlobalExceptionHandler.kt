@@ -9,11 +9,20 @@ class GlobalExceptionHandler(private val context: Context, private val activity:
     private val defaultHandler = Thread.getDefaultUncaughtExceptionHandler()
 
     override fun uncaughtException(t: Thread, e: Throwable) {
-        val intent = Intent(context, activity)
+        val intent = Intent(
+            context,
+            activity,
+        )
         intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
         intent.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TASK)
-        intent.putExtra("exception", e.stackTraceToString())
+        intent.putExtra(
+            "exception",
+            e.stackTraceToString(),
+        )
         context.startActivity(intent)
-        defaultHandler?.uncaughtException(t, e) ?: exitProcess(status = 0)
+        defaultHandler?.uncaughtException(
+            t,
+            e,
+        ) ?: exitProcess(status = 0)
     }
 }

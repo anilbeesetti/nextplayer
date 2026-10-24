@@ -47,7 +47,10 @@ class HistoryViewModelTest {
         viewModel = HistoryViewModel(
             mediaRepository = repository,
             preferencesRepository = preferences,
-            output = HistoryViewModel.Output(navigateUp = {}, playVideo = {}),
+            output = HistoryViewModel.Output(
+                navigateUp = {},
+                playVideo = {},
+            ),
         )
     }
 
@@ -91,26 +94,41 @@ class HistoryViewModelTest {
                     override fun observePlaybackHistory() = pendingHistory
                 },
                 preferencesRepository = preferences,
-                output = HistoryViewModel.Output(navigateUp = {}, playVideo = {}),
+                output = HistoryViewModel.Output(
+                    navigateUp = {},
+                    playVideo = {},
+                ),
             )
             preferences.updateApplicationPreferences { it.copy(showExtensionField = true) }
             runCurrent()
-            assertEquals(DataState.Loading, viewModel.state.value.history)
+            assertEquals(
+                DataState.Loading,
+                viewModel.state.value.history,
+            )
             assertTrue(viewModel.state.value.preferences.showExtensionField)
         }
 
     @Test
     fun `observers are cancelled with the view model`() = runTest(context = dispatcher) {
         runCurrent()
-        assertEquals(1, history.subscriptionCount.value)
+        assertEquals(
+            1,
+            history.subscriptionCount.value,
+        )
 
         viewModel.viewModelScope.cancel()
         runCurrent()
-        assertEquals(0, history.subscriptionCount.value)
+        assertEquals(
+            0,
+            history.subscriptionCount.value,
+        )
         history.value = emptyList()
         preferences.updateApplicationPreferences { it.copy(showExtensionField = true) }
         runCurrent()
-        assertEquals(DataState.Success(value = listOf(Video.sample)), viewModel.state.value.history)
+        assertEquals(
+            DataState.Success(value = listOf(Video.sample)),
+            viewModel.state.value.history,
+        )
         assertFalse(viewModel.state.value.preferences.showExtensionField)
     }
 
@@ -156,8 +174,11 @@ class HistoryViewModelTest {
             val settingsViewModel = MediaLibraryPreferencesViewModel(
                 preferencesRepository = preferences,
                 mediaRepository = repository,
-                output = MediaLibraryPreferencesViewModel.Output(navigateUp = {
-                }, openFolders = {}, openThumbnails = {}),
+                output = MediaLibraryPreferencesViewModel.Output(
+                    navigateUp = {},
+                    openFolders = {},
+                    openThumbnails = {},
+                ),
             )
             try {
                 runCurrent()
@@ -166,7 +187,10 @@ class HistoryViewModelTest {
                 )
                 runCurrent()
                 assertTrue(preferences.applicationPreferences.value.isHistoryPaused)
-                assertEquals(emptyList<Video>(), history.value)
+                assertEquals(
+                    emptyList<Video>(),
+                    history.value,
+                )
 
                 history.value = listOf(Video.sample)
                 settingsViewModel.onAction(
@@ -174,7 +198,10 @@ class HistoryViewModelTest {
                 )
                 runCurrent()
                 assertFalse(preferences.applicationPreferences.value.isHistoryPaused)
-                assertEquals(listOf(Video.sample), history.value)
+                assertEquals(
+                    listOf(Video.sample),
+                    history.value,
+                )
             } finally {
                 settingsViewModel.viewModelScope.cancel()
             }
@@ -185,18 +212,25 @@ class HistoryViewModelTest {
         var oldOutputCalled = false
         var navigatedUp = false
         val played = mutableListOf<String>()
-        viewModel.output =
-            HistoryViewModel.Output(navigateUp = { oldOutputCalled = true }, playVideo = {
+        viewModel.output = HistoryViewModel.Output(
+            navigateUp = { oldOutputCalled = true },
+            playVideo = {
                 oldOutputCalled =
                     true
-            })
-        viewModel.output =
-            HistoryViewModel.Output(navigateUp = { navigatedUp = true }, playVideo = played::add)
+            },
+        )
+        viewModel.output = HistoryViewModel.Output(
+            navigateUp = { navigatedUp = true },
+            playVideo = played::add,
+        )
 
         viewModel.onAction(HistoryAction.PlayVideo(uri = "content://video/1"))
         viewModel.onAction(action = HistoryAction.NavigateUp)
 
-        assertEquals(listOf(element = "content://video/1"), played)
+        assertEquals(
+            listOf(element = "content://video/1"),
+            played,
+        )
         assertTrue(navigatedUp)
         assertFalse(oldOutputCalled)
     }

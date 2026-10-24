@@ -51,7 +51,10 @@ class PlaylistCompletionTest {
                 player.isPlaying
         }
         onMain {
-            assertEquals(2, player.mediaItemCount)
+            assertEquals(
+                2,
+                player.mediaItemCount,
+            )
             assertFalse(activity.isFinishing)
         }
     }
@@ -91,7 +94,10 @@ class PlaylistCompletionTest {
             }
             await(description = "current item repeating") { repeated && player.isPlaying }
             onMain {
-                assertEquals(uris[0].toString(), player.currentMediaItem?.mediaId)
+                assertEquals(
+                    uris[0].toString(),
+                    player.currentMediaItem?.mediaId,
+                )
                 assertFalse(activity.isFinishing)
             }
         }
@@ -143,7 +149,10 @@ class PlaylistCompletionTest {
             }
         }
         val audioFiles = (1..2).map { index ->
-            File(context.cacheDir, "playlist-completion-$index-${System.nanoTime()}.wav").apply {
+            File(
+                context.cacheDir,
+                "playlist-completion-$index-${System.nanoTime()}.wav",
+            ).apply {
                 writeSilentAudio(file = this)
             }
         }
@@ -151,10 +160,16 @@ class PlaylistCompletionTest {
         var activity: PlayerActivity? = null
         var player: MediaController? = null
         try {
-            val intent = Intent(context, PlayerActivity::class.java)
+            val intent = Intent(
+                context,
+                PlayerActivity::class.java,
+            )
                 .addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
                 .setData(uris[0])
-                .putParcelableArrayListExtra(PlayerApi.API_PLAYLIST, ArrayList(uris))
+                .putParcelableArrayListExtra(
+                    PlayerApi.API_PLAYLIST,
+                    ArrayList(uris),
+                )
             onMain { context.startActivity(intent) }
             await(description = "player activity to resume") {
                 activity = ActivityLifecycleMonitorRegistry.getInstance()
@@ -165,19 +180,31 @@ class PlaylistCompletionTest {
             }
             lateinit var future: ListenableFuture<MediaController>
             onMain {
-                future =
-                    MediaController.Builder(
+                future = MediaController.Builder(
+                    context,
+                    SessionToken(
                         context,
-                        SessionToken(context, ComponentName(context, PlayerService::class.java)),
-                    ).buildAsync()
+                        ComponentName(
+                            context,
+                            PlayerService::class.java,
+                        ),
+                    ),
+                ).buildAsync()
             }
-            val controller = future.get(30, TimeUnit.SECONDS)
+            val controller = future.get(
+                30,
+                TimeUnit.SECONDS,
+            )
             player = controller
             await(description = "explicit playlist playback") {
                 controller.isPlaying &&
                     controller.mediaItemCount == 2
             }
-            check(requireNotNull(value = activity), controller, uris)
+            check(
+                requireNotNull(value = activity),
+                controller,
+                uris,
+            )
         } finally {
             onMain {
                 Stage.entries.flatMap {
@@ -192,7 +219,12 @@ class PlaylistCompletionTest {
                 player?.clearMediaItems()
                 player?.release()
             }
-            context.stopService(Intent(context, PlayerService::class.java))
+            context.stopService(
+                Intent(
+                    context,
+                    PlayerService::class.java,
+                ),
+            )
             audioFiles.forEach(action = File::delete)
             runBlocking { preferences.updatePlayerPreferences { originalPreferences } }
         }

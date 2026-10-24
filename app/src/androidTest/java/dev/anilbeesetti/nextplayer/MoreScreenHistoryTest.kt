@@ -29,7 +29,12 @@ class MoreScreenHistoryTest {
             mutableStateOf(value = MoreUiState(history = DataState.Success(value = emptyList())))
         val actions = mutableListOf<MoreAction>()
         composeRule.setContent {
-            NextPlayerTheme { MoreScreenContent(state = state.value, onAction = actions::add) }
+            NextPlayerTheme {
+                MoreScreenContent(
+                    state = state.value,
+                    onAction = actions::add,
+                )
+            }
         }
 
         composeRule.onNodeWithText(text = "No watch history").assertExists()
@@ -45,7 +50,13 @@ class MoreScreenHistoryTest {
         composeRule.onNodeWithText(Video.sample.displayName).assertDoesNotExist()
         composeRule.onNodeWithContentDescription(label = "History").performClick()
         composeRule.runOnIdle {
-            assertEquals(listOf(MoreAction.OpenHistory, MoreAction.OpenHistory), actions)
+            assertEquals(
+                listOf(
+                    MoreAction.OpenHistory,
+                    MoreAction.OpenHistory,
+                ),
+                actions,
+            )
             state.value = state.value.copy(
                 history = DataState.Success(value = emptyList()),
                 preferences = state.value.preferences.copy(isHistoryPaused = false),

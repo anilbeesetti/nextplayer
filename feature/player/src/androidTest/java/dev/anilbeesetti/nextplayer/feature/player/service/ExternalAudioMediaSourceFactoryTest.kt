@@ -26,9 +26,27 @@ class ExternalAudioMediaSourceFactoryTest {
     fun mergesSwitchableAudioWithoutShorteningPrimaryTimeline() {
         val instrumentation = InstrumentationRegistry.getInstrumentation()
         val context = instrumentation.targetContext
-        val primary = wav(file = File(context.cacheDir, "primary.wav"), seconds = 3)
-        val shortAudio = wav(file = File(context.cacheDir, "short.wav"), seconds = 1)
-        val longAudio = wav(file = File(context.cacheDir, "long.wav"), seconds = 5)
+        val primary = wav(
+            file = File(
+                context.cacheDir,
+                "primary.wav",
+            ),
+            seconds = 3,
+        )
+        val shortAudio = wav(
+            file = File(
+                context.cacheDir,
+                "short.wav",
+            ),
+            seconds = 1,
+        )
+        val longAudio = wav(
+            file = File(
+                context.cacheDir,
+                "long.wav",
+            ),
+            seconds = 5,
+        )
         lateinit var player: ExoPlayer
         try {
             instrumentation.runOnMainSync {
@@ -42,15 +60,29 @@ class ExternalAudioMediaSourceFactoryTest {
                 player.setMediaItem(
                     MediaItem.fromUri(
                         primary.toUri(),
-                    ).withExternalAudio(uris = listOf(shortAudio.toUri(), longAudio.toUri())),
+                    ).withExternalAudio(
+                        uris = listOf(
+                            shortAudio.toUri(),
+                            longAudio.toUri(),
+                        ),
+                    ),
                 )
                 player.prepare()
             }
             await { player.playbackState == Player.STATE_READY }
             instrumentation.runOnMainSync {
-                assertEquals(3000L, player.duration)
-                assertEquals(3, player.currentTracks.groups.count { it.type == C.TRACK_TYPE_AUDIO })
-                player.switchTrack(C.TRACK_TYPE_AUDIO, trackIndex = 1)
+                assertEquals(
+                    3000L,
+                    player.duration,
+                )
+                assertEquals(
+                    3,
+                    player.currentTracks.groups.count { it.type == C.TRACK_TYPE_AUDIO },
+                )
+                player.switchTrack(
+                    C.TRACK_TYPE_AUDIO,
+                    trackIndex = 1,
+                )
                 player.setPlaybackSpeed(1.5f)
                 player.seekTo(2000)
             }
@@ -59,19 +91,35 @@ class ExternalAudioMediaSourceFactoryTest {
                     player.playbackState == Player.STATE_READY
             }
             instrumentation.runOnMainSync {
-                assertEquals(2000L, player.currentPosition)
-                assertEquals(1.5f, player.playbackParameters.speed)
+                assertEquals(
+                    2000L,
+                    player.currentPosition,
+                )
+                assertEquals(
+                    1.5f,
+                    player.playbackParameters.speed,
+                )
                 assertTrue(!player.playWhenReady)
-                player.switchTrack(C.TRACK_TYPE_AUDIO, trackIndex = 0)
+                player.switchTrack(
+                    C.TRACK_TYPE_AUDIO,
+                    trackIndex = 0,
+                )
             }
             await { player.currentTracks.groups[0].isSelected }
             instrumentation.runOnMainSync {
-                player.switchTrack(C.TRACK_TYPE_AUDIO, trackIndex = -1)
+                player.switchTrack(
+                    C.TRACK_TYPE_AUDIO,
+                    trackIndex = -1,
+                )
             }
             await { player.currentTracks.groups.none { it.isSelected } }
         } finally {
             instrumentation.runOnMainSync { player.release() }
-            listOf(primary, shortAudio, longAudio).forEach { it.delete() }
+            listOf(
+                primary,
+                shortAudio,
+                longAudio,
+            ).forEach { it.delete() }
         }
     }
 

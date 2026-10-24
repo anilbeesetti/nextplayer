@@ -46,14 +46,22 @@ fun AudioPreferencesScreen(viewModel: AudioPreferencesViewModel) {
     )
 }
 
-@OptIn(ExperimentalMaterial3Api::class, ExperimentalMaterial3ExpressiveApi::class)
+@OptIn(
+    ExperimentalMaterial3Api::class,
+    ExperimentalMaterial3ExpressiveApi::class,
+)
 @Composable
 private fun AudioPreferencesScreenContent(
     state: AudioPreferencesUiState,
     onAction: (AudioPreferencesUiEvent) -> Unit,
 ) {
     val languages = remember {
-        listOf(element = Pair(first = "None", second = "")) +
+        listOf(
+            element = Pair(
+                first = "None",
+                second = "",
+            ),
+        ) +
             LocalesHelper.getAvailableLocales()
     }
 
@@ -63,9 +71,12 @@ private fun AudioPreferencesScreenContent(
             NextTopAppBar(
                 title = stringResource(id = R.string.audio),
                 navigationIcon = {
-                    FilledTonalIconButton(onClick = {
-                        onAction(AudioPreferencesUiEvent.NavigateUp)
-                    }, modifier = Modifier.tvFocusDown(target = listFocusRequester)) {
+                    FilledTonalIconButton(
+                        onClick = {
+                            onAction(AudioPreferencesUiEvent.NavigateUp)
+                        },
+                        modifier = Modifier.tvFocusDown(target = listFocusRequester),
+                    ) {
                         Icon(
                             imageVector = NextIcons.ArrowBack,
                             contentDescription = stringResource(id = R.string.navigate_up),

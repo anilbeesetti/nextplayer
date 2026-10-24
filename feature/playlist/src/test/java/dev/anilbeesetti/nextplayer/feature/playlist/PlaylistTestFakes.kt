@@ -40,7 +40,11 @@ internal class FakePlaylistRepository : PlaylistRepository {
         source: String,
         playlist: M3UPlaylist,
     ): Long {
-        createM3UCalls += CreateM3UCall(type = type, source = source, playlist = playlist)
+        createM3UCalls += CreateM3UCall(
+            type = type,
+            source = source,
+            playlist = playlist,
+        )
         createM3UFailure?.let { throw it }
         return createdId
     }

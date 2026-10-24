@@ -43,11 +43,17 @@ fun VerticalProgressView(
     modifier: Modifier = Modifier,
     width: Dp = 32.dp,
     icon: Painter,
-    @IntRange(from = 0, to = 200) value: Int,
+    @IntRange(
+        from = 0,
+        to = 200,
+    ) value: Int,
     maxValue: Int = NORMAL_MAX_PERCENTAGE,
     boostColor: Color = Color(color = 0xFFFC6E6E),
 ) {
-    val normalizedValue = value.coerceIn(minimumValue = 0, maximumValue = maxValue)
+    val normalizedValue = value.coerceIn(
+        minimumValue = 0,
+        maximumValue = maxValue,
+    )
     val fillFraction = normalizedValue.toFloat() / maxValue.toFloat()
     val isBoostActive = maxValue > NORMAL_MAX_PERCENTAGE && value > NORMAL_MAX_PERCENTAGE
 

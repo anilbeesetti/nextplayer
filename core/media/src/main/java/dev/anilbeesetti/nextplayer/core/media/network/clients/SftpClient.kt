@@ -90,7 +90,10 @@ class SftpClient(private val connection: NetworkConnection, private val sshKeySt
                 ssh.connectAndAuthenticate()
                 val sftp = ssh.newSFTPClient()
                 try {
-                    val remoteFile = sftp.open(path, EnumSet.of(OpenMode.READ))
+                    val remoteFile = sftp.open(
+                        path,
+                        EnumSet.of(OpenMode.READ),
+                    )
                     SftpOwnedInputStream(
                         offset = offset,
                         reader = remoteFile::read,
@@ -118,7 +121,10 @@ class SftpClient(private val connection: NetworkConnection, private val sshKeySt
     }
 
     private fun SSHClient.connectAndAuthenticate() {
-        connect(this@SftpClient.connection.host, this@SftpClient.connection.effectivePort)
+        connect(
+            this@SftpClient.connection.host,
+            this@SftpClient.connection.effectivePort,
+        )
         when (this@SftpClient.connection.authentication) {
             NetworkAuthentication.PASSWORD -> authPassword(
                 this@SftpClient.connection.username,
@@ -131,7 +137,10 @@ class SftpClient(private val connection: NetworkConnection, private val sshKeySt
                     keyFile.absolutePath,
                     this@SftpClient.connection.privateKeyPassphrase.toCharArray(),
                 )
-                authPublickey(this@SftpClient.connection.username, keyProvider)
+                authPublickey(
+                    this@SftpClient.connection.username,
+                    keyProvider,
+                )
             }
         }
     }

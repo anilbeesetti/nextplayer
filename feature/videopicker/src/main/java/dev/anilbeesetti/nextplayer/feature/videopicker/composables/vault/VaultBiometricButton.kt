@@ -47,7 +47,10 @@ internal fun VaultBiometricButton(onAuthenticated: () -> Unit, modifier: Modifie
         modifier = modifier,
         onClick = { showPrompt = true },
     ) {
-        Icon(imageVector = NextIcons.Fingerprint, contentDescription = null)
+        Icon(
+            imageVector = NextIcons.Fingerprint,
+            contentDescription = null,
+        )
         Spacer(Modifier.size(8.dp))
         Text(text = stringResource(R.string.unlock_with_biometrics))
     }
@@ -64,7 +67,7 @@ internal fun rememberVaultBiometricAvailable(): Boolean {
     }
     LifecycleResumeEffect(key1 = manager) {
         available = manager.canAuthenticate(BIOMETRIC_STRONG) == BiometricManager.BIOMETRIC_SUCCESS
-        onPauseOrDispose { }
+        onPauseOrDispose {}
     }
     return available
 }
@@ -98,14 +101,21 @@ internal fun VaultBiometricPrompt(
                         errorCode != BiometricPrompt.ERROR_USER_CANCELED &&
                         errorCode != BiometricPrompt.ERROR_CANCELED
                     ) {
-                        Toast.makeText(activity, errString, Toast.LENGTH_SHORT).show()
+                        Toast.makeText(
+                            activity,
+                            errString,
+                            Toast.LENGTH_SHORT,
+                        ).show()
                     }
                     currentOnResult(false)
                 }
             },
         )
     }
-    val promptInfo = remember(title, negativeButtonText) {
+    val promptInfo = remember(
+        title,
+        negativeButtonText,
+    ) {
         BiometricPrompt.PromptInfo.Builder()
             .setTitle(title)
             .setAllowedAuthenticators(BIOMETRIC_STRONG)

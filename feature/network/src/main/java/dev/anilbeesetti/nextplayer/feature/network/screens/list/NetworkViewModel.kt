@@ -44,7 +44,12 @@ class NetworkViewModel(
     init {
         viewModelScope.launch {
             repository.getConnections().collect { connections ->
-                stateInternal.update { it.copy(connections = connections, isLoading = false) }
+                stateInternal.update {
+                    it.copy(
+                        connections = connections,
+                        isLoading = false,
+                    )
+                }
             }
         }
     }

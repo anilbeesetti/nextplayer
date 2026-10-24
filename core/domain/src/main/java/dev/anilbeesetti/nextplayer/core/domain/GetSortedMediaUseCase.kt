@@ -51,19 +51,28 @@ class GetSortedMediaUseCase(
                     if (folderPath == null) {
                         // At root: show all folders as a flat list
                         getSortedFoldersUseCase().map { folders ->
-                            MediaHolder(videos = emptyList(), folders = folders)
+                            MediaHolder(
+                                videos = emptyList(),
+                                folders = folders,
+                            )
                         }
                     } else {
                         getSortedVideosUseCase(folderPath).map { videos ->
                             val directVideos = videos.filter { it.parentPath == folderPath }
-                            MediaHolder(videos = directVideos, folders = emptyList())
+                            MediaHolder(
+                                videos = directVideos,
+                                folders = emptyList(),
+                            )
                         }
                     }
                 }
 
                 MediaViewMode.VIDEOS -> {
                     getSortedVideosUseCase(folderPath).map { videos ->
-                        MediaHolder(videos = videos, folders = emptyList())
+                        MediaHolder(
+                            videos = videos,
+                            folders = emptyList(),
+                        )
                     }
                 }
             }

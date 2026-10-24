@@ -33,7 +33,10 @@ fun Uri.getSubtitleMime(): String = when {
 }
 
 val Uri.isSchemaContent: Boolean
-    get() = ContentResolver.SCHEME_CONTENT.equals(other = scheme, ignoreCase = true)
+    get() = ContentResolver.SCHEME_CONTENT.equals(
+        other = scheme,
+        ignoreCase = true,
+    )
 
 suspend fun Context.uriToSubtitleConfiguration(
     uri: Uri,
@@ -47,7 +50,10 @@ suspend fun Context.uriToSubtitleConfiguration(
     }
     val label = getFilenameFromUri(uri = uri)
     val mimeType = uri.getSubtitleMime()
-    val utf8ConvertedUri = convertToUTF8(uri = uri, charset = charset)
+    val utf8ConvertedUri = convertToUTF8(
+        uri = uri,
+        charset = charset,
+    )
     return MediaItem.SubtitleConfiguration.Builder(utf8ConvertedUri).apply {
         setId(uri.toString())
         setMimeType(mimeType)
@@ -59,7 +65,10 @@ suspend fun Context.uriToSubtitleConfiguration(
 @Suppress("DEPRECATION")
 fun Bundle.getParcelableUriArray(key: String): ArrayList<out Parcelable>? =
     if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
-        getParcelableArrayList(key, Uri::class.java)
+        getParcelableArrayList(
+            key,
+            Uri::class.java,
+        )
     } else {
         getParcelableArrayList(key)
     }

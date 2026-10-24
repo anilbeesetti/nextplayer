@@ -125,7 +125,12 @@ internal fun HistoryScreenContent(state: HistoryUiState, onAction: (HistoryActio
             modifier = Modifier
                 .fillMaxSize()
                 .padding(scaffoldPadding.copy(bottom = 0.dp))
-                .clip(shape = RoundedCornerShape(topStart = 24.dp, topEnd = 24.dp))
+                .clip(
+                    shape = RoundedCornerShape(
+                        topStart = 24.dp,
+                        topEnd = 24.dp,
+                    ),
+                )
                 .background(MaterialTheme.colorScheme.background),
         ) {
             if (state.preferences.isHistoryPaused) {
@@ -155,9 +160,12 @@ internal fun HistoryScreenContent(state: HistoryUiState, onAction: (HistoryActio
                             contentPadding = PaddingValues(8.dp),
                             verticalArrangement = Arrangement.spacedBy(2.dp),
                         ) {
-                            itemsIndexed(history.value, key = { _, video ->
-                                video.uriString
-                            }) { index, video ->
+                            itemsIndexed(
+                                history.value,
+                                key = { _, video ->
+                                    video.uriString
+                                },
+                            ) { index, video ->
                                 VideoListItem(
                                     video = video,
                                     isRecentlyPlayedVideo = false,

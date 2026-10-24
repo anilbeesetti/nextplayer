@@ -41,7 +41,10 @@ class VaultScreenTest {
             listOf(
                 VaultAction.UpdateQuickSettings(
                     MediaLayoutMode.GRID,
-                    sort = Sort(Sort.By.DATE, Sort.Order.DESCENDING),
+                    sort = Sort(
+                        Sort.By.DATE,
+                        Sort.Order.DESCENDING,
+                    ),
                 ),
             ),
             actions,
@@ -62,7 +65,10 @@ class VaultScreenTest {
             listOf(
                 VaultAction.UpdateQuickSettings(
                     MediaLayoutMode.LIST,
-                    sort = Sort(Sort.By.TITLE, Sort.Order.ASCENDING),
+                    sort = Sort(
+                        Sort.By.TITLE,
+                        Sort.Order.ASCENDING,
+                    ),
                 ),
             ),
             actions,
@@ -73,7 +79,10 @@ class VaultScreenTest {
     fun `locked vault does not expose quick settings`() {
         composeRule.setContent {
             NextPlayerTheme {
-                VaultScreenContent(state = VaultUiState(stage = VaultStage.LOCKED), onAction = {})
+                VaultScreenContent(
+                    state = VaultUiState(stage = VaultStage.LOCKED),
+                    onAction = {},
+                )
             }
         }
         composeRule.onNodeWithContentDescription(label = "Quick Settings").assertDoesNotExist()
@@ -86,7 +95,10 @@ class VaultScreenTest {
                 VaultScreenContent(
                     state = VaultUiState(
                         stage = VaultStage.UNLOCKED,
-                        sort = Sort(Sort.By.TITLE, Sort.Order.ASCENDING),
+                        sort = Sort(
+                            Sort.By.TITLE,
+                            Sort.Order.ASCENDING,
+                        ),
                     ),
                     onAction = actions::add,
                 )

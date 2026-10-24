@@ -33,7 +33,10 @@ fun SubtitleView(
         factory = { context ->
             SubtitleView(context).apply {
                 val captioningManager =
-                    getSystemService(context, CaptioningManager::class.java) ?: return@apply
+                    getSystemService(
+                        context,
+                        CaptioningManager::class.java,
+                    ) ?: return@apply
                 if (configuration.useSystemCaptionStyle) {
                     val systemCaptionStyle = CaptionStyleCompat.createFromCaptionStyle(
                         captioningManager.userStyle,
@@ -53,7 +56,10 @@ fun SubtitleView(
                         ),
                     )
                     setStyle(userStyle)
-                    setFixedTextSize(TypedValue.COMPLEX_UNIT_SP, configuration.textSize.toFloat())
+                    setFixedTextSize(
+                        TypedValue.COMPLEX_UNIT_SP,
+                        configuration.textSize.toFloat(),
+                    )
                 }
                 setApplyEmbeddedStyles(configuration.applyEmbeddedStyles)
             }

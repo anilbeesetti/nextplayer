@@ -96,7 +96,10 @@ class M3UParser(
             val normalizedContent = content.removePrefix(prefix = "\uFEFF")
             require(
                 normalizedContent.lineSequence().none {
-                    it.trim().startsWith(prefix = "#EXT-X-", ignoreCase = true)
+                    it.trim().startsWith(
+                        prefix = "#EXT-X-",
+                        ignoreCase = true,
+                    )
                 },
             ) { "HLS manifests cannot be imported as M3U playlists" }
 
@@ -110,18 +113,27 @@ class M3UParser(
                 when {
                     line.isEmpty() -> Unit
 
-                    line.startsWith(prefix = "#PLAYLIST:", ignoreCase = true) -> {
+                    line.startsWith(
+                        prefix = "#PLAYLIST:",
+                        ignoreCase = true,
+                    ) -> {
                         if (playlistName == null) {
                             playlistName =
                                 line.substringAfter(delimiter = ':').trim().ifBlank { null }
                         }
                     }
 
-                    line.startsWith(prefix = "#EXTINF:", ignoreCase = true) ->
+                    line.startsWith(
+                        prefix = "#EXTINF:",
+                        ignoreCase = true,
+                    ) ->
                         pending =
                             line.parseExtInf()
 
-                    line.startsWith(prefix = "#EXTIMG:", ignoreCase = true) -> {
+                    line.startsWith(
+                        prefix = "#EXTIMG:",
+                        ignoreCase = true,
+                    ) -> {
                         if (pending.tvgLogo == null) {
                             pending = pending.copy(
                                 tvgLogo = line.substringAfter(delimiter = ':').trim().ifBlank {
@@ -134,13 +146,19 @@ class M3UParser(
                     line.startsWith(char = '#') -> Unit
 
                     else -> {
-                        val resolvedUri = resolveMediaUri(rawValue = line, source = source)
+                        val resolvedUri = resolveMediaUri(
+                            rawValue = line,
+                            source = source,
+                        )
                         if (resolvedUri != null && seenUris.add(element = resolvedUri)) {
                             entries += M3UPlaylistItem(
                                 uri = resolvedUri,
                                 title = pending.title ?: deriveItemTitle(uri = resolvedUri),
                                 tvgLogo = pending.tvgLogo?.let {
-                                    resolveArtworkUri(rawValue = it, source = source)
+                                    resolveArtworkUri(
+                                        rawValue = it,
+                                        source = source,
+                                    )
                                 },
                                 duration = pending.duration,
                                 groupTitle = pending.groupTitle,
@@ -161,7 +179,10 @@ class M3UParser(
     private companion object {
         const val NETWORK_TIMEOUT_MILLIS = 15_000
         const val DEFAULT_PLAYLIST_NAME = "M3U Playlist"
-        val HTTP_SCHEMES = setOf("http", "https")
+        val HTTP_SCHEMES = setOf(
+            "http",
+            "https",
+        )
     }
 }
 
@@ -173,7 +194,10 @@ private fun String.parseExtInf(): PendingEntryMetadata {
     val metadata = substringAfter(delimiter = ':')
     val commaIndex = metadata.firstUnquotedComma()
     val attributeSection = if (commaIndex >= 0) {
-        metadata.substring(startIndex = 0, endIndex = commaIndex)
+        metadata.substring(
+            startIndex = 0,
+            endIndex = commaIndex,
+        )
     } else {
         metadata
     }
@@ -217,11 +241,17 @@ private fun String.firstUnquotedComma(): Int {
     return -1
 }
 
-private fun resolveMediaUri(rawValue: String, source: M3USource): String? =
-    resolveUri(rawValue = rawValue, source = source, acceptedSchemes = MEDIA_SCHEMES)
+private fun resolveMediaUri(rawValue: String, source: M3USource): String? = resolveUri(
+    rawValue = rawValue,
+    source = source,
+    acceptedSchemes = MEDIA_SCHEMES,
+)
 
-private fun resolveArtworkUri(rawValue: String, source: M3USource): String? =
-    resolveUri(rawValue = rawValue, source = source, acceptedSchemes = ARTWORK_SCHEMES)
+private fun resolveArtworkUri(rawValue: String, source: M3USource): String? = resolveUri(
+    rawValue = rawValue,
+    source = source,
+    acceptedSchemes = ARTWORK_SCHEMES,
+)
 
 private fun resolveUri(
     rawValue: String,
@@ -240,7 +270,10 @@ private fun resolveUri(
         source is M3USource.Remote -> source.uri.resolve(entry)
 
         source is M3USource.Document &&
-            source.uri.scheme.equals(ContentResolver.SCHEME_FILE, ignoreCase = true) -> {
+            source.uri.scheme.equals(
+                ContentResolver.SCHEME_FILE,
+                ignoreCase = true,
+            ) -> {
             val segments = entry.path?.split('/').orEmpty()
             if (segments.any { it.isEmpty() || it == "." || it == ".." || '\\' in it }) return null
             URI(source.uri.toString()).resolve(entry)
@@ -276,7 +309,12 @@ private fun URI.validated(acceptedSchemes: Set<String>): String? {
 private fun String.toUriOrNull(): URI? = runCatching { URI(this) }
     .recoverCatching {
         require(value = ':' !in this && '\\' !in this)
-        URI(null, null, this, null)
+        URI(
+            null,
+            null,
+            this,
+            null,
+        )
     }
     .getOrNull()
 
@@ -284,10 +322,16 @@ private fun URI.isValidNetworkUri(schemes: Set<String>): Boolean =
     scheme?.lowercase(Locale.ROOT) in schemes && !isOpaque && !host.isNullOrBlank()
 
 private fun Uri.isReadableDocumentUri(): Boolean = when {
-    scheme.equals(ContentResolver.SCHEME_CONTENT, ignoreCase = true) ->
+    scheme.equals(
+        ContentResolver.SCHEME_CONTENT,
+        ignoreCase = true,
+    ) ->
         !authority.isNullOrBlank()
 
-    scheme.equals(ContentResolver.SCHEME_FILE, ignoreCase = true) ->
+    scheme.equals(
+        ContentResolver.SCHEME_FILE,
+        ignoreCase = true,
+    ) ->
         !path.isNullOrBlank() && path.orEmpty().startsWith(char = '/')
 
     else -> false
@@ -315,9 +359,18 @@ private fun URI.sourceName(): String =
         .ifBlank { "M3U Playlist" }
 
 private fun String.cleanPlaylistName(): String = decodePathSegment()
-    .replace(regex = Regex(pattern = "(?i)\\.m3u8?$"), replacement = "")
-    .replace(oldChar = '_', newChar = ' ')
-    .replace(oldChar = '-', newChar = ' ')
+    .replace(
+        regex = Regex(pattern = "(?i)\\.m3u8?$"),
+        replacement = "",
+    )
+    .replace(
+        oldChar = '_',
+        newChar = ' ',
+    )
+    .replace(
+        oldChar = '-',
+        newChar = ' ',
+    )
     .trim()
 
 private fun deriveItemTitle(uri: String): String = runCatching {
@@ -331,14 +384,26 @@ private fun deriveItemTitle(uri: String): String = runCatching {
                 delimiter = '/',
             ).decodePathSegment(),
         )
-        ?.replace(oldChar = '_', newChar = ' ')
-        ?.replace(oldChar = '-', newChar = ' ')
+        ?.replace(
+            oldChar = '_',
+            newChar = ' ',
+        )
+        ?.replace(
+            oldChar = '-',
+            newChar = ' ',
+        )
         ?.trim()
         .orEmpty()
 }.getOrDefault(defaultValue = "").ifBlank { uri.substringAfterLast(delimiter = '/').take(n = 80) }
 
 private fun String.decodePathSegment(): String = runCatching {
-    URLDecoder.decode(replace(oldValue = "+", newValue = "%2B"), Charsets.UTF_8.name())
+    URLDecoder.decode(
+        replace(
+            oldValue = "+",
+            newValue = "%2B",
+        ),
+        Charsets.UTF_8.name(),
+    )
 }.getOrDefault(defaultValue = this)
 
 private inline fun <T> resultCatching(block: () -> T): Result<T> = try {
@@ -349,6 +414,17 @@ private inline fun <T> resultCatching(block: () -> T): Result<T> = try {
     Result.failure(exception = error)
 }
 
-private val MEDIA_SCHEMES = setOf("http", "https", "rtsp", "content", "file")
-private val ARTWORK_SCHEMES = setOf("http", "https", "content", "file")
+private val MEDIA_SCHEMES = setOf(
+    "http",
+    "https",
+    "rtsp",
+    "content",
+    "file",
+)
+private val ARTWORK_SCHEMES = setOf(
+    "http",
+    "https",
+    "content",
+    "file",
+)
 private val signedIntegerAtStart = Regex(pattern = """^[+-]?\d+""")

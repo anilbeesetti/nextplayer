@@ -70,9 +70,15 @@ class PlaylistDetailViewModelTest {
                 repository.replacementCalls.single().second.map { it.uri },
             )
             val playlist = (viewModel.state.value.playlistDataState as DataState.Success).value
-            assertEquals("Saved name", playlist?.name)
+            assertEquals(
+                "Saved name",
+                playlist?.name,
+            )
             assertFalse(viewModel.state.value.isRefreshing)
-            assertEquals(1, systemService.toasts.size)
+            assertEquals(
+                1,
+                systemService.toasts.size,
+            )
         } finally {
             sourceFile.delete()
         }
@@ -94,7 +100,10 @@ class PlaylistDetailViewModelTest {
         )
         assertTrue(repository.replacementCalls.isEmpty())
         assertFalse(viewModel.state.value.isRefreshing)
-        assertEquals(1, systemService.toasts.size)
+        assertEquals(
+            1,
+            systemService.toasts.size,
+        )
     }
 
     @Test
@@ -116,7 +125,10 @@ class PlaylistDetailViewModelTest {
             mediaRepository = mediaRepository,
         ),
         playlistRepository = repository,
-        m3uParser = M3UParser(context = context, Dispatchers.Unconfined),
+        m3uParser = M3UParser(
+            context = context,
+            Dispatchers.Unconfined,
+        ),
         systemService = systemService,
         input = PlaylistDetailViewModel.Input(playlistId = 7),
         output = PlaylistDetailViewModel.Output(

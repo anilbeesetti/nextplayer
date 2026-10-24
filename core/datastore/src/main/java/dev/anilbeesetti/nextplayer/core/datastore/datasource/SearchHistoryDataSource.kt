@@ -24,7 +24,10 @@ class SearchHistoryDataSource(
         try {
             searchHistoryDataStore.updateData(transform = transform)
         } catch (ioException: Exception) {
-            Logger.logError(tag = TAG, message = "Failed to update search history: $ioException")
+            Logger.logError(
+                tag = TAG,
+                message = "Failed to update search history: $ioException",
+            )
         }
     }
 }

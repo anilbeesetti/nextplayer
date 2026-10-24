@@ -39,7 +39,10 @@ class LocalSubtitleTest {
     @Test
     fun localTracksAndDecoderChoicesSurviveReloadsAndPlaylistNavigation() {
         val context = instrumentation.targetContext
-        val directory = File(context.cacheDir, "local-subtitle-test-${System.nanoTime()}").apply {
+        val directory = File(
+            context.cacheDir,
+            "local-subtitle-test-${System.nanoTime()}",
+        ).apply {
             mkdirs()
         }
 
@@ -48,8 +51,15 @@ class LocalSubtitleTest {
             .put("RIFF".toByteArray()).putInt(36 + pcm.size).put("WAVEfmt ".toByteArray())
             .putInt(16).putShort(1).putShort(1).putInt(16_000).putInt(32_000)
             .putShort(2).putShort(16).put("data".toByteArray()).putInt(pcm.size)
-        val items = listOf("before", "current", "after").map { name ->
-            val audio = File(directory, "$name.wav")
+        val items = listOf(
+            "before",
+            "current",
+            "after",
+        ).map { name ->
+            val audio = File(
+                directory,
+                "$name.wav",
+            )
             audio.outputStream().use {
                 it.write(header.array())
                 it.write(pcm)
@@ -61,12 +71,25 @@ class LocalSubtitleTest {
         onMain {
             future = MediaController.Builder(
                 context,
-                SessionToken(context, ComponentName(context, PlayerService::class.java)),
+                SessionToken(
+                    context,
+                    ComponentName(
+                        context,
+                        PlayerService::class.java,
+                    ),
+                ),
             ).buildAsync()
         }
-        val player = future.get(10, TimeUnit.SECONDS)
+        val player = future.get(
+            10,
+            TimeUnit.SECONDS,
+        )
         onMain {
-            player.setMediaItems(items, 1, 5_000)
+            player.setMediaItems(
+                items,
+                1,
+                5_000,
+            )
             player.prepare()
         }
         try {
@@ -90,7 +113,10 @@ class LocalSubtitleTest {
                 player = player,
                 CustomCommands.ADD_AUDIO_TRACK,
                 Bundle().apply {
-                    putString(CustomCommands.AUDIO_TRACK_URI_KEY, audioUri.toString())
+                    putString(
+                        CustomCommands.AUDIO_TRACK_URI_KEY,
+                        audioUri.toString(),
+                    )
                 },
             )
             await(description = "external audio selected") {
@@ -105,9 +131,15 @@ class LocalSubtitleTest {
                     player.currentMediaItem?.mediaMetadata?.externalAudio,
                 )
             }
-            for ((index, playing) in listOf(false, true).withIndex()) {
+            for ((index, playing) in listOf(
+                false,
+                true,
+            ).withIndex()) {
                 val text = "Local subtitle $index"
-                val subtitleFile = File(directory, "$index.srt").apply {
+                val subtitleFile = File(
+                    directory,
+                    "$index.srt",
+                ).apply {
                     writeText(text = "1\n00:00:00,000 --> 00:01:00,000\n$text\n")
                 }
                 onMain { player.playWhenReady = playing }
@@ -125,12 +157,20 @@ class LocalSubtitleTest {
                     assertNull(player.playerError)
                     player.currentTracks.groups.count { it.type == C.TRACK_TYPE_TEXT } == index + 1
                 }
-                onMain { player.switchTrack(C.TRACK_TYPE_TEXT, trackIndex = index) }
+                onMain {
+                    player.switchTrack(
+                        C.TRACK_TYPE_TEXT,
+                        trackIndex = index,
+                    )
+                }
                 await(description = "subtitle $index rendered") {
                     player.currentCues.cues.any { it.text?.toString() == text }
                 }
                 onMain {
-                    assertEquals(1, player.currentMediaItemIndex)
+                    assertEquals(
+                        1,
+                        player.currentMediaItemIndex,
+                    )
                     assertEquals(
                         items.map { it.mediaId },
                         (0 until player.mediaItemCount).map { player.getMediaItemAt(it).mediaId },
@@ -147,17 +187,26 @@ class LocalSubtitleTest {
                         listOf(element = audioUri),
                         player.currentMediaItem?.mediaMetadata?.externalAudio,
                     )
-                    assertEquals(playing, player.playWhenReady)
+                    assertEquals(
+                        playing,
+                        player.playWhenReady,
+                    )
                     if (playing) {
                         assertTrue(player.currentPosition >= 5_000)
                     } else {
-                        assertEquals(5_000L, player.currentPosition)
+                        assertEquals(
+                            5_000L,
+                            player.currentPosition,
+                        )
                     }
                 }
             }
             onMain {
                 player.pause()
-                player.seekTo(2, 1_000)
+                player.seekTo(
+                    2,
+                    1_000,
+                )
             }
             await(description = "new item defaults to Auto") {
                 val metadata = player.currentMediaItem?.mediaMetadata
@@ -166,7 +215,12 @@ class LocalSubtitleTest {
                     (metadata?.audioDecoderMode ?: DecoderMode.AUTO) == DecoderMode.AUTO &&
                     player.playbackState == Player.STATE_READY
             }
-            onMain { player.seekTo(1, 5_000) }
+            onMain {
+                player.seekTo(
+                    1,
+                    5_000,
+                )
+            }
             await(description = "returning to item restores both choices") {
                 val metadata = player.currentMediaItem?.mediaMetadata
                 player.currentMediaItem?.mediaId == items[1].mediaId &&
@@ -180,7 +234,12 @@ class LocalSubtitleTest {
                 player.clearMediaItems()
                 player.release()
             }
-            context.stopService(Intent(context, PlayerService::class.java))
+            context.stopService(
+                Intent(
+                    context,
+                    PlayerService::class.java,
+                ),
+            )
             directory.deleteRecursively()
         }
     }
@@ -194,14 +253,30 @@ class LocalSubtitleTest {
         command(
             player = player,
             command = customCommand,
-            Bundle().apply { putString(key, mode.name) },
+            Bundle().apply {
+                putString(
+                    key,
+                    mode.name,
+                )
+            },
         )
     }
 
     private fun command(player: MediaController, command: CustomCommands, args: Bundle) {
         lateinit var result: ListenableFuture<SessionResult>
-        onMain { result = player.sendCustomCommand(command.sessionCommand, args) }
-        assertEquals(SessionResult.RESULT_SUCCESS, result.get(10, TimeUnit.SECONDS).resultCode)
+        onMain {
+            result = player.sendCustomCommand(
+                command.sessionCommand,
+                args,
+            )
+        }
+        assertEquals(
+            SessionResult.RESULT_SUCCESS,
+            result.get(
+                10,
+                TimeUnit.SECONDS,
+            ).resultCode,
+        )
     }
 
     private fun onMain(block: () -> Unit) = instrumentation.runOnMainSync(block)

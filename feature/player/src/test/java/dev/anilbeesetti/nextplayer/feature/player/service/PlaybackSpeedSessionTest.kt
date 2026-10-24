@@ -67,30 +67,63 @@ class PlaybackSpeedSessionTest {
 
     @Test
     fun sessionStartsAtPreferenceAndIgnoresLegacyVideoSpeed() = withSession { _, player ->
-        assertEquals(1.25f, player.playbackParameters.speed)
+        assertEquals(
+            1.25f,
+            player.playbackParameters.speed,
+        )
         player.setMediaItems(
-            listOf(video(id = "first", legacySpeed = 0.5f), video(id = "second", legacySpeed = 3f)),
+            listOf(
+                video(
+                    id = "first",
+                    legacySpeed = 0.5f,
+                ),
+                video(
+                    id = "second",
+                    legacySpeed = 3f,
+                ),
+            ),
         )
         shadowOf(Looper.getMainLooper()).idle()
-        assertEquals(1.25f, player.playbackParameters.speed)
+        assertEquals(
+            1.25f,
+            player.playbackParameters.speed,
+        )
         player.seekToNextMediaItem()
         shadowOf(Looper.getMainLooper()).idle()
-        assertEquals(1.25f, player.playbackParameters.speed)
+        assertEquals(
+            1.25f,
+            player.playbackParameters.speed,
+        )
     }
 
     @Test
     fun changedSpeedSurvivesNavigationRepeatAndQueueReplacement() = withSession { service, player ->
         player.setMediaItems(
-            listOf(video(id = "first", legacySpeed = 0.5f), video(id = "second", legacySpeed = 3f)),
+            listOf(
+                video(
+                    id = "first",
+                    legacySpeed = 0.5f,
+                ),
+                video(
+                    id = "second",
+                    legacySpeed = 3f,
+                ),
+            ),
         )
         shadowOf(Looper.getMainLooper()).idle()
         player.setPlaybackSpeed(1.75f)
         player.seekToNextMediaItem()
         shadowOf(Looper.getMainLooper()).idle()
-        assertEquals(1.75f, player.playbackParameters.speed)
+        assertEquals(
+            1.75f,
+            player.playbackParameters.speed,
+        )
         player.seekToPreviousMediaItem()
         shadowOf(Looper.getMainLooper()).idle()
-        assertEquals(1.75f, player.playbackParameters.speed)
+        assertEquals(
+            1.75f,
+            player.playbackParameters.speed,
+        )
 
         val listener = PlayerService::class.java.getDeclaredField("playbackStateListener")
             .apply { isAccessible = true }.get(service) as Player.Listener
@@ -103,30 +136,60 @@ class PlaybackSpeedSessionTest {
             Player.MEDIA_ITEM_TRANSITION_REASON_REPEAT,
         )
         listener.onPlaybackStateChanged(Player.STATE_ENDED)
-        assertEquals(1.75f, player.playbackParameters.speed)
+        assertEquals(
+            1.75f,
+            player.playbackParameters.speed,
+        )
 
         player.pause()
         player.clearMediaItems()
         listener.onPlaybackStateChanged(Player.STATE_IDLE)
-        player.setMediaItem(video(id = "replacement", legacySpeed = 2f))
+        player.setMediaItem(
+            video(
+                id = "replacement",
+                legacySpeed = 2f,
+            ),
+        )
         shadowOf(Looper.getMainLooper()).idle()
-        assertEquals(1.75f, player.playbackParameters.speed)
-        assertEquals(1.25f, preferences.playerPreferences.value.defaultPlaybackSpeed)
+        assertEquals(
+            1.75f,
+            player.playbackParameters.speed,
+        )
+        assertEquals(
+            1.25f,
+            preferences.playerPreferences.value.defaultPlaybackSpeed,
+        )
     }
 
     @Test
     fun newSessionUsesPreferenceInsteadOfPreviousSessionSpeed() {
         withSession { _, player ->
-            player.setMediaItem(video(id = "first", legacySpeed = 0.5f))
+            player.setMediaItem(
+                video(
+                    id = "first",
+                    legacySpeed = 0.5f,
+                ),
+            )
             player.setPlaybackSpeed(1.75f)
             shadowOf(Looper.getMainLooper()).idle()
-            assertEquals(1.75f, player.playbackParameters.speed)
+            assertEquals(
+                1.75f,
+                player.playbackParameters.speed,
+            )
         }
         runBlocking { preferences.updatePlayerPreferences { it.copy(defaultPlaybackSpeed = 1.5f) } }
         withSession { _, player ->
-            player.setMediaItem(video(id = "first", legacySpeed = 0.5f))
+            player.setMediaItem(
+                video(
+                    id = "first",
+                    legacySpeed = 0.5f,
+                ),
+            )
             shadowOf(Looper.getMainLooper()).idle()
-            assertEquals(1.5f, player.playbackParameters.speed)
+            assertEquals(
+                1.5f,
+                player.playbackParameters.speed,
+            )
         }
     }
 
@@ -136,7 +199,10 @@ class PlaybackSpeedSessionTest {
         val session = PlayerService::class.java.getDeclaredField("mediaSession")
             .apply { isAccessible = true }.get(service) as MediaSession
         try {
-            check(service, session.player)
+            check(
+                service,
+                session.player,
+            )
         } finally {
             controller.destroy()
             shadowOf(Looper.getMainLooper()).idle()
@@ -148,9 +214,17 @@ class PlaybackSpeedSessionTest {
         .setUri("file:///$id.mp4")
         .setMediaMetadata(
             MediaMetadata.Builder()
-                .setArtworkData(byteArrayOf(1), MediaMetadata.PICTURE_TYPE_FRONT_COVER)
+                .setArtworkData(
+                    byteArrayOf(1),
+                    MediaMetadata.PICTURE_TYPE_FRONT_COVER,
+                )
                 .setExtras(
-                    Bundle().apply { putFloat("media_metadata_playback_speed", legacySpeed) },
+                    Bundle().apply {
+                        putFloat(
+                            "media_metadata_playback_speed",
+                            legacySpeed,
+                        )
+                    },
                 )
                 .build(),
         )

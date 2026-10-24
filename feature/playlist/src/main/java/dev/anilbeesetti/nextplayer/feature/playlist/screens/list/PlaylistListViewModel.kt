@@ -76,26 +76,41 @@ class PlaylistListViewModel(
             is PlaylistUiAction.DismissCreation -> showCreationDialog(PlaylistCreationDialog.NONE)
 
             is PlaylistUiAction.ShowRenameDialogFor -> stateInternal.update {
-                it.copy(showRenameDialogFor = action.playlist, saveActionState = ActionState.Idle)
+                it.copy(
+                    showRenameDialogFor = action.playlist,
+                    saveActionState = ActionState.Idle,
+                )
             }
 
             is PlaylistUiAction.DismissRenameDialog -> stateInternal.update {
-                it.copy(showRenameDialogFor = null, saveActionState = ActionState.Idle)
+                it.copy(
+                    showRenameDialogFor = null,
+                    saveActionState = ActionState.Idle,
+                )
             }
 
             is PlaylistUiAction.ShowDeleteDialogFor -> stateInternal.update {
-                it.copy(showDeleteDialogFor = action.playlist, saveActionState = ActionState.Idle)
+                it.copy(
+                    showDeleteDialogFor = action.playlist,
+                    saveActionState = ActionState.Idle,
+                )
             }
 
             is PlaylistUiAction.DismissDeleteDialog -> stateInternal.update {
-                it.copy(showDeleteDialogFor = null, saveActionState = ActionState.Idle)
+                it.copy(
+                    showDeleteDialogFor = null,
+                    saveActionState = ActionState.Idle,
+                )
             }
 
             is PlaylistUiAction.CreateLocal -> createLocal(action.name)
 
             is PlaylistUiAction.CreateM3UUrl -> createM3UUrl(action.url)
 
-            is PlaylistUiAction.Rename -> rename(action.playlistId, action.name)
+            is PlaylistUiAction.Rename -> rename(
+                action.playlistId,
+                action.name,
+            )
 
             is PlaylistUiAction.Delete -> delete(action.playlistId)
         }
@@ -123,7 +138,10 @@ class PlaylistListViewModel(
 
     private fun showCreationDialog(dialog: PlaylistCreationDialog) {
         stateInternal.update {
-            it.copy(creationDialog = dialog, saveActionState = ActionState.Idle)
+            it.copy(
+                creationDialog = dialog,
+                saveActionState = ActionState.Idle,
+            )
         }
     }
 
@@ -179,7 +197,14 @@ class PlaylistListViewModel(
                 ?: systemService.getString(R.string.playlist_save_failed)
             if (showInlineError) {
                 stateInternal.update {
-                    it.copy(saveActionState = ActionState.Failed(value = Error(message, error)))
+                    it.copy(
+                        saveActionState = ActionState.Failed(
+                            value = Error(
+                                message,
+                                error,
+                            ),
+                        ),
+                    )
                 }
             } else {
                 stateInternal.update {
@@ -188,14 +213,20 @@ class PlaylistListViewModel(
                         saveActionState = ActionState.Idle,
                     )
                 }
-                systemService.showToast(text = message, Toast.LENGTH_SHORT)
+                systemService.showToast(
+                    text = message,
+                    Toast.LENGTH_SHORT,
+                )
             }
         }
     }
 
     private fun rename(playlistId: Long, name: String) {
         save {
-            playlistRepository.rename(playlistId = playlistId, name = name)
+            playlistRepository.rename(
+                playlistId = playlistId,
+                name = name,
+            )
             stateInternal.update { it.copy(showRenameDialogFor = null) }
         }
     }

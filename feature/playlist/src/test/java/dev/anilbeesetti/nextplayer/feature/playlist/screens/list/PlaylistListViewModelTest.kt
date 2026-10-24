@@ -60,15 +60,30 @@ class PlaylistListViewModelTest {
             advanceUntilIdle()
 
             val call = repository.createM3UCalls.single()
-            assertEquals(PlaylistType.M3U_URL, call.type)
-            assertEquals(source, call.source)
-            assertEquals("News List", call.playlist.playlistName)
+            assertEquals(
+                PlaylistType.M3U_URL,
+                call.type,
+            )
+            assertEquals(
+                source,
+                call.source,
+            )
+            assertEquals(
+                "News List",
+                call.playlist.playlistName,
+            )
             assertEquals(
                 listOf(element = "https://media.example/live"),
                 call.playlist.items.map { it.uri },
             )
-            assertEquals(listOf(element = 42L), openedIds)
-            assertEquals(PlaylistCreationDialog.NONE, viewModel.state.value.creationDialog)
+            assertEquals(
+                listOf(element = 42L),
+                openedIds,
+            )
+            assertEquals(
+                PlaylistCreationDialog.NONE,
+                viewModel.state.value.creationDialog,
+            )
             assertTrue(viewModel.state.value.saveActionState is ActionState.Success)
             assertTrue(systemService.toasts.isEmpty())
         } finally {
@@ -91,7 +106,10 @@ class PlaylistListViewModelTest {
             advanceUntilIdle()
 
             assertTrue(viewModel.state.value.saveActionState is ActionState.Failed)
-            assertEquals("Database unavailable", viewModel.state.value.saveActionState.errorMessage)
+            assertEquals(
+                "Database unavailable",
+                viewModel.state.value.saveActionState.errorMessage,
+            )
             assertTrue(openedIds.isEmpty())
             assertTrue(systemService.toasts.isEmpty())
         } finally {
@@ -109,7 +127,10 @@ class PlaylistListViewModelTest {
             viewModel.onAction(PlaylistUiAction.CreateM3UUrl(url = source))
             advanceUntilIdle()
 
-            assertEquals(1, repository.createM3UCalls.size)
+            assertEquals(
+                1,
+                repository.createM3UCalls.size,
+            )
         } finally {
             server.stop(0)
         }
@@ -117,7 +138,10 @@ class PlaylistListViewModelTest {
 
     private fun viewModel(openedIds: MutableList<Long>) = PlaylistListViewModel(
         playlistRepository = repository,
-        m3uParser = M3UParser(context = context, Dispatchers.Unconfined),
+        m3uParser = M3UParser(
+            context = context,
+            Dispatchers.Unconfined,
+        ),
         documentPermissionManager = M3UDocumentPermissionManager(context = context),
         mediaSynchronizer = FakeMediaSynchronizer,
         systemService = systemService,
@@ -127,10 +151,16 @@ class PlaylistListViewModelTest {
         ),
     )
 
-    private fun playlistServer(): HttpServer = HttpServer.create(InetSocketAddress(0), 0).apply {
+    private fun playlistServer(): HttpServer = HttpServer.create(
+        InetSocketAddress(0),
+        0,
+    ).apply {
         createContext("/News_List.m3u") { exchange ->
             val body = "https://media.example/live".encodeToByteArray()
-            exchange.sendResponseHeaders(200, body.size.toLong())
+            exchange.sendResponseHeaders(
+                200,
+                body.size.toLong(),
+            )
             exchange.responseBody.use { it.write(body) }
         }
         start()

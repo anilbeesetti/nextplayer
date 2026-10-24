@@ -33,7 +33,10 @@ class FtpClient(private val connection: NetworkConnection) : NetworkClient {
     }
 
     private fun FTPClient.loginAndPrepare(): Boolean {
-        connect(connection.host, connection.effectivePort)
+        connect(
+            connection.host,
+            connection.effectivePort,
+        )
         if (!FTPReply.isPositiveCompletion(replyCode)) {
             disconnect()
             return false
@@ -44,7 +47,10 @@ class FtpClient(private val connection: NetworkConnection) : NetworkClient {
                 "",
             )
         } else {
-            login(connection.username, connection.password)
+            login(
+                connection.username,
+                connection.password,
+            )
         }
         if (!ok) {
             disconnect()
@@ -111,7 +117,11 @@ class FtpClient(private val connection: NetworkConnection) : NetworkClient {
             val client = ftpClient ?: error(message = "Not connected")
             // `SIZE` (RFC 3659) is a single round-trip and works in binary mode. Listing the file
             // path directly is unreliable — many servers only LIST directories, returning nothing.
-            if (client.sendCommand("SIZE", path) == FTPReply.FILE_STATUS) {
+            if (client.sendCommand(
+                    "SIZE",
+                    path,
+                ) == FTPReply.FILE_STATUS
+            ) {
                 client.replyString.trim().substringAfterLast(delimiter = ' ').toLongOrNull() ?: -1L
             } else {
                 // Fallback: find the entry in its parent directory listing.
@@ -139,7 +149,11 @@ class FtpClient(private val connection: NetworkConnection) : NetworkClient {
                 }
             object : InputStream() {
                 override fun read(): Int = raw.read()
-                override fun read(b: ByteArray, off: Int, len: Int): Int = raw.read(b, off, len)
+                override fun read(b: ByteArray, off: Int, len: Int): Int = raw.read(
+                    b,
+                    off,
+                    len,
+                )
                 override fun available(): Int = raw.available()
                 override fun close() {
                     runCatching { raw.close() }

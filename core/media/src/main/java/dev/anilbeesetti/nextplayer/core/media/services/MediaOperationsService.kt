@@ -60,7 +60,10 @@ data class TransferProgress(
                 maximumValue = 1f,
             )
         } else if (totalFiles > 0) {
-            (currentIndex.toFloat() / totalFiles).coerceIn(minimumValue = 0f, maximumValue = 1f)
+            (currentIndex.toFloat() / totalFiles).coerceIn(
+                minimumValue = 0f,
+                maximumValue = 1f,
+            )
         } else {
             0f
         }

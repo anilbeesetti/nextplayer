@@ -24,7 +24,10 @@ import org.robolectric.Shadows.shadowOf
 import org.robolectric.annotation.Config
 
 @RunWith(RobolectricTestRunner::class)
-@Config(manifest = Config.NONE, sdk = [28])
+@Config(
+    manifest = Config.NONE,
+    sdk = [28],
+)
 class PlaybackHistoryTest {
     @After
     fun tearDown() {
@@ -63,11 +66,17 @@ class PlaybackHistoryTest {
             override fun getDuration(): Long = duration
         }
         fun notify(event: Int) {
-            listener.onEvents(player, Player.Events(FlagSet.Builder().add(event).build()))
+            listener.onEvents(
+                player,
+                Player.Events(FlagSet.Builder().add(event).build()),
+            )
             shadowOf(Looper.getMainLooper()).idle()
         }
         try {
-            val items = listOf("first", "second").map {
+            val items = listOf(
+                "first",
+                "second",
+            ).map {
                 MediaItem.Builder().setMediaId(
                     it,
                 ).setUri("webdav://example.com/$it.mp4?cid=1").build()
@@ -78,21 +87,45 @@ class PlaybackHistoryTest {
 
             state = Player.STATE_READY
             notify(Player.EVENT_PLAYBACK_STATE_CHANGED)
-            assertEquals(listOf(element = "first" to 20_000L), recorded)
-            assertEquals(20_000L, player.currentMediaItem?.mediaMetadata?.durationMs)
+            assertEquals(
+                listOf(element = "first" to 20_000L),
+                recorded,
+            )
+            assertEquals(
+                20_000L,
+                player.currentMediaItem?.mediaMetadata?.durationMs,
+            )
 
-            player.seekTo(1, 0)
+            player.seekTo(
+                1,
+                0,
+            )
             duration = 180_000L
             notify(Player.EVENT_MEDIA_ITEM_TRANSITION)
-            assertEquals(listOf("first" to 20_000L, "second" to 180_000L), recorded)
-            assertEquals(180_000L, player.currentMediaItem?.mediaMetadata?.durationMs)
+            assertEquals(
+                listOf(
+                    "first" to 20_000L,
+                    "second" to 180_000L,
+                ),
+                recorded,
+            )
+            assertEquals(
+                180_000L,
+                player.currentMediaItem?.mediaMetadata?.durationMs,
+            )
 
             notify(Player.EVENT_MEDIA_METADATA_CHANGED)
-            assertEquals(2, recorded.size)
+            assertEquals(
+                2,
+                recorded.size,
+            )
 
             duration = C.TIME_UNSET
             notify(Player.EVENT_PLAYBACK_STATE_CHANGED)
-            assertEquals("second" to null, recorded.last())
+            assertEquals(
+                "second" to null,
+                recorded.last(),
+            )
         } finally {
             player.release()
         }

@@ -216,8 +216,11 @@ class AddConnectionViewModel(
                 selected = selected,
                 existingPrivateKeyFileName = existingPrivateKeyFileName,
             )
-        val operation =
-            SaveOperation(id = ++nextOperationId, draft = draft, selectedPrivateKey = selected)
+        val operation = SaveOperation(
+            id = ++nextOperationId,
+            draft = draft,
+            selectedPrivateKey = selected,
+        )
         activeOperation = operation
         pendingOperation = null
         startSave(operation = operation)
@@ -331,7 +334,10 @@ class AddConnectionViewModel(
             stateInternal.update {
                 if (it.selectedPrivateKey == selected) it.copy(selectedPrivateKey = null) else it
             }
-            replacePersistingKey(selected.stagedFileName, committedFileName = committed)
+            replacePersistingKey(
+                selected.stagedFileName,
+                committedFileName = committed,
+            )
             val saved = draft.copy(privateKeyFileName = committed)
             try {
                 repository.upsert(connection = saved)
@@ -376,7 +382,10 @@ class AddConnectionViewModel(
             pendingOperation = null
             if (cleanupRequested) return
             cleanupRequested = true
-            listOfNotNull(activeSaveJob, activeKeyMutationJob)
+            listOfNotNull(
+                activeSaveJob,
+                activeKeyMutationJob,
+            )
         }
         stateInternal.update { it.copy(selectedPrivateKey = null) }
         jobs.forEach(action = Job::cancel)
@@ -468,24 +477,48 @@ class AddConnectionViewModel(
             "The private key is missing. Choose it again."
 
         causeMessages().any { message ->
-            message.contains(other = "passphrase", ignoreCase = true) ||
-                message.contains(other = "decrypt", ignoreCase = true)
+            message.contains(
+                other = "passphrase",
+                ignoreCase = true,
+            ) ||
+                message.contains(
+                    other = "decrypt",
+                    ignoreCase = true,
+                )
         } ->
             "The private key passphrase is incorrect or missing."
 
         causeMessages().any { message ->
-            message.contains(other = "key", ignoreCase = true) &&
+            message.contains(
+                other = "key",
+                ignoreCase = true,
+            ) &&
                 (
-                    message.contains(other = "format", ignoreCase = true) ||
-                        message.contains(other = "malformed", ignoreCase = true) ||
-                        message.contains(other = "invalid pem", ignoreCase = true)
+                    message.contains(
+                        other = "format",
+                        ignoreCase = true,
+                    ) ||
+                        message.contains(
+                            other = "malformed",
+                            ignoreCase = true,
+                        ) ||
+                        message.contains(
+                            other = "invalid pem",
+                            ignoreCase = true,
+                        )
                     )
         } ->
             "The private key format isn't supported or the file is malformed."
 
         causeMessages().any { message ->
-            message.contains(other = "auth", ignoreCase = true) ||
-                message.contains(other = "exhausted available", ignoreCase = true)
+            message.contains(
+                other = "auth",
+                ignoreCase = true,
+            ) ||
+                message.contains(
+                    other = "exhausted available",
+                    ignoreCase = true,
+                )
         } ->
             "Authentication was rejected. Check your credentials and try again."
 

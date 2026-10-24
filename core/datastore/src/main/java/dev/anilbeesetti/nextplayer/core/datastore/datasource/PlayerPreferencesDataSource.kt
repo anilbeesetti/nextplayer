@@ -23,7 +23,10 @@ class PlayerPreferencesDataSource(
         try {
             preferencesDataStore.updateData(transform = transform)
         } catch (ioException: Exception) {
-            Logger.logError(tag = TAG, message = "Failed to update app preferences: $ioException")
+            Logger.logError(
+                tag = TAG,
+                message = "Failed to update app preferences: $ioException",
+            )
         }
     }
 }

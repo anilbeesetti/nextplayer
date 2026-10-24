@@ -57,7 +57,10 @@ fun PreferenceItem(
     )
 }
 
-@OptIn(ExperimentalFoundationApi::class, ExperimentalMaterial3ExpressiveApi::class)
+@OptIn(
+    ExperimentalFoundationApi::class,
+    ExperimentalMaterial3ExpressiveApi::class,
+)
 @Composable
 fun SelectablePreference(
     title: String,
@@ -113,7 +116,10 @@ fun SelectablePreference(
     )
 }
 
-@OptIn(ExperimentalFoundationApi::class, ExperimentalMaterial3ExpressiveApi::class)
+@OptIn(
+    ExperimentalFoundationApi::class,
+    ExperimentalMaterial3ExpressiveApi::class,
+)
 @Composable
 fun SingleSelectablePreference(
     title: String,

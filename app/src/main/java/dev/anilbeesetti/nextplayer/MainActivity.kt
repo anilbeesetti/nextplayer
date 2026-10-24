@@ -160,10 +160,22 @@ class MainActivity : FragmentActivity() {
                     val moreStack = navState.backStacks.getValue(TopLevelDestination.MORE.route)
 
                     val provider = entryProvider {
-                        mediaNavGraph(context = this@MainActivity, backStack = mediaStack)
-                        playlistNavGraph(context = this@MainActivity, backStack = playlistStack)
-                        networkNavGraph(context = this@MainActivity, backStack = networkStack)
-                        moreNavGraph(context = this@MainActivity, backStack = moreStack)
+                        mediaNavGraph(
+                            context = this@MainActivity,
+                            backStack = mediaStack,
+                        )
+                        playlistNavGraph(
+                            context = this@MainActivity,
+                            backStack = playlistStack,
+                        )
+                        networkNavGraph(
+                            context = this@MainActivity,
+                            backStack = networkStack,
+                        )
+                        moreNavGraph(
+                            context = this@MainActivity,
+                            backStack = moreStack,
+                        )
                         settingsNavGraph(backStack = navState.currentStack)
                     }
 
@@ -178,7 +190,10 @@ class MainActivity : FragmentActivity() {
                         val railPadding = layoutPaddingValues.calculateStartPadding(
                             LocalLayoutDirection.current,
                         )
-                        val navigationInsetsDecorator = remember(navState, railPadding) {
+                        val navigationInsetsDecorator = remember(
+                            navState,
+                            railPadding,
+                        ) {
                             NavEntryDecorator<NavKey> { entry ->
                                 // Reserve rail space per entry without resizing the animated display.
                                 Box(

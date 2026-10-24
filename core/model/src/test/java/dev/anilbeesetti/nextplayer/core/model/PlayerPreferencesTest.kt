@@ -15,7 +15,10 @@ class PlayerPreferencesTest {
 
         assertFalse(preferences.enableTunneledPlayback)
         assertFalse(preferences.autoplay)
-        assertEquals("en", preferences.preferredAudioLanguage)
+        assertEquals(
+            "en",
+            preferences.preferredAudioLanguage,
+        )
     }
 
     @Test
@@ -26,6 +29,9 @@ class PlayerPreferencesTest {
         )
 
         assertTrue(restored.enableTunneledPlayback)
-        assertEquals(preferences, restored)
+        assertEquals(
+            preferences,
+            restored,
+        )
     }
 }

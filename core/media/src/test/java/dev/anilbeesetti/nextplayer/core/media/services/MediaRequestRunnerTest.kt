@@ -23,7 +23,13 @@ class MediaRequestRunnerTest {
         )
 
         assertTrue(result)
-        assertEquals(listOf(2_000, 1), requestedBatchSizes)
+        assertEquals(
+            listOf(
+                2_000,
+                1,
+            ),
+            requestedBatchSizes,
+        )
     }
 
     @Test
@@ -42,7 +48,13 @@ class MediaRequestRunnerTest {
         )
 
         assertTrue(result)
-        assertEquals(listOf(2_000, 1), requestedBatchSizes)
+        assertEquals(
+            listOf(
+                2_000,
+                1,
+            ),
+            requestedBatchSizes,
+        )
     }
 
     @Test
@@ -50,7 +62,10 @@ class MediaRequestRunnerTest {
         val requestedBatches = mutableListOf<List<String>>()
 
         val result = runMediaRequests(
-            items = listOf("existing", "stale"),
+            items = listOf(
+                "existing",
+                "stale",
+            ),
             maxBatchSize = 2_000,
             itemExists = { it == "existing" },
             request = { batch ->
@@ -63,7 +78,10 @@ class MediaRequestRunnerTest {
         assertTrue(result)
         assertEquals(
             listOf(
-                listOf("existing", "stale"),
+                listOf(
+                    "existing",
+                    "stale",
+                ),
                 listOf(element = "existing"),
             ),
             requestedBatches,
@@ -85,7 +103,10 @@ class MediaRequestRunnerTest {
         )
 
         assertTrue(result)
-        assertEquals(1, requestCount)
+        assertEquals(
+            1,
+            requestCount,
+        )
     }
 
     @Test
@@ -103,6 +124,9 @@ class MediaRequestRunnerTest {
         )
 
         assertFalse(result)
-        assertEquals(1, requestCount)
+        assertEquals(
+            1,
+            requestCount,
+        )
     }
 }

@@ -216,7 +216,10 @@ fun MediaInfoDialog(mediaInfo: MediaInfo, onDismiss: () -> Unit) {
 @Composable
 private fun MediaInfoTitle(
     text: String,
-    paddingValues: PaddingValues = PaddingValues(top = 16.dp, bottom = 2.dp),
+    paddingValues: PaddingValues = PaddingValues(
+        top = 16.dp,
+        bottom = 2.dp,
+    ),
 ) {
     Text(
         text = text,
@@ -229,7 +232,10 @@ private fun MediaInfoTitle(
 @Composable
 private fun MediaInfoText(title: String, subText: String, modifier: Modifier = Modifier) {
     Row(modifier = modifier) {
-        Text(text = "$title: ", style = MaterialTheme.typography.titleSmall)
+        Text(
+            text = "$title: ",
+            style = MaterialTheme.typography.titleSmall,
+        )
         Text(text = subText)
     }
 }

@@ -112,7 +112,10 @@ class CrashActivity : ComponentActivity() {
             ) {
                 val clipboard = LocalClipboard.current
                 CrashScreen(
-                    input = CrashState(exceptionString = exceptionString, logcat = logcat),
+                    input = CrashState(
+                        exceptionString = exceptionString,
+                        logcat = logcat,
+                    ),
                     output = CrashOutput(
                         shareLogs = {
                             lifecycleScope.launch {
@@ -135,7 +138,12 @@ class CrashActivity : ComponentActivity() {
                         },
                         restart = {
                             finish()
-                            startActivity(Intent(this@CrashActivity, MainActivity::class.java))
+                            startActivity(
+                                Intent(
+                                    this@CrashActivity,
+                                    MainActivity::class.java,
+                                ),
+                            )
                         },
                     ),
                 )
@@ -145,7 +153,10 @@ class CrashActivity : ComponentActivity() {
 
     private suspend fun shareLogs(deviceInfo: String, exceptionString: String, logcat: String) =
         withContext(Dispatchers.IO) {
-            val file = File(cacheDir, "next_player_logs.txt").also {
+            val file = File(
+                cacheDir,
+                "next_player_logs.txt",
+            ).also {
                 if (it.exists()) it.delete()
                 it.createNewFile()
             }
@@ -163,11 +174,20 @@ class CrashActivity : ComponentActivity() {
             val intent = Intent(Intent.ACTION_SEND).apply {
                 type = "text/plain"
                 flags = Intent.FLAG_GRANT_READ_URI_PERMISSION
-                clipData = ClipData.newRawUri(null, uri)
-                putExtra(Intent.EXTRA_STREAM, uri)
+                clipData = ClipData.newRawUri(
+                    null,
+                    uri,
+                )
+                putExtra(
+                    Intent.EXTRA_STREAM,
+                    uri,
+                )
             }
             startActivity(
-                Intent.createChooser(intent, getString(R.string.crash_screen_share)),
+                Intent.createChooser(
+                    intent,
+                    getString(R.string.crash_screen_share),
+                ),
             )
         }
 
@@ -242,7 +262,10 @@ private fun CrashScreenContent(state: CrashState, onAction: (CrashAction) -> Uni
                         drawLine(
                             color = borderColor,
                             start = Offset.Zero,
-                            end = Offset(size.width, y = 0f),
+                            end = Offset(
+                                size.width,
+                                y = 0f,
+                            ),
                             strokeWidth = Dp.Hairline.value,
                         )
                     }
@@ -257,7 +280,10 @@ private fun CrashScreenContent(state: CrashState, onAction: (CrashAction) -> Uni
                         modifier = Modifier.weight(weight = 1f),
                     ) { Text(text = stringResource(R.string.crash_screen_share)) }
                     FilledIconButton(onClick = { onAction(CrashAction.CopyLogs) }) {
-                        Icon(imageVector = NextIcons.Copy, contentDescription = null)
+                        Icon(
+                            imageVector = NextIcons.Copy,
+                            contentDescription = null,
+                        )
                     }
                 }
                 OutlinedButton(
@@ -330,7 +356,10 @@ private fun LogsSelectionContainer(logs: String, modifier: Modifier = Modifier) 
 private fun CrashLogsScreenPreview() {
     NextPlayerTheme {
         CrashScreenContent(
-            state = CrashState(exceptionString = "Exception message", logcat = "Logcat message"),
+            state = CrashState(
+                exceptionString = "Exception message",
+                logcat = "Logcat message",
+            ),
             onAction = {},
         )
     }

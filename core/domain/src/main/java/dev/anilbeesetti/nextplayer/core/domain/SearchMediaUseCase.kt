@@ -43,12 +43,18 @@ class SearchMediaUseCase(
 
             // Score and filter folders
             val scoredFolders = folders.mapNotNull { folder ->
-                val score = searchMatcher.calculateScore(folder.name, folder.path)
+                val score = searchMatcher.calculateScore(
+                    folder.name,
+                    folder.path,
+                )
                 if (score > 0) folder to score else null
             }.sortedByDescending { it.second }.map { it.first }
 
             val scoredVideos = videos.mapNotNull { video ->
-                val score = searchMatcher.calculateScore(video.nameWithExtension, video.path)
+                val score = searchMatcher.calculateScore(
+                    video.nameWithExtension,
+                    video.path,
+                )
                 if (score > 0) video to score else null
             }.sortedByDescending { it.second }.map { it.first }
 
@@ -138,7 +144,10 @@ private class SearchMatcher(query: String) {
         if (allWordsPresent) {
             // Count how many words match at word boundaries for bonus
             val boundaryMatches = queryWords.count { word ->
-                isWordBoundaryMatch(text = textLower, query = word)
+                isWordBoundaryMatch(
+                    text = textLower,
+                    query = word,
+                )
             }
             return 200 + (boundaryMatches * 20)
         }
@@ -161,6 +170,16 @@ private class SearchMatcher(query: String) {
         return isAtStart || isPrecededByBoundary
     }
 
-    private fun Char.isWordBoundary(): Boolean =
-        this in listOf(' ', '_', '-', '.', '/', '\\', '[', ']', '(', ')')
+    private fun Char.isWordBoundary(): Boolean = this in listOf(
+        ' ',
+        '_',
+        '-',
+        '.',
+        '/',
+        '\\',
+        '[',
+        ']',
+        '(',
+        ')',
+    )
 }

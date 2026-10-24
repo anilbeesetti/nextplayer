@@ -65,7 +65,11 @@ class NextOutlinedTextFieldTest {
         showForm()
         composeRule.onNodeWithTag(testTag = "first").requestFocus()
         assertKeyboardStaysHidden()
-        listOf(Key.DirectionCenter, Key.Enter, Key.NumPadEnter).forEach { key ->
+        listOf(
+            Key.DirectionCenter,
+            Key.Enter,
+            Key.NumPadEnter,
+        ).forEach { key ->
             press(key = key)
             waitForKeyboard(shown = true)
             pressBack()
@@ -99,7 +103,13 @@ class NextOutlinedTextFieldTest {
     fun renameDialogAutofocusDoesNotOpenKeyboard() {
         assumeTrue(composeRule.activity.isTelevision)
         composeRule.setContent {
-            NextPlayerTheme { RenameDialog(name = "Original", onDismiss = {}, onDone = {}) }
+            NextPlayerTheme {
+                RenameDialog(
+                    name = "Original",
+                    onDismiss = {},
+                    onDone = {},
+                )
+            }
         }
         composeRule.waitUntil(timeoutMillis = 5_000) {
             composeRule.onAllNodes(
@@ -129,9 +139,12 @@ class NextOutlinedTextFieldTest {
                     value = "Query",
                     onValueChange = {},
                     trailingIcon = {
-                        IconButton(onClick = {
-                            clicked = true
-                        }, modifier = Modifier.testTag(tag = "clear")) { Text(text = "Clear") }
+                        IconButton(
+                            onClick = {
+                                clicked = true
+                            },
+                            modifier = Modifier.testTag(tag = "clear"),
+                        ) { Text(text = "Clear") }
                     },
                 )
             }
@@ -185,7 +198,10 @@ class NextOutlinedTextFieldTest {
     private fun assertKeyboardStaysHidden() {
         // IME visibility changes asynchronously, after Compose has become idle.
         SystemClock.sleep(500)
-        assertFalse("Focus alone must not open the TV keyboard", keyboardIsShown())
+        assertFalse(
+            "Focus alone must not open the TV keyboard",
+            keyboardIsShown(),
+        )
     }
 
     private fun waitForKeyboard(shown: Boolean) {

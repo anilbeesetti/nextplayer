@@ -56,7 +56,13 @@ class MediaViewWidthTest {
         }
 
         // 120dp leaves no video columns; 80dp and 0dp leave neither kind of column.
-        for (nextWidth in listOf(360, 80, 120, 0, 360)) {
+        for (nextWidth in listOf(
+            360,
+            80,
+            120,
+            0,
+            360,
+        )) {
             composeRule.runOnIdle { width = nextWidth.dp }
             composeRule.waitForIdle()
             if (nextWidth > 0) {

@@ -22,8 +22,12 @@ import kotlinx.coroutines.launch
 @Composable
 fun rememberPlaybackParametersState(player: Player): PlaybackParametersState {
     val scope = rememberCoroutineScope()
-    val playbackParametersState =
-        remember { PlaybackParametersState(player = player, scope = scope) }
+    val playbackParametersState = remember {
+        PlaybackParametersState(
+            player = player,
+            scope = scope,
+        )
+    }
     LaunchedEffect(key1 = player) { playbackParametersState.observe() }
     return playbackParametersState
 }

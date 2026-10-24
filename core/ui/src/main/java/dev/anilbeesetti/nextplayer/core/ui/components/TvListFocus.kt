@@ -27,7 +27,10 @@ fun Modifier.tvListFocus(
     val context = LocalContext.current
     val isTv = remember { context.isTelevision }
 
-    LaunchedEffect(key1 = isTv, key2 = focusRequester) {
+    LaunchedEffect(
+        key1 = isTv,
+        key2 = focusRequester,
+    ) {
         if (!isTv) return@LaunchedEffect
         focusRequester.requestFocusUntilLanded()
     }

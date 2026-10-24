@@ -92,7 +92,10 @@ class MediaPickerViewModel(
     private var transferJob: Job? = null
 
     init {
-        if (ContextCompat.checkSelfPermission(context, storagePermission) ==
+        if (ContextCompat.checkSelfPermission(
+                context,
+                storagePermission,
+            ) ==
             PackageManager.PERMISSION_GRANTED
         ) {
             startMediaCollection()
@@ -117,7 +120,10 @@ class MediaPickerViewModel(
 
             is MediaPickerAction.Refresh -> refresh()
 
-            is MediaPickerAction.RenameVideo -> renameVideo(action.uri, action.to)
+            is MediaPickerAction.RenameVideo -> renameVideo(
+                action.uri,
+                action.to,
+            )
 
             is MediaPickerAction.UpdateMenu -> updateMenu(action.preferences)
 
@@ -292,7 +298,10 @@ class MediaPickerViewModel(
         }
         stateInternal.update {
             it.copy(
-                addToPlaylistState = it.addToPlaylistState.copy(isSaving = true, errorRes = null),
+                addToPlaylistState = it.addToPlaylistState.copy(
+                    isSaving = true,
+                    errorRes = null,
+                ),
             )
         }
         viewModelScope.launch {
@@ -335,7 +344,10 @@ class MediaPickerViewModel(
                 addedCount,
             )
         }
-        systemService.showToast(text = message, Toast.LENGTH_SHORT)
+        systemService.showToast(
+            text = message,
+            Toast.LENGTH_SHORT,
+        )
     }
 
     private fun playSelectedItems(selectedItems: Set<SelectionItem>) {
@@ -348,7 +360,10 @@ class MediaPickerViewModel(
     private fun deleteSelectedItems(selectedItems: Set<SelectionItem>, permanently: Boolean) {
         viewModelScope.launch {
             val videoUris = selectedItems.toVideoUris()
-            mediaOperationsService.deleteMedia(uris = videoUris, permanently = permanently)
+            mediaOperationsService.deleteMedia(
+                uris = videoUris,
+                permanently = permanently,
+            )
         }
     }
 
@@ -388,7 +403,10 @@ class MediaPickerViewModel(
 
                     is TransferEvent.Completed -> {
                         stateInternal.update { it.copy(transferFlow = TransferFlowState.Idle) }
-                        showTransferCompleteToast(mode = mode, event.result)
+                        showTransferCompleteToast(
+                            mode = mode,
+                            event.result,
+                        )
                     }
                 }
             }
@@ -428,7 +446,10 @@ class MediaPickerViewModel(
                 result.succeeded,
             )
         }
-        systemService.showToast(text = message, Toast.LENGTH_SHORT)
+        systemService.showToast(
+            text = message,
+            Toast.LENGTH_SHORT,
+        )
     }
 
     private fun cancelTransfer() {
@@ -447,7 +468,12 @@ class MediaPickerViewModel(
     }
 
     private fun renameVideo(uri: Uri, to: String) {
-        viewModelScope.launch { mediaOperationsService.renameMedia(uri = uri, to = to) }
+        viewModelScope.launch {
+            mediaOperationsService.renameMedia(
+                uri = uri,
+                to = to,
+            )
+        }
     }
 
     private fun refresh() {

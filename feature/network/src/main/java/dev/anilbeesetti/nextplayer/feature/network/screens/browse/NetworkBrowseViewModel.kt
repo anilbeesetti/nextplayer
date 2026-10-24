@@ -82,7 +82,10 @@ class NetworkBrowseViewModel(
 
     init {
         viewModelScope.launch {
-            combine(flow = connection, mediaRepository.observePlaybackHistory()) { conn, history ->
+            combine(
+                flow = connection,
+                mediaRepository.observePlaybackHistory(),
+            ) { conn, history ->
                 val folderPrefix = currentPath?.trimEnd('/').orEmpty()
                 if (conn == null) {
                     emptyMap()
@@ -94,8 +97,15 @@ class NetworkBrowseViewModel(
                         ) {
                             return@mapNotNull null
                         }
-                        val filePath = NetworkUri.filePathOf(uri = uri, conn.protocol)
-                        if (uri != NetworkUri.build(connection = conn, filePath = filePath)) {
+                        val filePath = NetworkUri.filePathOf(
+                            uri = uri,
+                            conn.protocol,
+                        )
+                        if (uri != NetworkUri.build(
+                                connection = conn,
+                                filePath = filePath,
+                            )
+                        ) {
                             return@mapNotNull null
                         }
                         if (folderPrefix.isNotEmpty() &&
@@ -138,7 +148,12 @@ class NetworkBrowseViewModel(
 
     /** Loads the connection, (re)establishes the client, then lists the current folder. */
     private fun connectAndLoad() {
-        stateInternal.update { it.copy(isLoading = true, error = null) }
+        stateInternal.update {
+            it.copy(
+                isLoading = true,
+                error = null,
+            )
+        }
         viewModelScope.launch {
             val conn = connection.value ?: repository.getConnection(id = connectionId)
             if (conn == null) {
@@ -175,7 +190,12 @@ class NetworkBrowseViewModel(
         val client = client ?: return
         val conn = connection.value ?: return
         val path = currentPath ?: return
-        stateInternal.update { it.copy(isLoading = true, error = null) }
+        stateInternal.update {
+            it.copy(
+                isLoading = true,
+                error = null,
+            )
+        }
         viewModelScope.launch {
             client.listFiles(path = path).fold(
                 onSuccess = { files ->
@@ -197,7 +217,10 @@ class NetworkBrowseViewModel(
                 },
                 onFailure = { e ->
                     stateInternal.update {
-                        it.copy(isLoading = false, error = e.toNetworkBrowseError())
+                        it.copy(
+                            isLoading = false,
+                            error = e.toNetworkBrowseError(),
+                        )
                     }
                 },
             )
@@ -213,7 +236,10 @@ class NetworkBrowseViewModel(
         when (action) {
             is NetworkBrowseAction.NavigateUp -> output.navigateUp()
 
-            is NetworkBrowseAction.OpenFolder -> output.openFolder(connectionId, action.file.path)
+            is NetworkBrowseAction.OpenFolder -> output.openFolder(
+                connectionId,
+                action.file.path,
+            )
 
             is NetworkBrowseAction.UpdateQuickSettings -> viewModelScope.launch {
                 preferencesRepository.updateApplicationPreferences {
@@ -248,8 +274,16 @@ class NetworkBrowseViewModel(
         val videos = stateInternal.value.files.filter { !it.isDirectory }
         if (file !in videos) return
         output.playVideos(
-            videos.map { NetworkUri.build(connection = conn, it.path) },
-            NetworkUri.build(connection = conn, file.path),
+            videos.map {
+                NetworkUri.build(
+                    connection = conn,
+                    it.path,
+                )
+            },
+            NetworkUri.build(
+                connection = conn,
+                file.path,
+            ),
         )
     }
 

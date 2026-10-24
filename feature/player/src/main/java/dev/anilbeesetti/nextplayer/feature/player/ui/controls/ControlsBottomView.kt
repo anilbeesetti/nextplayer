@@ -113,7 +113,10 @@ fun ControlsBottomView(
                 modifier = Modifier.focusRequester(focusRequester = timeButtonFocusRequester),
                 onClick = onToggleTimeDisplay,
                 containerColor = PlayerButtonBlackAlpha,
-                contentPadding = PaddingValues(horizontal = 8.dp, vertical = 1.dp),
+                contentPadding = PaddingValues(
+                    horizontal = 8.dp,
+                    vertical = 1.dp,
+                ),
             ) {
                 val timeTextPositionMs by remember(progressState) {
                     derivedStateOf {
@@ -160,7 +163,10 @@ fun ControlsBottomView(
                                 chaptersState.chapters.getOrNull(chaptersState.currentChapterIndex)
                                     ?.titleOrDefault(chaptersState.currentChapterIndex)
                                     ?: stringResource(R.string.chapters),
-                            modifier = Modifier.weight(weight = 1f, fill = false),
+                            modifier = Modifier.weight(
+                                weight = 1f,
+                                fill = false,
+                            ),
                             style = MaterialTheme.typography.labelLarge,
                             maxLines = 1,
                             overflow = TextOverflow.Ellipsis,
@@ -202,7 +208,10 @@ fun ControlsBottomView(
                 .fillMaxWidth()
                 .horizontalScroll(state = rememberScrollState()),
             verticalAlignment = Alignment.CenterVertically,
-            horizontalArrangement = Arrangement.spacedBy(8.dp, alignment = controlsAlignment),
+            horizontalArrangement = Arrangement.spacedBy(
+                8.dp,
+                alignment = controlsAlignment,
+            ),
         ) {
             PlayerButton(onClick = onLockControlsClick) {
                 Icon(

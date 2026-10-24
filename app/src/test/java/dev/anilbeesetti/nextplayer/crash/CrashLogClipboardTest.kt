@@ -10,7 +10,10 @@ class CrashLogClipboardTest {
     fun reportAtClipboardLimitIsUnchanged() {
         val report = "x".repeat(n = MAX_CLIPBOARD_REPORT_CHARS)
 
-        assertEquals(report, crashReportForClipboard(report = report))
+        assertEquals(
+            report,
+            crashReportForClipboard(report = report),
+        )
     }
 
     @Test
@@ -20,7 +23,10 @@ class CrashLogClipboardTest {
 
         val bounded = crashReportForClipboard(report = report)
 
-        assertEquals(MAX_CLIPBOARD_REPORT_CHARS, bounded.length)
+        assertEquals(
+            MAX_CLIPBOARD_REPORT_CHARS,
+            bounded.length,
+        )
         assertTrue(bounded.startsWith(prefix = prefix))
         assertTrue(bounded.endsWith(suffix = CLIPBOARD_REPORT_TRUNCATION_MARKER))
     }

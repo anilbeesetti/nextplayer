@@ -37,10 +37,16 @@ import dev.anilbeesetti.nextplayer.core.ui.extensions.plus
 @Composable
 fun LibrariesScreen(viewModel: LibrariesViewModel) {
     val state by viewModel.state.collectAsStateWithLifecycle()
-    LibrariesScreenContent(state = state, onAction = viewModel::onAction)
+    LibrariesScreenContent(
+        state = state,
+        onAction = viewModel::onAction,
+    )
 }
 
-@OptIn(ExperimentalMaterial3Api::class, ExperimentalMaterial3ExpressiveApi::class)
+@OptIn(
+    ExperimentalMaterial3Api::class,
+    ExperimentalMaterial3ExpressiveApi::class,
+)
 @Composable
 private fun LibrariesScreenContent(state: LibrariesUiState, onAction: (LibrariesAction) -> Unit) {
     val context = LocalContext.current
@@ -67,9 +73,12 @@ private fun LibrariesScreenContent(state: LibrariesUiState, onAction: (Libraries
             contentPadding = innerPadding + PaddingValues(horizontal = 16.dp),
             verticalArrangement = Arrangement.spacedBy(ListItemDefaults.SegmentedGap),
         ) {
-            itemsIndexed(state.libraries, key = { _, library ->
-                library.uniqueId
-            }) { index, library ->
+            itemsIndexed(
+                state.libraries,
+                key = { _, library ->
+                    library.uniqueId
+                },
+            ) { index, library ->
                 NextSegmentedListItem(
                     content = {
                         Row(
@@ -115,7 +124,10 @@ private fun LibrariesScreenContent(state: LibrariesUiState, onAction: (Libraries
                     isLastItem = index == state.libraries.lastIndex,
                     onClick = {
                         library.website?.takeIf { it.isNotBlank() }?.let {
-                            uriHandler.openUriOrShowToast(uri = it, context = context)
+                            uriHandler.openUriOrShowToast(
+                                uri = it,
+                                context = context,
+                            )
                         }
                     },
                 )

@@ -46,7 +46,10 @@ fun SettingsScreen(output: SettingsOutput) {
     }
 }
 
-@OptIn(ExperimentalMaterial3Api::class, ExperimentalMaterial3ExpressiveApi::class)
+@OptIn(
+    ExperimentalMaterial3Api::class,
+    ExperimentalMaterial3ExpressiveApi::class,
+)
 @Composable
 private fun SettingsScreenContent(onAction: (SettingsAction) -> Unit) {
     val settingRows = remember { SettingRow.entries }
@@ -84,7 +87,10 @@ private fun SettingsScreenContent(onAction: (SettingsAction) -> Unit) {
             settingRows.forEachIndexed { index, row ->
                 key(row) {
                     ClickablePreferenceItem(
-                        modifier = Modifier.restorableFocusItem(state = focusState, row.name),
+                        modifier = Modifier.restorableFocusItem(
+                            state = focusState,
+                            row.name,
+                        ),
                         title = stringResource(id = row.titleResId),
                         description = stringResource(id = row.descriptionResId),
                         icon = row.icon,

@@ -37,7 +37,12 @@ fun NavBackStack<NavKey>.navigateToAddConnection(connectionId: Long? = null) {
 }
 
 fun NavBackStack<NavKey>.navigateToNetworkBrowse(connectionId: Long, path: String? = null) {
-    add(element = NetworkBrowseRoute(connectionId = connectionId, path = path))
+    add(
+        element = NetworkBrowseRoute(
+            connectionId = connectionId,
+            path = path,
+        ),
+    )
 }
 
 fun EntryProviderScope<NavKey>.networkEntry(

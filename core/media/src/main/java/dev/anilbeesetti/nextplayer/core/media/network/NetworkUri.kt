@@ -70,7 +70,10 @@ object NetworkUri {
                 '/',
             ).filter(predicate = String::isNotEmpty).forEach(action = ::appendPath)
         }
-        .appendQueryParameter(CONNECTION_ID_PARAM, connection.id.toString())
+        .appendQueryParameter(
+            CONNECTION_ID_PARAM,
+            connection.id.toString(),
+        )
         .build()
 
     fun connectionIdOf(uri: Uri): Long? = uri.getQueryParameter(CONNECTION_ID_PARAM)?.toLongOrNull()
@@ -117,7 +120,10 @@ object NetworkUri {
             port = uri.port.takeIf { it > 0 },
             path = root,
             username = userInfo.substringBefore(delimiter = ':'),
-            password = userInfo.substringAfter(delimiter = ':', missingDelimiterValue = ""),
+            password = userInfo.substringAfter(
+                delimiter = ':',
+                missingDelimiterValue = "",
+            ),
             useHttps = scheme == SCHEME_WEBDAVS,
             hostKeyFingerprint = uri.getQueryParameter(HOST_KEY_PARAM).orEmpty(),
         )

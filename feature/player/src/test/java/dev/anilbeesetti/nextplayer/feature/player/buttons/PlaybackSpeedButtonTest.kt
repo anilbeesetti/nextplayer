@@ -33,7 +33,12 @@ class PlaybackSpeedButtonTest {
         try {
             composeRule.setContent {
                 NextPlayerTheme {
-                    if (visible.value) PlaybackSpeedButton(player = player.value, onClick = {})
+                    if (visible.value) {
+                        PlaybackSpeedButton(
+                            player = player.value,
+                            onClick = {},
+                        )
+                    }
                 }
             }
             composeRule.onNodeWithText(text = "1.25").assertExists()

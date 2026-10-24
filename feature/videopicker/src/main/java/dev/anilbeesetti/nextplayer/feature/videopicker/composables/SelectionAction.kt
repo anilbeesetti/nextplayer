@@ -34,7 +34,10 @@ internal fun SelectionAction(
                 minWidth = 75.dp,
                 minHeight = 64.dp,
             )
-            .tvFocusRing(isTv = isTv, shape = RoundedCornerShape(12.dp))
+            .tvFocusRing(
+                isTv = isTv,
+                shape = RoundedCornerShape(12.dp),
+            )
             .clip(shape = RoundedCornerShape(12.dp))
             .clickable(onClick = onClick)
             .padding(

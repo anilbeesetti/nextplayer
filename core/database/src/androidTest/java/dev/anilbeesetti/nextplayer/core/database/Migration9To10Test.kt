@@ -20,7 +20,10 @@ class Migration9To10Test {
 
     @Test
     fun migrationPreservesLocalPlaylistOrderAndPlaybackHistory() {
-        helper.createDatabase(name = TEST_DATABASE, version = 9).apply {
+        helper.createDatabase(
+            name = TEST_DATABASE,
+            version = 9,
+        ).apply {
             execSQL(sql = "INSERT INTO playlist (id, name, created_at) VALUES (7, 'Movies', 100)")
             execSQL(
                 """
@@ -46,7 +49,10 @@ class Migration9To10Test {
             """.trimIndent(),
         ).use {
             assertTrue(it.moveToFirst())
-            assertEquals("LOCAL", it.getString(0))
+            assertEquals(
+                "LOCAL",
+                it.getString(0),
+            )
             assertNull(it.getString(1))
             assertTrue(it.isNull(2))
         }
@@ -58,13 +64,25 @@ class Migration9To10Test {
             """.trimIndent(),
         ).use {
             assertTrue(it.moveToFirst())
-            assertEquals("content://video/one", it.getString(0))
-            assertEquals(0, it.getInt(1))
+            assertEquals(
+                "content://video/one",
+                it.getString(0),
+            )
+            assertEquals(
+                0,
+                it.getInt(1),
+            )
             assertTrue(it.isNull(2))
             assertTrue(it.isNull(3))
-            assertEquals(-1, it.getInt(4))
+            assertEquals(
+                -1,
+                it.getInt(4),
+            )
             assertTrue(it.isNull(5))
-            assertEquals(321L, it.getLong(6))
+            assertEquals(
+                321L,
+                it.getLong(6),
+            )
         }
         migrated.close()
     }

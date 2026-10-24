@@ -39,12 +39,18 @@ class NetworkDataSource(private val sessions: NetworkSessions) : BaseDataSource(
                     fileSize >= 0 -> (fileSize - dataSpec.position).coerceAtLeast(minimumValue = 0)
                     else -> C.LENGTH_UNSET.toLong()
                 }
-                stream = target.client.openStream(target.filePath, dataSpec.position)
+                stream = target.client.openStream(
+                    target.filePath,
+                    dataSpec.position,
+                )
             }
         } catch (e: IOException) {
             throw e
         } catch (e: Exception) {
-            throw IOException("Failed to open ${dataSpec.uri}", e)
+            throw IOException(
+                "Failed to open ${dataSpec.uri}",
+                e,
+            )
         }
 
         opened = true
@@ -59,9 +65,16 @@ class NetworkDataSource(private val sessions: NetworkSessions) : BaseDataSource(
         val readLength = if (bytesRemaining == C.LENGTH_UNSET.toLong()) {
             length
         } else {
-            minOf(length.toLong(), b = bytesRemaining).toInt()
+            minOf(
+                length.toLong(),
+                b = bytesRemaining,
+            ).toInt()
         }
-        val bytesRead = stream?.read(buffer, offset, readLength) ?: return C.RESULT_END_OF_INPUT
+        val bytesRead = stream?.read(
+            buffer,
+            offset,
+            readLength,
+        ) ?: return C.RESULT_END_OF_INPUT
         if (bytesRead == -1) return C.RESULT_END_OF_INPUT
 
         if (bytesRemaining != C.LENGTH_UNSET.toLong()) bytesRemaining -= bytesRead

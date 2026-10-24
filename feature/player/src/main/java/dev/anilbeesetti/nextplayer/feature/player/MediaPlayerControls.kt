@@ -66,7 +66,10 @@ internal fun MediaPlayerControls(
     val metadataState = rememberMetadataState(player = player)
     val mediaPresentationState = rememberMediaPresentationState(player = player)
     val progressState = rememberProgressStateWithTickInterval(player = player)
-    val chaptersState = rememberChaptersState(player = player, progressState = progressState)
+    val chaptersState = rememberChaptersState(
+        player = player,
+        progressState = progressState,
+    )
     val keyInputState = rememberPlayerKeyInputState(
         player = player,
         controls = controlsVisibilityState,
