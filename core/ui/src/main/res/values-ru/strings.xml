@@ -552,4 +552,6 @@
         <item quantity="many">%1$d дней</item>
         <item quantity="other">%1$d дней</item>
     </plurals>
+    <string name="add_to_home_screen">Добавить на главный экран</string>
+    <string name="playlist_shortcut_failed">Не удалось добавить ярлык плейлиста. Попробуйте ещё раз.</string>
 </resources>
