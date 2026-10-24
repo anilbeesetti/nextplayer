@@ -288,7 +288,7 @@
     <string name="thumbnail_generation_strategy">Estrategia de generación de miniaturas</string>
     <string name="first_frame">Primer cuadro</string>
     <string name="first_frame_desc">Utiliza el primer fotograma del vídeo</string>
-    <string name="frame_at_position">Posición del fotograma</string>
+    <string name="frame_at_position">Fotograma en la posición</string>
     <string name="frame_at_position_desc">Utilizar el fotograma en una posición específica del vídeo</string>
     <string name="hybrid">Híbrido (inteligente)</string>
     <string name="hybrid_desc">Intenta usar el primer fotograma. Si es mayormente un color sólido, utiliza un fotograma desde una posición específica en el vídeo en su lugar</string>
@@ -542,4 +542,6 @@
     <string name="watch_history_desc">Guardar un registro de los videos que ves</string>
     <string name="network_watch_history">Historial de reproducciones en red</string>
     <string name="network_watch_history_desc">Incluir en el historial los videos reproducidos en red.</string>
+    <string name="add_to_home_screen">Añadir a la pantalla de inicio</string>
+    <string name="playlist_shortcut_failed">No se pudo añadir el acceso directo a la lista de reproducción. Inténtalo de nuevo.</string>
 </resources>

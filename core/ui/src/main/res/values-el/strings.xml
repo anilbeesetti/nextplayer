@@ -532,4 +532,6 @@
     <string name="watch_history_desc">Τήρηση αρχείου των βίντεο που παρακολουθείτε</string>
     <string name="network_watch_history">Ιστορικό δικτύου</string>
     <string name="network_watch_history_desc">Συμπερίληψη βίντεο που αναπαράγονται μέσω δικτύου στο ιστορικό παρακολούθησης.</string>
+    <string name="playlist_shortcut_failed">Αδυναμία προσθήκης της συντόμευσης της λίστας. Προσπαθήστε ξανά.</string>
+    <string name="add_to_home_screen">Προσθήκη στην αρχική οθόνη</string>
 </resources>
