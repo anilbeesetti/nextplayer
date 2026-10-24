@@ -59,16 +59,37 @@ class KoinGraphTest {
     @Test
     fun sharedServicesAndAllThreePreferenceStoresResolve() {
         runBlocking {
-            assertSame(koin.get<PreferencesRepository>(), koin.get<PreferencesRepository>())
-            assertSame(koin.get<MediaOperationsService>(), koin.get<MediaOperationsService>())
-            assertSame(koin.get<MediaService>(), koin.get<MediaService>())
-            assertSame(koin.get<MediaSynchronizer>(), koin.get<MediaSynchronizer>())
-            assertSame(koin.get<NextDataSourceFactory>(), koin.get<NextDataSourceFactory>())
-            withTimeout(10_000) {
+            assertSame(
+                koin.get<PreferencesRepository>(),
+                koin.get<PreferencesRepository>(),
+            )
+            assertSame(
+                koin.get<MediaOperationsService>(),
+                koin.get<MediaOperationsService>(),
+            )
+            assertSame(
+                koin.get<MediaService>(),
+                koin.get<MediaService>(),
+            )
+            assertSame(
+                koin.get<MediaSynchronizer>(),
+                koin.get<MediaSynchronizer>(),
+            )
+            assertSame(
+                koin.get<NextDataSourceFactory>(),
+                koin.get<NextDataSourceFactory>(),
+            )
+            withTimeout(timeMillis = 10_000) {
                 // Read the typed values to catch collisions between erased DataStore keys.
-                koin.get<DataStore<ApplicationPreferences>>(named(DiQualifiers.APP_PREFERENCES)).data.first().mediaViewMode
-                koin.get<DataStore<PlayerPreferences>>(named(DiQualifiers.PLAYER_PREFERENCES)).data.first().resume
-                koin.get<DataStore<SearchHistory>>(named(DiQualifiers.SEARCH_HISTORY)).data.first().queries.size
+                koin.get<DataStore<ApplicationPreferences>>(
+                    qualifier = named(DiQualifiers.APP_PREFERENCES),
+                ).data.first().mediaViewMode
+                koin.get<DataStore<PlayerPreferences>>(
+                    qualifier = named(DiQualifiers.PLAYER_PREFERENCES),
+                ).data.first().resume
+                koin.get<DataStore<SearchHistory>>(
+                    qualifier = named(DiQualifiers.SEARCH_HISTORY),
+                ).data.first().queries.size
             }
         }
     }
@@ -79,37 +100,192 @@ class KoinGraphTest {
             val store = ViewModelStore()
             val secondStore = ViewModelStore()
             try {
-                viewModel<MainViewModel>(store)
-                viewModel<PlayerViewModel>(store, PlayerViewModel.Output({}, {}, {}, {}, {}, {}, {}))
-                viewModel<HistoryViewModel>(store, HistoryViewModel.Output({}, {}))
-                viewModel<MoreViewModel>(store, MoreViewModel.Output({}, {}, {}, {}, {}))
-                viewModel<TrashViewModel>(store, TrashViewModel.Output({}, {}))
-                viewModel<NetworkViewModel>(store, NetworkViewModel.Output({}, {}, {}, {}, {}))
-                viewModel<AddConnectionViewModel>(store, AddConnectionViewModel.Input(null), AddConnectionViewModel.Output({}))
-                viewModel<NetworkBrowseViewModel>(store, NetworkBrowseViewModel.Input(-1, "/"), NetworkBrowseViewModel.Output({}, { _, _ -> }, { _, _ -> }))
-                viewModel<PlaylistListViewModel>(store, PlaylistListViewModel.Output({}, {}))
-                viewModel<PlaylistDetailViewModel>(store, PlaylistDetailViewModel.Input(-1), PlaylistDetailViewModel.Output({}, { _, _ -> }))
-                viewModel<SearchViewModel>(store, SearchViewModel.Output({}, {}, {}))
-                viewModel<VaultViewModel>(store, VaultViewModel.Output({}, {}, {}))
-                viewModel<AboutPreferencesViewModel>(store, AboutPreferencesViewModel.Output({}, {}))
-                viewModel<LibrariesViewModel>(store, LibrariesViewModel.Output({}))
-                viewModel<AppearancePreferencesViewModel>(store, AppearancePreferencesViewModel.Output({}))
-                viewModel<AudioPreferencesViewModel>(store, AudioPreferencesViewModel.Output({}))
-                viewModel<GeneralPreferencesViewModel>(store, GeneralPreferencesViewModel.Output({}))
-                viewModel<GesturePreferencesViewModel>(store, GesturePreferencesViewModel.Output({}))
-                viewModel<FolderPreferencesViewModel>(store, FolderPreferencesViewModel.Output({}))
-                viewModel<MediaLibraryPreferencesViewModel>(store, MediaLibraryPreferencesViewModel.Output({}, {}, {}))
-                viewModel<PlayerPreferencesViewModel>(store, PlayerPreferencesViewModel.Output({}))
-                viewModel<SubtitlePreferencesViewModel>(store, SubtitlePreferencesViewModel.Output({}))
-                viewModel<ThumbnailPreferencesViewModel>(store, ThumbnailPreferencesViewModel.Output({}))
+                viewModel<MainViewModel>(store = store)
+                viewModel<PlayerViewModel>(
+                    store = store,
+                    PlayerViewModel.Output(
+                        navigateUp = {},
+                        selectSubtitle = {},
+                        selectAudio = {},
+                        playInBackground = {},
+                        setVideoDecoderMode = {},
+                        setAudioDecoderMode = {},
+                        tryDecoderFallback = {},
+                    ),
+                )
+                viewModel<HistoryViewModel>(
+                    store = store,
+                    HistoryViewModel.Output(
+                        navigateUp = {},
+                        playVideo = {},
+                    ),
+                )
+                viewModel<MoreViewModel>(
+                    store = store,
+                    MoreViewModel.Output(
+                        openHistory = {},
+                        playVideo = {},
+                        openSettings = {},
+                        openTrash = {},
+                        openVault = {},
+                    ),
+                )
+                viewModel<TrashViewModel>(
+                    store = store,
+                    TrashViewModel.Output(
+                        navigateUp = {},
+                        playVideo = {},
+                    ),
+                )
+                viewModel<NetworkViewModel>(
+                    store = store,
+                    NetworkViewModel.Output(
+                        addConnection = {},
+                        editConnection = {},
+                        openConnection = {},
+                        openSettings = {},
+                        openStream = {},
+                    ),
+                )
+                viewModel<AddConnectionViewModel>(
+                    store = store,
+                    AddConnectionViewModel.Input(connectionId = null),
+                    AddConnectionViewModel.Output(navigateUp = {}),
+                )
+                viewModel<NetworkBrowseViewModel>(
+                    store = store,
+                    NetworkBrowseViewModel.Input(
+                        connectionId = -1,
+                        path = "/",
+                    ),
+                    NetworkBrowseViewModel.Output(
+                        navigateUp = {},
+                        playVideos = { _, _ -> },
+                        openFolder = { _, _ -> },
+                    ),
+                )
+                viewModel<PlaylistListViewModel>(
+                    store = store,
+                    PlaylistListViewModel.Output(
+                        openPlaylist = {},
+                        openSettings = {},
+                    ),
+                )
+                viewModel<PlaylistDetailViewModel>(
+                    store = store,
+                    PlaylistDetailViewModel.Input(playlistId = -1),
+                    PlaylistDetailViewModel.Output(
+                        navigateUp = {},
+                        playPlaylist = { _, _ -> },
+                    ),
+                )
+                viewModel<SearchViewModel>(
+                    store = store,
+                    SearchViewModel.Output(
+                        navigateUp = {},
+                        playVideo = {},
+                        openFolder = {},
+                    ),
+                )
+                viewModel<VaultViewModel>(
+                    store = store,
+                    VaultViewModel.Output(
+                        navigateUp = {},
+                        playVideo = {},
+                        playVideos = {},
+                    ),
+                )
+                viewModel<AboutPreferencesViewModel>(
+                    store = store,
+                    AboutPreferencesViewModel.Output(
+                        navigateUp = {},
+                        openLibraries = {},
+                    ),
+                )
+                viewModel<LibrariesViewModel>(
+                    store = store,
+                    LibrariesViewModel.Output(navigateUp = {}),
+                )
+                viewModel<AppearancePreferencesViewModel>(
+                    store = store,
+                    AppearancePreferencesViewModel.Output(navigateUp = {}),
+                )
+                viewModel<AudioPreferencesViewModel>(
+                    store = store,
+                    AudioPreferencesViewModel.Output(navigateUp = {}),
+                )
+                viewModel<GeneralPreferencesViewModel>(
+                    store = store,
+                    GeneralPreferencesViewModel.Output(navigateUp = {}),
+                )
+                viewModel<GesturePreferencesViewModel>(
+                    store = store,
+                    GesturePreferencesViewModel.Output(navigateUp = {}),
+                )
+                viewModel<FolderPreferencesViewModel>(
+                    store = store,
+                    FolderPreferencesViewModel.Output(navigateUp = {}),
+                )
+                viewModel<MediaLibraryPreferencesViewModel>(
+                    store = store,
+                    MediaLibraryPreferencesViewModel.Output(
+                        navigateUp = {},
+                        openFolders = {},
+                        openThumbnails = {},
+                    ),
+                )
+                viewModel<PlayerPreferencesViewModel>(
+                    store = store,
+                    PlayerPreferencesViewModel.Output(navigateUp = {}),
+                )
+                viewModel<SubtitlePreferencesViewModel>(
+                    store = store,
+                    SubtitlePreferencesViewModel.Output(navigateUp = {}),
+                )
+                viewModel<ThumbnailPreferencesViewModel>(
+                    store = store,
+                    ThumbnailPreferencesViewModel.Output(navigateUp = {}),
+                )
 
-                val output = MediaPickerViewModel.Output({}, {}, {}, {}, {}, {}, {})
-                val first = viewModel<MediaPickerViewModel>(store, MediaPickerViewModel.Input("/first"), output)
-                assertEquals("/first", first.folderPath)
-                assertSame(first, viewModel<MediaPickerViewModel>(store, MediaPickerViewModel.Input("/ignored"), output))
-                val second = viewModel<MediaPickerViewModel>(secondStore, MediaPickerViewModel.Input("/second"), output)
-                assertNotSame(first, second)
-                assertEquals("/second", second.folderPath)
+                val output = MediaPickerViewModel.Output(
+                    navigateUp = {},
+                    playVideo = {},
+                    playVideos = {},
+                    openFolder = {},
+                    openSettings = {},
+                    openSearch = {},
+                    openVault = {},
+                )
+                val first = viewModel<MediaPickerViewModel>(
+                    store = store,
+                    MediaPickerViewModel.Input(folderId = "/first"),
+                    output,
+                )
+                assertEquals(
+                    "/first",
+                    first.folderPath,
+                )
+                assertSame(
+                    first,
+                    viewModel<MediaPickerViewModel>(
+                        store = store,
+                        MediaPickerViewModel.Input(folderId = "/ignored"),
+                        output,
+                    ),
+                )
+                val second = viewModel<MediaPickerViewModel>(
+                    store = secondStore,
+                    MediaPickerViewModel.Input(folderId = "/second"),
+                    output,
+                )
+                assertNotSame(
+                    first,
+                    second,
+                )
+                assertEquals(
+                    "/second",
+                    second.folderPath,
+                )
             } finally {
                 store.clear()
                 secondStore.clear()
@@ -118,7 +294,10 @@ class KoinGraphTest {
     }
 
     @OptIn(KoinInternalApi::class)
-    private inline fun <reified T : ViewModel> viewModel(store: ViewModelStore, vararg parameters: Any): T = resolveViewModel(
+    private inline fun <reified T : ViewModel> viewModel(
+        store: ViewModelStore,
+        vararg parameters: Any,
+    ): T = resolveViewModel(
         vmClass = T::class,
         viewModelStore = store,
         extras = CreationExtras.Empty,

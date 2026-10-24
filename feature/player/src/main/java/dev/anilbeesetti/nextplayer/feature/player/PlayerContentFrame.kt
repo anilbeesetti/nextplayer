@@ -32,7 +32,7 @@ fun PlayerContentFrame(
     videoZoomAndContentScaleState: VideoZoomAndContentScaleState,
     subtitleConfiguration: SubtitleConfiguration,
 ) {
-    val presentationState = rememberPresentationState(player)
+    val presentationState = rememberPresentationState(player = player)
     Box(modifier.fillMaxSize()) {
         PlayerSurface(
             player = player,
@@ -55,7 +55,7 @@ fun PlayerContentFrame(
                         bounds.right.toInt(),
                         bounds.bottom.toInt(),
                     )
-                    pictureInPictureState.setVideoViewRect(rect)
+                    pictureInPictureState.setVideoViewRect(rect = rect)
                 }
                 .graphicsLayer {
                     scaleX = videoZoomAndContentScaleState.zoom

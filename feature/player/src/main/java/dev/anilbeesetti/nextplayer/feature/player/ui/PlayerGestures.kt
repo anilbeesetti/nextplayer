@@ -41,7 +41,10 @@ fun PlayerGestures(
                         },
                         onDoubleTap = {
                             if (controlsVisibilityState.controlsLocked) return@detectTapGestures
-                            tapGestureState.handleDoubleTap(offset = it, size = size)
+                            tapGestureState.handleDoubleTap(
+                                offset = it,
+                                size = size,
+                            )
                         },
                         onPress = {
                             tryAwaitRelease()
@@ -76,7 +79,12 @@ fun PlayerGestures(
                     if (pictureInPictureState.isInPictureInPictureMode) return@pointerInput
 
                     detectCustomVerticalDragGestures(
-                        onDragStart = { volumeAndBrightnessGestureState.onDragStart(it, size) },
+                        onDragStart = {
+                            volumeAndBrightnessGestureState.onDragStart(
+                                offset = it,
+                                size = size,
+                            )
+                        },
                         onVerticalDrag = volumeAndBrightnessGestureState::onDrag,
                         onDragCancel = volumeAndBrightnessGestureState::onDragEnd,
                         onDragEnd = volumeAndBrightnessGestureState::onDragEnd,
@@ -91,16 +99,16 @@ fun PlayerGestures(
 
                     detectCustomTransformGestures(
                         onGesture = { _, panChange, zoomChange, _ ->
-                            if (tapGestureState.isLongPressGestureInAction) return@detectCustomTransformGestures
+                            if (tapGestureState.isLongPressGestureInAction) {
+                                return@detectCustomTransformGestures
+                            }
                             videoZoomAndContentScaleState.onZoomPanGesture(
                                 constraints = this@BoxWithConstraints.constraints,
                                 panChange = panChange,
                                 zoomChange = zoomChange,
                             )
                         },
-                        onGestureEnd = {
-                            videoZoomAndContentScaleState.onZoomPanGestureEnd()
-                        },
+                        onGestureEnd = { videoZoomAndContentScaleState.onZoomPanGestureEnd() },
                     )
                 },
         )

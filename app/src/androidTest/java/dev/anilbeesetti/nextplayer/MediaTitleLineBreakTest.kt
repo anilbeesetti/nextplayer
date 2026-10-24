@@ -30,7 +30,10 @@ class MediaTitleLineBreakTest {
 
     private val title = "悬案.Unsettled.Case.S01E02.2026.2160p.WEB-DL.H265"
     private val video = Video.sample.copy(nameWithExtension = "$title.mp4")
-    private val preferences = ApplicationPreferences(showExtensionField = false, showThumbnailField = false)
+    private val preferences = ApplicationPreferences(
+        showExtensionField = false,
+        showThumbnailField = false,
+    )
 
     @Test
     fun listTitleDoesNotIsolateChinesePrefix() = assertTitleWraps {
@@ -65,11 +68,23 @@ class MediaTitleLineBreakTest {
     private fun assertTitleWraps(content: @Composable () -> Unit) {
         composeRule.setContent { NextPlayerTheme { content() } }
         val results = mutableListOf<TextLayoutResult>()
-        composeRule.onNodeWithText(title, useUnmergedTree = true)
+        composeRule.onNodeWithText(
+            text = title,
+            useUnmergedTree = true,
+        )
             .performSemanticsAction(SemanticsActions.GetTextLayoutResult) { it(results) }
         val layout = results.single()
-        assertEquals(2, layout.lineCount)
-        assertTrue("First line ends at ${layout.getLineEnd(0)}", layout.getLineEnd(0) > 2)
-        assertEquals(title, layout.layoutInput.text.text)
+        assertEquals(
+            2,
+            layout.lineCount,
+        )
+        assertTrue(
+            "First line ends at ${layout.getLineEnd(lineIndex = 0)}",
+            layout.getLineEnd(lineIndex = 0) > 2,
+        )
+        assertEquals(
+            title,
+            layout.layoutInput.text.text,
+        )
     }
 }

@@ -13,24 +13,24 @@ import dev.anilbeesetti.nextplayer.core.model.Video
 import java.io.Serializable
 
 @Composable
-fun rememberSelectionManager(): SelectionManager {
-    return rememberSaveable(saver = SelectionManager.Saver) {
-        SelectionManager()
-    }
-}
+fun rememberSelectionManager(): SelectionManager =
+    rememberSaveable(saver = SelectionManager.Saver) { SelectionManager() }
 
 @Stable
 class SelectionManager(
     initialSelectionItems: Set<SelectionItem> = emptySet(),
     initialIsInSelectionMode: Boolean = false,
 ) {
-    var selectionItems: Set<SelectionItem> by mutableStateOf(initialSelectionItems)
+    var selectionItems: Set<SelectionItem> by mutableStateOf(value = initialSelectionItems)
         private set
 
-    var isInSelectionMode: Boolean by mutableStateOf(initialIsInSelectionMode)
+    var isInSelectionMode: Boolean by mutableStateOf(value = initialIsInSelectionMode)
         private set
 
-    val isSingleVideoSelected: Boolean by derivedStateOf { selectionItems.size == 1 && selectionItems.first() is SelectionItem.Video }
+    val isSingleVideoSelected: Boolean by derivedStateOf {
+        selectionItems.size == 1 &&
+            selectionItems.first() is SelectionItem.Video
+    }
 
     fun toggleFolderSelection(folder: Folder) {
         val selectedFolder = selectionItems.find { it.id == folder.path }
@@ -83,13 +83,13 @@ class SelectionManager(
         selectionItems = emptySet()
     }
 
-    fun isFolderSelected(folder: Folder): Boolean {
-        return selectionItems.find { it.id == folder.path } != null
-    }
+    fun isFolderSelected(folder: Folder): Boolean = selectionItems.find {
+        it.id == folder.path
+    } != null
 
-    fun isVideoSelected(video: Video): Boolean {
-        return selectionItems.find { it.id == video.uriString } != null
-    }
+    fun isVideoSelected(video: Video): Boolean = selectionItems.find {
+        it.id == video.uriString
+    } != null
 
     companion object {
         @Suppress("UNCHECKED_CAST")
@@ -102,7 +102,8 @@ class SelectionManager(
             },
             restore = {
                 SelectionManager(
-                    initialSelectionItems = (it["selectionItems"] as? Set<SelectionItem>) ?: emptySet(),
+                    initialSelectionItems =
+                        (it["selectionItems"] as? Set<SelectionItem>) ?: emptySet(),
                     initialIsInSelectionMode = it["isInSelectionMode"] as? Boolean ?: false,
                 )
             },
@@ -110,21 +111,15 @@ class SelectionManager(
     }
 }
 
-sealed interface SelectionItem: Serializable {
+sealed interface SelectionItem : Serializable {
     @Stable
-    data class Folder(
-        override val name: String,
-        val path: String,
-    ) : SelectionItem {
+    data class Folder(override val name: String, val path: String) : SelectionItem {
         override val id: String = path
     }
 
     @Stable
-    data class Video(
-        override val name: String,
-        val uriString: String,
-        val path: String,
-    ) : SelectionItem {
+    data class Video(override val name: String, val uriString: String, val path: String) :
+        SelectionItem {
         override val id: String = uriString
     }
 

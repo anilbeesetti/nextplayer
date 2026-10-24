@@ -44,7 +44,11 @@ fun DoubleTapIndicator(modifier: Modifier = Modifier, tapGestureState: TapGestur
     if (tapGestureState.seekMillis == 0L) return
     Box(
         modifier = modifier.fillMaxSize(),
-        contentAlignment = if (tapGestureState.seekMillis > 0) Alignment.CenterEnd else Alignment.CenterStart,
+        contentAlignment = if (tapGestureState.seekMillis > 0) {
+            Alignment.CenterEnd
+        } else {
+            Alignment.CenterStart
+        },
     ) {
         Box(
             modifier = Modifier
@@ -57,9 +61,18 @@ fun DoubleTapIndicator(modifier: Modifier = Modifier, tapGestureState: TapGestur
                         DoubleTapGesture.NONE -> 0f
                     },
                 )
-                .clip(if (tapGestureState.seekMillis > 0) RightSideOvalShape() else LeftSideOvalShape())
-                .background(Color.White.copy(0.2f))
-                .indication(tapGestureState.interactionSource, ripple()),
+                .clip(
+                    shape = if (tapGestureState.seekMillis > 0) {
+                        RightSideOvalShape()
+                    } else {
+                        LeftSideOvalShape()
+                    },
+                )
+                .background(Color.White.copy(alpha = 0.2f))
+                .indication(
+                    tapGestureState.interactionSource,
+                    indication = ripple(),
+                ),
             contentAlignment = Alignment.Center,
         ) {
             Column(
@@ -77,31 +90,46 @@ fun DoubleTapIndicator(modifier: Modifier = Modifier, tapGestureState: TapGestur
 }
 
 @Composable
-private fun DoubleTapSeekTriangles(
-    isForward: Boolean,
-    modifier: Modifier = Modifier,
-) {
+private fun DoubleTapSeekTriangles(isForward: Boolean, modifier: Modifier = Modifier) {
     val animationDuration = 750L
 
-    val alpha1 = remember { Animatable(0f) }
-    val alpha2 = remember { Animatable(0f) }
-    val alpha3 = remember { Animatable(0f) }
+    val alpha1 = remember { Animatable(initialValue = 0f) }
+    val alpha2 = remember { Animatable(initialValue = 0f) }
+    val alpha3 = remember { Animatable(initialValue = 0f) }
 
-    LaunchedEffect(animationDuration) {
+    LaunchedEffect(key1 = animationDuration) {
         while (true) {
-            alpha1.animateTo(1f, animationSpec = tween((animationDuration / 5).toInt()))
-            alpha2.animateTo(1f, animationSpec = tween((animationDuration / 5).toInt()))
-            alpha3.animateTo(1f, animationSpec = tween((animationDuration / 5).toInt()))
-            alpha1.animateTo(0f, animationSpec = tween((animationDuration / 5).toInt()))
-            alpha2.animateTo(0f, animationSpec = tween((animationDuration / 5).toInt()))
-            alpha3.animateTo(0f, animationSpec = tween((animationDuration / 5).toInt()))
+            alpha1.animateTo(
+                targetValue = 1f,
+                animationSpec = tween((animationDuration / 5).toInt()),
+            )
+            alpha2.animateTo(
+                targetValue = 1f,
+                animationSpec = tween((animationDuration / 5).toInt()),
+            )
+            alpha3.animateTo(
+                targetValue = 1f,
+                animationSpec = tween((animationDuration / 5).toInt()),
+            )
+            alpha1.animateTo(
+                targetValue = 0f,
+                animationSpec = tween((animationDuration / 5).toInt()),
+            )
+            alpha2.animateTo(
+                targetValue = 0f,
+                animationSpec = tween((animationDuration / 5).toInt()),
+            )
+            alpha3.animateTo(
+                targetValue = 0f,
+                animationSpec = tween((animationDuration / 5).toInt()),
+            )
         }
     }
 
     val rotation = if (isForward) 0f else 180f
     Row(
         verticalAlignment = Alignment.CenterVertically,
-        modifier = modifier.rotate(rotation),
+        modifier = modifier.rotate(degrees = rotation),
     ) {
         DoubleTapArrow(alpha1.value)
         DoubleTapArrow(alpha2.value)
@@ -116,20 +144,29 @@ private class RightSideOvalShape : Shape {
         density: Density,
     ): Outline {
         val path = Path().apply {
-            moveTo(size.width, size.height)
-            lineTo(size.width, 0f)
-            lineTo(size.width * 0.1f, 0f)
+            moveTo(
+                size.width,
+                size.height,
+            )
+            lineTo(
+                size.width,
+                y = 0f,
+            )
+            lineTo(
+                x = size.width * 0.1f,
+                y = 0f,
+            )
             cubicTo(
-                size.width * 0.1f,
-                0f,
-                -size.width * 0.1f,
-                size.height / 2,
-                size.width * 0.1f,
+                x1 = size.width * 0.1f,
+                y1 = 0f,
+                x2 = -size.width * 0.1f,
+                y2 = size.height / 2,
+                x3 = size.width * 0.1f,
                 size.height,
             )
             close()
         }
-        return Outline.Generic(path)
+        return Outline.Generic(path = path)
     }
 }
 
@@ -140,20 +177,29 @@ private class LeftSideOvalShape : Shape {
         density: Density,
     ): Outline {
         val path = Path().apply {
-            moveTo(0f, 0f)
-            lineTo(size.width * 0.9f, 0f)
+            moveTo(
+                x = 0f,
+                y = 0f,
+            )
+            lineTo(
+                x = size.width * 0.9f,
+                y = 0f,
+            )
             cubicTo(
-                size.width * 0.9f,
-                0f,
-                size.width * 1.1f,
-                size.height / 2,
-                size.width * 0.9f,
+                x1 = size.width * 0.9f,
+                y1 = 0f,
+                x2 = size.width * 1.1f,
+                y2 = size.height / 2,
+                x3 = size.width * 0.9f,
                 size.height,
             )
-            lineTo(0f, size.height)
+            lineTo(
+                x = 0f,
+                size.height,
+            )
             close()
         }
-        return Outline.Generic(path)
+        return Outline.Generic(path = path)
     }
 }
 
@@ -177,15 +223,15 @@ private fun OvalShapePreview() {
             Box(
                 modifier = Modifier
                     .fillMaxHeight()
-                    .weight(1f)
-                    .clip(LeftSideOvalShape())
+                    .weight(weight = 1f)
+                    .clip(shape = LeftSideOvalShape())
                     .background(Color.Blue),
             ) {}
             Box(
                 modifier = Modifier
                     .fillMaxHeight()
-                    .weight(1f)
-                    .clip(RightSideOvalShape())
+                    .weight(weight = 1f)
+                    .clip(shape = RightSideOvalShape())
                     .background(Color.Blue),
             ) {}
         }

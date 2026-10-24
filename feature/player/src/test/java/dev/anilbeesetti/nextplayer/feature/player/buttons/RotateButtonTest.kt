@@ -22,7 +22,10 @@ import org.robolectric.RobolectricTestRunner
 import org.robolectric.annotation.Config
 
 @RunWith(RobolectricTestRunner::class)
-@Config(sdk = [36], qualifiers = "port")
+@Config(
+    sdk = [36],
+    qualifiers = "port",
+)
 class RotateButtonTest {
     @get:Rule
     val composeRule = createAndroidComposeRule<ComponentActivity>()
@@ -32,21 +35,44 @@ class RotateButtonTest {
         val player = composeRule.runOnIdle { TestPlayer() }
         try {
             composeRule.runOnIdle {
-                composeRule.activity.requestedOrientation = ActivityInfo.SCREEN_ORIENTATION_UNSPECIFIED
+                composeRule.activity.requestedOrientation =
+                    ActivityInfo.SCREEN_ORIENTATION_UNSPECIFIED
             }
             composeRule.setContent {
-                PlayerOrientationEffect(player, ScreenOrientation.VIDEO_ORIENTATION)
+                PlayerOrientationEffect(
+                    player = player,
+                    ScreenOrientation.VIDEO_ORIENTATION,
+                )
             }
             composeRule.runOnIdle {
-                assertEquals(ActivityInfo.SCREEN_ORIENTATION_SENSOR_LANDSCAPE, composeRule.activity.requestedOrientation)
-                player.updateVideoSize(VideoSize(360, 640))
+                assertEquals(
+                    ActivityInfo.SCREEN_ORIENTATION_SENSOR_LANDSCAPE,
+                    composeRule.activity.requestedOrientation,
+                )
+                player.updateVideoSize(
+                    videoSize = VideoSize(
+                        360,
+                        640,
+                    ),
+                )
             }
             composeRule.runOnIdle {
-                assertEquals(ActivityInfo.SCREEN_ORIENTATION_SENSOR_PORTRAIT, composeRule.activity.requestedOrientation)
-                player.updateVideoSize(VideoSize(640, 360))
+                assertEquals(
+                    ActivityInfo.SCREEN_ORIENTATION_SENSOR_PORTRAIT,
+                    composeRule.activity.requestedOrientation,
+                )
+                player.updateVideoSize(
+                    videoSize = VideoSize(
+                        640,
+                        360,
+                    ),
+                )
             }
             composeRule.runOnIdle {
-                assertEquals(ActivityInfo.SCREEN_ORIENTATION_SENSOR_LANDSCAPE, composeRule.activity.requestedOrientation)
+                assertEquals(
+                    ActivityInfo.SCREEN_ORIENTATION_SENSOR_LANDSCAPE,
+                    composeRule.activity.requestedOrientation,
+                )
             }
         } finally {
             composeRule.runOnIdle { player.release() }
@@ -56,27 +82,39 @@ class RotateButtonTest {
     @Test
     fun manualRotationSurvivesHidingAndRecreatingRotateButton() {
         val player = composeRule.runOnIdle { TestPlayer() }
-        val visible = mutableStateOf(true)
+        val visible = mutableStateOf(value = true)
         try {
             composeRule.runOnIdle {
-                composeRule.activity.requestedOrientation = ActivityInfo.SCREEN_ORIENTATION_UNSPECIFIED
+                composeRule.activity.requestedOrientation =
+                    ActivityInfo.SCREEN_ORIENTATION_UNSPECIFIED
             }
             composeRule.setContent {
-                PlayerOrientationEffect(player, ScreenOrientation.PORTRAIT)
+                PlayerOrientationEffect(
+                    player = player,
+                    ScreenOrientation.PORTRAIT,
+                )
                 NextPlayerTheme {
                     if (visible.value) RotateButton()
                 }
             }
-            composeRule.onNodeWithContentDescription(composeRule.activity.getString(R.string.screen_rotation)).performClick()
+            composeRule.onNodeWithContentDescription(
+                composeRule.activity.getString(R.string.screen_rotation),
+            ).performClick()
             composeRule.runOnIdle {
-                assertEquals(ActivityInfo.SCREEN_ORIENTATION_SENSOR_LANDSCAPE, composeRule.activity.requestedOrientation)
+                assertEquals(
+                    ActivityInfo.SCREEN_ORIENTATION_SENSOR_LANDSCAPE,
+                    composeRule.activity.requestedOrientation,
+                )
                 visible.value = false
             }
             composeRule.waitForIdle()
             composeRule.runOnIdle { visible.value = true }
             composeRule.waitForIdle()
             composeRule.runOnIdle {
-                assertEquals(ActivityInfo.SCREEN_ORIENTATION_SENSOR_LANDSCAPE, composeRule.activity.requestedOrientation)
+                assertEquals(
+                    ActivityInfo.SCREEN_ORIENTATION_SENSOR_LANDSCAPE,
+                    composeRule.activity.requestedOrientation,
+                )
             }
         } finally {
             composeRule.runOnIdle { player.release() }
@@ -86,7 +124,12 @@ class RotateButtonTest {
     private class TestPlayer : SimpleBasePlayer(Looper.getMainLooper()) {
         private var state = State.Builder()
             .setAvailableCommands(Player.Commands.EMPTY)
-            .setVideoSize(VideoSize(640, 360))
+            .setVideoSize(
+                VideoSize(
+                    640,
+                    360,
+                ),
+            )
             .build()
 
         override fun getState(): State = state

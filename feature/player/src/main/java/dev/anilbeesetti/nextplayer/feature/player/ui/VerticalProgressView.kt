@@ -43,25 +43,31 @@ fun VerticalProgressView(
     modifier: Modifier = Modifier,
     width: Dp = 32.dp,
     icon: Painter,
-    @IntRange(from = 0, to = 200) value: Int,
+    @IntRange(
+        from = 0,
+        to = 200,
+    ) value: Int,
     maxValue: Int = NORMAL_MAX_PERCENTAGE,
-    boostColor: Color = Color(0xFFFC6E6E),
+    boostColor: Color = Color(color = 0xFFFC6E6E),
 ) {
-    val normalizedValue = value.coerceIn(0, maxValue)
+    val normalizedValue = value.coerceIn(
+        minimumValue = 0,
+        maximumValue = maxValue,
+    )
     val fillFraction = normalizedValue.toFloat() / maxValue.toFloat()
     val isBoostActive = maxValue > NORMAL_MAX_PERCENTAGE && value > NORMAL_MAX_PERCENTAGE
 
     Column(
         modifier = modifier
             .heightIn(max = 250.dp)
-            .clip(CircleShape)
+            .clip(shape = CircleShape)
             .background(MaterialTheme.colorScheme.background)
             .padding(8.dp),
         horizontalAlignment = Alignment.CenterHorizontally,
         verticalArrangement = Arrangement.spacedBy(4.dp),
     ) {
         Box(
-            modifier = Modifier.size(width),
+            modifier = Modifier.size(size = width),
             contentAlignment = Alignment.Center,
         ) {
             BasicText(
@@ -69,26 +75,34 @@ fun VerticalProgressView(
                 style = MaterialTheme.typography.labelLarge.copy(
                     color = MaterialTheme.colorScheme.onBackground,
                 ),
-                autoSize = TextAutoSize.StepBased(maxFontSize = MaterialTheme.typography.labelLarge.fontSize),
+                autoSize = TextAutoSize.StepBased(
+                    maxFontSize = MaterialTheme.typography.labelLarge.fontSize,
+                ),
             )
         }
         Box(
             modifier = Modifier
-                .weight(1f)
-                .width(width)
+                .weight(weight = 1f)
+                .width(width = width)
                 .clip(MaterialTheme.shapes.medium)
                 .background(MaterialTheme.colorScheme.surfaceVariant),
             contentAlignment = Alignment.BottomCenter,
         ) {
             Box(
                 modifier = Modifier
-                    .width(width)
-                    .fillMaxHeight(fillFraction)
-                    .background(if (isBoostActive) boostColor else MaterialTheme.colorScheme.primary),
+                    .width(width = width)
+                    .fillMaxHeight(fraction = fillFraction)
+                    .background(
+                        color = if (isBoostActive) {
+                            boostColor
+                        } else {
+                            MaterialTheme.colorScheme.primary
+                        },
+                    ),
             )
         }
         Box(
-            modifier = Modifier.size(width),
+            modifier = Modifier.size(size = width),
             contentAlignment = Alignment.Center,
         ) {
             Icon(

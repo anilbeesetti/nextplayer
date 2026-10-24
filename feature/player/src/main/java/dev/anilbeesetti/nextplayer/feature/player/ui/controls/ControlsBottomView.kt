@@ -85,7 +85,9 @@ fun ControlsBottomView(
     onSeek: (Long) -> Unit,
     onSeekEnd: () -> Unit,
 ) {
-    val systemBarsPadding = WindowInsets.systemBars.union(WindowInsets.displayCutout).asPaddingValues()
+    val systemBarsPadding = WindowInsets.systemBars.union(
+        WindowInsets.displayCutout,
+    ).asPaddingValues()
     val context = LocalContext.current
     val isTv = remember { context.isTelevision }
     val timeButtonFocusRequester = remember { FocusRequester() }
@@ -94,7 +96,10 @@ fun ControlsBottomView(
             .padding(systemBarsPadding.copy(top = 0.dp))
             .padding(horizontal = 16.dp)
             .padding(top = 16.dp)
-            .padding(bottom = 16.dp.takeIf { systemBarsPadding.calculateBottomPadding() == 0.dp } ?: 0.dp),
+            .padding(
+                bottom =
+                    16.dp.takeIf { systemBarsPadding.calculateBottomPadding() == 0.dp } ?: 0.dp,
+            ),
         verticalArrangement = Arrangement.spacedBy(4.dp),
     ) {
         Row(
@@ -105,10 +110,13 @@ fun ControlsBottomView(
             horizontalArrangement = Arrangement.spacedBy(8.dp),
         ) {
             PlayerButton(
-                modifier = Modifier.focusRequester(timeButtonFocusRequester),
+                modifier = Modifier.focusRequester(focusRequester = timeButtonFocusRequester),
                 onClick = onToggleTimeDisplay,
                 containerColor = PlayerButtonBlackAlpha,
-                contentPadding = PaddingValues(horizontal = 8.dp, vertical = 1.dp),
+                contentPadding = PaddingValues(
+                    horizontal = 8.dp,
+                    vertical = 1.dp,
+                ),
             ) {
                 val timeTextPositionMs by remember(progressState) {
                     derivedStateOf {
@@ -140,7 +148,10 @@ fun ControlsBottomView(
                 PlayerButton(
                     onClick = onChaptersClick,
                     containerColor = PlayerButtonBlackAlpha,
-                    contentPadding = PaddingValues(vertical = 1.dp, horizontal = 8.dp).copy(end = 2.dp),
+                    contentPadding = PaddingValues(
+                        vertical = 1.dp,
+                        horizontal = 8.dp,
+                    ).copy(end = 2.dp),
                 ) {
                     Row(
                         modifier = Modifier,
@@ -148,10 +159,14 @@ fun ControlsBottomView(
                         horizontalArrangement = Arrangement.spacedBy(4.dp),
                     ) {
                         Text(
-                            text = chaptersState.chapters.getOrNull(chaptersState.currentChapterIndex)
-                                ?.titleOrDefault(chaptersState.currentChapterIndex)
-                                ?: stringResource(R.string.chapters),
-                            modifier = Modifier.weight(1f, fill = false),
+                            text =
+                                chaptersState.chapters.getOrNull(chaptersState.currentChapterIndex)
+                                    ?.titleOrDefault(chaptersState.currentChapterIndex)
+                                    ?: stringResource(R.string.chapters),
+                            modifier = Modifier.weight(
+                                weight = 1f,
+                                fill = false,
+                            ),
                             style = MaterialTheme.typography.labelLarge,
                             maxLines = 1,
                             overflow = TextOverflow.Ellipsis,
@@ -165,7 +180,7 @@ fun ControlsBottomView(
                 }
             }
 
-            Spacer(modifier = Modifier.weight(1f))
+            Spacer(modifier = Modifier.weight(weight = 1f))
 
             Row(
                 horizontalArrangement = Arrangement.spacedBy(16.dp),
@@ -191,9 +206,12 @@ fun ControlsBottomView(
         Row(
             modifier = Modifier
                 .fillMaxWidth()
-                .horizontalScroll(rememberScrollState()),
+                .horizontalScroll(state = rememberScrollState()),
             verticalAlignment = Alignment.CenterVertically,
-            horizontalArrangement = Arrangement.spacedBy(8.dp, alignment = controlsAlignment),
+            horizontalArrangement = Arrangement.spacedBy(
+                8.dp,
+                alignment = controlsAlignment,
+            ),
         ) {
             PlayerButton(onClick = onLockControlsClick) {
                 Icon(
@@ -235,13 +253,16 @@ fun ControlsBottomView(
 @Composable
 private fun ControlsBottomViewPreview() {
     val player = rememberPreviewPlayer()
-    val progressState = rememberProgressStateWithTickInterval(player)
+    val progressState = rememberProgressStateWithTickInterval(player = player)
     NextPlayerTheme(darkTheme = true) {
         Surface {
             ControlsBottomView(
                 player = player,
                 progressState = progressState,
-                chaptersState = rememberChaptersState(player, progressState),
+                chaptersState = rememberChaptersState(
+                    player = player,
+                    progressState = progressState,
+                ),
                 controlsAlignment = Alignment.Start,
                 videoContentScale = VideoContentScale.BEST_FIT,
                 isPipSupported = true,

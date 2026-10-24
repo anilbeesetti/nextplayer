@@ -19,11 +19,11 @@ object AboutPreferencesRoute : NavKey
 object LibrariesRoute : NavKey
 
 fun NavBackStack<NavKey>.navigateToAboutPreferences() {
-    add(AboutPreferencesRoute)
+    add(element = AboutPreferencesRoute)
 }
 
 fun NavBackStack<NavKey>.navigateToLibraries() {
-    add(LibrariesRoute)
+    add(element = LibrariesRoute)
 }
 
 fun EntryProviderScope<NavKey>.aboutPreferencesEntry(
@@ -31,7 +31,10 @@ fun EntryProviderScope<NavKey>.aboutPreferencesEntry(
     onNavigateUp: () -> Unit,
 ) {
     entry<AboutPreferencesRoute> {
-        val output = AboutPreferencesViewModel.Output(navigateUp = onNavigateUp, openLibraries = onLibrariesClick)
+        val output = AboutPreferencesViewModel.Output(
+            navigateUp = onNavigateUp,
+            openLibraries = onLibrariesClick,
+        )
         val viewModel = koinViewModel<AboutPreferencesViewModel>(
             parameters = { parametersOf(output) },
         )

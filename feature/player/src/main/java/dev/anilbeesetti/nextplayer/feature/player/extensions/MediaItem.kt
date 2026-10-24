@@ -11,13 +11,20 @@ import io.github.anilbeesetti.nextlib.media3ext.ffdecoder.DecoderMode
 private const val MEDIA_METADATA_EXTERNAL_AUDIO_KEY = "external_audio"
 
 val MediaMetadata.externalAudio: List<Uri>
-    get() = extras?.getStringArrayList(MEDIA_METADATA_EXTERNAL_AUDIO_KEY)?.map { it.toUri() }.orEmpty()
+    get() = extras?.getStringArrayList(MEDIA_METADATA_EXTERNAL_AUDIO_KEY)?.map {
+        it.toUri()
+    }.orEmpty()
 
 fun MediaItem.withExternalAudio(uris: List<Uri>): MediaItem = buildUpon()
     .setMediaMetadata(
         mediaMetadata.buildUpon().setExtras(
-            (mediaMetadata.extras?.let(::Bundle) ?: Bundle()).apply {
-                putStringArrayList(MEDIA_METADATA_EXTERNAL_AUDIO_KEY, ArrayList(uris.map { it.toString() }))
+            (mediaMetadata.extras?.let(block = ::Bundle) ?: Bundle()).apply {
+                putStringArrayList(
+                    MEDIA_METADATA_EXTERNAL_AUDIO_KEY,
+                    ArrayList(
+                        uris.map { it.toString() },
+                    ),
+                )
             },
         ).build(),
     ).build()
@@ -41,14 +48,54 @@ private fun Bundle.setExtras(
     videoDecoderMode: DecoderMode? = null,
     audioDecoderMode: DecoderMode? = null,
 ) = apply {
-    positionMs?.let { putLong(MEDIA_METADATA_POSITION_KEY, it) }
-    videoScale?.let { putFloat(MEDIA_METADATA_VIDEO_ZOOM_KEY, it) }
-    audioTrackIndex?.let { putInt(MEDIA_METADATA_AUDIO_TRACK_INDEX_KEY, it) }
-    subtitleTrackIndex?.let { putInt(MEDIA_METADATA_SUBTITLE_TRACK_INDEX_KEY, it) }
-    subtitleDelayMilliseconds?.let { putLong(MEDIA_METADATA_SUBTITLE_DELAY_KEY, it) }
-    subtitleSpeed?.let { putFloat(MEDIA_METADATA_SUBTITLE_SPEED_KEY, it) }
-    videoDecoderMode?.let { putString(MEDIA_METADATA_VIDEO_DECODER_MODE_KEY, it.name) }
-    audioDecoderMode?.let { putString(MEDIA_METADATA_AUDIO_DECODER_MODE_KEY, it.name) }
+    positionMs?.let {
+        putLong(
+            MEDIA_METADATA_POSITION_KEY,
+            it,
+        )
+    }
+    videoScale?.let {
+        putFloat(
+            MEDIA_METADATA_VIDEO_ZOOM_KEY,
+            it,
+        )
+    }
+    audioTrackIndex?.let {
+        putInt(
+            MEDIA_METADATA_AUDIO_TRACK_INDEX_KEY,
+            it,
+        )
+    }
+    subtitleTrackIndex?.let {
+        putInt(
+            MEDIA_METADATA_SUBTITLE_TRACK_INDEX_KEY,
+            it,
+        )
+    }
+    subtitleDelayMilliseconds?.let {
+        putLong(
+            MEDIA_METADATA_SUBTITLE_DELAY_KEY,
+            it,
+        )
+    }
+    subtitleSpeed?.let {
+        putFloat(
+            MEDIA_METADATA_SUBTITLE_SPEED_KEY,
+            it,
+        )
+    }
+    videoDecoderMode?.let {
+        putString(
+            MEDIA_METADATA_VIDEO_DECODER_MODE_KEY,
+            it.name,
+        )
+    }
+    audioDecoderMode?.let {
+        putString(
+            MEDIA_METADATA_AUDIO_DECODER_MODE_KEY,
+            it.name,
+        )
+    }
 }
 
 fun MediaMetadata.Builder.setExtras(
@@ -110,10 +157,10 @@ val MediaMetadata.subtitleSpeed: Float?
     }
 
 val MediaMetadata.videoDecoderMode: DecoderMode?
-    get() = extras?.decoderMode(MEDIA_METADATA_VIDEO_DECODER_MODE_KEY)
+    get() = extras?.decoderMode(key = MEDIA_METADATA_VIDEO_DECODER_MODE_KEY)
 
 val MediaMetadata.audioDecoderMode: DecoderMode?
-    get() = extras?.decoderMode(MEDIA_METADATA_AUDIO_DECODER_MODE_KEY)
+    get() = extras?.decoderMode(key = MEDIA_METADATA_AUDIO_DECODER_MODE_KEY)
 
 fun MediaItem.copy(
     positionMs: Long? = this.mediaMetadata.positionMs,
@@ -129,7 +176,7 @@ fun MediaItem.copy(
     mediaMetadata.buildUpon()
         .setDurationMs(durationMs)
         .setExtras(
-            (mediaMetadata.extras?.let(::Bundle) ?: Bundle()).setExtras(
+            (mediaMetadata.extras?.let(block = ::Bundle) ?: Bundle()).setExtras(
                 positionMs = positionMs,
                 videoScale = videoZoom,
                 audioTrackIndex = audioTrackIndex,

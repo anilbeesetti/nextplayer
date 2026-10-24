@@ -26,47 +26,106 @@ class ExternalAudioMediaSourceFactoryTest {
     fun mergesSwitchableAudioWithoutShorteningPrimaryTimeline() {
         val instrumentation = InstrumentationRegistry.getInstrumentation()
         val context = instrumentation.targetContext
-        val primary = wav(File(context.cacheDir, "primary.wav"), 3)
-        val shortAudio = wav(File(context.cacheDir, "short.wav"), 1)
-        val longAudio = wav(File(context.cacheDir, "long.wav"), 5)
+        val primary = wav(
+            file = File(
+                context.cacheDir,
+                "primary.wav",
+            ),
+            seconds = 3,
+        )
+        val shortAudio = wav(
+            file = File(
+                context.cacheDir,
+                "short.wav",
+            ),
+            seconds = 1,
+        )
+        val longAudio = wav(
+            file = File(
+                context.cacheDir,
+                "long.wav",
+            ),
+            seconds = 5,
+        )
         lateinit var player: ExoPlayer
         try {
             instrumentation.runOnMainSync {
                 player = ExoPlayer.Builder(context)
-                    .setMediaSourceFactory(ExternalAudioMediaSourceFactory(DefaultMediaSourceFactory(context)))
+                    .setMediaSourceFactory(
+                        ExternalAudioMediaSourceFactory(
+                            delegate = DefaultMediaSourceFactory(context),
+                        ),
+                    )
                     .build()
                 player.setMediaItem(
-                    MediaItem.fromUri(primary.toUri()).withExternalAudio(listOf(shortAudio.toUri(), longAudio.toUri())),
+                    MediaItem.fromUri(
+                        primary.toUri(),
+                    ).withExternalAudio(
+                        uris = listOf(
+                            shortAudio.toUri(),
+                            longAudio.toUri(),
+                        ),
+                    ),
                 )
                 player.prepare()
             }
             await { player.playbackState == Player.STATE_READY }
             instrumentation.runOnMainSync {
-                assertEquals(3000L, player.duration)
-                assertEquals(3, player.currentTracks.groups.count { it.type == C.TRACK_TYPE_AUDIO })
-                player.switchTrack(C.TRACK_TYPE_AUDIO, 1)
+                assertEquals(
+                    3000L,
+                    player.duration,
+                )
+                assertEquals(
+                    3,
+                    player.currentTracks.groups.count { it.type == C.TRACK_TYPE_AUDIO },
+                )
+                player.switchTrack(
+                    C.TRACK_TYPE_AUDIO,
+                    trackIndex = 1,
+                )
                 player.setPlaybackSpeed(1.5f)
                 player.seekTo(2000)
             }
-            await { player.currentTracks.groups[1].isSelected && player.playbackState == Player.STATE_READY }
+            await {
+                player.currentTracks.groups[1].isSelected &&
+                    player.playbackState == Player.STATE_READY
+            }
             instrumentation.runOnMainSync {
-                assertEquals(2000L, player.currentPosition)
-                assertEquals(1.5f, player.playbackParameters.speed)
+                assertEquals(
+                    2000L,
+                    player.currentPosition,
+                )
+                assertEquals(
+                    1.5f,
+                    player.playbackParameters.speed,
+                )
                 assertTrue(!player.playWhenReady)
-                player.switchTrack(C.TRACK_TYPE_AUDIO, 0)
+                player.switchTrack(
+                    C.TRACK_TYPE_AUDIO,
+                    trackIndex = 0,
+                )
             }
             await { player.currentTracks.groups[0].isSelected }
-            instrumentation.runOnMainSync { player.switchTrack(C.TRACK_TYPE_AUDIO, -1) }
+            instrumentation.runOnMainSync {
+                player.switchTrack(
+                    C.TRACK_TYPE_AUDIO,
+                    trackIndex = -1,
+                )
+            }
             await { player.currentTracks.groups.none { it.isSelected } }
         } finally {
             instrumentation.runOnMainSync { player.release() }
-            listOf(primary, shortAudio, longAudio).forEach { it.delete() }
+            listOf(
+                primary,
+                shortAudio,
+                longAudio,
+            ).forEach { it.delete() }
         }
     }
 
     private fun await(condition: () -> Boolean) {
         val instrumentation = InstrumentationRegistry.getInstrumentation()
-        repeat(100) {
+        repeat(times = 100) {
             var ready = false
             instrumentation.runOnMainSync { ready = condition() }
             if (ready) return
@@ -83,7 +142,7 @@ class ExternalAudioMediaSourceFactoryTest {
             .putShort(2).putShort(16).put("data".toByteArray()).putInt(bytes).array()
         file.outputStream().use {
             it.write(header)
-            it.write(ByteArray(bytes))
+            it.write(ByteArray(size = bytes))
         }
         return file
     }

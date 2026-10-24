@@ -25,7 +25,10 @@ import org.robolectric.RuntimeEnvironment
 import org.robolectric.annotation.Config
 
 @RunWith(RobolectricTestRunner::class)
-@Config(manifest = Config.NONE, sdk = [28])
+@Config(
+    manifest = Config.NONE,
+    sdk = [28],
+)
 class PlaylistAutoplayTest {
     @After
     fun tearDown() {
@@ -35,10 +38,17 @@ class PlaylistAutoplayTest {
     @Test
     fun explicitPlaylistAdvancesWithAutoplayOffInEveryRepeatMode() {
         withPlayer(autoplay = false) { player ->
-            for (repeatMode in listOf(Player.REPEAT_MODE_OFF, Player.REPEAT_MODE_ONE, Player.REPEAT_MODE_ALL)) {
+            for (repeatMode in listOf(
+                Player.REPEAT_MODE_OFF,
+                Player.REPEAT_MODE_ONE,
+                Player.REPEAT_MODE_ALL,
+            )) {
                 player.repeatMode = repeatMode
                 player.setMediaItems(explicitPlaylist())
-                assertFalse("Explicit playlist must advance in repeat mode $repeatMode", player.pauseAtEndOfMediaItems)
+                assertFalse(
+                    "Explicit playlist must advance in repeat mode $repeatMode",
+                    player.pauseAtEndOfMediaItems,
+                )
             }
         }
     }
@@ -77,7 +87,10 @@ class PlaylistAutoplayTest {
     fun editingExplicitPlaylistKeepsAutomaticTransitionsEnabled() {
         withPlayer(autoplay = false) { player ->
             player.setMediaItems(explicitPlaylist())
-            player.moveMediaItem(0, 1)
+            player.moveMediaItem(
+                0,
+                1,
+            )
             player.removeMediaItem(0)
             assertFalse(player.pauseAtEndOfMediaItems)
         }
@@ -86,18 +99,29 @@ class PlaylistAutoplayTest {
     private fun withPlayer(autoplay: Boolean, check: (ExoPlayer) -> Unit) {
         val preferences = FakePreferencesRepository()
         runBlocking { preferences.updatePlayerPreferences { it.copy(autoplay = autoplay) } }
-        startKoin { modules(module { single<PreferencesRepository> { preferences } }) }
+        startKoin { modules(modules = module { single<PreferencesRepository> { preferences } }) }
         val context = RuntimeEnvironment.getApplication()
         val player = ExoPlayer.Builder(context).build()
-        val session = MediaSession.Builder(context, player).build()
+        val session = MediaSession.Builder(
+            context,
+            player,
+        ).build()
         val service = PlayerService()
-        PlayerService::class.java.getDeclaredField("mediaSession").apply { isAccessible = true }.set(service, session)
+        PlayerService::class.java.getDeclaredField("mediaSession").apply {
+            isAccessible = true
+        }.set(
+            service,
+            session,
+        )
         val listener = PlayerService::class.java.getDeclaredField("playbackStateListener")
             .apply { isAccessible = true }.get(service) as Player.Listener
         // Exercise real timeline changes without initializing unrelated native decoder and artwork state.
         player.addListener(object : Player.Listener {
             override fun onTimelineChanged(timeline: Timeline, reason: Int) {
-                listener.onTimelineChanged(timeline, reason)
+                listener.onTimelineChanged(
+                    timeline,
+                    reason,
+                )
             }
         })
         player.pauseAtEndOfMediaItems = !autoplay
@@ -109,7 +133,10 @@ class PlaylistAutoplayTest {
         }
     }
 
-    private fun automaticQueue() = listOf("first", "second").map {
+    private fun automaticQueue() = listOf(
+        "first",
+        "second",
+    ).map {
         MediaItem.Builder().setMediaId(it).setUri("file:///$it.mp4").build()
     }
 
@@ -119,9 +146,15 @@ class PlaylistAutoplayTest {
         type = PlaylistType.M3U_URL,
         source = "https://example.com/list.m3u",
         items = listOf(
-            PlaylistItemRecord(position = 0, uri = "file:///first.mp4"),
-            PlaylistItemRecord(position = 1, uri = "file:///second.mp4"),
+            PlaylistItemRecord(
+                position = 0,
+                uri = "file:///first.mp4",
+            ),
+            PlaylistItemRecord(
+                position = 1,
+                uri = "file:///second.mp4",
+            ),
         ),
         lastRefreshedAt = 123,
-    ).toMediaQueue("file:///first.mp4")!!.mediaItems
+    ).toMediaQueue(selectedUri = "file:///first.mp4")!!.mediaItems
 }

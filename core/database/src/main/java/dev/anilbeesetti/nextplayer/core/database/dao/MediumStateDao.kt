@@ -18,7 +18,7 @@ interface MediumStateDao {
 
     @Transaction
     suspend fun update(uri: String, transform: (MediumStateEntity) -> MediumStateEntity) {
-        upsert(transform(get(uri) ?: MediumStateEntity(uriString = uri)))
+        upsert(mediumState = transform(get(uri = uri) ?: MediumStateEntity(uriString = uri)))
     }
 
     @Query("SELECT * FROM media_state WHERE uri = :uri")

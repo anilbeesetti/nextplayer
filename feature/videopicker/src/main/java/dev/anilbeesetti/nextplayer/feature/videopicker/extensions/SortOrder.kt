@@ -14,10 +14,12 @@ fun Sort.Order.name(sortBy: Sort.By): String {
             Sort.Order.ASCENDING -> R.string.a_z
             Sort.Order.DESCENDING -> R.string.z_a
         }
+
         Sort.By.LENGTH -> when (this) {
             Sort.Order.ASCENDING -> R.string.shortest
             Sort.Order.DESCENDING -> R.string.longest
         }
+
         Sort.By.SIZE -> when (this) {
             Sort.Order.ASCENDING -> R.string.smallest
             Sort.Order.DESCENDING -> R.string.largest
@@ -29,5 +31,5 @@ fun Sort.Order.name(sortBy: Sort.By): String {
         }
     }
 
-    return stringResource(stringRes)
+    return stringResource(id = stringRes)
 }

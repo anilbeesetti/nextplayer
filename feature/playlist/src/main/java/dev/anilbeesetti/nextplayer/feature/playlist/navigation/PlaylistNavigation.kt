@@ -21,7 +21,7 @@ data object PlaylistListRoute : NavKey
 data class PlaylistDetailRoute(val playlistId: Long) : NavKey
 
 fun NavBackStack<NavKey>.navigateToPlaylistDetail(playlistId: Long) {
-    add(PlaylistDetailRoute(playlistId))
+    add(element = PlaylistDetailRoute(playlistId = playlistId))
 }
 
 fun EntryProviderScope<NavKey>.playlistListEntry(
@@ -30,12 +30,18 @@ fun EntryProviderScope<NavKey>.playlistListEntry(
     onAddToHomeScreen: ((PlaylistSummary) -> Unit)? = null,
 ) {
     entry<PlaylistListRoute> {
-        val output = PlaylistListViewModel.Output(openPlaylist = onPlaylistClick, openSettings = onSettingsClick)
+        val output = PlaylistListViewModel.Output(
+            openPlaylist = onPlaylistClick,
+            openSettings = onSettingsClick,
+        )
         val viewModel = koinViewModel<PlaylistListViewModel>(
             parameters = { parametersOf(output) },
         )
         SideEffect { viewModel.output = output }
-        PlaylistListScreen(viewModel = viewModel, onAddToHomeScreen = onAddToHomeScreen)
+        PlaylistListScreen(
+            viewModel = viewModel,
+            onAddToHomeScreen = onAddToHomeScreen,
+        )
     }
 }
 

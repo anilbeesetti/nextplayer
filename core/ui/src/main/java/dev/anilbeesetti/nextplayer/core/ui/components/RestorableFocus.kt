@@ -40,18 +40,23 @@ class RestorableFocusState internal constructor(
 fun rememberRestorableFocusState(): RestorableFocusState {
     val context = LocalContext.current
     val isTv = remember { context.isTelevision }
-    val focusedKey = rememberSaveable { mutableStateOf<String?>(null) }
-    return remember(isTv) { RestorableFocusState(isTv, focusedKey) }
+    val focusedKey = rememberSaveable { mutableStateOf<String?>(value = null) }
+    return remember(isTv) {
+        RestorableFocusState(
+            isTv = isTv,
+            focusedKey = focusedKey,
+        )
+    }
 }
 
 /** Restore when content becomes available or the destination resumes, including return from playback. */
 @Composable
-fun Modifier.restorableFocusGroup(
-    state: RestorableFocusState,
-    ready: Boolean = true,
-): Modifier {
+fun Modifier.restorableFocusGroup(state: RestorableFocusState, ready: Boolean = true): Modifier {
     val scope = rememberCoroutineScope()
-    LifecycleResumeEffect(state, ready) {
+    LifecycleResumeEffect(
+        key1 = state,
+        key2 = ready,
+    ) {
         val request = if (state.isTv && ready) {
             scope.launch {
                 if (state.key == null || !state.itemRequester.requestFocusUntilLanded()) {
@@ -78,7 +83,10 @@ fun Modifier.restorableFocusItem(state: RestorableFocusState, key: String): Modi
     if (!state.isTv) return this
     // Comparing against the focused key directly would make every sibling observe it and recompose
     // on each focus move. Only the two items whose answer actually flips read a change here.
-    val isRestoreTarget by remember(state, key) { derivedStateOf { key == state.key } }
-    return thenIf(isRestoreTarget) { focusRequester(state.itemRequester) }
+    val isRestoreTarget by remember(
+        state,
+        key,
+    ) { derivedStateOf { key == state.key } }
+    return thenIf(condition = isRestoreTarget) { focusRequester(state.itemRequester) }
         .onFocusChanged { if (it.isFocused) state.key = key }
 }

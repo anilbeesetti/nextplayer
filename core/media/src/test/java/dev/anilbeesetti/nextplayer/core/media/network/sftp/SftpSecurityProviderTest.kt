@@ -23,31 +23,73 @@ class SftpSecurityProviderTest {
 
         SftpSecurityProvider.install()
 
-        assertSame(existingBouncyCastle, Security.getProvider("BC"))
+        assertSame(
+            existingBouncyCastle,
+            Security.getProvider("BC"),
+        )
     }
 
     @Test
     fun `installed provider supplies SSHJ algorithms`() {
         SftpSecurityProvider.install()
 
-        assertNotNull(KeyPairGenerator.getInstance("X25519", SftpSecurityProvider.NAME))
-        assertNotNull(KeyAgreement.getInstance("X25519", SftpSecurityProvider.NAME))
-        assertNotNull(KeyFactory.getInstance("ECDSA", SftpSecurityProvider.NAME))
-        assertNotNull(AlgorithmParameters.getInstance("EC", SftpSecurityProvider.NAME))
-        assertNotNull(KeyFactory.getInstance("Ed25519", SftpSecurityProvider.NAME))
-        assertNotNull(Signature.getInstance("Ed25519", SftpSecurityProvider.NAME))
+        assertNotNull(
+            KeyPairGenerator.getInstance(
+                "X25519",
+                SftpSecurityProvider.NAME,
+            ),
+        )
+        assertNotNull(
+            KeyAgreement.getInstance(
+                "X25519",
+                SftpSecurityProvider.NAME,
+            ),
+        )
+        assertNotNull(
+            KeyFactory.getInstance(
+                "ECDSA",
+                SftpSecurityProvider.NAME,
+            ),
+        )
+        assertNotNull(
+            AlgorithmParameters.getInstance(
+                "EC",
+                SftpSecurityProvider.NAME,
+            ),
+        )
+        assertNotNull(
+            KeyFactory.getInstance(
+                "Ed25519",
+                SftpSecurityProvider.NAME,
+            ),
+        )
+        assertNotNull(
+            Signature.getInstance(
+                "Ed25519",
+                SftpSecurityProvider.NAME,
+            ),
+        )
     }
 
     @Test
     fun `installed provider constructs P256 host public key`() {
         SftpSecurityProvider.install()
-        val parameters = AlgorithmParameters.getInstance("EC", SftpSecurityProvider.NAME).apply {
+        val parameters = AlgorithmParameters.getInstance(
+            "EC",
+            SftpSecurityProvider.NAME,
+        ).apply {
             init(ECGenParameterSpec("secp256r1"))
         }
         val parameterSpec = parameters.getParameterSpec(ECParameterSpec::class.java)
 
-        val publicKey = KeyFactory.getInstance("ECDSA", SftpSecurityProvider.NAME).generatePublic(
-            ECPublicKeySpec(parameterSpec.generator, parameterSpec),
+        val publicKey = KeyFactory.getInstance(
+            "ECDSA",
+            SftpSecurityProvider.NAME,
+        ).generatePublic(
+            ECPublicKeySpec(
+                parameterSpec.generator,
+                parameterSpec,
+            ),
         )
 
         assertNotNull(publicKey)
@@ -60,9 +102,7 @@ class SftpSecurityProviderTest {
         Security.addProvider(UnrelatedProvider())
 
         try {
-            assertThrows(IllegalStateException::class.java) {
-                SftpSecurityProvider.install()
-            }
+            assertThrows(IllegalStateException::class.java) { SftpSecurityProvider.install() }
         } finally {
             Security.removeProvider(SftpSecurityProvider.NAME)
             if (installedProvider != null) {
@@ -73,5 +113,10 @@ class SftpSecurityProviderTest {
     }
 
     @Suppress("DEPRECATION")
-    private class UnrelatedProvider : Provider(SftpSecurityProvider.NAME, 1.0, "Unrelated provider")
+    private class UnrelatedProvider :
+        Provider(
+            SftpSecurityProvider.NAME,
+            1.0,
+            "Unrelated provider",
+        )
 }

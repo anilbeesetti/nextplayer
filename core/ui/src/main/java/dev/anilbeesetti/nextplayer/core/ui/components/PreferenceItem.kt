@@ -51,19 +51,16 @@ fun PreferenceItem(
                 )
             }
         },
-        supportingContent = description?.let {
-            {
-                Text(text = description)
-            }
-        },
-        content = {
-            Text(text = title)
-        },
+        supportingContent = description?.let { { Text(text = description) } },
+        content = { Text(text = title) },
         trailingContent = trailingContent,
     )
 }
 
-@OptIn(ExperimentalFoundationApi::class, ExperimentalMaterial3ExpressiveApi::class)
+@OptIn(
+    ExperimentalFoundationApi::class,
+    ExperimentalMaterial3ExpressiveApi::class,
+)
 @Composable
 fun SelectablePreference(
     title: String,
@@ -86,7 +83,11 @@ fun SelectablePreference(
                 text = title,
                 maxLines = 1,
                 style = MaterialTheme.typography.titleMedium.copy(
-                    textDecoration = if (selected) TextDecoration.LineThrough else TextDecoration.None,
+                    textDecoration = if (selected) {
+                        TextDecoration.LineThrough
+                    } else {
+                        TextDecoration.None
+                    },
                 ),
             )
         },
@@ -96,7 +97,11 @@ fun SelectablePreference(
                     text = it,
                     overflow = TextOverflow.Ellipsis,
                     style = MaterialTheme.typography.bodyMedium.copy(
-                        textDecoration = if (selected) TextDecoration.LineThrough else TextDecoration.None,
+                        textDecoration = if (selected) {
+                            TextDecoration.LineThrough
+                        } else {
+                            TextDecoration.None
+                        },
                     ),
                 )
             }
@@ -111,7 +116,10 @@ fun SelectablePreference(
     )
 }
 
-@OptIn(ExperimentalFoundationApi::class, ExperimentalMaterial3ExpressiveApi::class)
+@OptIn(
+    ExperimentalFoundationApi::class,
+    ExperimentalMaterial3ExpressiveApi::class,
+)
 @Composable
 fun SingleSelectablePreference(
     title: String,
@@ -172,6 +180,5 @@ fun SelectablePreferencePreview() {
     )
 }
 
-internal fun Color.applyAlpha(enabled: Boolean): Color {
-    return if (enabled) this else this.copy(alpha = 0.6f)
-}
+internal fun Color.applyAlpha(enabled: Boolean): Color =
+    if (enabled) this else this.copy(alpha = 0.6f)

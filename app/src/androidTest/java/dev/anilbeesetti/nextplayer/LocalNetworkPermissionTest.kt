@@ -35,15 +35,20 @@ class LocalNetworkPermissionTest {
     fun grantedLocalNetworkPermissionAllowsAddingConnectionAfterRecreation() {
         assertEquals(
             PackageManager.PERMISSION_GRANTED,
-            ContextCompat.checkSelfPermission(composeRule.activity, Manifest.permission.ACCESS_LOCAL_NETWORK),
+            ContextCompat.checkSelfPermission(
+                composeRule.activity,
+                Manifest.permission.ACCESS_LOCAL_NETWORK,
+            ),
         )
-        composeRule.onNodeWithContentDescription(composeRule.activity.getString(R.string.network)).performClick()
-        composeRule.onNodeWithTag("top_level_fab").performClick()
+        composeRule.onNodeWithContentDescription(
+            composeRule.activity.getString(R.string.network),
+        ).performClick()
+        composeRule.onNodeWithTag(testTag = "top_level_fab").performClick()
         val host = composeRule.activity.getString(R.string.host)
-        composeRule.onNodeWithText(host).assertIsDisplayed()
+        composeRule.onNodeWithText(text = host).assertIsDisplayed()
 
         composeRule.activityRule.scenario.recreate()
 
-        composeRule.onNodeWithText(host).assertIsDisplayed()
+        composeRule.onNodeWithText(text = host).assertIsDisplayed()
     }
 }

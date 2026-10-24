@@ -19,7 +19,10 @@ class MainActivityPermissionTest {
 
     @Test
     fun api24RequestsReadStoragePermission() {
-        assertEquals(Manifest.permission.READ_EXTERNAL_STORAGE, storagePermission)
+        assertEquals(
+            Manifest.permission.READ_EXTERNAL_STORAGE,
+            storagePermission,
+        )
     }
 
     @Test
@@ -27,16 +30,25 @@ class MainActivityPermissionTest {
         val context = ApplicationProvider.getApplicationContext<Context>()
         assertEquals(
             PackageManager.PERMISSION_DENIED,
-            ContextCompat.checkSelfPermission(context, Manifest.permission.READ_EXTERNAL_STORAGE),
+            ContextCompat.checkSelfPermission(
+                context,
+                Manifest.permission.READ_EXTERNAL_STORAGE,
+            ),
         )
 
         context.startActivity(
-            Intent(context, MainActivity::class.java).addFlags(Intent.FLAG_ACTIVITY_NEW_TASK),
+            Intent(
+                context,
+                MainActivity::class.java,
+            ).addFlags(Intent.FLAG_ACTIVITY_NEW_TASK),
         )
         SystemClock.sleep(1_000)
 
         val activityManager = context.getSystemService(ActivityManager::class.java)
         val topActivity = activityManager.appTasks.first().taskInfo?.topActivity
-        assertEquals(MainActivity::class.java.name, topActivity?.className)
+        assertEquals(
+            MainActivity::class.java.name,
+            topActivity?.className,
+        )
     }
 }

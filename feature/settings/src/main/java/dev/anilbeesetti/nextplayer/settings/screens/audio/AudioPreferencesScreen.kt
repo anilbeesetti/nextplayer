@@ -37,9 +37,7 @@ import dev.anilbeesetti.nextplayer.settings.composables.OptionsDialog
 import dev.anilbeesetti.nextplayer.settings.utils.LocalesHelper
 
 @Composable
-fun AudioPreferencesScreen(
-    viewModel: AudioPreferencesViewModel,
-) {
+fun AudioPreferencesScreen(viewModel: AudioPreferencesViewModel) {
     val state by viewModel.state.collectAsStateWithLifecycle()
 
     AudioPreferencesScreenContent(
@@ -48,13 +46,24 @@ fun AudioPreferencesScreen(
     )
 }
 
-@OptIn(ExperimentalMaterial3Api::class, ExperimentalMaterial3ExpressiveApi::class)
+@OptIn(
+    ExperimentalMaterial3Api::class,
+    ExperimentalMaterial3ExpressiveApi::class,
+)
 @Composable
 private fun AudioPreferencesScreenContent(
     state: AudioPreferencesUiState,
     onAction: (AudioPreferencesUiEvent) -> Unit,
 ) {
-    val languages = remember { listOf(Pair("None", "")) + LocalesHelper.getAvailableLocales() }
+    val languages = remember {
+        listOf(
+            element = Pair(
+                first = "None",
+                second = "",
+            ),
+        ) +
+            LocalesHelper.getAvailableLocales()
+    }
 
     val listFocusRequester = rememberTvListFocusRequester()
     Scaffold(
@@ -62,7 +71,12 @@ private fun AudioPreferencesScreenContent(
             NextTopAppBar(
                 title = stringResource(id = R.string.audio),
                 navigationIcon = {
-                    FilledTonalIconButton(onClick = { onAction(AudioPreferencesUiEvent.NavigateUp) }, modifier = Modifier.tvFocusDown(listFocusRequester)) {
+                    FilledTonalIconButton(
+                        onClick = {
+                            onAction(AudioPreferencesUiEvent.NavigateUp)
+                        },
+                        modifier = Modifier.tvFocusDown(target = listFocusRequester),
+                    ) {
                         Icon(
                             imageVector = NextIcons.ArrowBack,
                             contentDescription = stringResource(id = R.string.navigate_up),
@@ -77,8 +91,8 @@ private fun AudioPreferencesScreenContent(
             modifier = Modifier
                 .fillMaxSize()
                 .verticalScroll(state = rememberScrollState())
-                .tvListFocus(listFocusRequester)
-                .padding(innerPadding)
+                .tvListFocus(focusRequester = listFocusRequester)
+                .padding(paddingValues = innerPadding)
                 .padding(horizontal = 16.dp),
         ) {
             ListSectionTitle(text = stringResource(id = R.string.playback))
@@ -87,10 +101,20 @@ private fun AudioPreferencesScreenContent(
             ) {
                 ClickablePreferenceItem(
                     title = stringResource(id = R.string.preferred_audio_lang),
-                    description = LocalesHelper.getLocaleDisplayLanguage(state.preferences.preferredAudioLanguage)
-                        .takeIf { it.isNotBlank() } ?: stringResource(R.string.preferred_audio_lang_description),
+                    description =
+                        LocalesHelper.getLocaleDisplayLanguage(
+                            state.preferences.preferredAudioLanguage,
+                        )
+                            .takeIf { it.isNotBlank() }
+                            ?: stringResource(R.string.preferred_audio_lang_description),
                     icon = NextIcons.Language,
-                    onClick = { onAction(AudioPreferencesUiEvent.ShowDialog(AudioPreferenceDialog.AudioLanguageDialog)) },
+                    onClick = {
+                        onAction(
+                            AudioPreferencesUiEvent.ShowDialog(
+                                value = AudioPreferenceDialog.AudioLanguageDialog,
+                            ),
+                        )
+                    },
                     isFirstItem = true,
                 )
                 PreferenceSwitch(
@@ -130,15 +154,17 @@ private fun AudioPreferencesScreenContent(
                 AudioPreferenceDialog.AudioLanguageDialog -> {
                     OptionsDialog(
                         text = stringResource(id = R.string.preferred_audio_lang),
-                        onDismissClick = { onAction(AudioPreferencesUiEvent.ShowDialog(null)) },
+                        onDismissClick = {
+                            onAction(AudioPreferencesUiEvent.ShowDialog(value = null))
+                        },
                     ) {
-                        items(languages) {
+                        items(items = languages) {
                             RadioTextButton(
                                 text = it.first,
                                 selected = it.second == state.preferences.preferredAudioLanguage,
                                 onClick = {
                                     onAction(AudioPreferencesUiEvent.UpdateAudioLanguage(it.second))
-                                    onAction(AudioPreferencesUiEvent.ShowDialog(null))
+                                    onAction(AudioPreferencesUiEvent.ShowDialog(value = null))
                                 },
                             )
                         }

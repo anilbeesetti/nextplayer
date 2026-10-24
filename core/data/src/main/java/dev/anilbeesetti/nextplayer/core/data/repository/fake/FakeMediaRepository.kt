@@ -14,56 +14,48 @@ class FakeMediaRepository : MediaRepository {
 
     val videos = mutableListOf<Video>()
     val directories = mutableListOf<Folder>()
-    private val updates = MutableStateFlow(0L)
+    private val updates = MutableStateFlow(value = 0L)
 
-    override fun observeFolders(folderPath: String?): Flow<List<Folder>> {
-        return updates.map {
-            directories.filter { folderPath == null || it.path.startsWith(folderPath) }
-        }
+    override fun observeFolders(folderPath: String?): Flow<List<Folder>> = updates.map {
+        directories.filter { folderPath == null || it.path.startsWith(prefix = folderPath) }
     }
 
-    override fun observeVideos(folderPath: String?): Flow<List<Video>> {
-        return updates.map {
-            videos.filter { folderPath == null || it.path.startsWith(folderPath) }
-        }
+    override fun observeVideos(folderPath: String?): Flow<List<Video>> = updates.map {
+        videos.filter { folderPath == null || it.path.startsWith(prefix = folderPath) }
     }
 
-    override suspend fun fetchFolders(folderPath: String?): List<Folder> {
-        return directories.filter { folderPath == null || it.path.startsWith(folderPath) }
+    override suspend fun fetchFolders(folderPath: String?): List<Folder> = directories.filter {
+        folderPath == null || it.path.startsWith(prefix = folderPath)
     }
 
-    override suspend fun fetchVideos(folderPath: String?): List<Video> {
-        return videos.filter { folderPath == null || it.path.startsWith(folderPath) }
+    override suspend fun fetchVideos(folderPath: String?): List<Video> = videos.filter {
+        folderPath == null || it.path.startsWith(prefix = folderPath)
     }
 
-    override fun observePlaybackHistory(): Flow<List<Video>> {
-        return updates.map { videos.filter { it.lastPlayedAt != null }.sortedByDescending { it.lastPlayedAt?.time } }
+    override fun observePlaybackHistory(): Flow<List<Video>> = updates.map {
+        videos.filter { it.lastPlayedAt != null }.sortedByDescending { it.lastPlayedAt?.time }
     }
 
-    override fun observeTrashVideos(): Flow<List<Video>> {
-        return updates.map { emptyList() }
-    }
+    override fun observeTrashVideos(): Flow<List<Video>> = updates.map { emptyList() }
 
-    override suspend fun getVideoByUri(uri: String): Video? {
-        return videos.find { it.uriString == uri }
-    }
+    override suspend fun getVideoByUri(uri: String): Video? = videos.find { it.uriString == uri }
 
     fun notifyMediaChanged() {
         updates.value += 1
     }
 
-    override suspend fun getVideoState(uri: String): VideoState? {
-        return null
-    }
+    override suspend fun getVideoState(uri: String): VideoState? = null
 
-    override suspend fun getMediaInfo(uri: String): MediaInfo? {
-        return null
-    }
+    override suspend fun getMediaInfo(uri: String): MediaInfo? = null
 
     override suspend fun clearPlaybackHistory() {
     }
 
-    override suspend fun updateMediumLastPlayedTime(uri: String, lastPlayedTime: Long, duration: Long?) {
+    override suspend fun updateMediumLastPlayedTime(
+        uri: String,
+        lastPlayedTime: Long,
+        duration: Long?,
+    ) {
     }
 
     override suspend fun updateMediumPosition(uri: String, position: Long) {

@@ -76,10 +76,16 @@ private const val UPI_ID = "anilbeesetti10@oksbi"
 @Composable
 fun AboutPreferencesScreen(viewModel: AboutPreferencesViewModel) {
     val state by viewModel.state.collectAsStateWithLifecycle()
-    AboutPreferencesScreenContent(state = state, onAction = viewModel::onAction)
+    AboutPreferencesScreenContent(
+        state = state,
+        onAction = viewModel::onAction,
+    )
 }
 
-@OptIn(ExperimentalMaterial3Api::class, ExperimentalMaterial3ExpressiveApi::class)
+@OptIn(
+    ExperimentalMaterial3Api::class,
+    ExperimentalMaterial3ExpressiveApi::class,
+)
 @Composable
 private fun AboutPreferencesScreenContent(
     state: AboutPreferencesUiState,
@@ -96,7 +102,12 @@ private fun AboutPreferencesScreenContent(
             NextTopAppBar(
                 title = stringResource(id = R.string.about_name),
                 navigationIcon = {
-                    FilledTonalIconButton(onClick = { onAction(AboutPreferencesAction.NavigateUp) }, modifier = Modifier.tvFocusDown(listFocusRequester)) {
+                    FilledTonalIconButton(
+                        onClick = {
+                            onAction(AboutPreferencesAction.NavigateUp)
+                        },
+                        modifier = Modifier.tvFocusDown(target = listFocusRequester),
+                    ) {
                         Icon(
                             imageVector = NextIcons.ArrowBack,
                             contentDescription = stringResource(id = R.string.navigate_up),
@@ -110,9 +121,9 @@ private fun AboutPreferencesScreenContent(
         Column(
             modifier = Modifier
                 .fillMaxSize()
-                .verticalScroll(rememberScrollState())
-                .tvListFocus(listFocusRequester)
-                .padding(innerPadding)
+                .verticalScroll(state = rememberScrollState())
+                .tvListFocus(focusRequester = listFocusRequester)
+                .padding(paddingValues = innerPadding)
                 .padding(horizontal = 16.dp)
                 .padding(vertical = 16.dp),
         ) {
@@ -132,7 +143,10 @@ private fun AboutPreferencesScreenContent(
             ) {
                 ClickablePreferenceItem(
                     title = stringResource(R.string.kofi),
-                    description = stringResource(R.string.support_the_developer_on, stringResource(R.string.kofi)),
+                    description = stringResource(
+                        R.string.support_the_developer_on,
+                        stringResource(R.string.kofi),
+                    ),
                     icon = ImageVector.vectorResource(R.drawable.ic_kofi),
                     onClick = {
                         uriHandler.openUriOrShowToast(
@@ -144,7 +158,10 @@ private fun AboutPreferencesScreenContent(
                 )
                 ClickablePreferenceItem(
                     title = stringResource(R.string.paypal),
-                    description = stringResource(R.string.support_the_developer_on, stringResource(R.string.paypal)),
+                    description = stringResource(
+                        R.string.support_the_developer_on,
+                        stringResource(R.string.paypal),
+                    ),
                     icon = ImageVector.vectorResource(R.drawable.ic_paypal),
                     onClick = {
                         uriHandler.openUriOrShowToast(
@@ -159,8 +176,19 @@ private fun AboutPreferencesScreenContent(
                     icon = ImageVector.vectorResource(R.drawable.ic_upi),
                     onClick = {
                         scope.launch {
-                            clipboard.setClipEntry(ClipEntry(ClipData.newPlainText("text", UPI_ID)))
-                            Toast.makeText(context, "copied to clipboard", Toast.LENGTH_SHORT).show()
+                            clipboard.setClipEntry(
+                                clipEntry = ClipEntry(
+                                    ClipData.newPlainText(
+                                        "text",
+                                        UPI_ID,
+                                    ),
+                                ),
+                            )
+                            Toast.makeText(
+                                context,
+                                "copied to clipboard",
+                                Toast.LENGTH_SHORT,
+                            ).show()
                         }
                     },
                     isLastItem = true,
@@ -205,8 +233,14 @@ fun AboutApp(
                 val cy = size.height * fraction
 
                 val gradient = Brush.radialGradient(
-                    colors = listOf(colorPrimary, colorTertiary),
-                    center = Offset(cx, cy),
+                    colors = listOf(
+                        colorPrimary,
+                        colorTertiary,
+                    ),
+                    center = Offset(
+                        x = cx,
+                        y = cy,
+                    ),
                     radius = 800f,
                 )
 
@@ -233,7 +267,7 @@ fun AboutApp(
                 Image(
                     bitmap = it,
                     contentDescription = "App Logo",
-                    modifier = Modifier.size(48.dp).clip(CircleShape),
+                    modifier = Modifier.size(48.dp).clip(shape = CircleShape),
                 )
             }
             Column {
@@ -254,7 +288,10 @@ fun AboutApp(
                         fontSize = 12.sp,
                     )
                     Text(
-                        text = stringResource(R.string.by, stringResource(R.string.app_developer)),
+                        text = stringResource(
+                            R.string.by,
+                            stringResource(R.string.app_developer),
+                        ),
                         style = MaterialTheme.typography.bodyMedium,
                         color = MaterialTheme.colorScheme.onSurfaceVariant,
                     )
@@ -278,10 +315,8 @@ fun AboutApp(
                 modifier = Modifier
                     .fillMaxWidth()
                     .height(52.dp)
-                    .weight(1f),
-            ) {
-                Text(text = stringResource(R.string.libraries))
-            }
+                    .weight(weight = 1f),
+            ) { Text(text = stringResource(R.string.libraries)) }
             Button(
                 onClick = onGithubClick,
                 colors = ButtonDefaults.buttonColors(
@@ -293,7 +328,7 @@ fun AboutApp(
                 shape = RoundedCornerShape(8.dp),
                 modifier = Modifier
                     .fillMaxWidth()
-                    .weight(1f)
+                    .weight(weight = 1f)
                     .height(52.dp),
             ) {
                 Icon(
@@ -312,6 +347,10 @@ internal fun UriHandler.openUriOrShowToast(uri: String, context: Context) {
     try {
         openUri(uri = uri)
     } catch (e: Exception) {
-        Toast.makeText(context, context.getString(R.string.error_opening_link), Toast.LENGTH_SHORT).show()
+        Toast.makeText(
+            context,
+            context.getString(R.string.error_opening_link),
+            Toast.LENGTH_SHORT,
+        ).show()
     }
 }

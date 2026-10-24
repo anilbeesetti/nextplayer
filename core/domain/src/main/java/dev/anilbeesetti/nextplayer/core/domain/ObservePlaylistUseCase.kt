@@ -16,37 +16,36 @@ class ObservePlaylistUseCase(
     private val mediaRepository: MediaRepository,
 ) {
 
-    operator fun invoke(playlistId: Long): Flow<Playlist?> =
-        combine(
-            playlistRepository.observePlaylist(playlistId),
-            mediaRepository.observeVideos(),
-        ) { record, videos ->
-            record?.let {
-                val videosByUri = videos.associateBy { video -> video.uriString }
-                val resolvedItems = record.items.mapNotNull { item ->
-                    val video = videosByUri[item.uri]
-                    if (record.type == PlaylistType.LOCAL && video == null) return@mapNotNull null
-                    PlaylistItem(
-                        position = item.position,
-                        uri = item.uri,
-                        title = item.title,
-                        tvgLogo = item.tvgLogo,
-                        duration = item.duration,
-                        groupTitle = item.groupTitle,
-                        video = video,
-                        lastPlayedAt = item.lastPlayedAt,
-                    )
-                }
-                Playlist(
-                    id = record.id,
-                    name = record.name,
-                    type = record.type,
-                    source = record.source,
-                    items = resolvedItems.mapIndexed { position, item ->
-                        item.copy(position = position)
-                    },
-                    lastRefreshedAt = record.lastRefreshedAt,
+    operator fun invoke(playlistId: Long): Flow<Playlist?> = combine(
+        playlistRepository.observePlaylist(playlistId = playlistId),
+        mediaRepository.observeVideos(),
+    ) { record, videos ->
+        record?.let {
+            val videosByUri = videos.associateBy { video -> video.uriString }
+            val resolvedItems = record.items.mapNotNull { item ->
+                val video = videosByUri[item.uri]
+                if (record.type == PlaylistType.LOCAL && video == null) return@mapNotNull null
+                PlaylistItem(
+                    position = item.position,
+                    uri = item.uri,
+                    title = item.title,
+                    tvgLogo = item.tvgLogo,
+                    duration = item.duration,
+                    groupTitle = item.groupTitle,
+                    video = video,
+                    lastPlayedAt = item.lastPlayedAt,
                 )
             }
-        }.distinctUntilChanged()
+            Playlist(
+                id = record.id,
+                name = record.name,
+                type = record.type,
+                source = record.source,
+                items = resolvedItems.mapIndexed { position, item ->
+                    item.copy(position = position)
+                },
+                lastRefreshedAt = record.lastRefreshedAt,
+            )
+        }
+    }.distinctUntilChanged()
 }

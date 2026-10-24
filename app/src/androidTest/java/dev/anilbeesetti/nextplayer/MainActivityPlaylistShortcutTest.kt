@@ -33,43 +33,61 @@ class MainActivityPlaylistShortcutTest {
     fun shortcutOpensPlaylistOnColdAndWarmLaunchAndSurvivesRecreation() = runBlocking {
         val context = ApplicationProvider.getApplicationContext<Context>()
         val repository = GlobalContext.get().get<PlaylistRepository>()
-        val first = repository.create("Shortcut first")
-        val second = repository.create("Shortcut second")
+        val first = repository.create(name = "Shortcut first")
+        val second = repository.create(name = "Shortcut second")
         try {
-            val firstIntent = PlaylistShortcut.create(context, summary(first, "Shortcut first")).intent
+            val firstIntent = PlaylistShortcut.create(
+                context = context,
+                playlist = summary(
+                    id = first,
+                    name = "Shortcut first",
+                ),
+            ).intent
             ActivityScenario.launch<MainActivity>(firstIntent).use { scenario ->
-                awaitText("Shortcut first")
-                composeRule.onNodeWithText("This playlist is empty").assertIsDisplayed()
+                awaitText(text = "Shortcut first")
+                composeRule.onNodeWithText(text = "This playlist is empty").assertIsDisplayed()
 
-                val secondIntent = PlaylistShortcut.create(context, summary(second, "Shortcut second")).intent
+                val secondIntent = PlaylistShortcut.create(
+                    context = context,
+                    playlist = summary(
+                        id = second,
+                        name = "Shortcut second",
+                    ),
+                ).intent
                 context.startActivity(secondIntent)
-                awaitText("Shortcut second")
+                awaitText(text = "Shortcut second")
                 scenario.recreate()
-                awaitText("Shortcut second")
+                awaitText(text = "Shortcut second")
 
-                composeRule.onNodeWithContentDescription("Navigate up").performClick()
-                awaitText("Playlists")
+                composeRule.onNodeWithContentDescription(label = "Navigate up").performClick()
+                awaitText(text = "Playlists")
                 // The consumed shortcut must not reopen when the activity is recreated on the list.
                 scenario.recreate()
-                awaitText("Playlists")
+                awaitText(text = "Playlists")
 
                 context.startActivity(secondIntent)
-                awaitText("Shortcut second")
-                repository.delete(second)
-                awaitText("This playlist is no longer available.")
+                awaitText(text = "Shortcut second")
+                repository.delete(playlistId = second)
+                awaitText(text = "This playlist is no longer available.")
             }
         } finally {
-            repository.delete(first)
-            repository.delete(second)
+            repository.delete(playlistId = first)
+            repository.delete(playlistId = second)
         }
     }
 
     private fun awaitText(text: String) {
-        composeRule.waitUntil(30_000) {
-            composeRule.onAllNodesWithText(text).fetchSemanticsNodes().isNotEmpty()
+        composeRule.waitUntil(timeoutMillis = 30_000) {
+            composeRule.onAllNodesWithText(text = text).fetchSemanticsNodes().isNotEmpty()
         }
-        composeRule.onNodeWithText(text).assertIsDisplayed()
+        composeRule.onNodeWithText(text = text).assertIsDisplayed()
     }
 
-    private fun summary(id: Long, name: String) = PlaylistSummary(id, name, PlaylistType.LOCAL, 0, null)
+    private fun summary(id: Long, name: String) = PlaylistSummary(
+        id = id,
+        name = name,
+        PlaylistType.LOCAL,
+        itemCount = 0,
+        lastRefreshedAt = null,
+    )
 }

@@ -14,16 +14,14 @@ import androidx.media3.common.util.UnstableApi
 @UnstableApi
 @Composable
 fun rememberMediaPresentationState(player: Player?): MediaPresentationState {
-    val mediaPresentationState = remember(player) { MediaPresentationState(player) }
-    LaunchedEffect(player) { mediaPresentationState.observe() }
+    val mediaPresentationState = remember(player) { MediaPresentationState(player = player) }
+    LaunchedEffect(key1 = player) { mediaPresentationState.observe() }
     return mediaPresentationState
 }
 
 @Stable
-class MediaPresentationState(
-    private val player: Player?,
-) {
-    var isBuffering: Boolean by mutableStateOf(false)
+class MediaPresentationState(private val player: Player?) {
+    var isBuffering: Boolean by mutableStateOf(value = false)
         private set
 
     suspend fun observe() {
@@ -31,7 +29,8 @@ class MediaPresentationState(
 
         player?.listen { events ->
             if (events.contains(Player.EVENT_PLAYBACK_STATE_CHANGED)) {
-                this@MediaPresentationState.isBuffering = player.playbackState == Player.STATE_BUFFERING
+                this@MediaPresentationState.isBuffering =
+                    player.playbackState == Player.STATE_BUFFERING
             }
         }
     }

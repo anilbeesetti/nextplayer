@@ -18,36 +18,47 @@ import androidx.media3.ui.compose.state.PlayerStateObserver
 import androidx.media3.ui.compose.state.ProgressStateWithTickInterval
 import androidx.media3.ui.compose.state.observeState
 
-
 @OptIn(UnstableApi::class)
 @Composable
-fun rememberChaptersState(player: Player?, progressState: ProgressStateWithTickInterval): ChaptersState {
-    val chaptersState = remember(player, progressState) { ChaptersState(player, progressState) }
-    LaunchedEffect(player, progressState) { chaptersState.observe() }
+fun rememberChaptersState(
+    player: Player?,
+    progressState: ProgressStateWithTickInterval,
+): ChaptersState {
+    val chaptersState = remember(
+        player,
+        progressState,
+    ) {
+        ChaptersState(
+            player = player,
+            progressState = progressState,
+        )
+    }
+    LaunchedEffect(
+        key1 = player,
+        key2 = progressState,
+    ) { chaptersState.observe() }
     return chaptersState
 }
-
 
 @UnstableApi
 class ChaptersState(
     private val player: Player?,
     private val progressState: ProgressStateWithTickInterval,
 ) {
-    var chapters: List<Chapter> by mutableStateOf(emptyList())
+    var chapters: List<Chapter> by mutableStateOf(value = emptyList())
         private set
 
-    val currentChapterIndex: Int by derivedStateOf { chapters.currentChapterIndex(progressState.currentPositionMs) }
+    val currentChapterIndex: Int by derivedStateOf {
+        chapters.currentChapterIndex(progressState.currentPositionMs)
+    }
 
-    private val playerStateObserver: PlayerStateObserver? =
-        player?.observeState(
-            Player.EVENT_TRACKS_CHANGED,
-            Player.EVENT_TIMELINE_CHANGED,
-            Player.EVENT_MEDIA_ITEM_TRANSITION,
-            Player.EVENT_POSITION_DISCONTINUITY,
-            Player.EVENT_PLAYBACK_STATE_CHANGED,
-        ) {
-            updateChapters()
-        }
+    private val playerStateObserver: PlayerStateObserver? = player?.observeState(
+        Player.EVENT_TRACKS_CHANGED,
+        Player.EVENT_TIMELINE_CHANGED,
+        Player.EVENT_MEDIA_ITEM_TRANSITION,
+        Player.EVENT_POSITION_DISCONTINUITY,
+        Player.EVENT_PLAYBACK_STATE_CHANGED,
+    ) { updateChapters() }
 
     suspend fun observe() {
         updateChapters()
@@ -59,8 +70,14 @@ class ChaptersState(
             if (player.currentTimeline.isEmpty) {
                 emptyList()
             } else {
-                val periodOffsetMs = player.currentTimeline.getPeriod(player.currentPeriodIndex, Timeline.Period()).positionInWindowMs
-                player.currentTracks.chapters(player.duration, periodOffsetMs)
+                val periodOffsetMs = player.currentTimeline.getPeriod(
+                    player.currentPeriodIndex,
+                    Timeline.Period(),
+                ).positionInWindowMs
+                player.currentTracks.chapters(
+                    player.duration,
+                    periodOffsetMs = periodOffsetMs,
+                )
             }
         } ?: emptyList()
     }
@@ -71,19 +88,25 @@ private fun Tracks.chapters(durationMs: Long, periodOffsetMs: Long = 0): List<Ch
     if (durationMs <= 0) return emptyList()
     return groups.flatMap { group ->
         (0 until group.length).flatMap { trackIndex ->
-            group.getTrackFormat(trackIndex).metadata?.getEntriesOfType(Chapter::class.java).orEmpty()
+            group.getTrackFormat(
+                trackIndex,
+            ).metadata?.getEntriesOfType(Chapter::class.java).orEmpty()
         }
     }.mapNotNull { chapter ->
         if (chapter.isHidden || chapter.startTimeMs < 0) return@mapNotNull null
         val start = chapter.startTimeMs + periodOffsetMs
         if (start < 0 && periodOffsetMs >= 0) return@mapNotNull null
-        val end = if (chapter.endTimeMs == C.TIME_UNSET) C.TIME_UNSET else chapter.endTimeMs + periodOffsetMs
+        val end = if (chapter.endTimeMs == C.TIME_UNSET) {
+            C.TIME_UNSET
+        } else {
+            chapter.endTimeMs + periodOffsetMs
+        }
         if (start >= durationMs || (end != C.TIME_UNSET && end <= 0)) return@mapNotNull null
         if (periodOffsetMs == 0L) {
             chapter
         } else {
             Chapter.Builder()
-                .setStartTimeMs(start.coerceAtLeast(0))
+                .setStartTimeMs(start.coerceAtLeast(minimumValue = 0))
                 .setEndTimeMs(end)
                 .setTitle(chapter.title)
                 .build()

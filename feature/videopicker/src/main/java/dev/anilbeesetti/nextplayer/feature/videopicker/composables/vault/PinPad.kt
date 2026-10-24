@@ -44,17 +44,22 @@ import dev.anilbeesetti.nextplayer.feature.videopicker.screens.vault.VAULT_PIN_L
  * Shakes briefly when [error] becomes true (e.g. wrong PIN, mismatched confirmation).
  */
 @Composable
-fun PinDotsIndicator(
-    filledCount: Int,
-    error: Boolean,
-    modifier: Modifier = Modifier,
-) {
-    val offsetX = remember { Animatable(0f) }
+fun PinDotsIndicator(filledCount: Int, error: Boolean, modifier: Modifier = Modifier) {
+    val offsetX = remember { Animatable(initialValue = 0f) }
 
-    LaunchedEffect(error) {
+    LaunchedEffect(key1 = error) {
         if (error) {
-            for (target in listOf(16f, -16f, 10f, -10f, 0f)) {
-                offsetX.animateTo(target, animationSpec = tween(50))
+            for (target in listOf(
+                16f,
+                -16f,
+                10f,
+                -10f,
+                0f,
+            )) {
+                offsetX.animateTo(
+                    targetValue = target,
+                    animationSpec = tween(durationMillis = 50),
+                )
             }
         }
     }
@@ -63,12 +68,12 @@ fun PinDotsIndicator(
         modifier = modifier.offset(x = offsetX.value.dp),
         horizontalArrangement = Arrangement.spacedBy(16.dp),
     ) {
-        repeat(VAULT_PIN_LENGTH) { index ->
+        repeat(times = VAULT_PIN_LENGTH) { index ->
             val filled = index < filledCount
             Spacer(
                 modifier = Modifier
                     .size(14.dp)
-                    .clip(CircleShape)
+                    .clip(shape = CircleShape)
                     .background(
                         color = if (error) {
                             MaterialTheme.colorScheme.error
@@ -87,27 +92,35 @@ fun PinDotsIndicator(
  * A simple numeric keypad (0-9, backspace) used to enter a PIN.
  */
 @Composable
-fun PinKeypad(
-    onDigit: (Char) -> Unit,
-    onBackspace: () -> Unit,
-    modifier: Modifier = Modifier,
-) {
+fun PinKeypad(onDigit: (Char) -> Unit, onBackspace: () -> Unit, modifier: Modifier = Modifier) {
     val context = LocalContext.current
     val isTv = remember { context.isTelevision }
     val firstKeyFocusRequester = remember { FocusRequester() }
-    var isFirstKeyFocused by remember { mutableStateOf(false) }
+    var isFirstKeyFocused by remember { mutableStateOf(value = false) }
 
     // On a TV, focus the first key when the pad appears so it's usable with a D-pad immediately.
     if (isTv) {
-        LaunchedEffect(Unit) {
+        LaunchedEffect(key1 = Unit) {
             firstKeyFocusRequester.requestFocusUntilLanded(attempts = 20) { isFirstKeyFocused }
         }
     }
 
     val rows = listOf(
-        listOf('1', '2', '3'),
-        listOf('4', '5', '6'),
-        listOf('7', '8', '9'),
+        listOf(
+            '1',
+            '2',
+            '3',
+        ),
+        listOf(
+            '4',
+            '5',
+            '6',
+        ),
+        listOf(
+            '7',
+            '8',
+            '9',
+        ),
     )
     Column(
         modifier = modifier.fillMaxWidth(),
@@ -121,9 +134,9 @@ fun PinKeypad(
                 row.forEachIndexed { colIndex, digit ->
                     PinKey(
                         modifier = Modifier
-                            .weight(1f)
-                            .thenIf(rowIndex == 0 && colIndex == 0) {
-                                focusRequester(firstKeyFocusRequester)
+                            .weight(weight = 1f)
+                            .thenIf(condition = rowIndex == 0 && colIndex == 0) {
+                                focusRequester(focusRequester = firstKeyFocusRequester)
                                     .onFocusChanged { isFirstKeyFocused = it.hasFocus }
                             },
                         isTv = isTv,
@@ -137,15 +150,15 @@ fun PinKeypad(
             modifier = Modifier.fillMaxWidth(),
             horizontalArrangement = Arrangement.spacedBy(12.dp),
         ) {
-            Spacer(modifier = Modifier.weight(1f))
+            Spacer(modifier = Modifier.weight(weight = 1f))
             PinKey(
-                modifier = Modifier.weight(1f),
+                modifier = Modifier.weight(weight = 1f),
                 isTv = isTv,
                 label = "0",
                 onClick = { onDigit('0') },
             )
             PinKeyIcon(
-                modifier = Modifier.weight(1f),
+                modifier = Modifier.weight(weight = 1f),
                 isTv = isTv,
                 onClick = onBackspace,
             )
@@ -162,8 +175,11 @@ private fun PinKey(
 ) {
     Column(
         modifier = modifier
-            .aspectRatio(1.4f)
-            .tvFocusRing(isTv, shape = MaterialTheme.shapes.large)
+            .aspectRatio(ratio = 1.4f)
+            .tvFocusRing(
+                isTv = isTv,
+                shape = MaterialTheme.shapes.large,
+            )
             .clip(MaterialTheme.shapes.large)
             .background(MaterialTheme.colorScheme.surfaceContainerHigh)
             .clickable(onClick = onClick),
@@ -180,15 +196,14 @@ private fun PinKey(
 }
 
 @Composable
-private fun PinKeyIcon(
-    modifier: Modifier = Modifier,
-    isTv: Boolean = false,
-    onClick: () -> Unit,
-) {
+private fun PinKeyIcon(modifier: Modifier = Modifier, isTv: Boolean = false, onClick: () -> Unit) {
     Column(
         modifier = modifier
-            .aspectRatio(1.4f)
-            .tvFocusRing(isTv, shape = MaterialTheme.shapes.large)
+            .aspectRatio(ratio = 1.4f)
+            .tvFocusRing(
+                isTv = isTv,
+                shape = MaterialTheme.shapes.large,
+            )
             .clip(MaterialTheme.shapes.large)
             .clickable(onClick = onClick),
         horizontalAlignment = Alignment.CenterHorizontally,

@@ -31,14 +31,39 @@ class PlayerTest {
             })
             .build()
         try {
-            val items = listOf("before", "current", "after").map {
-                MediaItem.Builder().setMediaId(it).setUri("file:///$it.mp4").build().copy(positionMs = 2_000)
+            val items = listOf(
+                "before",
+                "current",
+                "after",
+            ).map {
+                MediaItem.Builder().setMediaId(
+                    it,
+                ).setUri("file:///$it.mp4").build().copy(positionMs = 2_000)
             }
-            val subtitle = MediaItem.SubtitleConfiguration.Builder(android.net.Uri.parse("file:///test.srt"))
+            val subtitle = MediaItem.SubtitleConfiguration.Builder(
+                android.net.Uri.parse("file:///test.srt"),
+            )
                 .setId("test").setMimeType(MimeTypes.APPLICATION_SUBRIP).build()
-            player.setMediaItems(items, 1, 12_000)
-            player.replaceMediaItem(1, items[1].copy(videoDecoderMode = DecoderMode.HARDWARE, audioDecoderMode = DecoderMode.FFMPEG))
-            val shuffleOrder = ShuffleOrder.DefaultShuffleOrder(intArrayOf(2, 1, 0), 0)
+            player.setMediaItems(
+                items,
+                1,
+                12_000,
+            )
+            player.replaceMediaItem(
+                1,
+                items[1].copy(
+                    videoDecoderMode = DecoderMode.HARDWARE,
+                    audioDecoderMode = DecoderMode.FFMPEG,
+                ),
+            )
+            val shuffleOrder = ShuffleOrder.DefaultShuffleOrder(
+                intArrayOf(
+                    2,
+                    1,
+                    0,
+                ),
+                0,
+            )
             player.setShuffleOrder(shuffleOrder)
             player.shuffleModeEnabled = true
             val transitions = mutableListOf<MediaItem?>()
@@ -48,37 +73,73 @@ class PlayerTest {
                 }
             })
 
-            for (playing in listOf(false, true)) {
+            for (playing in listOf(
+                false,
+                true,
+            )) {
                 player.playWhenReady = playing
                 createdItems.clear()
-                player.addAdditionalSubtitleConfiguration(subtitle.buildUpon().setId("test-$playing").build())
+                player.addAdditionalSubtitleConfiguration(
+                    subtitle.buildUpon().setId("test-$playing").build(),
+                )
 
                 assertEquals(
                     "Only the current source should be recreated",
                     listOf(player.currentMediaItem),
                     createdItems,
                 )
-                assertEquals(shuffleOrder, player.shuffleOrder)
+                assertEquals(
+                    shuffleOrder,
+                    player.shuffleOrder,
+                )
                 assertTrue(player.shuffleModeEnabled)
-                assertEquals(items.map { it.mediaId }, (0 until player.mediaItemCount).map { player.getMediaItemAt(it).mediaId })
-                assertEquals(1, player.currentMediaItemIndex)
-                assertEquals(12_000L, player.currentPosition)
-                assertEquals(12_000L, player.mediaMetadata.positionMs)
-                assertEquals(playing, player.playWhenReady)
+                assertEquals(
+                    items.map { it.mediaId },
+                    (0 until player.mediaItemCount).map { player.getMediaItemAt(it).mediaId },
+                )
+                assertEquals(
+                    1,
+                    player.currentMediaItemIndex,
+                )
+                assertEquals(
+                    12_000L,
+                    player.currentPosition,
+                )
+                assertEquals(
+                    12_000L,
+                    player.mediaMetadata.positionMs,
+                )
+                assertEquals(
+                    playing,
+                    player.playWhenReady,
+                )
                 assertTrue(transitions.isNotEmpty())
-                assertTrue(transitions.all {
-                    it?.mediaId == "current" &&
-                        it.mediaMetadata.videoDecoderMode == DecoderMode.HARDWARE &&
-                        it.mediaMetadata.audioDecoderMode == DecoderMode.FFMPEG
-                })
+                assertTrue(
+                    transitions.all {
+                        it?.mediaId == "current" &&
+                            it.mediaMetadata.videoDecoderMode == DecoderMode.HARDWARE &&
+                            it.mediaMetadata.audioDecoderMode == DecoderMode.FFMPEG
+                    },
+                )
             }
-            assertEquals(2, player.currentMediaItem?.localConfiguration?.subtitleConfigurations?.size)
-            assertEquals(0, player.mediaMetadata.subtitleTrackIndex)
+            assertEquals(
+                2,
+                player.currentMediaItem?.localConfiguration?.subtitleConfigurations?.size,
+            )
+            assertEquals(
+                0,
+                player.mediaMetadata.subtitleTrackIndex,
+            )
 
             val currentItem = player.currentMediaItem
             createdItems.clear()
-            player.addAdditionalSubtitleConfiguration(subtitle.buildUpon().setId("test-true").build())
-            assertEquals(currentItem, player.currentMediaItem)
+            player.addAdditionalSubtitleConfiguration(
+                subtitle.buildUpon().setId("test-true").build(),
+            )
+            assertEquals(
+                currentItem,
+                player.currentMediaItem,
+            )
             assertTrue(createdItems.isEmpty())
         } finally {
             player.release()

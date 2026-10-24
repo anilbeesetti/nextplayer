@@ -1,5 +1,5 @@
-import org.gradle.api.tasks.testing.logging.TestLogEvent
 import org.gradle.api.tasks.testing.logging.TestExceptionFormat
+import org.gradle.api.tasks.testing.logging.TestLogEvent
 
 plugins {
     alias(libs.plugins.aboutLibraries) apply false
@@ -12,15 +12,24 @@ plugins {
     alias(libs.plugins.ktlint) apply false
 }
 
-subprojects {
+allprojects {
     apply(plugin = rootProject.libs.plugins.ktlint.get().pluginId)
-    apply(plugin = rootProject.libs.plugins.aboutLibraries.get().pluginId)
 
     configure<org.jlleitschuh.gradle.ktlint.KtlintExtension> {
+        version.set(rootProject.libs.versions.ktlintCli.get())
         android.set(true)
         outputColorName.set("RED")
         ignoreFailures.set(false)
     }
+
+    dependencies.add(
+        "ktlintRuleset",
+        project(":ktlint-rules"),
+    )
+}
+
+subprojects {
+    apply(plugin = rootProject.libs.plugins.aboutLibraries.get().pluginId)
 
     configure<com.mikepenz.aboutlibraries.plugin.AboutLibrariesExtension> {
         offlineMode.set(true)
@@ -38,7 +47,7 @@ allprojects {
                 TestLogEvent.FAILED,
                 TestLogEvent.SKIPPED,
                 TestLogEvent.STANDARD_OUT,
-                TestLogEvent.STANDARD_ERROR
+                TestLogEvent.STANDARD_ERROR,
             )
 
             exceptionFormat = TestExceptionFormat.FULL

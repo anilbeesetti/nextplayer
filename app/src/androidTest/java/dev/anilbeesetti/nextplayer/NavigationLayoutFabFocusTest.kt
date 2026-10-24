@@ -54,41 +54,45 @@ class NavigationLayoutFabFocusTest {
     fun upEntersContentEvenWhenItsFocusGroupOverlapsFab() {
         showScreen()
         upFromFab()
-        composeRule.onNodeWithText("Second item").assertIsFocused()
+        composeRule.onNodeWithText(text = "Second item").assertIsFocused()
     }
 
     @Test
     fun upRestoresThePreviousItemWithinContent() {
         showScreen()
-        composeRule.onNodeWithText("First item").requestFocus()
+        composeRule.onNodeWithText(text = "First item").requestFocus()
         upFromFab()
-        composeRule.onNodeWithText("First item").assertIsFocused()
+        composeRule.onNodeWithText(text = "First item").assertIsFocused()
     }
 
     @Test
     fun emptyContentFallsBackToTheScreenToolbar() {
         showScreen(empty = true)
         upFromFab()
-        composeRule.onNodeWithText("Settings").assertIsFocused()
+        composeRule.onNodeWithText(text = "Settings").assertIsFocused()
     }
 
     @Test
     fun downFromTheLastItemCanStillReachFab() {
         showScreen()
-        composeRule.onNodeWithText("First item").requestFocus()
+        composeRule.onNodeWithText(text = "First item").requestFocus()
         composeRule.onRoot().performKeyInput { pressKey(Key.DirectionDown) }
-        composeRule.onNodeWithText("Second item").assertIsFocused()
+        composeRule.onNodeWithText(text = "Second item").assertIsFocused()
         composeRule.onRoot().performKeyInput { pressKey(Key.DirectionDown) }
-        composeRule.onNodeWithTag("top_level_fab").assertIsFocused()
+        composeRule.onNodeWithTag(testTag = "top_level_fab").assertIsFocused()
     }
 
     @Test
     fun leftFromContentCanStillReachNavigationRail() {
         showScreen()
-        composeRule.onNodeWithText("Second item").requestFocus()
+        composeRule.onNodeWithText(text = "Second item").requestFocus()
         composeRule.onRoot().performKeyInput { pressKey(Key.DirectionLeft) }
         composeRule.onNode(
-            isFocused() and SemanticsMatcher.expectValue(SemanticsProperties.Role, Role.Tab),
+            matcher =
+                isFocused() and SemanticsMatcher.expectValue(
+                    SemanticsProperties.Role,
+                    Role.Tab,
+                ),
         ).assertExists()
     }
 
@@ -98,17 +102,28 @@ class NavigationLayoutFabFocusTest {
                 val state = rememberTopLevelNavState()
                 val fabs = remember {
                     mutableStateMapOf(
-                        TopLevelFabKey.MEDIA to TopLevelFabState(NextIcons.Play, {}),
+                        TopLevelFabKey.MEDIA to TopLevelFabState(
+                            NextIcons.Play,
+                            onClick = {},
+                        ),
                     )
                 }
-                NavigationLayout(state = state, fabStates = fabs, showBottomBar = true) {
-                    Column(Modifier.fillMaxSize().padding(start = it.calculateStartPadding(LocalLayoutDirection.current))) {
-                        Button(onClick = {}) { Text("Settings") }
+                NavigationLayout(
+                    state = state,
+                    fabStates = fabs,
+                    showBottomBar = true,
+                ) {
+                    Column(
+                        Modifier.fillMaxSize().padding(
+                            start = it.calculateStartPadding(LocalLayoutDirection.current),
+                        ),
+                    ) {
+                        Button(onClick = {}) { Text(text = "Settings") }
                         Box(Modifier.fillMaxSize()) {
                             if (!empty) {
                                 Column(Modifier.fillMaxSize().focusRestorer().focusGroup()) {
-                                    Button(onClick = {}) { Text("First item") }
-                                    Button(onClick = {}) { Text("Second item") }
+                                    Button(onClick = {}) { Text(text = "First item") }
+                                    Button(onClick = {}) { Text(text = "Second item") }
                                 }
                             }
                         }
@@ -119,7 +134,7 @@ class NavigationLayoutFabFocusTest {
     }
 
     private fun upFromFab() {
-        composeRule.onNodeWithTag("top_level_fab").requestFocus()
+        composeRule.onNodeWithTag(testTag = "top_level_fab").requestFocus()
         composeRule.onRoot().performKeyInput { pressKey(Key.DirectionUp) }
     }
 }

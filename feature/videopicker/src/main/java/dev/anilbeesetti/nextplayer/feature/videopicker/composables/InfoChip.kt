@@ -19,15 +19,18 @@ fun InfoChip(
     modifier: Modifier = Modifier,
     backgroundColor: Color = MaterialTheme.colorScheme.surfaceContainerHigh,
     contentColor: Color = MaterialTheme.colorScheme.onSurface,
-    shape: Shape = MaterialTheme.shapes.extraSmall.copy(CornerSize(2.dp)),
+    shape: Shape = MaterialTheme.shapes.extraSmall.copy(all = CornerSize(2.dp)),
 ) {
     Text(
         text = text,
         style = MaterialTheme.typography.labelSmall.copy(fontWeight = FontWeight.Normal),
         color = contentColor,
         modifier = modifier
-            .clip(shape)
-            .background(backgroundColor)
-            .padding(vertical = 1.dp, horizontal = 3.dp),
+            .clip(shape = shape)
+            .background(color = backgroundColor)
+            .padding(
+                vertical = 1.dp,
+                horizontal = 3.dp,
+            ),
     )
 }

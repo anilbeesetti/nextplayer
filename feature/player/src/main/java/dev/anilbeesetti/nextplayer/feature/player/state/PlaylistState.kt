@@ -18,8 +18,8 @@ import androidx.media3.ui.compose.state.observeState
 @UnstableApi
 @Composable
 fun rememberPlaylistState(player: Player): PlaylistState {
-    val playlistState = remember(player) { PlaylistState(player) }
-    LaunchedEffect(player) { playlistState.observe() }
+    val playlistState = remember(player) { PlaylistState(player = player) }
+    LaunchedEffect(key1 = player) { playlistState.observe() }
     return playlistState
 }
 
@@ -40,21 +40,20 @@ class PlaylistState(private val player: Player?) {
     var playlistMetadata: MediaMetadata by mutableStateOf(MediaMetadata.EMPTY)
         private set
 
+    private val playerStateObserver = player?.observeState(
+        Player.EVENT_TIMELINE_CHANGED,
+        Player.EVENT_POSITION_DISCONTINUITY,
+        Player.EVENT_PLAYLIST_METADATA_CHANGED,
+        Player.EVENT_AVAILABLE_COMMANDS_CHANGED,
+    ) { player ->
+        canGetTimeline = player.isCommandAvailable(Player.COMMAND_GET_TIMELINE)
+        canGetMetadata = player.isCommandAvailable(Player.COMMAND_GET_METADATA)
 
-    private val playerStateObserver =
-        player?.observeState(
-            Player.EVENT_TIMELINE_CHANGED,
-            Player.EVENT_POSITION_DISCONTINUITY,
-            Player.EVENT_PLAYLIST_METADATA_CHANGED,
-            Player.EVENT_AVAILABLE_COMMANDS_CHANGED,
-        ) { player ->
-            canGetTimeline = player.isCommandAvailable(Player.COMMAND_GET_TIMELINE)
-            canGetMetadata = player.isCommandAvailable(Player.COMMAND_GET_METADATA)
-
-            playlistMetadata = if (canGetMetadata) player.playlistMetadata else MediaMetadata.EMPTY
-            timeline = if (canGetTimeline) player.currentTimeline else Timeline.EMPTY
-            currentMediaItemIndex = if (canGetTimeline) player.currentMediaItemIndex else C.INDEX_UNSET
-        }
+        playlistMetadata = if (canGetMetadata) player.playlistMetadata else MediaMetadata.EMPTY
+        timeline = if (canGetTimeline) player.currentTimeline else Timeline.EMPTY
+        currentMediaItemIndex =
+            if (canGetTimeline) player.currentMediaItemIndex else C.INDEX_UNSET
+    }
 
     suspend fun observe() {
         playerStateObserver?.observe()
@@ -64,7 +63,10 @@ class PlaylistState(private val player: Player?) {
         if (fromIndex == toIndex) return
         if (fromIndex !in 0 until timeline.windowCount || toIndex >= timeline.windowCount) return
 
-        player?.moveMediaItem(fromIndex, toIndex)
+        player?.moveMediaItem(
+            fromIndex,
+            toIndex,
+        )
     }
 
     fun removeItem(index: Int) {
@@ -85,6 +87,9 @@ class PlaylistState(private val player: Player?) {
             throw IndexOutOfBoundsException()
         }
         val window = Timeline.Window()
-        return timeline.getWindow(index, window).mediaItem
+        return timeline.getWindow(
+            index,
+            window,
+        ).mediaItem
     }
 }

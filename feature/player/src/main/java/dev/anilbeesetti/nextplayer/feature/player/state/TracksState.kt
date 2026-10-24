@@ -16,30 +16,30 @@ import dev.anilbeesetti.nextplayer.feature.player.extensions.switchTrack
 
 @UnstableApi
 @Composable
-fun rememberTracksState(
-    player: Player?,
-    trackType: @C.TrackType Int,
-): TracksState {
-    val tracksState = remember(player) { TracksState(player, trackType) }
-    LaunchedEffect(player) { tracksState.observe() }
+fun rememberTracksState(player: Player?, trackType: @C.TrackType Int): TracksState {
+    val tracksState = remember(player) {
+        TracksState(
+            player = player,
+            trackType = trackType,
+        )
+    }
+    LaunchedEffect(key1 = player) { tracksState.observe() }
     return tracksState
 }
 
 @UnstableApi
-class TracksState(
-    private val player: Player?,
-    private val trackType: @C.TrackType Int,
-) {
-    var tracks: List<Tracks.Group> by mutableStateOf(emptyList())
+class TracksState(private val player: Player?, private val trackType: @C.TrackType Int) {
+    var tracks: List<Tracks.Group> by mutableStateOf(value = emptyList())
         private set
 
     private val playerStateObserver: PlayerStateObserver? =
-        player?.observeState(Player.EVENT_TRACKS_CHANGED) {
-            updateTracks()
-        }
+        player?.observeState(Player.EVENT_TRACKS_CHANGED) { updateTracks() }
 
     fun switchTrack(index: Int) {
-        player?.switchTrack(trackType, index)
+        player?.switchTrack(
+            trackType = trackType,
+            trackIndex = index,
+        )
     }
 
     suspend fun observe() {

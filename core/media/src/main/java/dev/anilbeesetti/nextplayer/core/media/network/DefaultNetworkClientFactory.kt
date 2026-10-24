@@ -10,13 +10,17 @@ import dev.anilbeesetti.nextplayer.core.model.NetworkProtocol
 import org.koin.core.annotation.Single
 
 @Single
-class DefaultNetworkClientFactory(
-    private val sshKeyStore: SshKeyStore,
-) : NetworkClientFactory {
+class DefaultNetworkClientFactory(private val sshKeyStore: SshKeyStore) : NetworkClientFactory {
     override fun create(connection: NetworkConnection): NetworkClient = when (connection.protocol) {
-        NetworkProtocol.SMB -> SmbClient(connection)
-        NetworkProtocol.FTP -> FtpClient(connection)
-        NetworkProtocol.SFTP -> SftpClient(connection, sshKeyStore)
-        NetworkProtocol.WEBDAV -> WebDavClient(connection)
+        NetworkProtocol.SMB -> SmbClient(connection = connection)
+
+        NetworkProtocol.FTP -> FtpClient(connection = connection)
+
+        NetworkProtocol.SFTP -> SftpClient(
+            connection = connection,
+            sshKeyStore = sshKeyStore,
+        )
+
+        NetworkProtocol.WEBDAV -> WebDavClient(connection = connection)
     }
 }

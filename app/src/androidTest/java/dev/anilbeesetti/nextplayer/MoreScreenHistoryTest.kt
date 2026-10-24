@@ -25,34 +25,44 @@ class MoreScreenHistoryTest {
 
     @Test
     fun emptyAndDisabledHistoryShowTheirMessagesAndKeepHistoryAccessible() {
-        val state = mutableStateOf(MoreUiState(history = DataState.Success(emptyList())))
+        val state =
+            mutableStateOf(value = MoreUiState(history = DataState.Success(value = emptyList())))
         val actions = mutableListOf<MoreAction>()
         composeRule.setContent {
             NextPlayerTheme {
-                MoreScreenContent(state = state.value, onAction = actions::add)
+                MoreScreenContent(
+                    state = state.value,
+                    onAction = actions::add,
+                )
             }
         }
 
-        composeRule.onNodeWithText("No watch history").assertExists()
-        composeRule.onNodeWithContentDescription("History").performClick()
+        composeRule.onNodeWithText(text = "No watch history").assertExists()
+        composeRule.onNodeWithContentDescription(label = "History").performClick()
         composeRule.runOnIdle {
             state.value = state.value.copy(
-                history = DataState.Success(listOf(Video.sample)),
+                history = DataState.Success(value = listOf(Video.sample)),
                 preferences = state.value.preferences.copy(isHistoryPaused = true),
             )
         }
-        composeRule.onNodeWithText("Watch history is turned off").assertExists()
-        composeRule.onNodeWithText("No watch history").assertDoesNotExist()
+        composeRule.onNodeWithText(text = "Watch history is turned off").assertExists()
+        composeRule.onNodeWithText(text = "No watch history").assertDoesNotExist()
         composeRule.onNodeWithText(Video.sample.displayName).assertDoesNotExist()
-        composeRule.onNodeWithContentDescription("History").performClick()
+        composeRule.onNodeWithContentDescription(label = "History").performClick()
         composeRule.runOnIdle {
-            assertEquals(listOf(MoreAction.OpenHistory, MoreAction.OpenHistory), actions)
+            assertEquals(
+                listOf(
+                    MoreAction.OpenHistory,
+                    MoreAction.OpenHistory,
+                ),
+                actions,
+            )
             state.value = state.value.copy(
-                history = DataState.Success(emptyList()),
+                history = DataState.Success(value = emptyList()),
                 preferences = state.value.preferences.copy(isHistoryPaused = false),
             )
         }
-        composeRule.onNodeWithText("No watch history").assertExists()
-        composeRule.onNodeWithText("Watch history is turned off").assertDoesNotExist()
+        composeRule.onNodeWithText(text = "No watch history").assertExists()
+        composeRule.onNodeWithText(text = "Watch history is turned off").assertDoesNotExist()
     }
 }

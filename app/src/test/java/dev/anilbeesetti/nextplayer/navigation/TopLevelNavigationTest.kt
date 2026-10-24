@@ -30,17 +30,20 @@ class TopLevelNavigationTest {
         val state = TopLevelNavState(
             destinations = TopLevelDestination.entries,
             backStacks = stacks,
-            selectedIndexState = mutableIntStateOf(0),
+            selectedIndexState = mutableIntStateOf(value = 0),
         )
         val playlistStack = stacks.getValue(TopLevelDestination.PLAYLISTS.route)
 
         state.switchTo(TopLevelDestination.PLAYLISTS.route)
-        playlistStack += PlaylistDetailRoute(7)
+        playlistStack += PlaylistDetailRoute(playlistId = 7)
         state.switchTo(TopLevelDestination.MEDIA.route)
         state.switchTo(TopLevelDestination.PLAYLISTS.route)
 
         assertEquals(
-            listOf(TopLevelDestination.PLAYLISTS.route, PlaylistDetailRoute(7)),
+            listOf(
+                TopLevelDestination.PLAYLISTS.route,
+                PlaylistDetailRoute(playlistId = 7),
+            ),
             state.currentStack,
         )
     }
@@ -53,20 +56,37 @@ class TopLevelNavigationTest {
         val state = TopLevelNavState(
             destinations = TopLevelDestination.entries,
             backStacks = stacks,
-            selectedIndexState = mutableIntStateOf(0),
+            selectedIndexState = mutableIntStateOf(value = 0),
         )
-        stacks.getValue(TopLevelDestination.PLAYLISTS.route).add(PlaylistDetailRoute(7))
+        stacks.getValue(
+            TopLevelDestination.PLAYLISTS.route,
+        ).add(element = PlaylistDetailRoute(playlistId = 7))
         state.switchTo(TopLevelDestination.NETWORK.route)
 
-        state.openPlaylist(42)
-        state.openPlaylist(42)
+        state.openPlaylist(playlistId = 42)
+        state.openPlaylist(playlistId = 42)
 
-        assertEquals(TopLevelDestination.PLAYLISTS.route, state.topLevelRoute)
-        assertEquals(listOf(TopLevelDestination.PLAYLISTS.route, PlaylistDetailRoute(42)), state.currentStack)
+        assertEquals(
+            TopLevelDestination.PLAYLISTS.route,
+            state.topLevelRoute,
+        )
+        assertEquals(
+            listOf(
+                TopLevelDestination.PLAYLISTS.route,
+                PlaylistDetailRoute(playlistId = 42),
+            ),
+            state.currentStack,
+        )
         state.goBack()
-        assertEquals(listOf(TopLevelDestination.PLAYLISTS.route), state.currentStack)
+        assertEquals(
+            listOf(TopLevelDestination.PLAYLISTS.route),
+            state.currentStack,
+        )
         state.goBack()
-        assertEquals(TopLevelDestination.MEDIA.route, state.topLevelRoute)
+        assertEquals(
+            TopLevelDestination.MEDIA.route,
+            state.topLevelRoute,
+        )
     }
 
     @Test
@@ -77,11 +97,18 @@ class TopLevelNavigationTest {
         val state = TopLevelNavState(
             destinations = TopLevelDestination.entries,
             backStacks = stacks,
-            selectedIndexState = mutableIntStateOf(0),
+            selectedIndexState = mutableIntStateOf(value = 0),
         )
         for (dest in TopLevelDestination.entries) {
             assert(state.topLevelContentKeys.contains(dest.route))
-            assert(state.topLevelContentKeys.contains(Pair("${dest.route}", "${dest.route::class}")))
+            assert(
+                state.topLevelContentKeys.contains(
+                    element = Pair(
+                        first = "${dest.route}",
+                        second = "${dest.route::class}",
+                    ),
+                ),
+            )
         }
     }
 }

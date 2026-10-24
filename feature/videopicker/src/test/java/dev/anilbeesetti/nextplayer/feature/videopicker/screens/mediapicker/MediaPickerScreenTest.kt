@@ -71,7 +71,7 @@ class MediaPickerScreenTest {
         var rootFab: TopLevelFabState? = null
         val setFab: (String, TopLevelFabState?) -> Unit = { _, fab -> rootFab = fab }
         composeRule.setContent {
-            CompositionLocalProvider(LocalTopLevelFabSetter provides setFab) {
+            CompositionLocalProvider(value = LocalTopLevelFabSetter provides setFab) {
                 NextPlayerTheme {
                     MediaPickerScreenContent(
                         state = MediaPickerUiState(
@@ -79,13 +79,27 @@ class MediaPickerScreenTest {
                             recentlyPlayedVideo = video,
                             preferences = ApplicationPreferences(mediaViewMode = viewMode),
                             mediaDataState = DataState.Success(
-                                MediaHolder(
-                                    videos = if (folderName == null && viewMode != MediaViewMode.VIDEOS) {
+                                value = MediaHolder(
+                                    videos = if (folderName == null &&
+                                        viewMode != MediaViewMode.VIDEOS
+                                    ) {
                                         emptyList()
                                     } else {
-                                        listOf(Video.sample.copy(uriString = "content://media/external/video/media/1"), video)
+                                        listOf(
+                                            Video.sample.copy(
+                                                uriString =
+                                                    "content://media/external/video/media/1",
+                                            ),
+                                            video,
+                                        )
                                     },
-                                    folders = listOf(Folder(name = "Movies", path = "/Movies", dateModified = 0)),
+                                    folders = listOf(
+                                        element = Folder(
+                                            name = "Movies",
+                                            path = "/Movies",
+                                            dateModified = 0,
+                                        ),
+                                    ),
                                 ),
                             ),
                         ),
@@ -101,14 +115,18 @@ class MediaPickerScreenTest {
                 actions.clear()
             }
             if (folderName == null) {
-                composeRule.runOnIdle { checkNotNull(rootFab).onClick() }
+                composeRule.runOnIdle { checkNotNull(value = rootFab).onClick() }
             } else {
-                composeRule.onNodeWithContentDescription("Play").performClick()
+                composeRule.onNodeWithContentDescription(label = "Play").performClick()
             }
             // A single-video launch lets the player build the sorted queue; an explicit
             // one-item PlaySelectedItems queue disables that behavior.
             composeRule.runOnIdle {
-                assertEquals("Resume in $mode", listOf(MediaPickerAction.OnPlayVideo(video.uriString.toUri())), actions)
+                assertEquals(
+                    "Resume in $mode",
+                    listOf(MediaPickerAction.OnPlayVideo(video.uriString.toUri())),
+                    actions,
+                )
             }
         }
     }
@@ -118,23 +136,34 @@ class MediaPickerScreenTest {
     fun tvFolderFabUpReturnsToTheVideoInsteadOfSettings() {
         val application = ApplicationProvider.getApplicationContext<Application>()
         shadowOf(application).grantPermissions(Manifest.permission.READ_MEDIA_VIDEO)
-        shadowOf(application.packageManager).setSystemFeature(PackageManager.FEATURE_LEANBACK, true)
-        val video = Video.sample.copy(nameWithExtension = "Clip.mp4", uriString = "content://video/1")
+        shadowOf(application.packageManager).setSystemFeature(
+            PackageManager.FEATURE_LEANBACK,
+            true,
+        )
+        val video = Video.sample.copy(
+            nameWithExtension = "Clip.mp4",
+            uriString = "content://video/1",
+        )
         composeRule.setContent {
             NextPlayerTheme {
                 MediaPickerScreenContent(
                     state = MediaPickerUiState(
                         folderName = "Movies",
-                        mediaDataState = DataState.Success(MediaHolder(listOf(video), emptyList())),
+                        mediaDataState = DataState.Success(
+                            value = MediaHolder(
+                                videos = listOf(element = video),
+                                folders = emptyList(),
+                            ),
+                        ),
                     ),
                 )
             }
         }
 
-        composeRule.onNodeWithText("Clip").requestFocus()
-        composeRule.onNodeWithContentDescription("Play").requestFocus()
+        composeRule.onNodeWithText(text = "Clip").requestFocus()
+        composeRule.onNodeWithContentDescription(label = "Play").requestFocus()
         composeRule.onRoot().performKeyInput { pressKey(Key.DirectionUp) }
-        composeRule.onNodeWithText("Clip").assertIsFocused()
+        composeRule.onNodeWithText(text = "Clip").assertIsFocused()
     }
 
     @Test
@@ -150,7 +179,7 @@ class MediaPickerScreenTest {
             }
         }
 
-        composeRule.onNodeWithText(permissionMessage).assertIsDisplayed()
+        composeRule.onNodeWithText(text = permissionMessage).assertIsDisplayed()
     }
 
     @Test
@@ -180,16 +209,24 @@ class MediaPickerScreenTest {
         val actions = mutableListOf<MediaPickerAction>()
         val application = ApplicationProvider.getApplicationContext<Application>()
         shadowOf(application).grantPermissions(Manifest.permission.READ_MEDIA_VIDEO)
-        var showPlaylistDialog by mutableStateOf(false)
-        val video = Video.sample.copy(nameWithExtension = "Video.mp4", uriString = "content://video/1")
+        var showPlaylistDialog by mutableStateOf(value = false)
+        val video = Video.sample.copy(
+            nameWithExtension = "Video.mp4",
+            uriString = "content://video/1",
+        )
         composeRule.setContent {
             NextPlayerTheme {
                 MediaPickerScreenContent(
                     state = MediaPickerUiState(
                         folderName = null,
-                        mediaDataState = DataState.Success(MediaHolder(folders = emptyList(), videos = listOf(video))),
+                        mediaDataState = DataState.Success(
+                            value = MediaHolder(
+                                folders = emptyList(),
+                                videos = listOf(element = video),
+                            ),
+                        ),
                         playlists = listOf(
-                            PlaylistSummary(
+                            element = PlaylistSummary(
                                 id = 7,
                                 name = "Movies",
                                 type = PlaylistType.LOCAL,
@@ -207,16 +244,16 @@ class MediaPickerScreenTest {
             }
         }
 
-        composeRule.onNodeWithText("Video").performTouchInput { longClick() }
-        composeRule.onNodeWithText("1 / 1 Selected").assertIsDisplayed()
+        composeRule.onNodeWithText(text = "Video").performTouchInput { longClick() }
+        composeRule.onNodeWithText(text = "1 / 1 Selected").assertIsDisplayed()
         composeRule.runOnIdle { showPlaylistDialog = true }
 
-        composeRule.onNodeWithText("Choose a playlist").assertIsDisplayed()
-        composeRule.onNodeWithText("Create new playlist").assertIsDisplayed()
-        composeRule.onNodeWithText("Movies").performClick()
+        composeRule.onNodeWithText(text = "Choose a playlist").assertIsDisplayed()
+        composeRule.onNodeWithText(text = "Create new playlist").assertIsDisplayed()
+        composeRule.onNodeWithText(text = "Movies").performClick()
 
-        assertTrue(MediaPickerAction.AddSelectionToPlaylist(7) in actions)
+        assertTrue(MediaPickerAction.AddSelectionToPlaylist(playlistId = 7) in actions)
         composeRule.runOnIdle { showPlaylistDialog = false }
-        composeRule.onNodeWithText("1 / 1 Selected").assertDoesNotExist()
+        composeRule.onNodeWithText(text = "1 / 1 Selected").assertDoesNotExist()
     }
 }
