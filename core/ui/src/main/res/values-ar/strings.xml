@@ -573,4 +573,5 @@
     <string name="network_watch_history">سجل مشاهدة الشبكة</string>
     <string name="network_watch_history_desc">أدرج مقاطع الفيديو التي تُشغَّل عبر الشبكة في سجل المشاهدة.</string>
     <string name="add_to_home_screen">إضافة إلى الشاشة الرئيسية</string>
+    <string name="playlist_shortcut_failed">تعذّرت إضافة اختصار قائمة التشغيل. حاول مرة أخرى.</string>
 </resources>
