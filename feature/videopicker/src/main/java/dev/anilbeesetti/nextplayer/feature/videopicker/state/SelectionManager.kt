@@ -14,19 +14,17 @@ import java.io.Serializable
 
 @Composable
 fun rememberSelectionManager(): SelectionManager =
-    rememberSaveable(saver = SelectionManager.Saver) {
-        SelectionManager()
-    }
+    rememberSaveable(saver = SelectionManager.Saver) { SelectionManager() }
 
 @Stable
 class SelectionManager(
     initialSelectionItems: Set<SelectionItem> = emptySet(),
     initialIsInSelectionMode: Boolean = false,
 ) {
-    var selectionItems: Set<SelectionItem> by mutableStateOf(initialSelectionItems)
+    var selectionItems: Set<SelectionItem> by mutableStateOf(value = initialSelectionItems)
         private set
 
-    var isInSelectionMode: Boolean by mutableStateOf(initialIsInSelectionMode)
+    var isInSelectionMode: Boolean by mutableStateOf(value = initialIsInSelectionMode)
         private set
 
     val isSingleVideoSelected: Boolean by derivedStateOf {

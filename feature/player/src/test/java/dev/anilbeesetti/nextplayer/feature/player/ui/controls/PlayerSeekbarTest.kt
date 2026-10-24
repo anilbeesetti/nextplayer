@@ -38,12 +38,10 @@ class PlayerSeekbarTest {
                 ticks += hapticFeedbackType
             }
         }
-        var position by mutableFloatStateOf(100f)
-        var materialControls by mutableStateOf(false)
+        var position by mutableFloatStateOf(value = 100f)
+        var materialControls by mutableStateOf(value = false)
         var chapters by mutableStateOf(
-            listOf(0L, 400L, 700L).map {
-                Chapter.Builder().setStartTimeMs(it).build()
-            },
+            listOf(0L, 400L, 700L).map { Chapter.Builder().setStartTimeMs(it).build() },
         )
         composeRule.setContent {
             NextPlayerTheme {
@@ -72,16 +70,16 @@ class PlayerSeekbarTest {
                 ticks.clear()
             }
             slider.performTouchInput {
-                down(Offset(width * 0.1f, centerY))
-                moveTo(Offset(width * 0.2f, centerY))
+                down(position = Offset(x = width * 0.1f, y = centerY))
+                moveTo(position = Offset(x = width * 0.2f, y = centerY))
             }
             composeRule.runOnIdle { assertEquals(0, ticks.size) }
-            slider.performTouchInput { moveTo(Offset(width * 0.5f, centerY)) }
+            slider.performTouchInput { moveTo(position = Offset(x = width * 0.5f, y = centerY)) }
             composeRule.runOnIdle { assertEquals(listOf(HapticFeedbackType.SegmentTick), ticks) }
-            slider.performTouchInput { moveTo(Offset(width * 0.6f, centerY)) }
+            slider.performTouchInput { moveTo(position = Offset(x = width * 0.6f, y = centerY)) }
             composeRule.runOnIdle { assertEquals(1, ticks.size) }
             slider.performTouchInput {
-                moveTo(Offset(width * 0.2f, centerY))
+                moveTo(position = Offset(x = width * 0.2f, y = centerY))
                 up()
             }
             composeRule.runOnIdle {
@@ -91,8 +89,8 @@ class PlayerSeekbarTest {
             composeRule.waitForIdle()
             composeRule.runOnIdle { assertEquals(2, ticks.size) }
             slider.performTouchInput {
-                down(Offset(width * 0.8f, centerY))
-                moveTo(Offset(width * 0.9f, centerY))
+                down(position = Offset(x = width * 0.8f, y = centerY))
+                moveTo(position = Offset(x = width * 0.9f, y = centerY))
                 up()
             }
             composeRule.runOnIdle { assertEquals(2, ticks.size) }
@@ -103,8 +101,8 @@ class PlayerSeekbarTest {
             ticks.clear()
         }
         slider.performTouchInput {
-            down(Offset(width * 0.9f, centerY))
-            moveTo(Offset(width * 0.1f, centerY))
+            down(position = Offset(x = width * 0.9f, y = centerY))
+            moveTo(position = Offset(x = width * 0.1f, y = centerY))
             up()
         }
         composeRule.runOnIdle { assertEquals(0, ticks.size) }

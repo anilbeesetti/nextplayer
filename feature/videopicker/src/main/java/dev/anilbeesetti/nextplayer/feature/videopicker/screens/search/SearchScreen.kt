@@ -93,11 +93,9 @@ fun SearchScreen(viewModel: SearchViewModel) {
 internal fun SearchScreenContent(state: SearchUiState, onAction: (SearchUiEvent) -> Unit) {
     val focusRequester = remember { FocusRequester() }
     val keyboardController = LocalSoftwareKeyboardController.current
-    var isSearchFocused by remember { mutableStateOf(false) }
+    var isSearchFocused by remember { mutableStateOf(value = false) }
 
-    LaunchedEffect(Unit) {
-        focusRequester.requestFocus()
-    }
+    LaunchedEffect(key1 = Unit) { focusRequester.requestFocus() }
 
     Scaffold(
         topBar = {
@@ -105,10 +103,10 @@ internal fun SearchScreenContent(state: SearchUiState, onAction: (SearchUiEvent)
                 title = {
                     NextOutlinedTextField(
                         value = state.query,
-                        onValueChange = { onAction(SearchUiEvent.OnQueryChange(it)) },
+                        onValueChange = { onAction(SearchUiEvent.OnQueryChange(query = it)) },
                         modifier = Modifier
                             .fillMaxWidth()
-                            .focusRequester(focusRequester)
+                            .focusRequester(focusRequester = focusRequester)
                             .onFocusChanged { isSearchFocused = it.hasFocus }
                             .tvFocusRing(shape = CircleShape),
                         placeholder = {
@@ -124,7 +122,7 @@ internal fun SearchScreenContent(state: SearchUiState, onAction: (SearchUiEvent)
                         trailingIcon = {
                             if (state.query.isNotEmpty()) {
                                 IconButton(onClick = {
-                                    onAction(SearchUiEvent.OnQueryChange(""))
+                                    onAction(SearchUiEvent.OnQueryChange(query = ""))
                                 }) {
                                     Icon(
                                         imageVector = NextIcons.Close,
@@ -178,7 +176,7 @@ internal fun SearchScreenContent(state: SearchUiState, onAction: (SearchUiEvent)
             Box(
                 modifier = Modifier
                     .fillMaxSize()
-                    .clip(RoundedCornerShape(topStart = 24.dp, topEnd = 24.dp))
+                    .clip(shape = RoundedCornerShape(topStart = 24.dp, topEnd = 24.dp))
                     .background(MaterialTheme.colorScheme.background),
             ) {
                 val updatedScaffoldPadding = scaffoldPadding.copy(top = 0.dp, start = 0.dp)
@@ -188,10 +186,14 @@ internal fun SearchScreenContent(state: SearchUiState, onAction: (SearchUiEvent)
                         popularFolders = state.popularFolders,
                         preferences = state.preferences,
                         contentPadding = updatedScaffoldPadding,
-                        onHistoryItemClick = { onAction(SearchUiEvent.OnHistoryItemClick(it)) },
-                        onRemoveHistoryItem = { onAction(SearchUiEvent.OnRemoveHistoryItem(it)) },
+                        onHistoryItemClick = {
+                            onAction(SearchUiEvent.OnHistoryItemClick(query = it))
+                        },
+                        onRemoveHistoryItem = {
+                            onAction(SearchUiEvent.OnRemoveHistoryItem(query = it))
+                        },
                         onClearHistory = { onAction(SearchUiEvent.OnClearHistory) },
-                        onFolderClick = { onAction(SearchUiEvent.OpenFolder(it)) },
+                        onFolderClick = { onAction(SearchUiEvent.OpenFolder(path = it)) },
                     )
                 } else {
                     SearchResultsContent(
@@ -200,8 +202,8 @@ internal fun SearchScreenContent(state: SearchUiState, onAction: (SearchUiEvent)
                         isSearching = state.isSearching,
                         autoFocus = !isSearchFocused,
                         contentPadding = updatedScaffoldPadding,
-                        onFolderClick = { onAction(SearchUiEvent.OpenFolder(it)) },
-                        onVideoClick = { onAction(SearchUiEvent.PlayVideo(it)) },
+                        onFolderClick = { onAction(SearchUiEvent.OpenFolder(path = it)) },
+                        onVideoClick = { onAction(SearchUiEvent.PlayVideo(uri = it)) },
                     )
                 }
             }
@@ -371,9 +373,7 @@ private fun SearchResultsContent(
         Box(
             modifier = Modifier.fillMaxSize().padding(top = 100.dp),
             contentAlignment = Alignment.TopCenter,
-        ) {
-            CircularProgressIndicator()
-        }
+        ) { CircularProgressIndicator() }
     }
 
     AnimatedVisibility(
@@ -469,7 +469,7 @@ private fun SearchScreenWithResultsPreview() {
                 query = "movie",
                 searchResults = SearchResults(
                     folders = listOf(
-                        Folder(
+                        element = Folder(
                             name = "Movies",
                             path = "/storage/Movies",
                             dateModified = System.currentTimeMillis(),

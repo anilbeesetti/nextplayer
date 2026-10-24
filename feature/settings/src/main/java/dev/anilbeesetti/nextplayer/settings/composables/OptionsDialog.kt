@@ -17,9 +17,7 @@ import dev.anilbeesetti.nextplayer.core.ui.components.tvListFocus
 fun OptionsDialog(text: String, onDismissClick: () -> Unit, options: LazyListScope.() -> Unit) {
     NextDialog(
         onDismissRequest = onDismissClick,
-        title = {
-            Text(text = text)
-        },
+        title = { Text(text = text) },
         content = {
             HorizontalDivider()
             LazyColumn(

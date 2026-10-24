@@ -57,7 +57,7 @@ private fun MediaLibraryPreferencesScreenContent(
     onAction: (MediaLibraryPreferencesUiEvent) -> Unit,
 ) {
     val preferences = state.preferences
-    var enableHistoryConfirmation by rememberSaveable { mutableStateOf<Boolean?>(null) }
+    var enableHistoryConfirmation by rememberSaveable { mutableStateOf<Boolean?>(value = null) }
 
     val focusState = rememberRestorableFocusState()
 
@@ -83,8 +83,8 @@ private fun MediaLibraryPreferencesScreenContent(
             modifier = Modifier
                 .fillMaxSize()
                 .verticalScroll(state = rememberScrollState())
-                .restorableFocusGroup(focusState)
-                .padding(innerPadding)
+                .restorableFocusGroup(state = focusState)
+                .padding(paddingValues = innerPadding)
                 .padding(horizontal = 16.dp),
         ) {
             ListSectionTitle(text = stringResource(id = R.string.media_library))
@@ -92,7 +92,10 @@ private fun MediaLibraryPreferencesScreenContent(
                 verticalArrangement = Arrangement.spacedBy(ListItemDefaults.SegmentedGap),
             ) {
                 PreferenceSwitch(
-                    modifier = Modifier.restorableFocusItem(focusState, "mark_last_played"),
+                    modifier = Modifier.restorableFocusItem(
+                        state = focusState,
+                        key = "mark_last_played",
+                    ),
                     title = stringResource(id = R.string.mark_last_played_media),
                     description = stringResource(
                         id = R.string.mark_last_played_media_desc,
@@ -106,7 +109,10 @@ private fun MediaLibraryPreferencesScreenContent(
                     isLastItem = false,
                 )
                 PreferenceSlider(
-                    modifier = Modifier.restorableFocusItem(focusState, "mark_new_media"),
+                    modifier = Modifier.restorableFocusItem(
+                        state = focusState,
+                        key = "mark_new_media",
+                    ),
                     title = stringResource(id = R.string.mark_new_media),
                     description = if (preferences.newVideoThresholdDays == 0) {
                         stringResource(id = R.string.off)
@@ -135,7 +141,10 @@ private fun MediaLibraryPreferencesScreenContent(
                 verticalArrangement = Arrangement.spacedBy(ListItemDefaults.SegmentedGap),
             ) {
                 ClickablePreferenceItem(
-                    modifier = Modifier.restorableFocusItem(focusState, "manage_folders"),
+                    modifier = Modifier.restorableFocusItem(
+                        state = focusState,
+                        key = "manage_folders",
+                    ),
                     title = stringResource(id = R.string.manage_folders),
                     description = stringResource(id = R.string.manage_folders_desc),
                     icon = NextIcons.FolderOff,
@@ -150,7 +159,10 @@ private fun MediaLibraryPreferencesScreenContent(
                 verticalArrangement = Arrangement.spacedBy(ListItemDefaults.SegmentedGap),
             ) {
                 PreferenceSwitch(
-                    modifier = Modifier.restorableFocusItem(focusState, "watch_history"),
+                    modifier = Modifier.restorableFocusItem(
+                        state = focusState,
+                        key = "watch_history",
+                    ),
                     title = stringResource(id = R.string.watch_history),
                     description = stringResource(id = R.string.watch_history_desc),
                     icon = NextIcons.History,
@@ -159,7 +171,10 @@ private fun MediaLibraryPreferencesScreenContent(
                     isFirstItem = true,
                 )
                 PreferenceSwitch(
-                    modifier = Modifier.restorableFocusItem(focusState, "network_watch_history"),
+                    modifier = Modifier.restorableFocusItem(
+                        state = focusState,
+                        key = "network_watch_history",
+                    ),
                     title = stringResource(id = R.string.network_watch_history),
                     description = stringResource(id = R.string.network_watch_history_desc),
                     icon = NextIcons.Network,
@@ -177,7 +192,7 @@ private fun MediaLibraryPreferencesScreenContent(
                 verticalArrangement = Arrangement.spacedBy(ListItemDefaults.SegmentedGap),
             ) {
                 ClickablePreferenceItem(
-                    modifier = Modifier.restorableFocusItem(focusState, "thumbnail"),
+                    modifier = Modifier.restorableFocusItem(state = focusState, key = "thumbnail"),
                     title = stringResource(id = R.string.thumbnail_generation),
                     description = when (preferences.thumbnailGenerationStrategy) {
                         ThumbnailGenerationStrategy.FIRST_FRAME -> stringResource(
@@ -203,7 +218,9 @@ private fun MediaLibraryPreferencesScreenContent(
         WatchHistoryConfirmationDialog(
             enableHistory = enableHistory,
             onConfirm = {
-                onAction(MediaLibraryPreferencesUiEvent.SetWatchHistoryEnabled(enableHistory))
+                onAction(
+                    MediaLibraryPreferencesUiEvent.SetWatchHistoryEnabled(enabled = enableHistory),
+                )
                 enableHistoryConfirmation = null
             },
             onDismiss = { enableHistoryConfirmation = null },

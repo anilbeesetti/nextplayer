@@ -61,7 +61,7 @@ private fun AppearancePreferencesScreenContent(
                 navigationIcon = {
                     FilledTonalIconButton(onClick = {
                         onAction(AppearancePreferencesEvent.NavigateUp)
-                    }, modifier = Modifier.tvFocusDown(listFocusRequester)) {
+                    }, modifier = Modifier.tvFocusDown(target = listFocusRequester)) {
                         Icon(
                             imageVector = NextIcons.ArrowBack,
                             contentDescription = stringResource(id = R.string.navigate_up),
@@ -76,8 +76,8 @@ private fun AppearancePreferencesScreenContent(
             modifier = Modifier
                 .fillMaxSize()
                 .verticalScroll(state = rememberScrollState())
-                .tvListFocus(listFocusRequester)
-                .padding(innerPadding)
+                .tvListFocus(focusRequester = listFocusRequester)
+                .padding(paddingValues = innerPadding)
                 .padding(horizontal = 16.dp),
         ) {
             ListSectionTitle(text = stringResource(id = R.string.appearance_name))
@@ -92,7 +92,9 @@ private fun AppearancePreferencesScreenContent(
                     icon = NextIcons.DarkMode,
                     onClick = {
                         onAction(
-                            AppearancePreferencesEvent.ShowDialog(AppearancePreferenceDialog.Theme),
+                            AppearancePreferencesEvent.ShowDialog(
+                                value = AppearancePreferenceDialog.Theme,
+                            ),
                         )
                     },
                     isFirstItem = true,
@@ -125,15 +127,21 @@ private fun AppearancePreferencesScreenContent(
                 AppearancePreferenceDialog.Theme -> {
                     OptionsDialog(
                         text = stringResource(id = R.string.dark_theme),
-                        onDismissClick = { onAction(AppearancePreferencesEvent.ShowDialog(null)) },
+                        onDismissClick = {
+                            onAction(AppearancePreferencesEvent.ShowDialog(value = null))
+                        },
                     ) {
                         items(ThemeConfig.entries.toTypedArray()) {
                             RadioTextButton(
                                 text = it.name(),
                                 selected = (it == state.preferences.themeConfig),
                                 onClick = {
-                                    onAction(AppearancePreferencesEvent.UpdateThemeConfig(it))
-                                    onAction(AppearancePreferencesEvent.ShowDialog(null))
+                                    onAction(
+                                        AppearancePreferencesEvent.UpdateThemeConfig(
+                                            themeConfig = it,
+                                        ),
+                                    )
+                                    onAction(AppearancePreferencesEvent.ShowDialog(value = null))
                                 },
                             )
                         }

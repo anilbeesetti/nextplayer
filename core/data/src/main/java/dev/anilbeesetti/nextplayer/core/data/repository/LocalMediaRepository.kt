@@ -43,31 +43,29 @@ class LocalMediaRepository(
 ) : MediaRepository {
 
     override fun observeFolders(folderPath: String?): Flow<List<Folder>> =
-        mediaService.observeFolders(folderPath).map { mediaFolders ->
+        mediaService.observeFolders(folderPath = folderPath).map { mediaFolders ->
             mediaFolders.map { it.toFolder() }
         }
 
     override fun observeVideos(folderPath: String?): Flow<List<Video>> =
-        combine(mediaService.observeVideos(folderPath), mediumStateDao.getAll()) {
+        combine(mediaService.observeVideos(folderPath = folderPath), mediumStateDao.getAll()) {
                 mediaVideos,
                 mediumStates,
             ->
             val statesMap = mediumStates.associateBy { it.uriString }
             mediaVideos.map { mediaVideo ->
                 val mediaState = statesMap[mediaVideo.uri.toString()]
-                mediaVideo.toVideo(mediaState)
+                mediaVideo.toVideo(mediaState = mediaState)
             }
         }
 
     override suspend fun fetchFolders(folderPath: String?): List<Folder> =
-        mediaService.fetchFolders(folderPath).map {
-            it.toFolder()
-        }
+        mediaService.fetchFolders(folderPath = folderPath).map { it.toFolder() }
 
     override suspend fun fetchVideos(folderPath: String?): List<Video> =
-        mediaService.fetchVideos(folderPath).mapAsync { mediaVideo ->
+        mediaService.fetchVideos(folderPath = folderPath).mapAsync { mediaVideo ->
             val mediaState = mediumStateDao.get(mediaVideo.uri.toString())
-            mediaVideo.toVideo(mediaState)
+            mediaVideo.toVideo(mediaState = mediaState)
         }
 
     override fun observePlaybackHistory(): Flow<List<Video>> =
@@ -80,30 +78,29 @@ class LocalMediaRepository(
                 .filter { it.lastPlayedTime != null && !it.uriString.toUri().isVaultUri() }
                 .sortedByDescending { it.lastPlayedTime }
                 .map { state ->
-                    videosByUri[state.uriString]?.toVideo(state) ?: state.toHistoryVideo()
+                    videosByUri[state.uriString]?.toVideo(mediaState = state)
+                        ?: state.toHistoryVideo()
                 }
         }
 
     override fun observeTrashVideos(): Flow<List<Video>> =
-        mediaService.observeTrashVideos().map { videos ->
-            videos.map { it.toVideo() }
-        }
+        mediaService.observeTrashVideos().map { videos -> videos.map { it.toVideo() } }
 
     override suspend fun getVideoByUri(uri: String): Video? = coroutineScope {
         val mediaVideoDeferred = async { mediaService.findVideo(uri.toUri()) }
-        val mediaStateDeferred = async { mediumStateDao.get(uri) }
+        val mediaStateDeferred = async { mediumStateDao.get(uri = uri) }
 
         val mediaVideo = mediaVideoDeferred.await() ?: return@coroutineScope null
         val mediaState = mediaStateDeferred.await()
 
-        return@coroutineScope mediaVideo.toVideo(mediaState)
+        return@coroutineScope mediaVideo.toVideo(mediaState = mediaState)
     }
 
     override suspend fun getVideoState(uri: String): VideoState? =
-        mediumStateDao.get(uri)?.toVideoState()
+        mediumStateDao.get(uri = uri)?.toVideoState()
 
     override suspend fun getMediaInfo(uri: String): MediaInfo? = withContext(Dispatchers.IO) {
-        val video = getVideoByUri(uri) ?: return@withContext null
+        val video = getVideoByUri(uri = uri) ?: return@withContext null
         val mediaInfo = runCatching {
             MediaInfoBuilder().from(context = context, uri = uri.toUri()).build()
         }.getOrNull()
@@ -133,10 +130,10 @@ class LocalMediaRepository(
             !mediaUri.isVaultUri() &&
             (
                 preferences.includeNetworkWatchHistory ||
-                    !NetworkUri.isNetworkUri(mediaUri) ||
-                    NetworkUri.connectionIdOf(mediaUri) == null
+                    !NetworkUri.isNetworkUri(uri = mediaUri) ||
+                    NetworkUri.connectionIdOf(uri = mediaUri) == null
                 )
-        mediumStateDao.update(uri) { state ->
+        mediumStateDao.update(uri = uri) { state ->
             state.copy(
                 lastPlayedTime = if (recordHistory) lastPlayedTime else state.lastPlayedTime,
                 duration = duration ?: state.duration,
@@ -145,32 +142,37 @@ class LocalMediaRepository(
     }
 
     override suspend fun updateMediumPosition(uri: String, position: Long) {
-        mediumStateDao.update(uri) { it.copy(playbackPosition = position) }
+        mediumStateDao.update(uri = uri) { it.copy(playbackPosition = position) }
     }
 
     override suspend fun updateMediumAudioTrack(uri: String, audioTrackIndex: Int) {
-        mediumStateDao.update(uri) { it.copy(audioTrackIndex = audioTrackIndex) }
+        mediumStateDao.update(uri = uri) { it.copy(audioTrackIndex = audioTrackIndex) }
     }
 
     override suspend fun updateMediumSubtitleTrack(uri: String, subtitleTrackIndex: Int) {
-        mediumStateDao.update(uri) { it.copy(subtitleTrackIndex = subtitleTrackIndex) }
+        mediumStateDao.update(uri = uri) { it.copy(subtitleTrackIndex = subtitleTrackIndex) }
     }
 
     override suspend fun updateMediumZoom(uri: String, zoom: Float) {
-        mediumStateDao.update(uri) { it.copy(videoScale = zoom) }
+        mediumStateDao.update(uri = uri) { it.copy(videoScale = zoom) }
     }
 
     override suspend fun addExternalAudioToMedium(uri: String, audioUri: Uri) {
-        val stateEntity = mediumStateDao.get(uri) ?: MediumStateEntity(uriString = uri)
+        val stateEntity = mediumStateDao.get(uri = uri) ?: MediumStateEntity(uriString = uri)
         val audio = UriListConverter.fromStringToList(stateEntity.externalAudio)
         if (audioUri in audio) return
         mediumStateDao.upsert(
-            stateEntity.copy(externalAudio = UriListConverter.fromListToString(audio + audioUri)),
+            stateEntity.copy(
+                externalAudio = UriListConverter.fromListToString(
+                    urlList =
+                        audio + audioUri,
+                ),
+            ),
         )
     }
 
     override suspend fun addExternalSubtitleToMedium(uri: String, subtitleUri: Uri) {
-        mediumStateDao.update(uri) { state ->
+        mediumStateDao.update(uri = uri) { state ->
             val subtitles = UriListConverter.fromStringToList(state.externalSubs)
             state.copy(
                 externalSubs = UriListConverter.fromListToString(
@@ -181,11 +183,11 @@ class LocalMediaRepository(
     }
 
     override suspend fun updateSubtitleDelay(uri: String, delay: Long) {
-        mediumStateDao.update(uri) { it.copy(subtitleDelayMilliseconds = delay) }
+        mediumStateDao.update(uri = uri) { it.copy(subtitleDelayMilliseconds = delay) }
     }
 
     override suspend fun updateSubtitleSpeed(uri: String, speed: Float) {
-        mediumStateDao.update(uri) { it.copy(subtitleSpeed = speed) }
+        mediumStateDao.update(uri = uri) { it.copy(subtitleSpeed = speed) }
     }
 
     private fun Uri.isVaultUri(): Boolean {
@@ -194,7 +196,7 @@ class LocalMediaRepository(
         val root = segments.firstOrNull()
         return root == "vault" ||
             (
-                segments.getOrNull(1) == "vault" &&
+                segments.getOrNull(index = 1) == "vault" &&
                     (root == "external_files_path" || root == "files_path")
                 )
     }
@@ -202,7 +204,7 @@ class LocalMediaRepository(
 
 private fun MediumStateEntity.toHistoryVideo(): Video {
     val uri = uriString.toUri()
-    val name = uri.lastPathSegment?.substringAfterLast('/')
+    val name = uri.lastPathSegment?.substringAfterLast(delimiter = '/')
         ?: uri.host
         ?: uriString
     return Video(
@@ -214,8 +216,8 @@ private fun MediumStateEntity.toHistoryVideo(): Video {
         width = 0,
         height = 0,
         size = 0,
-        formattedDuration = duration?.let(Utils::formatDurationMillis).orEmpty(),
+        formattedDuration = duration?.let(block = Utils::formatDurationMillis).orEmpty(),
         playbackPosition = playbackPosition,
-        lastPlayedAt = lastPlayedTime?.let(::Date),
+        lastPlayedAt = lastPlayedTime?.let(block = ::Date),
     )
 }

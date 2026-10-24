@@ -81,7 +81,7 @@ class MediaPickerViewModel(
     val folderPath = input.folderId
 
     private val stateInternal = MutableStateFlow(
-        MediaPickerUiState(
+        value = MediaPickerUiState(
             folderName = folderPath?.let { File(folderPath).prettyName },
             preferences = preferencesRepository.applicationPreferences.value,
         ),
@@ -189,7 +189,9 @@ class MediaPickerViewModel(
         mediaCollectJob = viewModelScope.launch {
             launch {
                 getSortedMediaUseCase(folderPath).collect { media ->
-                    stateInternal.update { it.copy(mediaDataState = DataState.Success(media)) }
+                    stateInternal.update {
+                        it.copy(mediaDataState = DataState.Success(value = media))
+                    }
                 }
             }
             launch {
@@ -203,9 +205,7 @@ class MediaPickerViewModel(
     private fun collectPreferences() {
         viewModelScope.launch {
             preferencesRepository.applicationPreferences.collect {
-                stateInternal.update { currentState ->
-                    currentState.copy(preferences = it)
-                }
+                stateInternal.update { currentState -> currentState.copy(preferences = it) }
             }
         }
     }
@@ -271,7 +271,7 @@ class MediaPickerViewModel(
         savePlaylistSelection {
             playlistRepository.addVideos(
                 playlistId = playlistId,
-                videoUris = pendingPlaylistVideos.map(Video::uriString),
+                videoUris = pendingPlaylistVideos.map(transform = Video::uriString),
             )
         }
     }
@@ -280,16 +280,14 @@ class MediaPickerViewModel(
         savePlaylistSelection {
             playlistRepository.create(
                 name = name,
-                videoUris = pendingPlaylistVideos.map(Video::uriString),
+                videoUris = pendingPlaylistVideos.map(transform = Video::uriString),
             )
             pendingPlaylistVideos.size
         }
     }
 
     private fun savePlaylistSelection(block: suspend () -> Int) {
-        if (pendingPlaylistVideos.isEmpty() ||
-            stateInternal.value.addToPlaylistState.isSaving
-        ) {
+        if (pendingPlaylistVideos.isEmpty() || stateInternal.value.addToPlaylistState.isSaving) {
             return
         }
         stateInternal.update {
@@ -301,10 +299,8 @@ class MediaPickerViewModel(
             try {
                 val addedCount = block()
                 pendingPlaylistVideos = emptyList()
-                stateInternal.update {
-                    it.copy(addToPlaylistState = AddToPlaylistState())
-                }
-                showPlaylistItemsAddedToast(addedCount)
+                stateInternal.update { it.copy(addToPlaylistState = AddToPlaylistState()) }
+                showPlaylistItemsAddedToast(addedCount = addedCount)
             } catch (error: kotlinx.coroutines.CancellationException) {
                 stateInternal.update {
                     it.copy(addToPlaylistState = it.addToPlaylistState.copy(isSaving = false))
@@ -326,9 +322,7 @@ class MediaPickerViewModel(
     private fun dismissAddToPlaylist() {
         if (stateInternal.value.addToPlaylistState.isSaving) return
         pendingPlaylistVideos = emptyList()
-        stateInternal.update {
-            it.copy(addToPlaylistState = AddToPlaylistState())
-        }
+        stateInternal.update { it.copy(addToPlaylistState = AddToPlaylistState()) }
     }
 
     private fun showPlaylistItemsAddedToast(addedCount: Int) {
@@ -337,11 +331,11 @@ class MediaPickerViewModel(
         } else {
             systemService.getQuantityString(
                 R.plurals.added_videos_to_playlist,
-                addedCount,
+                quantity = addedCount,
                 addedCount,
             )
         }
-        systemService.showToast(message, Toast.LENGTH_SHORT)
+        systemService.showToast(text = message, Toast.LENGTH_SHORT)
     }
 
     private fun playSelectedItems(selectedItems: Set<SelectionItem>) {
@@ -354,14 +348,14 @@ class MediaPickerViewModel(
     private fun deleteSelectedItems(selectedItems: Set<SelectionItem>, permanently: Boolean) {
         viewModelScope.launch {
             val videoUris = selectedItems.toVideoUris()
-            mediaOperationsService.deleteMedia(videoUris, permanently = permanently)
+            mediaOperationsService.deleteMedia(uris = videoUris, permanently = permanently)
         }
     }
 
     private fun shareSelectedItems(selectedItems: Set<SelectionItem>) {
         viewModelScope.launch {
             val videoUris = selectedItems.toVideoUris()
-            mediaOperationsService.shareMedia(videoUris)
+            mediaOperationsService.shareMedia(uris = videoUris)
         }
     }
 
@@ -394,7 +388,7 @@ class MediaPickerViewModel(
 
                     is TransferEvent.Completed -> {
                         stateInternal.update { it.copy(transferFlow = TransferFlowState.Idle) }
-                        showTransferCompleteToast(mode, event.result)
+                        showTransferCompleteToast(mode = mode, event.result)
                     }
                 }
             }
@@ -407,7 +401,11 @@ class MediaPickerViewModel(
                 systemService.getString(R.string.cannot_move_to_same_folder)
 
             result.failed > 0 -> systemService.getQuantityString(
-                if (mode == TransferMode.MOVE) R.plurals.move_failed else R.plurals.copy_failed,
+                pluralsResId = if (mode == TransferMode.MOVE) {
+                    R.plurals.move_failed
+                } else {
+                    R.plurals.copy_failed
+                },
                 result.failed,
                 result.failed,
             )
@@ -430,7 +428,7 @@ class MediaPickerViewModel(
                 result.succeeded,
             )
         }
-        systemService.showToast(message, Toast.LENGTH_SHORT)
+        systemService.showToast(text = message, Toast.LENGTH_SHORT)
     }
 
     private fun cancelTransfer() {
@@ -449,9 +447,7 @@ class MediaPickerViewModel(
     }
 
     private fun renameVideo(uri: Uri, to: String) {
-        viewModelScope.launch {
-            mediaOperationsService.renameMedia(uri, to)
-        }
+        viewModelScope.launch { mediaOperationsService.renameMedia(uri = uri, to = to) }
     }
 
     private fun refresh() {
@@ -463,9 +459,7 @@ class MediaPickerViewModel(
     }
 
     private fun updateMenu(preferences: ApplicationPreferences) {
-        viewModelScope.launch {
-            preferencesRepository.updateApplicationPreferences { preferences }
-        }
+        viewModelScope.launch { preferencesRepository.updateApplicationPreferences { preferences } }
     }
 
     private fun requestHideSelectedItems(selectedItems: Set<SelectionItem>) {
@@ -475,17 +469,19 @@ class MediaPickerViewModel(
             val hasPin = vaultPinRepository.hasPinSet()
             when {
                 !hasPin -> {
-                    stateInternal.update { it.copy(hideFlow = HideFlowState.SetupPin(videoItems)) }
+                    stateInternal.update {
+                        it.copy(hideFlow = HideFlowState.SetupPin(items = videoItems))
+                    }
                 }
 
                 !vaultPinRepository.hasShownHideConfirmation() -> {
                     stateInternal.update {
-                        it.copy(hideFlow = HideFlowState.ConfirmHide(videoItems))
+                        it.copy(hideFlow = HideFlowState.ConfirmHide(items = videoItems))
                     }
                 }
 
                 else -> {
-                    hideVideoItems(videoItems)
+                    hideVideoItems(videos = videoItems)
                 }
             }
         }
@@ -494,8 +490,8 @@ class MediaPickerViewModel(
     private fun setVaultPinAndHide(pin: String) {
         val pending = (stateInternal.value.hideFlow as? HideFlowState.SetupPin)?.items ?: return
         viewModelScope.launch {
-            vaultPinRepository.setPin(pin)
-            hideVideoItems(pending)
+            vaultPinRepository.setPin(pin = pin)
+            hideVideoItems(videos = pending)
             vaultPinRepository.setHideConfirmationShown()
             stateInternal.update { it.copy(hideFlow = HideFlowState.BiometricSetup) }
         }
@@ -504,7 +500,7 @@ class MediaPickerViewModel(
     private fun completeBiometricSetup(enabled: Boolean) {
         if (stateInternal.value.hideFlow != HideFlowState.BiometricSetup) return
         viewModelScope.launch {
-            vaultPinRepository.setBiometricEnabled(enabled)
+            vaultPinRepository.setBiometricEnabled(enabled = enabled)
             stateInternal.update { it.copy(hideFlow = HideFlowState.Idle) }
         }
     }
@@ -512,7 +508,7 @@ class MediaPickerViewModel(
     private fun confirmHidePendingItems() {
         val pending = (stateInternal.value.hideFlow as? HideFlowState.ConfirmHide)?.items ?: return
         viewModelScope.launch {
-            hideVideoItems(pending)
+            hideVideoItems(videos = pending)
             vaultPinRepository.setHideConfirmationShown()
             stateInternal.update { it.copy(hideFlow = HideFlowState.Idle) }
         }
@@ -520,7 +516,7 @@ class MediaPickerViewModel(
 
     private suspend fun hideVideoItems(videos: List<Video>) {
         stateInternal.update { it.copy(hideFlow = HideFlowState.Processing) }
-        vaultRepository.hideVideos(videos)
+        vaultRepository.hideVideos(videos = videos)
         stateInternal.update { it.copy(hideFlow = HideFlowState.Idle) }
     }
 
@@ -542,7 +538,7 @@ class MediaPickerViewModel(
                     filteredVideos
                 }
             }
-        }.distinctBy(Video::uriString)
+        }.distinctBy(selector = Video::uriString)
     }
 
     private suspend fun Set<SelectionItem>.toVideoUris(): List<Uri> = toVideos().map {

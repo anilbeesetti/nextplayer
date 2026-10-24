@@ -32,10 +32,10 @@ import org.robolectric.shadows.ShadowContentResolver
 @RunWith(RobolectricTestRunner::class)
 @Config(sdk = [30], manifest = Config.NONE)
 class MediaStoreMediaServiceTest {
-    private val scope = CoroutineScope(SupervisorJob() + Dispatchers.Default)
+    private val scope = CoroutineScope(context = SupervisorJob() + Dispatchers.Default)
     private val context = RuntimeEnvironment.getApplication()
     private val provider = VideoProvider()
-    private val service = MediaStoreMediaService(context, scope)
+    private val service = MediaStoreMediaService(context = context, applicationScope = scope)
 
     @Before
     fun setUp() {
@@ -67,7 +67,7 @@ class MediaStoreMediaServiceTest {
 
     @Test
     fun `observers recover after a missing volume becomes available`() = runBlocking {
-        val video = File(context.cacheDir, "video.mp4").apply { writeText("video") }
+        val video = File(context.cacheDir, "video.mp4").apply { writeText(text = "video") }
         try {
             val flows =
                 listOf<Flow<List<*>>>(
@@ -80,9 +80,9 @@ class MediaStoreMediaServiceTest {
                 provider.failure = IllegalArgumentException("Volume $volume not found")
                 provider.video = video
                 val emissions = Channel<List<*>>(Channel.UNLIMITED)
-                val collector = launch { flow.collect { emissions.send(it) } }
+                val collector = launch { flow.collect { emissions.send(element = it) } }
                 try {
-                    withTimeout(5_000) {
+                    withTimeout(timeMillis = 5_000) {
                         assertEquals(emptyList<Any>(), emissions.receive())
                         provider.failure = null
                         context.contentResolver.notifyChange(VIDEO_COLLECTION_URI, null)

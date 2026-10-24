@@ -12,7 +12,7 @@ import kotlinx.serialization.Serializable
 object SettingsRoute : NavKey
 
 fun NavBackStack<NavKey>.navigateToSettings() {
-    add(SettingsRoute)
+    add(element = SettingsRoute)
 }
 
 fun EntryProviderScope<NavKey>.settingsEntry(

@@ -15,7 +15,11 @@ internal object PlaylistShortcut {
         ShortcutManagerCompat.isRequestPinShortcutSupported(context)
 
     fun requestPin(context: Context, playlist: PlaylistSummary): Boolean =
-        ShortcutManagerCompat.requestPinShortcut(context, create(context, playlist), null)
+        ShortcutManagerCompat.requestPinShortcut(
+            context,
+            create(context = context, playlist = playlist),
+            null,
+        )
 
     fun create(context: Context, playlist: PlaylistSummary): ShortcutInfoCompat =
         ShortcutInfoCompat.Builder(context, "playlist_${playlist.id}")

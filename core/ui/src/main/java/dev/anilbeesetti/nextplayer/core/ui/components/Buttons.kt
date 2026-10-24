@@ -13,10 +13,8 @@ fun DoneButton(onClick: () -> Unit, modifier: Modifier = Modifier, enabled: Bool
     TextButton(
         enabled = enabled,
         onClick = onClick,
-        modifier = modifier.tvFocusRing(shape = RoundedCornerShape(50)),
-    ) {
-        Text(text = stringResource(R.string.done))
-    }
+        modifier = modifier.tvFocusRing(shape = RoundedCornerShape(percent = 50)),
+    ) { Text(text = stringResource(R.string.done)) }
 }
 
 @Composable
@@ -24,8 +22,6 @@ fun CancelButton(onClick: () -> Unit, modifier: Modifier = Modifier, enabled: Bo
     TextButton(
         enabled = enabled,
         onClick = onClick,
-        modifier = modifier.tvFocusRing(shape = RoundedCornerShape(50)),
-    ) {
-        Text(text = stringResource(R.string.cancel))
-    }
+        modifier = modifier.tvFocusRing(shape = RoundedCornerShape(percent = 50)),
+    ) { Text(text = stringResource(R.string.cancel)) }
 }

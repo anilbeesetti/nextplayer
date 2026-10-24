@@ -46,7 +46,11 @@ internal fun HistoryEmptyState(isHistoryOff: Boolean, modifier: Modifier = Modif
         Spacer(modifier = Modifier.size(16.dp))
         Text(
             text = stringResource(
-                if (isHistoryOff) R.string.watch_history_turned_off else R.string.no_watch_history,
+                id = if (isHistoryOff) {
+                    R.string.watch_history_turned_off
+                } else {
+                    R.string.no_watch_history
+                },
             ),
             style = MaterialTheme.typography.titleLargeEmphasized,
             textAlign = TextAlign.Center,

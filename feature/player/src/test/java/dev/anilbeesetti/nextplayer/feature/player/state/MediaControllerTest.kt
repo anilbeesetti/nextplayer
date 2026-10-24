@@ -46,14 +46,14 @@ class MediaControllerTest {
     @Test
     fun controllerReconnectsOnStartAndReleasesOnStopOrCompositionDisposal() {
         val player = composeRule.runOnIdle { ExoPlayer.Builder(composeRule.activity).build() }
-        val session = composeRule.runOnIdle { scrubbingSession(player) }
-        val service = composeRule.runOnIdle { bindSessionService(session) }
+        val session = composeRule.runOnIdle { scrubbingSession(player = player) }
+        val service = composeRule.runOnIdle { bindSessionService(session = session) }
         val owner = TestLifecycleOwner()
-        val visible = mutableStateOf(true)
+        val visible = mutableStateOf(value = true)
         var controller: MediaController? = null
         try {
             composeRule.setContent {
-                CompositionLocalProvider(LocalLifecycleOwner provides owner) {
+                CompositionLocalProvider(value = LocalLifecycleOwner provides owner) {
                     if (visible.value) {
                         val connected =
                             rememberMediaController(onBeforeRelease = { controller?.pause() })
@@ -69,8 +69,10 @@ class MediaControllerTest {
             }
             composeRule.waitForIdle()
             composeRule.waitUntil { controller != null }
-            val first = composeRule.runOnIdle { requireNotNull(controller).also { it.play() } }
-            composeRule.runOnIdle { first.setIsScrubbingModeEnabled(true) }
+            val first = composeRule.runOnIdle {
+                requireNotNull(value = controller).also { it.play() }
+            }
+            composeRule.runOnIdle { first.setIsScrubbingModeEnabled(enabled = true) }
             composeRule.runOnIdle {
                 assertTrue(player.playWhenReady)
                 assertTrue(player.isScrubbingModeEnabled)
@@ -85,8 +87,8 @@ class MediaControllerTest {
             }
             composeRule.waitForIdle()
             composeRule.waitUntil { controller != null }
-            val second = composeRule.runOnIdle { requireNotNull(controller) }
-            composeRule.runOnIdle { second.setIsScrubbingModeEnabled(true) }
+            val second = composeRule.runOnIdle { requireNotNull(value = controller) }
+            composeRule.runOnIdle { second.setIsScrubbingModeEnabled(enabled = true) }
             composeRule.runOnIdle {
                 assertNotSame(first, second)
                 assertTrue(second.isConnected)
@@ -144,12 +146,12 @@ class MediaControllerTest {
             MediaSession.Builder(composeRule.activity, player).build()
         }
         val application = shadowOf(composeRule.activity.application)
-        val service = composeRule.runOnIdle { bindSessionService(session) }
+        val service = composeRule.runOnIdle { bindSessionService(session = session) }
         val owner = TestLifecycleOwner()
         var controllerWasPublished = false
         try {
             composeRule.setContent {
-                CompositionLocalProvider(LocalLifecycleOwner provides owner) {
+                CompositionLocalProvider(value = LocalLifecycleOwner provides owner) {
                     val controller = rememberMediaController()
                     SideEffect { if (controller != null) controllerWasPublished = true }
                 }
@@ -162,8 +164,8 @@ class MediaControllerTest {
             }
             composeRule.runOnIdle {
                 assertFalse(controllerWasPublished)
-                assertFalse(application.boundServiceConnections.contains(connection))
-                assertTrue(application.unboundServiceConnections.contains(connection))
+                assertFalse(application.boundServiceConnections.contains(element = connection))
+                assertTrue(application.unboundServiceConnections.contains(element = connection))
             }
         } finally {
             composeRule.runOnIdle {
@@ -196,7 +198,7 @@ class MediaControllerTest {
     }
 
     private class TestLifecycleOwner : LifecycleOwner {
-        val registry = LifecycleRegistry.createUnsafe(this).apply {
+        val registry = LifecycleRegistry.createUnsafe(owner = this).apply {
             currentState =
                 Lifecycle.State.CREATED
         }

@@ -14,8 +14,8 @@ import androidx.media3.common.util.UnstableApi
 @UnstableApi
 @Composable
 fun rememberErrorState(player: Player): ErrorState {
-    val errorState = remember(player) { ErrorState(player) }
-    LaunchedEffect(player) { errorState.observe() }
+    val errorState = remember(player) { ErrorState(player = player) }
+    LaunchedEffect(key1 = player) { errorState.observe() }
     return errorState
 }
 

@@ -19,14 +19,15 @@ class LocalSystemService(private val context: Context) : SystemService {
             activity.registerForSuspendActivityResult(ActivityResultContracts.OpenDocumentTree())
     }
 
-    override suspend fun pickFolder(): Uri? = pickDocumentTreeLauncher?.launch(null)?.also { uri ->
-        runCatching {
-            context.contentResolver.takePersistableUriPermission(
-                uri,
-                Intent.FLAG_GRANT_READ_URI_PERMISSION or Intent.FLAG_GRANT_WRITE_URI_PERMISSION,
-            )
+    override suspend fun pickFolder(): Uri? =
+        pickDocumentTreeLauncher?.launch(input = null)?.also { uri ->
+            runCatching {
+                context.contentResolver.takePersistableUriPermission(
+                    uri,
+                    Intent.FLAG_GRANT_READ_URI_PERMISSION or Intent.FLAG_GRANT_WRITE_URI_PERMISSION,
+                )
+            }
         }
-    }
 
     override fun getString(stringResId: Int): String = context.getString(stringResId)
 

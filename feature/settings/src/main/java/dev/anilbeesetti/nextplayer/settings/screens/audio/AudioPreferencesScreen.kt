@@ -52,7 +52,10 @@ private fun AudioPreferencesScreenContent(
     state: AudioPreferencesUiState,
     onAction: (AudioPreferencesUiEvent) -> Unit,
 ) {
-    val languages = remember { listOf(Pair("None", "")) + LocalesHelper.getAvailableLocales() }
+    val languages = remember {
+        listOf(element = Pair(first = "None", second = "")) +
+            LocalesHelper.getAvailableLocales()
+    }
 
     val listFocusRequester = rememberTvListFocusRequester()
     Scaffold(
@@ -62,7 +65,7 @@ private fun AudioPreferencesScreenContent(
                 navigationIcon = {
                     FilledTonalIconButton(onClick = {
                         onAction(AudioPreferencesUiEvent.NavigateUp)
-                    }, modifier = Modifier.tvFocusDown(listFocusRequester)) {
+                    }, modifier = Modifier.tvFocusDown(target = listFocusRequester)) {
                         Icon(
                             imageVector = NextIcons.ArrowBack,
                             contentDescription = stringResource(id = R.string.navigate_up),
@@ -77,8 +80,8 @@ private fun AudioPreferencesScreenContent(
             modifier = Modifier
                 .fillMaxSize()
                 .verticalScroll(state = rememberScrollState())
-                .tvListFocus(listFocusRequester)
-                .padding(innerPadding)
+                .tvListFocus(focusRequester = listFocusRequester)
+                .padding(paddingValues = innerPadding)
                 .padding(horizontal = 16.dp),
         ) {
             ListSectionTitle(text = stringResource(id = R.string.playback))
@@ -97,7 +100,7 @@ private fun AudioPreferencesScreenContent(
                     onClick = {
                         onAction(
                             AudioPreferencesUiEvent.ShowDialog(
-                                AudioPreferenceDialog.AudioLanguageDialog,
+                                value = AudioPreferenceDialog.AudioLanguageDialog,
                             ),
                         )
                     },
@@ -140,15 +143,17 @@ private fun AudioPreferencesScreenContent(
                 AudioPreferenceDialog.AudioLanguageDialog -> {
                     OptionsDialog(
                         text = stringResource(id = R.string.preferred_audio_lang),
-                        onDismissClick = { onAction(AudioPreferencesUiEvent.ShowDialog(null)) },
+                        onDismissClick = {
+                            onAction(AudioPreferencesUiEvent.ShowDialog(value = null))
+                        },
                     ) {
-                        items(languages) {
+                        items(items = languages) {
                             RadioTextButton(
                                 text = it.first,
                                 selected = it.second == state.preferences.preferredAudioLanguage,
                                 onClick = {
                                     onAction(AudioPreferencesUiEvent.UpdateAudioLanguage(it.second))
-                                    onAction(AudioPreferencesUiEvent.ShowDialog(null))
+                                    onAction(AudioPreferencesUiEvent.ShowDialog(value = null))
                                 },
                             )
                         }

@@ -66,7 +66,7 @@ fun PlaylistListScreen(
 ) {
     val state by viewModel.state.collectAsStateWithLifecycle()
 
-    LaunchedEffect(viewModel) { viewModel.onAction(PlaylistUiAction.Synchronize) }
+    LaunchedEffect(key1 = viewModel) { viewModel.onAction(action = PlaylistUiAction.Synchronize) }
 
     PlaylistListScreenContent(
         state = state,
@@ -83,7 +83,7 @@ internal fun PlaylistListScreenContent(
 ) {
     val openM3UFileLauncher =
         rememberLauncherForActivityResult(ActivityResultContracts.OpenDocument()) { uri ->
-            uri?.let { onAction(PlaylistUiAction.CreateM3UFile(it)) }
+            uri?.let { onAction(PlaylistUiAction.CreateM3UFile(uri = it)) }
         }
     BindTopLevelFab(
         key = TopLevelFabKey.PLAYLISTS,
@@ -117,7 +117,7 @@ internal fun PlaylistListScreenContent(
             modifier = Modifier
                 .fillMaxSize()
                 .padding(scaffoldPadding.copy(bottom = 0.dp))
-                .clip(RoundedCornerShape(topStart = 24.dp, topEnd = 24.dp))
+                .clip(shape = RoundedCornerShape(topStart = 24.dp, topEnd = 24.dp))
                 .background(MaterialTheme.colorScheme.background),
         ) {
             when (state.playlistsDataState) {
@@ -142,8 +142,7 @@ internal fun PlaylistListScreenContent(
                             contentPadding = PaddingValues(8.dp).copy(
                                 bottom =
                                     scaffoldPadding.calculateBottomPadding() +
-                                        navigationBottomPadding +
-                                        96.dp,
+                                        navigationBottomPadding + 96.dp,
                             ),
                             verticalArrangement = Arrangement.spacedBy(2.dp),
                         ) {
@@ -156,13 +155,23 @@ internal fun PlaylistListScreenContent(
                                     isFirstItem = index == 0,
                                     isLastItem = index == state.playlistsDataState.value.lastIndex,
                                     onClick = {
-                                        onAction(PlaylistUiAction.OnPlaylistClick(playlist))
+                                        onAction(
+                                            PlaylistUiAction.OnPlaylistClick(playlist = playlist),
+                                        )
                                     },
                                     onRename = {
-                                        onAction(PlaylistUiAction.ShowRenameDialogFor(playlist))
+                                        onAction(
+                                            PlaylistUiAction.ShowRenameDialogFor(
+                                                playlist = playlist,
+                                            ),
+                                        )
                                     },
                                     onDelete = {
-                                        onAction(PlaylistUiAction.ShowDeleteDialogFor(playlist))
+                                        onAction(
+                                            PlaylistUiAction.ShowDeleteDialogFor(
+                                                playlist = playlist,
+                                            ),
+                                        )
                                     },
                                     onAddToHomeScreen = onAddToHomeScreen?.let { { it(playlist) } },
                                 )
@@ -183,7 +192,7 @@ internal fun PlaylistListScreenContent(
             onCreateUrl = { onAction(PlaylistUiAction.ChooseM3UUrl) },
             onCreateFile = {
                 onAction(PlaylistUiAction.DismissCreation)
-                openM3UFileLauncher.launch(M3U_MIME_TYPES)
+                openM3UFileLauncher.launch(input = M3U_MIME_TYPES)
             },
         )
 
@@ -193,14 +202,14 @@ internal fun PlaylistListScreenContent(
             isSaving = state.saveActionState.isRunning,
             error = state.saveActionState.errorMessage,
             onDismissRequest = { onAction(PlaylistUiAction.DismissCreation) },
-            onConfirm = { onAction(PlaylistUiAction.CreateLocal(it)) },
+            onConfirm = { onAction(PlaylistUiAction.CreateLocal(name = it)) },
         )
 
         PlaylistCreationDialog.M3U_URL -> M3UUrlDialog(
             isSaving = state.saveActionState.isRunning,
             error = state.saveActionState.errorMessage,
             onDismissRequest = { onAction(PlaylistUiAction.DismissCreation) },
-            onConfirm = { onAction(PlaylistUiAction.CreateM3UUrl(it)) },
+            onConfirm = { onAction(PlaylistUiAction.CreateM3UUrl(url = it)) },
         )
     }
 
@@ -212,7 +221,7 @@ internal fun PlaylistListScreenContent(
             isSaving = state.saveActionState.isRunning,
             error = state.saveActionState.errorMessage,
             onDismissRequest = { onAction(PlaylistUiAction.DismissRenameDialog) },
-            onConfirm = { onAction(PlaylistUiAction.Rename(playlist.id, it)) },
+            onConfirm = { onAction(PlaylistUiAction.Rename(playlist.id, name = it)) },
         )
     }
 
@@ -228,18 +237,14 @@ internal fun PlaylistListScreenContent(
                 TextButton(
                     onClick = { onAction(PlaylistUiAction.Delete(playlist.id)) },
                     modifier = Modifier.tvFocusRing(),
-                ) {
-                    Text(stringResource(R.string.delete))
-                }
+                ) { Text(text = stringResource(R.string.delete)) }
             },
             onDismissRequest = { onAction(PlaylistUiAction.DismissDeleteDialog) },
             dismissButton = {
                 TextButton(
                     onClick = { onAction(PlaylistUiAction.DismissDeleteDialog) },
                     modifier = Modifier.tvFocusRing(),
-                ) {
-                    Text(stringResource(R.string.cancel))
-                }
+                ) { Text(text = stringResource(R.string.cancel)) }
             },
         )
     }
@@ -254,7 +259,7 @@ private fun CreationChooserDialog(
 ) {
     NextDialog(
         onDismissRequest = onDismissRequest,
-        title = { Text(stringResource(R.string.choose_playlist_type)) },
+        title = { Text(text = stringResource(R.string.choose_playlist_type)) },
         content = {
             Column {
                 CreationChoice(
@@ -277,7 +282,7 @@ private fun CreationChooserDialog(
         confirmButton = {},
         dismissButton = {
             TextButton(onClick = onDismissRequest, modifier = Modifier.tvFocusRing()) {
-                Text(stringResource(R.string.cancel))
+                Text(text = stringResource(R.string.cancel))
             }
         },
     )
@@ -290,8 +295,8 @@ private fun CreationChoice(
     onClick: () -> Unit,
 ) {
     DropdownMenuItem(
-        text = { Text(label) },
-        leadingIcon = { Icon(icon, contentDescription = null) },
+        text = { Text(text = label) },
+        leadingIcon = { Icon(imageVector = icon, contentDescription = null) },
         onClick = onClick,
         modifier = Modifier.fillMaxWidth(),
     )
@@ -304,27 +309,31 @@ private fun M3UUrlDialog(
     onDismissRequest: () -> Unit,
     onConfirm: (String) -> Unit,
 ) {
-    var url by rememberSaveable { mutableStateOf("") }
+    var url by rememberSaveable { mutableStateOf(value = "") }
     val trimmedUrl = url.trim()
     val isValid = remember(trimmedUrl) { trimmedUrl.isHttpUrl() }
 
     NextDialog(
         onDismissRequest = onDismissRequest,
-        title = { Text(stringResource(R.string.add_m3u_url_playlist)) },
+        title = { Text(text = stringResource(R.string.add_m3u_url_playlist)) },
         content = {
             Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
                 NextOutlinedTextField(
                     value = url,
                     onValueChange = { url = it },
-                    label = { Text(stringResource(R.string.playlist_url)) },
+                    label = { Text(text = stringResource(R.string.playlist_url)) },
                     enabled = !isSaving,
                     singleLine = true,
                     isError = error != null || (trimmedUrl.isNotEmpty() && !isValid),
                     supportingText = {
                         when {
-                            error != null -> Text(error)
-                            trimmedUrl.isEmpty() -> Text(stringResource(R.string.url_required))
-                            !isValid -> Text(stringResource(R.string.invalid_url))
+                            error != null -> Text(text = error)
+
+                            trimmedUrl.isEmpty() -> Text(
+                                text = stringResource(R.string.url_required),
+                            )
+
+                            !isValid -> Text(text = stringResource(R.string.invalid_url))
                         }
                     },
                 )
@@ -341,18 +350,14 @@ private fun M3UUrlDialog(
                 onClick = { if (isValid) onConfirm(trimmedUrl) },
                 enabled = !isSaving && isValid,
                 modifier = Modifier.tvFocusRing(),
-            ) {
-                Text(stringResource(R.string.create))
-            }
+            ) { Text(text = stringResource(R.string.create)) }
         },
         dismissButton = {
             TextButton(
                 onClick = onDismissRequest,
                 enabled = !isSaving,
                 modifier = Modifier.tvFocusRing(),
-            ) {
-                Text(stringResource(R.string.cancel))
-            }
+            ) { Text(text = stringResource(R.string.cancel)) }
         },
     )
 }
@@ -367,27 +372,27 @@ private fun PlaylistNameDialog(
     onConfirm: (String) -> Unit,
     initialName: String = "",
 ) {
-    var name by rememberSaveable(initialName) { mutableStateOf(initialName) }
+    var name by rememberSaveable(initialName) { mutableStateOf(value = initialName) }
     val trimmedName = name.trim()
 
     NextDialog(
         onDismissRequest = onDismissRequest,
-        title = { Text(title) },
+        title = { Text(text = title) },
         content = {
             Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
                 NextOutlinedTextField(
                     value = name,
                     onValueChange = { name = it },
-                    label = { Text(stringResource(R.string.playlist_name)) },
+                    label = { Text(text = stringResource(R.string.playlist_name)) },
                     enabled = !isSaving,
                     singleLine = true,
                     isError = error != null && trimmedName.isEmpty(),
                     supportingText = {
                         when {
-                            error != null -> Text(error)
+                            error != null -> Text(text = error)
 
                             trimmedName.isEmpty() ->
-                                Text(stringResource(R.string.name_required))
+                                Text(text = stringResource(R.string.name_required))
                         }
                     },
                 )
@@ -406,18 +411,14 @@ private fun PlaylistNameDialog(
                 },
                 enabled = !isSaving && trimmedName.isNotEmpty(),
                 modifier = Modifier.tvFocusRing(),
-            ) {
-                Text(confirmLabel)
-            }
+            ) { Text(text = confirmLabel) }
         },
         dismissButton = {
             TextButton(
                 onClick = onDismissRequest,
                 enabled = !isSaving,
                 modifier = Modifier.tvFocusRing(),
-            ) {
-                Text(stringResource(R.string.cancel))
-            }
+            ) { Text(text = stringResource(R.string.cancel)) }
         },
     )
 }
@@ -433,7 +434,7 @@ private fun PlaylistRow(
     onDelete: () -> Unit,
     onAddToHomeScreen: (() -> Unit)?,
 ) {
-    var menuExpanded by rememberSaveable { mutableStateOf(false) }
+    var menuExpanded by rememberSaveable { mutableStateOf(value = false) }
     val videoCount = pluralStringResource(
         R.plurals.playlist_video_count,
         playlist.itemCount,
@@ -484,7 +485,7 @@ private fun PlaylistRow(
                 ) {
                     onAddToHomeScreen?.let { addShortcut ->
                         DropdownMenuItem(
-                            text = { Text(stringResource(R.string.add_to_home_screen)) },
+                            text = { Text(text = stringResource(R.string.add_to_home_screen)) },
                             leadingIcon = { Icon(NextIcons.Home, contentDescription = null) },
                             onClick = {
                                 menuExpanded = false
@@ -493,7 +494,7 @@ private fun PlaylistRow(
                         )
                     }
                     DropdownMenuItem(
-                        text = { Text(stringResource(R.string.rename_playlist)) },
+                        text = { Text(text = stringResource(R.string.rename_playlist)) },
                         leadingIcon = { Icon(NextIcons.Edit, contentDescription = null) },
                         onClick = {
                             menuExpanded = false
@@ -501,7 +502,7 @@ private fun PlaylistRow(
                         },
                     )
                     DropdownMenuItem(
-                        text = { Text(stringResource(R.string.delete)) },
+                        text = { Text(text = stringResource(R.string.delete)) },
                         leadingIcon = { Icon(NextIcons.Delete, contentDescription = null) },
                         onClick = {
                             menuExpanded = false
@@ -516,7 +517,7 @@ private fun PlaylistRow(
 
 @Composable
 private fun PlaylistType.label(): String = stringResource(
-    when (this) {
+    id = when (this) {
         PlaylistType.LOCAL -> R.string.local_playlist
         PlaylistType.M3U_URL -> R.string.m3u_url_playlist
         PlaylistType.M3U_FILE -> R.string.m3u_file_playlist
@@ -526,10 +527,10 @@ private fun PlaylistType.label(): String = stringResource(
 private fun String.isHttpUrl(): Boolean = runCatching {
     val uri = Uri.parse(this)
     (
-        uri.scheme.equals("http", ignoreCase = true) ||
-            uri.scheme.equals("https", ignoreCase = true)
+        uri.scheme.equals(other = "http", ignoreCase = true) ||
+            uri.scheme.equals(other = "https", ignoreCase = true)
         ) && !uri.host.isNullOrBlank()
-}.getOrDefault(false)
+}.getOrDefault(defaultValue = false)
 
 private val M3U_MIME_TYPES = arrayOf(
     "application/vnd.apple.mpegurl",

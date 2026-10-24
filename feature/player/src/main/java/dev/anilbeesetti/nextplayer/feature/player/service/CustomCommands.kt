@@ -56,34 +56,25 @@ enum class CustomCommands(val customAction: String) {
 }
 
 suspend fun MediaController.addAudioTrack(uri: Uri): Boolean {
-    val args = Bundle().apply {
-        putString(CustomCommands.AUDIO_TRACK_URI_KEY, uri.toString())
-    }
+    val args = Bundle().apply { putString(CustomCommands.AUDIO_TRACK_URI_KEY, uri.toString()) }
     return sendCustomCommand(
         CustomCommands.ADD_AUDIO_TRACK.sessionCommand,
         args,
-    ).await().resultCode ==
-        SessionResult.RESULT_SUCCESS
+    ).await().resultCode == SessionResult.RESULT_SUCCESS
 }
 
 fun MediaController.addSubtitleTrack(uri: Uri) {
-    val args = Bundle().apply {
-        putString(CustomCommands.SUBTITLE_TRACK_URI_KEY, uri.toString())
-    }
+    val args = Bundle().apply { putString(CustomCommands.SUBTITLE_TRACK_URI_KEY, uri.toString()) }
     sendCustomCommand(CustomCommands.ADD_SUBTITLE_TRACK.sessionCommand, args)
 }
 
 suspend fun MediaController.setSkipSilenceEnabled(enabled: Boolean) {
-    val args = Bundle().apply {
-        putBoolean(CustomCommands.SKIP_SILENCE_ENABLED_KEY, enabled)
-    }
+    val args = Bundle().apply { putBoolean(CustomCommands.SKIP_SILENCE_ENABLED_KEY, enabled) }
     sendCustomCommand(CustomCommands.SET_SKIP_SILENCE_ENABLED.sessionCommand, args).await()
 }
 
 fun MediaController.setMediaControllerIsScrubbingModeEnabled(enabled: Boolean) {
-    val args = Bundle().apply {
-        putBoolean(CustomCommands.IS_SCRUBBING_MODE_ENABLED_KEY, enabled)
-    }
+    val args = Bundle().apply { putBoolean(CustomCommands.IS_SCRUBBING_MODE_ENABLED_KEY, enabled) }
     sendCustomCommand(CustomCommands.SET_IS_SCRUBBING_MODE_ENABLED.sessionCommand, args)
 }
 
@@ -94,9 +85,7 @@ suspend fun MediaController.getSkipSilenceEnabled(): Boolean {
 }
 
 fun MediaController.setSubtitleDelayMilliseconds(delayMillis: Long) {
-    val args = Bundle().apply {
-        putLong(CustomCommands.SUBTITLE_DELAY_KEY, delayMillis)
-    }
+    val args = Bundle().apply { putLong(CustomCommands.SUBTITLE_DELAY_KEY, delayMillis) }
     sendCustomCommand(CustomCommands.SET_SUBTITLE_DELAY.sessionCommand, args)
 }
 
@@ -106,9 +95,7 @@ suspend fun MediaController.getSubtitleDelayMilliseconds(): Long {
 }
 
 fun MediaController.setSubtitleSpeed(speed: Float) {
-    val args = Bundle().apply {
-        putFloat(CustomCommands.SUBTITLE_SPEED_KEY, speed)
-    }
+    val args = Bundle().apply { putFloat(CustomCommands.SUBTITLE_SPEED_KEY, speed) }
     sendCustomCommand(CustomCommands.SET_SUBTITLE_SPEED.sessionCommand, args)
 }
 
@@ -122,9 +109,7 @@ fun MediaController.stopPlayerSession() {
 }
 
 fun MediaController.setLoudnessGain(gain: Int) {
-    val args = Bundle().apply {
-        putInt(CustomCommands.LOUDNESS_GAIN_KEY, gain)
-    }
+    val args = Bundle().apply { putInt(CustomCommands.LOUDNESS_GAIN_KEY, gain) }
     sendCustomCommand(CustomCommands.SET_LOUDNESS_GAIN.sessionCommand, args)
 }
 
@@ -140,9 +125,7 @@ suspend fun MediaController.getIsLoudnessGainSupported(): Boolean {
 }
 
 suspend fun MediaController.setVideoDecoderMode(mode: DecoderMode): Boolean {
-    val args = Bundle().apply {
-        putString(CustomCommands.VIDEO_DECODER_MODE_KEY, mode.name)
-    }
+    val args = Bundle().apply { putString(CustomCommands.VIDEO_DECODER_MODE_KEY, mode.name) }
     val result = sendCustomCommand(
         CustomCommands.SET_VIDEO_DECODER_MODE.sessionCommand,
         args,
@@ -151,9 +134,7 @@ suspend fun MediaController.setVideoDecoderMode(mode: DecoderMode): Boolean {
 }
 
 suspend fun MediaController.setAudioDecoderMode(mode: DecoderMode): Boolean {
-    val args = Bundle().apply {
-        putString(CustomCommands.AUDIO_DECODER_MODE_KEY, mode.name)
-    }
+    val args = Bundle().apply { putString(CustomCommands.AUDIO_DECODER_MODE_KEY, mode.name) }
     val result = sendCustomCommand(
         CustomCommands.SET_AUDIO_DECODER_MODE.sessionCommand,
         args,

@@ -36,7 +36,7 @@ class NetworkDataSource(private val sessions: NetworkSessions) : BaseDataSource(
 
                 bytesRemaining = when {
                     dataSpec.length != C.LENGTH_UNSET.toLong() -> dataSpec.length
-                    fileSize >= 0 -> (fileSize - dataSpec.position).coerceAtLeast(0)
+                    fileSize >= 0 -> (fileSize - dataSpec.position).coerceAtLeast(minimumValue = 0)
                     else -> C.LENGTH_UNSET.toLong()
                 }
                 stream = target.client.openStream(target.filePath, dataSpec.position)
@@ -59,7 +59,7 @@ class NetworkDataSource(private val sessions: NetworkSessions) : BaseDataSource(
         val readLength = if (bytesRemaining == C.LENGTH_UNSET.toLong()) {
             length
         } else {
-            minOf(length.toLong(), bytesRemaining).toInt()
+            minOf(length.toLong(), b = bytesRemaining).toInt()
         }
         val bytesRead = stream?.read(buffer, offset, readLength) ?: return C.RESULT_END_OF_INPUT
         if (bytesRead == -1) return C.RESULT_END_OF_INPUT

@@ -21,7 +21,7 @@ data object PlaylistListRoute : NavKey
 data class PlaylistDetailRoute(val playlistId: Long) : NavKey
 
 fun NavBackStack<NavKey>.navigateToPlaylistDetail(playlistId: Long) {
-    add(PlaylistDetailRoute(playlistId))
+    add(element = PlaylistDetailRoute(playlistId = playlistId))
 }
 
 fun EntryProviderScope<NavKey>.playlistListEntry(

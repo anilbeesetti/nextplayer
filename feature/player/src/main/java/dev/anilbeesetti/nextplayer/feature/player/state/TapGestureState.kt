@@ -54,8 +54,8 @@ class TapGestureState(
     val doubleTapGesture: DoubleTapGesture,
     val interactionSource: MutableInteractionSource = MutableInteractionSource(),
 ) {
-    var seekMillis by mutableLongStateOf(0L)
-    var isLongPressGestureInAction by mutableStateOf(false)
+    var seekMillis by mutableLongStateOf(value = 0L)
+    var isLongPressGestureInAction by mutableStateOf(value = false)
 
     private var resetJob: Job? = null
     private var currentSpeed: Float = player.playbackParameters.speed
@@ -93,7 +93,7 @@ class TapGestureState(
                     seekMillis = 0L
                 }
                 seekMillis -= seekIncrementMillis
-                interactionSource.tryEmit(PressInteraction.Press(offset))
+                interactionSource.tryEmit(PressInteraction.Press(pressPosition = offset))
             }
 
             DoubleTapAction.SEEK_FORWARD -> {
@@ -102,7 +102,7 @@ class TapGestureState(
                     seekMillis = 0L
                 }
                 seekMillis += seekIncrementMillis
-                interactionSource.tryEmit(PressInteraction.Press(offset))
+                interactionSource.tryEmit(PressInteraction.Press(pressPosition = offset))
             }
 
             DoubleTapAction.PLAY_PAUSE -> {

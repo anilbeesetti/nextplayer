@@ -42,20 +42,25 @@ class ChaptersStateTest {
             Metadata(chapters),
         )
 
-        val playable = chapters(tracks, 60_000L)
+        val playable = chapters(tracks = tracks, durationMs = 60_000L)
         assertEquals(listOf(10_000L, 30_000L), playable.map { it.startTimeMs })
         assertEquals("2", playable.first().title?.value)
-        assertEquals(listOf(10_001L, 30_001L), chapters(tracks, 60_000L, 1).map { it.startTimeMs })
-        assertEquals(-1, playable.currentChapterIndex(0L))
-        assertEquals(0, playable.currentChapterIndex(10_000L))
-        assertEquals(0, playable.currentChapterIndex(29_999L))
-        assertEquals(1, playable.currentChapterIndex(30_000L))
-        assertEquals(1, playable.currentChapterIndex(60_000L))
-        assertEquals(0, playable.currentChapterIndex(15_000L))
-        assertTrue(chapters(tracks, 0L).isEmpty())
-        assertTrue(chapters(tracks, C.TIME_UNSET).isEmpty())
-        assertTrue(chapters(Tracks.EMPTY, 60_000L).isEmpty())
-        assertEquals(-1, emptyList<Chapter>().currentChapterIndex(0L))
+        assertEquals(
+            listOf(10_001L, 30_001L),
+            chapters(tracks = tracks, durationMs = 60_000L, periodOffsetMs = 1).map {
+                it.startTimeMs
+            },
+        )
+        assertEquals(-1, playable.currentChapterIndex(positionMs = 0L))
+        assertEquals(0, playable.currentChapterIndex(positionMs = 10_000L))
+        assertEquals(0, playable.currentChapterIndex(positionMs = 29_999L))
+        assertEquals(1, playable.currentChapterIndex(positionMs = 30_000L))
+        assertEquals(1, playable.currentChapterIndex(positionMs = 60_000L))
+        assertEquals(0, playable.currentChapterIndex(positionMs = 15_000L))
+        assertTrue(chapters(tracks = tracks, durationMs = 0L).isEmpty())
+        assertTrue(chapters(tracks = tracks, C.TIME_UNSET).isEmpty())
+        assertTrue(chapters(Tracks.EMPTY, durationMs = 60_000L).isEmpty())
+        assertEquals(-1, emptyList<Chapter>().currentChapterIndex(positionMs = 0L))
     }
 
     @Test
@@ -69,13 +74,13 @@ class ChaptersStateTest {
             Chapter.Builder().build(),
         )
         val tracks = tracks(Metadata(chapters))
-        val playable = chapters(tracks, durationMs = 10_000, periodOffsetMs = -10_000)
+        val playable = chapters(tracks = tracks, durationMs = 10_000, periodOffsetMs = -10_000)
         assertEquals(listOf(0L, 5_000L), playable.map { it.startTimeMs })
         assertEquals(listOf(5_000L, C.TIME_UNSET), playable.map { it.endTimeMs })
         assertEquals("Opening", playable.first().title?.value)
         assertEquals(
             listOf(20_000L, 25_000L, 35_000L),
-            chapters(tracks, 40_000, 20_000).map {
+            chapters(tracks = tracks, durationMs = 40_000, periodOffsetMs = 20_000).map {
                 it.startTimeMs
             },
         )
@@ -83,7 +88,7 @@ class ChaptersStateTest {
 
     @Test
     fun readsId3ChaptersAndIgnoresUnrelatedMetadata() = runTest {
-        val title = TextInformationFrame("TIT2", null, listOf("Introduction"))
+        val title = TextInformationFrame("TIT2", null, listOf(element = "Introduction"))
         val chapter =
             ChapterFrame(
                 "intro",
@@ -93,8 +98,9 @@ class ChaptersStateTest {
                 C.INDEX_UNSET.toLong(),
                 arrayOf(title),
             )
-        val playable = chapters(tracks(Metadata(title, chapter), null), 60_000)
-        assertEquals(listOf(0L), playable.map { it.startTimeMs })
+        val playable =
+            chapters(tracks = tracks(Metadata(title, chapter), null), durationMs = 60_000)
+        assertEquals(listOf(element = 0L), playable.map { it.startTimeMs })
         assertEquals("Introduction", playable.single().title?.value)
         assertEquals(10_000L, playable.single().endTimeMs)
     }
@@ -110,12 +116,17 @@ class ChaptersStateTest {
             .build()
         var positionMs = 25_000L
         val player = TestPlayer(
-            playerState(item).buildUpon()
+            playerState(item = item).buildUpon()
                 .setContentPositionMs { positionMs }
                 .build(),
         )
-        val progress = ProgressStateWithTickInterval(player, 1_000, backgroundScope)
-        val state = ChaptersState(player, progress)
+        val progress =
+            ProgressStateWithTickInterval(
+                player = player,
+                tickIntervalMs = 1_000,
+                scope = backgroundScope,
+            )
+        val state = ChaptersState(player = player, progressState = progress)
         val progressObserver = backgroundScope.launch { progress.observe() }
         val chaptersObserver = backgroundScope.launch { state.observe() }
         try {
@@ -131,7 +142,7 @@ class ChaptersStateTest {
             )
             runCurrent()
             positionMs = 45_000L
-            advanceTimeBy(1_000)
+            advanceTimeBy(delayTimeMillis = 1_000)
             runCurrent()
             assertEquals(2, state.currentChapterIndex)
 
@@ -153,7 +164,9 @@ class ChaptersStateTest {
             assertTrue(state.chapters.isEmpty())
             assertEquals(-1, state.currentChapterIndex)
 
-            player.update(player.currentState.buildUpon().setPlaylist(listOf(item)).build())
+            player.update(
+                player.currentState.buildUpon().setPlaylist(listOf(element = item)).build(),
+            )
             assertEquals(chapters, state.chapters)
             assertEquals(0, state.currentChapterIndex)
 
@@ -166,7 +179,9 @@ class ChaptersStateTest {
             assertEquals(-1, state.currentChapterIndex)
 
             chaptersObserver.cancelAndJoin()
-            player.update(player.currentState.buildUpon().setPlaylist(listOf(item)).build())
+            player.update(
+                player.currentState.buildUpon().setPlaylist(listOf(element = item)).build(),
+            )
             assertTrue(state.chapters.isEmpty())
         } finally {
             chaptersObserver.cancelAndJoin()
@@ -203,12 +218,19 @@ class ChaptersStateTest {
         val player =
             TestPlayer(
                 playerState(
-                    item,
-                ).buildUpon().setContentPositionMs(periodOffsetMs.coerceAtLeast(0)).build(),
+                    item = item,
+                ).buildUpon().setContentPositionMs(
+                    periodOffsetMs.coerceAtLeast(minimumValue = 0),
+                ).build(),
             )
         try {
-            val progress = ProgressStateWithTickInterval(player, 1_000, backgroundScope)
-            return ChaptersState(player, progress).chapters
+            val progress =
+                ProgressStateWithTickInterval(
+                    player = player,
+                    tickIntervalMs = 1_000,
+                    scope = backgroundScope,
+                )
+            return ChaptersState(player = player, progressState = progress).chapters
         } finally {
             player.release()
         }
@@ -225,7 +247,7 @@ class ChaptersStateTest {
                     )
                     .build(),
             )
-            .setPlaylist(listOf(item))
+            .setPlaylist(listOf(element = item))
             .setPlaybackState(Player.STATE_READY)
             .build()
 

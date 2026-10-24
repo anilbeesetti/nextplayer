@@ -30,9 +30,7 @@ fun ControlsMiddleView(modifier: Modifier = Modifier, player: Player?) {
     Row(
         modifier = modifier
             .fillMaxWidth()
-            .focusProperties {
-                onEnter = { playPauseFocusRequester.requestFocus() }
-            }
+            .focusProperties { onEnter = { playPauseFocusRequester.requestFocus() } }
             .focusGroup(),
         horizontalArrangement = Arrangement.spacedBy(
             40.dp,
@@ -43,7 +41,7 @@ fun ControlsMiddleView(modifier: Modifier = Modifier, player: Player?) {
         PreviousButton(player = player)
         PlayPauseButton(
             player = player,
-            modifier = Modifier.focusRequester(playPauseFocusRequester),
+            modifier = Modifier.focusRequester(focusRequester = playPauseFocusRequester),
         )
         NextButton(player = player)
     }

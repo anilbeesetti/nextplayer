@@ -55,10 +55,10 @@ fun NextSegmentedListItem(
 
     SegmentedListItem(
         modifier = modifier
-            .zIndex(if (isFocused) 1f else 0f)
-            .scale(focusScale)
+            .zIndex(zIndex = if (isFocused) 1f else 0f)
+            .scale(scale = focusScale)
             .then(
-                if (isFocused) {
+                other = if (isFocused) {
                     Modifier.border(
                         width = 2.dp,
                         color = MaterialTheme.colorScheme.primary,
@@ -119,7 +119,7 @@ fun ListSectionTitle(
 ) {
     Text(
         text = text,
-        modifier = modifier.padding(contentPadding),
+        modifier = modifier.padding(paddingValues = contentPadding),
         color = color,
         style = MaterialTheme.typography.labelLarge,
     )

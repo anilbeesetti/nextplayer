@@ -65,7 +65,7 @@ fun Context.getPath(uri: Uri): String? {
                     .dropLastWhile { it.isEmpty() }
                     .toTypedArray()
                 val type = split[0]
-                if ("primary".equals(type, ignoreCase = true)) {
+                if ("primary".equals(other = type, ignoreCase = true)) {
                     return Environment.getExternalStorageDirectory().path + "/" + split[1]
                 }
 
@@ -80,7 +80,7 @@ fun Context.getPath(uri: Uri): String? {
                             Uri.parse("content://downloads/public_downloads"),
                             docId.toLong(),
                         )
-                        getDataColumn(contentUri, null, null)
+                        getDataColumn(uri = contentUri, selection = null, selectionArgs = null)
                     } catch (e: Exception) {
                         null
                     }
@@ -102,7 +102,9 @@ fun Context.getPath(uri: Uri): String? {
                 val selectionArgs = arrayOf(
                     split[1],
                 )
-                return contentUri?.let { getDataColumn(it, selection, selectionArgs) }
+                return contentUri?.let {
+                    getDataColumn(uri = it, selection = selection, selectionArgs = selectionArgs)
+                }
             }
         }
     } else if (ContentResolver.SCHEME_CONTENT.equals(uri.scheme, ignoreCase = true)) {
@@ -112,7 +114,7 @@ fun Context.getPath(uri: Uri): String? {
         return if (uri.isGooglePhotosUri) {
             uri.lastPathSegment
         } else {
-            getDataColumn(uri, null, null)
+            getDataColumn(uri = uri, selection = null, selectionArgs = null)
         }
     } else if (ContentResolver.SCHEME_FILE.equals(uri.scheme, ignoreCase = true)) {
         return uri.path
@@ -128,11 +130,11 @@ fun Context.getPath(uri: Uri): String? {
  * path cannot be resolved (in which case the picker opens at its default location).
  */
 fun Context.getInitialDirectoryUri(fileUri: Uri): Uri? {
-    val path = getPath(fileUri) ?: return null
+    val path = getPath(uri = fileUri) ?: return null
     val parent = File(path).parent ?: return null
     val externalRoot = Environment.getExternalStorageDirectory().path
-    if (parent != externalRoot && !parent.startsWith("$externalRoot/")) return null
-    val relativePath = parent.removePrefix(externalRoot).trim('/')
+    if (parent != externalRoot && !parent.startsWith(prefix = "$externalRoot/")) return null
+    val relativePath = parent.removePrefix(prefix = externalRoot).trim('/')
     return DocumentsContract.buildDocumentUri(
         "com.android.externalstorage.documents",
         "primary:$relativePath",
@@ -175,7 +177,7 @@ fun Context.getFilenameFromUri(uri: Uri): String =
     if (ContentResolver.SCHEME_FILE.equals(uri.scheme, ignoreCase = true)) {
         File(uri.toString()).name
     } else {
-        getFilenameFromContentUri(uri) ?: uri.lastPathSegment ?: ""
+        getFilenameFromContentUri(uri = uri) ?: uri.lastPathSegment ?: ""
     }
 
 /**
@@ -202,7 +204,7 @@ fun Context.getFilenameFromContentUri(uri: Uri): String? {
 }
 
 fun Context.getMediaContentUri(uri: Uri): Uri? {
-    val path = getPath(uri) ?: return null
+    val path = getPath(uri = uri) ?: return null
 
     val column = MediaStore.Video.Media._ID
     val projection = arrayOf(column)
@@ -229,7 +231,7 @@ fun Context.getMediaContentUri(uri: Uri): Uri? {
 suspend fun Context.scanPaths(paths: List<String>): Boolean =
     suspendCancellableCoroutine { continuation ->
         if (paths.isEmpty()) {
-            continuation.resumeWith(Result.success(true))
+            continuation.resumeWith(Result.success(value = true))
             return@suspendCancellableCoroutine
         }
         // scanFile invokes the callback once per path, so only resume after the last one.
@@ -242,18 +244,18 @@ suspend fun Context.scanPaths(paths: List<String>): Boolean =
             ) { path, uri ->
                 Log.d("ScanPath", "scanPaths: path=$path, uri=$uri")
                 if (remaining.decrementAndGet() == 0) {
-                    continuation.resumeWith(Result.success(true))
+                    continuation.resumeWith(Result.success(value = true))
                 }
             }
         } catch (e: Exception) {
-            continuation.resumeWith(Result.failure(e))
+            continuation.resumeWith(Result.failure(exception = e))
         }
     }
 
 suspend fun Context.scanPath(file: File): Boolean = if (file.isDirectory) {
-    file.listFiles()?.all { scanPath(it) } ?: true
+    file.listFiles()?.all { scanPath(file = it) } ?: true
 } else {
-    scanPaths(listOf(file.path))
+    scanPaths(paths = listOf(file.path))
 }
 
 suspend fun Context.scanStorage(
@@ -261,9 +263,9 @@ suspend fun Context.scanStorage(
 ): Boolean = withContext(Dispatchers.IO) {
     if (storagePath != null) {
         return@withContext if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
-            scanPaths(listOf(storagePath))
+            scanPaths(paths = listOf(element = storagePath))
         } else {
-            scanPath(File(storagePath))
+            scanPath(file = File(storagePath))
         }
     } else {
         false
@@ -276,7 +278,7 @@ suspend fun Context.convertToUTF8(uri: Uri, charset: Charset? = null): Uri =
             when {
                 uri.scheme?.let { it in listOf("http", "https", "ftp") } == true -> {
                     val url = URL(uri.toString())
-                    val detectedCharset = charset ?: detectCharset(url)
+                    val detectedCharset = charset ?: detectCharset(url = url)
                     if (detectedCharset == StandardCharsets.UTF_8) {
                         uri
                     } else {
@@ -302,17 +304,17 @@ suspend fun Context.convertToUTF8(uri: Uri, charset: Charset? = null): Uri =
 
 private fun detectCharset(uri: Uri, context: Context): Charset =
     context.contentResolver.openInputStream(uri)?.use { inputStream ->
-        detectCharsetFromStream(inputStream)
+        detectCharsetFromStream(inputStream = inputStream)
     } ?: StandardCharsets.UTF_8
 
 private fun detectCharset(url: URL): Charset = url.openStream().use { inputStream ->
-    detectCharsetFromStream(inputStream)
+    detectCharsetFromStream(inputStream = inputStream)
 }
 
 private fun detectCharsetFromStream(inputStream: InputStream): Charset {
     return BufferedInputStream(inputStream).use { bufferedStream ->
         val maxBytes = 1024 * 100 // 100 KB
-        val data = ByteArray(maxBytes)
+        val data = ByteArray(size = maxBytes)
         val bytesRead = bufferedStream.read(data, 0, maxBytes)
 
         if (bytesRead <= 0) {
@@ -328,13 +330,13 @@ private fun detectCharsetFromStream(inputStream: InputStream): Charset {
 }
 
 private fun Context.convertLocalUriToUTF8(uri: Uri, sourceCharset: Charset): Uri {
-    val fileName = getFilenameFromUri(uri)
+    val fileName = getFilenameFromUri(uri = uri)
     val file = File(subtitleCacheDir, fileName)
 
     contentResolver.openInputStream(uri)?.use { inputStream ->
-        inputStream.reader(sourceCharset).buffered().use { reader ->
+        inputStream.reader(charset = sourceCharset).buffered().use { reader ->
             file.outputStream().writer(StandardCharsets.UTF_8).buffered().use { writer ->
-                reader.copyTo(writer)
+                reader.copyTo(out = writer)
             }
         }
     }
@@ -343,13 +345,13 @@ private fun Context.convertLocalUriToUTF8(uri: Uri, sourceCharset: Charset): Uri
 }
 
 private fun Context.convertNetworkUriToUTF8(url: URL, sourceCharset: Charset): Uri {
-    val fileName = url.path.substringAfterLast('/')
+    val fileName = url.path.substringAfterLast(delimiter = '/')
     val file = File(subtitleCacheDir, fileName)
 
     url.openStream().use { inputStream ->
-        inputStream.reader(sourceCharset).buffered().use { reader ->
+        inputStream.reader(charset = sourceCharset).buffered().use { reader ->
             file.outputStream().writer(StandardCharsets.UTF_8).buffered().use { writer ->
-                reader.copyTo(writer)
+                reader.copyTo(out = writer)
             }
         }
     }
@@ -382,7 +384,7 @@ fun Context.isDeviceTvBox(): Boolean {
             return true
         }
 
-        if (Build.MANUFACTURER.equals("zidoo", ignoreCase = true)) {
+        if (Build.MANUFACTURER.equals(other = "zidoo", ignoreCase = true)) {
             return true
         }
     }
@@ -442,7 +444,7 @@ suspend fun ContentResolver.deleteMedia(uri: Uri): Boolean = withContext(Dispatc
 
 fun Context.getStorageVolumes() = try {
     getExternalFilesDirs(null)?.mapNotNull {
-        File(it.path.substringBefore("/Android")).takeIf { file -> file.exists() }
+        File(it.path.substringBefore(delimiter = "/Android")).takeIf { file -> file.exists() }
     } ?: listOf(Environment.getExternalStorageDirectory())
 } catch (e: Exception) {
     listOf(Environment.getExternalStorageDirectory())

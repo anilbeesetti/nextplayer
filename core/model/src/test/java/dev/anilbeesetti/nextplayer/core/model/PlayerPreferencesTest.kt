@@ -10,7 +10,7 @@ class PlayerPreferencesTest {
     @Test
     fun `existing preferences keep tunneled playback disabled`() {
         val preferences = Json.decodeFromString<PlayerPreferences>(
-            """{"autoplay":false,"preferredAudioLanguage":"en"}""",
+            string = """{"autoplay":false,"preferredAudioLanguage":"en"}""",
         )
 
         assertFalse(preferences.enableTunneledPlayback)
@@ -21,7 +21,9 @@ class PlayerPreferencesTest {
     @Test
     fun `tunneled playback survives serialization`() {
         val preferences = PlayerPreferences(enableTunneledPlayback = true)
-        val restored = Json.decodeFromString<PlayerPreferences>(Json.encodeToString(preferences))
+        val restored = Json.decodeFromString<PlayerPreferences>(
+            Json.encodeToString(value = preferences),
+        )
 
         assertTrue(restored.enableTunneledPlayback)
         assertEquals(preferences, restored)

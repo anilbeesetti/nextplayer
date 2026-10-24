@@ -86,9 +86,7 @@ fun PreferenceSlider(
         },
         supportingContent = {
             Column {
-                description?.let {
-                    Text(text = description)
-                }
+                description?.let { Text(text = description) }
                 Slider(
                     modifier = Modifier.fillMaxWidth(),
                     enabled = enabled,
@@ -100,9 +98,7 @@ fun PreferenceSlider(
                 )
             }
         },
-        content = {
-            Text(text = title)
-        },
+        content = { Text(text = title) },
         trailingContent = trailingContent,
     )
 }

@@ -70,11 +70,11 @@ class MediaStoreMediaService(
     private val mediaChanges: Flow<Unit> = callbackFlow {
         val observer = object : ContentObserver(null) {
             override fun onChange(selfChange: Boolean) {
-                trySend(Unit)
+                trySend(element = Unit)
             }
         }
         context.contentResolver.registerContentObserver(VIDEO_COLLECTION_URI, true, observer)
-        trySend(Unit)
+        trySend(element = Unit)
         awaitClose { context.contentResolver.unregisterContentObserver(observer) }
     }
         .debounce(OBSERVER_DEBOUNCE_MS.milliseconds)
@@ -85,11 +85,11 @@ class MediaStoreMediaService(
         )
 
     override fun observeFolders(folderPath: String?): Flow<List<MediaFolder>> = observeMedia {
-        fetchFolders(folderPath)
+        fetchFolders(folderPath = folderPath)
     }
 
     override fun observeVideos(folderPath: String?): Flow<List<MediaVideo>> = observeMedia {
-        fetchVideos(folderPath)
+        fetchVideos(folderPath = folderPath)
     }
 
     override fun observeTrashVideos(): Flow<List<MediaVideo>> = observeMedia {
@@ -103,8 +103,8 @@ class MediaStoreMediaService(
             } catch (e: IllegalArgumentException) {
                 // A volume can disappear before MediaProvider opens it. Handle each
                 // notification separately so observers can recover when storage returns.
-                if (e.message?.startsWith("Volume ") == true &&
-                    e.message?.endsWith(" not found") == true
+                if (e.message?.startsWith(prefix = "Volume ") == true &&
+                    e.message?.endsWith(suffix = " not found") == true
                 ) {
                     emptyList()
                 } else {
@@ -117,7 +117,7 @@ class MediaStoreMediaService(
 
     override suspend fun fetchFolders(folderPath: String?): List<MediaFolder> =
         withContext(Dispatchers.IO) {
-            val videos = fetchVideos(folderPath)
+            val videos = fetchVideos(folderPath = folderPath)
 
             val videosByFolder = videos.groupBy { File(it.path).parentFile }
 
@@ -138,9 +138,7 @@ class MediaStoreMediaService(
         }
 
     override suspend fun fetchVideos(folderPath: String?): List<MediaVideo> =
-        withContext(Dispatchers.IO) {
-            queryVideos(folderPath)
-        }
+        withContext(Dispatchers.IO) { queryVideos(folderPath = folderPath) }
 
     override suspend fun findVideo(uri: Uri): MediaVideo? = withContext(Dispatchers.IO) {
         return@withContext try {
@@ -166,7 +164,7 @@ class MediaStoreMediaService(
         val folderFile = File(path)
         if (!folderFile.exists()) return@withContext null
 
-        val allVideos = fetchVideos(path)
+        val allVideos = fetchVideos(folderPath = path)
         if (allVideos.isEmpty()) return@withContext null
 
         val directVideos = allVideos.filter { File(it.path).parent == path }
@@ -190,7 +188,7 @@ class MediaStoreMediaService(
     /**
      * Walks up the directory tree from this file's parent to the root.
      */
-    private fun File.walkUp() = generateSequence(parentFile) { it.parentFile }
+    private fun File.walkUp() = generateSequence(seed = parentFile) { it.parentFile }
 
     @RequiresApi(Build.VERSION_CODES.R)
     private fun queryTrashVideos(): List<MediaVideo> {
@@ -213,16 +211,12 @@ class MediaStoreMediaService(
     private fun queryVideos(folderPath: String?): List<MediaVideo> {
         // A null folderPath scans every storage volume (e.g. SD cards / USB OTG). For a specific
         // folder, match it and its descendants, escaping LIKE metacharacters ('%', '_') in the path.
-        val selection = if (folderPath ==
-            null
-        ) {
+        val selection = if (folderPath == null) {
             null
         } else {
             "${MediaStore.Video.Media.DATA} LIKE ? ESCAPE '\\'"
         }
-        val selectionArgs = if (folderPath ==
-            null
-        ) {
+        val selectionArgs = if (folderPath == null) {
             null
         } else {
             arrayOf("${folderPath.escapeLike()}/%")
@@ -241,13 +235,13 @@ class MediaStoreMediaService(
 
     private fun queryVideoCursor(query: () -> Cursor?): List<MediaVideo> {
         val mediaVideos = mutableListOf<MediaVideo>()
-        val cursor = checkNotNull(query()) {
+        val cursor = checkNotNull(value = query()) {
             "MediaStore returned no cursor for the video query"
         }
         cursor.use {
             while (cursor.moveToNext()) {
                 val video = cursor.toMediaVideo() ?: continue
-                mediaVideos.add(video)
+                mediaVideos.add(element = video)
             }
         }
         return mediaVideos
@@ -256,8 +250,10 @@ class MediaStoreMediaService(
     /**
      * Escapes SQL LIKE metacharacters so a path is matched literally (used with `ESCAPE '\'`).
      */
-    private fun String.escapeLike(): String =
-        replace("\\", "\\\\").replace("%", "\\%").replace("_", "\\_")
+    private fun String.escapeLike(): String = replace(
+        oldValue = "\\",
+        newValue = "\\\\",
+    ).replace(oldValue = "%", newValue = "\\%").replace(oldValue = "_", newValue = "\\_")
 
     /**
      * Converts the current row to a [MediaVideo], or null if this cursor doesn't actually

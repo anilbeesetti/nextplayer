@@ -57,7 +57,7 @@ fun TrashScreen(viewModel: TrashViewModel) {
 @Composable
 internal fun TrashScreenContent(state: TrashUiState, onAction: (TrashAction) -> Unit) {
     val selectionManager = rememberSelectionManager()
-    var showDeleteConfirmation by remember { mutableStateOf(false) }
+    var showDeleteConfirmation by remember { mutableStateOf(value = false) }
 
     Scaffold(
         topBar = {
@@ -104,11 +104,11 @@ internal fun TrashScreenContent(state: TrashUiState, onAction: (TrashAction) -> 
                                 selectionManager.exitSelectionMode()
                             },
                             modifier = Modifier.tvFocusRing(),
-                        ) { Text(stringResource(R.string.restore)) }
+                        ) { Text(text = stringResource(R.string.restore)) }
                         TextButton(
                             onClick = { showDeleteConfirmation = true },
                             modifier = Modifier.tvFocusRing(),
-                        ) { Text(stringResource(R.string.delete)) }
+                        ) { Text(text = stringResource(R.string.delete)) }
                     }
                 },
             )
@@ -119,7 +119,7 @@ internal fun TrashScreenContent(state: TrashUiState, onAction: (TrashAction) -> 
             modifier = Modifier
                 .fillMaxSize()
                 .padding(scaffoldPadding.copy(bottom = 0.dp))
-                .clip(RoundedCornerShape(topStart = 24.dp, topEnd = 24.dp))
+                .clip(shape = RoundedCornerShape(topStart = 24.dp, topEnd = 24.dp))
                 .background(MaterialTheme.colorScheme.background),
         ) {
             when (val videos = state.videos) {
@@ -145,17 +145,19 @@ internal fun TrashScreenContent(state: TrashUiState, onAction: (TrashAction) -> 
                                 video = video,
                                 isRecentlyPlayedVideo = false,
                                 preferences = state.preferences,
-                                selected = selectionManager.isVideoSelected(video),
+                                selected = selectionManager.isVideoSelected(video = video),
                                 isFirstItem = index == 0,
                                 isLastItem = index == videos.value.lastIndex,
                                 onClick = {
                                     if (selectionManager.isInSelectionMode) {
-                                        selectionManager.toggleVideoSelection(video)
+                                        selectionManager.toggleVideoSelection(video = video)
                                     } else {
                                         onAction(TrashAction.PlayVideo(video.uriString))
                                     }
                                 },
-                                onLongClick = { selectionManager.toggleVideoSelection(video) },
+                                onLongClick = {
+                                    selectionManager.toggleVideoSelection(video = video)
+                                },
                             )
                         }
                     }
@@ -167,7 +169,7 @@ internal fun TrashScreenContent(state: TrashUiState, onAction: (TrashAction) -> 
     if (showDeleteConfirmation) {
         NextDialog(
             onDismissRequest = { showDeleteConfirmation = false },
-            title = { Text(stringResource(R.string.delete_permanently)) },
+            title = { Text(text = stringResource(R.string.delete_permanently)) },
             confirmButton = {
                 TextButton(
                     onClick = {
@@ -175,14 +177,14 @@ internal fun TrashScreenContent(state: TrashUiState, onAction: (TrashAction) -> 
                         selectionManager.exitSelectionMode()
                         showDeleteConfirmation = false
                     },
-                ) { Text(stringResource(R.string.delete)) }
+                ) { Text(text = stringResource(R.string.delete)) }
             },
             dismissButton = {
                 TextButton(onClick = {
                     showDeleteConfirmation = false
-                }) { Text(stringResource(R.string.cancel)) }
+                }) { Text(text = stringResource(R.string.cancel)) }
             },
-            content = { Text(stringResource(R.string.delete_items_info)) },
+            content = { Text(text = stringResource(R.string.delete_items_info)) },
         )
     }
 }
@@ -192,7 +194,7 @@ private fun TrashEmptyState() {
     Column(
         modifier = Modifier
             .fillMaxSize()
-            .verticalScroll(rememberScrollState())
+            .verticalScroll(state = rememberScrollState())
             .padding(horizontal = 24.dp, vertical = 40.dp),
         verticalArrangement = Arrangement.Center,
         horizontalAlignment = Alignment.CenterHorizontally,

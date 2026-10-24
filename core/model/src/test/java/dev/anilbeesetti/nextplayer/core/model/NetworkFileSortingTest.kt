@@ -5,11 +5,29 @@ import org.junit.Test
 
 class NetworkFileSortingTest {
     private val files = listOf(
-        NetworkFile("Episode 10.mp4", "10", false, size = 10, modified = 300),
-        NetworkFile("Season 10", "folder10", true, modified = 200),
-        NetworkFile("episode 2.mp4", "2", false, size = 30, modified = 100),
-        NetworkFile("Season 2", "folder2", true, modified = null),
-        NetworkFile("Episode 1.mp4", "1", false, size = 20, modified = null),
+        NetworkFile(
+            name = "Episode 10.mp4",
+            path = "10",
+            isDirectory = false,
+            size = 10,
+            modified = 300,
+        ),
+        NetworkFile(name = "Season 10", path = "folder10", isDirectory = true, modified = 200),
+        NetworkFile(
+            name = "episode 2.mp4",
+            path = "2",
+            isDirectory = false,
+            size = 30,
+            modified = 100,
+        ),
+        NetworkFile(name = "Season 2", path = "folder2", isDirectory = true, modified = null),
+        NetworkFile(
+            name = "Episode 1.mp4",
+            path = "1",
+            isDirectory = false,
+            size = 20,
+            modified = null,
+        ),
     )
 
     @Test
@@ -33,9 +51,7 @@ class NetworkFileSortingTest {
     private fun assertOrder(by: Sort.By, order: Sort.Order, vararg paths: String) {
         assertEquals(
             paths.toList(),
-            files.sortedWith(Sort(by, order).networkFileComparator()).map {
-                it.path
-            },
+            files.sortedWith(Sort(by = by, order = order).networkFileComparator()).map { it.path },
         )
     }
 }

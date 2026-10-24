@@ -51,8 +51,10 @@ fun rememberPictureInPictureState(
             autoEnter = autoEnter,
         )
     }
-    DisposableEffect(activity) { pictureInPictureState.handleListeners(this) }
-    LaunchedEffect(player) { pictureInPictureState.observe() }
+    DisposableEffect(key1 = activity) {
+        pictureInPictureState.handleListeners(disposableEffectScope = this)
+    }
+    LaunchedEffect(key1 = player) { pictureInPictureState.observe() }
     return pictureInPictureState
 }
 
@@ -87,17 +89,16 @@ class PictureInPictureState(
                 AppOpsManager.OPSTR_PICTURE_IN_PICTURE,
                 Process.myUid(),
                 activity.packageName,
-            ) ==
-                AppOpsManager.MODE_ALLOWED
+            ) == AppOpsManager.MODE_ALLOWED
         } else {
             true
         }
 
-    var isInPictureInPictureMode: Boolean by mutableStateOf(false)
+    var isInPictureInPictureMode: Boolean by mutableStateOf(value = false)
         private set
 
     private val pictureInPicture: VideoPlaybackPictureInPicture? = if (isPipSupported) {
-        VideoPlaybackPictureInPicture(activity, ContextCompat.getMainExecutor(activity))
+        VideoPlaybackPictureInPicture(provider = activity, ContextCompat.getMainExecutor(activity))
     } else {
         null
     }
@@ -130,7 +131,7 @@ class PictureInPictureState(
     fun enterPictureInPictureMode(): Boolean {
         if (pictureInPicture == null || isInPictureInPictureMode) return false
         return runCatching {
-            activity.enterPictureInPictureMode(buildPictureInPictureParams())
+            activity.enterPictureInPictureMode(params = buildPictureInPictureParams())
         }.isSuccess
     }
 
@@ -142,7 +143,7 @@ class PictureInPictureState(
     }
 
     fun handleListeners(disposableEffectScope: DisposableEffectScope): DisposableEffectResult =
-        with(disposableEffectScope) {
+        with(receiver = disposableEffectScope) {
             val pipBroadcastReceiver = object : BroadcastReceiver() {
                 override fun onReceive(context: Context?, intent: Intent?) {
                     if (intent == null || intent.action != PIP_INTENT_ACTION) return
@@ -164,10 +165,10 @@ class PictureInPictureState(
                         // Animation callbacks require API 35; ENTERED also covers older devices.
                         PictureInPictureDelegate.Event.ENTER_ANIMATION_START,
                         PictureInPictureDelegate.Event.ENTERED,
-                        -> onEnterPictureInPictureMode(pipBroadcastReceiver)
+                        -> onEnterPictureInPictureMode(receiver = pipBroadcastReceiver)
 
                         PictureInPictureDelegate.Event.EXITED -> onExitPictureInPictureMode(
-                            pipBroadcastReceiver,
+                            receiver = pipBroadcastReceiver,
                         )
 
                         else -> Unit
@@ -177,11 +178,11 @@ class PictureInPictureState(
 
             pictureInPicture?.addOnPictureInPictureEventListener(
                 ContextCompat.getMainExecutor(activity),
-                eventListener,
+                listener = eventListener,
             )
 
             return onDispose {
-                pictureInPicture?.removeOnPictureInPictureEventListener(eventListener)
+                pictureInPicture?.removeOnPictureInPictureEventListener(listener = eventListener)
                 pictureInPicture?.close()
                 runCatching { activity.unregisterReceiver(pipBroadcastReceiver) }
             }
@@ -252,17 +253,19 @@ class PictureInPictureState(
 
     private fun buildPictureInPictureParams(): PictureInPictureParamsCompat =
         PictureInPictureParamsCompat.Builder().apply {
-            setActions(actions)
-            setSeamlessResizeEnabled(true)
-            setEnabled(autoEnter && player.isPlaying)
-            aspectRatio?.let { setAspectRatio(it) }
-            sourceRectHint?.let { setSourceRectHint(it) }
+            setActions(actions = actions)
+            setSeamlessResizeEnabled(seamlessResizeEnabled = true)
+            setEnabled(enabled = autoEnter && player.isPlaying)
+            aspectRatio?.let { setAspectRatio(aspectRatio = it) }
+            sourceRectHint?.let { setSourceRectHint(sourceRectHint = it) }
         }.build()
 
     private fun applyPictureInPictureParams() {
         val pictureInPicture = pictureInPicture ?: return
         try {
-            pictureInPicture.setPictureInPictureParams(buildPictureInPictureParams())
+            pictureInPicture.setPictureInPictureParams(
+                pictureInPictureParamsCompat = buildPictureInPictureParams(),
+            )
         } catch (e: IllegalStateException) {
             e.printStackTrace()
         }

@@ -38,10 +38,10 @@ class SearchViewModel(
         val openFolder: (String) -> Unit,
     )
 
-    private val stateInternal = MutableStateFlow(SearchUiState())
+    private val stateInternal = MutableStateFlow(value = SearchUiState())
     override val state: StateFlow<SearchUiState> = stateInternal.asStateFlow()
 
-    private val searchQuery = MutableStateFlow("")
+    private val searchQuery = MutableStateFlow(value = "")
 
     init {
         collectSearchHistory()
@@ -78,10 +78,8 @@ class SearchViewModel(
     private fun collectSearchResults() {
         viewModelScope.launch {
             searchQuery
-                .debounce(SEARCH_DEBOUNCE_MS)
-                .flatMapLatest { query ->
-                    searchMediaUseCase(query)
-                }
+                .debounce(timeoutMillis = SEARCH_DEBOUNCE_MS)
+                .flatMapLatest { query -> searchMediaUseCase(query) }
                 .collect { results ->
                     stateInternal.update {
                         it.copy(
@@ -113,27 +111,21 @@ class SearchViewModel(
 
     private fun onSearch(query: String) {
         if (query.isBlank()) return
-        viewModelScope.launch {
-            searchHistoryRepository.addSearchQuery(query)
-        }
+        viewModelScope.launch { searchHistoryRepository.addSearchQuery(query = query) }
     }
 
     private fun onHistoryItemClick(query: String) {
         stateInternal.update { it.copy(query = query, isSearching = true) }
         searchQuery.value = query
-        onSearch(query)
+        onSearch(query = query)
     }
 
     private fun removeHistoryItem(query: String) {
-        viewModelScope.launch {
-            searchHistoryRepository.removeSearchQuery(query)
-        }
+        viewModelScope.launch { searchHistoryRepository.removeSearchQuery(query = query) }
     }
 
     private fun clearHistory() {
-        viewModelScope.launch {
-            searchHistoryRepository.clearHistory()
-        }
+        viewModelScope.launch { searchHistoryRepository.clearHistory() }
     }
 
     companion object {

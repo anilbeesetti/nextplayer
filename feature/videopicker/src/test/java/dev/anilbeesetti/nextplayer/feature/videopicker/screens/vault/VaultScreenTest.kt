@@ -28,20 +28,20 @@ class VaultScreenTest {
     @Test
     fun `quick settings apply grid and vault specific sort choices`() {
         val actions = showScreen()
-        composeRule.onNodeWithContentDescription("Quick Settings").performClick()
-        composeRule.onNodeWithText("Location").assertDoesNotExist()
-        composeRule.onNodeWithText("Grid").performClick()
-        composeRule.onNodeWithContentDescription("Date hidden").performClick()
+        composeRule.onNodeWithContentDescription(label = "Quick Settings").performClick()
+        composeRule.onNodeWithText(text = "Location").assertDoesNotExist()
+        composeRule.onNodeWithText(text = "Grid").performClick()
+        composeRule.onNodeWithContentDescription(label = "Date hidden").performClick()
         composeRule.onNodeWithText(
-            "Newest",
+            text = "Newest",
         ).performScrollTo().assertIsDisplayed().performClick().assertIsSelected()
         assertTrue(actions.isEmpty())
-        composeRule.onNodeWithText("Done").performClick()
+        composeRule.onNodeWithText(text = "Done").performClick()
         assertEquals(
             listOf(
                 VaultAction.UpdateQuickSettings(
                     MediaLayoutMode.GRID,
-                    Sort(Sort.By.DATE, Sort.Order.DESCENDING),
+                    sort = Sort(Sort.By.DATE, Sort.Order.DESCENDING),
                 ),
             ),
             actions,
@@ -51,18 +51,18 @@ class VaultScreenTest {
     @Test
     fun `cancel does not change vault settings`() {
         val actions = showScreen()
-        composeRule.onNodeWithContentDescription("Quick Settings").performClick()
-        composeRule.onNodeWithText("Grid").performClick()
-        composeRule.onNodeWithContentDescription("Duration").performClick()
-        composeRule.onNodeWithText("Cancel").performClick()
+        composeRule.onNodeWithContentDescription(label = "Quick Settings").performClick()
+        composeRule.onNodeWithText(text = "Grid").performClick()
+        composeRule.onNodeWithContentDescription(label = "Duration").performClick()
+        composeRule.onNodeWithText(text = "Cancel").performClick()
         assertTrue(actions.isEmpty())
-        composeRule.onNodeWithContentDescription("Quick Settings").performClick()
-        composeRule.onNodeWithText("Done").performClick()
+        composeRule.onNodeWithContentDescription(label = "Quick Settings").performClick()
+        composeRule.onNodeWithText(text = "Done").performClick()
         assertEquals(
             listOf(
                 VaultAction.UpdateQuickSettings(
                     MediaLayoutMode.LIST,
-                    Sort(Sort.By.TITLE, Sort.Order.ASCENDING),
+                    sort = Sort(Sort.By.TITLE, Sort.Order.ASCENDING),
                 ),
             ),
             actions,
@@ -76,7 +76,7 @@ class VaultScreenTest {
                 VaultScreenContent(state = VaultUiState(stage = VaultStage.LOCKED), onAction = {})
             }
         }
-        composeRule.onNodeWithContentDescription("Quick Settings").assertDoesNotExist()
+        composeRule.onNodeWithContentDescription(label = "Quick Settings").assertDoesNotExist()
     }
 
     private fun showScreen(): MutableList<VaultAction> {

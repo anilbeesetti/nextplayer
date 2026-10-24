@@ -12,7 +12,7 @@ class MediaPickerUiStateTest {
     private val folder = Folder.sample.copy(path = "/storage/Movies")
     private val video = Video.sample.copy(path = "/storage/Movies/sample.mp4")
     private val media = DataState.Success(
-        MediaHolder(videos = emptyList(), folders = listOf(folder)),
+        value = MediaHolder(videos = emptyList(), folders = listOf(element = folder)),
     )
 
     @Test
@@ -41,10 +41,14 @@ class MediaPickerUiStateTest {
                 recentlyPlayedVideo = video.copy(path = "/storage/Elsewhere/sample.mp4"),
             ).recentlyPlayedFolder,
         )
-        assertNull(state.copy(mediaDataState = DataState.Success(null)).recentlyPlayedFolder)
+        assertNull(
+            state.copy(mediaDataState = DataState.Success(value = null)).recentlyPlayedFolder,
+        )
         assertNull(
             state.copy(
-                mediaDataState = DataState.Success(MediaHolder(emptyList(), emptyList())),
+                mediaDataState = DataState.Success(
+                    value = MediaHolder(videos = emptyList(), folders = emptyList()),
+                ),
             ).recentlyPlayedFolder,
         )
     }

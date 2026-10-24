@@ -16,8 +16,8 @@ suspend fun FocusRequester.requestFocusUntilLanded(
     attempts: Int = 10,
     isFocused: (() -> Boolean)? = null,
 ): Boolean {
-    repeat(attempts) {
-        val requested = runCatching { requestFocus() }.getOrDefault(false)
+    repeat(times = attempts) {
+        val requested = runCatching { requestFocus() }.getOrDefault(defaultValue = false)
         if (isFocused?.invoke() ?: requested) return true
         withFrameNanos { }
         if (isFocused?.invoke() == true) return true

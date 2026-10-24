@@ -92,22 +92,22 @@ class MainActivity : FragmentActivity() {
 
     private val viewModel: MainViewModel by viewModel()
 
-    private var pendingPlaylistId by mutableStateOf<Long?>(null)
+    private var pendingPlaylistId by mutableStateOf<Long?>(value = null)
 
     override fun onNewIntent(intent: Intent) {
         super.onNewIntent(intent)
         setIntent(intent)
-        pendingPlaylistId = PlaylistShortcut.playlistId(intent)
+        pendingPlaylistId = PlaylistShortcut.playlistId(intent = intent)
     }
 
     @OptIn(ExperimentalPermissionsApi::class)
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         if (savedInstanceState == null) {
-            pendingPlaylistId = PlaylistShortcut.playlistId(intent)
+            pendingPlaylistId = PlaylistShortcut.playlistId(intent = intent)
         }
-        systemService.initialize(this@MainActivity)
-        mediaOperationsService.initialize(this@MainActivity)
+        systemService.initialize(activity = this@MainActivity)
+        mediaOperationsService.initialize(activity = this@MainActivity)
 
         installSplashScreen().setKeepOnScreenCondition {
             viewModel.state.value is MainActivityUiState.Loading
@@ -117,7 +117,7 @@ class MainActivity : FragmentActivity() {
             val state by viewModel.state.collectAsStateWithLifecycle()
             val shouldUseDarkTheme = shouldUseDarkTheme(state = state)
 
-            LaunchedEffect(shouldUseDarkTheme) {
+            LaunchedEffect(key1 = shouldUseDarkTheme) {
                 enableEdgeToEdge(
                     statusBarStyle = SystemBarStyle.auto(
                         lightScrim = Color.TRANSPARENT,
@@ -143,9 +143,9 @@ class MainActivity : FragmentActivity() {
                 ) {
                     val navState = rememberTopLevelNavState()
 
-                    LaunchedEffect(pendingPlaylistId) {
+                    LaunchedEffect(key1 = pendingPlaylistId) {
                         pendingPlaylistId?.let { playlistId ->
-                            navState.openPlaylist(playlistId)
+                            navState.openPlaylist(playlistId = playlistId)
                             pendingPlaylistId = null
                         }
                     }
@@ -169,7 +169,7 @@ class MainActivity : FragmentActivity() {
 
                     val topLevelFabStates =
                         remember { mutableStateMapOf<String, TopLevelFabState>() }
-                    var showTopLevelBottomBar by remember { mutableStateOf(true) }
+                    var showTopLevelBottomBar by remember { mutableStateOf(value = true) }
                     NavigationLayout(
                         state = navState,
                         fabStates = topLevelFabStates,
@@ -192,9 +192,7 @@ class MainActivity : FragmentActivity() {
                                                 ),
                                             )
                                     },
-                                ) {
-                                    entry.Content()
-                                }
+                                ) { entry.Content() }
                             }
                         }
                         CompositionLocalProvider(
@@ -204,7 +202,7 @@ class MainActivity : FragmentActivity() {
                                 { showTopLevelBottomBar = it },
                             LocalTopLevelFabSetter provides { key, state ->
                                 if (state == null) {
-                                    topLevelFabStates.remove(key)
+                                    topLevelFabStates.remove(key = key)
                                 } else {
                                     topLevelFabStates[key] = state
                                 }
@@ -212,18 +210,27 @@ class MainActivity : FragmentActivity() {
                         ) {
                             NavDisplay(
                                 entries = navState.rememberEntries(
-                                    provider,
-                                    navigationInsetsDecorator,
+                                    entryProvider = provider,
+                                    entryDecorator = navigationInsetsDecorator,
                                 ),
                                 onBack = { navState.goBack() },
                                 transitionSpec = {
-                                    navState.navigationTransition(initialState, targetState)
+                                    navState.navigationTransition(
+                                        initialState = initialState,
+                                        targetState = targetState,
+                                    )
                                 },
                                 popTransitionSpec = {
-                                    navState.navigationTransition(initialState, targetState)
+                                    navState.navigationTransition(
+                                        initialState = initialState,
+                                        targetState = targetState,
+                                    )
                                 },
                                 predictivePopTransitionSpec = {
-                                    navState.navigationTransition(initialState, targetState)
+                                    navState.navigationTransition(
+                                        initialState = initialState,
+                                        targetState = targetState,
+                                    )
                                 },
                             )
                         }
@@ -252,12 +259,13 @@ fun NavigationLayout(
         WindowSizeClass.WIDTH_DP_MEDIUM_LOWER_BOUND,
     )
     val showNavigation =
-        state.currentStack.lastOrNull()?.let { state.topLevelContentKeys.contains(it) } == true
-    val selectedFabState = state.destinations[state.selectedIndex].fabKey?.let(fabStates::get)
-    var displayedFabState by remember { mutableStateOf<TopLevelFabState?>(null) }
-    LaunchedEffect(selectedFabState) {
-        selectedFabState?.let { displayedFabState = it }
-    }
+        state.currentStack.lastOrNull()?.let { state.topLevelContentKeys.contains(element = it) } ==
+            true
+    val selectedFabState = state.destinations[state.selectedIndex].fabKey?.let(
+        block = fabStates::get,
+    )
+    var displayedFabState by remember { mutableStateOf<TopLevelFabState?>(value = null) }
+    LaunchedEffect(key1 = selectedFabState) { selectedFabState?.let { displayedFabState = it } }
 
     Box(modifier = Modifier.fillMaxSize()) {
         Scaffold(
@@ -283,10 +291,10 @@ fun NavigationLayout(
                 Box(
                     modifier = Modifier
                         .fillMaxWidth()
-                        .thenIf(isTv) {
+                        .thenIf(condition = isTv) {
                             // The FAB sits outside screen content, whose full-height focus groups
                             // overlap it. Enter the content explicitly instead of searching the rail.
-                            focusRequester(contentFocusRequester)
+                            focusRequester(focusRequester = contentFocusRequester)
                                 .focusProperties {
                                     onExit = {
                                         if (requestedFocusDirection == FocusDirection.Down &&
@@ -316,7 +324,10 @@ fun NavigationLayout(
         ) {
             NextNavigationRail(
                 state = state,
-                modifier = Modifier.onSizeChanged { railWidth = with(density) { it.width.toDp() } },
+                modifier = Modifier.onSizeChanged {
+                    railWidth =
+                        with(receiver = density) { it.width.toDp() }
+                },
             )
         }
     }

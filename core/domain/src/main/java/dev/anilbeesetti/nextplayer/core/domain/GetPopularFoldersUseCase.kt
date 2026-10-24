@@ -25,8 +25,8 @@ class GetPopularFoldersUseCase(
 ) {
 
     operator fun invoke(limit: Int = 5): Flow<List<Folder>> = combine(
-        getSortedFoldersUseCase(),
-        getSortedVideosUseCase(),
+        flow = getSortedFoldersUseCase(),
+        flow2 = getSortedVideosUseCase(),
     ) { folders, videos ->
         folders.sortedWith(
             compareByDescending<Folder> { folder ->
@@ -37,9 +37,7 @@ class GetPopularFoldersUseCase(
                         ?: 0L
                 }
                     ?: 0L
-            }.thenByDescending { folder ->
-                folder.videosCount
-            },
-        ).take(limit)
-    }.flowOn(defaultDispatcher)
+            }.thenByDescending { folder -> folder.videosCount },
+        ).take(n = limit)
+    }.flowOn(context = defaultDispatcher)
 }

@@ -37,13 +37,13 @@ class AppModule {
 
     @KoinViewModel
     fun provideMainViewModel(preferencesRepository: PreferencesRepository) =
-        MainViewModel(preferencesRepository)
+        MainViewModel(preferencesRepository = preferencesRepository)
 
     @Single
     fun provideImageLoader(
         context: Context,
         preferencesRepository: PreferencesRepository,
-    ): ImageLoader = ImageLoader.Builder(context)
+    ): ImageLoader = ImageLoader.Builder(context = context)
         .components {
             add(
                 VideoThumbnailDecoder.Factory(
@@ -69,10 +69,10 @@ class AppModule {
         .diskCache(
             DiskCache.Builder()
                 .fileSystem(FileSystem.SYSTEM)
-                .directory(context.filesDir.resolve("thumbnails"))
-                .maxSizePercent(1.0)
+                .directory(context.filesDir.resolve(relative = "thumbnails"))
+                .maxSizePercent(percent = 1.0)
                 .build(),
         )
-        .crossfade(true)
+        .crossfade(enable = true)
         .build()
 }

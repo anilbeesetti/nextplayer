@@ -110,7 +110,7 @@ fun ControlsBottomView(
             horizontalArrangement = Arrangement.spacedBy(8.dp),
         ) {
             PlayerButton(
-                modifier = Modifier.focusRequester(timeButtonFocusRequester),
+                modifier = Modifier.focusRequester(focusRequester = timeButtonFocusRequester),
                 onClick = onToggleTimeDisplay,
                 containerColor = PlayerButtonBlackAlpha,
                 contentPadding = PaddingValues(horizontal = 8.dp, vertical = 1.dp),
@@ -160,7 +160,7 @@ fun ControlsBottomView(
                                 chaptersState.chapters.getOrNull(chaptersState.currentChapterIndex)
                                     ?.titleOrDefault(chaptersState.currentChapterIndex)
                                     ?: stringResource(R.string.chapters),
-                            modifier = Modifier.weight(1f, fill = false),
+                            modifier = Modifier.weight(weight = 1f, fill = false),
                             style = MaterialTheme.typography.labelLarge,
                             maxLines = 1,
                             overflow = TextOverflow.Ellipsis,
@@ -174,7 +174,7 @@ fun ControlsBottomView(
                 }
             }
 
-            Spacer(modifier = Modifier.weight(1f))
+            Spacer(modifier = Modifier.weight(weight = 1f))
 
             Row(
                 horizontalArrangement = Arrangement.spacedBy(16.dp),
@@ -200,7 +200,7 @@ fun ControlsBottomView(
         Row(
             modifier = Modifier
                 .fillMaxWidth()
-                .horizontalScroll(rememberScrollState()),
+                .horizontalScroll(state = rememberScrollState()),
             verticalAlignment = Alignment.CenterVertically,
             horizontalArrangement = Arrangement.spacedBy(8.dp, alignment = controlsAlignment),
         ) {
@@ -244,13 +244,16 @@ fun ControlsBottomView(
 @Composable
 private fun ControlsBottomViewPreview() {
     val player = rememberPreviewPlayer()
-    val progressState = rememberProgressStateWithTickInterval(player)
+    val progressState = rememberProgressStateWithTickInterval(player = player)
     NextPlayerTheme(darkTheme = true) {
         Surface {
             ControlsBottomView(
                 player = player,
                 progressState = progressState,
-                chaptersState = rememberChaptersState(player, progressState),
+                chaptersState = rememberChaptersState(
+                    player = player,
+                    progressState = progressState,
+                ),
                 controlsAlignment = Alignment.Start,
                 videoContentScale = VideoContentScale.BEST_FIT,
                 isPipSupported = true,

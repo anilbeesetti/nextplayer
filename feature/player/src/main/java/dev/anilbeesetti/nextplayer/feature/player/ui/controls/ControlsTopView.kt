@@ -63,9 +63,7 @@ fun ControlsTopView(
             .padding(horizontal = 16.dp)
             .padding(bottom = 16.dp)
             .padding(top = extraTopPadding)
-            .focusProperties {
-                onEnter = { firstControlFocusRequester.requestFocus() }
-            }
+            .focusProperties { onEnter = { firstControlFocusRequester.requestFocus() } }
             .focusGroup(),
         verticalAlignment = Alignment.CenterVertically,
         horizontalArrangement = Arrangement.spacedBy(16.dp),
@@ -82,7 +80,7 @@ fun ControlsTopView(
             color = Color.White,
             maxLines = 2,
             overflow = TextOverflow.Ellipsis,
-            modifier = Modifier.weight(1f),
+            modifier = Modifier.weight(weight = 1f),
         )
 
         Row(
@@ -92,7 +90,7 @@ fun ControlsTopView(
             PlayerButton(
                 modifier = Modifier
                     .semantics { contentDescription = decoderDescription }
-                    .focusRequester(firstControlFocusRequester),
+                    .focusRequester(focusRequester = firstControlFocusRequester),
                 onClick = onDecoderClick,
             ) {
                 Text(

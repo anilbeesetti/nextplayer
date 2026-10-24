@@ -7,10 +7,11 @@ val networkVideoExtensions = setOf(
 )
 
 fun isNetworkVideoFile(name: String): Boolean =
-    name.substringAfterLast('.', "").lowercase() in networkVideoExtensions
+    name.substringAfterLast(delimiter = '.', missingDelimiterValue = "").lowercase() in
+        networkVideoExtensions
 
 fun networkVideoMimeType(name: String): String =
-    when (name.substringAfterLast('.', "").lowercase()) {
+    when (name.substringAfterLast(delimiter = '.', missingDelimiterValue = "").lowercase()) {
         "mp4", "m4v" -> "video/mp4"
         "mkv" -> "video/x-matroska"
         "webm" -> "video/webm"

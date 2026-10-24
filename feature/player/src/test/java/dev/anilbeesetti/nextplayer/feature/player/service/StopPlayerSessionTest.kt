@@ -50,7 +50,7 @@ class StopPlayerSessionTest {
             )
             shadowOf(Looper.getMainLooper()).idle()
 
-            assertEquals(listOf(VIDEO_URI to 120_000L), saved)
+            assertEquals(listOf(element = VIDEO_URI to 120_000L), saved)
             assertEquals(0, player.mediaItemCount)
             assertEquals(SessionResult.RESULT_SUCCESS, result.get().resultCode)
         }
@@ -62,7 +62,7 @@ class StopPlayerSessionTest {
         val finishSave = CompletableDeferred<Unit>()
         val saved = mutableListOf<Pair<String, Long>>()
         withSession(savePosition = { uri, position ->
-            saveStarted.complete(Unit)
+            saveStarted.complete(value = Unit)
             finishSave.await()
             saved += uri to position
         }) { player, session, callback, service ->
@@ -83,10 +83,10 @@ class StopPlayerSessionTest {
             assertEquals(1, player.mediaItemCount)
             assertTrue(saved.isEmpty())
 
-            finishSave.complete(Unit)
+            finishSave.complete(value = Unit)
             shadowOf(Looper.getMainLooper()).idle()
 
-            assertEquals(listOf(VIDEO_URI to 120_000L), saved)
+            assertEquals(listOf(element = VIDEO_URI to 120_000L), saved)
             assertEquals(0, player.mediaItemCount)
             assertEquals(SessionResult.RESULT_SUCCESS, result.get().resultCode)
             assertTrue(shadowOf(service).isStoppedBySelf)
@@ -129,10 +129,10 @@ class StopPlayerSessionTest {
             assertFalse(shadowOf(service).isStoppedBySelf)
             assertEquals(1, player.mediaItemCount)
 
-            finishSave.complete(Unit)
+            finishSave.complete(value = Unit)
             shadowOf(Looper.getMainLooper()).idle()
 
-            assertEquals(listOf(VIDEO_URI to 120_000L), saved)
+            assertEquals(listOf(element = VIDEO_URI to 120_000L), saved)
             assertTrue(shadowOf(service).isStoppedBySelf)
         }
     }
@@ -143,7 +143,7 @@ class StopPlayerSessionTest {
     ) {
         startKoin {
             modules(
-                module {
+                modules = module {
                     single<MediaRepository> {
                         object : MediaRepository by FakeMediaRepository() {
                             override suspend fun updateMediumPosition(uri: String, position: Long) =

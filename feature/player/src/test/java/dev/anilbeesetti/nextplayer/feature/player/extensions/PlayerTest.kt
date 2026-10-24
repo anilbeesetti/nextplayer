@@ -73,9 +73,7 @@ class PlayerTest {
                 assertEquals(shuffleOrder, player.shuffleOrder)
                 assertTrue(player.shuffleModeEnabled)
                 assertEquals(
-                    items.map {
-                        it.mediaId
-                    },
+                    items.map { it.mediaId },
                     (0 until player.mediaItemCount).map { player.getMediaItemAt(it).mediaId },
                 )
                 assertEquals(1, player.currentMediaItemIndex)

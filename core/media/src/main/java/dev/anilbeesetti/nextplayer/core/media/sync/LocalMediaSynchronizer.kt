@@ -42,19 +42,19 @@ class LocalMediaSynchronizer(
     private var mediaSyncingJob: Job? = null
 
     override suspend fun refresh(path: String?): Boolean = path?.let {
-        context.scanPaths(listOf(path))
+        context.scanPaths(paths = listOf(element = path))
     }
         ?: context.getStorageVolumes().all { context.scanStorage(it.path) }
 
     override fun startSync() {
         if (mediaSyncingJob?.isActive == true) return
         mediaSyncingJob = mediaService.observeVideos()
-            .onEach { media -> updateMedia(media) }
+            .onEach { media -> updateMedia(media = media) }
             .catch {
                 // A failed MediaStore query is not a complete snapshot. Leave stored state alone;
                 // startSync can retry after storage permission or the provider becomes available.
             }
-            .launchIn(applicationScope)
+            .launchIn(scope = applicationScope)
     }
 
     override fun stopSync() {
@@ -68,9 +68,9 @@ class LocalMediaSynchronizer(
     private suspend fun updateMedia(media: List<MediaVideo>) = withContext(Dispatchers.Default) {
         if (!context.hasStoragePermission()) return@withContext
 
-        val currentMediaUris = media.mapTo(mutableSetOf()) { it.uri.toString() }
+        val currentMediaUris = media.mapTo(destination = mutableSetOf()) { it.uri.toString() }
 
-        playlistDao.removeMissingLocalItems(currentMediaUris)
+        playlistDao.removeMissingLocalItems(existingUris = currentMediaUris)
 
         val (wantedMediaStates, unwantedMediaStates) = mediumStateDao.getAll().first().partition {
             it.uriString in currentMediaUris ||

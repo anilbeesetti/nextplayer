@@ -33,7 +33,7 @@ class MediaViewWidthTest {
         var width by mutableStateOf(360.dp)
         composeRule.setContent {
             NextPlayerTheme {
-                Box(Modifier.requiredWidth(width)) {
+                Box(Modifier.requiredWidth(width = width)) {
                     MediaView(
                         mediaHolder = MediaHolder(
                             videos = listOf(Video.sample.copy(nameWithExtension = "Clip.mp4")),
@@ -60,8 +60,8 @@ class MediaViewWidthTest {
             composeRule.runOnIdle { width = nextWidth.dp }
             composeRule.waitForIdle()
             if (nextWidth > 0) {
-                composeRule.onNodeWithText("Movies").assertIsDisplayed()
-                composeRule.onNodeWithText("Clip").assertIsDisplayed()
+                composeRule.onNodeWithText(text = "Movies").assertIsDisplayed()
+                composeRule.onNodeWithText(text = "Clip").assertIsDisplayed()
             }
         }
     }

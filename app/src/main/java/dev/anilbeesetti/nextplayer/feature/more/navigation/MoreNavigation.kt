@@ -81,13 +81,13 @@ fun EntryProviderScope<NavKey>.trashEntry(
 }
 
 fun NavBackStack<NavKey>.navigateToMore() {
-    add(MoreRoute)
+    add(element = MoreRoute)
 }
 
 fun NavBackStack<NavKey>.navigateToHistory() {
-    add(HistoryRoute)
+    add(element = HistoryRoute)
 }
 
 fun NavBackStack<NavKey>.navigateToTrash() {
-    add(TrashRoute)
+    add(element = TrashRoute)
 }

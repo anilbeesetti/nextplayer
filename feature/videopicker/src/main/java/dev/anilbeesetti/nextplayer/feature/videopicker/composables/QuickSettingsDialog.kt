@@ -50,17 +50,15 @@ fun QuickSettingsDialog(
     onDismiss: () -> Unit,
     updatePreferences: (ApplicationPreferences) -> Unit,
 ) {
-    var preferences by remember { mutableStateOf(applicationPreferences) }
+    var preferences by remember { mutableStateOf(value = applicationPreferences) }
 
     NextDialog(
         onDismissRequest = onDismiss,
-        title = {
-            Text(text = stringResource(R.string.quick_settings))
-        },
+        title = { Text(text = stringResource(R.string.quick_settings)) },
         content = {
             HorizontalDivider()
             Column(
-                modifier = Modifier.verticalScroll(rememberScrollState()),
+                modifier = Modifier.verticalScroll(state = rememberScrollState()),
             ) {
                 DialogSectionTitle(text = stringResource(R.string.media_view_mode))
                 SingleChoiceSegmentedButtonRow(
@@ -78,9 +76,7 @@ fun QuickSettingsDialog(
                                 activeContentColor = MaterialTheme.colorScheme.primary,
                                 activeBorderColor = MaterialTheme.colorScheme.primary,
                             ),
-                        ) {
-                            Text(text = viewMode.name())
-                        }
+                        ) { Text(text = viewMode.name()) }
                     }
                 }
                 MediaLayoutAndSortSettings(
@@ -185,9 +181,7 @@ fun QuickSettingsDialog(
                 },
             )
         },
-        dismissButton = {
-            CancelButton(onClick = onDismiss)
-        },
+        dismissButton = { CancelButton(onClick = onDismiss) },
     )
 }
 

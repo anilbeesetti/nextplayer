@@ -23,7 +23,7 @@ class SubtitlePreferencesViewModel(
     data class Output(val navigateUp: () -> Unit)
 
     private val stateInternal = MutableStateFlow(
-        SubtitlePreferencesUiState(
+        value = SubtitlePreferencesUiState(
             preferences = preferencesRepository.playerPreferences.value,
         ),
     )
@@ -71,9 +71,7 @@ class SubtitlePreferencesViewModel(
     }
 
     private fun showDialog(value: SubtitlePreferenceDialog?) {
-        stateInternal.update {
-            it.copy(showDialog = value)
-        }
+        stateInternal.update { it.copy(showDialog = value) }
     }
 
     private fun updateSubtitleLanguage(value: String) {
@@ -86,9 +84,7 @@ class SubtitlePreferencesViewModel(
 
     private fun updateSubtitleFont(value: Font) {
         viewModelScope.launch {
-            preferencesRepository.updatePlayerPreferences {
-                it.copy(subtitleFont = value)
-            }
+            preferencesRepository.updatePlayerPreferences { it.copy(subtitleFont = value) }
         }
     }
 
@@ -102,9 +98,7 @@ class SubtitlePreferencesViewModel(
 
     private fun updateSubtitleFontSize(value: Int) {
         viewModelScope.launch {
-            preferencesRepository.updatePlayerPreferences {
-                it.copy(subtitleTextSize = value)
-            }
+            preferencesRepository.updatePlayerPreferences { it.copy(subtitleTextSize = value) }
         }
     }
 

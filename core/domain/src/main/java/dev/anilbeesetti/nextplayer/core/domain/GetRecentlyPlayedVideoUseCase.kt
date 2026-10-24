@@ -47,5 +47,5 @@ class GetRecentlyPlayedVideoUseCase(
                 }
                 filteredVideos.recentPlayed()
             }
-        }.flowOn(defaultDispatcher)
+        }.flowOn(context = defaultDispatcher)
 }

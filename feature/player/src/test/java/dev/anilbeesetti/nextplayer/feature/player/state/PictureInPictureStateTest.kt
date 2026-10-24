@@ -54,8 +54,8 @@ class PictureInPictureStateTest {
             activity.application,
         ).grantPermissions("${activity.packageName}.DYNAMIC_RECEIVER_NOT_EXPORTED_PERMISSION")
         player = TestPlayer()
-        state = PictureInPictureState(player, activity)
-        listeners = state.handleListeners(DisposableEffectScope())
+        state = PictureInPictureState(player = player, activity = activity)
+        listeners = state.handleListeners(disposableEffectScope = DisposableEffectScope())
     }
 
     @After
@@ -74,12 +74,12 @@ class PictureInPictureStateTest {
     @Test
     fun pipPauseAndPlayActionsControlPlaybackWithoutReturningToFullscreen() = withObservedState {
         enterPip()
-        sendAction("pause")
+        sendAction(title = "pause")
         assertFalse(player.playWhenReady)
         assertFalse(player.isPlaying)
         assertEquals("play", activity.params!!.actions[1].title)
 
-        sendAction("play")
+        sendAction(title = "play")
         assertTrue(player.playWhenReady)
         assertTrue(player.isPlaying)
         assertEquals("pause", activity.params!!.actions[1].title)
@@ -88,9 +88,9 @@ class PictureInPictureStateTest {
     @Test
     fun pipSkipActionsControlThePlaylist() = withObservedState {
         enterPip()
-        sendAction("skip to next")
+        sendAction(title = "skip to next")
         assertEquals(2, player.currentMediaItemIndex)
-        sendAction("skip to previous")
+        sendAction(title = "skip to previous")
         assertEquals(1, player.currentMediaItemIndex)
     }
 
@@ -101,11 +101,11 @@ class PictureInPictureStateTest {
         exitPip()
         assertFalse(state.isInPictureInPictureMode)
         assertEquals(0, pipReceiverCount())
-        sendAction("pause")
+        sendAction(title = "pause")
         assertTrue(player.isPlaying)
 
         enterPip()
-        sendAction("pause")
+        sendAction(title = "pause")
         assertFalse(player.isPlaying)
     }
 
@@ -115,7 +115,7 @@ class PictureInPictureStateTest {
         assertEquals(1, pipReceiverCount())
         listeners.dispose()
         assertEquals(0, pipReceiverCount())
-        sendAction("pause")
+        sendAction(title = "pause")
         assertTrue(player.isPlaying)
     }
 
@@ -136,14 +136,16 @@ class PictureInPictureStateTest {
 
         enterPip()
         assertEquals(1, pipReceiverCount())
-        sendAction("pause")
+        sendAction(title = "pause")
         assertFalse(player.isPlaying)
         exitPip()
         assertEquals(0, pipReceiverCount())
     }
 
     private fun withObservedState(block: suspend TestScope.() -> Unit) = runTest {
-        backgroundScope.launch(UnconfinedTestDispatcher(testScheduler)) { state.observe() }
+        backgroundScope.launch(context = UnconfinedTestDispatcher(scheduler = testScheduler)) {
+            state.observe()
+        }
         block()
     }
 

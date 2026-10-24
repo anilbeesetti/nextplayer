@@ -15,7 +15,7 @@ import org.koin.core.parameter.parametersOf
 object VaultRoute : NavKey
 
 fun NavBackStack<NavKey>.navigateToVault() {
-    add(VaultRoute)
+    add(element = VaultRoute)
 }
 
 fun EntryProviderScope<NavKey>.vaultEntry(

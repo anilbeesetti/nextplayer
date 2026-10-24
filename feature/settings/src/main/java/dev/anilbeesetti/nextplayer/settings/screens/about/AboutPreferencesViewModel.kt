@@ -16,7 +16,7 @@ class AboutPreferencesViewModel(context: Context, @InjectedParam internal var ou
     data class Output(val navigateUp: () -> Unit, val openLibraries: () -> Unit)
 
     private val stateInternal =
-        MutableStateFlow(AboutPreferencesUiState(appVersion = context.appVersion()))
+        MutableStateFlow(value = AboutPreferencesUiState(appVersion = context.appVersion()))
     override val state: StateFlow<AboutPreferencesUiState> = stateInternal.asStateFlow()
 
     override fun onAction(action: AboutPreferencesAction) {

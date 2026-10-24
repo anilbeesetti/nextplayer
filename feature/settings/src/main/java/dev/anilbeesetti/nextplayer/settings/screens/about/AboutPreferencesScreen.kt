@@ -98,7 +98,7 @@ private fun AboutPreferencesScreenContent(
                 navigationIcon = {
                     FilledTonalIconButton(onClick = {
                         onAction(AboutPreferencesAction.NavigateUp)
-                    }, modifier = Modifier.tvFocusDown(listFocusRequester)) {
+                    }, modifier = Modifier.tvFocusDown(target = listFocusRequester)) {
                         Icon(
                             imageVector = NextIcons.ArrowBack,
                             contentDescription = stringResource(id = R.string.navigate_up),
@@ -112,9 +112,9 @@ private fun AboutPreferencesScreenContent(
         Column(
             modifier = Modifier
                 .fillMaxSize()
-                .verticalScroll(rememberScrollState())
-                .tvListFocus(listFocusRequester)
-                .padding(innerPadding)
+                .verticalScroll(state = rememberScrollState())
+                .tvListFocus(focusRequester = listFocusRequester)
+                .padding(paddingValues = innerPadding)
                 .padding(horizontal = 16.dp)
                 .padding(vertical = 16.dp),
         ) {
@@ -167,7 +167,9 @@ private fun AboutPreferencesScreenContent(
                     icon = ImageVector.vectorResource(R.drawable.ic_upi),
                     onClick = {
                         scope.launch {
-                            clipboard.setClipEntry(ClipEntry(ClipData.newPlainText("text", UPI_ID)))
+                            clipboard.setClipEntry(
+                                clipEntry = ClipEntry(ClipData.newPlainText("text", UPI_ID)),
+                            )
                             Toast.makeText(
                                 context,
                                 "copied to clipboard",
@@ -218,7 +220,7 @@ fun AboutApp(
 
                 val gradient = Brush.radialGradient(
                     colors = listOf(colorPrimary, colorTertiary),
-                    center = Offset(cx, cy),
+                    center = Offset(x = cx, y = cy),
                     radius = 800f,
                 )
 
@@ -245,7 +247,7 @@ fun AboutApp(
                 Image(
                     bitmap = it,
                     contentDescription = "App Logo",
-                    modifier = Modifier.size(48.dp).clip(CircleShape),
+                    modifier = Modifier.size(48.dp).clip(shape = CircleShape),
                 )
             }
             Column {
@@ -290,10 +292,8 @@ fun AboutApp(
                 modifier = Modifier
                     .fillMaxWidth()
                     .height(52.dp)
-                    .weight(1f),
-            ) {
-                Text(text = stringResource(R.string.libraries))
-            }
+                    .weight(weight = 1f),
+            ) { Text(text = stringResource(R.string.libraries)) }
             Button(
                 onClick = onGithubClick,
                 colors = ButtonDefaults.buttonColors(
@@ -305,7 +305,7 @@ fun AboutApp(
                 shape = RoundedCornerShape(8.dp),
                 modifier = Modifier
                     .fillMaxWidth()
-                    .weight(1f)
+                    .weight(weight = 1f)
                     .height(52.dp),
             ) {
                 Icon(

@@ -57,9 +57,7 @@ fun PermissionDetailView(text: String) {
                     context.startActivity(this)
                 }
             },
-        ) {
-            Text(text = stringResource(R.string.open_settings))
-        }
+        ) { Text(text = stringResource(R.string.open_settings)) }
     }
 }
 

@@ -19,9 +19,9 @@ class MediaDatabaseMigrationTest {
 
     @Test
     fun migrate8To9_preservesConnectionAndAddsPasswordDefaults() {
-        helper.createDatabase(TEST_DB, 8).apply {
+        helper.createDatabase(name = TEST_DB, version = 8).apply {
             execSQL(
-                "INSERT INTO network_connection " +
+                sql = "INSERT INTO network_connection " +
                     "(id,name,protocol,host,port,path,username,password,use_https,created_at) " +
                     "VALUES (1,'NAS','FTP','10.0.2.2',2121,'/media','alice','secret',0,123)",
             )
@@ -29,12 +29,12 @@ class MediaDatabaseMigrationTest {
         }
 
         helper.runMigrationsAndValidate(
-            TEST_DB,
-            9,
-            true,
+            name = TEST_DB,
+            version = 9,
+            validateDroppedTables = true,
             MediaDatabase.MIGRATION_8_9,
         ).use { db ->
-            db.query("SELECT * FROM network_connection WHERE id = 1").use { cursor ->
+            db.query(query = "SELECT * FROM network_connection WHERE id = 1").use { cursor ->
                 check(cursor.moveToFirst())
                 assertEquals(1L, cursor.getLong(cursor.getColumnIndexOrThrow("id")))
                 assertEquals("NAS", cursor.getString(cursor.getColumnIndexOrThrow("name")))
@@ -68,9 +68,9 @@ class MediaDatabaseMigrationTest {
 
     @Test
     fun migrate11To12_preservesPlaybackAndAddsEmptyAudio() {
-        helper.createDatabase("audio-migration", 11).apply {
+        helper.createDatabase(name = "audio-migration", version = 11).apply {
             execSQL(
-                "INSERT INTO media_state " +
+                sql = "INSERT INTO media_state " +
                     "(uri, playback_position, external_subs, " +
                     "video_scale, subtitle_delay, subtitle_speed) " +
                     "VALUES ('content://video/one', 12345, 'file:///captions.srt', 1, 0, 1)",
@@ -78,13 +78,13 @@ class MediaDatabaseMigrationTest {
             close()
         }
         helper.runMigrationsAndValidate(
-            "audio-migration",
-            12,
-            true,
+            name = "audio-migration",
+            version = 12,
+            validateDroppedTables = true,
             MediaDatabase.MIGRATION_11_12,
         ).use { db ->
             db.query(
-                "SELECT playback_position, external_subs, external_audio FROM media_state",
+                query = "SELECT playback_position, external_subs, external_audio FROM media_state",
             ).use { cursor ->
                 check(cursor.moveToFirst())
                 assertEquals(12345L, cursor.getLong(0))
@@ -96,7 +96,7 @@ class MediaDatabaseMigrationTest {
 
     @Test
     fun migrate12To13_removesVideoSpeedAndPreservesOtherState() {
-        helper.createDatabase("speed-migration", 12).apply {
+        helper.createDatabase(name = "speed-migration", version = 12).apply {
             execSQL(
                 """
                 INSERT INTO media_state (
@@ -119,12 +119,12 @@ class MediaDatabaseMigrationTest {
             close()
         }
         helper.runMigrationsAndValidate(
-            "speed-migration",
-            13,
-            true,
+            name = "speed-migration",
+            version = 13,
+            validateDroppedTables = true,
             MediaDatabase.MIGRATION_12_13,
         ).use { db ->
-            db.query("SELECT * FROM media_state ORDER BY uri").use { cursor ->
+            db.query(query = "SELECT * FROM media_state ORDER BY uri").use { cursor ->
                 assertEquals(2, cursor.count)
                 assertEquals(-1, cursor.getColumnIndex("playback_speed"))
                 check(cursor.moveToFirst())

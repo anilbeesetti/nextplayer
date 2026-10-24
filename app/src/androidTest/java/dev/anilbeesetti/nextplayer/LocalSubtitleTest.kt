@@ -43,7 +43,7 @@ class LocalSubtitleTest {
             mkdirs()
         }
 
-        val pcm = ByteArray(16_000 * 2 * 60)
+        val pcm = ByteArray(size = 16_000 * 2 * 60)
         val header = ByteBuffer.allocate(44).order(ByteOrder.LITTLE_ENDIAN)
             .put("RIFF".toByteArray()).putInt(36 + pcm.size).put("WAVEfmt ".toByteArray())
             .putInt(16).putShort(1).putShort(1).putInt(16_000).putInt(32_000)
@@ -70,28 +70,30 @@ class LocalSubtitleTest {
             player.prepare()
         }
         try {
-            await("initial playback ready") { player.playbackState == Player.STATE_READY }
+            await(description = "initial playback ready") {
+                player.playbackState == Player.STATE_READY
+            }
             selectDecoder(
-                player,
+                player = player,
                 CustomCommands.SET_VIDEO_DECODER_MODE,
                 CustomCommands.VIDEO_DECODER_MODE_KEY,
                 DecoderMode.HARDWARE,
             )
             selectDecoder(
-                player,
+                player = player,
                 CustomCommands.SET_AUDIO_DECODER_MODE,
                 CustomCommands.AUDIO_DECODER_MODE_KEY,
                 DecoderMode.SOFTWARE,
             )
             val audioUri = items.first().localConfiguration!!.uri
             command(
-                player,
+                player = player,
                 CustomCommands.ADD_AUDIO_TRACK,
                 Bundle().apply {
                     putString(CustomCommands.AUDIO_TRACK_URI_KEY, audioUri.toString())
                 },
             )
-            await("external audio selected") {
+            await(description = "external audio selected") {
                 player.currentTracks.groups.any {
                     it.mediaTrackGroup.externalAudioIndex == 0 &&
                         it.isSelected
@@ -99,18 +101,18 @@ class LocalSubtitleTest {
             }
             onMain {
                 assertEquals(
-                    listOf(audioUri),
+                    listOf(element = audioUri),
                     player.currentMediaItem?.mediaMetadata?.externalAudio,
                 )
             }
             for ((index, playing) in listOf(false, true).withIndex()) {
                 val text = "Local subtitle $index"
                 val subtitleFile = File(directory, "$index.srt").apply {
-                    writeText("1\n00:00:00,000 --> 00:01:00,000\n$text\n")
+                    writeText(text = "1\n00:00:00,000 --> 00:01:00,000\n$text\n")
                 }
                 onMain { player.playWhenReady = playing }
                 command(
-                    player,
+                    player = player,
                     CustomCommands.ADD_SUBTITLE_TRACK,
                     Bundle().apply {
                         putString(
@@ -119,20 +121,18 @@ class LocalSubtitleTest {
                         )
                     },
                 )
-                await("subtitle $index available immediately") {
+                await(description = "subtitle $index available immediately") {
                     assertNull(player.playerError)
                     player.currentTracks.groups.count { it.type == C.TRACK_TYPE_TEXT } == index + 1
                 }
-                onMain { player.switchTrack(C.TRACK_TYPE_TEXT, index) }
-                await("subtitle $index rendered") {
+                onMain { player.switchTrack(C.TRACK_TYPE_TEXT, trackIndex = index) }
+                await(description = "subtitle $index rendered") {
                     player.currentCues.cues.any { it.text?.toString() == text }
                 }
                 onMain {
                     assertEquals(1, player.currentMediaItemIndex)
                     assertEquals(
-                        items.map {
-                            it.mediaId
-                        },
+                        items.map { it.mediaId },
                         (0 until player.mediaItemCount).map { player.getMediaItemAt(it).mediaId },
                     )
                     assertEquals(
@@ -144,7 +144,7 @@ class LocalSubtitleTest {
                         player.currentMediaItem?.mediaMetadata?.audioDecoderMode,
                     )
                     assertEquals(
-                        listOf(audioUri),
+                        listOf(element = audioUri),
                         player.currentMediaItem?.mediaMetadata?.externalAudio,
                     )
                     assertEquals(playing, player.playWhenReady)
@@ -159,17 +159,15 @@ class LocalSubtitleTest {
                 player.pause()
                 player.seekTo(2, 1_000)
             }
-            await("new item defaults to Auto") {
+            await(description = "new item defaults to Auto") {
                 val metadata = player.currentMediaItem?.mediaMetadata
                 player.currentMediaItem?.mediaId == items[2].mediaId &&
-                    (metadata?.videoDecoderMode ?: DecoderMode.AUTO) ==
-                    DecoderMode.AUTO &&
-                    (metadata?.audioDecoderMode ?: DecoderMode.AUTO) ==
-                    DecoderMode.AUTO &&
+                    (metadata?.videoDecoderMode ?: DecoderMode.AUTO) == DecoderMode.AUTO &&
+                    (metadata?.audioDecoderMode ?: DecoderMode.AUTO) == DecoderMode.AUTO &&
                     player.playbackState == Player.STATE_READY
             }
             onMain { player.seekTo(1, 5_000) }
-            await("returning to item restores both choices") {
+            await(description = "returning to item restores both choices") {
                 val metadata = player.currentMediaItem?.mediaMetadata
                 player.currentMediaItem?.mediaId == items[1].mediaId &&
                     metadata?.videoDecoderMode == DecoderMode.HARDWARE &&
@@ -193,7 +191,11 @@ class LocalSubtitleTest {
         key: String,
         mode: DecoderMode,
     ) {
-        command(player, customCommand, Bundle().apply { putString(key, mode.name) })
+        command(
+            player = player,
+            command = customCommand,
+            Bundle().apply { putString(key, mode.name) },
+        )
     }
 
     private fun command(player: MediaController, command: CustomCommands, args: Bundle) {

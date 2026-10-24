@@ -32,7 +32,7 @@ class M3UParserTest {
     @Before
     fun setUp() {
         context = RuntimeEnvironment.getApplication()
-        parser = M3UParser(context, Dispatchers.Unconfined)
+        parser = M3UParser(context = context, Dispatchers.Unconfined)
     }
 
     @Test
@@ -118,9 +118,12 @@ class M3UParserTest {
             source = documentSource(),
         ).getOrThrow()
 
-        assertEquals(listOf("file:/tmp/playlists/video.mp4"), fileResult.items.map { it.uri })
         assertEquals(
-            listOf("https://example.com/absolute.mp4"),
+            listOf(element = "file:/tmp/playlists/video.mp4"),
+            fileResult.items.map { it.uri },
+        )
+        assertEquals(
+            listOf(element = "https://example.com/absolute.mp4"),
             contentResult.items.map { it.uri },
         )
     }
@@ -184,13 +187,13 @@ class M3UParserTest {
     @Test
     fun parsesMoreThanTwentyThousandEntriesWithoutLimit() {
         val content = buildString {
-            appendLine("#EXTM3U")
-            repeat(20_001) { index ->
-                appendLine("https://example.com/video/$index")
+            appendLine(value = "#EXTM3U")
+            repeat(times = 20_001) { index ->
+                appendLine(value = "https://example.com/video/$index")
             }
         }
 
-        val result = parser.parseContent(content, remoteSource()).getOrThrow()
+        val result = parser.parseContent(content = content, source = remoteSource()).getOrThrow()
 
         assertEquals(20_001, result.items.size)
     }
@@ -206,7 +209,7 @@ class M3UParserTest {
         server.start()
         try {
             val result = runBlocking {
-                parser.parseUrl("http://127.0.0.1:${server.address.port}/My_List.m3u")
+                parser.parseUrl(url = "http://127.0.0.1:${server.address.port}/My_List.m3u")
             }.getOrThrow()
 
             assertEquals("My List", result.playlistName)
@@ -220,11 +223,9 @@ class M3UParserTest {
     fun readsAbsoluteFileUri() {
         val file = kotlin.io.path.createTempFile(suffix = ".m3u").toFile()
         try {
-            file.writeText("#PLAYLIST:File channels\nhttps://media.example/live")
+            file.writeText(text = "#PLAYLIST:File channels\nhttps://media.example/live")
 
-            val result = runBlocking {
-                parser.parseUri(Uri.fromFile(file))
-            }.getOrThrow()
+            val result = runBlocking { parser.parseUri(Uri.fromFile(file)) }.getOrThrow()
 
             assertEquals("File channels", result.playlistName)
             assertEquals("https://media.example/live", result.items.single().uri)
@@ -239,7 +240,7 @@ class M3UParserTest {
 
         assertThrows(CancellationException::class.java) {
             runBlocking {
-                withContext(cancelledJob) {
+                withContext(context = cancelledJob) {
                     parser.parseUri(Uri.parse("content://provider/list.m3u"))
                 }
             }

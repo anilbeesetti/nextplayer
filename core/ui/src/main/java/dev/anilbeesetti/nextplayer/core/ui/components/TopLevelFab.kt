@@ -27,7 +27,7 @@ val LocalTopLevelBottomBarVisibleSetter = compositionLocalOf<(Boolean) -> Unit> 
 fun BindTopLevelBottomBarVisible(visible: Boolean) {
     val setter = LocalTopLevelBottomBarVisibleSetter.current
 
-    DisposableEffect(visible, setter) {
+    DisposableEffect(key1 = visible, key2 = setter) {
         setter(visible)
         onDispose { setter(true) }
     }
@@ -41,7 +41,7 @@ fun BindTopLevelFab(
     onClick: () -> Unit,
 ) {
     val setter = LocalTopLevelFabSetter.current
-    val currentOnClick = rememberUpdatedState(onClick)
+    val currentOnClick = rememberUpdatedState(newValue = onClick)
 
     DisposableEffect(key, icon, upFocusRequester, setter) {
         setter(

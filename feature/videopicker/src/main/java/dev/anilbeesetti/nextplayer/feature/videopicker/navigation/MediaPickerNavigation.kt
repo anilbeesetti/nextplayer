@@ -15,7 +15,7 @@ import org.koin.core.parameter.parametersOf
 data class MediaPickerRoute(val folderId: String? = null) : NavKey
 
 fun NavBackStack<NavKey>.navigateToMediaPickerScreen(folderId: String) {
-    add(MediaPickerRoute(folderId))
+    add(element = MediaPickerRoute(folderId = folderId))
 }
 
 fun EntryProviderScope<NavKey>.mediaPickerEntry(

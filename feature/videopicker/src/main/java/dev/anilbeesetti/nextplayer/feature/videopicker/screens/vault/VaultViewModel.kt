@@ -43,7 +43,7 @@ class VaultViewModel(
         val playVideos: (List<Uri>) -> Unit,
     )
 
-    private val stateInternal = MutableStateFlow(VaultUiState())
+    private val stateInternal = MutableStateFlow(value = VaultUiState())
     override val state: StateFlow<VaultUiState> = stateInternal.asStateFlow()
 
     private val eventsInternal = Channel<VaultEvent>()
@@ -156,7 +156,7 @@ class VaultViewModel(
             return
         }
         viewModelScope.launch {
-            vaultPinRepository.setPin(pin)
+            vaultPinRepository.setPin(pin = pin)
             stateInternal.update {
                 it.copy(
                     stage = VaultStage.BIOMETRIC_SETUP,
@@ -169,7 +169,7 @@ class VaultViewModel(
 
     private fun submitUnlockPin(pin: String) {
         viewModelScope.launch {
-            val isValid = vaultPinRepository.verifyPin(pin)
+            val isValid = vaultPinRepository.verifyPin(pin = pin)
             if (isValid) {
                 unlockVault()
             } else {
@@ -181,7 +181,7 @@ class VaultViewModel(
     private fun completeBiometricSetup(enabled: Boolean) {
         if (stateInternal.value.stage != VaultStage.BIOMETRIC_SETUP) return
         viewModelScope.launch {
-            vaultPinRepository.setBiometricEnabled(enabled)
+            vaultPinRepository.setBiometricEnabled(enabled = enabled)
             stateInternal.update { it.copy(biometricEnabled = enabled) }
             unlockVault()
         }
@@ -190,7 +190,7 @@ class VaultViewModel(
     private fun setBiometricEnabled(enabled: Boolean) {
         if (stateInternal.value.stage != VaultStage.UNLOCKED) return
         viewModelScope.launch {
-            vaultPinRepository.setBiometricEnabled(enabled)
+            vaultPinRepository.setBiometricEnabled(enabled = enabled)
             stateInternal.update { it.copy(biometricEnabled = enabled) }
         }
     }
@@ -233,9 +233,7 @@ class VaultViewModel(
     }
 
     private fun deleteVideos(selectionItems: Set<SelectionItem>) {
-        viewModelScope.launch {
-            vaultRepository.deleteHiddenVideos(selectionItems.toVideos())
-        }
+        viewModelScope.launch { vaultRepository.deleteHiddenVideos(selectionItems.toVideos()) }
     }
 
     private fun showMediaInfo(video: Video) {

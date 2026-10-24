@@ -26,7 +26,7 @@ class ThumbnailPreferencesViewModel(
     data class Output(val navigateUp: () -> Unit)
 
     private val stateInternal = MutableStateFlow(
-        ThumbnailPreferencesUiState(
+        value = ThumbnailPreferencesUiState(
             preferences = preferencesRepository.applicationPreferences.value,
         ),
     )

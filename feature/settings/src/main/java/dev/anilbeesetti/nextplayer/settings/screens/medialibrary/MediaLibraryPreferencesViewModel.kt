@@ -26,15 +26,13 @@ class MediaLibraryPreferencesViewModel(
         val openThumbnails: () -> Unit,
     )
 
-    private val stateInternal = MutableStateFlow(MediaLibraryPreferencesUiState())
+    private val stateInternal = MutableStateFlow(value = MediaLibraryPreferencesUiState())
     override val state: StateFlow<MediaLibraryPreferencesUiState> = stateInternal.asStateFlow()
 
     init {
         viewModelScope.launch {
             preferencesRepository.applicationPreferences.collect {
-                stateInternal.update { currentState ->
-                    currentState.copy(preferences = it)
-                }
+                stateInternal.update { currentState -> currentState.copy(preferences = it) }
             }
         }
     }
@@ -91,7 +89,7 @@ class MediaLibraryPreferencesViewModel(
     private fun updateNewVideoThreshold(days: Int) {
         viewModelScope.launch {
             preferencesRepository.updateApplicationPreferences {
-                it.copy(newVideoThresholdDays = days.coerceIn(0, 30))
+                it.copy(newVideoThresholdDays = days.coerceIn(minimumValue = 0, maximumValue = 30))
             }
         }
     }

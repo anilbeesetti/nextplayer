@@ -107,7 +107,7 @@ internal fun MediaPlayerContent(
         initialContentScale = playerPreferences.playerVideoZoom,
         enableZoomGesture = playerPreferences.useZoomControls,
         enablePanGesture = playerPreferences.enablePanGesture,
-        onEvent = { onAction(PlayerAction.OnVideoZoomEvent(it)) },
+        onEvent = { onAction(PlayerAction.OnVideoZoomEvent(event = it)) },
     )
     val brightnessState = if (!isPreview) rememberBrightnessState() else null
     val volumeAndBrightnessGestureState = if (volumeState != null && brightnessState != null) {
@@ -131,9 +131,7 @@ internal fun MediaPlayerContent(
     val errorState = rememberErrorState(player = player)
 
     LaunchedEffect(pictureInPictureState?.isInPictureInPictureMode) {
-        if (pictureInPictureState?.isInPictureInPictureMode ==
-            true
-        ) {
+        if (pictureInPictureState?.isInPictureInPictureMode == true) {
             controlsVisibilityState.hideControls()
         }
     }

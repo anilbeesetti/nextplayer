@@ -18,7 +18,9 @@ class LibrariesViewModel(context: Context, @InjectedParam internal var output: O
     data class Output(val navigateUp: () -> Unit)
 
     private val stateInternal = MutableStateFlow(
-        LibrariesUiState(libraries = Libs.Builder().withContext(context).build().libraries),
+        value = LibrariesUiState(
+            libraries = Libs.Builder().withContext(ctx = context).build().libraries,
+        ),
     )
     override val state: StateFlow<LibrariesUiState> = stateInternal.asStateFlow()
 

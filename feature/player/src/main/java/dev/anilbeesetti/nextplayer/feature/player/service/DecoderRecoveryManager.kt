@@ -16,14 +16,14 @@ internal class DecoderRecoveryManager {
         get() = listOf(videoRecovery.state, audioRecovery.state).maxBy { it.status }
 
     fun onUserSelection(trackType: DecoderTrackType, mode: DecoderMode) {
-        recoveryFor(trackType).apply {
+        recoveryFor(trackType = trackType).apply {
             reset()
             requiresConfirmation = mode != DecoderMode.AUTO
         }
     }
 
     fun onDecoderFailure(trackType: DecoderTrackType, mode: DecoderMode): DecoderRetry? {
-        val recovery = recoveryFor(trackType)
+        val recovery = recoveryFor(trackType = trackType)
         if (recovery.failedMode == mode) {
             return null
         }
@@ -54,13 +54,13 @@ internal class DecoderRecoveryManager {
             status = DecoderRecoveryStatus.RECOVERING,
             trackType = trackType,
         )
-        return DecoderRetry(trackType, fallbackMode)
+        return DecoderRetry(trackType = trackType, mode = fallbackMode)
     }
 
     fun confirmFallback(): DecoderRetry? {
         if (state.status != DecoderRecoveryStatus.AWAITING_CONFIRMATION) return null
         val trackType = state.trackType ?: return null
-        val recovery = recoveryFor(trackType)
+        val recovery = recoveryFor(trackType = trackType)
         if (recovery.fallbackModes.isNullOrEmpty()) return null
         val fallbackMode = checkNotNull(recovery.fallbackModes).removeFirst()
 
@@ -76,7 +76,7 @@ internal class DecoderRecoveryManager {
     }
 
     fun onDecoderInitialized(trackType: DecoderTrackType) {
-        val recovery = recoveryFor(trackType)
+        val recovery = recoveryFor(trackType = trackType)
         if (recovery.state.status == DecoderRecoveryStatus.RECOVERING) {
             recovery.state = DecoderRecoveryState()
         }

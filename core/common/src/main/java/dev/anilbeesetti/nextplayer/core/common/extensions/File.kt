@@ -22,7 +22,7 @@ suspend fun File.getLocalSubtitles(
     context: Context,
     excludeSubsList: List<Uri> = emptyList(),
 ): List<Uri> = withContext(Dispatchers.Default) {
-    val excludeSubsPathSet = excludeSubsList.mapNotNull { context.getPath(it) }.toSet()
+    val excludeSubsPathSet = excludeSubsList.mapNotNull { context.getPath(uri = it) }.toSet()
 
     getSubtitles().mapNotNull { file ->
         if (file.path !in excludeSubsPathSet) {
@@ -34,7 +34,7 @@ suspend fun File.getLocalSubtitles(
 }
 
 fun String.getThumbnail(): File? {
-    val filePathWithoutExtension = this.substringBeforeLast(".")
+    val filePathWithoutExtension = this.substringBeforeLast(delimiter = ".")
     val imageExtensions = listOf("png", "jpg", "jpeg")
     for (imageExtension in imageExtensions) {
         val file = File("$filePathWithoutExtension.$imageExtension")
@@ -50,9 +50,7 @@ fun File.isSubtitle(): Boolean {
 
 fun File.deleteFiles() {
     try {
-        listFiles()?.onEach {
-            it.delete()
-        }
+        listFiles()?.onEach { it.delete() }
     } catch (e: Exception) {
         e.printStackTrace()
     }

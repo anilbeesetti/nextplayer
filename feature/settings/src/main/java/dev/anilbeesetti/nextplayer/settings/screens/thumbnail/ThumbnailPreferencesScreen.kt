@@ -64,11 +64,11 @@ private fun ThumbnailPreferencesScreenContent(
 ) {
     val preferences = state.preferences
     var frameSliderValue by rememberSaveable {
-        mutableFloatStateOf(preferences.thumbnailFramePosition * 100f)
+        mutableFloatStateOf(value = preferences.thumbnailFramePosition * 100f)
     }
-    var pendingChange by remember { mutableStateOf<ThumbnailPreferenceChange?>(null) }
+    var pendingChange by remember { mutableStateOf<ThumbnailPreferenceChange?>(value = null) }
 
-    LaunchedEffect(preferences.thumbnailFramePosition, pendingChange) {
+    LaunchedEffect(preferences.thumbnailFramePosition, key2 = pendingChange) {
         if (pendingChange == null) {
             frameSliderValue = preferences.thumbnailFramePosition * 100f
         }
@@ -82,7 +82,7 @@ private fun ThumbnailPreferencesScreenContent(
                 navigationIcon = {
                     FilledTonalIconButton(onClick = {
                         onAction(ThumbnailPreferencesEvent.NavigateUp)
-                    }, modifier = Modifier.tvFocusDown(listFocusRequester)) {
+                    }, modifier = Modifier.tvFocusDown(target = listFocusRequester)) {
                         Icon(
                             imageVector = NextIcons.ArrowBack,
                             contentDescription = stringResource(id = R.string.navigate_up),
@@ -97,8 +97,8 @@ private fun ThumbnailPreferencesScreenContent(
             modifier = Modifier
                 .fillMaxSize()
                 .verticalScroll(state = rememberScrollState())
-                .tvListFocus(listFocusRequester)
-                .padding(innerPadding)
+                .tvListFocus(focusRequester = listFocusRequester)
+                .padding(paddingValues = innerPadding)
                 .padding(horizontal = 16.dp),
         ) {
             ListSectionTitle(text = stringResource(id = R.string.thumbnail_generation_strategy))
@@ -178,8 +178,9 @@ private fun ThumbnailPreferencesScreenContent(
                 onValueChange = { frameSliderValue = it },
                 onValueChangeFinished = {
                     val newPosition = frameSliderValue / 100f
-                    if (abs(newPosition - preferences.thumbnailFramePosition) > 0.0001f) {
-                        pendingChange = ThumbnailPreferenceChange.FramePosition(newPosition)
+                    if (abs(x = newPosition - preferences.thumbnailFramePosition) > 0.0001f) {
+                        pendingChange =
+                            ThumbnailPreferenceChange.FramePosition(position = newPosition)
                     }
                 },
                 trailingContent = {
@@ -190,12 +191,14 @@ private fun ThumbnailPreferencesScreenContent(
                         onClick = {
                             val defaultPosition =
                                 ApplicationPreferences.DEFAULT_THUMBNAIL_FRAME_POSITION
-                            if (abs(defaultPosition - preferences.thumbnailFramePosition) >
+                            if (abs(x = defaultPosition - preferences.thumbnailFramePosition) >
                                 0.0001f
                             ) {
                                 frameSliderValue = defaultPosition * 100f
                                 pendingChange =
-                                    ThumbnailPreferenceChange.FramePosition(defaultPosition)
+                                    ThumbnailPreferenceChange.FramePosition(
+                                        position = defaultPosition,
+                                    )
                             }
                         },
                     ) {
@@ -237,9 +240,7 @@ private fun ThumbnailPreferencesScreenContent(
                             }
                             pendingChange = null
                         },
-                    ) {
-                        Text(text = stringResource(id = R.string.okay))
-                    }
+                    ) { Text(text = stringResource(id = R.string.okay)) }
                 },
                 dismissButton = {
                     CancelButton(

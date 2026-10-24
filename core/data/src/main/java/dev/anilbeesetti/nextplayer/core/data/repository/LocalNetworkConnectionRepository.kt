@@ -17,18 +17,18 @@ class LocalNetworkConnectionRepository(private val networkConnectionDao: Network
         networkConnectionDao.getAll().map { entities -> entities.map { it.toModel() } }
 
     override suspend fun getConnection(id: Long): NetworkConnection? =
-        networkConnectionDao.getById(id)?.toModel()
+        networkConnectionDao.getById(id = id)?.toModel()
 
     override suspend fun upsert(connection: NetworkConnection): Long =
         networkConnectionDao.upsert(connection.toEntity())
 
-    override suspend fun delete(id: Long) = networkConnectionDao.deleteById(id)
+    override suspend fun delete(id: Long) = networkConnectionDao.deleteById(id = id)
 
     private fun NetworkConnectionEntity.toModel() = NetworkConnection(
         id = id,
         name = name,
         protocol = runCatching {
-            NetworkProtocol.valueOf(protocol)
+            NetworkProtocol.valueOf(value = protocol)
         }.getOrDefault(NetworkProtocol.SMB),
         host = host,
         port = port,
@@ -36,7 +36,7 @@ class LocalNetworkConnectionRepository(private val networkConnectionDao: Network
         username = username,
         password = password,
         useHttps = useHttps,
-        authentication = runCatching { NetworkAuthentication.valueOf(authentication) }
+        authentication = runCatching { NetworkAuthentication.valueOf(value = authentication) }
             .getOrDefault(NetworkAuthentication.PASSWORD),
         privateKeyFileName = privateKeyFileName,
         privateKeyPassphrase = privateKeyPassphrase,

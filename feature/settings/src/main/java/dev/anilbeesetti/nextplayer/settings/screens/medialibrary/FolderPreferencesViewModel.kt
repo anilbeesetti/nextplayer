@@ -25,7 +25,7 @@ class FolderPreferencesViewModel(
     data class Output(val navigateUp: () -> Unit)
 
     private val stateInternal = MutableStateFlow(
-        FolderPreferencesUiState(
+        value = FolderPreferencesUiState(
             preferences = preferencesRepository.applicationPreferences.value,
         ),
     )
@@ -35,7 +35,7 @@ class FolderPreferencesViewModel(
         viewModelScope.launch {
             mediaRepository.observeFolders().collect {
                 stateInternal.update { currentState ->
-                    currentState.copy(foldersDataState = DataState.Success(it))
+                    currentState.copy(foldersDataState = DataState.Success(value = it))
                 }
             }
         }

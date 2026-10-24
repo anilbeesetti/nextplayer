@@ -43,7 +43,7 @@ class PlaylistDetailViewModel(
         val playPlaylist: (playlistId: Long, startUri: Uri) -> Unit,
     )
 
-    private val stateInternal = MutableStateFlow(PlaylistDetailUiState())
+    private val stateInternal = MutableStateFlow(value = PlaylistDetailUiState())
     override val state: StateFlow<PlaylistDetailUiState> = stateInternal.asStateFlow()
 
     private var refreshJob: Job? = null
@@ -53,7 +53,7 @@ class PlaylistDetailViewModel(
             observePlaylist(input.playlistId).collect { playlist ->
                 stateInternal.update { currentState ->
                     currentState.copy(
-                        playlistDataState = DataState.Success(playlist),
+                        playlistDataState = DataState.Success(value = playlist),
                         isReordering = currentState.isReordering &&
                             playlist?.type == PlaylistType.LOCAL &&
                             playlist.items.size > 1,
@@ -120,14 +120,14 @@ class PlaylistDetailViewModel(
         refreshJob = viewModelScope.launch {
             stateInternal.update { it.copy(isRefreshing = true) }
             try {
-                val parsed = parseLinkedSource(playlist).getOrThrow()
+                val parsed = parseLinkedSource(playlist = playlist).getOrThrow()
                 playlistRepository.replaceM3UItems(input.playlistId, parsed.items)
                 showToast(systemService.getString(R.string.playlist_refresh_succeeded))
             } catch (cancellation: CancellationException) {
                 throw cancellation
             } catch (error: Throwable) {
                 showToast(
-                    error.message?.takeIf(String::isNotBlank)
+                    message = error.message?.takeIf(predicate = String::isNotBlank)
                         ?: systemService.getString(R.string.playlist_refresh_failed),
                 )
             } finally {
@@ -138,31 +138,31 @@ class PlaylistDetailViewModel(
 
     private suspend fun parseLinkedSource(playlist: Playlist): Result<M3UPlaylist> {
         val source = playlist.source
-            ?: return Result.failure(IllegalStateException("Linked playlist source is missing"))
+            ?: return Result.failure(
+                exception = IllegalStateException("Linked playlist source is missing"),
+            )
         return when (playlist.type) {
-            PlaylistType.M3U_URL -> m3uParser.parseUrl(source)
+            PlaylistType.M3U_URL -> m3uParser.parseUrl(url = source)
 
             PlaylistType.M3U_FILE -> m3uParser.parseUri(source.toUri())
 
             PlaylistType.LOCAL -> Result.failure(
-                IllegalStateException("Local playlists do not have a linked source"),
+                exception = IllegalStateException("Local playlists do not have a linked source"),
             )
         }
     }
 
     private fun removeVideo(videoUri: String) {
         updatePlaylist(
-            block = { playlistRepository.removeVideo(input.playlistId, videoUri) },
-            onSuccess = {
-                stateInternal.update { it.copy(showRemoveDialogFor = null) }
-            },
+            block = { playlistRepository.removeVideo(input.playlistId, videoUri = videoUri) },
+            onSuccess = { stateInternal.update { it.copy(showRemoveDialogFor = null) } },
         )
     }
 
     private fun replaceOrder(orderedUris: List<String>) {
         updatePlaylist(
             block = {
-                playlistRepository.replaceOrder(input.playlistId, orderedUris)
+                playlistRepository.replaceOrder(input.playlistId, orderedUris = orderedUris)
             },
         )
     }
@@ -170,7 +170,7 @@ class PlaylistDetailViewModel(
     private fun markVideoPlayed(videoUri: String) {
         viewModelScope.launch {
             try {
-                playlistRepository.markVideoPlayed(input.playlistId, videoUri)
+                playlistRepository.markVideoPlayed(input.playlistId, videoUri = videoUri)
             } catch (cancellation: CancellationException) {
                 throw cancellation
             } catch (_: Throwable) {
@@ -193,9 +193,9 @@ class PlaylistDetailViewModel(
             } catch (error: Throwable) {
                 val message = systemService.getString(R.string.playlist_update_failed)
                 stateInternal.update {
-                    it.copy(updateActionState = ActionState.Failed(Error(message, error)))
+                    it.copy(updateActionState = ActionState.Failed(value = Error(message, error)))
                 }
-                showToast(message)
+                showToast(message = message)
             }
         }
     }
@@ -204,7 +204,7 @@ class PlaylistDetailViewModel(
         (state.value.playlistDataState as? DataState.Success)?.value
 
     private fun showToast(message: String) {
-        systemService.showToast(message, Toast.LENGTH_SHORT)
+        systemService.showToast(text = message, Toast.LENGTH_SHORT)
     }
 }
 

@@ -78,11 +78,9 @@ class CrashActivity : ComponentActivity() {
         super.onCreate(savedInstanceState)
 
         val exceptionString = intent.getStringExtra("exception") ?: ""
-        var logcat by mutableStateOf("")
+        var logcat by mutableStateOf(value = "")
 
-        lifecycleScope.launch {
-            logcat = collectLogcat()
-        }
+        lifecycleScope.launch { logcat = collectLogcat() }
 
         installSplashScreen().setKeepOnScreenCondition {
             viewModel.state.value is MainActivityUiState.Loading
@@ -92,7 +90,7 @@ class CrashActivity : ComponentActivity() {
             val state by viewModel.state.collectAsStateWithLifecycle()
             val shouldUseDarkTheme = shouldUseDarkTheme(state = state)
 
-            LaunchedEffect(shouldUseDarkTheme) {
+            LaunchedEffect(key1 = shouldUseDarkTheme) {
                 enableEdgeToEdge(
                     statusBarStyle = SystemBarStyle.auto(
                         lightScrim = Color.TRANSPARENT,
@@ -114,7 +112,7 @@ class CrashActivity : ComponentActivity() {
             ) {
                 val clipboard = LocalClipboard.current
                 CrashScreen(
-                    input = CrashState(exceptionString, logcat),
+                    input = CrashState(exceptionString = exceptionString, logcat = logcat),
                     output = CrashOutput(
                         shareLogs = {
                             lifecycleScope.launch {
@@ -128,7 +126,11 @@ class CrashActivity : ComponentActivity() {
                         copyLogs = {
                             copyCrashReportToClipboard(
                                 clipboard = clipboard.nativeClipboard,
-                                report = concatLogs(collectDeviceInfo(), exceptionString, logcat),
+                                report = concatLogs(
+                                    deviceInfo = collectDeviceInfo(),
+                                    crashLogs = exceptionString,
+                                    logcat = logcat,
+                                ),
                             )
                         },
                         restart = {
@@ -171,17 +173,17 @@ class CrashActivity : ComponentActivity() {
 
     private fun concatLogs(deviceInfo: String, crashLogs: String? = null, logcat: String): String =
         StringBuilder().apply {
-            appendLine(deviceInfo)
+            appendLine(value = deviceInfo)
             appendLine()
             if (!crashLogs.isNullOrBlank()) {
-                appendLine("-".repeat(50))
-                appendLine("Exception:")
-                appendLine(crashLogs)
+                appendLine("-".repeat(n = 50))
+                appendLine(value = "Exception:")
+                appendLine(value = crashLogs)
                 appendLine()
             }
-            appendLine("-".repeat(50))
-            appendLine("Logcat:")
-            appendLine(logcat)
+            appendLine("-".repeat(n = 50))
+            appendLine(value = "Logcat:")
+            appendLine(value = logcat)
         }.toString()
 
     private suspend fun collectLogcat(): String = withContext(Dispatchers.IO) {
@@ -191,7 +193,7 @@ class CrashActivity : ComponentActivity() {
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.N) {
             reader.lines().forEach(logcat::appendLine)
         } else {
-            reader.readLines().forEach(logcat::appendLine)
+            reader.readLines().forEach(action = logcat::appendLine)
         }
         logcat.toString()
     }
@@ -240,7 +242,7 @@ private fun CrashScreenContent(state: CrashState, onAction: (CrashAction) -> Uni
                         drawLine(
                             color = borderColor,
                             start = Offset.Zero,
-                            end = Offset(size.width, 0f),
+                            end = Offset(size.width, y = 0f),
                             strokeWidth = Dp.Hairline.value,
                         )
                     }
@@ -252,10 +254,8 @@ private fun CrashScreenContent(state: CrashState, onAction: (CrashAction) -> Uni
                 Row(horizontalArrangement = Arrangement.spacedBy(4.dp)) {
                     Button(
                         onClick = { onAction(CrashAction.ShareLogs) },
-                        modifier = Modifier.weight(1f),
-                    ) {
-                        Text(stringResource(R.string.crash_screen_share))
-                    }
+                        modifier = Modifier.weight(weight = 1f),
+                    ) { Text(text = stringResource(R.string.crash_screen_share)) }
                     FilledIconButton(onClick = { onAction(CrashAction.CopyLogs) }) {
                         Icon(imageVector = NextIcons.Copy, contentDescription = null)
                     }
@@ -263,16 +263,14 @@ private fun CrashScreenContent(state: CrashState, onAction: (CrashAction) -> Uni
                 OutlinedButton(
                     onClick = { onAction(CrashAction.Restart) },
                     modifier = Modifier.fillMaxWidth(),
-                ) {
-                    Text(text = stringResource(R.string.crash_screen_restart))
-                }
+                ) { Text(text = stringResource(R.string.crash_screen_restart)) }
             }
         },
     ) { paddingValues ->
         Column(
             modifier = Modifier
-                .verticalScroll(rememberScrollState())
-                .padding(paddingValues)
+                .verticalScroll(state = rememberScrollState())
+                .padding(paddingValues = paddingValues)
                 .padding(16.dp),
             verticalArrangement = Arrangement.spacedBy(8.dp),
         ) {
@@ -313,10 +311,10 @@ private fun LogsSelectionContainer(logs: String, modifier: Modifier = Modifier) 
     SelectionContainer(
         modifier = modifier
             .fillMaxWidth()
-            .clip(RoundedCornerShape(12.dp))
+            .clip(shape = RoundedCornerShape(12.dp))
             .background(MaterialTheme.colorScheme.surfaceVariant)
             .padding(2.dp)
-            .horizontalScroll(rememberScrollState()),
+            .horizontalScroll(state = rememberScrollState()),
     ) {
         Text(
             text = logs,

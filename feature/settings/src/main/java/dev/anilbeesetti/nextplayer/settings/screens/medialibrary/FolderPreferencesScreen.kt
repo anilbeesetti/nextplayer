@@ -61,7 +61,7 @@ private fun FolderPreferencesScreenContent(
                 navigationIcon = {
                     FilledTonalIconButton(
                         onClick = { onAction(FolderPreferencesUiEvent.NavigateUp) },
-                        modifier = Modifier.tvFocusDown(listFocusRequester),
+                        modifier = Modifier.tvFocusDown(target = listFocusRequester),
                     ) {
                         Icon(
                             imageVector = NextIcons.ArrowBack,
@@ -78,17 +78,15 @@ private fun FolderPreferencesScreenContent(
                 Box(
                     modifier = Modifier
                         .fillMaxSize()
-                        .padding(innerPadding),
-                ) {
-                    CircularProgressIndicator(modifier = Modifier.align(Alignment.Center))
-                }
+                        .padding(paddingValues = innerPadding),
+                ) { CircularProgressIndicator(modifier = Modifier.align(Alignment.Center)) }
             }
 
             is DataState.Success -> {
                 LazyColumn(
                     modifier = Modifier
                         .fillMaxSize()
-                        .tvListFocus(listFocusRequester),
+                        .tvListFocus(focusRequester = listFocusRequester),
                     contentPadding = innerPadding + PaddingValues(horizontal = 16.dp),
                     verticalArrangement = Arrangement.spacedBy(ListItemDefaults.SegmentedGap),
                 ) {

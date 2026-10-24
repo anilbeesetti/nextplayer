@@ -87,7 +87,7 @@ class FtpClient(private val connection: NetworkConnection) : NetworkClient {
     override suspend fun listFiles(path: String): Result<List<NetworkFile>> =
         withContext(Dispatchers.IO) {
             runCatching {
-                val client = ftpClient ?: error("Not connected")
+                val client = ftpClient ?: error(message = "Not connected")
                 val dir = path.ifBlank { rootPath }
                 val files = client.listFiles(dir)
                 check(FTPReply.isPositiveCompletion(client.replyCode)) {
@@ -108,19 +108,22 @@ class FtpClient(private val connection: NetworkConnection) : NetworkClient {
 
     override suspend fun fileSize(path: String): Long = withContext(Dispatchers.IO) {
         runCatching {
-            val client = ftpClient ?: error("Not connected")
+            val client = ftpClient ?: error(message = "Not connected")
             // `SIZE` (RFC 3659) is a single round-trip and works in binary mode. Listing the file
             // path directly is unreliable — many servers only LIST directories, returning nothing.
             if (client.sendCommand("SIZE", path) == FTPReply.FILE_STATUS) {
-                client.replyString.trim().substringAfterLast(' ').toLongOrNull() ?: -1L
+                client.replyString.trim().substringAfterLast(delimiter = ' ').toLongOrNull() ?: -1L
             } else {
                 // Fallback: find the entry in its parent directory listing.
-                val parent = path.substringBeforeLast('/', "").ifEmpty { "/" }
-                val name = path.substringAfterLast('/')
+                val parent = path.substringBeforeLast(
+                    delimiter = '/',
+                    missingDelimiterValue = "",
+                ).ifEmpty { "/" }
+                val name = path.substringAfterLast(delimiter = '/')
                 client.listFiles(parent).firstOrNull { it.name == name && !it.isDirectory }?.size
                     ?: -1L
             }
-        }.getOrDefault(-1L)
+        }.getOrDefault(defaultValue = -1L)
     }
 
     override suspend fun openStream(path: String, offset: Long): InputStream =
@@ -132,7 +135,7 @@ class FtpClient(private val connection: NetworkConnection) : NetworkClient {
             val raw = streamClient.retrieveFileStream(path)
                 ?: run {
                     runCatching { streamClient.disconnect() }
-                    error("Failed to open FTP stream for $path")
+                    error(message = "Failed to open FTP stream for $path")
                 }
             object : InputStream() {
                 override fun read(): Int = raw.read()

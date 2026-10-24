@@ -24,8 +24,11 @@ fun rememberChaptersState(
     player: Player?,
     progressState: ProgressStateWithTickInterval,
 ): ChaptersState {
-    val chaptersState = remember(player, progressState) { ChaptersState(player, progressState) }
-    LaunchedEffect(player, progressState) { chaptersState.observe() }
+    val chaptersState =
+        remember(player, progressState) {
+            ChaptersState(player = player, progressState = progressState)
+        }
+    LaunchedEffect(key1 = player, key2 = progressState) { chaptersState.observe() }
     return chaptersState
 }
 
@@ -34,7 +37,7 @@ class ChaptersState(
     private val player: Player?,
     private val progressState: ProgressStateWithTickInterval,
 ) {
-    var chapters: List<Chapter> by mutableStateOf(emptyList())
+    var chapters: List<Chapter> by mutableStateOf(value = emptyList())
         private set
 
     val currentChapterIndex: Int by derivedStateOf {
@@ -48,9 +51,7 @@ class ChaptersState(
             Player.EVENT_MEDIA_ITEM_TRANSITION,
             Player.EVENT_POSITION_DISCONTINUITY,
             Player.EVENT_PLAYBACK_STATE_CHANGED,
-        ) {
-            updateChapters()
-        }
+        ) { updateChapters() }
 
     suspend fun observe() {
         updateChapters()
@@ -66,7 +67,7 @@ class ChaptersState(
                     player.currentPeriodIndex,
                     Timeline.Period(),
                 ).positionInWindowMs
-                player.currentTracks.chapters(player.duration, periodOffsetMs)
+                player.currentTracks.chapters(player.duration, periodOffsetMs = periodOffsetMs)
             }
         } ?: emptyList()
     }
@@ -85,9 +86,7 @@ private fun Tracks.chapters(durationMs: Long, periodOffsetMs: Long = 0): List<Ch
         if (chapter.isHidden || chapter.startTimeMs < 0) return@mapNotNull null
         val start = chapter.startTimeMs + periodOffsetMs
         if (start < 0 && periodOffsetMs >= 0) return@mapNotNull null
-        val end = if (chapter.endTimeMs ==
-            C.TIME_UNSET
-        ) {
+        val end = if (chapter.endTimeMs == C.TIME_UNSET) {
             C.TIME_UNSET
         } else {
             chapter.endTimeMs + periodOffsetMs
@@ -97,7 +96,7 @@ private fun Tracks.chapters(durationMs: Long, periodOffsetMs: Long = 0): List<Ch
             chapter
         } else {
             Chapter.Builder()
-                .setStartTimeMs(start.coerceAtLeast(0))
+                .setStartTimeMs(start.coerceAtLeast(minimumValue = 0))
                 .setEndTimeMs(end)
                 .setTitle(chapter.title)
                 .build()

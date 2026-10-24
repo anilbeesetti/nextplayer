@@ -20,8 +20,8 @@ class Migration9To10Test {
 
     @Test
     fun migrationPreservesLocalPlaylistOrderAndPlaybackHistory() {
-        helper.createDatabase(TEST_DATABASE, 9).apply {
-            execSQL("INSERT INTO playlist (id, name, created_at) VALUES (7, 'Movies', 100)")
+        helper.createDatabase(name = TEST_DATABASE, version = 9).apply {
+            execSQL(sql = "INSERT INTO playlist (id, name, created_at) VALUES (7, 'Movies', 100)")
             execSQL(
                 """
                 INSERT INTO playlist_item (playlist_id, uri, position, last_played_at)
@@ -32,9 +32,9 @@ class Migration9To10Test {
         }
 
         val migrated = helper.runMigrationsAndValidate(
-            TEST_DATABASE,
-            10,
-            true,
+            name = TEST_DATABASE,
+            version = 10,
+            validateDroppedTables = true,
             MediaDatabase.MIGRATION_9_10,
         )
 

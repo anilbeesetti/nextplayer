@@ -38,7 +38,7 @@ class VaultPlaybackOutputTest {
 
     @Before
     fun setUp() {
-        Dispatchers.setMain(testDispatcher)
+        Dispatchers.setMain(dispatcher = testDispatcher)
     }
 
     @After
@@ -55,20 +55,20 @@ class VaultPlaybackOutputTest {
                 vaultRepository = FakeVaultRepository,
                 vaultPinRepository = FakeVaultPinRepository,
                 getHiddenVideosUseCase = GetHiddenVideosUseCase(
-                    FakeVaultRepository,
-                    testDispatcher,
+                    vaultRepository = FakeVaultRepository,
+                    defaultDispatcher = testDispatcher,
                 ),
                 preferencesRepository = FakePreferencesRepository(),
             )
             val played = mutableListOf<Uri>()
             viewModel.output =
                 VaultViewModel.Output(navigateUp = {
-                }, playVideo = { error("Stale output") }, playVideos = {})
+                }, playVideo = { error(message = "Stale output") }, playVideos = {})
             viewModel.output =
                 VaultViewModel.Output(navigateUp = {}, playVideo = played::add, playVideos = {})
 
             viewModel.onAction(VaultAction.PlayVideo(Video.sample.copy(uriString = uri.toString())))
-            assertEquals(listOf(uri), played)
+            assertEquals(listOf(element = uri), played)
         }
 
     @Test
@@ -81,19 +81,19 @@ class VaultPlaybackOutputTest {
                 vaultRepository = FakeVaultRepository,
                 vaultPinRepository = FakeVaultPinRepository,
                 getHiddenVideosUseCase = GetHiddenVideosUseCase(
-                    FakeVaultRepository,
-                    testDispatcher,
+                    vaultRepository = FakeVaultRepository,
+                    defaultDispatcher = testDispatcher,
                 ),
                 preferencesRepository = FakePreferencesRepository(),
             )
             advanceUntilIdle()
-            viewModel.onAction(VaultAction.SubmitUnlockPin("1234"))
+            viewModel.onAction(VaultAction.SubmitUnlockPin(pin = "1234"))
             advanceUntilIdle()
 
-            viewModel.onAction(VaultAction.PlaySelected(emptySet()))
+            viewModel.onAction(VaultAction.PlaySelected(selectionItems = emptySet()))
             viewModel.onAction(
                 VaultAction.PlaySelected(
-                    setOf(
+                    selectionItems = setOf(
                         SelectionItem.Video(
                             name = Video.sample.nameWithExtension,
                             uriString = Video.sample.uriString,
@@ -103,11 +103,11 @@ class VaultPlaybackOutputTest {
                 ),
             )
 
-            assertEquals(listOf(listOf(Video.sample.uriString.toUri())), played)
+            assertEquals(listOf(element = listOf(Video.sample.uriString.toUri())), played)
         }
 
     private data object FakeVaultRepository : VaultRepository {
-        override fun observeHiddenVideos(): Flow<List<Video>> = flowOf(listOf(Video.sample))
+        override fun observeHiddenVideos(): Flow<List<Video>> = flowOf(value = listOf(Video.sample))
         override suspend fun hideVideos(videos: List<Video>) = Unit
         override suspend fun unhideVideos(videos: List<Video>) = UnhideResult()
         override suspend fun deleteHiddenVideos(videos: List<Video>) = Unit
@@ -126,9 +126,9 @@ class VaultPlaybackOutputTest {
 
     private class FakePreferencesRepository : PreferencesRepository {
         override val applicationPreferences: StateFlow<ApplicationPreferences> =
-            MutableStateFlow(ApplicationPreferences())
+            MutableStateFlow(value = ApplicationPreferences())
         override val playerPreferences: StateFlow<PlayerPreferences> =
-            MutableStateFlow(PlayerPreferences())
+            MutableStateFlow(value = PlayerPreferences())
 
         override suspend fun updateApplicationPreferences(
             transform: suspend (ApplicationPreferences) -> ApplicationPreferences,

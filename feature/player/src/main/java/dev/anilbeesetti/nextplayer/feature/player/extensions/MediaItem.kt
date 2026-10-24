@@ -18,13 +18,11 @@ val MediaMetadata.externalAudio: List<Uri>
 fun MediaItem.withExternalAudio(uris: List<Uri>): MediaItem = buildUpon()
     .setMediaMetadata(
         mediaMetadata.buildUpon().setExtras(
-            (mediaMetadata.extras?.let(::Bundle) ?: Bundle()).apply {
+            (mediaMetadata.extras?.let(block = ::Bundle) ?: Bundle()).apply {
                 putStringArrayList(
                     MEDIA_METADATA_EXTERNAL_AUDIO_KEY,
                     ArrayList(
-                        uris.map {
-                            it.toString()
-                        },
+                        uris.map { it.toString() },
                     ),
                 )
             },
@@ -119,10 +117,10 @@ val MediaMetadata.subtitleSpeed: Float?
     }
 
 val MediaMetadata.videoDecoderMode: DecoderMode?
-    get() = extras?.decoderMode(MEDIA_METADATA_VIDEO_DECODER_MODE_KEY)
+    get() = extras?.decoderMode(key = MEDIA_METADATA_VIDEO_DECODER_MODE_KEY)
 
 val MediaMetadata.audioDecoderMode: DecoderMode?
-    get() = extras?.decoderMode(MEDIA_METADATA_AUDIO_DECODER_MODE_KEY)
+    get() = extras?.decoderMode(key = MEDIA_METADATA_AUDIO_DECODER_MODE_KEY)
 
 fun MediaItem.copy(
     positionMs: Long? = this.mediaMetadata.positionMs,
@@ -138,7 +136,7 @@ fun MediaItem.copy(
     mediaMetadata.buildUpon()
         .setDurationMs(durationMs)
         .setExtras(
-            (mediaMetadata.extras?.let(::Bundle) ?: Bundle()).setExtras(
+            (mediaMetadata.extras?.let(block = ::Bundle) ?: Bundle()).setExtras(
                 positionMs = positionMs,
                 videoScale = videoZoom,
                 audioTrackIndex = audioTrackIndex,

@@ -44,19 +44,23 @@ data class TransferProgress(
     val overallBytesTotal: Long = 0,
 ) {
     val currentFraction: Float?
-        get() = if (currentBytesTotal >
-            0
-        ) {
-            (currentBytesCopied.toFloat() / currentBytesTotal).coerceIn(0f, 1f)
+        get() = if (currentBytesTotal > 0) {
+            (currentBytesCopied.toFloat() / currentBytesTotal).coerceIn(
+                minimumValue = 0f,
+                maximumValue = 1f,
+            )
         } else {
             null
         }
 
     val overallFraction: Float
         get() = if (overallBytesTotal > 0) {
-            (overallBytesCopied.toFloat() / overallBytesTotal).coerceIn(0f, 1f)
+            (overallBytesCopied.toFloat() / overallBytesTotal).coerceIn(
+                minimumValue = 0f,
+                maximumValue = 1f,
+            )
         } else if (totalFiles > 0) {
-            (currentIndex.toFloat() / totalFiles).coerceIn(0f, 1f)
+            (currentIndex.toFloat() / totalFiles).coerceIn(minimumValue = 0f, maximumValue = 1f)
         } else {
             0f
         }

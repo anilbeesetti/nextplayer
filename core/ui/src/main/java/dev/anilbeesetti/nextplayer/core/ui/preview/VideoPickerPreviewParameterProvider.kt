@@ -6,7 +6,7 @@ import dev.anilbeesetti.nextplayer.core.model.Video
 class VideoPickerPreviewParameterProvider : PreviewParameterProvider<List<Video>> {
     override val values: Sequence<List<Video>>
         get() = sequenceOf(
-            listOf(
+            element = listOf(
                 Video(
                     id = 1,
                     path =

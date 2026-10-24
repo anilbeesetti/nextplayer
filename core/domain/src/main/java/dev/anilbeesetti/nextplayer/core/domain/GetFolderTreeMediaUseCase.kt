@@ -32,9 +32,9 @@ class GetFolderTreeMediaUseCase(
 ) {
 
     operator fun invoke(folderPath: String? = null): Flow<MediaHolder> = combine(
-        mediaRepository.observeVideos(folderPath),
+        mediaRepository.observeVideos(folderPath = folderPath),
         preferencesRepository.applicationPreferences,
-        newVideoClock(),
+        flow3 = newVideoClock(),
     ) { videos, preferences, nowMillis ->
         val included = videos.filterNot { it.parentPath in preferences.excludeFolders }
         val sort = Sort(by = preferences.sortBy, order = preferences.sortOrder)
@@ -42,17 +42,23 @@ class GetFolderTreeMediaUseCase(
 
         if (folderPath != null) {
             mediaUnder(
-                folderPath,
-                included,
+                root = folderPath,
+                videos = included,
                 preferences.excludeFolders,
-                sort,
-                thresholdDays,
-                nowMillis,
+                sort = sort,
+                thresholdDays = thresholdDays,
+                nowMillis = nowMillis,
             )
         } else {
-            topLevelMedia(included, preferences.excludeFolders, sort, thresholdDays, nowMillis)
+            topLevelMedia(
+                videos = included,
+                preferences.excludeFolders,
+                sort = sort,
+                thresholdDays = thresholdDays,
+                nowMillis = nowMillis,
+            )
         }
-    }.flowOn(defaultDispatcher)
+    }.flowOn(context = defaultDispatcher)
 
     private fun topLevelMedia(
         videos: List<Video>,
@@ -65,12 +71,24 @@ class GetFolderTreeMediaUseCase(
         if (volumeRoots.size <= 1) {
             val root = volumeRoots.firstOrNull()
                 ?: return MediaHolder(videos = emptyList(), folders = emptyList())
-            return mediaUnder(root, videos, excludedFolders, sort, thresholdDays, nowMillis)
+            return mediaUnder(
+                root = root,
+                videos = videos,
+                excludedFolders = excludedFolders,
+                sort = sort,
+                thresholdDays = thresholdDays,
+                nowMillis = nowMillis,
+            )
         }
         val folders = volumeRoots
             .filterNot { it in excludedFolders }
             .map { volumeRoot ->
-                summarize(volumeRoot, videosUnder(volumeRoot, videos), thresholdDays, nowMillis)
+                summarize(
+                    path = volumeRoot,
+                    descendantVideos = videosUnder(path = volumeRoot, videos = videos),
+                    thresholdDays = thresholdDays,
+                    nowMillis = nowMillis,
+                )
             }
         return MediaHolder(
             videos = emptyList(),
@@ -87,12 +105,17 @@ class GetFolderTreeMediaUseCase(
         thresholdDays: Int,
         nowMillis: Long,
     ): MediaHolder {
-        val descendants = videosUnder(root, videos)
+        val descendants = videosUnder(path = root, videos = videos)
         val directVideos = descendants.filter { it.parentPath == root }
-        val folders = immediateChildFolders(root, descendants)
+        val folders = immediateChildFolders(path = root, videos = descendants)
             .filterNot { it in excludedFolders }
             .map { childPath ->
-                summarize(childPath, videosUnder(childPath, descendants), thresholdDays, nowMillis)
+                summarize(
+                    path = childPath,
+                    descendantVideos = videosUnder(path = childPath, videos = descendants),
+                    thresholdDays = thresholdDays,
+                    nowMillis = nowMillis,
+                )
             }
 
         return MediaHolder(
@@ -117,7 +140,7 @@ class GetFolderTreeMediaUseCase(
             totalSize = descendantVideos.sumOf { it.size },
             totalDuration = descendantVideos.sumOf { it.duration },
             videosCount = descendantVideos.count { it.parentPath == path },
-            foldersCount = immediateChildFolders(path, descendantVideos).size,
+            foldersCount = immediateChildFolders(path = path, videos = descendantVideos).size,
             newVideosCount = descendantVideos.count {
                 it.isNew(nowMillis = nowMillis, thresholdDays = thresholdDays)
             },
@@ -129,14 +152,17 @@ class GetFolderTreeMediaUseCase(
         val prefix = path + File.separator
         return videos
             .filter { it.parentPath != path }
-            .map { prefix + it.parentPath.removePrefix(prefix).substringBefore(File.separator) }
+            .map {
+                prefix +
+                    it.parentPath.removePrefix(prefix = prefix).substringBefore(File.separator)
+            }
             .distinct()
     }
 
     /** All videos located somewhere beneath [path]. */
     private fun videosUnder(path: String, videos: List<Video>): List<Video> {
         val prefix = path + File.separator
-        return videos.filter { it.path.startsWith(prefix) }
+        return videos.filter { it.path.startsWith(prefix = prefix) }
     }
 
     /**

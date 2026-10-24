@@ -54,7 +54,7 @@ fun PlayerButton(
     val context = LocalContext.current
     val isTv = remember { context.isTelevision }
 
-    LaunchedEffect(interactionSource) {
+    LaunchedEffect(key1 = interactionSource) {
         var isLongPressClicked = false
         interactionSource.interactions.collectLatest { interaction ->
             when (interaction) {
@@ -110,15 +110,17 @@ fun PlayerButton(
     ) {
         Box(
             modifier = modifier
-                .clip(CircleShape)
-                .background(if (enabled) colors.containerColor else colors.disabledContainerColor)
+                .clip(shape = CircleShape)
+                .background(
+                    color = if (enabled) colors.containerColor else colors.disabledContainerColor,
+                )
                 .clickable(
                     interactionSource = interactionSource,
                     enabled = enabled,
                     onClick = {},
                 )
-                .padding(contentPadding)
-                .tvFocusRing(isTv),
+                .padding(paddingValues = contentPadding)
+                .tvFocusRing(isTv = isTv),
             contentAlignment = Alignment.Center,
             content = content,
         )

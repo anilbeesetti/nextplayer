@@ -17,7 +17,7 @@ import dev.anilbeesetti.nextplayer.feature.player.extensions.isPortrait
 @Composable
 fun rememberRotationState(): RotationState? {
     val activity = LocalActivity.current ?: return null
-    return remember(activity) { RotationState(activity) }
+    return remember(activity) { RotationState(activity = activity) }
 }
 
 @Stable
@@ -35,7 +35,7 @@ class RotationState(private val activity: Activity) {
 @Composable
 fun PlayerOrientationEffect(player: Player, screenOrientation: ScreenOrientation) {
     val activity = LocalActivity.current ?: return
-    LaunchedEffect(activity, player, screenOrientation) {
+    LaunchedEffect(key1 = activity, key2 = player, key3 = screenOrientation) {
         if (activity.requestedOrientation == ActivityInfo.SCREEN_ORIENTATION_UNSPECIFIED) {
             activity.requestedOrientation = when (screenOrientation) {
                 ScreenOrientation.AUTOMATIC -> ActivityInfo.SCREEN_ORIENTATION_SENSOR
@@ -49,14 +49,16 @@ fun PlayerOrientationEffect(player: Player, screenOrientation: ScreenOrientation
 
                 ScreenOrientation.PORTRAIT -> ActivityInfo.SCREEN_ORIENTATION_SENSOR_PORTRAIT
 
-                ScreenOrientation.VIDEO_ORIENTATION -> activity.videoBasedOrientation(player)
+                ScreenOrientation.VIDEO_ORIENTATION -> activity.videoBasedOrientation(
+                    player = player,
+                )
             }
         }
         player.listen { events ->
             if (screenOrientation == ScreenOrientation.VIDEO_ORIENTATION &&
                 events.contains(Player.EVENT_VIDEO_SIZE_CHANGED)
             ) {
-                activity.requestedOrientation = activity.videoBasedOrientation(player)
+                activity.requestedOrientation = activity.videoBasedOrientation(player = player)
             }
         }
     }

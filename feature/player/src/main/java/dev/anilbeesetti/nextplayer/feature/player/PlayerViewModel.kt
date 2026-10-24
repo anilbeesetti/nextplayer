@@ -42,7 +42,7 @@ class PlayerViewModel(
     )
 
     private val stateInternal = MutableStateFlow(
-        PlayerUiState(
+        value = PlayerUiState(
             playerPreferences = preferencesRepository.playerPreferences.value,
         ),
     )
@@ -95,9 +95,7 @@ class PlayerViewModel(
     suspend fun getPlaylistFromUri(uri: Uri): List<Video> = getSortedPlaylistUseCase.invoke(uri)
 
     private fun updateVideoZoom(uri: String, zoom: Float) {
-        viewModelScope.launch {
-            mediaRepository.updateMediumZoom(uri, zoom)
-        }
+        viewModelScope.launch { mediaRepository.updateMediumZoom(uri = uri, zoom = zoom) }
     }
 
     private fun updatePlayerBrightness(value: Float) {
@@ -153,15 +151,11 @@ class PlayerViewModel(
     }
 
     private fun updateSubtitleDelay(uri: String, delay: Long) {
-        viewModelScope.launch {
-            mediaRepository.updateSubtitleDelay(uri, delay)
-        }
+        viewModelScope.launch { mediaRepository.updateSubtitleDelay(uri = uri, delay = delay) }
     }
 
     private fun updateSubtitleSpeed(uri: String, speed: Float) {
-        viewModelScope.launch {
-            mediaRepository.updateSubtitleSpeed(uri, speed)
-        }
+        viewModelScope.launch { mediaRepository.updateSubtitleSpeed(uri = uri, speed = speed) }
     }
 }
 

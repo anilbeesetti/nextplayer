@@ -19,7 +19,7 @@ internal val MediaItem.isExplicitPlaylistItem: Boolean
 internal fun MediaItem.asExplicitPlaylistItem(): MediaItem = buildUpon()
     .setRequestMetadata(
         requestMetadata.buildUpon().setExtras(
-            (requestMetadata.extras?.let(::Bundle) ?: Bundle()).apply {
+            (requestMetadata.extras?.let(block = ::Bundle) ?: Bundle()).apply {
                 putBoolean(EXPLICIT_PLAYLIST_KEY, true)
             },
         ).build(),
@@ -42,7 +42,7 @@ internal fun PlaylistRecord.toMediaQueue(selectedUri: String): PlaylistMediaQueu
                         .setTitle(item.title)
                         .setArtworkUri(
                             item.tvgLogo
-                                ?.takeIf(String::isNotBlank)
+                                ?.takeIf(predicate = String::isNotBlank)
                                 ?.toUri(),
                         )
                         .build(),

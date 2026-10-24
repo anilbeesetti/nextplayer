@@ -72,7 +72,7 @@ fun PlayerControls(
                     onBackClick = onBackClick,
                 )
             }
-            Spacer(modifier = Modifier.weight(1f))
+            Spacer(modifier = Modifier.weight(weight = 1f))
             AnimatedVisibility(
                 visible =
                     controlsVisibilityState.controlsVisible &&

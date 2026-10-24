@@ -34,7 +34,7 @@ class ExternalAudioTest {
             .setMediaId("video")
             .setMediaMetadata(MediaMetadata.Builder().setTitle("Video").build())
             .build()
-            .withExternalAudio(audio)
+            .withExternalAudio(uris = audio)
             .copy(
                 positionMs = 12000,
                 audioTrackIndex = 2,
@@ -42,7 +42,7 @@ class ExternalAudioTest {
                 audioDecoderMode = DecoderMode.SOFTWARE,
             )
             .copy(durationMs = 60000)
-            .buildUpon().setSubtitleConfigurations(listOf(subtitle)).build()
+            .buildUpon().setSubtitleConfigurations(listOf(element = subtitle)).build()
 
         assertEquals(audio, item.mediaMetadata.externalAudio)
         assertEquals(12000L, item.mediaMetadata.positionMs)
@@ -51,10 +51,10 @@ class ExternalAudioTest {
         assertEquals(DecoderMode.HARDWARE, item.mediaMetadata.videoDecoderMode)
         assertEquals(DecoderMode.SOFTWARE, item.mediaMetadata.audioDecoderMode)
         assertEquals("Video", item.mediaMetadata.title)
-        assertEquals(listOf(subtitle), item.localConfiguration!!.subtitleConfigurations)
+        assertEquals(listOf(element = subtitle), item.localConfiguration!!.subtitleConfigurations)
         assertEquals(
             emptyList<Uri>(),
-            item.withExternalAudio(emptyList()).mediaMetadata.externalAudio,
+            item.withExternalAudio(uris = emptyList()).mediaMetadata.externalAudio,
         )
     }
 }

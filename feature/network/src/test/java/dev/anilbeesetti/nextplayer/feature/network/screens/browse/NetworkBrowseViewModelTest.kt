@@ -48,7 +48,9 @@ class NetworkBrowseViewModelTest {
                 presentedFingerprint = "SHA256:presented",
             )
             val viewModel = viewModel(
-                connectResult = Result.failure(IllegalStateException("SSH failed", mismatch)),
+                connectResult = Result.failure(
+                    exception = IllegalStateException("SSH failed", mismatch),
+                ),
             )
 
             advanceUntilIdle()
@@ -69,7 +71,9 @@ class NetworkBrowseViewModelTest {
     fun `ordinary connection error keeps its message without fingerprint details`() =
         runTest(mainDispatcherRule.testDispatcher) {
             val viewModel = viewModel(
-                connectResult = Result.failure(IllegalStateException("Server unavailable")),
+                connectResult = Result.failure(
+                    exception = IllegalStateException("Server unavailable"),
+                ),
             )
 
             advanceUntilIdle()
@@ -82,30 +86,38 @@ class NetworkBrowseViewModelTest {
     fun `play queues folder videos in display order and preserves selection`() =
         runTest(mainDispatcherRule.testDispatcher) {
             val conn = connection().copy(protocol = NetworkProtocol.WEBDAV)
-            val first = NetworkFile("a #1.mp4", "Series/a #1.mp4", false)
-            val second = NetworkFile("B.mp4", "Series/B.mp4", false)
-            val folder = NetworkFile("Subfolder", "Series/Subfolder", true)
+            val first =
+                NetworkFile(name = "a #1.mp4", path = "Series/a #1.mp4", isDirectory = false)
+            val second = NetworkFile(name = "B.mp4", path = "Series/B.mp4", isDirectory = false)
+            val folder =
+                NetworkFile(name = "Subfolder", path = "Series/Subfolder", isDirectory = true)
             val requests = mutableListOf<Pair<List<Uri>, Uri>>()
             val viewModel = viewModel(
                 conn = conn,
                 files = listOf(
                     second,
                     folder,
-                    NetworkFile("Notes.txt", "Series/Notes.txt", false),
+                    NetworkFile(name = "Notes.txt", path = "Series/Notes.txt", isDirectory = false),
                     first,
                 ),
-                onPlayVideos = { uris, startUri -> requests.add(uris to startUri) },
+                onPlayVideos = { uris, startUri -> requests.add(element = uris to startUri) },
             )
             advanceUntilIdle()
 
-            viewModel.onAction(NetworkBrowseAction.PlayVideo(second))
-            viewModel.onAction(NetworkBrowseAction.PlayAll)
-            viewModel.onAction(NetworkBrowseAction.PlayVideo(folder))
+            viewModel.onAction(NetworkBrowseAction.PlayVideo(file = second))
+            viewModel.onAction(action = NetworkBrowseAction.PlayAll)
+            viewModel.onAction(NetworkBrowseAction.PlayVideo(file = folder))
             viewModel.onAction(
-                NetworkBrowseAction.PlayVideo(NetworkFile("Missing.mp4", "Missing.mp4", false)),
+                NetworkBrowseAction.PlayVideo(
+                    file = NetworkFile(
+                        name = "Missing.mp4",
+                        path = "Missing.mp4",
+                        isDirectory = false,
+                    ),
+                ),
             )
 
-            val queue = listOf(first, second).map { NetworkUri.build(conn, it.path) }
+            val queue = listOf(first, second).map { NetworkUri.build(connection = conn, it.path) }
             assertEquals(listOf(queue to queue[1], queue to queue[0]), requests)
         }
 
@@ -113,12 +125,20 @@ class NetworkBrowseViewModelTest {
     fun `play all does nothing when the folder has no videos`() =
         runTest(mainDispatcherRule.testDispatcher) {
             val viewModel = viewModel(
-                files = listOf(NetworkFile("Subfolder", "/Subfolder", true)),
-                onPlayVideos = { _, _ -> error("An empty folder must not start playback") },
+                files = listOf(
+                    element = NetworkFile(
+                        name = "Subfolder",
+                        path = "/Subfolder",
+                        isDirectory = true,
+                    ),
+                ),
+                onPlayVideos = { _, _ ->
+                    error(message = "An empty folder must not start playback")
+                },
             )
             advanceUntilIdle()
 
-            viewModel.onAction(NetworkBrowseAction.PlayAll)
+            viewModel.onAction(action = NetworkBrowseAction.PlayAll)
         }
 
     @Test
@@ -135,30 +155,36 @@ class NetworkBrowseViewModelTest {
                 }
                 val mediaRepository = FakeMediaRepository()
                 val video = Video.sample.copy(
-                    uriString = NetworkUri.build(conn, "$path/Season #1/Episode 1.mp4").toString(),
+                    uriString = NetworkUri.build(
+                        connection = conn,
+                        filePath = "$path/Season #1/Episode 1.mp4",
+                    ).toString(),
                     lastPlayedAt = Date(100),
                     playbackPosition = 250,
                     duration = 1_000,
                 )
                 mediaRepository.videos.addAll(
-                    listOf(
+                    elements = listOf(
                         video,
                         video.copy(
                             uriString = NetworkUri.build(
                                 conn.copy(id = 8),
-                                "$path/Other.mp4",
+                                filePath = "$path/Other.mp4",
                             ).toString(),
                             lastPlayedAt = Date(200),
                         ),
                         video.copy(
                             uriString = NetworkUri.build(
                                 conn.copy(host = "other.example"),
-                                "$path/Other.mp4",
+                                filePath = "$path/Other.mp4",
                             ).toString(),
                             lastPlayedAt = Date(300),
                         ),
                         video.copy(
-                            uriString = NetworkUri.build(conn, "${path}2/Other.mp4").toString(),
+                            uriString = NetworkUri.build(
+                                connection = conn,
+                                filePath = "${path}2/Other.mp4",
+                            ).toString(),
                             lastPlayedAt = Date(400),
                         ),
                         video.copy(
@@ -177,7 +203,7 @@ class NetworkBrowseViewModelTest {
                 advanceUntilIdle()
 
                 assertEquals(
-                    setOf("$path/Season #1/Episode 1.mp4"),
+                    setOf(element = "$path/Season #1/Episode 1.mp4"),
                     viewModel.state.value.playbackHistory.keys,
                 )
                 assertEquals(
@@ -190,14 +216,17 @@ class NetworkBrowseViewModelTest {
                 )
 
                 val finished = video.copy(
-                    uriString = NetworkUri.build(conn, "$path/Episode 2.mp4").toString(),
+                    uriString = NetworkUri.build(
+                        connection = conn,
+                        filePath = "$path/Episode 2.mp4",
+                    ).toString(),
                     lastPlayedAt = Date(600),
                     playbackPosition = -1,
                 )
-                mediaRepository.videos.add(finished)
+                mediaRepository.videos.add(element = finished)
                 mediaRepository.notifyMediaChanged()
                 advanceUntilIdle()
-                viewModel.onAction(NetworkBrowseAction.Retry)
+                viewModel.onAction(action = NetworkBrowseAction.Retry)
                 advanceUntilIdle()
 
                 assertEquals("$path/Episode 2.mp4", viewModel.state.value.recentlyPlayedPath)
@@ -241,24 +270,31 @@ class NetworkBrowseViewModelTest {
         runTest(mainDispatcherRule.testDispatcher) {
             val preferences = FakePreferencesRepository()
             val conn = connection().copy(protocol = NetworkProtocol.WEBDAV)
-            val small = NetworkFile("Small.mp4", "small.mp4", false, size = 10)
-            val large = NetworkFile("Large.mp4", "large.mp4", false, size = 100)
-            val folder = NetworkFile("Folder", "folder", true)
+            val small =
+                NetworkFile(name = "Small.mp4", path = "small.mp4", isDirectory = false, size = 10)
+            val large =
+                NetworkFile(name = "Large.mp4", path = "large.mp4", isDirectory = false, size = 100)
+            val folder = NetworkFile(name = "Folder", path = "folder", isDirectory = true)
             var loads = 0
             val requests = mutableListOf<Pair<List<Uri>, Uri>>()
             val viewModel = viewModel(
                 conn = conn,
-                files = listOf(small, folder, large, NetworkFile("Notes.txt", "notes.txt", false)),
+                files = listOf(
+                    small,
+                    folder,
+                    large,
+                    NetworkFile(name = "Notes.txt", path = "notes.txt", isDirectory = false),
+                ),
                 preferencesRepository = preferences,
                 onListFiles = { loads++ },
-                onPlayVideos = { uris, startUri -> requests.add(uris to startUri) },
+                onPlayVideos = { uris, startUri -> requests.add(element = uris to startUri) },
             )
             advanceUntilIdle()
 
             viewModel.onAction(
                 NetworkBrowseAction.UpdateQuickSettings(
                     MediaLayoutMode.GRID,
-                    Sort(Sort.By.SIZE, Sort.Order.ASCENDING),
+                    sort = Sort(Sort.By.SIZE, Sort.Order.ASCENDING),
                 ),
             )
             advanceUntilIdle()
@@ -274,9 +310,9 @@ class NetworkBrowseViewModelTest {
                 MediaLayoutMode.LIST,
                 preferences.applicationPreferences.value.mediaLayoutMode,
             )
-            viewModel.onAction(NetworkBrowseAction.PlayAll)
-            val queue = listOf(small, large).map { NetworkUri.build(conn, it.path) }
-            assertEquals(listOf(queue to queue.first()), requests)
+            viewModel.onAction(action = NetworkBrowseAction.PlayAll)
+            val queue = listOf(small, large).map { NetworkUri.build(connection = conn, it.path) }
+            assertEquals(listOf(element = queue to queue.first()), requests)
 
             preferences.updateApplicationPreferences {
                 it.copy(networkSortOrder = Sort.Order.DESCENDING)
@@ -300,7 +336,7 @@ class NetworkBrowseViewModelTest {
         }
 
     private fun viewModel(
-        connectResult: Result<Unit> = Result.success(Unit),
+        connectResult: Result<Unit> = Result.success(value = Unit),
         conn: NetworkConnection = connection(),
         path: String? = null,
         files: List<NetworkFile> = emptyList(),
@@ -310,13 +346,21 @@ class NetworkBrowseViewModelTest {
         connectionDelayMillis: Long = 0,
         onListFiles: () -> Unit = {},
     ): NetworkBrowseViewModel {
-        val client = FakeNetworkClient(connectResult, files, onListFiles)
+        val client =
+            FakeNetworkClient(
+                connectResult = connectResult,
+                files = files,
+                onListFiles = onListFiles,
+            )
         val factory = NetworkClientFactory { client }
         return NetworkBrowseViewModel(
             input = NetworkBrowseViewModel.Input(connectionId = conn.id, path = path),
             output = NetworkBrowseViewModel.Output(navigateUp = {
             }, playVideos = onPlayVideos, openFolder = { _, _ -> }),
-            repository = FakeRepository(conn, connectionDelayMillis),
+            repository = FakeRepository(
+                connection = conn,
+                connectionDelayMillis = connectionDelayMillis,
+            ),
             clientFactory = factory,
             mediaRepository = mediaRepository,
             preferencesRepository = preferencesRepository,
@@ -337,16 +381,17 @@ private class FakeRepository(
     private val connection: NetworkConnection,
     private val connectionDelayMillis: Long,
 ) : NetworkConnectionRepository {
-    override fun getConnections(): Flow<List<NetworkConnection>> = flowOf(listOf(connection))
+    override fun getConnections(): Flow<List<NetworkConnection>> =
+        flowOf(value = listOf(element = connection))
 
     override suspend fun getConnection(id: Long): NetworkConnection {
-        delay(connectionDelayMillis)
+        delay(timeMillis = connectionDelayMillis)
         return connection
     }
 
-    override suspend fun upsert(connection: NetworkConnection): Long = error("Not used")
+    override suspend fun upsert(connection: NetworkConnection): Long = error(message = "Not used")
 
-    override suspend fun delete(id: Long) = error("Not used")
+    override suspend fun delete(id: Long) = error(message = "Not used")
 }
 
 private class FakeNetworkClient(
@@ -364,10 +409,11 @@ private class FakeNetworkClient(
 
     override suspend fun listFiles(path: String): Result<List<NetworkFile>> {
         onListFiles()
-        return Result.success(files)
+        return Result.success(value = files)
     }
 
-    override suspend fun fileSize(path: String): Long = error("Not used")
+    override suspend fun fileSize(path: String): Long = error(message = "Not used")
 
-    override suspend fun openStream(path: String, offset: Long): InputStream = error("Not used")
+    override suspend fun openStream(path: String, offset: Long): InputStream =
+        error(message = "Not used")
 }

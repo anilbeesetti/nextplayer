@@ -51,24 +51,26 @@ class TopLevelFabFocusTest {
 
     @Test
     fun openingMoreFocusesItsFirstActionEvenAfterSwitchingTabs() {
-        composeRule.onAllNodes(tab)[3].performClick()
-        composeRule.onNodeWithText("Vault").assertIsFocused()
-        composeRule.onNodeWithText("Pick file").requestFocus()
-        composeRule.onAllNodes(tab)[0].performClick()
-        composeRule.onAllNodes(tab)[3].performClick()
-        composeRule.onNodeWithText("Vault").assertIsFocused()
+        composeRule.onAllNodes(matcher = tab)[3].performClick()
+        composeRule.onNodeWithText(text = "Vault").assertIsFocused()
+        composeRule.onNodeWithText(text = "Pick file").requestFocus()
+        composeRule.onAllNodes(matcher = tab)[0].performClick()
+        composeRule.onAllNodes(matcher = tab)[3].performClick()
+        composeRule.onNodeWithText(text = "Vault").assertIsFocused()
     }
 
     @Test
     fun switchingTabsKeepsFabUpInTheCurrentScreen() {
-        listOf(2, 0, 3, 1, 0, 2, 3).forEach(::checkFabUp)
+        listOf(2, 0, 3, 1, 0, 2, 3).forEach(action = ::checkFabUp)
     }
 
     private fun checkFabUp(tabIndex: Int) {
-        composeRule.onAllNodes(tab)[tabIndex].performClick()
-        composeRule.onNodeWithTag("top_level_fab").requestFocus()
+        composeRule.onAllNodes(matcher = tab)[tabIndex].performClick()
+        composeRule.onNodeWithTag(testTag = "top_level_fab").requestFocus()
         composeRule.onRoot().performKeyInput { pressKey(Key.DirectionUp) }
-        composeRule.onNode(isFocused() and !tab and !hasTestTag("top_level_fab"))
+        composeRule.onNode(
+            matcher = isFocused() and !tab and !hasTestTag(testTag = "top_level_fab"),
+        )
             .assertExists()
     }
 }

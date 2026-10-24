@@ -67,7 +67,7 @@ class GetSortedMediaUseCase(
                     }
                 }
             }
-        }.flowOn(defaultDispatcher)
+        }.flowOn(context = defaultDispatcher)
 }
 
 /**

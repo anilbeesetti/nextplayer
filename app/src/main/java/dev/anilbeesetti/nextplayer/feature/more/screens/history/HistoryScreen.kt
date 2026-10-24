@@ -55,9 +55,9 @@ fun HistoryScreen(viewModel: HistoryViewModel) {
 
 @Composable
 internal fun HistoryScreenContent(state: HistoryUiState, onAction: (HistoryAction) -> Unit) {
-    var showClearConfirmation by rememberSaveable { mutableStateOf(false) }
-    var enableHistoryConfirmation by rememberSaveable { mutableStateOf<Boolean?>(null) }
-    var menuExpanded by remember { mutableStateOf(false) }
+    var showClearConfirmation by rememberSaveable { mutableStateOf(value = false) }
+    var enableHistoryConfirmation by rememberSaveable { mutableStateOf<Boolean?>(value = null) }
+    var menuExpanded by remember { mutableStateOf(value = false) }
 
     Scaffold(
         topBar = {
@@ -92,8 +92,8 @@ internal fun HistoryScreenContent(state: HistoryUiState, onAction: (HistoryActio
                             DropdownMenuItem(
                                 text = {
                                     Text(
-                                        stringResource(
-                                            if (state.preferences.isHistoryPaused) {
+                                        text = stringResource(
+                                            id = if (state.preferences.isHistoryPaused) {
                                                 R.string.turn_on_watch_history
                                             } else {
                                                 R.string.turn_off_watch_history
@@ -107,7 +107,7 @@ internal fun HistoryScreenContent(state: HistoryUiState, onAction: (HistoryActio
                                 },
                             )
                             DropdownMenuItem(
-                                text = { Text(stringResource(R.string.clear_history)) },
+                                text = { Text(text = stringResource(R.string.clear_history)) },
                                 enabled = state.history.result.orEmpty().isNotEmpty(),
                                 onClick = {
                                     menuExpanded = false
@@ -125,13 +125,13 @@ internal fun HistoryScreenContent(state: HistoryUiState, onAction: (HistoryActio
             modifier = Modifier
                 .fillMaxSize()
                 .padding(scaffoldPadding.copy(bottom = 0.dp))
-                .clip(RoundedCornerShape(topStart = 24.dp, topEnd = 24.dp))
+                .clip(shape = RoundedCornerShape(topStart = 24.dp, topEnd = 24.dp))
                 .background(MaterialTheme.colorScheme.background),
         ) {
             if (state.preferences.isHistoryPaused) {
                 HistoryEmptyState(
                     isHistoryOff = true,
-                    modifier = Modifier.fillMaxSize().verticalScroll(rememberScrollState()),
+                    modifier = Modifier.fillMaxSize().verticalScroll(state = rememberScrollState()),
                 )
             } else {
                 when (val history = state.history) {
@@ -146,7 +146,9 @@ internal fun HistoryScreenContent(state: HistoryUiState, onAction: (HistoryActio
                     is DataState.Success -> if (history.value.isEmpty()) {
                         HistoryEmptyState(
                             isHistoryOff = false,
-                            modifier = Modifier.fillMaxSize().verticalScroll(rememberScrollState()),
+                            modifier = Modifier.fillMaxSize().verticalScroll(
+                                state = rememberScrollState(),
+                            ),
                         )
                     } else {
                         LazyColumn(
@@ -178,7 +180,7 @@ internal fun HistoryScreenContent(state: HistoryUiState, onAction: (HistoryActio
         WatchHistoryConfirmationDialog(
             enableHistory = enableHistory,
             onConfirm = {
-                onAction(HistoryAction.SetHistoryEnabled(enableHistory))
+                onAction(HistoryAction.SetHistoryEnabled(enabled = enableHistory))
                 enableHistoryConfirmation = null
             },
             onDismiss = { enableHistoryConfirmation = null },
@@ -188,23 +190,21 @@ internal fun HistoryScreenContent(state: HistoryUiState, onAction: (HistoryActio
     if (showClearConfirmation) {
         NextDialog(
             onDismissRequest = { showClearConfirmation = false },
-            title = { Text(stringResource(R.string.clear_history)) },
+            title = { Text(text = stringResource(R.string.clear_history)) },
             confirmButton = {
                 TextButton(
                     onClick = {
                         onAction(HistoryAction.ClearHistory)
                         showClearConfirmation = false
                     },
-                ) {
-                    Text(stringResource(R.string.clear_all))
-                }
+                ) { Text(text = stringResource(R.string.clear_all)) }
             },
             dismissButton = {
                 TextButton(onClick = { showClearConfirmation = false }) {
-                    Text(stringResource(R.string.cancel))
+                    Text(text = stringResource(R.string.cancel))
                 }
             },
-            content = { Text(stringResource(R.string.clear_history_confirmation)) },
+            content = { Text(text = stringResource(R.string.clear_history_confirmation)) },
         )
     }
 }

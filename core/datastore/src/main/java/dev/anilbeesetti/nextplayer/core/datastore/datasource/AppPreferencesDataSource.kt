@@ -23,9 +23,9 @@ class AppPreferencesDataSource(
         transform: suspend (ApplicationPreferences) -> ApplicationPreferences,
     ) {
         try {
-            appPreferences.updateData(transform)
+            appPreferences.updateData(transform = transform)
         } catch (ioException: Exception) {
-            Logger.logError(TAG, "Failed to update app preferences: $ioException")
+            Logger.logError(tag = TAG, message = "Failed to update app preferences: $ioException")
         }
     }
 }

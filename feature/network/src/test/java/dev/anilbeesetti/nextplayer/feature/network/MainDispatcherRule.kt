@@ -13,7 +13,7 @@ import org.junit.runner.Description
 class MainDispatcherRule(val testDispatcher: TestDispatcher = StandardTestDispatcher()) :
     TestWatcher() {
     override fun starting(description: Description) {
-        Dispatchers.setMain(testDispatcher)
+        Dispatchers.setMain(dispatcher = testDispatcher)
     }
 
     override fun finished(description: Description) {

@@ -36,21 +36,21 @@ class RotateButtonTest {
                     ActivityInfo.SCREEN_ORIENTATION_UNSPECIFIED
             }
             composeRule.setContent {
-                PlayerOrientationEffect(player, ScreenOrientation.VIDEO_ORIENTATION)
+                PlayerOrientationEffect(player = player, ScreenOrientation.VIDEO_ORIENTATION)
             }
             composeRule.runOnIdle {
                 assertEquals(
                     ActivityInfo.SCREEN_ORIENTATION_SENSOR_LANDSCAPE,
                     composeRule.activity.requestedOrientation,
                 )
-                player.updateVideoSize(VideoSize(360, 640))
+                player.updateVideoSize(videoSize = VideoSize(360, 640))
             }
             composeRule.runOnIdle {
                 assertEquals(
                     ActivityInfo.SCREEN_ORIENTATION_SENSOR_PORTRAIT,
                     composeRule.activity.requestedOrientation,
                 )
-                player.updateVideoSize(VideoSize(640, 360))
+                player.updateVideoSize(videoSize = VideoSize(640, 360))
             }
             composeRule.runOnIdle {
                 assertEquals(
@@ -66,14 +66,14 @@ class RotateButtonTest {
     @Test
     fun manualRotationSurvivesHidingAndRecreatingRotateButton() {
         val player = composeRule.runOnIdle { TestPlayer() }
-        val visible = mutableStateOf(true)
+        val visible = mutableStateOf(value = true)
         try {
             composeRule.runOnIdle {
                 composeRule.activity.requestedOrientation =
                     ActivityInfo.SCREEN_ORIENTATION_UNSPECIFIED
             }
             composeRule.setContent {
-                PlayerOrientationEffect(player, ScreenOrientation.PORTRAIT)
+                PlayerOrientationEffect(player = player, ScreenOrientation.PORTRAIT)
                 NextPlayerTheme {
                     if (visible.value) RotateButton()
                 }

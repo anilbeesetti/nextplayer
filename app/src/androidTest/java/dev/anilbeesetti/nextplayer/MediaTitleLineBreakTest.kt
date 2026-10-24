@@ -66,11 +66,14 @@ class MediaTitleLineBreakTest {
     private fun assertTitleWraps(content: @Composable () -> Unit) {
         composeRule.setContent { NextPlayerTheme { content() } }
         val results = mutableListOf<TextLayoutResult>()
-        composeRule.onNodeWithText(title, useUnmergedTree = true)
+        composeRule.onNodeWithText(text = title, useUnmergedTree = true)
             .performSemanticsAction(SemanticsActions.GetTextLayoutResult) { it(results) }
         val layout = results.single()
         assertEquals(2, layout.lineCount)
-        assertTrue("First line ends at ${layout.getLineEnd(0)}", layout.getLineEnd(0) > 2)
+        assertTrue(
+            "First line ends at ${layout.getLineEnd(lineIndex = 0)}",
+            layout.getLineEnd(lineIndex = 0) > 2,
+        )
         assertEquals(title, layout.layoutInput.text.text)
     }
 }

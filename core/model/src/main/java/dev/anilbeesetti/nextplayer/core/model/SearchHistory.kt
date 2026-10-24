@@ -11,8 +11,9 @@ data class SearchHistory(val queries: List<String> = emptyList()) {
     fun addQuery(query: String): SearchHistory {
         if (query.isBlank()) return this
         val normalizedQuery = query.trim()
-        val updatedQueries = listOf(normalizedQuery) + queries.filter { it != normalizedQuery }
-        return copy(queries = updatedQueries.take(MAX_HISTORY_SIZE))
+        val updatedQueries =
+            listOf(element = normalizedQuery) + queries.filter { it != normalizedQuery }
+        return copy(queries = updatedQueries.take(n = MAX_HISTORY_SIZE))
     }
 
     fun removeQuery(query: String): SearchHistory = copy(queries = queries.filter { it != query })

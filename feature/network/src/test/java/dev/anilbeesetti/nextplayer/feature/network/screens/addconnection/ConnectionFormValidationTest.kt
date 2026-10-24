@@ -16,35 +16,35 @@ class ConnectionFormValidationTest {
         ).forEach { protocol ->
             assertFalse(
                 canSaveConnection(
-                    "",
-                    "host",
-                    protocol,
-                    "",
+                    name = "",
+                    host = "host",
+                    protocol = protocol,
+                    username = "",
                     NetworkAuthentication.PASSWORD,
-                    false,
-                    false,
+                    hasPrivateKey = false,
+                    isTesting = false,
                 ),
             )
             assertFalse(
                 canSaveConnection(
-                    "Name",
-                    "",
-                    protocol,
-                    "",
+                    name = "Name",
+                    host = "",
+                    protocol = protocol,
+                    username = "",
                     NetworkAuthentication.PASSWORD,
-                    false,
-                    false,
+                    hasPrivateKey = false,
+                    isTesting = false,
                 ),
             )
             assertTrue(
                 canSaveConnection(
-                    "Name",
-                    "host",
-                    protocol,
-                    "",
+                    name = "Name",
+                    host = "host",
+                    protocol = protocol,
+                    username = "",
                     NetworkAuthentication.PASSWORD,
-                    false,
-                    false,
+                    hasPrivateKey = false,
+                    isTesting = false,
                 ),
             )
         }
@@ -54,24 +54,24 @@ class ConnectionFormValidationTest {
     fun `SFTP password authentication requires username`() {
         assertFalse(
             canSaveConnection(
-                "SFTP",
-                "host",
+                name = "SFTP",
+                host = "host",
                 NetworkProtocol.SFTP,
-                "",
+                username = "",
                 NetworkAuthentication.PASSWORD,
-                false,
-                false,
+                hasPrivateKey = false,
+                isTesting = false,
             ),
         )
         assertTrue(
             canSaveConnection(
-                "SFTP",
-                "host",
+                name = "SFTP",
+                host = "host",
                 NetworkProtocol.SFTP,
-                "alice",
+                username = "alice",
                 NetworkAuthentication.PASSWORD,
-                false,
-                false,
+                hasPrivateKey = false,
+                isTesting = false,
             ),
         )
     }
@@ -80,24 +80,24 @@ class ConnectionFormValidationTest {
     fun `SFTP key authentication requires username and private key`() {
         assertFalse(
             canSaveConnection(
-                "SFTP",
-                "host",
+                name = "SFTP",
+                host = "host",
                 NetworkProtocol.SFTP,
-                "alice",
+                username = "alice",
                 NetworkAuthentication.SSH_KEY,
-                false,
-                false,
+                hasPrivateKey = false,
+                isTesting = false,
             ),
         )
         assertTrue(
             canSaveConnection(
-                "SFTP",
-                "host",
+                name = "SFTP",
+                host = "host",
                 NetworkProtocol.SFTP,
-                "alice",
+                username = "alice",
                 NetworkAuthentication.SSH_KEY,
-                true,
-                false,
+                hasPrivateKey = true,
+                isTesting = false,
             ),
         )
     }
@@ -106,24 +106,24 @@ class ConnectionFormValidationTest {
     fun `testing always disables save`() {
         assertFalse(
             canSaveConnection(
-                "Name",
-                "host",
+                name = "Name",
+                host = "host",
                 NetworkProtocol.FTP,
-                "",
+                username = "",
                 NetworkAuthentication.PASSWORD,
-                false,
-                true,
+                hasPrivateKey = false,
+                isTesting = true,
             ),
         )
         assertFalse(
             canSaveConnection(
-                "SFTP",
-                "host",
+                name = "SFTP",
+                host = "host",
                 NetworkProtocol.SFTP,
-                "alice",
+                username = "alice",
                 NetworkAuthentication.SSH_KEY,
-                true,
-                true,
+                hasPrivateKey = true,
+                isTesting = true,
             ),
         )
     }

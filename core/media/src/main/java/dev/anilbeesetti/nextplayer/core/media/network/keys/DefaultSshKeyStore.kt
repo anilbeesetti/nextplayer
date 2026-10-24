@@ -24,40 +24,36 @@ class DefaultSshKeyStore(context: Context) : SshKeyStore {
 
     override suspend fun initialize(referencedFileNames: Set<String>?): Unit =
         withContext(Dispatchers.IO) {
-            keyFiles.initialize(referencedFileNames)
+            keyFiles.initialize(referencedFileNames = referencedFileNames)
         }
 
     override suspend fun stage(uri: Uri): StagedSshKey = stageSshKey(
         keyFiles = keyFiles,
         ioDispatcher = Dispatchers.IO,
-        displayName = { queryDisplayName(uri) },
+        displayName = { queryDisplayName(uri = uri) },
         inputStream = { contentResolver.openInputStream(uri) },
     )
 
-    override fun resolve(fileName: String): File = keyFiles.resolve(fileName)
+    override fun resolve(fileName: String): File = keyFiles.resolve(fileName = fileName)
 
     override suspend fun commit(fileName: String): String = withContext(Dispatchers.IO) {
-        keyFiles.commit(fileName)
+        keyFiles.commit(fileName = fileName)
     }
 
     override suspend fun delete(fileName: String): Unit = withContext(Dispatchers.IO) {
-        keyFiles.delete(fileName)
+        keyFiles.delete(fileName = fileName)
     }
 
     private fun queryDisplayName(uri: Uri): String {
         val projection = arrayOf(OpenableColumns.DISPLAY_NAME)
         return contentResolver.query(uri, projection, null, null, null)?.use { cursor ->
             val displayNameColumn = cursor.getColumnIndex(OpenableColumns.DISPLAY_NAME)
-            if (displayNameColumn >= 0 &&
-                cursor.moveToFirst()
-            ) {
+            if (displayNameColumn >= 0 && cursor.moveToFirst()) {
                 cursor.getString(displayNameColumn)
             } else {
                 null
             }
-        }.orEmpty().ifBlank {
-            uri.lastPathSegment.orEmpty().ifBlank { DEFAULT_DISPLAY_NAME }
-        }
+        }.orEmpty().ifBlank { uri.lastPathSegment.orEmpty().ifBlank { DEFAULT_DISPLAY_NAME } }
     }
 
     private companion object {
@@ -74,9 +70,9 @@ internal suspend fun stageSshKey(
 ): StagedSshKey {
     var stagedFileName: String? = null
     try {
-        return withContext(ioDispatcher) {
+        return withContext(context = ioDispatcher) {
             val resolvedDisplayName = displayName()
-            val fileName = inputStream()?.let(keyFiles::stage)
+            val fileName = inputStream()?.let(block = keyFiles::stage)
                 ?: throw FileNotFoundException("Private key is missing")
             stagedFileName = fileName
             StagedSshKey(fileName = fileName, displayName = resolvedDisplayName)
@@ -84,11 +80,11 @@ internal suspend fun stageSshKey(
     } catch (throwable: Throwable) {
         stagedFileName?.let { fileName ->
             try {
-                withContext(NonCancellable + ioDispatcher) {
-                    keyFiles.delete(fileName)
+                withContext(context = NonCancellable + ioDispatcher) {
+                    keyFiles.delete(fileName = fileName)
                 }
             } catch (cleanupFailure: Throwable) {
-                throwable.addSuppressed(cleanupFailure)
+                throwable.addSuppressed(exception = cleanupFailure)
             }
         }
         throw throwable

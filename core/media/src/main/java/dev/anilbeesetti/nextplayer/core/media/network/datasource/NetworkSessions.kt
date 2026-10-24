@@ -35,25 +35,28 @@ class NetworkSessions(
 
     /** Resolves [uri] to a connected client, reusing the current one when it already fits. */
     suspend fun target(uri: Uri): NetworkTarget = mutex.withLock {
-        val target = resolve(uri)
-        NetworkTarget(clientFor(target.connection), target.filePath)
+        val target = resolve(uri = uri)
+        NetworkTarget(client = clientFor(target.connection), target.filePath)
     }
 
     /** Disconnects the active client. The cache stays usable — the next [target] reconnects. */
     suspend fun release() = mutex.withLock {
-        client?.let(::disconnectDetached)
+        client?.let(block = ::disconnectDetached)
         connection = null
         client = null
     }
 
     private suspend fun resolve(uri: Uri): NetworkUri.Target {
-        val connectionId = NetworkUri.connectionIdOf(uri)
-            ?: return NetworkUri.adHocTargetOf(uri)
-                ?: error("Not a playable network uri: $uri")
+        val connectionId = NetworkUri.connectionIdOf(uri = uri)
+            ?: return NetworkUri.adHocTargetOf(uri = uri)
+                ?: error(message = "Not a playable network uri: $uri")
 
-        val saved = resolver.connection(connectionId)
-            ?: error("No saved network connection with id $connectionId")
-        return NetworkUri.Target(saved, NetworkUri.filePathOf(uri, saved.protocol))
+        val saved = resolver.connection(id = connectionId)
+            ?: error(message = "No saved network connection with id $connectionId")
+        return NetworkUri.Target(
+            connection = saved,
+            NetworkUri.filePathOf(uri = uri, saved.protocol),
+        )
     }
 
     private suspend fun clientFor(target: NetworkConnection): NetworkClient {
@@ -62,10 +65,10 @@ class NetworkSessions(
             return existing
         }
 
-        val fresh = clientFactory.create(target)
+        val fresh = clientFactory.create(connection = target)
         fresh.connect().getOrThrow()
 
-        client?.let(::disconnectDetached)
+        client?.let(block = ::disconnectDetached)
         connection = target
         client = fresh
         return fresh

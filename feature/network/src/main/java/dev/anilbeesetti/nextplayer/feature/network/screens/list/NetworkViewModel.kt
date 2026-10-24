@@ -38,7 +38,7 @@ class NetworkViewModel(
         val openStream: (Uri) -> Unit,
     )
 
-    private val stateInternal = MutableStateFlow(NetworkUiState())
+    private val stateInternal = MutableStateFlow(value = NetworkUiState())
     override val state: StateFlow<NetworkUiState> = stateInternal.asStateFlow()
 
     init {
@@ -63,7 +63,11 @@ class NetworkViewModel(
     private fun deleteConnection(id: Long) {
         viewModelScope.launch {
             try {
-                deleteConnectionAndCleanup(id, repository, sshKeyStore)
+                deleteConnectionAndCleanup(
+                    id = id,
+                    repository = repository,
+                    sshKeyStore = sshKeyStore,
+                )
             } catch (cancellation: CancellationException) {
                 throw cancellation
             } catch (_: Exception) {
@@ -88,9 +92,9 @@ internal suspend fun deleteConnectionAndCleanup(
     repository: NetworkConnectionRepository,
     sshKeyStore: SshKeyStore,
 ) {
-    val connection = repository.getConnection(id) ?: return
-    withContext(NonCancellable) {
-        repository.delete(id)
+    val connection = repository.getConnection(id = id) ?: return
+    withContext(context = NonCancellable) {
+        repository.delete(id = id)
         if (
             connection.authentication == NetworkAuthentication.SSH_KEY &&
             connection.privateKeyFileName.isNotBlank()
@@ -99,10 +103,10 @@ internal suspend fun deleteConnectionAndCleanup(
                 sshKeyStore.delete(connection.privateKeyFileName)
             } catch (keyFailure: Throwable) {
                 try {
-                    repository.upsert(connection)
+                    repository.upsert(connection = connection)
                 } catch (rollbackFailure: Throwable) {
                     if (rollbackFailure !== keyFailure) {
-                        keyFailure.addSuppressed(rollbackFailure)
+                        keyFailure.addSuppressed(exception = rollbackFailure)
                     }
                 }
                 throw keyFailure

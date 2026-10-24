@@ -54,10 +54,10 @@ fun BoxScope.OverlayView(
     val layoutDirection = LocalLayoutDirection.current
     val endPadding = WindowInsets.safeDrawing
         .asPaddingValues()
-        .calculateEndPadding(layoutDirection)
+        .calculateEndPadding(layoutDirection = layoutDirection)
 
     val focusRequester = remember { FocusRequester() }
-    LaunchedEffect(show) {
+    LaunchedEffect(key1 = show) {
         if (show && isTv) {
             focusRequester.requestFocusUntilLanded(attempts = 5)
         }
@@ -65,7 +65,7 @@ fun BoxScope.OverlayView(
 
     AnimatedVisibility(
         modifier = Modifier.align(
-            if (configuration.isPortrait) {
+            alignment = if (configuration.isPortrait) {
                 Alignment.BottomCenter
             } else {
                 Alignment.CenterEnd
@@ -73,16 +73,12 @@ fun BoxScope.OverlayView(
         ),
         visible = show,
         enter = if (configuration.isPortrait) {
-            slideInVertically {
-                it
-            }
+            slideInVertically { it }
         } else {
             slideInHorizontally { it }
         },
         exit = if (configuration.isPortrait) {
-            slideOutVertically {
-                it
-            }
+            slideOutVertically { it }
         } else {
             slideOutHorizontally { it }
         },
@@ -91,20 +87,20 @@ fun BoxScope.OverlayView(
             shape = RoundedCornerShape(16.dp),
             modifier = modifier
                 .then(
-                    if (configuration.isPortrait) {
+                    other = if (configuration.isPortrait) {
                         Modifier
                             .fillMaxWidth()
-                            .fillMaxHeight(0.45f)
+                            .fillMaxHeight(fraction = 0.45f)
                     } else {
                         Modifier
-                            .fillMaxWidth(0.45f)
+                            .fillMaxWidth(fraction = 0.45f)
                             .fillMaxHeight()
                     },
                 ),
         ) {
             Column(
                 modifier = Modifier
-                    .focusRequester(focusRequester)
+                    .focusRequester(focusRequester = focusRequester)
                     .focusGroup()
                     .padding(top = 24.dp)
                     .padding(end = endPadding),
@@ -131,7 +127,7 @@ private fun PreviewOverlayView() {
                 title = "Selector view",
                 show = true,
             ) {
-                Text("Lorem ipsum dolor sit amet, consectetur adipiscing elit. Lorem ipsum")
+                Text(text = "Lorem ipsum dolor sit amet, consectetur adipiscing elit. Lorem ipsum")
             }
         }
     }

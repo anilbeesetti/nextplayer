@@ -65,22 +65,22 @@ class LocalMediaOperationsService(private val context: Context) : MediaOperation
     override suspend fun deleteMedia(uris: List<Uri>, permanently: Boolean): Boolean =
         withContext(Dispatchers.IO) {
             return@withContext if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) {
-                if (permanently) deleteMediaR(uris) else trashMediaR(uris)
+                if (permanently) deleteMediaR(uris = uris) else trashMediaR(uris = uris)
             } else {
-                deleteMediaBelowR(uris)
+                deleteMediaBelowR(uris = uris)
             }
         }
 
     override suspend fun restoreMedia(uris: List<Uri>): Boolean = withContext(Dispatchers.IO) {
         return@withContext Build.VERSION.SDK_INT >= Build.VERSION_CODES.R &&
-            trashMediaR(uris, trashed = false)
+            trashMediaR(uris = uris, trashed = false)
     }
 
     override suspend fun renameMedia(uri: Uri, to: String): Boolean = withContext(Dispatchers.IO) {
         return@withContext if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) {
-            renameMediaR(uri, to)
+            renameMediaR(uri = uri, to = to)
         } else {
-            renameMediaBelowR(uri, to)
+            renameMediaBelowR(uri = uri, to = to)
         }
     }
 
@@ -97,7 +97,7 @@ class LocalMediaOperationsService(private val context: Context) : MediaOperation
     }
 
     override suspend fun moveMedia(targets: Map<Uri, File>): Map<Uri, File?> =
-        moveMedia(targets, onMoveCommitted = null)
+        moveMedia(targets = targets, onMoveCommitted = null)
 
     /**
      * The internal callback is a deterministic synchronization seam for commit-boundary tests.
@@ -112,7 +112,7 @@ class LocalMediaOperationsService(private val context: Context) : MediaOperation
             val mediaStoreUris = uris.filter { it.authority == MediaStore.AUTHORITY }
             if (mediaStoreUris.isNotEmpty()) {
                 val granted = try {
-                    requestWriteAccessR(mediaStoreUris)
+                    requestWriteAccessR(uris = mediaStoreUris)
                 } catch (e: CancellationException) {
                     throw e
                 } catch (e: Exception) {
@@ -123,7 +123,7 @@ class LocalMediaOperationsService(private val context: Context) : MediaOperation
         }
 
         val callerJob = currentCoroutineContext()[Job]
-        return withContext(NonCancellable) {
+        return withContext(context = NonCancellable) {
             withContext(Dispatchers.IO) io@{
                 val movedFiles = linkedMapOf<Uri, File?>()
                 val entries = targets.entries.iterator()
@@ -132,14 +132,15 @@ class LocalMediaOperationsService(private val context: Context) : MediaOperation
                     val (uri, destination) = entries.next()
                     val movedFile = try {
                         callerJob?.ensureActive()
-                        val sourceFile = context.getPath(uri)?.let { File(it) }
+                        val sourceFile = context.getPath(uri = uri)?.let { File(it) }
                         if (sourceFile == null) {
                             null
                         } else {
                             destination.parentFile?.mkdirs()
-                            moveFileWithoutOverwrite(sourceFile, destination) {
-                                callerJob?.ensureActive()
-                            }
+                            moveFileWithoutOverwrite(
+                                source = sourceFile,
+                                destination = destination,
+                            ) { callerJob?.ensureActive() }
                         }
                     } catch (e: CancellationException) {
                         if (!moveCommitted) throw e
@@ -170,7 +171,7 @@ class LocalMediaOperationsService(private val context: Context) : MediaOperation
         val copiedBytes = try {
             source.inputStream().use { input ->
                 FileOutputStream(destination).use { output ->
-                    val buffer = ByteArray(DEFAULT_BUFFER_SIZE)
+                    val buffer = ByteArray(size = DEFAULT_BUFFER_SIZE)
                     var copied = 0L
                     while (true) {
                         ensureActive()
@@ -209,12 +210,12 @@ class LocalMediaOperationsService(private val context: Context) : MediaOperation
 
         // Moving a file into the folder it already lives in is a no-op, so keep those aside.
         val (sameFolder, sources) = if (mode == TransferMode.MOVE) {
-            uris.partition { isInFolder(it, destinationDir) }
+            uris.partition { isInFolder(uri = it, folderDocUri = destinationDir) }
         } else {
             emptyList<Uri>() to uris
         }
 
-        val sizes = sources.map { sizeOf(it) }
+        val sizes = sources.map { sizeOf(uri = it) }
         val overallTotal = sizes.sum()
 
         val createdPaths = mutableListOf<String>()
@@ -223,7 +224,7 @@ class LocalMediaOperationsService(private val context: Context) : MediaOperation
         var succeeded = 0
 
         sources.forEachIndexed { index, source ->
-            val name = context.getFilenameFromUri(source).takeIf { it.isNotBlank() }
+            val name = context.getFilenameFromUri(uri = source).takeIf { it.isNotBlank() }
             val currentTotal = sizes[index]
 
             fun progress(copied: Long) = TransferProgress(
@@ -236,30 +237,36 @@ class LocalMediaOperationsService(private val context: Context) : MediaOperation
                 overallBytesTotal = overallTotal,
             )
 
-            emit(TransferEvent.Progress(progress(0)))
+            emit(TransferEvent.Progress(progress = progress(copied = 0)))
             if (name == null) return@forEachIndexed
 
-            val copied = copyToDocument(source, destinationDir, name, currentTotal) { copiedSoFar ->
-                emit(TransferEvent.Progress(progress(copiedSoFar)))
-            } ?: return@forEachIndexed
+            val copied =
+                copyToDocument(
+                    source = source,
+                    destinationDir = destinationDir,
+                    name = name,
+                    expectedSize = currentTotal,
+                ) { copiedSoFar ->
+                    emit(TransferEvent.Progress(progress = progress(copied = copiedSoFar)))
+                } ?: return@forEachIndexed
 
             succeeded++
             overallCopied += copied.bytes
-            context.getPath(copied.uri)?.let { createdPaths.add(it) }
-            if (mode == TransferMode.MOVE) movedSources.add(source)
+            context.getPath(copied.uri)?.let { createdPaths.add(element = it) }
+            if (mode == TransferMode.MOVE) movedSources.add(element = source)
         }
 
-        if (createdPaths.isNotEmpty()) context.scanPaths(createdPaths)
+        if (createdPaths.isNotEmpty()) context.scanPaths(paths = createdPaths)
 
         // The copies are already in place, so a failed deletion still counts as a move;
         // the originals are just left behind, which we report separately.
         val originalsNotDeleted = mode == TransferMode.MOVE &&
             movedSources.isNotEmpty() &&
-            !deleteMedia(movedSources)
+            !deleteMedia(uris = movedSources)
 
         emit(
             TransferEvent.Completed(
-                TransferResult(
+                result = TransferResult(
                     succeeded = succeeded,
                     failed = sources.size - succeeded,
                     sameFolderSkipped = sameFolder.size,
@@ -270,8 +277,9 @@ class LocalMediaOperationsService(private val context: Context) : MediaOperation
     }.flowOn(Dispatchers.IO)
 
     private fun isInFolder(uri: Uri, folderDocUri: Uri): Boolean {
-        val folderPath = runCatching { context.getPath(folderDocUri) }.getOrNull() ?: return false
-        val filePath = runCatching { context.getPath(uri) }.getOrNull() ?: return false
+        val folderPath =
+            runCatching { context.getPath(uri = folderDocUri) }.getOrNull() ?: return false
+        val filePath = runCatching { context.getPath(uri = uri) }.getOrNull() ?: return false
         return File(filePath).parent == folderPath
     }
 
@@ -293,15 +301,20 @@ class LocalMediaOperationsService(private val context: Context) : MediaOperation
         return try {
             val bytes = contentResolver.openInputStream(source)?.use { input ->
                 contentResolver.openOutputStream(destUri)?.use { output ->
-                    copyStream(input, output, expectedSize, onProgress)
-                } ?: error("Unable to open output stream for $destUri")
-            } ?: error("Unable to open input stream for $source")
-            CopyResult(destUri, bytes)
+                    copyStream(
+                        input = input,
+                        output = output,
+                        expectedTotal = expectedSize,
+                        onCopied = onProgress,
+                    )
+                } ?: error(message = "Unable to open output stream for $destUri")
+            } ?: error(message = "Unable to open input stream for $source")
+            CopyResult(uri = destUri, bytes = bytes)
         } catch (e: CancellationException) {
-            deleteDocumentQuietly(destUri)
+            deleteDocumentQuietly(uri = destUri)
             throw e
         } catch (e: Exception) {
-            deleteDocumentQuietly(destUri)
+            deleteDocumentQuietly(uri = destUri)
             null
         }
     }
@@ -316,7 +329,9 @@ class LocalMediaOperationsService(private val context: Context) : MediaOperation
     )
 
     private fun sizeOf(uri: Uri): Long = runCatching {
-        contentResolver.openFileDescriptor(uri, "r")?.use { it.statSize.coerceAtLeast(0) }
+        contentResolver.openFileDescriptor(uri, "r")?.use {
+            it.statSize.coerceAtLeast(minimumValue = 0)
+        }
     }.getOrNull() ?: 0L
 
     private suspend fun copyStream(
@@ -325,8 +340,8 @@ class LocalMediaOperationsService(private val context: Context) : MediaOperation
         expectedTotal: Long,
         onCopied: suspend (Long) -> Unit,
     ): Long {
-        val buffer = ByteArray(DEFAULT_BUFFER_SIZE)
-        val reportThreshold = maxOf(expectedTotal / 100, 64L * 1024)
+        val buffer = ByteArray(size = DEFAULT_BUFFER_SIZE)
+        val reportThreshold = maxOf(a = expectedTotal / 100, b = 64L * 1024)
         var copied = 0L
         var lastReported = 0L
         while (true) {
@@ -356,8 +371,8 @@ class LocalMediaOperationsService(private val context: Context) : MediaOperation
         suspendCancellableCoroutine { continuation ->
             launchWriteRequest(
                 uris = uris,
-                onResultOk = { continuation.resume(true) },
-                onResultCanceled = { continuation.resume(false) },
+                onResultOk = { continuation.resume(value = true) },
+                onResultCanceled = { continuation.resume(value = false) },
             )
         }
 
@@ -370,7 +385,9 @@ class LocalMediaOperationsService(private val context: Context) : MediaOperation
         resultOkCallback = onResultOk
         resultCancelledCallback = onResultCanceled
         MediaStore.createWriteRequest(contentResolver, uris).also { intent ->
-            mediaRequestLauncher?.launch(IntentSenderRequest.Builder(intent).build())
+            mediaRequestLauncher?.launch(
+                IntentSenderRequest.Builder(pendingIntent = intent).build(),
+            )
         }
     }
 
@@ -383,7 +400,9 @@ class LocalMediaOperationsService(private val context: Context) : MediaOperation
         resultOkCallback = onResultOk
         resultCancelledCallback = onResultCanceled
         MediaStore.createDeleteRequest(contentResolver, uris).also { intent ->
-            mediaRequestLauncher?.launch(IntentSenderRequest.Builder(intent).build())
+            mediaRequestLauncher?.launch(
+                IntentSenderRequest.Builder(pendingIntent = intent).build(),
+            )
         }
     }
 
@@ -399,16 +418,18 @@ class LocalMediaOperationsService(private val context: Context) : MediaOperation
         runMediaRequests(
             items = uris,
             itemExists = ::mediaExists,
-            request = { requestTrashR(it, trashed) },
+            request = { requestTrashR(uris = it, trashed = trashed) },
         )
 
     @RequiresApi(Build.VERSION_CODES.R)
     private suspend fun requestTrashR(uris: List<Uri>, trashed: Boolean): Boolean =
         suspendCancellableCoroutine { continuation ->
-            resultOkCallback = { continuation.resume(true) }
-            resultCancelledCallback = { continuation.resume(false) }
+            resultOkCallback = { continuation.resume(value = true) }
+            resultCancelledCallback = { continuation.resume(value = false) }
             MediaStore.createTrashRequest(contentResolver, uris, trashed).also { intent ->
-                mediaRequestLauncher?.launch(IntentSenderRequest.Builder(intent).build())
+                mediaRequestLauncher?.launch(
+                    IntentSenderRequest.Builder(pendingIntent = intent).build(),
+                )
             }
         }
 
@@ -417,8 +438,8 @@ class LocalMediaOperationsService(private val context: Context) : MediaOperation
         suspendCancellableCoroutine { continuation ->
             launchDeleteRequest(
                 uris = uris,
-                onResultOk = { continuation.resume(true) },
-                onResultCanceled = { continuation.resume(false) },
+                onResultOk = { continuation.resume(value = true) },
+                onResultCanceled = { continuation.resume(value = false) },
             )
         }
 
@@ -430,10 +451,10 @@ class LocalMediaOperationsService(private val context: Context) : MediaOperation
             null,
             null,
         )?.use { cursor -> cursor.moveToFirst() } == true
-    }.getOrDefault(false)
+    }.getOrDefault(defaultValue = false)
 
     private suspend fun deleteMediaBelowR(uris: List<Uri>): Boolean = uris.map { uri ->
-        contentResolver.deleteMedia(uri)
+        contentResolver.deleteMedia(uri = uri)
     }.all { it }
 
     @RequiresApi(Build.VERSION_CODES.R)
@@ -441,7 +462,7 @@ class LocalMediaOperationsService(private val context: Context) : MediaOperation
         suspendCancellableCoroutine { continuation ->
             val scope = CoroutineScope(Dispatchers.Default)
             launchWriteRequest(
-                uris = listOf(uri),
+                uris = listOf(element = uri),
                 onResultOk = {
                     scope.launch {
                         val result = contentResolver.updateMedia(
@@ -450,16 +471,16 @@ class LocalMediaOperationsService(private val context: Context) : MediaOperation
                                 put(MediaStore.MediaColumns.DISPLAY_NAME, to)
                             },
                         )
-                        continuation.resume(result)
+                        continuation.resume(value = result)
                     }
                 },
-                onResultCanceled = { continuation.resume(false) },
+                onResultCanceled = { continuation.resume(value = false) },
             )
             continuation.invokeOnCancellation { scope.cancel() }
         }
 
     private suspend fun renameMediaBelowR(uri: Uri, to: String): Boolean = runCatching {
-        val oldFile = context.getPath(uri)?.let { File(it) } ?: throw Error()
+        val oldFile = context.getPath(uri = uri)?.let { File(it) } ?: throw Error()
         val newFile = File(oldFile.parentFile, to)
         oldFile.renameTo(newFile).also { success ->
             if (success) {

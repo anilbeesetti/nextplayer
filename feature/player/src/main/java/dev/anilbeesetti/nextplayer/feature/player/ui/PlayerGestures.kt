@@ -76,7 +76,9 @@ fun PlayerGestures(
                     if (pictureInPictureState.isInPictureInPictureMode) return@pointerInput
 
                     detectCustomVerticalDragGestures(
-                        onDragStart = { volumeAndBrightnessGestureState.onDragStart(it, size) },
+                        onDragStart = {
+                            volumeAndBrightnessGestureState.onDragStart(offset = it, size = size)
+                        },
                         onVerticalDrag = volumeAndBrightnessGestureState::onDrag,
                         onDragCancel = volumeAndBrightnessGestureState::onDragEnd,
                         onDragEnd = volumeAndBrightnessGestureState::onDragEnd,
@@ -100,9 +102,7 @@ fun PlayerGestures(
                                 zoomChange = zoomChange,
                             )
                         },
-                        onGestureEnd = {
-                            videoZoomAndContentScaleState.onZoomPanGestureEnd()
-                        },
+                        onGestureEnd = { videoZoomAndContentScaleState.onZoomPanGestureEnd() },
                     )
                 },
         )

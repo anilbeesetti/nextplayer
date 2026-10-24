@@ -20,8 +20,10 @@ import dev.anilbeesetti.nextplayer.feature.player.extensions.currentBrightness
 @Composable
 fun rememberBrightnessState(): BrightnessState {
     val activity = LocalActivity.current
-    val brightnessState = remember { BrightnessState(activity as PlayerActivity) }
-    DisposableEffect(activity) { brightnessState.handleListeners(this) }
+    val brightnessState = remember { BrightnessState(activity = activity as PlayerActivity) }
+    DisposableEffect(key1 = activity) {
+        brightnessState.handleListeners(disposableEffectScope = this)
+    }
     return brightnessState
 }
 
@@ -35,25 +37,33 @@ class BrightnessState(private val activity: PlayerActivity) {
         private set
 
     fun updateBrightnessPercentage(percentage: Int) {
-        setBrightness(brightness = percentage.coerceIn(0, 100) * maxBrightness / 100)
+        setBrightness(
+            brightness =
+                percentage.coerceIn(minimumValue = 0, maximumValue = 100) * maxBrightness / 100,
+        )
     }
 
     fun setBrightness(brightness: Float) {
         val windowAttributes = activity.window.attributes
-        windowAttributes.screenBrightness = brightness.coerceIn(0f, maxBrightness)
+        windowAttributes.screenBrightness =
+            brightness.coerceIn(minimumValue = 0f, maximumValue = maxBrightness)
         activity.window.attributes = windowAttributes
     }
 
     fun handleListeners(disposableEffectScope: DisposableEffectScope): DisposableEffectResult =
-        with(disposableEffectScope) {
+        with(receiver = disposableEffectScope) {
             val windowAttributesChangedListener: Consumer<WindowManager.LayoutParams?> = Consumer {
                 currentBrightness = activity.currentBrightness
                 brightnessPercentage = activity.brightnessPercentage
             }
-            activity.addOnWindowAttributesChangedListener(windowAttributesChangedListener)
+            activity.addOnWindowAttributesChangedListener(
+                listener = windowAttributesChangedListener,
+            )
 
             onDispose {
-                activity.removeOnWindowAttributesChangedListener(windowAttributesChangedListener)
+                activity.removeOnWindowAttributesChangedListener(
+                    listener = windowAttributesChangedListener,
+                )
             }
         }
 }

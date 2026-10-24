@@ -26,7 +26,7 @@ class PlayerPreferencesViewModel(
     data class Output(val navigateUp: () -> Unit)
 
     private val stateInternal = MutableStateFlow(
-        PlayerPreferencesUiState(
+        value = PlayerPreferencesUiState(
             preferences = preferencesRepository.playerPreferences.value,
         ),
     )
@@ -86,9 +86,7 @@ class PlayerPreferencesViewModel(
     }
 
     private fun showDialog(value: PlayerPreferenceDialog?) {
-        stateInternal.update {
-            it.copy(showDialog = value)
-        }
+        stateInternal.update { it.copy(showDialog = value) }
     }
 
     private fun updatePlaybackResume(resume: Resume) {
@@ -103,17 +101,13 @@ class PlayerPreferencesViewModel(
 
     private fun toggleAutoplay() {
         viewModelScope.launch {
-            preferencesRepository.updatePlayerPreferences {
-                it.copy(autoplay = !it.autoplay)
-            }
+            preferencesRepository.updatePlayerPreferences { it.copy(autoplay = !it.autoplay) }
         }
     }
 
     private fun toggleAutoPip() {
         viewModelScope.launch {
-            preferencesRepository.updatePlayerPreferences {
-                it.copy(autoPip = !it.autoPip)
-            }
+            preferencesRepository.updatePlayerPreferences { it.copy(autoPip = !it.autoPip) }
         }
     }
 
@@ -168,7 +162,7 @@ class PlayerPreferencesViewModel(
     private fun updateDefaultPlaybackSpeed(value: Float) {
         viewModelScope.launch {
             preferencesRepository.updatePlayerPreferences {
-                it.copy(defaultPlaybackSpeed = value.round(1))
+                it.copy(defaultPlaybackSpeed = value.round(decimalPlaces = 1))
             }
         }
     }

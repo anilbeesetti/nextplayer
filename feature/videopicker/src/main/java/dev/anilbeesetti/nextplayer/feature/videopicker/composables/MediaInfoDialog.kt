@@ -48,9 +48,7 @@ fun MediaInfoDialog(mediaInfo: MediaInfo, onDismiss: () -> Unit) {
     // On a TV the info panel has no focusable rows, so make it focusable and scroll it with the
     // D-pad. Focus escapes to the OK button once there's nothing left to scroll.
     if (isTv) {
-        LaunchedEffect(Unit) {
-            runCatching { focusRequester.requestFocus() }
-        }
+        LaunchedEffect(key1 = Unit) { runCatching { focusRequester.requestFocus() } }
     }
 
     NextDialog(
@@ -67,9 +65,9 @@ fun MediaInfoDialog(mediaInfo: MediaInfo, onDismiss: () -> Unit) {
             Column(
                 verticalArrangement = Arrangement.spacedBy(5.dp),
                 modifier = Modifier
-                    .verticalScroll(scrollState)
-                    .thenIf(isTv) {
-                        focusRequester(focusRequester)
+                    .verticalScroll(state = scrollState)
+                    .thenIf(condition = isTv) {
+                        focusRequester(focusRequester = focusRequester)
                             .focusable()
                             .onKeyEvent { event ->
                                 if (event.type != KeyEventType.KeyDown) return@onKeyEvent false
@@ -77,14 +75,16 @@ fun MediaInfoDialog(mediaInfo: MediaInfo, onDismiss: () -> Unit) {
                                     (scrollState.viewportSize * 0.8f).takeIf { it > 0f } ?: 400f
                                 when (event.key) {
                                     Key.DirectionDown -> if (scrollState.canScrollForward) {
-                                        scope.launch { scrollState.animateScrollBy(amount) }
+                                        scope.launch { scrollState.animateScrollBy(value = amount) }
                                         true
                                     } else {
                                         false
                                     }
 
                                     Key.DirectionUp -> if (scrollState.canScrollBackward) {
-                                        scope.launch { scrollState.animateScrollBy(-amount) }
+                                        scope.launch {
+                                            scrollState.animateScrollBy(value = -amount)
+                                        }
                                         true
                                     } else {
                                         false
@@ -208,9 +208,7 @@ fun MediaInfoDialog(mediaInfo: MediaInfo, onDismiss: () -> Unit) {
             }
         },
         confirmButton = {
-            TextButton(onClick = onDismiss) {
-                Text(text = stringResource(id = R.string.okay))
-            }
+            TextButton(onClick = onDismiss) { Text(text = stringResource(id = R.string.okay)) }
         },
     )
 }
@@ -224,7 +222,7 @@ private fun MediaInfoTitle(
         text = text,
         style = MaterialTheme.typography.titleLarge,
         color = MaterialTheme.colorScheme.onSurface,
-        modifier = Modifier.padding(paddingValues),
+        modifier = Modifier.padding(paddingValues = paddingValues),
     )
 }
 

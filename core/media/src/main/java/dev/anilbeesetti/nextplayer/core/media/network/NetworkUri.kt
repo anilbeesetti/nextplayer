@@ -57,17 +57,19 @@ object NetworkUri {
     }
 
     fun build(connection: NetworkConnection, filePath: String): Uri = Uri.Builder()
-        .scheme(schemeOf(connection))
+        .scheme(schemeOf(connection = connection))
         .encodedAuthority(
-            if (connection.port !=
-                null
-            ) {
+            if (connection.port != null) {
                 "${connection.host}:${connection.port}"
             } else {
                 connection.host
             },
         )
-        .apply { filePath.split('/').filter(String::isNotEmpty).forEach(::appendPath) }
+        .apply {
+            filePath.split(
+                '/',
+            ).filter(predicate = String::isNotEmpty).forEach(action = ::appendPath)
+        }
         .appendQueryParameter(CONNECTION_ID_PARAM, connection.id.toString())
         .build()
 
@@ -75,7 +77,7 @@ object NetworkUri {
 
     /** Restores the path in the form the [NetworkClient] for [protocol] expects. */
     fun filePathOf(uri: Uri, protocol: NetworkProtocol): String {
-        val path = uri.pathSegments.joinToString("/")
+        val path = uri.pathSegments.joinToString(separator = "/")
         return when (protocol) {
             NetworkProtocol.FTP, NetworkProtocol.SFTP -> "/$path"
             NetworkProtocol.SMB, NetworkProtocol.WEBDAV -> path
@@ -96,17 +98,17 @@ object NetworkUri {
             SCHEME_WEBDAV, SCHEME_WEBDAVS -> NetworkProtocol.WEBDAV
             else -> return null
         }
-        val host = uri.host?.takeIf(String::isNotBlank) ?: return null
-        val segments = uri.pathSegments.filter(String::isNotEmpty)
+        val host = uri.host?.takeIf(predicate = String::isNotBlank) ?: return null
+        val segments = uri.pathSegments.filter(predicate = String::isNotEmpty)
         if (segments.isEmpty()) return null
 
         // SMB addresses a file as <share>/<path>, and the share belongs to the connection. Every
         // other protocol treats the whole path as the file, relative to a root the server picks.
         val root = if (protocol == NetworkProtocol.SMB) segments.first() else ""
-        val fileSegments = if (protocol == NetworkProtocol.SMB) segments.drop(1) else segments
+        val fileSegments = if (protocol == NetworkProtocol.SMB) segments.drop(n = 1) else segments
         if (fileSegments.isEmpty()) return null
 
-        val userInfo = uri.userInfo?.let(Uri::decode).orEmpty()
+        val userInfo = uri.userInfo?.let(block = Uri::decode).orEmpty()
         val connection = NetworkConnection(
             id = AD_HOC_ID,
             name = host,
@@ -114,12 +116,12 @@ object NetworkUri {
             host = host,
             port = uri.port.takeIf { it > 0 },
             path = root,
-            username = userInfo.substringBefore(':'),
-            password = userInfo.substringAfter(':', missingDelimiterValue = ""),
+            username = userInfo.substringBefore(delimiter = ':'),
+            password = userInfo.substringAfter(delimiter = ':', missingDelimiterValue = ""),
             useHttps = scheme == SCHEME_WEBDAVS,
             hostKeyFingerprint = uri.getQueryParameter(HOST_KEY_PARAM).orEmpty(),
         )
-        val filePath = fileSegments.joinToString("/")
+        val filePath = fileSegments.joinToString(separator = "/")
         return Target(
             connection = connection,
             filePath = when (protocol) {

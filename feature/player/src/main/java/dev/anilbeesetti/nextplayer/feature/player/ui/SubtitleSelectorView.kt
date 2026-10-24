@@ -59,8 +59,8 @@ fun BoxScope.SubtitleSelectorView(
     onEvent: (SubtitleOptionsEvent) -> Unit = {},
     onDismiss: () -> Unit,
 ) {
-    val subtitleTracksState = rememberTracksState(player, C.TRACK_TYPE_TEXT)
-    val subtitleOptionsState = rememberSubtitleOptionsState(player, onEvent)
+    val subtitleTracksState = rememberTracksState(player = player, C.TRACK_TYPE_TEXT)
+    val subtitleOptionsState = rememberSubtitleOptionsState(player = player, onEvent = onEvent)
 
     OverlayView(
         modifier = modifier,
@@ -69,7 +69,7 @@ fun BoxScope.SubtitleSelectorView(
     ) {
         Column(
             modifier = Modifier
-                .verticalScroll(rememberScrollState())
+                .verticalScroll(state = rememberScrollState())
                 .padding(bottom = 24.dp)
                 .padding(horizontal = 24.dp)
                 .selectableGroup(),
@@ -77,9 +77,9 @@ fun BoxScope.SubtitleSelectorView(
             subtitleTracksState.tracks.forEachIndexed { index, track ->
                 RadioButtonRow(
                     selected = track.isSelected,
-                    text = track.mediaTrackGroup.getName(C.TRACK_TYPE_TEXT, index),
+                    text = track.mediaTrackGroup.getName(C.TRACK_TYPE_TEXT, index = index),
                     onClick = {
-                        subtitleTracksState.switchTrack(index)
+                        subtitleTracksState.switchTrack(index = index)
                         onDismiss()
                     },
                 )
@@ -88,7 +88,7 @@ fun BoxScope.SubtitleSelectorView(
                 selected = subtitleTracksState.tracks.none { it.isSelected },
                 text = stringResource(R.string.disable),
                 onClick = {
-                    subtitleTracksState.switchTrack(-1)
+                    subtitleTracksState.switchTrack(index = -1)
                     onDismiss()
                 },
             )
@@ -99,18 +99,16 @@ fun BoxScope.SubtitleSelectorView(
                     onSelectSubtitleClick()
                     onDismiss()
                 },
-            ) {
-                Text(text = stringResource(R.string.open_subtitle))
-            }
+            ) { Text(text = stringResource(R.string.open_subtitle)) }
             Spacer(modifier = Modifier.size(16.dp))
             DelayInput(
                 value = subtitleOptionsState.delayMilliseconds,
-                onValueChange = { subtitleOptionsState.setDelay(it) },
+                onValueChange = { subtitleOptionsState.setDelay(delayMillis = it) },
             )
             Spacer(modifier = Modifier.size(16.dp))
             SpeedInput(
                 value = subtitleOptionsState.speedMultiplier,
-                onValueChange = { subtitleOptionsState.setSpeed(it) },
+                onValueChange = { subtitleOptionsState.setSpeed(speed = it) },
             )
         }
     }
@@ -119,10 +117,10 @@ fun BoxScope.SubtitleSelectorView(
 @Composable
 private fun DelayInput(value: Long, onValueChange: (Long) -> Unit) {
     var valueString by remember {
-        mutableStateOf(if (value == 0L) "0" else "%.2f".format(value / 1000.0))
+        mutableStateOf(value = if (value == 0L) "0" else "%.2f".format(value / 1000.0))
     }
 
-    LaunchedEffect(value) {
+    LaunchedEffect(key1 = value) {
         val currentValue = valueString.toDoubleOrNull() ?: 0.0
         if (currentValue == (value / 1000.0)) return@LaunchedEffect
         valueString = if (value == 0L) "0" else "%.2f".format(value / 1000.0)
@@ -147,7 +145,7 @@ private fun DelayInput(value: Long, onValueChange: (Long) -> Unit) {
             }
 
             val decimalPattern = "^-?\\d*\\.?\\d{0,2}$".toRegex()
-            if (!cleanedValue.matches(decimalPattern)) {
+            if (!cleanedValue.matches(regex = decimalPattern)) {
                 return@NumberChooserInput
             }
 
@@ -167,10 +165,10 @@ private fun DelayInput(value: Long, onValueChange: (Long) -> Unit) {
 @Composable
 private fun SpeedInput(value: Float, onValueChange: (Float) -> Unit) {
     var valueString by remember {
-        mutableStateOf(if (value == 1f) "1" else "%.2f".format(value))
+        mutableStateOf(value = if (value == 1f) "1" else "%.2f".format(value))
     }
 
-    LaunchedEffect(value) {
+    LaunchedEffect(key1 = value) {
         val currentValue = valueString.toFloatOrNull() ?: 0.0
         if (currentValue == value) return@LaunchedEffect
         valueString = if (value == 1f) "1" else "%.2f".format(value)
@@ -195,7 +193,7 @@ private fun SpeedInput(value: Float, onValueChange: (Float) -> Unit) {
             }
 
             val decimalPattern = "^\\d*\\.?\\d{0,2}$".toRegex()
-            if (!cleanedValue.matches(decimalPattern)) {
+            if (!cleanedValue.matches(regex = decimalPattern)) {
                 return@NumberChooserInput
             }
 
@@ -239,7 +237,7 @@ private fun NumberChooserInput(
             label = { Text(text = title) },
             value = value,
             onValueChange = onValueChange,
-            modifier = Modifier.weight(1f),
+            modifier = Modifier.weight(weight = 1f),
             suffix = suffix,
             singleLine = true,
             keyboardOptions = KeyboardOptions(
@@ -265,9 +263,9 @@ private fun Modifier.repeatingClickable(
     delayDecayFactor: Float = .20f,
     onClick: () -> Unit,
 ): Modifier = composed {
-    val updatedOnClick by rememberUpdatedState(onClick)
+    val updatedOnClick by rememberUpdatedState(newValue = onClick)
 
-    this.pointerInput(enabled) {
+    this.pointerInput(key1 = enabled) {
         coroutineScope {
             awaitEachGesture {
                 val down = awaitFirstDown(requireUnconsumed = false)
@@ -275,10 +273,11 @@ private fun Modifier.repeatingClickable(
                     var currentDelayMillis = maxDelayMillis
                     while (enabled && down.pressed) {
                         updatedOnClick()
-                        delay(currentDelayMillis)
+                        delay(timeMillis = currentDelayMillis)
                         val nextMillis =
                             currentDelayMillis - (currentDelayMillis * delayDecayFactor)
-                        currentDelayMillis = nextMillis.toLong().coerceAtLeast(minDelayMillis)
+                        currentDelayMillis =
+                            nextMillis.toLong().coerceAtLeast(minimumValue = minDelayMillis)
                     }
                 }
                 waitForUpOrCancellation()

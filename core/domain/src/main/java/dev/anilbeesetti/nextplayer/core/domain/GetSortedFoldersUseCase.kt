@@ -23,9 +23,9 @@ class GetSortedFoldersUseCase(
 ) {
 
     operator fun invoke(folderPath: String? = null): Flow<List<Folder>> = combine(
-        mediaRepository.observeVideos(folderPath),
+        mediaRepository.observeVideos(folderPath = folderPath),
         preferencesRepository.applicationPreferences,
-        newVideoClock(),
+        flow3 = newVideoClock(),
     ) { videos, preferences, nowMillis ->
         val folders = videos
             .groupBy { it.parentPath }
@@ -50,5 +50,5 @@ class GetSortedFoldersUseCase(
 
         val sort = Sort(by = preferences.sortBy, order = preferences.sortOrder)
         folders.sortedWith(sort.folderComparator())
-    }.flowOn(defaultDispatcher)
+    }.flowOn(context = defaultDispatcher)
 }

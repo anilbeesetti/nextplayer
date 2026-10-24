@@ -73,31 +73,33 @@ class NetworkBrowseViewModel(
     private val connectionId = input.connectionId
     private val path = input.path
 
-    private val connection = MutableStateFlow<NetworkConnection?>(null)
+    private val connection = MutableStateFlow<NetworkConnection?>(value = null)
     private var client: NetworkClient? = null
     private var currentPath: String? = path
 
-    private val stateInternal = MutableStateFlow(NetworkBrowseUiState())
+    private val stateInternal = MutableStateFlow(value = NetworkBrowseUiState())
     override val state: StateFlow<NetworkBrowseUiState> = stateInternal.asStateFlow()
 
     init {
         viewModelScope.launch {
-            combine(connection, mediaRepository.observePlaybackHistory()) { conn, history ->
+            combine(flow = connection, mediaRepository.observePlaybackHistory()) { conn, history ->
                 val folderPrefix = currentPath?.trimEnd('/').orEmpty()
                 if (conn == null) {
                     emptyMap()
                 } else {
                     history.mapNotNull { video ->
                         val uri = video.uriString.toUri()
-                        if (!NetworkUri.isNetworkUri(uri) ||
-                            NetworkUri.connectionIdOf(uri) != connectionId
+                        if (!NetworkUri.isNetworkUri(uri = uri) ||
+                            NetworkUri.connectionIdOf(uri = uri) != connectionId
                         ) {
                             return@mapNotNull null
                         }
-                        val filePath = NetworkUri.filePathOf(uri, conn.protocol)
-                        if (uri != NetworkUri.build(conn, filePath)) return@mapNotNull null
+                        val filePath = NetworkUri.filePathOf(uri = uri, conn.protocol)
+                        if (uri != NetworkUri.build(connection = conn, filePath = filePath)) {
+                            return@mapNotNull null
+                        }
                         if (folderPrefix.isNotEmpty() &&
-                            !filePath.startsWith("$folderPrefix/")
+                            !filePath.startsWith(prefix = "$folderPrefix/")
                         ) {
                             return@mapNotNull null
                         }
@@ -138,17 +140,18 @@ class NetworkBrowseViewModel(
     private fun connectAndLoad() {
         stateInternal.update { it.copy(isLoading = true, error = null) }
         viewModelScope.launch {
-            val conn = connection.value ?: repository.getConnection(connectionId)
+            val conn = connection.value ?: repository.getConnection(id = connectionId)
             if (conn == null) {
                 stateInternal.update {
                     it.copy(
                         isLoading = false,
-                        error = NetworkBrowseError("Connection not found"),
+                        error = NetworkBrowseError(message = "Connection not found"),
                     )
                 }
                 return@launch
             }
-            val activeClient = client ?: clientFactory.create(conn).also { client = it }
+            val activeClient =
+                client ?: clientFactory.create(connection = conn).also { client = it }
             if (currentPath == null) currentPath = activeClient.rootPath
             connection.value = conn
             if (!activeClient.isConnected()) {
@@ -156,7 +159,7 @@ class NetworkBrowseViewModel(
                 if (connected.isFailure) {
                     stateInternal.update {
                         it.copy(
-                            title = title(conn),
+                            title = title(conn = conn),
                             isLoading = false,
                             error = connected.exceptionOrNull()?.toNetworkBrowseError(),
                         )
@@ -174,14 +177,14 @@ class NetworkBrowseViewModel(
         val path = currentPath ?: return
         stateInternal.update { it.copy(isLoading = true, error = null) }
         viewModelScope.launch {
-            client.listFiles(path).fold(
+            client.listFiles(path = path).fold(
                 onSuccess = { files ->
                     val visible = files
                         .filter { it.isDirectory || isNetworkVideoFile(it.name) }
 
                     stateInternal.update {
                         it.copy(
-                            title = title(conn),
+                            title = title(conn = conn),
                             files = visible.sortedWith(
                                 Sort(
                                     it.preferences.networkSortBy,
@@ -203,7 +206,8 @@ class NetworkBrowseViewModel(
 
     /** Root folder shows the connection name; nested folders show the last path segment. */
     private fun title(conn: NetworkConnection): String =
-        path?.trimEnd('/')?.substringAfterLast('/')?.takeIf { it.isNotEmpty() } ?: conn.name
+        path?.trimEnd('/')?.substringAfterLast(delimiter = '/')?.takeIf { it.isNotEmpty() }
+            ?: conn.name
 
     override fun onAction(action: NetworkBrowseAction) {
         when (action) {
@@ -227,14 +231,12 @@ class NetworkBrowseViewModel(
 
             is NetworkBrowseAction.PlayAll -> stateInternal.value.files.firstOrNull {
                 !it.isDirectory
-            }?.let(::playVideo)
+            }?.let(block = ::playVideo)
         }
     }
 
     private fun retry() {
-        if (currentPath == null ||
-            client?.isConnected() != true
-        ) {
+        if (currentPath == null || client?.isConnected() != true) {
             connectAndLoad()
         } else {
             loadCurrent()
@@ -246,10 +248,8 @@ class NetworkBrowseViewModel(
         val videos = stateInternal.value.files.filter { !it.isDirectory }
         if (file !in videos) return
         output.playVideos(
-            videos.map {
-                NetworkUri.build(conn, it.path)
-            },
-            NetworkUri.build(conn, file.path),
+            videos.map { NetworkUri.build(connection = conn, it.path) },
+            NetworkUri.build(connection = conn, file.path),
         )
     }
 
@@ -272,7 +272,7 @@ sealed interface NetworkBrowseAction {
 }
 
 private fun Throwable.toNetworkBrowseError(): NetworkBrowseError {
-    val mismatch = generateSequence(this) { it.cause }
+    val mismatch = generateSequence(seed = this) { it.cause }
         .filterIsInstance<HostKeyMismatch>()
         .firstOrNull()
     return NetworkBrowseError(

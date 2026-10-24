@@ -183,12 +183,12 @@ internal fun MediaPickerScreenContent(
     val lazyGridState = rememberLazyGridState()
     val selectVideoFileLauncher = rememberLauncherForActivityResult(
         contract = ActivityResultContracts.GetContent(),
-        onResult = { uri -> uri?.let { onAction(MediaPickerAction.OnPlayVideo(it)) } },
+        onResult = { uri -> uri?.let { onAction(MediaPickerAction.OnPlayVideo(uri = it)) } },
     )
 
-    var showQuickSettingsDialog by rememberSaveable { mutableStateOf(false) }
-    var showRenameActionFor: Video? by rememberSaveable { mutableStateOf(null) }
-    var showDeleteVideosConfirmation by rememberSaveable { mutableStateOf(false) }
+    var showQuickSettingsDialog by rememberSaveable { mutableStateOf(value = false) }
+    var showRenameActionFor: Video? by rememberSaveable { mutableStateOf(value = null) }
+    var showDeleteVideosConfirmation by rememberSaveable { mutableStateOf(value = false) }
 
     val mediaHolder = (state.mediaDataState as? DataState.Success)?.value
     val onFabClick = {
@@ -202,14 +202,17 @@ internal fun MediaPickerScreenContent(
             )
 
             is SelectionItem.Folder -> onAction(
-                MediaPickerAction.PlaySelectedItems(setOf(selectedItem)),
+                MediaPickerAction.PlaySelectedItems(selectionItems = setOf(element = selectedItem)),
             )
 
-            null -> selectVideoFileLauncher.launch("video/*")
+            null -> selectVideoFileLauncher.launch(input = "video/*")
         }
     }
 
-    BindTopLevelBottomBarVisible(state.folderName != null || !selectionManager.isInSelectionMode)
+    BindTopLevelBottomBarVisible(
+        visible =
+            state.folderName != null || !selectionManager.isInSelectionMode,
+    )
 
     if (state.folderName == null) {
         BindTopLevelFab(
@@ -240,7 +243,7 @@ internal fun MediaPickerScreenContent(
                     if (selectionManager.isInSelectionMode) {
                         Row(
                             modifier = Modifier
-                                .clip(CircleShape)
+                                .clip(shape = CircleShape)
                                 .background(MaterialTheme.colorScheme.secondaryContainer)
                                 .clickable { selectionManager.exitSelectionMode() }
                                 .padding(8.dp)
@@ -264,7 +267,7 @@ internal fun MediaPickerScreenContent(
                     } else if (state.folderName != null) {
                         FilledTonalIconButton(
                             onClick = { onAction(MediaPickerAction.OnNavigateUpClick) },
-                            modifier = topBarDownModifier.tvFocusRing(isTv),
+                            modifier = topBarDownModifier.tvFocusRing(isTv = isTv),
                         ) {
                             Icon(
                                 imageVector = NextIcons.ArrowBack,
@@ -280,14 +283,18 @@ internal fun MediaPickerScreenContent(
                                 if (selectedItemsSize != totalItemsSize) {
                                     val folder = (state.mediaDataState as? DataState.Success)?.value
                                     if (folder != null) {
-                                        folder.folders.forEach { selectionManager.selectFolder(it) }
-                                        folder.videos.forEach { selectionManager.selectVideo(it) }
+                                        folder.folders.forEach {
+                                            selectionManager.selectFolder(folder = it)
+                                        }
+                                        folder.videos.forEach {
+                                            selectionManager.selectVideo(video = it)
+                                        }
                                     }
                                 } else {
                                     selectionManager.clearSelection()
                                 }
                             },
-                            modifier = topBarDownModifier.tvFocusRing(isTv),
+                            modifier = topBarDownModifier.tvFocusRing(isTv = isTv),
                         ) {
                             Icon(
                                 imageVector = if (selectedItemsSize != totalItemsSize) {
@@ -305,7 +312,7 @@ internal fun MediaPickerScreenContent(
                     } else {
                         IconButton(
                             onClick = { onAction(MediaPickerAction.OnSearchClick) },
-                            modifier = topBarDownModifier.tvFocusRing(isTv),
+                            modifier = topBarDownModifier.tvFocusRing(isTv = isTv),
                         ) {
                             Icon(
                                 imageVector = NextIcons.Search,
@@ -314,7 +321,7 @@ internal fun MediaPickerScreenContent(
                         }
                         IconButton(
                             onClick = { showQuickSettingsDialog = true },
-                            modifier = topBarDownModifier.tvFocusRing(isTv),
+                            modifier = topBarDownModifier.tvFocusRing(isTv = isTv),
                         ) {
                             Icon(
                                 imageVector = NextIcons.DashBoard,
@@ -323,7 +330,7 @@ internal fun MediaPickerScreenContent(
                         }
                         IconButton(
                             onClick = { onAction(MediaPickerAction.OnSettingsClick) },
-                            modifier = topBarDownModifier.tvFocusRing(isTv),
+                            modifier = topBarDownModifier.tvFocusRing(isTv = isTv),
                         ) {
                             Icon(
                                 imageVector = NextIcons.Settings,
@@ -364,7 +371,7 @@ internal fun MediaPickerScreenContent(
                             ?: return@SelectionActionsSheet
                     val video = (state.mediaDataState as? DataState.Success)?.value?.videos
                         ?.find { it.uriString == selectedVideo.id } ?: return@SelectionActionsSheet
-                    onAction(MediaPickerAction.ShowMediaInfo(video))
+                    onAction(MediaPickerAction.ShowMediaInfo(video = video))
                     selectionManager.exitSelectionMode()
                 },
                 onShareAction = {
@@ -384,9 +391,7 @@ internal fun MediaPickerScreenContent(
                     )
                     selectionManager.exitSelectionMode()
                 },
-                onDeleteAction = {
-                    showDeleteVideosConfirmation = true
-                },
+                onDeleteAction = { showDeleteVideosConfirmation = true },
             )
         },
         floatingActionButton = {
@@ -411,7 +416,7 @@ internal fun MediaPickerScreenContent(
             Modifier
                 .fillMaxSize()
                 .padding(scaffoldPadding.copy(bottom = 0.dp))
-                .clip(RoundedCornerShape(topStart = 24.dp, topEnd = 24.dp))
+                .clip(shape = RoundedCornerShape(topStart = 24.dp, topEnd = 24.dp))
                 .background(MaterialTheme.colorScheme.background),
         ) {
             if (!permissionState.status.isGranted) {
@@ -450,8 +455,12 @@ internal fun MediaPickerScreenContent(
                                 recentlyPlayedFolder = state.recentlyPlayedFolder,
                                 mediaHolder = mediaHolder,
                                 preferences = state.preferences,
-                                onFolderClick = { onAction(MediaPickerAction.OnFolderClick(it)) },
-                                onVideoClick = { onAction(MediaPickerAction.OnPlayVideo(it)) },
+                                onFolderClick = {
+                                    onAction(MediaPickerAction.OnFolderClick(folderPath = it))
+                                },
+                                onVideoClick = {
+                                    onAction(MediaPickerAction.OnPlayVideo(uri = it))
+                                },
                                 selectionManager = selectionManager,
                                 lazyGridState = lazyGridState,
                                 focusState = focusState,
@@ -480,7 +489,7 @@ internal fun MediaPickerScreenContent(
         QuickSettingsDialog(
             applicationPreferences = state.preferences,
             onDismiss = { showQuickSettingsDialog = false },
-            updatePreferences = { onAction(MediaPickerAction.UpdateMenu(it)) },
+            updatePreferences = { onAction(MediaPickerAction.UpdateMenu(preferences = it)) },
         )
     }
 
@@ -489,7 +498,7 @@ internal fun MediaPickerScreenContent(
             name = video.displayName,
             onDismiss = { showRenameActionFor = null },
             onDone = {
-                onAction(MediaPickerAction.RenameVideo(video.uriString.toUri(), it))
+                onAction(MediaPickerAction.RenameVideo(video.uriString.toUri(), to = it))
                 selectionManager.exitSelectionMode()
                 showRenameActionFor = null
             },
@@ -524,8 +533,10 @@ internal fun MediaPickerScreenContent(
     HideFlowDialogs(
         hideFlow = state.hideFlow,
         onConfirmHide = { onAction(MediaPickerAction.ConfirmHidePendingItems) },
-        onSetPinAndHide = { onAction(MediaPickerAction.SetVaultPinAndHide(it)) },
-        onBiometricSetupComplete = { onAction(MediaPickerAction.CompleteBiometricSetup(it)) },
+        onSetPinAndHide = { onAction(MediaPickerAction.SetVaultPinAndHide(pin = it)) },
+        onBiometricSetupComplete = {
+            onAction(MediaPickerAction.CompleteBiometricSetup(enabled = it))
+        },
         onDismiss = { onAction(MediaPickerAction.DismissHideFlow) },
     )
 
@@ -543,11 +554,11 @@ internal fun MediaPickerScreenContent(
             state = state.addToPlaylistState,
             onDismissRequest = { onAction(MediaPickerAction.DismissAddToPlaylist) },
             onPlaylistSelected = {
-                onAction(MediaPickerAction.AddSelectionToPlaylist(it))
+                onAction(MediaPickerAction.AddSelectionToPlaylist(playlistId = it))
                 selectionManager.exitSelectionMode()
             },
             onCreatePlaylist = {
-                onAction(MediaPickerAction.CreatePlaylistWithSelection(it))
+                onAction(MediaPickerAction.CreatePlaylistWithSelection(name = it))
                 selectionManager.exitSelectionMode()
             },
         )
@@ -602,9 +613,7 @@ private fun TransferProgressDialog(
                 TextButton(
                     onClick = onCancel,
                     modifier = Modifier.align(Alignment.End),
-                ) {
-                    Text(text = stringResource(R.string.cancel))
-                }
+                ) { Text(text = stringResource(R.string.cancel)) }
             }
         }
     }
@@ -629,7 +638,7 @@ private fun ProgressSection(label: String, fraction: Float?) {
                 color = MaterialTheme.colorScheme.onSurfaceVariant,
                 maxLines = 1,
                 overflow = TextOverflow.Ellipsis,
-                modifier = Modifier.weight(1f),
+                modifier = Modifier.weight(weight = 1f),
             )
             if (fraction != null) {
                 Text(
@@ -642,7 +651,7 @@ private fun ProgressSection(label: String, fraction: Float?) {
 
         val barModifier = Modifier
             .fillMaxWidth()
-            .clip(CircleShape)
+            .clip(shape = CircleShape)
         if (fraction != null) {
             LinearProgressIndicator(progress = { animatedFraction }, modifier = barModifier)
         } else {
@@ -661,7 +670,7 @@ private fun DeleteConfirmationDialog(
 ) {
     val selectedVideos = selectionItems.filterIsInstance<SelectionItem.Video>()
     val selectedFolders = selectionItems.filterIsInstance<SelectionItem.Folder>()
-    var permanently by rememberSaveable { mutableStateOf(false) }
+    var permanently by rememberSaveable { mutableStateOf(value = false) }
 
     NextDialog(
         onDismissRequest = onCancel,
@@ -693,9 +702,7 @@ private fun DeleteConfirmationDialog(
             ) {
                 Text(
                     text = stringResource(
-                        if (permanently ||
-                            !trashSupported
-                        ) {
+                        id = if (permanently || !trashSupported) {
                             R.string.delete
                         } else {
                             R.string.move_to_trash
@@ -785,9 +792,9 @@ private fun HideFlowDialogs(
 
 @Composable
 private fun SetupVaultPinDialog(onDismiss: () -> Unit, onPinConfirmed: (String) -> Unit) {
-    var firstPin: String? by rememberSaveable { mutableStateOf(null) }
-    var currentPin by rememberSaveable { mutableStateOf("") }
-    var errorCount by rememberSaveable { mutableStateOf(0) }
+    var firstPin: String? by rememberSaveable { mutableStateOf(value = null) }
+    var currentPin by rememberSaveable { mutableStateOf(value = "") }
+    var errorCount by rememberSaveable { mutableStateOf(value = 0) }
 
     val isConfirmStep = firstPin != null
     val showError = errorCount > 0
@@ -814,7 +821,7 @@ private fun SetupVaultPinDialog(onDismiss: () -> Unit, onPinConfirmed: (String) 
         }
     }
     val onBackspace: () -> Unit = {
-        if (currentPin.isNotEmpty()) currentPin = currentPin.dropLast(1)
+        if (currentPin.isNotEmpty()) currentPin = currentPin.dropLast(n = 1)
     }
 
     Dialog(
@@ -822,7 +829,13 @@ private fun SetupVaultPinDialog(onDismiss: () -> Unit, onPinConfirmed: (String) 
         properties = DialogProperties(usePlatformDefaultWidth = !isTv),
     ) {
         Surface(
-            modifier = if (isTv) Modifier.fillMaxWidth(0.72f) else Modifier.fillMaxWidth(),
+            modifier = if (isTv) {
+                Modifier.fillMaxWidth(
+                    fraction = 0.72f,
+                )
+            } else {
+                Modifier.fillMaxWidth()
+            },
             shape = MaterialTheme.shapes.extraLarge,
             color = MaterialTheme.colorScheme.surfaceContainer,
         ) {
@@ -833,13 +846,13 @@ private fun SetupVaultPinDialog(onDismiss: () -> Unit, onPinConfirmed: (String) 
                     verticalAlignment = Alignment.CenterVertically,
                 ) {
                     SetupPinHeader(
-                        modifier = Modifier.weight(1f),
+                        modifier = Modifier.weight(weight = 1f),
                         isConfirmStep = isConfirmStep,
                         filledCount = currentPin.length,
                         showError = showError,
                     )
                     Column(
-                        modifier = Modifier.weight(1f),
+                        modifier = Modifier.weight(weight = 1f),
                         horizontalAlignment = Alignment.CenterHorizontally,
                     ) {
                         PinKeypad(
@@ -950,33 +963,29 @@ private fun PlaylistTargetDialog(
     onPlaylistSelected: (Long) -> Unit,
     onCreatePlaylist: (String) -> Unit,
 ) {
-    var showCreateDialog by rememberSaveable { mutableStateOf(false) }
+    var showCreateDialog by rememberSaveable { mutableStateOf(value = false) }
 
     if (showCreateDialog) {
-        var name by rememberSaveable { mutableStateOf("") }
+        var name by rememberSaveable { mutableStateOf(value = "") }
         val trimmedName = name.trim()
         NextDialog(
             onDismissRequest = {
                 if (!state.isSaving) showCreateDialog = false
             },
-            title = {
-                Text(stringResource(R.string.create_new_playlist))
-            },
+            title = { Text(text = stringResource(R.string.create_new_playlist)) },
             content = {
                 Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
                     NextOutlinedTextField(
                         value = name,
                         onValueChange = { name = it },
-                        label = {
-                            Text(stringResource(R.string.playlist_name))
-                        },
+                        label = { Text(text = stringResource(R.string.playlist_name)) },
                         enabled = !state.isSaving,
                         singleLine = true,
                         modifier = Modifier.fillMaxWidth(),
                     )
                     state.errorRes?.let { errorRes ->
                         Text(
-                            text = stringResource(errorRes),
+                            text = stringResource(id = errorRes),
                             color = MaterialTheme.colorScheme.error,
                             style = MaterialTheme.typography.bodySmall,
                         )
@@ -988,18 +997,14 @@ private fun PlaylistTargetDialog(
                     onClick = { onCreatePlaylist(trimmedName) },
                     enabled = !state.isSaving && state.hasVideos && trimmedName.isNotEmpty(),
                     modifier = Modifier.tvFocusRing(),
-                ) {
-                    Text(stringResource(R.string.create))
-                }
+                ) { Text(text = stringResource(R.string.create)) }
             },
             dismissButton = {
                 TextButton(
                     onClick = { if (!state.isSaving) showCreateDialog = false },
                     enabled = !state.isSaving,
                     modifier = Modifier.tvFocusRing(),
-                ) {
-                    Text(stringResource(R.string.cancel))
-                }
+                ) { Text(text = stringResource(R.string.cancel)) }
             },
         )
         return
@@ -1009,9 +1014,7 @@ private fun PlaylistTargetDialog(
         onDismissRequest = {
             if (!state.isSaving) onDismissRequest()
         },
-        title = {
-            Text(stringResource(R.string.choose_playlist))
-        },
+        title = { Text(text = stringResource(R.string.choose_playlist)) },
         content = {
             Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
                 TextButton(
@@ -1025,7 +1028,7 @@ private fun PlaylistTargetDialog(
                     Spacer(Modifier.size(8.dp))
                     Text(
                         text = stringResource(R.string.create_new_playlist),
-                        modifier = Modifier.weight(1f),
+                        modifier = Modifier.weight(weight = 1f),
                     )
                 }
                 Text(
@@ -1041,7 +1044,7 @@ private fun PlaylistTargetDialog(
                             )
                         }
                     }
-                    items(playlists, key = PlaylistSummary::id) { playlist ->
+                    items(items = playlists, key = PlaylistSummary::id) { playlist ->
                         TextButton(
                             onClick = { onPlaylistSelected(playlist.id) },
                             enabled = !state.isSaving && state.hasVideos,
@@ -1056,7 +1059,7 @@ private fun PlaylistTargetDialog(
                             )
                             Spacer(Modifier.size(8.dp))
                             Column(
-                                modifier = Modifier.weight(1f),
+                                modifier = Modifier.weight(weight = 1f),
                                 horizontalAlignment = Alignment.Start,
                             ) {
                                 Text(
@@ -1079,7 +1082,7 @@ private fun PlaylistTargetDialog(
                 }
                 state.errorRes?.let { errorRes ->
                     Text(
-                        text = stringResource(errorRes),
+                        text = stringResource(id = errorRes),
                         color = MaterialTheme.colorScheme.error,
                         style = MaterialTheme.typography.bodySmall,
                     )
@@ -1095,9 +1098,7 @@ private fun PlaylistTargetDialog(
                 onClick = onDismissRequest,
                 enabled = !state.isSaving,
                 modifier = Modifier.tvFocusRing(),
-            ) {
-                Text(stringResource(R.string.cancel))
-            }
+            ) { Text(text = stringResource(R.string.cancel)) }
         },
     )
 }
@@ -1145,9 +1146,9 @@ private fun SelectionActionsSheet(
                         color = MaterialTheme.colorScheme.surfaceContainer,
                         shape = shape,
                     )
-                    .clip(shape)
-                    .horizontalScroll(rememberScrollState())
-                    .thenIf(isTv) {
+                    .clip(shape = shape)
+                    .horizontalScroll(state = rememberScrollState())
+                    .thenIf(condition = isTv) {
                         focusRestorer(fallback = firstActionFocusRequester).focusGroup()
                             .focusProperties { up = contentFocusRequester }
                     }
@@ -1160,7 +1161,9 @@ private fun SelectionActionsSheet(
                 horizontalArrangement = Arrangement.SpaceEvenly,
             ) {
                 SelectionAction(
-                    modifier = Modifier.thenIf(isTv) { focusRequester(firstActionFocusRequester) },
+                    modifier = Modifier.thenIf(condition = isTv) {
+                        focusRequester(focusRequester = firstActionFocusRequester)
+                    },
                     isTv = isTv,
                     imageVector = NextIcons.Play,
                     title = stringResource(R.string.play),
@@ -1282,7 +1285,7 @@ private fun MediaPickerNoVideosFoundPreview() {
             MediaPickerScreenContent(
                 state = MediaPickerUiState(
                     folderName = null,
-                    mediaDataState = DataState.Success(null),
+                    mediaDataState = DataState.Success(value = null),
                     preferences = ApplicationPreferences(),
                 ),
             )

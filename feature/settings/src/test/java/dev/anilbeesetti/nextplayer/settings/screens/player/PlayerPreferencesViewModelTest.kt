@@ -22,7 +22,7 @@ class PlayerPreferencesViewModelTest {
 
     @Before
     fun setUp() {
-        Dispatchers.setMain(dispatcher)
+        Dispatchers.setMain(dispatcher = dispatcher)
     }
 
     @After
@@ -31,19 +31,19 @@ class PlayerPreferencesViewModelTest {
     }
 
     @Test
-    fun toggleTunneledPlaybackUpdatesRepositoryAndScreenState() = runTest(dispatcher) {
+    fun toggleTunneledPlaybackUpdatesRepositoryAndScreenState() = runTest(context = dispatcher) {
         repository.updatePlayerPreferences {
             it.copy(autoplay = false, preferredAudioLanguage = "en")
         }
         val original = repository.playerPreferences.value
         val viewModel =
             PlayerPreferencesViewModel(
-                repository,
+                preferencesRepository = repository,
                 PlayerPreferencesViewModel.Output(navigateUp = {
                 }),
             )
 
-        viewModel.onAction(PlayerPreferencesUiEvent.ToggleTunneledPlayback)
+        viewModel.onAction(action = PlayerPreferencesUiEvent.ToggleTunneledPlayback)
         advanceUntilIdle()
 
         assertTrue(repository.playerPreferences.value.enableTunneledPlayback)
@@ -52,7 +52,7 @@ class PlayerPreferencesViewModelTest {
             viewModel.state.value.preferences,
         )
 
-        viewModel.onAction(PlayerPreferencesUiEvent.ToggleTunneledPlayback)
+        viewModel.onAction(action = PlayerPreferencesUiEvent.ToggleTunneledPlayback)
         advanceUntilIdle()
 
         assertFalse(repository.playerPreferences.value.enableTunneledPlayback)
@@ -60,11 +60,11 @@ class PlayerPreferencesViewModelTest {
     }
 
     @Test
-    fun screenRestoresSavedTunneledPlaybackPreference() = runTest(dispatcher) {
+    fun screenRestoresSavedTunneledPlaybackPreference() = runTest(context = dispatcher) {
         repository.updatePlayerPreferences { it.copy(enableTunneledPlayback = true) }
         val viewModel =
             PlayerPreferencesViewModel(
-                repository,
+                preferencesRepository = repository,
                 PlayerPreferencesViewModel.Output(navigateUp = {
                 }),
             )

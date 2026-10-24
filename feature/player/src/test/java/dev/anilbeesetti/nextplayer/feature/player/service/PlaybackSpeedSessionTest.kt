@@ -41,15 +41,17 @@ class PlaybackSpeedSessionTest {
         }
         startKoin {
             modules(
-                module {
+                modules = module {
                     single<PreferencesRepository> { preferences }
                     single<MediaRepository> { FakeMediaRepository() }
                     single {
                         NextDataSourceFactory(
                             RuntimeEnvironment.getApplication(),
-                            NetworkSessions(
-                                NetworkConnectionResolver { null },
-                                NetworkClientFactory { error("No network playback in this test") },
+                            sessions = NetworkSessions(
+                                resolver = NetworkConnectionResolver { null },
+                                clientFactory = NetworkClientFactory {
+                                    error(message = "No network playback in this test")
+                                },
                             ),
                         )
                     }
@@ -66,7 +68,9 @@ class PlaybackSpeedSessionTest {
     @Test
     fun sessionStartsAtPreferenceAndIgnoresLegacyVideoSpeed() = withSession { _, player ->
         assertEquals(1.25f, player.playbackParameters.speed)
-        player.setMediaItems(listOf(video("first", 0.5f), video("second", 3f)))
+        player.setMediaItems(
+            listOf(video(id = "first", legacySpeed = 0.5f), video(id = "second", legacySpeed = 3f)),
+        )
         shadowOf(Looper.getMainLooper()).idle()
         assertEquals(1.25f, player.playbackParameters.speed)
         player.seekToNextMediaItem()
@@ -76,7 +80,9 @@ class PlaybackSpeedSessionTest {
 
     @Test
     fun changedSpeedSurvivesNavigationRepeatAndQueueReplacement() = withSession { service, player ->
-        player.setMediaItems(listOf(video("first", 0.5f), video("second", 3f)))
+        player.setMediaItems(
+            listOf(video(id = "first", legacySpeed = 0.5f), video(id = "second", legacySpeed = 3f)),
+        )
         shadowOf(Looper.getMainLooper()).idle()
         player.setPlaybackSpeed(1.75f)
         player.seekToNextMediaItem()
@@ -102,7 +108,7 @@ class PlaybackSpeedSessionTest {
         player.pause()
         player.clearMediaItems()
         listener.onPlaybackStateChanged(Player.STATE_IDLE)
-        player.setMediaItem(video("replacement", 2f))
+        player.setMediaItem(video(id = "replacement", legacySpeed = 2f))
         shadowOf(Looper.getMainLooper()).idle()
         assertEquals(1.75f, player.playbackParameters.speed)
         assertEquals(1.25f, preferences.playerPreferences.value.defaultPlaybackSpeed)
@@ -111,14 +117,14 @@ class PlaybackSpeedSessionTest {
     @Test
     fun newSessionUsesPreferenceInsteadOfPreviousSessionSpeed() {
         withSession { _, player ->
-            player.setMediaItem(video("first", 0.5f))
+            player.setMediaItem(video(id = "first", legacySpeed = 0.5f))
             player.setPlaybackSpeed(1.75f)
             shadowOf(Looper.getMainLooper()).idle()
             assertEquals(1.75f, player.playbackParameters.speed)
         }
         runBlocking { preferences.updatePlayerPreferences { it.copy(defaultPlaybackSpeed = 1.5f) } }
         withSession { _, player ->
-            player.setMediaItem(video("first", 0.5f))
+            player.setMediaItem(video(id = "first", legacySpeed = 0.5f))
             shadowOf(Looper.getMainLooper()).idle()
             assertEquals(1.5f, player.playbackParameters.speed)
         }
@@ -144,9 +150,7 @@ class PlaybackSpeedSessionTest {
             MediaMetadata.Builder()
                 .setArtworkData(byteArrayOf(1), MediaMetadata.PICTURE_TYPE_FRONT_COVER)
                 .setExtras(
-                    Bundle().apply {
-                        putFloat("media_metadata_playback_speed", legacySpeed)
-                    },
+                    Bundle().apply { putFloat("media_metadata_playback_speed", legacySpeed) },
                 )
                 .build(),
         )

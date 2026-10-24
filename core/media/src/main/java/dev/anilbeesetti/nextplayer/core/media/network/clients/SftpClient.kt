@@ -46,14 +46,12 @@ class SftpClient(private val connection: NetworkConnection, private val sshKeySt
                 }
             } catch (error: Throwable) {
                 runCatching { ssh.close() }
-                rethrowStrictHostException(error)
+                rethrowStrictHostException(error = error)
             }
         }
     }
 
-    override suspend fun disconnect(): Unit = withContext(Dispatchers.IO) {
-        closeBrowsingClients()
-    }
+    override suspend fun disconnect(): Unit = withContext(Dispatchers.IO) { closeBrowsingClients() }
 
     override fun isConnected(): Boolean =
         sftpClient != null && sshClient?.isConnected == true && sshClient?.isAuthenticated == true
@@ -61,7 +59,7 @@ class SftpClient(private val connection: NetworkConnection, private val sshKeySt
     override suspend fun listFiles(path: String): Result<List<NetworkFile>> =
         withContext(Dispatchers.IO) {
             runCatching {
-                val client = sftpClient ?: error("Not connected")
+                val client = sftpClient ?: error(message = "Not connected")
                 val directory = path.ifBlank { rootPath }
                 client.ls(directory).mapNotNull { entry ->
                     if (entry.name == "." || entry.name == "..") return@mapNotNull null
@@ -72,7 +70,7 @@ class SftpClient(private val connection: NetworkConnection, private val sshKeySt
                         size = entry.attributes.size,
                         modified = entry.attributes.mtime.takeIf {
                             it > 0
-                        }?.times(MILLIS_PER_SECOND),
+                        }?.times(other = MILLIS_PER_SECOND),
                     )
                 }
             }
@@ -80,9 +78,9 @@ class SftpClient(private val connection: NetworkConnection, private val sshKeySt
 
     override suspend fun fileSize(path: String): Long = withContext(Dispatchers.IO) {
         runCatching {
-            val client = sftpClient ?: error("Not connected")
+            val client = sftpClient ?: error(message = "Not connected")
             client.stat(path).size
-        }.getOrDefault(-1L)
+        }.getOrDefault(defaultValue = -1L)
     }
 
     override suspend fun openStream(path: String, offset: Long): InputStream =
@@ -106,7 +104,7 @@ class SftpClient(private val connection: NetworkConnection, private val sshKeySt
                 }
             } catch (error: Throwable) {
                 runCatching { ssh.close() }
-                rethrowStrictHostException(error)
+                rethrowStrictHostException(error = error)
             }
         }
 
@@ -146,7 +144,7 @@ class SftpClient(private val connection: NetworkConnection, private val sshKeySt
     }
 
     private fun rethrowStrictHostException(error: Throwable): Nothing {
-        val strictHostException = generateSequence(error) { it.cause }
+        val strictHostException = generateSequence(seed = error) { it.cause }
             .firstOrNull { it is HostKeyConfirmationRequired || it is HostKeyMismatch }
         throw strictHostException ?: error
     }

@@ -80,7 +80,7 @@ class PlayerActivity : ComponentActivity() {
     private var playInBackground: Boolean = false
     private var isIntentNew: Boolean = true
 
-    private var mediaController by mutableStateOf<MediaController?>(null)
+    private var mediaController by mutableStateOf<MediaController?>(value = null)
     private lateinit var playerApi: PlayerApi
     private var playbackRequestJob: Job? = null
 
@@ -111,10 +111,10 @@ class PlayerActivity : ComponentActivity() {
     }
 
     private val audioFileSuspendLauncher =
-        registerForSuspendActivityResult(OpenDocumentAtInitialUri())
+        registerForSuspendActivityResult(contract = OpenDocumentAtInitialUri())
 
     private val subtitleFileSuspendLauncher =
-        registerForSuspendActivityResult(OpenDocumentAtInitialUri())
+        registerForSuspendActivityResult(contract = OpenDocumentAtInitialUri())
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -125,7 +125,7 @@ class PlayerActivity : ComponentActivity() {
         )
 
         viewModel.output = playerOutput()
-        playerApi = PlayerApi(this)
+        playerApi = PlayerApi(activity = this)
         setContent {
             val player = rememberMediaController(
                 onBeforeRelease = ::onControllerStopped,
@@ -135,7 +135,7 @@ class PlayerActivity : ComponentActivity() {
                     )
                 },
             )
-            LaunchedEffect(player) {
+            LaunchedEffect(key1 = player) {
                 if (player == null || !player.isConnected) return@LaunchedEffect
                 mediaController = player
                 viewModel.onAction(
@@ -166,19 +166,17 @@ class PlayerActivity : ComponentActivity() {
             finish()
         },
         setVideoDecoderMode = { mode ->
-            lifecycleScope.launch { mediaController?.setVideoDecoderMode(mode) }
+            lifecycleScope.launch { mediaController?.setVideoDecoderMode(mode = mode) }
         },
         setAudioDecoderMode = { mode ->
-            lifecycleScope.launch { mediaController?.setAudioDecoderMode(mode) }
+            lifecycleScope.launch { mediaController?.setAudioDecoderMode(mode = mode) }
         },
-        tryDecoderFallback = {
-            lifecycleScope.launch { mediaController?.tryDecoderFallback() }
-        },
+        tryDecoderFallback = { lifecycleScope.launch { mediaController?.tryDecoderFallback() } },
     )
 
     private suspend fun currentMediaDirectory(): Uri? {
         val uri = mediaController?.currentMediaItem?.localConfiguration?.uri ?: return null
-        return withContext(Dispatchers.IO) { getInitialDirectoryUri(uri) }
+        return withContext(Dispatchers.IO) { getInitialDirectoryUri(fileUri = uri) }
     }
 
     private fun selectSubtitle() {
@@ -197,7 +195,7 @@ class PlayerActivity : ComponentActivity() {
                 ),
             ) ?: return@launch
             contentResolver.takePersistableUriPermission(uri, Intent.FLAG_GRANT_READ_URI_PERMISSION)
-            snapshotFlow { mediaController }.filterNotNull().first().addSubtitleTrack(uri)
+            snapshotFlow { mediaController }.filterNotNull().first().addSubtitleTrack(uri = uri)
         }
     }
 
@@ -215,7 +213,7 @@ class PlayerActivity : ComponentActivity() {
                     Intent.FLAG_GRANT_READ_URI_PERMISSION,
                 )
                 val controller = snapshotFlow { mediaController }.filterNotNull().first()
-                if (!controller.addAudioTrack(uri)) {
+                if (!controller.addAudioTrack(uri = uri)) {
                     Toast.makeText(
                         this@PlayerActivity,
                         coreUiR.string.error_opening_audio,
@@ -235,7 +233,7 @@ class PlayerActivity : ComponentActivity() {
     private fun onControllerStopped() {
         playbackRequestJob?.cancel()
         mediaController?.run {
-            viewModel.onAction(PlayerAction.UpdatePlayWhenReady(playWhenReady))
+            viewModel.onAction(PlayerAction.UpdatePlayWhenReady(playWhenReady = playWhenReady))
             removeListener(playbackStateListener)
             val shouldPlayInBackground = playInBackground || playerPreferences.autoBackgroundPlay
             if (subtitleFileSuspendLauncher.isAwaitingResult ||
@@ -294,7 +292,7 @@ class PlayerActivity : ComponentActivity() {
 
     private suspend fun playVideo(uri: Uri, playlistId: Long?) = withContext(Dispatchers.Default) {
         val savedQueue = playlistId
-            ?.let { playlistRepository.getPlaylist(it) }
+            ?.let { playlistRepository.getPlaylist(playlistId = it) }
             ?.toMediaQueue(selectedUri = uri.toString())
 
         if (playlistId != null) {
@@ -316,11 +314,11 @@ class PlayerActivity : ComponentActivity() {
             return@withContext
         }
 
-        val mediaContentUri = getMediaContentUri(uri)
+        val mediaContentUri = getMediaContentUri(uri = uri)
         val explicitPlaylist = playerApi.getPlaylist()
         val playlist = explicitPlaylist.takeIf { it.isNotEmpty() }
             ?: mediaContentUri?.let { mediaUri ->
-                viewModel.getPlaylistFromUri(mediaUri)
+                viewModel.getPlaylistFromUri(uri = mediaUri)
                     .map { it.uriString }
                     .toMutableList()
                     .apply {
@@ -419,7 +417,7 @@ class PlayerActivity : ComponentActivity() {
     override fun onWindowAttributesChanged(params: WindowManager.LayoutParams?) {
         super.onWindowAttributesChanged(params)
         for (listener in onWindowAttributesChangedListener) {
-            listener.accept(params)
+            listener.accept(value = params)
         }
     }
 

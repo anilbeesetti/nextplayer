@@ -22,17 +22,18 @@ import kotlinx.coroutines.launch
 @Composable
 fun rememberPlaybackParametersState(player: Player): PlaybackParametersState {
     val scope = rememberCoroutineScope()
-    val playbackParametersState = remember { PlaybackParametersState(player, scope) }
-    LaunchedEffect(player) { playbackParametersState.observe() }
+    val playbackParametersState =
+        remember { PlaybackParametersState(player = player, scope = scope) }
+    LaunchedEffect(key1 = player) { playbackParametersState.observe() }
     return playbackParametersState
 }
 
 @UnstableApi
 class PlaybackParametersState(private val player: Player, private val scope: CoroutineScope) {
-    var speed: Float by mutableFloatStateOf(1f)
+    var speed: Float by mutableFloatStateOf(value = 1f)
         private set
 
-    var skipSilenceEnabled: Boolean by mutableStateOf(false)
+    var skipSilenceEnabled: Boolean by mutableStateOf(value = false)
         private set
 
     fun setPlaybackSpeed(speed: Float) {
@@ -42,7 +43,7 @@ class PlaybackParametersState(private val player: Player, private val scope: Cor
     fun setIsSkipSilenceEnabled(enabled: Boolean) {
         scope.launch {
             when (player) {
-                is MediaController -> player.setSkipSilenceEnabled(enabled)
+                is MediaController -> player.setSkipSilenceEnabled(enabled = enabled)
                 is ExoPlayer -> player.skipSilenceEnabled = enabled
                 else -> return@launch
             }

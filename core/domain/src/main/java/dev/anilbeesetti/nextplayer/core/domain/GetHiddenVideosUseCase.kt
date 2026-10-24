@@ -22,5 +22,5 @@ class GetHiddenVideosUseCase(
 
     operator fun invoke(sort: Sort): Flow<List<Video>> = vaultRepository.observeHiddenVideos()
         .map { videos -> videos.sortedWith(sort.videoComparator()) }
-        .flowOn(defaultDispatcher)
+        .flowOn(context = defaultDispatcher)
 }

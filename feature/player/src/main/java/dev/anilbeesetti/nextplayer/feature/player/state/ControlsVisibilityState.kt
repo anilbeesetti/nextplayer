@@ -23,8 +23,10 @@ fun rememberControlsVisibilityState(player: Player, hideAfter: Duration): Contro
     val activity = LocalActivity.current
     val coroutineScope = rememberCoroutineScope()
     val controlsVisibilityState =
-        remember { ControlsVisibilityState(player, hideAfter, coroutineScope) }
-    LaunchedEffect(player) { controlsVisibilityState.observe() }
+        remember {
+            ControlsVisibilityState(player = player, hideAfter = hideAfter, scope = coroutineScope)
+        }
+    LaunchedEffect(key1 = player) { controlsVisibilityState.observe() }
     LaunchedEffect(
         controlsVisibilityState.controlsVisible,
         controlsVisibilityState.controlsLocked,
@@ -50,15 +52,15 @@ class ControlsVisibilityState(
 ) {
     private var autoHideControlsJob: Job? = null
 
-    var controlsVisible: Boolean by mutableStateOf(true)
+    var controlsVisible: Boolean by mutableStateOf(value = true)
         private set
 
-    var controlsLocked: Boolean by mutableStateOf(false)
+    var controlsLocked: Boolean by mutableStateOf(value = false)
         private set
 
     fun showControls(duration: Duration = hideAfter) {
         controlsVisible = true
-        autoHideControls(duration)
+        autoHideControls(duration = duration)
     }
 
     fun hideControls() {
@@ -97,7 +99,7 @@ class ControlsVisibilityState(
         autoHideControlsJob?.cancel()
         if (duration <= Duration.ZERO) return
         autoHideControlsJob = scope.launch {
-            delay(duration)
+            delay(duration = duration)
             if (player.isPlaying) {
                 controlsVisible = false
             }

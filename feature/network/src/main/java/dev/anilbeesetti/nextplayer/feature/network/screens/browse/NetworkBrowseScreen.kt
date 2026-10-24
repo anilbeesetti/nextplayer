@@ -88,7 +88,7 @@ internal fun NetworkBrowseScreenContent(
     state: NetworkBrowseUiState,
     onAction: (NetworkBrowseAction) -> Unit,
 ) {
-    var showQuickSettings by rememberSaveable { mutableStateOf(false) }
+    var showQuickSettings by rememberSaveable { mutableStateOf(value = false) }
     val isGrid = state.preferences.networkMediaLayoutMode == MediaLayoutMode.GRID
     val context = LocalContext.current
     val isTv = remember { context.isTelevision }
@@ -139,18 +139,16 @@ internal fun NetworkBrowseScreenContent(
         when {
             state.isLoading -> {
                 Box(
-                    Modifier.fillMaxSize().padding(scaffoldPadding),
+                    Modifier.fillMaxSize().padding(paddingValues = scaffoldPadding),
                     contentAlignment = Alignment.Center,
-                ) {
-                    CircularProgressIndicator()
-                }
+                ) { CircularProgressIndicator() }
             }
 
             state.error != null -> {
                 val error = state.error
                 Column(
                     modifier = Modifier.fillMaxSize().padding(
-                        scaffoldPadding,
+                        paddingValues = scaffoldPadding,
                     ).padding(horizontal = 32.dp),
                     verticalArrangement = Arrangement.Center,
                     horizontalAlignment = Alignment.CenterHorizontally,
@@ -201,7 +199,7 @@ internal fun NetworkBrowseScreenContent(
                     Spacer(Modifier.size(16.dp))
                     Button(onClick = {
                         onAction(NetworkBrowseAction.Retry)
-                    }) { Text(stringResource(R.string.retry)) }
+                    }) { Text(text = stringResource(R.string.retry)) }
                 }
             }
 
@@ -209,7 +207,7 @@ internal fun NetworkBrowseScreenContent(
                 val containerModifier = Modifier
                     .fillMaxSize()
                     .padding(scaffoldPadding.copy(bottom = 0.dp))
-                    .clip(RoundedCornerShape(topStart = 24.dp, topEnd = 24.dp))
+                    .clip(shape = RoundedCornerShape(topStart = 24.dp, topEnd = 24.dp))
                     .background(MaterialTheme.colorScheme.background)
 
                 BoxWithConstraints(modifier = containerModifier) {
@@ -220,14 +218,14 @@ internal fun NetworkBrowseScreenContent(
                     val videoMinWidth = if (isTv) 240.dp else 130.dp
                     val folderColumns = if (isGrid) {
                         (availableWidth / folderMinWidth).toInt().coerceAtLeast(
-                            1,
+                            minimumValue = 1,
                         )
                     } else {
                         1
                     }
                     val videoColumns = if (isGrid) {
                         (availableWidth / videoMinWidth).toInt().coerceAtLeast(
-                            1,
+                            minimumValue = 1,
                         )
                     } else {
                         1
@@ -245,7 +243,7 @@ internal fun NetworkBrowseScreenContent(
                         }
                     } else {
                         LazyVerticalGrid(
-                            columns = GridCells.Fixed(columns),
+                            columns = GridCells.Fixed(count = columns),
                             modifier = Modifier
                                 .fillMaxSize()
                                 .tvListFocus(),
@@ -255,18 +253,18 @@ internal fun NetworkBrowseScreenContent(
                                 top = 8.dp,
                                 bottom = scaffoldPadding.calculateBottomPadding() + 16.dp,
                             ),
-                            verticalArrangement = Arrangement.spacedBy(itemSpacing),
-                            horizontalArrangement = Arrangement.spacedBy(itemSpacing),
+                            verticalArrangement = Arrangement.spacedBy(space = itemSpacing),
+                            horizontalArrangement = Arrangement.spacedBy(space = itemSpacing),
                         ) {
                             listOf(
                                 R.string.folders to folders,
                                 R.string.videos to videos,
                             ).forEach { (title, files) ->
                                 if (files.isNotEmpty()) {
-                                    item(span = { GridItemSpan(maxLineSpan) }) {
+                                    item(span = { GridItemSpan(currentLineSpan = maxLineSpan) }) {
                                         ListSectionTitle(
                                             text =
-                                                stringResource(title) + " (${files.size})",
+                                                stringResource(id = title) + " (${files.size})",
                                         )
                                     }
                                     itemsIndexed(
@@ -274,7 +272,7 @@ internal fun NetworkBrowseScreenContent(
                                         key = { _, file -> file.path },
                                         span = { _, file ->
                                             GridItemSpan(
-                                                if (file.isDirectory) {
+                                                currentLineSpan = if (file.isDirectory) {
                                                     videoColumns
                                                 } else {
                                                     folderColumns
@@ -287,7 +285,8 @@ internal fun NetworkBrowseScreenContent(
                                         val isRecentlyPlayed = recentPath == file.path ||
                                             (
                                                 file.isDirectory &&
-                                                    recentPath?.startsWith(folderPath) == true
+                                                    recentPath?.startsWith(prefix = folderPath) ==
+                                                    true
                                                 )
                                         val history = state.playbackHistory[file.path]
                                         NetworkFileItem(
@@ -306,11 +305,11 @@ internal fun NetworkBrowseScreenContent(
                                             onClick = {
                                                 if (file.isDirectory) {
                                                     onAction(
-                                                        NetworkBrowseAction.OpenFolder(file),
+                                                        NetworkBrowseAction.OpenFolder(file = file),
                                                     )
                                                 } else {
                                                     onAction(
-                                                        NetworkBrowseAction.PlayVideo(file),
+                                                        NetworkBrowseAction.PlayVideo(file = file),
                                                     )
                                                 }
                                             },
@@ -331,7 +330,7 @@ internal fun NetworkBrowseScreenContent(
             sortOptions = listOf(Sort.By.TITLE, Sort.By.DATE, Sort.By.SIZE),
             onDismiss = { showQuickSettings = false },
             onConfirm = { layout, sort ->
-                onAction(NetworkBrowseAction.UpdateQuickSettings(layout, sort))
+                onAction(NetworkBrowseAction.UpdateQuickSettings(layoutMode = layout, sort = sort))
             },
         )
     }
@@ -369,7 +368,13 @@ private fun NetworkFileItem(
         leadingContent = if (isGrid) {
             null
         } else {
-            { NetworkFileThumbnail(file, playedPercentage, isGrid = false) }
+            {
+                NetworkFileThumbnail(
+                    file = file,
+                    playedPercentage = playedPercentage,
+                    isGrid = false,
+                )
+            }
         },
         content = {
             if (isGrid) {
@@ -378,7 +383,11 @@ private fun NetworkFileItem(
                     verticalArrangement = Arrangement.spacedBy(8.dp),
                     horizontalAlignment = Alignment.CenterHorizontally,
                 ) {
-                    NetworkFileThumbnail(file, playedPercentage, isGrid = true)
+                    NetworkFileThumbnail(
+                        file = file,
+                        playedPercentage = playedPercentage,
+                        isGrid = true,
+                    )
                     Text(
                         text = file.name,
                         maxLines = 2,
@@ -408,7 +417,7 @@ private fun NetworkFileItem(
 
             file.isDirectory && file.modified != null -> {
                 val modified = file.modified!!
-                { SupportingText(formatModifiedDate(modified)) }
+                { SupportingText(text = formatModifiedDate(millis = modified)) }
             }
 
             else -> null
@@ -429,32 +438,32 @@ private fun NetworkFileThumbnail(file: NetworkFile, playedPercentage: Float?, is
                 tint = MaterialTheme.colorScheme.surfaceContainerHigh,
                 modifier = Modifier
                     .width(
-                        if (isGrid) {
+                        width = if (isGrid) {
                             min(
                                 90.dp,
-                                LocalConfiguration.current.screenWidthDp.dp * 0.3f,
+                                b = LocalConfiguration.current.screenWidthDp.dp * 0.3f,
                             )
                         } else {
                             72.dp
                         },
                     )
-                    .aspectRatio(20 / 17f),
+                    .aspectRatio(ratio = 20 / 17f),
             )
         }
     } else {
         Box(
             modifier = Modifier
-                .then(if (isGrid) Modifier.fillMaxWidth() else Modifier.width(86.dp))
+                .then(other = if (isGrid) Modifier.fillMaxWidth() else Modifier.width(86.dp))
                 .clip(MaterialTheme.shapes.small)
                 .background(MaterialTheme.colorScheme.surfaceColorAtElevation(1.dp))
-                .aspectRatio(16f / 10f),
+                .aspectRatio(ratio = 16f / 10f),
             contentAlignment = Alignment.Center,
         ) {
             Icon(
                 imageVector = NextIcons.Video,
                 contentDescription = null,
                 tint = MaterialTheme.colorScheme.surfaceColorAtElevation(100.dp),
-                modifier = Modifier.fillMaxSize(0.5f),
+                modifier = Modifier.fillMaxSize(fraction = 0.5f),
             )
             if (playedPercentage != null) {
                 if (isGrid) {
@@ -470,15 +479,19 @@ private fun NetworkFileThumbnail(file: NetworkFile, playedPercentage: Float?, is
                         )
                         Box(
                             modifier = Modifier
-                                .fillMaxWidth(playedPercentage.coerceIn(0f, 1f))
+                                .fillMaxWidth(
+                                    playedPercentage.coerceIn(minimumValue = 0f, maximumValue = 1f),
+                                )
                                 .fillMaxHeight()
-                                .clip(CircleShape)
+                                .clip(shape = CircleShape)
                                 .background(MaterialTheme.colorScheme.primary),
                         )
                     }
                 } else {
                     LinearProgressIndicator(
-                        progress = { playedPercentage.coerceIn(0f, 1f) },
+                        progress = {
+                            playedPercentage.coerceIn(minimumValue = 0f, maximumValue = 1f)
+                        },
                         modifier = Modifier.align(
                             Alignment.BottomCenter,
                         ).fillMaxWidth().height(4.dp),
@@ -502,7 +515,5 @@ private fun SupportingText(text: String) {
 @Composable
 private fun formatModifiedDate(millis: Long): String {
     val context = LocalContext.current
-    return remember(millis) {
-        DateFormat.getMediumDateFormat(context).format(Date(millis))
-    }
+    return remember(millis) { DateFormat.getMediumDateFormat(context).format(Date(millis)) }
 }

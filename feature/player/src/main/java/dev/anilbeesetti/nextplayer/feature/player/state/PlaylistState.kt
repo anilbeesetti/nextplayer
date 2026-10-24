@@ -18,8 +18,8 @@ import androidx.media3.ui.compose.state.observeState
 @UnstableApi
 @Composable
 fun rememberPlaylistState(player: Player): PlaylistState {
-    val playlistState = remember(player) { PlaylistState(player) }
-    LaunchedEffect(player) { playlistState.observe() }
+    val playlistState = remember(player) { PlaylistState(player = player) }
+    LaunchedEffect(key1 = player) { playlistState.observe() }
     return playlistState
 }
 

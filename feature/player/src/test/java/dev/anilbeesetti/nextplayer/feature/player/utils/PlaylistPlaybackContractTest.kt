@@ -16,7 +16,7 @@ class PlaylistPlaybackContractTest {
 
     @Test
     fun queueKeepsDatabaseOrderAndSelectsRequestedUri() {
-        val queue = playlistRecord().toMediaQueue("https://example.com/two")
+        val queue = playlistRecord().toMediaQueue(selectedUri = "https://example.com/two")
 
         assertEquals(
             listOf("https://example.com/one", "https://example.com/two"),
@@ -27,7 +27,7 @@ class PlaylistPlaybackContractTest {
 
     @Test
     fun queueAddsParsedTitleAndArtworkMetadata() {
-        val queue = playlistRecord().toMediaQueue("https://example.com/one")
+        val queue = playlistRecord().toMediaQueue(selectedUri = "https://example.com/one")
 
         val item = queue?.mediaItems?.first()
         assertEquals("One", item?.mediaMetadata?.title)
@@ -39,7 +39,7 @@ class PlaylistPlaybackContractTest {
 
     @Test
     fun missingSelectedEntryReturnsNullForSingleItemFallback() {
-        assertNull(playlistRecord().toMediaQueue("https://example.com/missing"))
+        assertNull(playlistRecord().toMediaQueue(selectedUri = "https://example.com/missing"))
     }
 
     private fun playlistRecord() = PlaylistRecord(

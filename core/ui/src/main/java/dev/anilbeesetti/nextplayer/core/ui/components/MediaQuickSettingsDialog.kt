@@ -40,15 +40,15 @@ fun MediaQuickSettingsDialog(
     onConfirm: (MediaLayoutMode, Sort) -> Unit,
     dateLabel: Int = R.string.date,
 ) {
-    var selectedLayout by remember { mutableStateOf(layoutMode) }
-    var selectedSort by remember { mutableStateOf(sort) }
+    var selectedLayout by remember { mutableStateOf(value = layoutMode) }
+    var selectedSort by remember { mutableStateOf(value = sort) }
 
     NextDialog(
         onDismissRequest = onDismiss,
-        title = { Text(stringResource(R.string.quick_settings)) },
+        title = { Text(text = stringResource(R.string.quick_settings)) },
         content = {
             HorizontalDivider()
-            Column(modifier = Modifier.verticalScroll(rememberScrollState())) {
+            Column(modifier = Modifier.verticalScroll(state = rememberScrollState())) {
                 MediaLayoutAndSortSettings(
                     layoutMode = selectedLayout,
                     sort = selectedSort,
@@ -80,23 +80,24 @@ fun MediaLayoutAndSortSettings(
         listOf(Sort.By.TITLE, Sort.By.LENGTH, Sort.By.DATE, Sort.By.SIZE, Sort.By.PATH),
     dateLabel: Int = R.string.date,
 ) {
-    SectionTitle(stringResource(R.string.media_layout))
+    SectionTitle(text = stringResource(R.string.media_layout))
     SingleChoiceSegmentedButtonRow(modifier = Modifier.fillMaxWidth()) {
         MediaLayoutMode.entries.forEachIndexed { index, mode ->
             SegmentedButton(
                 selected = layoutMode == mode,
                 onClick = { onLayoutModeChange(mode) },
-                shape = SegmentedButtonDefaults.itemShape(index, MediaLayoutMode.entries.size),
+                shape = SegmentedButtonDefaults.itemShape(
+                    index = index,
+                    MediaLayoutMode.entries.size,
+                ),
                 colors = SegmentedButtonDefaults.colors(
                     activeContentColor = MaterialTheme.colorScheme.primary,
                     activeBorderColor = MaterialTheme.colorScheme.primary,
                 ),
             ) {
                 Text(
-                    stringResource(
-                        if (mode ==
-                            MediaLayoutMode.LIST
-                        ) {
+                    text = stringResource(
+                        id = if (mode == MediaLayoutMode.LIST) {
                             R.string.list
                         } else {
                             R.string.grid
@@ -107,10 +108,10 @@ fun MediaLayoutAndSortSettings(
         }
     }
     HorizontalDivider(modifier = Modifier.padding(top = 16.dp))
-    SectionTitle(stringResource(R.string.sort))
+    SectionTitle(text = stringResource(R.string.sort))
     Row(
         horizontalArrangement = Arrangement.SpaceBetween,
-        modifier = Modifier.fillMaxWidth().horizontalScroll(rememberScrollState()),
+        modifier = Modifier.fillMaxWidth().horizontalScroll(state = rememberScrollState()),
     ) {
         sortOptions.forEach { by ->
             val (label, icon) = when (by) {
@@ -121,7 +122,7 @@ fun MediaLayoutAndSortSettings(
                 Sort.By.PATH -> R.string.location to NextIcons.Location
             }
             TextIconToggleButton(
-                text = stringResource(label),
+                text = stringResource(id = label),
                 icon = icon,
                 isSelected = sort.by == by,
                 onClick = { onSortChange(sort.copy(by = by)) },
@@ -134,16 +135,14 @@ fun MediaLayoutAndSortSettings(
             SegmentedButton(
                 selected = sort.order == order,
                 onClick = { onSortChange(sort.copy(order = order)) },
-                shape = SegmentedButtonDefaults.itemShape(index, Sort.Order.entries.size),
+                shape = SegmentedButtonDefaults.itemShape(index = index, Sort.Order.entries.size),
                 colors = SegmentedButtonDefaults.colors(
                     activeContentColor = MaterialTheme.colorScheme.primary,
                     activeBorderColor = MaterialTheme.colorScheme.primary,
                 ),
                 icon = {
                     Icon(
-                        imageVector = if (order ==
-                            Sort.Order.ASCENDING
-                        ) {
+                        imageVector = if (order == Sort.Order.ASCENDING) {
                             NextIcons.ArrowUpward
                         } else {
                             NextIcons.ArrowDownward
@@ -159,7 +158,7 @@ fun MediaLayoutAndSortSettings(
                     Sort.By.SIZE -> if (ascending) R.string.smallest else R.string.largest
                     Sort.By.DATE -> if (ascending) R.string.oldest else R.string.newest
                 }
-                Text(stringResource(label))
+                Text(text = stringResource(id = label))
             }
         }
     }

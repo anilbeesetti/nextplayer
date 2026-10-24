@@ -32,7 +32,7 @@ class ControlsTopViewTest {
         composeRule.setContent {
             NextPlayerTheme {
                 ControlsTopView(
-                    modifier = Modifier.focusRequester(groupFocusRequester),
+                    modifier = Modifier.focusRequester(focusRequester = groupFocusRequester),
                     title = "Video",
                     videoDecoderMode = null,
                     onBackClick = { backClicked = true },

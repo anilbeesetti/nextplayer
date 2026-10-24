@@ -43,7 +43,7 @@ class ControlsMiddleViewTest {
         val groupFocusRequester = FocusRequester()
         val player = composeRule.runOnIdle { TestPlayer() }
         try {
-            showControls(player, groupFocusRequester)
+            showControls(player = player, groupFocusRequester = groupFocusRequester)
             val playPause = composeRule.onNodeWithContentDescription(
                 composeRule.activity.getString(R.string.play_pause),
             )
@@ -56,7 +56,7 @@ class ControlsMiddleViewTest {
 
             playPause.performKeyInput { pressKey(Key.DirectionRight) }
             next.assertIsFocused()
-            val otherControl = composeRule.onNodeWithTag("other-control")
+            val otherControl = composeRule.onNodeWithTag(testTag = "other-control")
             otherControl.requestFocus().assertIsFocused()
 
             otherControl.performKeyInput { pressKey(Key.DirectionUp) }
@@ -71,7 +71,7 @@ class ControlsMiddleViewTest {
         val groupFocusRequester = FocusRequester()
         val player = composeRule.runOnIdle { TestPlayer() }
         try {
-            showControls(player, groupFocusRequester)
+            showControls(player = player, groupFocusRequester = groupFocusRequester)
             val playPause = composeRule.onNodeWithContentDescription(
                 composeRule.activity.getString(R.string.play_pause),
             )
@@ -84,9 +84,9 @@ class ControlsMiddleViewTest {
             composeRule.runOnIdle { groupFocusRequester.requestFocus() }
 
             for (key in listOf(Key.DirectionCenter, Key.Enter, Key.NumPadEnter)) {
-                playPause.performKeyInput { pressKey(key) }
+                playPause.performKeyInput { pressKey(key = key) }
                 composeRule.runOnIdle { assertTrue(player.playWhenReady) }
-                playPause.performKeyInput { pressKey(key) }
+                playPause.performKeyInput { pressKey(key = key) }
                 composeRule.runOnIdle { assertFalse(player.playWhenReady) }
             }
 
@@ -113,15 +113,13 @@ class ControlsMiddleViewTest {
             NextPlayerTheme {
                 Column {
                     ControlsMiddleView(
-                        modifier = Modifier.focusRequester(groupFocusRequester),
+                        modifier = Modifier.focusRequester(focusRequester = groupFocusRequester),
                         player = player,
                     )
                     Button(
-                        modifier = Modifier.testTag("other-control"),
+                        modifier = Modifier.testTag(tag = "other-control"),
                         onClick = {},
-                    ) {
-                        Text("Other control")
-                    }
+                    ) { Text(text = "Other control") }
                 }
             }
         }
@@ -140,7 +138,9 @@ class ControlsMiddleViewTest {
                     )
                     .build(),
             )
-            .setPlaylist(List(3) { MediaItemData.Builder(it).setDurationUs(60_000_000).build() })
+            .setPlaylist(
+                List(size = 3) { MediaItemData.Builder(it).setDurationUs(60_000_000).build() },
+            )
             .setCurrentMediaItemIndex(1)
             .setContentPositionMs(0)
             .setPlaybackState(Player.STATE_READY)

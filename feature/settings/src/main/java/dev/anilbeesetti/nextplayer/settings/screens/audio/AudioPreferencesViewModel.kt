@@ -22,7 +22,7 @@ class AudioPreferencesViewModel(
     data class Output(val navigateUp: () -> Unit)
 
     private val stateInternal = MutableStateFlow(
-        AudioPreferencesUiState(
+        value = AudioPreferencesUiState(
             preferences = preferencesRepository.playerPreferences.value,
         ),
     )
@@ -58,9 +58,7 @@ class AudioPreferencesViewModel(
     }
 
     private fun showDialog(value: AudioPreferenceDialog?) {
-        stateInternal.update {
-            it.copy(showDialog = value)
-        }
+        stateInternal.update { it.copy(showDialog = value) }
     }
 
     private fun updateAudioLanguage(value: String) {

@@ -34,7 +34,7 @@ class WebDavClient(private val connection: NetworkConnection) : NetworkClient {
             base.isEmpty() -> "$authority/$clean"
             else -> "$authority/$base/$clean"
         }
-        return if (isDirectory && !url.endsWith("/")) "$url/" else url
+        return if (isDirectory && !url.endsWith(suffix = "/")) "$url/" else url
     }
 
     override suspend fun connect(): Result<Unit> = withContext(Dispatchers.IO) {
@@ -46,7 +46,7 @@ class WebDavClient(private val connection: NetworkConnection) : NetworkClient {
                     connection.password,
                 )
             }
-            client.exists(buildUrl("", isDirectory = true))
+            client.exists(buildUrl(path = "", isDirectory = true))
             sardine = client
         }
     }
@@ -60,8 +60,8 @@ class WebDavClient(private val connection: NetworkConnection) : NetworkClient {
     override suspend fun listFiles(path: String): Result<List<NetworkFile>> =
         withContext(Dispatchers.IO) {
             runCatching {
-                val client = sardine ?: error("Not connected")
-                client.list(buildUrl(path, isDirectory = true)).drop(1).map { resource ->
+                val client = sardine ?: error(message = "Not connected")
+                client.list(buildUrl(path = path, isDirectory = true)).drop(n = 1).map { resource ->
                     val name = resource.name ?: ""
                     NetworkFile(
                         name = name,
@@ -76,29 +76,30 @@ class WebDavClient(private val connection: NetworkConnection) : NetworkClient {
 
     override suspend fun fileSize(path: String): Long = withContext(Dispatchers.IO) {
         runCatching {
-            val client = sardine ?: error("Not connected")
-            client.list(buildUrl(path), 0).firstOrNull { !it.isDirectory }?.contentLength ?: -1L
-        }.getOrDefault(-1L)
+            val client = sardine ?: error(message = "Not connected")
+            client.list(buildUrl(path = path), 0).firstOrNull { !it.isDirectory }?.contentLength
+                ?: -1L
+        }.getOrDefault(defaultValue = -1L)
     }
 
     override suspend fun openStream(path: String, offset: Long): InputStream =
         withContext(Dispatchers.IO) {
-            val builder = Request.Builder().url(buildUrl(path))
+            val builder = Request.Builder().url(url = buildUrl(path = path))
             if (!connection.isAnonymous) {
                 builder.header(
-                    "Authorization",
+                    name = "Authorization",
                     Credentials.basic(connection.username, connection.password),
                 )
             }
-            if (offset > 0) builder.header("Range", "bytes=$offset-")
+            if (offset > 0) builder.header(name = "Range", value = "bytes=$offset-")
             val response = httpClient.newCall(builder.build()).execute()
             if (!response.isSuccessful) {
                 response.close()
-                error("WebDAV request failed: ${response.code}")
+                error(message = "WebDAV request failed: ${response.code}")
             }
             response.body?.byteStream() ?: run {
                 response.close()
-                error("Empty WebDAV response body")
+                error(message = "Empty WebDAV response body")
             }
         }
 }

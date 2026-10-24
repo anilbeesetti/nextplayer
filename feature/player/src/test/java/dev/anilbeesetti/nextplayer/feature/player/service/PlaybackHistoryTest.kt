@@ -46,7 +46,7 @@ class PlaybackHistoryTest {
         }
         startKoin {
             modules(
-                module {
+                modules = module {
                     single<MediaRepository> { repository }
                     single { ImageLoader.Builder(RuntimeEnvironment.getApplication()).build() }
                 },
@@ -78,7 +78,7 @@ class PlaybackHistoryTest {
 
             state = Player.STATE_READY
             notify(Player.EVENT_PLAYBACK_STATE_CHANGED)
-            assertEquals(listOf("first" to 20_000L), recorded)
+            assertEquals(listOf(element = "first" to 20_000L), recorded)
             assertEquals(20_000L, player.currentMediaItem?.mediaMetadata?.durationMs)
 
             player.seekTo(1, 0)

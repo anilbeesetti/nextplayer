@@ -90,12 +90,12 @@ internal fun BoxScope.DpadSeekIndicator(visible: Boolean, offsetMs: Long, positi
                     tint = Color.White,
                     modifier = Modifier
                         .size(28.dp)
-                        .rotate(if (offsetMs < 0) 180f else 0f),
+                        .rotate(degrees = if (offsetMs < 0) 180f else 0f),
                 )
                 Column(horizontalAlignment = Alignment.CenterHorizontally) {
                     Text(
                         text = "${if (offsetMs >= 0) "+" else "-"}${abs(
-                            offsetMs,
+                            n = offsetMs,
                         ).milliseconds.inWholeSeconds}s",
                         style = MaterialTheme.typography.titleLarge,
                         fontWeight = FontWeight.Bold,

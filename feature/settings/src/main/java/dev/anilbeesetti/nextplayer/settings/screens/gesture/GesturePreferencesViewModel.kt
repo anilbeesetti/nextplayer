@@ -24,7 +24,7 @@ class GesturePreferencesViewModel(
     data class Output(val navigateUp: () -> Unit)
 
     private val stateInternal = MutableStateFlow(
-        GesturePreferencesUiState(
+        value = GesturePreferencesUiState(
             preferences = preferencesRepository.playerPreferences.value,
         ),
     )
@@ -88,16 +88,12 @@ class GesturePreferencesViewModel(
     }
 
     private fun showDialog(value: GesturePreferenceDialog?) {
-        stateInternal.update {
-            it.copy(showDialog = value)
-        }
+        stateInternal.update { it.copy(showDialog = value) }
     }
 
     private fun updateDoubleTapGesture(gesture: DoubleTapGesture) {
         viewModelScope.launch {
-            preferencesRepository.updatePlayerPreferences {
-                it.copy(doubleTapGesture = gesture)
-            }
+            preferencesRepository.updatePlayerPreferences { it.copy(doubleTapGesture = gesture) }
         }
     }
 
@@ -173,16 +169,14 @@ class GesturePreferencesViewModel(
 
     private fun updateSeekIncrement(value: Int) {
         viewModelScope.launch {
-            preferencesRepository.updatePlayerPreferences {
-                it.copy(seekIncrement = value)
-            }
+            preferencesRepository.updatePlayerPreferences { it.copy(seekIncrement = value) }
         }
     }
 
     private fun updateSeekSensitivity(value: Float) {
         viewModelScope.launch {
             preferencesRepository.updatePlayerPreferences {
-                it.copy(seekSensitivity = value.round(2))
+                it.copy(seekSensitivity = value.round(decimalPlaces = 2))
             }
         }
     }
@@ -190,7 +184,7 @@ class GesturePreferencesViewModel(
     private fun updateVolumeGestureSensitivity(value: Float) {
         viewModelScope.launch {
             preferencesRepository.updatePlayerPreferences {
-                it.copy(volumeGestureSensitivity = value.round(2))
+                it.copy(volumeGestureSensitivity = value.round(decimalPlaces = 2))
             }
         }
     }
@@ -198,7 +192,7 @@ class GesturePreferencesViewModel(
     private fun updateBrightnessGestureSensitivity(value: Float) {
         viewModelScope.launch {
             preferencesRepository.updatePlayerPreferences {
-                it.copy(brightnessGestureSensitivity = value.round(2))
+                it.copy(brightnessGestureSensitivity = value.round(decimalPlaces = 2))
             }
         }
     }

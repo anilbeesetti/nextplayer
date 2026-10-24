@@ -51,13 +51,13 @@ class VolumeAndBrightnessGestureState(
     private val brightnessGestureSensitivity: Float,
     private val coroutineScope: CoroutineScope,
 ) {
-    var activeGesture: VerticalGesture? by mutableStateOf(null)
+    var activeGesture: VerticalGesture? by mutableStateOf(value = null)
         private set
 
-    var volumeChangePercentage: Int by mutableIntStateOf(0)
+    var volumeChangePercentage: Int by mutableIntStateOf(value = 0)
         private set
 
-    var brightnessChangePercentage: Int by mutableIntStateOf(0)
+    var brightnessChangePercentage: Int by mutableIntStateOf(value = 0)
         private set
 
     private var startingY = 0f
@@ -92,7 +92,7 @@ class VolumeAndBrightnessGestureState(
                     maximumValue = maxVolumePercentage - startVolumePercentage,
                 )
                 brightnessChangePercentage = 0
-                volumeState.updateVolumePercentage(newVolume)
+                volumeState.updateVolumePercentage(percentage = newVolume)
             }
 
             VerticalGesture.BRIGHTNESS -> {
@@ -104,7 +104,7 @@ class VolumeAndBrightnessGestureState(
                     maximumValue = MAX_BRIGHTNESS_PERCENTAGE - startBrightnessPercentage,
                 )
                 volumeChangePercentage = 0
-                brightnessState.updateBrightnessPercentage(newBrightness)
+                brightnessState.updateBrightnessPercentage(percentage = newBrightness)
             }
         }
     }

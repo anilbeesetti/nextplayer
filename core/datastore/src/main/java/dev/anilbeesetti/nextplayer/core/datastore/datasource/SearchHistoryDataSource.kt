@@ -22,9 +22,9 @@ class SearchHistoryDataSource(
 
     suspend fun update(transform: suspend (SearchHistory) -> SearchHistory) {
         try {
-            searchHistoryDataStore.updateData(transform)
+            searchHistoryDataStore.updateData(transform = transform)
         } catch (ioException: Exception) {
-            Logger.logError(TAG, "Failed to update search history: $ioException")
+            Logger.logError(tag = TAG, message = "Failed to update search history: $ioException")
         }
     }
 }

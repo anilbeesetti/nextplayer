@@ -68,7 +68,7 @@ private fun PlayerPreferencesScreenContent(
                 navigationIcon = {
                     FilledTonalIconButton(onClick = {
                         onAction(PlayerPreferencesUiEvent.NavigateUp)
-                    }, modifier = Modifier.tvFocusDown(listFocusRequester)) {
+                    }, modifier = Modifier.tvFocusDown(target = listFocusRequester)) {
                         Icon(
                             imageVector = NextIcons.ArrowBack,
                             contentDescription = stringResource(id = R.string.navigate_up),
@@ -83,8 +83,8 @@ private fun PlayerPreferencesScreenContent(
             modifier = Modifier
                 .fillMaxSize()
                 .verticalScroll(state = rememberScrollState())
-                .tvListFocus(listFocusRequester)
-                .padding(innerPadding)
+                .tvListFocus(focusRequester = listFocusRequester)
+                .padding(paddingValues = innerPadding)
                 .padding(horizontal = 16.dp),
         ) {
             ListSectionTitle(text = stringResource(id = R.string.interface_name))
@@ -153,7 +153,7 @@ private fun PlayerPreferencesScreenContent(
                     onClick = {
                         onAction(
                             PlayerPreferencesUiEvent.ShowDialog(
-                                PlayerPreferenceDialog.ResumeDialog,
+                                value = PlayerPreferenceDialog.ResumeDialog,
                             ),
                         )
                     },
@@ -166,12 +166,16 @@ private fun PlayerPreferencesScreenContent(
                     value = state.preferences.defaultPlaybackSpeed,
                     valueRange = 0.2f..4.0f,
                     onValueChange = {
-                        onAction(PlayerPreferencesUiEvent.UpdateDefaultPlaybackSpeed(it))
+                        onAction(PlayerPreferencesUiEvent.UpdateDefaultPlaybackSpeed(value = it))
                     },
-                    onReset = { onAction(PlayerPreferencesUiEvent.UpdateDefaultPlaybackSpeed(1f)) },
+                    onReset = {
+                        onAction(PlayerPreferencesUiEvent.UpdateDefaultPlaybackSpeed(value = 1f))
+                    },
                     trailingContent = {
                         FilledIconButton(onClick = {
-                            onAction(PlayerPreferencesUiEvent.UpdateDefaultPlaybackSpeed(1f))
+                            onAction(
+                                PlayerPreferencesUiEvent.UpdateDefaultPlaybackSpeed(value = 1f),
+                            )
                         }) {
                             Icon(
                                 imageVector = NextIcons.History,
@@ -241,7 +245,7 @@ private fun PlayerPreferencesScreenContent(
                     onClick = {
                         onAction(
                             PlayerPreferencesUiEvent.ShowDialog(
-                                PlayerPreferenceDialog.PlayerScreenOrientationDialog,
+                                value = PlayerPreferenceDialog.PlayerScreenOrientationDialog,
                             ),
                         )
                     },
@@ -255,15 +259,19 @@ private fun PlayerPreferencesScreenContent(
                 PlayerPreferenceDialog.ResumeDialog -> {
                     OptionsDialog(
                         text = stringResource(id = R.string.resume),
-                        onDismissClick = { onAction(PlayerPreferencesUiEvent.ShowDialog(null)) },
+                        onDismissClick = {
+                            onAction(PlayerPreferencesUiEvent.ShowDialog(value = null))
+                        },
                     ) {
                         items(Resume.entries.toTypedArray()) {
                             RadioTextButton(
                                 text = it.name(),
                                 selected = (it == state.preferences.resume),
                                 onClick = {
-                                    onAction(PlayerPreferencesUiEvent.UpdatePlaybackResume(it))
-                                    onAction(PlayerPreferencesUiEvent.ShowDialog(null))
+                                    onAction(
+                                        PlayerPreferencesUiEvent.UpdatePlaybackResume(resume = it),
+                                    )
+                                    onAction(PlayerPreferencesUiEvent.ShowDialog(value = null))
                                 },
                             )
                         }
@@ -273,7 +281,9 @@ private fun PlayerPreferencesScreenContent(
                 PlayerPreferenceDialog.PlayerScreenOrientationDialog -> {
                     OptionsDialog(
                         text = stringResource(id = R.string.player_screen_orientation),
-                        onDismissClick = { onAction(PlayerPreferencesUiEvent.ShowDialog(null)) },
+                        onDismissClick = {
+                            onAction(PlayerPreferencesUiEvent.ShowDialog(value = null))
+                        },
                     ) {
                         items(ScreenOrientation.entries.toTypedArray()) {
                             RadioTextButton(
@@ -282,10 +292,10 @@ private fun PlayerPreferencesScreenContent(
                                 onClick = {
                                     onAction(
                                         PlayerPreferencesUiEvent.UpdatePreferredPlayerOrientation(
-                                            it,
+                                            value = it,
                                         ),
                                     )
-                                    onAction(PlayerPreferencesUiEvent.ShowDialog(null))
+                                    onAction(PlayerPreferencesUiEvent.ShowDialog(value = null))
                                 },
                             )
                         }
@@ -295,7 +305,9 @@ private fun PlayerPreferencesScreenContent(
                 PlayerPreferenceDialog.ControlButtonsDialog -> {
                     OptionsDialog(
                         text = stringResource(id = R.string.control_buttons_alignment),
-                        onDismissClick = { onAction(PlayerPreferencesUiEvent.ShowDialog(null)) },
+                        onDismissClick = {
+                            onAction(PlayerPreferencesUiEvent.ShowDialog(value = null))
+                        },
                     ) {
                         items(ControlButtonsPosition.entries.toTypedArray()) {
                             RadioTextButton(
@@ -304,10 +316,10 @@ private fun PlayerPreferencesScreenContent(
                                 onClick = {
                                     onAction(
                                         UpdatePreferredControlButtonsPosition(
-                                            it,
+                                            value = it,
                                         ),
                                     )
-                                    onAction(PlayerPreferencesUiEvent.ShowDialog(null))
+                                    onAction(PlayerPreferencesUiEvent.ShowDialog(value = null))
                                 },
                             )
                         }

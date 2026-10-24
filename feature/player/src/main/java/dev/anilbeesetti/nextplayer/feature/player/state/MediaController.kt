@@ -31,11 +31,11 @@ fun rememberMediaController(
             SessionToken(context, ComponentName(context, PlayerService::class.java))
         }
     val scope = rememberCoroutineScope()
-    var mediaController by remember(context) { mutableStateOf<MediaController?>(null) }
-    val currentOnBeforeRelease by rememberUpdatedState(onBeforeRelease)
-    val currentOnExtrasChanged by rememberUpdatedState(onExtrasChanged)
+    var mediaController by remember(context) { mutableStateOf<MediaController?>(value = null) }
+    val currentOnBeforeRelease by rememberUpdatedState(newValue = onBeforeRelease)
+    val currentOnExtrasChanged by rememberUpdatedState(newValue = onExtrasChanged)
 
-    LifecycleStartEffect(context) {
+    LifecycleStartEffect(key1 = context) {
         val future = MediaController.Builder(context, token).setListener(
             object : MediaController.Listener {
                 override fun onExtrasChanged(controller: MediaController, extras: Bundle) {
@@ -49,7 +49,7 @@ fun rememberMediaController(
             connection.cancel()
             try {
                 // The service outlives these controls; clear suppression while still connected.
-                mediaController?.setIsScrubbingModeEnabled(false)
+                mediaController?.setIsScrubbingModeEnabled(enabled = false)
                 currentOnBeforeRelease()
             } finally {
                 mediaController = null

@@ -16,7 +16,7 @@ class PlaylistStateTest {
             state,
             player,
         ->
-        state.removeItem(1)
+        state.removeItem(index = 1)
 
         assertEquals(listOf("first", "last"), player.mediaIds())
     }
@@ -24,16 +24,16 @@ class PlaylistStateTest {
     @Test
     fun ignoresOutOfBoundsRemoval() = withPlaylist("first", "last") { state, player ->
         for (index in listOf(-1, 2, 3)) {
-            state.removeItem(index)
+            state.removeItem(index = index)
             assertEquals(listOf("first", "last"), player.mediaIds())
         }
     }
 
     @Test
     fun preservesLastItem() = withPlaylist("only") { state, player ->
-        state.removeItem(0)
+        state.removeItem(index = 0)
 
-        assertEquals(listOf("only"), player.mediaIds())
+        assertEquals(listOf(element = "only"), player.mediaIds())
     }
 
     private fun withPlaylist(vararg ids: String, assertion: (PlaylistState, Player) -> Unit) {
@@ -44,7 +44,7 @@ class PlaylistStateTest {
                     MediaItem.Builder().setMediaId(it).setUri("file:///$it.mp4").build()
                 },
             )
-            assertion(PlaylistState(player), player)
+            assertion(PlaylistState(player = player), player)
         } finally {
             player.release()
         }

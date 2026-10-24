@@ -73,7 +73,7 @@ private fun GesturePreferencesScreenContent(
                 navigationIcon = {
                     FilledTonalIconButton(onClick = {
                         onAction(GesturePreferencesUiEvent.NavigateUp)
-                    }, modifier = Modifier.tvFocusDown(listFocusRequester)) {
+                    }, modifier = Modifier.tvFocusDown(target = listFocusRequester)) {
                         Icon(
                             imageVector = NextIcons.ArrowBack,
                             contentDescription = stringResource(id = R.string.navigate_up),
@@ -88,8 +88,8 @@ private fun GesturePreferencesScreenContent(
             modifier = Modifier
                 .fillMaxSize()
                 .verticalScroll(state = rememberScrollState())
-                .tvListFocus(listFocusRequester)
-                .padding(innerPadding)
+                .tvListFocus(focusRequester = listFocusRequester)
+                .padding(paddingValues = innerPadding)
                 .padding(horizontal = 16.dp),
         ) {
             ListSectionTitle(text = stringResource(id = R.string.gestures))
@@ -112,7 +112,7 @@ private fun GesturePreferencesScreenContent(
                     value = state.preferences.seekSensitivity,
                     valueRange = 0.1f..2.0f,
                     onValueChange = {
-                        onAction(GesturePreferencesUiEvent.UpdateSeekSensitivity(it))
+                        onAction(GesturePreferencesUiEvent.UpdateSeekSensitivity(value = it))
                     },
                     trailingContent = {
                         FilledIconButton(
@@ -153,7 +153,11 @@ private fun GesturePreferencesScreenContent(
                     value = state.preferences.brightnessGestureSensitivity,
                     valueRange = 0.1f..2.0f,
                     onValueChange = {
-                        onAction(GesturePreferencesUiEvent.UpdateBrightnessGestureSensitivity(it))
+                        onAction(
+                            GesturePreferencesUiEvent.UpdateBrightnessGestureSensitivity(
+                                value = it,
+                            ),
+                        )
                     },
                     trailingContent = {
                         FilledIconButton(
@@ -194,7 +198,9 @@ private fun GesturePreferencesScreenContent(
                     value = state.preferences.volumeGestureSensitivity,
                     valueRange = 0.1f..2.0f,
                     onValueChange = {
-                        onAction(GesturePreferencesUiEvent.UpdateVolumeGestureSensitivity(it))
+                        onAction(
+                            GesturePreferencesUiEvent.UpdateVolumeGestureSensitivity(value = it),
+                        )
                     },
                     trailingContent = {
                         FilledIconButton(
@@ -240,7 +246,7 @@ private fun GesturePreferencesScreenContent(
                     onClick = {
                         onAction(
                             GesturePreferencesUiEvent.ShowDialog(
-                                GesturePreferenceDialog.DoubleTapDialog,
+                                value = GesturePreferenceDialog.DoubleTapDialog,
                             ),
                         )
                     },
@@ -257,7 +263,7 @@ private fun GesturePreferencesScreenContent(
                     onClick = {
                         onAction(
                             GesturePreferencesUiEvent.ShowDialog(
-                                GesturePreferenceDialog.LongPressControlsSpeedDialog,
+                                value = GesturePreferenceDialog.LongPressControlsSpeedDialog,
                             ),
                         )
                     },
@@ -304,15 +310,21 @@ private fun GesturePreferencesScreenContent(
                 GesturePreferenceDialog.DoubleTapDialog -> {
                     OptionsDialog(
                         text = stringResource(id = R.string.double_tap),
-                        onDismissClick = { onAction(GesturePreferencesUiEvent.ShowDialog(null)) },
+                        onDismissClick = {
+                            onAction(GesturePreferencesUiEvent.ShowDialog(value = null))
+                        },
                     ) {
                         items(DoubleTapGesture.entries.toTypedArray()) {
                             RadioTextButton(
                                 text = it.name(),
                                 selected = (it == state.preferences.doubleTapGesture),
                                 onClick = {
-                                    onAction(GesturePreferencesUiEvent.UpdateDoubleTapGesture(it))
-                                    onAction(GesturePreferencesUiEvent.ShowDialog(null))
+                                    onAction(
+                                        GesturePreferencesUiEvent.UpdateDoubleTapGesture(
+                                            gesture = it,
+                                        ),
+                                    )
+                                    onAction(GesturePreferencesUiEvent.ShowDialog(value = null))
                                 },
                             )
                         }
@@ -329,12 +341,14 @@ private fun GesturePreferencesScreenContent(
                         onDoneClick = {
                             onAction(
                                 GesturePreferencesUiEvent.UpdateLongPressControlsSpeed(
-                                    longPressControlsSpeed,
+                                    value = longPressControlsSpeed,
                                 ),
                             )
-                            onAction(GesturePreferencesUiEvent.ShowDialog(null))
+                            onAction(GesturePreferencesUiEvent.ShowDialog(value = null))
                         },
-                        onDismissClick = { onAction(GesturePreferencesUiEvent.ShowDialog(null)) },
+                        onDismissClick = {
+                            onAction(GesturePreferencesUiEvent.ShowDialog(value = null))
+                        },
                         content = {
                             Text(
                                 text = "$longPressControlsSpeed",
@@ -346,7 +360,10 @@ private fun GesturePreferencesScreenContent(
                             )
                             Slider(
                                 value = longPressControlsSpeed,
-                                onValueChange = { longPressControlsSpeed = it.round(1) },
+                                onValueChange = {
+                                    longPressControlsSpeed =
+                                        it.round(decimalPlaces = 1)
+                                },
                                 valueRange = 0.2f..4.0f,
                             )
                         },

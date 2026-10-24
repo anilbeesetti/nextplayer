@@ -43,12 +43,12 @@ class LocalNetworkPermissionTest {
         composeRule.onNodeWithContentDescription(
             composeRule.activity.getString(R.string.network),
         ).performClick()
-        composeRule.onNodeWithTag("top_level_fab").performClick()
+        composeRule.onNodeWithTag(testTag = "top_level_fab").performClick()
         val host = composeRule.activity.getString(R.string.host)
-        composeRule.onNodeWithText(host).assertIsDisplayed()
+        composeRule.onNodeWithText(text = host).assertIsDisplayed()
 
         composeRule.activityRule.scenario.recreate()
 
-        composeRule.onNodeWithText(host).assertIsDisplayed()
+        composeRule.onNodeWithText(text = host).assertIsDisplayed()
     }
 }

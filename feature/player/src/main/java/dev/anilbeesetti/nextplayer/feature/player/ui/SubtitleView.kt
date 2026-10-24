@@ -26,7 +26,7 @@ fun SubtitleView(
     isInPictureInPictureMode: Boolean,
     configuration: SubtitleConfiguration,
 ) {
-    val cuesState = rememberCuesState(player)
+    val cuesState = rememberCuesState(player = player)
 
     AndroidView(
         modifier = modifier.fillMaxSize(),

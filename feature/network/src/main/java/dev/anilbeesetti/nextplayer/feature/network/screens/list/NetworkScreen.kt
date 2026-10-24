@@ -73,8 +73,8 @@ fun NetworkScreen(viewModel: NetworkViewModel) {
 
 @Composable
 internal fun NetworkScreenContent(state: NetworkUiState, onAction: (NetworkAction) -> Unit) {
-    var connectionToDelete by remember { mutableStateOf<NetworkConnection?>(null) }
-    var streamUrl by rememberSaveable { mutableStateOf("") }
+    var connectionToDelete by remember { mutableStateOf<NetworkConnection?>(value = null) }
+    var streamUrl by rememberSaveable { mutableStateOf(value = "") }
     val trimmedStreamUrl = streamUrl.trim()
     val fabUpFocusRequester = remember { FocusRequester() }
 
@@ -110,7 +110,7 @@ internal fun NetworkScreenContent(state: NetworkUiState, onAction: (NetworkActio
             modifier = Modifier
                 .fillMaxSize()
                 .padding(scaffoldPadding.copy(bottom = 0.dp))
-                .clip(RoundedCornerShape(topStart = 24.dp, topEnd = 24.dp))
+                .clip(shape = RoundedCornerShape(topStart = 24.dp, topEnd = 24.dp))
                 .background(MaterialTheme.colorScheme.background),
         ) {
             LazyColumn(
@@ -134,9 +134,7 @@ internal fun NetworkScreenContent(state: NetworkUiState, onAction: (NetworkActio
                     )
                 }
                 if (showEmptyState) {
-                    item {
-                        NetworkEmptyState()
-                    }
+                    item { NetworkEmptyState() }
                 } else {
                     itemsIndexed(
                         items = state.connections,
@@ -159,9 +157,11 @@ internal fun NetworkScreenContent(state: NetworkUiState, onAction: (NetworkActio
     connectionToDelete?.let { connection ->
         NextDialog(
             onDismissRequest = { connectionToDelete = null },
-            title = { Text(stringResource(R.string.delete_connection)) },
+            title = { Text(text = stringResource(R.string.delete_connection)) },
             content = {
-                Text(stringResource(R.string.delete_connection_confirmation, connection.name))
+                Text(
+                    text = stringResource(R.string.delete_connection_confirmation, connection.name),
+                )
             },
             confirmButton = {
                 TextButton(
@@ -169,11 +169,11 @@ internal fun NetworkScreenContent(state: NetworkUiState, onAction: (NetworkActio
                         onAction(NetworkAction.DeleteConnection(connection.id))
                         connectionToDelete = null
                     },
-                ) { Text(stringResource(R.string.delete)) }
+                ) { Text(text = stringResource(R.string.delete)) }
             },
             dismissButton = {
                 TextButton(onClick = { connectionToDelete = null }) {
-                    Text(stringResource(R.string.cancel))
+                    Text(text = stringResource(R.string.cancel))
                 }
             },
         )
@@ -191,7 +191,7 @@ private fun NetworkStreamCard(
 ) {
     Column(
         modifier = modifier
-            .clip(RoundedCornerShape(24.dp))
+            .clip(shape = RoundedCornerShape(24.dp))
             .background(MaterialTheme.colorScheme.surfaceColorAtElevation(1.dp))
             .padding(16.dp),
         verticalArrangement = Arrangement.spacedBy(12.dp),
@@ -211,8 +211,10 @@ private fun NetworkStreamCard(
             onValueChange = onUrlChange,
             modifier = Modifier
                 .fillMaxWidth()
-                .thenIf(!enabled) { focusRequester(fabUpFocusRequester) },
-            placeholder = { Text(stringResource(R.string.example_url)) },
+                .thenIf(condition = !enabled) {
+                    focusRequester(focusRequester = fabUpFocusRequester)
+                },
+            placeholder = { Text(text = stringResource(R.string.example_url)) },
             singleLine = true,
         )
         Button(
@@ -220,10 +222,10 @@ private fun NetworkStreamCard(
             enabled = enabled,
             modifier = Modifier
                 .align(Alignment.End)
-                .thenIf(enabled) { focusRequester(fabUpFocusRequester) },
-        ) {
-            Text(stringResource(R.string.open_network_stream))
-        }
+                .thenIf(condition = enabled) {
+                    focusRequester(focusRequester = fabUpFocusRequester)
+                },
+        ) { Text(text = stringResource(R.string.open_network_stream)) }
     }
 }
 
@@ -237,7 +239,7 @@ private fun ConnectionItem(
     onEdit: () -> Unit,
     onDelete: () -> Unit,
 ) {
-    var menuExpanded by rememberSaveable { mutableStateOf(false) }
+    var menuExpanded by rememberSaveable { mutableStateOf(value = false) }
 
     NextSegmentedListItem(
         contentPadding = PaddingValues(8.dp),
@@ -285,7 +287,7 @@ private fun ConnectionItem(
                 }
                 DropdownMenu(expanded = menuExpanded, onDismissRequest = { menuExpanded = false }) {
                     DropdownMenuItem(
-                        text = { Text(stringResource(R.string.edit)) },
+                        text = { Text(text = stringResource(R.string.edit)) },
                         leadingIcon = { Icon(NextIcons.Edit, contentDescription = null) },
                         onClick = {
                             menuExpanded = false
@@ -293,7 +295,7 @@ private fun ConnectionItem(
                         },
                     )
                     DropdownMenuItem(
-                        text = { Text(stringResource(R.string.delete)) },
+                        text = { Text(text = stringResource(R.string.delete)) },
                         leadingIcon = { Icon(NextIcons.Delete, contentDescription = null) },
                         onClick = {
                             menuExpanded = false

@@ -130,8 +130,14 @@ private fun FolderListItem(
                     contentDescription = "",
                     tint = MaterialTheme.colorScheme.surfaceContainerHigh,
                     modifier = Modifier
-                        .width(min(90.dp, LocalConfiguration.current.screenWidthDp.dp * 0.3f))
-                        .aspectRatio(20 / 17f),
+                        .width(
+                            width = min(
+                                90.dp,
+                                b =
+                                    LocalConfiguration.current.screenWidthDp.dp * 0.3f,
+                            ),
+                        )
+                        .aspectRatio(ratio = 20 / 17f),
                 )
 
                 if (preferences.showFolderDurationField) {
@@ -169,7 +175,7 @@ private fun FolderListItem(
             ) {
                 if (preferences.showPathField) {
                     Text(
-                        text = folder.path.substringBeforeLast("/"),
+                        text = folder.path.substringBeforeLast(delimiter = "/"),
                         maxLines = 2,
                         style = MaterialTheme.typography.bodySmall,
                         overflow = TextOverflow.Ellipsis,
@@ -257,8 +263,14 @@ private fun FolderGridItem(
                         contentDescription = "",
                         tint = MaterialTheme.colorScheme.surfaceContainerHigh,
                         modifier = Modifier
-                            .width(min(90.dp, LocalConfiguration.current.screenWidthDp.dp * 0.3f))
-                            .aspectRatio(20 / 17f),
+                            .width(
+                                width = min(
+                                    90.dp,
+                                    b =
+                                        LocalConfiguration.current.screenWidthDp.dp * 0.3f,
+                                ),
+                            )
+                            .aspectRatio(ratio = 20 / 17f),
                     )
 
                     if (preferences.showFolderDurationField) {
@@ -331,9 +343,7 @@ private fun FolderGridItem(
                                     append("\u00A0")
                                 }
                             }
-                            folderCount?.let {
-                                append(it)
-                            }
+                            folderCount?.let { append(it) }
                         },
                         maxLines = 2,
                         style = MaterialTheme.typography.labelSmall.copy(
@@ -350,17 +360,17 @@ private fun FolderGridItem(
 /** Rounded badge showing the full number of new videos inside a folder. */
 @Composable
 private fun NewVideosCountBadge(count: Int, modifier: Modifier = Modifier) {
-    require(count > 0) {
+    require(value = count > 0) {
         "NewVideosCountBadge should only be shown for a positive count, was $count"
     }
 
-    val description = pluralStringResource(R.plurals.new_videos_count, count, count)
+    val description = pluralStringResource(R.plurals.new_videos_count, count = count, count)
 
     Box(
         modifier = modifier
             .defaultMinSize(minWidth = 20.dp)
             .height(20.dp)
-            .clip(CircleShape)
+            .clip(shape = CircleShape)
             .background(MaterialTheme.colorScheme.primary)
             .semantics { contentDescription = description }
             .padding(horizontal = 6.dp),

@@ -18,8 +18,8 @@ interface SshKeyStore {
     suspend fun delete(fileName: String)
 
     companion object {
-        private val VALID_FILE_NAME = Regex("[0-9a-fA-F-]+\\.key")
+        private val VALID_FILE_NAME = Regex(pattern = "[0-9a-fA-F-]+\\.key")
 
-        fun isValidFileName(fileName: String): Boolean = VALID_FILE_NAME.matches(fileName)
+        fun isValidFileName(fileName: String): Boolean = VALID_FILE_NAME.matches(input = fileName)
     }
 }

@@ -75,8 +75,8 @@ private fun SettingsScreenContent(onAction: (SettingsAction) -> Unit) {
             modifier = Modifier
                 .fillMaxSize()
                 .verticalScroll(state = rememberScrollState())
-                .restorableFocusGroup(focusState)
-                .padding(innerPadding)
+                .restorableFocusGroup(state = focusState)
+                .padding(paddingValues = innerPadding)
                 .padding(horizontal = 16.dp)
                 .padding(vertical = 16.dp),
             verticalArrangement = Arrangement.spacedBy(ListItemDefaults.SegmentedGap),
@@ -84,7 +84,7 @@ private fun SettingsScreenContent(onAction: (SettingsAction) -> Unit) {
             settingRows.forEachIndexed { index, row ->
                 key(row) {
                     ClickablePreferenceItem(
-                        modifier = Modifier.restorableFocusItem(focusState, row.name),
+                        modifier = Modifier.restorableFocusItem(state = focusState, row.name),
                         title = stringResource(id = row.titleResId),
                         description = stringResource(id = row.descriptionResId),
                         icon = row.icon,

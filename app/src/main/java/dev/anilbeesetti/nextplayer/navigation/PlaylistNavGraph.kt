@@ -25,9 +25,9 @@ fun EntryProviderScope<NavKey>.playlistNavGraph(
     playlistListEntry(
         onPlaylistClick = backStack::navigateToPlaylistDetail,
         onSettingsClick = backStack::navigateToSettings,
-        onAddToHomeScreen = if (PlaylistShortcut.isSupported(context)) {
+        onAddToHomeScreen = if (PlaylistShortcut.isSupported(context = context)) {
             { playlist ->
-                if (!PlaylistShortcut.requestPin(context, playlist)) {
+                if (!PlaylistShortcut.requestPin(context = context, playlist = playlist)) {
                     Toast.makeText(
                         context,
                         R.string.playlist_shortcut_failed,
@@ -52,11 +52,11 @@ fun EntryProviderScope<NavKey>.playlistNavGraph(
 }
 
 internal fun TopLevelNavState.openPlaylist(playlistId: Long) {
-    val playlistStack = backStacks.getValue(PlaylistListRoute)
+    val playlistStack = backStacks.getValue(key = PlaylistListRoute)
     playlistStack.clear()
-    playlistStack.add(PlaylistListRoute)
-    playlistStack.add(PlaylistDetailRoute(playlistId))
-    switchTo(PlaylistListRoute)
+    playlistStack.add(element = PlaylistListRoute)
+    playlistStack.add(element = PlaylistDetailRoute(playlistId = playlistId))
+    switchTo(route = PlaylistListRoute)
 }
 
 internal fun Context.startPlaylistPlayback(playlistId: Long, startUri: Uri) {

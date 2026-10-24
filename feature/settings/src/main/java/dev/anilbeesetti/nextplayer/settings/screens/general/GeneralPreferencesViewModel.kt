@@ -22,7 +22,7 @@ class GeneralPreferencesViewModel(
 
     data class Output(val navigateUp: () -> Unit)
 
-    private val stateInternal = MutableStateFlow(GeneralPreferencesUiState())
+    private val stateInternal = MutableStateFlow(value = GeneralPreferencesUiState())
     override val state: StateFlow<GeneralPreferencesUiState> = stateInternal.asStateFlow()
 
     override fun onAction(action: GeneralPreferencesUiEvent) {
@@ -39,15 +39,11 @@ class GeneralPreferencesViewModel(
     }
 
     private fun clearThumbnailCache() {
-        viewModelScope.launch {
-            imageLoader.clearAllCache()
-        }
+        viewModelScope.launch { imageLoader.clearAllCache() }
     }
 
     private fun resetSettings() {
-        viewModelScope.launch {
-            preferencesRepository.resetPreferences()
-        }
+        viewModelScope.launch { preferencesRepository.resetPreferences() }
     }
 }
 

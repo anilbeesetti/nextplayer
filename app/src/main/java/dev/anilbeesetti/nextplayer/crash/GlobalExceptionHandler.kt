@@ -14,6 +14,6 @@ class GlobalExceptionHandler(private val context: Context, private val activity:
         intent.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TASK)
         intent.putExtra("exception", e.stackTraceToString())
         context.startActivity(intent)
-        defaultHandler?.uncaughtException(t, e) ?: exitProcess(0)
+        defaultHandler?.uncaughtException(t, e) ?: exitProcess(status = 0)
     }
 }

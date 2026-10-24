@@ -52,13 +52,13 @@ class ControlsBottomViewTest {
     fun repeatedKeyboardSeeksAccumulateBelowOneSecondWhilePaused() {
         val player = composeRule.runOnIdle { TestPlayer() }
         try {
-            showControls(player)
+            showControls(player = player)
             val seekbar = composeRule.onNode(
                 SemanticsMatcher.keyIsDefined(SemanticsProperties.ProgressBarRangeInfo),
             )
             seekbar.requestFocus().assertIsFocused()
 
-            repeat(3) { index ->
+            repeat(times = 3) { index ->
                 seekbar.performKeyInput { pressKey(Key.DirectionRight) }
                 composeRule.runOnIdle {
                     assertEquals((index + 1) * 600L, player.currentPosition)
@@ -74,15 +74,15 @@ class ControlsBottomViewTest {
     fun pausedSeeksSelectChaptersAtExactSubsecondBoundaries() {
         val player = composeRule.runOnIdle { TestPlayer() }
         try {
-            showControls(player)
+            showControls(player = player)
             composeRule.runOnIdle { player.seekTo(1_500) }
-            composeRule.onNodeWithText("Second").assertExists()
+            composeRule.onNodeWithText(text = "Second").assertExists()
 
             composeRule.runOnIdle { player.seekTo(1_750) }
-            composeRule.onNodeWithText("Third").assertExists()
+            composeRule.onNodeWithText(text = "Third").assertExists()
 
             composeRule.runOnIdle { player.seekTo(1_749) }
-            composeRule.onNodeWithText("Second").assertExists()
+            composeRule.onNodeWithText(text = "Second").assertExists()
             composeRule.runOnIdle { assertFalse(player.playWhenReady) }
         } finally {
             composeRule.runOnIdle { player.release() }
@@ -93,14 +93,14 @@ class ControlsBottomViewTest {
     fun timeLabelChangesOnWholeSecondsAndSwitchesToRemainingTime() {
         val player = composeRule.runOnIdle { TestPlayer() }
         try {
-            showControls(player)
+            showControls(player = player)
             composeRule.runOnIdle { player.seekTo(1_999) }
-            composeRule.onNodeWithText("00:01 / 01:00").performTouchInput { click() }
-            composeRule.onNodeWithText("-00:59 / 01:00").assertExists()
+            composeRule.onNodeWithText(text = "00:01 / 01:00").performTouchInput { click() }
+            composeRule.onNodeWithText(text = "-00:59 / 01:00").assertExists()
 
             composeRule.runOnIdle { player.seekTo(2_000) }
-            composeRule.onNodeWithText("-00:58 / 01:00").performTouchInput { click() }
-            composeRule.onNodeWithText("00:02 / 01:00").assertExists()
+            composeRule.onNodeWithText(text = "-00:58 / 01:00").performTouchInput { click() }
+            composeRule.onNodeWithText(text = "00:02 / 01:00").assertExists()
         } finally {
             composeRule.runOnIdle { player.release() }
         }
@@ -110,25 +110,25 @@ class ControlsBottomViewTest {
     fun upFromSeekbarEntersTimeThenRightVisitsChaptersAndSpeed() {
         val player = composeRule.runOnIdle { TestPlayer() }
         try {
-            showControls(player)
+            showControls(player = player)
             val seekbar = composeRule.onNode(
                 SemanticsMatcher.keyIsDefined(SemanticsProperties.ProgressBarRangeInfo),
             )
             seekbar.requestFocus().performKeyInput { pressKey(Key.DirectionUp) }
-            composeRule.onNodeWithText("00:00 / 01:00")
+            composeRule.onNodeWithText(text = "00:00 / 01:00")
                 .assertIsFocused()
                 .performKeyInput { pressKey(Key.DirectionCenter) }
-            composeRule.onNodeWithText("-01:00 / 01:00")
+            composeRule.onNodeWithText(text = "-01:00 / 01:00")
                 .assertIsFocused()
                 .performKeyInput { pressKey(Key.DirectionRight) }
-            composeRule.onNodeWithText("Opening")
+            composeRule.onNodeWithText(text = "Opening")
                 .assertIsFocused()
                 .performKeyInput { pressKey(Key.DirectionRight) }
-            composeRule.onNodeWithText("1.0")
+            composeRule.onNodeWithText(text = "1.0")
                 .assertIsFocused()
                 .performKeyInput { pressKey(Key.DirectionDown) }
             seekbar.assertIsFocused().performKeyInput { pressKey(Key.DirectionUp) }
-            composeRule.onNodeWithText("-01:00 / 01:00").assertIsFocused()
+            composeRule.onNodeWithText(text = "-01:00 / 01:00").assertIsFocused()
         } finally {
             composeRule.runOnIdle { player.release() }
         }
@@ -137,12 +137,15 @@ class ControlsBottomViewTest {
     private fun showControls(player: Player) {
         composeRule.setContent {
             NextPlayerTheme {
-                val progress = rememberProgressStateWithTickInterval(player)
-                var showRemainingTime by remember { mutableStateOf(false) }
+                val progress = rememberProgressStateWithTickInterval(player = player)
+                var showRemainingTime by remember { mutableStateOf(value = false) }
                 ControlsBottomView(
                     player = player,
                     progressState = progress,
-                    chaptersState = rememberChaptersState(player, progress),
+                    chaptersState = rememberChaptersState(
+                        player = player,
+                        progressState = progress,
+                    ),
                     controlsAlignment = Alignment.Start,
                     videoContentScale = VideoContentScale.BEST_FIT,
                     isPipSupported = false,

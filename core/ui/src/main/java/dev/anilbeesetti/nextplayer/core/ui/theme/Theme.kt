@@ -251,7 +251,9 @@ fun NextPlayerTheme(
         dynamicColor && supportsDynamicTheming() -> {
             val context = LocalContext.current
             when {
-                darkTheme && highContrastDarkTheme -> dynamicDarkColorScheme(context).copy(
+                darkTheme && highContrastDarkTheme -> dynamicDarkColorScheme(
+                    context = context,
+                ).copy(
                     background = backgroundPureBlack,
                     surface = surfacePureBlack,
                     surfaceDim = surfaceDimPureBlack,
@@ -263,9 +265,9 @@ fun NextPlayerTheme(
                     surfaceContainerHighest = surfaceContainerHighestPureBlack,
                 )
 
-                darkTheme -> dynamicDarkColorScheme(context)
+                darkTheme -> dynamicDarkColorScheme(context = context)
 
-                else -> dynamicLightColorScheme(context)
+                else -> dynamicLightColorScheme(context = context)
             }
         }
 

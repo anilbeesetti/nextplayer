@@ -22,8 +22,8 @@ class GetSortedPlaylistUseCase(
     @Named(DiQualifiers.DEFAULT_DISPATCHER) private val defaultDispatcher: CoroutineDispatcher,
 ) {
 
-    suspend operator fun invoke(uri: Uri): List<Video> = withContext(defaultDispatcher) {
-        val path = context.getPath(uri) ?: return@withContext emptyList()
+    suspend operator fun invoke(uri: Uri): List<Video> = withContext(context = defaultDispatcher) {
+        val path = context.getPath(uri = uri) ?: return@withContext emptyList()
         val parent = File(path).parent ?: return@withContext emptyList()
         val preferences = preferencesRepository.applicationPreferences.first()
 

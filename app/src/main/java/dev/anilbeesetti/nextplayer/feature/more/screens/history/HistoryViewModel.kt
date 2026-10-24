@@ -25,17 +25,17 @@ class HistoryViewModel(
 
     data class Output(val navigateUp: () -> Unit, val playVideo: (String) -> Unit)
 
-    private val stateInternal = MutableStateFlow(HistoryUiState())
+    private val stateInternal = MutableStateFlow(value = HistoryUiState())
     override val state: StateFlow<HistoryUiState> = stateInternal.asStateFlow()
 
     init {
         viewModelScope.launch {
             mediaRepository.observePlaybackHistory()
                 .catch { error ->
-                    stateInternal.update { it.copy(history = DataState.Error(error)) }
+                    stateInternal.update { it.copy(history = DataState.Error(value = error)) }
                 }
                 .collect { history ->
-                    stateInternal.update { it.copy(history = DataState.Success(history)) }
+                    stateInternal.update { it.copy(history = DataState.Success(value = history)) }
                 }
         }
         viewModelScope.launch {

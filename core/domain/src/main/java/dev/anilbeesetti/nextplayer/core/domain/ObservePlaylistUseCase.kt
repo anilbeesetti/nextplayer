@@ -17,7 +17,7 @@ class ObservePlaylistUseCase(
 ) {
 
     operator fun invoke(playlistId: Long): Flow<Playlist?> = combine(
-        playlistRepository.observePlaylist(playlistId),
+        playlistRepository.observePlaylist(playlistId = playlistId),
         mediaRepository.observeVideos(),
     ) { record, videos ->
         record?.let {

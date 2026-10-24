@@ -51,14 +51,8 @@ fun PreferenceItem(
                 )
             }
         },
-        supportingContent = description?.let {
-            {
-                Text(text = description)
-            }
-        },
-        content = {
-            Text(text = title)
-        },
+        supportingContent = description?.let { { Text(text = description) } },
+        content = { Text(text = title) },
         trailingContent = trailingContent,
     )
 }

@@ -18,7 +18,7 @@ internal class SftpOwnedInputStream(
     private val closed = AtomicBoolean(false)
 
     override fun read(): Int {
-        val byte = ByteArray(1)
+        val byte = ByteArray(size = 1)
         return if (read(byte, 0, 1) == -1) -1 else byte[0].toInt() and 0xFF
     }
 

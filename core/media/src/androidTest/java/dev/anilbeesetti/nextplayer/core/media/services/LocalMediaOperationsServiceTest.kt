@@ -33,16 +33,16 @@ class LocalMediaOperationsServiceTest {
         val testRoot = File(context.cacheDir, "issue-1828-${UUID.randomUUID()}")
         val sourceDir = File(testRoot, "source").apply { mkdirs() }
         val targetDir = File(testRoot, "vault").apply { mkdirs() }
-        val sourceFile = File(sourceDir, "duplicate.mp4").apply { writeText("new source") }
+        val sourceFile = File(sourceDir, "duplicate.mp4").apply { writeText(text = "new source") }
         val existingVaultFile = File(targetDir, sourceFile.name).apply {
-            writeText("existing vault video")
+            writeText(text = "existing vault video")
         }
         val sourceUri = sourceFile.toUri()
 
         try {
             val moved = LocalMediaOperationsService(
-                context,
-            ).moveMedia(mapOf(sourceUri to existingVaultFile))
+                context = context,
+            ).moveMedia(targets = mapOf(pair = sourceUri to existingVaultFile))
 
             assertNull("A colliding source must be reported as not moved", moved[sourceUri])
             assertTrue(
@@ -61,11 +61,11 @@ class LocalMediaOperationsServiceTest {
         val testRoot = File(context.cacheDir, "issue-1828-race-${UUID.randomUUID()}")
         val sourceFiles = listOf("first video", "second video").mapIndexed { index, content ->
             File(File(testRoot, "source-$index").apply { mkdirs() }, "duplicate.mp4")
-                .apply { writeText(content) }
+                .apply { writeText(text = content) }
         }
         val destination = File(File(testRoot, "vault").apply { mkdirs() }, "shared.mp4")
         val barrier = CyclicBarrier(sourceFiles.size)
-        val service = LocalMediaOperationsService(context)
+        val service = LocalMediaOperationsService(context = context)
 
         try {
             val results = coroutineScope {
@@ -73,7 +73,7 @@ class LocalMediaOperationsServiceTest {
                     async(Dispatchers.Default) {
                         barrier.await()
                         val uri = source.toUri()
-                        service.moveMedia(mapOf(uri to destination))[uri]
+                        service.moveMedia(targets = mapOf(pair = uri to destination))[uri]
                     }
                 }.awaitAll()
             }
@@ -82,9 +82,7 @@ class LocalMediaOperationsServiceTest {
             assertEquals(
                 "Exactly one losing source must remain",
                 1,
-                sourceFiles.count {
-                    it.exists()
-                },
+                sourceFiles.count { it.exists() },
             )
             assertTrue(destination.readText() in setOf("first video", "second video"))
         } finally {
@@ -97,13 +95,15 @@ class LocalMediaOperationsServiceTest {
         val context = ApplicationProvider.getApplicationContext<Context>()
         val testRoot = File(context.cacheDir, "issue-1828-cancel-${UUID.randomUUID()}")
         val source = File(File(testRoot, "source").apply { mkdirs() }, "large.mp4")
-            .apply { writeBytes(ByteArray(DEFAULT_BUFFER_SIZE * 4) { it.toByte() }) }
+            .apply { writeBytes(array = ByteArray(size = DEFAULT_BUFFER_SIZE * 4) { it.toByte() }) }
         val destination = File(File(testRoot, "vault").apply { mkdirs() }, "unique.mp4")
         var cancellationChecks = 0
 
         try {
             assertThrows(CancellationException::class.java) {
-                LocalMediaOperationsService(context).moveFileWithoutOverwrite(source, destination) {
+                LocalMediaOperationsService(
+                    context = context,
+                ).moveFileWithoutOverwrite(source = source, destination = destination) {
                     cancellationChecks += 1
                     if (cancellationChecks == 2) throw CancellationException("cancel during copy")
                 }
@@ -122,32 +122,32 @@ class LocalMediaOperationsServiceTest {
         val context = ApplicationProvider.getApplicationContext<Context>()
         val testRoot = File(context.cacheDir, "issue-1828-batch-cancel-${UUID.randomUUID()}")
         val firstSource = File(File(testRoot, "source-1").apply { mkdirs() }, "first.mp4")
-            .apply { writeText("first video") }
+            .apply { writeText(text = "first video") }
         val secondSource = File(File(testRoot, "source-2").apply { mkdirs() }, "second.mp4")
-            .apply { writeText("second video") }
+            .apply { writeText(text = "second video") }
         val vaultDir = File(testRoot, "vault").apply { mkdirs() }
         val firstDestination = File(vaultDir, "first.mp4")
         val secondDestination = File(vaultDir, "second.mp4")
-        val service = LocalMediaOperationsService(context)
+        val service = LocalMediaOperationsService(context = context)
         val firstMoveCommitted = CompletableDeferred<Unit>()
         val allowSecondMove = CompletableDeferred<Unit>()
 
         try {
             val moveJob = launch(Dispatchers.Default) {
                 service.moveMedia(
-                    linkedMapOf(
+                    targets = linkedMapOf(
                         firstSource.toUri() to firstDestination,
                         secondSource.toUri() to secondDestination,
                     ),
                 ) {
-                    firstMoveCommitted.complete(Unit)
+                    firstMoveCommitted.complete(value = Unit)
                     allowSecondMove.await()
                 }
             }
-            withTimeout(TEST_TIMEOUT_MILLIS) { firstMoveCommitted.await() }
+            withTimeout(timeMillis = TEST_TIMEOUT_MILLIS) { firstMoveCommitted.await() }
             moveJob.cancel()
-            allowSecondMove.complete(Unit)
-            withTimeout(TEST_TIMEOUT_MILLIS) { moveJob.cancelAndJoin() }
+            allowSecondMove.complete(value = Unit)
+            withTimeout(timeMillis = TEST_TIMEOUT_MILLIS) { moveJob.cancelAndJoin() }
 
             assertTrue("The committed first vault copy must remain", firstDestination.exists())
             assertTrue("The uncommitted second source must remain", secondSource.exists())

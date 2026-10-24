@@ -22,16 +22,15 @@ class SuspendActivityResultLauncher<I, O>(
 
     suspend fun launch(input: I): O = suspendCancellableCoroutine { continuation ->
         activityResultCallback = {
-            continuation.resume(it)
+            continuation.resume(value = it)
             activityResultCallback = null
         }
-        activityResultLauncher.launch(input)
-        continuation.invokeOnCancellation {
-            activityResultCallback = null
-        }
+        activityResultLauncher.launch(input = input)
+        continuation.invokeOnCancellation { activityResultCallback = null }
     }
 }
 
 fun <I, O> ComponentActivity.registerForSuspendActivityResult(
     contract: ActivityResultContract<I, O>,
-): SuspendActivityResultLauncher<I, O> = SuspendActivityResultLauncher(this, contract)
+): SuspendActivityResultLauncher<I, O> =
+    SuspendActivityResultLauncher(activity = this, contract = contract)

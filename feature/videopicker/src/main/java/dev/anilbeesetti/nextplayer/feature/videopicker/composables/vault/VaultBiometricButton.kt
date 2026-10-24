@@ -31,7 +31,7 @@ import dev.anilbeesetti.nextplayer.core.ui.designsystem.NextIcons
 internal fun VaultBiometricButton(onAuthenticated: () -> Unit, modifier: Modifier = Modifier) {
     if (!rememberVaultBiometricAvailable()) return
 
-    var showPrompt by rememberSaveable { mutableStateOf(true) }
+    var showPrompt by rememberSaveable { mutableStateOf(value = true) }
     if (showPrompt) {
         VaultBiometricPrompt(
             title = stringResource(R.string.open_vault),
@@ -59,10 +59,10 @@ internal fun rememberVaultBiometricAvailable(): Boolean {
     val manager = remember(activity) { BiometricManager.from(activity) }
     var available by remember(manager) {
         mutableStateOf(
-            manager.canAuthenticate(BIOMETRIC_STRONG) == BiometricManager.BIOMETRIC_SUCCESS,
+            value = manager.canAuthenticate(BIOMETRIC_STRONG) == BiometricManager.BIOMETRIC_SUCCESS,
         )
     }
-    LifecycleResumeEffect(manager) {
+    LifecycleResumeEffect(key1 = manager) {
         available = manager.canAuthenticate(BIOMETRIC_STRONG) == BiometricManager.BIOMETRIC_SUCCESS
         onPauseOrDispose { }
     }
@@ -77,8 +77,8 @@ internal fun VaultBiometricPrompt(
 ) {
     val activity = LocalActivity.current as? FragmentActivity ?: return
 
-    val currentOnResult by rememberUpdatedState(onResult)
-    var active by remember(activity) { mutableStateOf(false) }
+    val currentOnResult by rememberUpdatedState(newValue = onResult)
+    var active by remember(activity) { mutableStateOf(value = false) }
     val prompt = remember(activity) {
         BiometricPrompt(
             activity,
@@ -113,7 +113,7 @@ internal fun VaultBiometricPrompt(
             .build()
     }
 
-    DisposableEffect(prompt) {
+    DisposableEffect(key1 = prompt) {
         active = true
         onDispose {
             active = false
@@ -122,8 +122,8 @@ internal fun VaultBiometricPrompt(
         }
     }
 
-    var prompted by rememberSaveable { mutableStateOf(false) }
-    LaunchedEffect(prompt) {
+    var prompted by rememberSaveable { mutableStateOf(value = false) }
+    LaunchedEffect(key1 = prompt) {
         if (!prompted) {
             prompted = true
             prompt.authenticate(promptInfo)

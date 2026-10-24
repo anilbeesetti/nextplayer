@@ -28,7 +28,7 @@ fun Player.switchTrack(trackType: @C.TrackType Int, trackIndex: Int) {
     }
 
     if (trackIndex < 0) {
-        Logger.logDebug("Player", "Disabling $trackTypeText")
+        Logger.logDebug(tag = "Player", message = "Disabling $trackTypeText")
         trackSelectionParameters = trackSelectionParameters
             .buildUpon()
             .setTrackTypeDisabled(trackType, true)
@@ -37,11 +37,14 @@ fun Player.switchTrack(trackType: @C.TrackType Int, trackIndex: Int) {
         val tracks = currentTracks.groups.filter { it.type == trackType }
 
         if (tracks.isEmpty() || trackIndex >= tracks.size) {
-            Logger.logError("Player", "Operation failed: Invalid track index: $trackIndex")
+            Logger.logError(
+                tag = "Player",
+                message = "Operation failed: Invalid track index: $trackIndex",
+            )
             return
         }
 
-        Logger.logDebug("Player", "Setting $trackTypeText track: $trackIndex")
+        Logger.logDebug(tag = "Player", message = "Setting $trackTypeText track: $trackIndex")
         val trackSelectionOverride = TrackSelectionOverride(tracks[trackIndex].mediaTrackGroup, 0)
 
         // Override the track selection parameters to force the selection of the specified track.
@@ -74,14 +77,12 @@ fun Player.addAdditionalSubtitleConfiguration(subtitle: MediaItem.SubtitleConfig
         return
     }
 
-    val textTracks = currentTracks.groups.filter {
-        it.type == C.TRACK_TYPE_TEXT && it.isSupported
-    }
+    val textTracks = currentTracks.groups.filter { it.type == C.TRACK_TYPE_TEXT && it.isSupported }
     val position = currentPosition
 
     val updateMediaItem = currentMediaItemLocal
         .buildUpon()
-        .setSubtitleConfigurations(existingSubConfigurations + listOf(subtitle))
+        .setSubtitleConfigurations(existingSubConfigurations + listOf(element = subtitle))
         .build()
         .copy(positionMs = position, subtitleTrackIndex = textTracks.size)
 
@@ -98,7 +99,7 @@ fun Player.addAdditionalSubtitleConfiguration(subtitle: MediaItem.SubtitleConfig
 @OptIn(UnstableApi::class)
 fun Player.setIsScrubbingModeEnabled(enabled: Boolean) {
     when (this) {
-        is MediaController -> this.setMediaControllerIsScrubbingModeEnabled(enabled)
+        is MediaController -> this.setMediaControllerIsScrubbingModeEnabled(enabled = enabled)
         is ExoPlayer -> this.isScrubbingModeEnabled = enabled
     }
 }

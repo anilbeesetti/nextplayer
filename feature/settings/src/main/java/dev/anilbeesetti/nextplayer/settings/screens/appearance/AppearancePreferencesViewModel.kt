@@ -23,7 +23,7 @@ class AppearancePreferencesViewModel(
     data class Output(val navigateUp: () -> Unit)
 
     private val stateInternal = MutableStateFlow(
-        AppearancePreferencesUiState(
+        value = AppearancePreferencesUiState(
             preferences = preferencesRepository.applicationPreferences.value,
         ),
     )
@@ -55,18 +55,14 @@ class AppearancePreferencesViewModel(
     }
 
     private fun showDialog(value: AppearancePreferenceDialog?) {
-        stateInternal.update {
-            it.copy(showDialog = value)
-        }
+        stateInternal.update { it.copy(showDialog = value) }
     }
 
     private fun toggleDarkTheme() {
         viewModelScope.launch {
             preferencesRepository.updateApplicationPreferences {
                 it.copy(
-                    themeConfig = if (it.themeConfig ==
-                        ThemeConfig.ON
-                    ) {
+                    themeConfig = if (it.themeConfig == ThemeConfig.ON) {
                         ThemeConfig.OFF
                     } else {
                         ThemeConfig.ON

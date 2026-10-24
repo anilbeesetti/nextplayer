@@ -60,9 +60,7 @@ class SftpSecurityProviderTest {
         Security.addProvider(UnrelatedProvider())
 
         try {
-            assertThrows(IllegalStateException::class.java) {
-                SftpSecurityProvider.install()
-            }
+            assertThrows(IllegalStateException::class.java) { SftpSecurityProvider.install() }
         } finally {
             Security.removeProvider(SftpSecurityProvider.NAME)
             if (installedProvider != null) {

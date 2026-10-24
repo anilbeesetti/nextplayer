@@ -94,21 +94,20 @@ internal fun MoreScreenContent(state: MoreUiState, onAction: (MoreAction) -> Uni
             modifier = Modifier
                 .fillMaxSize()
                 .padding(scaffoldPadding.copy(bottom = 0.dp))
-                .clip(RoundedCornerShape(topStart = 24.dp, topEnd = 24.dp))
+                .clip(shape = RoundedCornerShape(topStart = 24.dp, topEnd = 24.dp))
                 .background(MaterialTheme.colorScheme.background),
         ) {
             Column(
                 modifier = Modifier
                     .fillMaxSize()
-                    .verticalScroll(rememberScrollState())
+                    .verticalScroll(state = rememberScrollState())
                     .tvListFocus()
                     .padding(horizontal = 8.dp)
                     .padding(
                         top = 8.dp,
                         bottom =
                             scaffoldPadding.calculateBottomPadding() +
-                                LocalNavigationBottomPadding.current +
-                                96.dp,
+                                LocalNavigationBottomPadding.current + 96.dp,
                     ),
                 verticalArrangement = Arrangement.spacedBy(16.dp),
             ) {
@@ -119,7 +118,7 @@ internal fun MoreScreenContent(state: MoreUiState, onAction: (MoreAction) -> Uni
                     maxItemsInEachRow = 2,
                 ) {
                     FilledTonalButton(
-                        modifier = Modifier.weight(1f).tvFocusRing(),
+                        modifier = Modifier.weight(weight = 1f).tvFocusRing(),
                         onClick = { onAction(MoreAction.OpenVault) },
                     ) {
                         Icon(
@@ -131,8 +130,8 @@ internal fun MoreScreenContent(state: MoreUiState, onAction: (MoreAction) -> Uni
                         Text(text = stringResource(R.string.vault))
                     }
                     FilledTonalButton(
-                        modifier = Modifier.weight(1f).tvFocusRing(),
-                        onClick = { filePicker.launch("video/*") },
+                        modifier = Modifier.weight(weight = 1f).tvFocusRing(),
+                        onClick = { filePicker.launch(input = "video/*") },
                     ) {
                         Icon(
                             imageVector = NextIcons.FileOpen,
@@ -144,7 +143,7 @@ internal fun MoreScreenContent(state: MoreUiState, onAction: (MoreAction) -> Uni
                     }
                     if (MediaOperationsService.supportsTrash()) {
                         FilledTonalButton(
-                            modifier = Modifier.weight(1f).tvFocusRing(),
+                            modifier = Modifier.weight(weight = 1f).tvFocusRing(),
                             onClick = { onAction(MoreAction.OpenTrash) },
                         ) {
                             Icon(
@@ -155,7 +154,7 @@ internal fun MoreScreenContent(state: MoreUiState, onAction: (MoreAction) -> Uni
                             Spacer(modifier = Modifier.size(8.dp))
                             Text(text = stringResource(R.string.trash))
                         }
-                        Spacer(modifier = Modifier.weight(1f))
+                        Spacer(modifier = Modifier.weight(weight = 1f))
                     }
                 }
                 HistorySection(
@@ -176,7 +175,7 @@ private fun HistorySection(
     onMoreClick: () -> Unit,
     onVideoClick: (Video) -> Unit,
 ) {
-    val videos = history.result.orEmpty().take(10)
+    val videos = history.result.orEmpty().take(n = 10)
     val isTv = LocalContext.current.isTelevision
     val historyButtonFocusRequester = remember { FocusRequester() }
     val historyFocusState = rememberRestorableFocusState()
@@ -185,22 +184,20 @@ private fun HistorySection(
     ) {
         Row(
             // Keep the full header in the vertical focus path, including its empty title area.
-            modifier = Modifier.fillMaxWidth().thenIf(isTv) { focusGroup() },
+            modifier = Modifier.fillMaxWidth().thenIf(condition = isTv) { focusGroup() },
             verticalAlignment = Alignment.CenterVertically,
         ) {
             Text(
                 text = stringResource(R.string.history),
                 style = MaterialTheme.typography.titleMedium,
-                modifier = Modifier.padding(start = 8.dp).weight(1f),
+                modifier = Modifier.padding(start = 8.dp).weight(weight = 1f),
             )
             IconButton(
                 onClick = onMoreClick,
                 modifier = Modifier
-                    .focusRequester(historyButtonFocusRequester)
+                    .focusRequester(focusRequester = historyButtonFocusRequester)
                     .focusProperties {
-                        if (isTv && !preferences.isHistoryPaused &&
-                            videos.isNotEmpty()
-                        ) {
+                        if (isTv && !preferences.isHistoryPaused && videos.isNotEmpty()) {
                             down = historyFocusState.requester
                         }
                     }
@@ -234,10 +231,10 @@ private fun HistorySection(
                                 }
                             }
                         }
-                        .restorableFocusGroup(historyFocusState, ready = false),
+                        .restorableFocusGroup(state = historyFocusState, ready = false),
                     horizontalArrangement = Arrangement.spacedBy(2.dp),
                 ) {
-                    items(videos, key = { it.uriString }) { video ->
+                    items(items = videos, key = { it.uriString }) { video ->
                         VideoGridItem(
                             video = video,
                             isRecentlyPlayedVideo = false,
@@ -245,7 +242,7 @@ private fun HistorySection(
                             preferences = preferences,
                             modifier = Modifier
                                 .width(140.dp)
-                                .restorableFocusItem(historyFocusState, video.uriString),
+                                .restorableFocusItem(state = historyFocusState, video.uriString),
                             onClick = { onVideoClick(video) },
                         )
                     }
@@ -258,5 +255,11 @@ private fun HistorySection(
 @Preview
 @Composable
 private fun MoreScreenContentPreview() {
-    MoreScreenContent(state = MoreUiState(history = DataState.Success(emptyList())), onAction = {})
+    MoreScreenContent(
+        state = MoreUiState(
+            history = DataState.Success(value = emptyList()),
+        ),
+        onAction = {
+        },
+    )
 }

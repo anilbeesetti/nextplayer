@@ -80,11 +80,9 @@ private fun LibrariesScreenContent(state: LibrariesUiState, onAction: (Libraries
                                 text = library.name,
                                 maxLines = 1,
                                 overflow = TextOverflow.Ellipsis,
-                                modifier = Modifier.weight(1f),
+                                modifier = Modifier.weight(weight = 1f),
                             )
-                            library.artifactVersion?.let {
-                                Text(text = it)
-                            }
+                            library.artifactVersion?.let { Text(text = it) }
                         }
                     },
                     supportingContent = {
@@ -92,7 +90,7 @@ private fun LibrariesScreenContent(state: LibrariesUiState, onAction: (Libraries
                             Text(
                                 text = library.developers.takeIf { it.isNotEmpty() }
                                     ?.mapNotNull { it.name }
-                                    ?.joinToString(", ")
+                                    ?.joinToString(separator = ", ")
                                     ?: library.organization?.name ?: "",
                             )
                             FlowRow(

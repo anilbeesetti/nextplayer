@@ -31,5 +31,5 @@ fun Sort.Order.name(sortBy: Sort.By): String {
         }
     }
 
-    return stringResource(stringRes)
+    return stringResource(id = stringRes)
 }

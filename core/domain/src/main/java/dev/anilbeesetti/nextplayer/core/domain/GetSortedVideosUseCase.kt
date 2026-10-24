@@ -20,15 +20,13 @@ class GetSortedVideosUseCase(
 ) {
 
     operator fun invoke(folderPath: String? = null): Flow<List<Video>> = combine(
-        mediaRepository.observeVideos(folderPath),
+        mediaRepository.observeVideos(folderPath = folderPath),
         preferencesRepository.applicationPreferences,
     ) { videoItems, preferences ->
 
-        val nonExcludedVideos = videoItems.filterNot {
-            it.parentPath in preferences.excludeFolders
-        }
+        val nonExcludedVideos = videoItems.filterNot { it.parentPath in preferences.excludeFolders }
 
         val sort = Sort(by = preferences.sortBy, order = preferences.sortOrder)
         nonExcludedVideos.sortedWith(sort.videoComparator())
-    }.flowOn(defaultDispatcher)
+    }.flowOn(context = defaultDispatcher)
 }

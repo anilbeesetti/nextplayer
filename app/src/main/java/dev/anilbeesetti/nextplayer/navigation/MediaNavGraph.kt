@@ -18,8 +18,8 @@ import dev.anilbeesetti.nextplayer.settings.navigation.navigateToSettings
 fun EntryProviderScope<NavKey>.mediaNavGraph(context: Context, backStack: NavBackStack<NavKey>) {
     mediaPickerEntry(
         onNavigateUp = { backStack.removeLastIfNotRoot() },
-        onPlayVideo = { uri -> context.startPlayback(uri) },
-        onPlayVideos = { uris -> context.startPlayback(uris) },
+        onPlayVideo = { uri -> context.startPlayback(uri = uri) },
+        onPlayVideos = { uris -> context.startPlayback(uris = uris) },
         onFolderClick = backStack::navigateToMediaPickerScreen,
         onSettingsClick = backStack::navigateToSettings,
         onSearchClick = backStack::navigateToSearch,
@@ -28,7 +28,7 @@ fun EntryProviderScope<NavKey>.mediaNavGraph(context: Context, backStack: NavBac
 
     searchEntry(
         onNavigateUp = { backStack.removeLastIfNotRoot() },
-        onPlayVideo = { uri -> context.startPlayback(uri) },
+        onPlayVideo = { uri -> context.startPlayback(uri = uri) },
         onFolderClick = backStack::navigateToMediaPickerScreen,
     )
 }
@@ -42,13 +42,13 @@ internal fun Context.startPlayback(
     startUri: Uri? = null,
     grantReadPermission: Boolean = false,
 ) {
-    val uri = startUri?.takeIf(uris::contains) ?: uris.firstOrNull() ?: return
+    val uri = startUri?.takeIf(predicate = uris::contains) ?: uris.firstOrNull() ?: return
     startPlayback(uri = uri, playlist = uris, grantReadPermission = grantReadPermission)
 }
 
 private fun Context.startPlayback(uri: Uri, playlist: List<Uri>?, grantReadPermission: Boolean) {
     if (grantReadPermission) {
-        (playlist ?: listOf(uri)).forEach {
+        (playlist ?: listOf(element = uri)).forEach {
             grantUriPermission(packageName, it, Intent.FLAG_GRANT_READ_URI_PERMISSION)
         }
     }

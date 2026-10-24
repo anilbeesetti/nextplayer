@@ -37,9 +37,7 @@ class VideoThumbnailDecoderTest {
         val file = File(targetContext.cacheDir, "thumbnail-test.mp4")
         InstrumentationRegistry.getInstrumentation().context.assets.open(
             "thumbnail-test.mp4",
-        ).use { input ->
-            file.outputStream().use { input.copyTo(it) }
-        }
+        ).use { input -> file.outputStream().use { input.copyTo(out = it) } }
         val provider = object : ContentProvider() {
             override fun onCreate(): Boolean = true
 
@@ -77,7 +75,10 @@ class VideoThumbnailDecoderTest {
         }
 
         try {
-            assertDecodesAllStrategies(context, "content://media/external/video/media/1")
+            assertDecodesAllStrategies(
+                context = context,
+                uri = "content://media/external/video/media/1",
+            )
         } finally {
             file.delete()
         }
@@ -100,9 +101,7 @@ class VideoThumbnailDecoderTest {
                 },
             ),
         )
-        val readPermission = if (Build.VERSION.SDK_INT >=
-            33
-        ) {
+        val readPermission = if (Build.VERSION.SDK_INT >= 33) {
             Manifest.permission.READ_MEDIA_VIDEO
         } else {
             Manifest.permission.READ_EXTERNAL_STORAGE
@@ -110,19 +109,18 @@ class VideoThumbnailDecoderTest {
         instrumentation.uiAutomation.adoptShellPermissionIdentity(readPermission)
         try {
             instrumentation.context.assets.open("thumbnail-test.mp4").use { input ->
-                context.contentResolver.openOutputStream(uri)!!.use { input.copyTo(it) }
+                context.contentResolver.openOutputStream(uri)!!.use { input.copyTo(out = it) }
             }
             context.contentResolver.update(
                 uri,
-                ContentValues().apply {
-                    put(MediaStore.MediaColumns.IS_PENDING, 0)
-                },
+                ContentValues().apply { put(MediaStore.MediaColumns.IS_PENDING, 0) },
                 null,
                 null,
             )
             // Transfer ownership so the test covers another app's trashed video.
             shell(
-                "content update --uri $uri --bind owner_package_name:s:com.android.shell --bind is_trashed:i:1",
+                command = "content update --uri $uri " +
+                    "--bind owner_package_name:s:com.android.shell --bind is_trashed:i:1",
             )
             context.contentResolver.query(
                 uri,
@@ -139,9 +137,9 @@ class VideoThumbnailDecoderTest {
                 assertEquals("com.android.shell", cursor.getString(1))
             }
 
-            assertDecodesAllStrategies(context, uri.toString())
+            assertDecodesAllStrategies(context = context, uri.toString())
         } finally {
-            shell("content delete --uri $uri")
+            shell(command = "content delete --uri $uri")
             instrumentation.uiAutomation.dropShellPermissionIdentity()
         }
     }
@@ -152,14 +150,14 @@ class VideoThumbnailDecoderTest {
             ThumbnailStrategy.FrameAtPercentage(),
             ThumbnailStrategy.Hybrid(),
         )) {
-            val imageLoader = ImageLoader.Builder(context)
+            val imageLoader = ImageLoader.Builder(context = context)
                 .components { add(VideoThumbnailDecoder.Factory { strategy }) }
                 .build()
             try {
                 val result = imageLoader.execute(
-                    ImageRequest.Builder(context)
-                        .data(uri)
-                        .size(160, 90)
+                    ImageRequest.Builder(context = context)
+                        .data(data = uri)
+                        .size(width = 160, height = 90)
                         .memoryCachePolicy(CachePolicy.DISABLED)
                         .diskCachePolicy(CachePolicy.DISABLED)
                         .build(),

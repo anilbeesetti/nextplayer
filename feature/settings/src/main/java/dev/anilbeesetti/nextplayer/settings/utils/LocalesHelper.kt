@@ -8,7 +8,7 @@ object LocalesHelper {
         Locale.getAvailableLocales().map {
             val key = it.isO3Language
             val language = it.displayLanguage
-            Pair(language, key)
+            Pair(first = language, second = key)
         }.distinctBy { it.second }.sortedBy { it.first }
     } catch (e: Exception) {
         e.printStackTrace()
