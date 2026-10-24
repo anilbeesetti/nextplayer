@@ -26,7 +26,7 @@ fun RadioButtonRow(
     Row(
         modifier = modifier
             .fillMaxWidth()
-            .clip(RoundedCornerShape(4.dp))
+            .clip(shape = RoundedCornerShape(4.dp))
             .selectable(
                 selected = selected,
                 onClick = onClick,

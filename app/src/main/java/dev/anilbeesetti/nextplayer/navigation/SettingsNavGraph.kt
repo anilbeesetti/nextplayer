@@ -28,9 +28,7 @@ import dev.anilbeesetti.nextplayer.settings.navigation.settingsEntry
 import dev.anilbeesetti.nextplayer.settings.navigation.subtitlePreferencesEntry
 import dev.anilbeesetti.nextplayer.settings.navigation.thumbnailPreferencesEntry
 
-fun EntryProviderScope<NavKey>.settingsNavGraph(
-    backStack: NavBackStack<NavKey>,
-) {
+fun EntryProviderScope<NavKey>.settingsNavGraph(backStack: NavBackStack<NavKey>) {
     settingsEntry(
         onNavigateUp = { backStack.removeLastIfNotRoot() },
         onItemClick = { setting ->

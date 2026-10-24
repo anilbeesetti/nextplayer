@@ -95,8 +95,11 @@ interface PlaylistDao {
 
     @Transaction
     suspend fun createPlaylist(name: String, uris: List<String>): Long {
-        val playlistId = insertPlaylist(PlaylistEntity(name = name))
-        addItems(playlistId, uris)
+        val playlistId = insertPlaylist(playlist = PlaylistEntity(name = name))
+        addItems(
+            playlistId = playlistId,
+            uris = uris,
+        )
         return playlistId
     }
 
@@ -105,7 +108,7 @@ interface PlaylistDao {
         playlist: PlaylistEntity,
         items: List<PlaylistItemEntity>,
     ): Long {
-        val playlistId = insertPlaylist(playlist)
+        val playlistId = insertPlaylist(playlist = playlist)
         insertItems(items.map { it.copy(playlistId = playlistId) })
         return playlistId
     }
@@ -116,11 +119,13 @@ interface PlaylistDao {
         items: List<PlaylistItemEntity>,
         refreshedAt: Long,
     ) {
-        require(getPlaylistEntity(playlistId)?.type in LINKED_PLAYLIST_TYPES) {
+        require(value = getPlaylistEntity(playlistId = playlistId)?.type in LINKED_PLAYLIST_TYPES) {
             "Only linked playlists can be refreshed"
         }
-        val playedAtByUri = getItems(playlistId).associate { it.uri to it.lastPlayedAt }
-        deleteItemsForPlaylist(playlistId)
+        val playedAtByUri = getItems(playlistId = playlistId).associate {
+            it.uri to it.lastPlayedAt
+        }
+        deleteItemsForPlaylist(playlistId = playlistId)
         insertItems(
             items.map { item ->
                 item.copy(
@@ -129,22 +134,25 @@ interface PlaylistDao {
                 )
             },
         )
-        updateLastRefreshedAt(playlistId, refreshedAt)
+        updateLastRefreshedAt(
+            playlistId = playlistId,
+            refreshedAt = refreshedAt,
+        )
     }
 
     suspend fun requireLocalPlaylist(playlistId: Long) {
-        require(getPlaylistEntity(playlistId)?.type == LOCAL_PLAYLIST_TYPE) {
+        require(value = getPlaylistEntity(playlistId = playlistId)?.type == LOCAL_PLAYLIST_TYPE) {
             "Only local playlists can be edited"
         }
     }
 
     @Transaction
     suspend fun addItems(playlistId: Long, uris: List<String>): Int {
-        val currentItems = getItems(playlistId)
-        val knownUris = currentItems.mapTo(mutableSetOf()) { it.uri }
+        val currentItems = getItems(playlistId = playlistId)
+        val knownUris = currentItems.mapTo(destination = mutableSetOf()) { it.uri }
         var nextPosition = currentItems.size
         val newItems = uris.mapNotNull { uri ->
-            if (knownUris.add(uri)) {
+            if (knownUris.add(element = uri)) {
                 PlaylistItemEntity(
                     playlistId = playlistId,
                     uri = uri,
@@ -154,38 +162,50 @@ interface PlaylistDao {
                 null
             }
         }
-        return insertItems(newItems).count { it != -1L }
+        return insertItems(items = newItems).count { it != -1L }
     }
 
     @Transaction
     suspend fun removeItem(playlistId: Long, uri: String) {
-        deleteItem(playlistId, uri)
-        normalizePositions(playlistId)
+        deleteItem(
+            playlistId = playlistId,
+            uri = uri,
+        )
+        normalizePositions(playlistId = playlistId)
     }
 
     @Transaction
     suspend fun markItemPlayed(playlistId: Long, uri: String, playedAt: Long) {
-        require(updateLastPlayedAt(playlistId, uri, playedAt) == 1) {
-            "Last played URI must belong to the playlist"
-        }
+        require(
+            value =
+                updateLastPlayedAt(
+                    playlistId = playlistId,
+                    uri = uri,
+                    playedAt = playedAt,
+                ) == 1,
+        ) { "Last played URI must belong to the playlist" }
     }
 
     @Transaction
     suspend fun replaceOrder(playlistId: Long, orderedUris: List<String>) {
-        val currentItems = getItems(playlistId)
-        require(orderedUris.size == orderedUris.distinct().size) {
+        val currentItems = getItems(playlistId = playlistId)
+        require(value = orderedUris.size == orderedUris.distinct().size) {
             "Playlist order must not contain duplicate URIs"
         }
-        require(orderedUris.toSet() == currentItems.mapTo(mutableSetOf()) { it.uri }) {
-            "Playlist order must contain every current item exactly once"
-        }
+        require(
+            value =
+                orderedUris.toSet() == currentItems.mapTo(destination = mutableSetOf()) { it.uri },
+        ) { "Playlist order must contain every current item exactly once" }
         if (orderedUris == currentItems.map { it.uri }) return
 
-        shiftPositions(playlistId, currentItems.size + 1)
+        shiftPositions(
+            playlistId = playlistId,
+            offset = currentItems.size + 1,
+        )
         val itemsByUri = currentItems.associateBy { it.uri }
         updateItems(
             orderedUris.mapIndexed { position, uri ->
-                itemsByUri.getValue(uri).copy(position = position)
+                itemsByUri.getValue(key = uri).copy(position = position)
             },
         )
     }
@@ -198,17 +218,20 @@ interface PlaylistDao {
         }
         if (missingItems.isEmpty()) return
 
-        deleteItems(missingItems)
+        deleteItems(items = missingItems)
         missingItems.map { it.playlistId }.distinct().forEach { playlistId ->
-            normalizePositions(playlistId)
+            normalizePositions(playlistId = playlistId)
         }
     }
 
     private suspend fun normalizePositions(playlistId: Long) {
-        val items = getItems(playlistId)
+        val items = getItems(playlistId = playlistId)
         if (items.withIndex().all { (index, item) -> item.position == index }) return
 
-        shiftPositions(playlistId, items.size + 1)
+        shiftPositions(
+            playlistId = playlistId,
+            offset = items.size + 1,
+        )
         updateItems(items.mapIndexed { position, item -> item.copy(position = position) })
     }
 
@@ -217,6 +240,9 @@ interface PlaylistDao {
 
     companion object {
         private const val LOCAL_PLAYLIST_TYPE = "LOCAL"
-        private val LINKED_PLAYLIST_TYPES = setOf("M3U_URL", "M3U_FILE")
+        private val LINKED_PLAYLIST_TYPES = setOf(
+            "M3U_URL",
+            "M3U_FILE",
+        )
     }
 }

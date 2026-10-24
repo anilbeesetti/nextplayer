@@ -4,7 +4,7 @@ import android.os.Parcel
 
 /** Non-null URI for local JVM tests, where the Android stub's [Uri.EMPTY] is null. */
 object TestUri : Uri() {
-    override fun buildUpon(): Builder = error("Not used")
+    override fun buildUpon(): Builder = error(message = "Not used")
     override fun getAuthority(): String? = null
     override fun getEncodedAuthority(): String? = null
     override fun getEncodedFragment(): String? = null

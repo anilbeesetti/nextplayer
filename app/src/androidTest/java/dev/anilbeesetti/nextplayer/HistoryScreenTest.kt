@@ -29,7 +29,9 @@ class HistoryScreenTest {
 
     @Test
     fun turningHistoryOffAndOnRequiresConfirmation() {
-        val state = mutableStateOf(HistoryUiState(history = DataState.Success(listOf(Video.sample))))
+        val state = mutableStateOf(
+            value = HistoryUiState(history = DataState.Success(value = listOf(Video.sample))),
+        )
         val actions = mutableListOf<HistoryAction>()
         composeRule.setContent {
             NextPlayerTheme {
@@ -37,64 +39,114 @@ class HistoryScreenTest {
                     actions += action
                     if (action is HistoryAction.SetHistoryEnabled) {
                         state.value = state.value.copy(
-                            preferences = state.value.preferences.copy(isHistoryPaused = !action.enabled),
-                            history = DataState.Success(emptyList()),
+                            preferences = state.value.preferences.copy(
+                                isHistoryPaused = !action.enabled,
+                            ),
+                            history = DataState.Success(value = emptyList()),
                         )
                     }
                 }
             }
         }
 
-        composeRule.onNodeWithContentDescription("Menu").performClick()
-        composeRule.onNodeWithText("Turn off watch history").performClick()
-        composeRule.onNodeWithText("Turning off watch history will clear your watch history and stop recording videos you watch.").assertExists()
-        composeRule.runOnIdle { assertEquals(emptyList<HistoryAction>(), actions) }
-        composeRule.onNodeWithText("Cancel").performClick()
-        composeRule.runOnIdle { assertEquals(emptyList<HistoryAction>(), actions) }
+        composeRule.onNodeWithContentDescription(label = "Menu").performClick()
+        composeRule.onNodeWithText(text = "Turn off watch history").performClick()
+        composeRule.onNodeWithText(
+            text = "Turning off watch history will clear your watch history " +
+                "and stop recording videos you watch.",
+        ).assertExists()
+        composeRule.runOnIdle {
+            assertEquals(
+                emptyList<HistoryAction>(),
+                actions,
+            )
+        }
+        composeRule.onNodeWithText(text = "Cancel").performClick()
+        composeRule.runOnIdle {
+            assertEquals(
+                emptyList<HistoryAction>(),
+                actions,
+            )
+        }
 
-        composeRule.onNodeWithContentDescription("Menu").performClick()
-        composeRule.onNodeWithText("Turn off watch history").performClick()
-        confirm("Turn off watch history")
-        composeRule.onNodeWithText("Watch history is turned off").assertExists()
-        composeRule.runOnIdle { assertEquals(listOf(HistoryAction.SetHistoryEnabled(false)), actions) }
+        composeRule.onNodeWithContentDescription(label = "Menu").performClick()
+        composeRule.onNodeWithText(text = "Turn off watch history").performClick()
+        confirm(text = "Turn off watch history")
+        composeRule.onNodeWithText(text = "Watch history is turned off").assertExists()
+        composeRule.runOnIdle {
+            assertEquals(
+                listOf(HistoryAction.SetHistoryEnabled(enabled = false)),
+                actions,
+            )
+        }
 
-        composeRule.onNodeWithContentDescription("Menu").performClick()
-        composeRule.onNodeWithText("Clear history").assertIsNotEnabled()
-        composeRule.onNodeWithText("Turn on watch history").performClick()
-        composeRule.onNodeWithText("Start recording videos you watch in your watch history?").assertExists()
-        composeRule.onNodeWithText("Cancel").performClick()
-        composeRule.onNodeWithText("Watch history is turned off").assertExists()
-        composeRule.runOnIdle { assertEquals(1, actions.size) }
+        composeRule.onNodeWithContentDescription(label = "Menu").performClick()
+        composeRule.onNodeWithText(text = "Clear history").assertIsNotEnabled()
+        composeRule.onNodeWithText(text = "Turn on watch history").performClick()
+        composeRule.onNodeWithText(
+            text = "Start recording videos you watch in your watch history?",
+        ).assertExists()
+        composeRule.onNodeWithText(text = "Cancel").performClick()
+        composeRule.onNodeWithText(text = "Watch history is turned off").assertExists()
+        composeRule.runOnIdle {
+            assertEquals(
+                1,
+                actions.size,
+            )
+        }
 
-        composeRule.onNodeWithContentDescription("Menu").performClick()
-        composeRule.onNodeWithText("Turn on watch history").performClick()
-        confirm("Turn on watch history")
-        composeRule.onNodeWithText("No watch history").assertExists()
-        composeRule.runOnIdle { assertEquals(listOf(HistoryAction.SetHistoryEnabled(false), HistoryAction.SetHistoryEnabled(true)), actions) }
+        composeRule.onNodeWithContentDescription(label = "Menu").performClick()
+        composeRule.onNodeWithText(text = "Turn on watch history").performClick()
+        confirm(text = "Turn on watch history")
+        composeRule.onNodeWithText(text = "No watch history").assertExists()
+        composeRule.runOnIdle {
+            assertEquals(
+                listOf(
+                    HistoryAction.SetHistoryEnabled(enabled = false),
+                    HistoryAction.SetHistoryEnabled(enabled = true),
+                ),
+                actions,
+            )
+        }
     }
 
     @Test
     fun clearHistoryRequiresConfirmationAndShowsEmptyState() {
-        val state = mutableStateOf(HistoryUiState(history = DataState.Success(listOf(Video.sample))))
+        val state = mutableStateOf(
+            value = HistoryUiState(history = DataState.Success(value = listOf(Video.sample))),
+        )
         val actions = mutableListOf<HistoryAction>()
         composeRule.setContent {
             NextPlayerTheme {
                 HistoryScreenContent(state = state.value) { action ->
                     actions += action
-                    if (action == HistoryAction.ClearHistory) state.value = state.value.copy(history = DataState.Success(emptyList()))
+                    if (action == HistoryAction.ClearHistory) {
+                        state.value =
+                            state.value.copy(history = DataState.Success(value = emptyList()))
+                    }
                 }
             }
         }
-        composeRule.onNodeWithContentDescription("Menu").performClick()
-        composeRule.onNodeWithText("Clear history").performClick()
-        composeRule.onNodeWithText("Remove all watched videos from history?").assertExists()
-        composeRule.onNodeWithText("Cancel").performClick()
-        composeRule.runOnIdle { assertEquals(emptyList<HistoryAction>(), actions) }
-        composeRule.onNodeWithContentDescription("Menu").performClick()
-        composeRule.onNodeWithText("Clear history").performClick()
-        composeRule.onNodeWithText("Clear all").performClick()
-        composeRule.onNodeWithText("No watch history").assertExists()
-        composeRule.runOnIdle { assertEquals(listOf(HistoryAction.ClearHistory), actions) }
+        composeRule.onNodeWithContentDescription(label = "Menu").performClick()
+        composeRule.onNodeWithText(text = "Clear history").performClick()
+        composeRule.onNodeWithText(text = "Remove all watched videos from history?").assertExists()
+        composeRule.onNodeWithText(text = "Cancel").performClick()
+        composeRule.runOnIdle {
+            assertEquals(
+                emptyList<HistoryAction>(),
+                actions,
+            )
+        }
+        composeRule.onNodeWithContentDescription(label = "Menu").performClick()
+        composeRule.onNodeWithText(text = "Clear history").performClick()
+        composeRule.onNodeWithText(text = "Clear all").performClick()
+        composeRule.onNodeWithText(text = "No watch history").assertExists()
+        composeRule.runOnIdle {
+            assertEquals(
+                listOf(element = HistoryAction.ClearHistory),
+                actions,
+            )
+        }
     }
 
     @Test
@@ -103,18 +155,18 @@ class HistoryScreenTest {
             NextPlayerTheme {
                 HistoryScreenContent(
                     state = HistoryUiState(
-                        history = DataState.Success(listOf(Video.sample)),
+                        history = DataState.Success(value = listOf(Video.sample)),
                         preferences = ApplicationPreferences(isHistoryPaused = true),
                     ),
                     onAction = {},
                 )
             }
         }
-        composeRule.onNodeWithText("Watch history is turned off").assertExists()
+        composeRule.onNodeWithText(text = "Watch history is turned off").assertExists()
         composeRule.onNodeWithText(Video.sample.displayName).assertDoesNotExist()
     }
 
     private fun confirm(text: String) {
-        composeRule.onNode(hasText(text) and hasClickAction()).performClick()
+        composeRule.onNode(matcher = hasText(text = text) and hasClickAction()).performClick()
     }
 }

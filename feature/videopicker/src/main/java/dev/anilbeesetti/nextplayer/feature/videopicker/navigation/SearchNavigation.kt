@@ -15,7 +15,7 @@ import org.koin.core.parameter.parametersOf
 object SearchRoute : NavKey
 
 fun NavBackStack<NavKey>.navigateToSearch() {
-    add(SearchRoute)
+    add(element = SearchRoute)
 }
 
 fun EntryProviderScope<NavKey>.searchEntry(

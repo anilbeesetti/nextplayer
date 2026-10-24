@@ -15,18 +15,18 @@ import org.junit.Test
 
 class NetworkClientFactoryTest {
 
-    private val factory = DefaultNetworkClientFactory(FakeSshKeyStore())
+    private val factory = DefaultNetworkClientFactory(sshKeyStore = FakeSshKeyStore())
 
     @Test
     fun `factory creates SFTP client`() {
-        assertTrue(factory.create(connection(NetworkProtocol.SFTP)) is SftpClient)
+        assertTrue(factory.create(connection = connection(NetworkProtocol.SFTP)) is SftpClient)
     }
 
     @Test
     fun `factory retains existing protocol client types`() {
-        assertTrue(factory.create(connection(NetworkProtocol.SMB)) is SmbClient)
-        assertTrue(factory.create(connection(NetworkProtocol.FTP)) is FtpClient)
-        assertTrue(factory.create(connection(NetworkProtocol.WEBDAV)) is WebDavClient)
+        assertTrue(factory.create(connection = connection(NetworkProtocol.SMB)) is SmbClient)
+        assertTrue(factory.create(connection = connection(NetworkProtocol.FTP)) is FtpClient)
+        assertTrue(factory.create(connection = connection(NetworkProtocol.WEBDAV)) is WebDavClient)
     }
 
     private fun connection(protocol: NetworkProtocol) = NetworkConnection(
@@ -36,9 +36,9 @@ class NetworkClientFactoryTest {
     )
 
     private class FakeSshKeyStore : SshKeyStore {
-        override suspend fun stage(uri: Uri): StagedSshKey = error("Not used")
-        override fun resolve(fileName: String): File = error("Not used")
-        override suspend fun commit(fileName: String): String = error("Not used")
+        override suspend fun stage(uri: Uri): StagedSshKey = error(message = "Not used")
+        override fun resolve(fileName: String): File = error(message = "Not used")
+        override suspend fun commit(fileName: String): String = error(message = "Not used")
         override suspend fun delete(fileName: String) = Unit
     }
 }

@@ -70,11 +70,15 @@ class MediaStoreMediaService(
     private val mediaChanges: Flow<Unit> = callbackFlow {
         val observer = object : ContentObserver(null) {
             override fun onChange(selfChange: Boolean) {
-                trySend(Unit)
+                trySend(element = Unit)
             }
         }
-        context.contentResolver.registerContentObserver(VIDEO_COLLECTION_URI, true, observer)
-        trySend(Unit)
+        context.contentResolver.registerContentObserver(
+            VIDEO_COLLECTION_URI,
+            true,
+            observer,
+        )
+        trySend(element = Unit)
         awaitClose { context.contentResolver.unregisterContentObserver(observer) }
     }
         .debounce(OBSERVER_DEBOUNCE_MS.milliseconds)
@@ -85,59 +89,60 @@ class MediaStoreMediaService(
         )
 
     override fun observeFolders(folderPath: String?): Flow<List<MediaFolder>> = observeMedia {
-        fetchFolders(folderPath)
+        fetchFolders(folderPath = folderPath)
     }
 
     override fun observeVideos(folderPath: String?): Flow<List<MediaVideo>> = observeMedia {
-        fetchVideos(folderPath)
+        fetchVideos(folderPath = folderPath)
     }
 
     override fun observeTrashVideos(): Flow<List<MediaVideo>> = observeMedia {
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) queryTrashVideos() else emptyList()
     }
 
-    private fun <T> observeMedia(query: suspend () -> List<T>): Flow<List<T>> {
-        return mediaChanges
-            .map {
-                try {
-                    query()
-                } catch (e: IllegalArgumentException) {
-                    // A volume can disappear before MediaProvider opens it. Handle each
-                    // notification separately so observers can recover when storage returns.
-                    if (e.message?.startsWith("Volume ") == true && e.message?.endsWith(" not found") == true) {
-                        emptyList()
-                    } else {
-                        throw e
-                    }
+    private fun <T> observeMedia(query: suspend () -> List<T>): Flow<List<T>> = mediaChanges
+        .map {
+            try {
+                query()
+            } catch (e: IllegalArgumentException) {
+                // A volume can disappear before MediaProvider opens it. Handle each
+                // notification separately so observers can recover when storage returns.
+                if (e.message?.startsWith(prefix = "Volume ") == true &&
+                    e.message?.endsWith(suffix = " not found") == true
+                ) {
+                    emptyList()
+                } else {
+                    throw e
                 }
             }
-            .flowOn(Dispatchers.IO)
-            .distinctUntilChanged()
-    }
+        }
+        .flowOn(Dispatchers.IO)
+        .distinctUntilChanged()
 
-    override suspend fun fetchFolders(folderPath: String?): List<MediaFolder> = withContext(Dispatchers.IO) {
-        val videos = fetchVideos(folderPath)
+    override suspend fun fetchFolders(folderPath: String?): List<MediaFolder> =
+        withContext(Dispatchers.IO) {
+            val videos = fetchVideos(folderPath = folderPath)
 
-        val videosByFolder = videos.groupBy { File(it.path).parentFile }
+            val videosByFolder = videos.groupBy { File(it.path).parentFile }
 
-        return@withContext videosByFolder.mapNotNull { (folder, folderVideos) ->
-            folder?.let {
-                MediaFolder(
-                    path = it.path,
-                    name = it.prettyName,
-                    dateModified = folderVideos.maxOfOrNull { video -> video.dateModified } ?: 0L,
-                    totalSize = folderVideos.sumOf { video -> video.size },
-                    totalDuration = folderVideos.sumOf { video -> video.duration },
-                    videosCount = folderVideos.size,
-                    foldersCount = 0,
-                )
+            return@withContext videosByFolder.mapNotNull { (folder, folderVideos) ->
+                folder?.let {
+                    MediaFolder(
+                        path = it.path,
+                        name = it.prettyName,
+                        dateModified =
+                            folderVideos.maxOfOrNull { video -> video.dateModified } ?: 0L,
+                        totalSize = folderVideos.sumOf { video -> video.size },
+                        totalDuration = folderVideos.sumOf { video -> video.duration },
+                        videosCount = folderVideos.size,
+                        foldersCount = 0,
+                    )
+                }
             }
         }
-    }
 
-    override suspend fun fetchVideos(folderPath: String?): List<MediaVideo> = withContext(Dispatchers.IO) {
-        queryVideos(folderPath)
-    }
+    override suspend fun fetchVideos(folderPath: String?): List<MediaVideo> =
+        withContext(Dispatchers.IO) { queryVideos(folderPath = folderPath) }
 
     override suspend fun findVideo(uri: Uri): MediaVideo? = withContext(Dispatchers.IO) {
         return@withContext try {
@@ -163,7 +168,7 @@ class MediaStoreMediaService(
         val folderFile = File(path)
         if (!folderFile.exists()) return@withContext null
 
-        val allVideos = fetchVideos(path)
+        val allVideos = fetchVideos(folderPath = path)
         if (allVideos.isEmpty()) return@withContext null
 
         val directVideos = allVideos.filter { File(it.path).parent == path }
@@ -187,28 +192,47 @@ class MediaStoreMediaService(
     /**
      * Walks up the directory tree from this file's parent to the root.
      */
-    private fun File.walkUp() = generateSequence(parentFile) { it.parentFile }
+    private fun File.walkUp() = generateSequence(seed = parentFile) { it.parentFile }
 
     @RequiresApi(Build.VERSION_CODES.R)
     private fun queryTrashVideos(): List<MediaVideo> {
         val queryArgs = Bundle().apply {
-            putInt(MediaStore.QUERY_ARG_MATCH_TRASHED, MediaStore.MATCH_ONLY)
+            putInt(
+                MediaStore.QUERY_ARG_MATCH_TRASHED,
+                MediaStore.MATCH_ONLY,
+            )
             putStringArray(
                 android.content.ContentResolver.QUERY_ARG_SORT_COLUMNS,
                 arrayOf(MediaStore.Video.Media.DATE_MODIFIED),
             )
-            putInt(android.content.ContentResolver.QUERY_ARG_SORT_DIRECTION, android.content.ContentResolver.QUERY_SORT_DIRECTION_DESCENDING)
+            putInt(
+                android.content.ContentResolver.QUERY_ARG_SORT_DIRECTION,
+                android.content.ContentResolver.QUERY_SORT_DIRECTION_DESCENDING,
+            )
         }
         return queryVideoCursor {
-            context.contentResolver.query(VIDEO_COLLECTION_URI, VIDEO_PROJECTION, queryArgs, null)
+            context.contentResolver.query(
+                VIDEO_COLLECTION_URI,
+                VIDEO_PROJECTION,
+                queryArgs,
+                null,
+            )
         }
     }
 
     private fun queryVideos(folderPath: String?): List<MediaVideo> {
         // A null folderPath scans every storage volume (e.g. SD cards / USB OTG). For a specific
         // folder, match it and its descendants, escaping LIKE metacharacters ('%', '_') in the path.
-        val selection = if (folderPath == null) null else "${MediaStore.Video.Media.DATA} LIKE ? ESCAPE '\\'"
-        val selectionArgs = if (folderPath == null) null else arrayOf("${folderPath.escapeLike()}/%")
+        val selection = if (folderPath == null) {
+            null
+        } else {
+            "${MediaStore.Video.Media.DATA} LIKE ? ESCAPE '\\'"
+        }
+        val selectionArgs = if (folderPath == null) {
+            null
+        } else {
+            arrayOf("${folderPath.escapeLike()}/%")
+        }
         val sortOrder = "${MediaStore.Video.Media.DISPLAY_NAME} ASC"
         return queryVideoCursor {
             context.contentResolver.query(
@@ -223,13 +247,13 @@ class MediaStoreMediaService(
 
     private fun queryVideoCursor(query: () -> Cursor?): List<MediaVideo> {
         val mediaVideos = mutableListOf<MediaVideo>()
-        val cursor = checkNotNull(query()) {
+        val cursor = checkNotNull(value = query()) {
             "MediaStore returned no cursor for the video query"
         }
         cursor.use {
             while (cursor.moveToNext()) {
                 val video = cursor.toMediaVideo() ?: continue
-                mediaVideos.add(video)
+                mediaVideos.add(element = video)
             }
         }
         return mediaVideos
@@ -238,8 +262,16 @@ class MediaStoreMediaService(
     /**
      * Escapes SQL LIKE metacharacters so a path is matched literally (used with `ESCAPE '\'`).
      */
-    private fun String.escapeLike(): String =
-        replace("\\", "\\\\").replace("%", "\\%").replace("_", "\\_")
+    private fun String.escapeLike(): String = replace(
+        oldValue = "\\",
+        newValue = "\\\\",
+    ).replace(
+        oldValue = "%",
+        newValue = "\\%",
+    ).replace(
+        oldValue = "_",
+        newValue = "\\_",
+    )
 
     /**
      * Converts the current row to a [MediaVideo], or null if this cursor doesn't actually
@@ -255,15 +287,23 @@ class MediaStoreMediaService(
      * that crash and simply reports "not found" for any uri that isn't a MediaStore video uri.
      */
     private fun Cursor.toMediaVideo(): MediaVideo? {
-        val dataIndex = getColumnIndex(MediaStore.Video.Media.DATA).takeIf { it >= 0 } ?: return null
+        val dataIndex =
+            getColumnIndex(MediaStore.Video.Media.DATA).takeIf { it >= 0 } ?: return null
         val idIndex = getColumnIndex(MediaStore.Video.Media._ID).takeIf { it >= 0 } ?: return null
-        val displayNameIndex = getColumnIndex(MediaStore.Video.Media.DISPLAY_NAME).takeIf { it >= 0 } ?: return null
-        val durationIndex = getColumnIndex(MediaStore.Video.Media.DURATION).takeIf { it >= 0 } ?: return null
-        val widthIndex = getColumnIndex(MediaStore.Video.Media.WIDTH).takeIf { it >= 0 } ?: return null
-        val heightIndex = getColumnIndex(MediaStore.Video.Media.HEIGHT).takeIf { it >= 0 } ?: return null
-        val sizeIndex = getColumnIndex(MediaStore.Video.Media.SIZE).takeIf { it >= 0 } ?: return null
-        val dateModifiedIndex = getColumnIndex(MediaStore.Video.Media.DATE_MODIFIED).takeIf { it >= 0 } ?: return null
-        val dateAddedIndex = getColumnIndex(MediaStore.Video.Media.DATE_ADDED).takeIf { it >= 0 } ?: return null
+        val displayNameIndex =
+            getColumnIndex(MediaStore.Video.Media.DISPLAY_NAME).takeIf { it >= 0 } ?: return null
+        val durationIndex =
+            getColumnIndex(MediaStore.Video.Media.DURATION).takeIf { it >= 0 } ?: return null
+        val widthIndex =
+            getColumnIndex(MediaStore.Video.Media.WIDTH).takeIf { it >= 0 } ?: return null
+        val heightIndex =
+            getColumnIndex(MediaStore.Video.Media.HEIGHT).takeIf { it >= 0 } ?: return null
+        val sizeIndex =
+            getColumnIndex(MediaStore.Video.Media.SIZE).takeIf { it >= 0 } ?: return null
+        val dateModifiedIndex =
+            getColumnIndex(MediaStore.Video.Media.DATE_MODIFIED).takeIf { it >= 0 } ?: return null
+        val dateAddedIndex =
+            getColumnIndex(MediaStore.Video.Media.DATE_ADDED).takeIf { it >= 0 } ?: return null
 
         val path = getString(dataIndex) ?: return null
         val file = File(path)
@@ -274,7 +314,10 @@ class MediaStoreMediaService(
             path = path,
             title = file.name,
             parentPath = file.parent ?: "/",
-            uri = ContentUris.withAppendedId(VIDEO_COLLECTION_URI, id),
+            uri = ContentUris.withAppendedId(
+                VIDEO_COLLECTION_URI,
+                id,
+            ),
             displayName = getString(displayNameIndex) ?: file.name,
             duration = getLong(durationIndex),
             width = getInt(widthIndex),

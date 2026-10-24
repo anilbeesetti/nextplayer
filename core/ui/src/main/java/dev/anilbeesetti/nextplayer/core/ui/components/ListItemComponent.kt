@@ -48,14 +48,17 @@ fun NextSegmentedListItem(
 
     val focusInteractionSource = interactionSource ?: remember { MutableInteractionSource() }
     val isFocused by focusInteractionSource.collectIsFocusedAsState()
-    val focusScale by animateFloatAsState(targetValue = if (isFocused) 1.01f else 1f, label = "focusScale")
+    val focusScale by animateFloatAsState(
+        targetValue = if (isFocused) 1.01f else 1f,
+        label = "focusScale",
+    )
 
     SegmentedListItem(
         modifier = modifier
-            .zIndex(if (isFocused) 1f else 0f)
-            .scale(focusScale)
+            .zIndex(zIndex = if (isFocused) 1f else 0f)
+            .scale(scale = focusScale)
             .then(
-                if (isFocused) {
+                other = if (isFocused) {
                     Modifier.border(
                         width = 2.dp,
                         color = MaterialTheme.colorScheme.primary,
@@ -70,15 +73,26 @@ fun NextSegmentedListItem(
         onLongClick = onLongClick,
         enabled = enabled,
         verticalAlignment = Alignment.CenterVertically,
-        shapes = remember(isFirstItem, isLastItem, shapes) {
+        shapes = remember(
+            isFirstItem,
+            isLastItem,
+            shapes,
+        ) {
             val defaultBaseShape = shapes.shape
             if (defaultBaseShape is CornerBasedShape) {
                 shapes.copy(
                     shape = defaultBaseShape.copy(
-                        topStart = overrideShape.topStart.takeIf { isFirstItem } ?: defaultBaseShape.topStart,
-                        topEnd = overrideShape.topEnd.takeIf { isFirstItem } ?: defaultBaseShape.topEnd,
-                        bottomStart = overrideShape.bottomStart.takeIf { isLastItem } ?: defaultBaseShape.bottomStart,
-                        bottomEnd = overrideShape.bottomEnd.takeIf { isLastItem } ?: defaultBaseShape.bottomEnd,
+                        topStart =
+                            overrideShape.topStart.takeIf { isFirstItem }
+                                ?: defaultBaseShape.topStart,
+                        topEnd =
+                            overrideShape.topEnd.takeIf { isFirstItem } ?: defaultBaseShape.topEnd,
+                        bottomStart =
+                            overrideShape.bottomStart.takeIf { isLastItem }
+                                ?: defaultBaseShape.bottomStart,
+                        bottomEnd =
+                            overrideShape.bottomEnd.takeIf { isLastItem }
+                                ?: defaultBaseShape.bottomEnd,
                     ),
                 )
             } else {
@@ -109,7 +123,7 @@ fun ListSectionTitle(
 ) {
     Text(
         text = text,
-        modifier = modifier.padding(contentPadding),
+        modifier = modifier.padding(paddingValues = contentPadding),
         color = color,
         style = MaterialTheme.typography.labelLarge,
     )

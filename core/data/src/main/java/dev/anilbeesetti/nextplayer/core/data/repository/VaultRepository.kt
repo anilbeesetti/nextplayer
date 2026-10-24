@@ -27,6 +27,4 @@ interface VaultRepository {
  *   (e.g. a custom folder or storage root, which scoped storage disallows) and were instead
  *   placed in the fallback directory.
  */
-data class UnhideResult(
-    val relocatedCount: Int = 0,
-)
+data class UnhideResult(val relocatedCount: Int = 0)

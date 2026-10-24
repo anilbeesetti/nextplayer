@@ -30,10 +30,10 @@ val Uri.isGooglePhotosUri: Boolean
  * Whether the Uri authority is PhotoPicker.
  */
 val Uri.isLocalPhotoPickerUri: Boolean
-    get() = toString().contains("com.android.providers.media.photopicker")
+    get() = toString().contains(other = "com.android.providers.media.photopicker")
 
 /**
  * Whether the Uri authority is PhotoPicker.
  */
 val Uri.isCloudPhotoPickerUri: Boolean
-    get() = toString().contains("com.google.android.apps.photos.cloudpicker")
+    get() = toString().contains(other = "com.google.android.apps.photos.cloudpicker")

@@ -29,13 +29,26 @@ fun BoxScope.ChaptersView(
     currentChapterIndex: Int,
     onChapterSelected: (Chapter) -> Unit,
 ) {
-    OverlayView(show = show, title = stringResource(R.string.chapters)) {
+    OverlayView(
+        show = show,
+        title = stringResource(R.string.chapters),
+    ) {
         LazyColumn(
             modifier = Modifier.fillMaxSize().navigationBarsPadding(),
-            state = rememberLazyListState(initialFirstVisibleItemIndex = currentChapterIndex.coerceAtLeast(0)),
-            contentPadding = PaddingValues(horizontal = 16.dp, vertical = 8.dp),
+            state = rememberLazyListState(
+                initialFirstVisibleItemIndex = currentChapterIndex.coerceAtLeast(minimumValue = 0),
+            ),
+            contentPadding = PaddingValues(
+                horizontal = 16.dp,
+                vertical = 8.dp,
+            ),
         ) {
-            itemsIndexed(chapters, key = { _, chapter -> chapter.startTimeMs }) { index, chapter ->
+            itemsIndexed(
+                items = chapters,
+                key = { _, chapter ->
+                    chapter.startTimeMs
+                },
+            ) { index, chapter ->
                 NextSegmentedListItem(
                     selected = index == currentChapterIndex,
                     isFirstItem = index == 0,
@@ -43,7 +56,7 @@ fun BoxScope.ChaptersView(
                     onClick = { onChapterSelected(chapter) },
                     content = {
                         Text(
-                            text = chapter.titleOrDefault(index),
+                            text = chapter.titleOrDefault(index = index),
                             style = MaterialTheme.typography.titleSmall,
                             maxLines = 2,
                             overflow = TextOverflow.Ellipsis,
@@ -60,4 +73,7 @@ fun BoxScope.ChaptersView(
 
 @Composable
 internal fun Chapter.titleOrDefault(index: Int): String =
-    title?.value?.takeIf { it.isNotBlank() } ?: stringResource(R.string.chapter_number, index + 1)
+    title?.value?.takeIf { it.isNotBlank() } ?: stringResource(
+        R.string.chapter_number,
+        index + 1,
+    )

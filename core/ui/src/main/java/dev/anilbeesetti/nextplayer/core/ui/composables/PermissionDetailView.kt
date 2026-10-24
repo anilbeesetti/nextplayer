@@ -22,15 +22,13 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
+import androidx.core.net.toUri
 import dev.anilbeesetti.nextplayer.core.ui.R
 import dev.anilbeesetti.nextplayer.core.ui.preview.DayNightPreview
 import dev.anilbeesetti.nextplayer.core.ui.theme.NextPlayerTheme
-import androidx.core.net.toUri
 
 @Composable
-fun PermissionDetailView(
-    text: String,
-) {
+fun PermissionDetailView(text: String) {
     val context = LocalContext.current
     Column(
         modifier = Modifier.fillMaxSize(),
@@ -59,9 +57,7 @@ fun PermissionDetailView(
                     context.startActivity(this)
                 }
             },
-        ) {
-            Text(text = stringResource(R.string.open_settings))
-        }
+        ) { Text(text = stringResource(R.string.open_settings)) }
     }
 }
 

@@ -28,22 +28,19 @@ class TrashViewModel(
     @InjectedParam internal var output: Output,
 ) : MviViewModel<TrashUiState, TrashAction>() {
 
-    data class Output(
-        val navigateUp: () -> Unit,
-        val playVideo: (String) -> Unit,
-    )
+    data class Output(val navigateUp: () -> Unit, val playVideo: (String) -> Unit)
 
-    private val stateInternal = MutableStateFlow(TrashUiState())
+    private val stateInternal = MutableStateFlow(value = TrashUiState())
     override val state: StateFlow<TrashUiState> = stateInternal.asStateFlow()
 
     init {
         viewModelScope.launch {
             mediaRepository.observeTrashVideos()
                 .catch { error ->
-                    stateInternal.update { it.copy(videos = DataState.Error(error)) }
+                    stateInternal.update { it.copy(videos = DataState.Error(value = error)) }
                 }
                 .collect { videos ->
-                    stateInternal.update { it.copy(videos = DataState.Success(videos)) }
+                    stateInternal.update { it.copy(videos = DataState.Success(value = videos)) }
                 }
         }
         viewModelScope.launch {
@@ -57,7 +54,6 @@ class TrashViewModel(
         when (action) {
             is TrashAction.NavigateUp -> output.navigateUp()
             is TrashAction.PlayVideo -> output.playVideo(action.uri)
-
             is TrashAction.Restore -> restore(action.selectionItems)
             is TrashAction.DeletePermanently -> deletePermanently(action.selectionItems)
         }
@@ -68,10 +64,16 @@ class TrashViewModel(
     }
 
     private fun deletePermanently(selectionItems: Set<SelectionItem>) {
-        viewModelScope.launch { mediaOperationsService.deleteMedia(selectionItems.toUris(), permanently = true) }
+        viewModelScope.launch {
+            mediaOperationsService.deleteMedia(
+                selectionItems.toUris(),
+                permanently = true,
+            )
+        }
     }
 
-    private fun Set<SelectionItem>.toUris(): List<Uri> = filterIsInstance<SelectionItem.Video>().map { it.uriString.toUri() }
+    private fun Set<SelectionItem>.toUris(): List<Uri> =
+        filterIsInstance<SelectionItem.Video>().map { it.uriString.toUri() }
 }
 
 data class TrashUiState(

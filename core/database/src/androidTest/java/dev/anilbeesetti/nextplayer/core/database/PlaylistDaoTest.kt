@@ -35,80 +35,179 @@ class PlaylistDaoTest {
 
     @Test
     fun createAllowsDuplicateNamesAndDeduplicatesVideos() = runTest {
-        val firstId = dao.createPlaylist("Movies", listOf("content://one", "content://one", "content://two"))
-        dao.createPlaylist("Movies", emptyList())
+        val firstId = dao.createPlaylist(
+            name = "Movies",
+            uris = listOf(
+                "content://one",
+                "content://one",
+                "content://two",
+            ),
+        )
+        dao.createPlaylist(
+            name = "Movies",
+            uris = emptyList(),
+        )
 
         val summaries = dao.observeSummaries().first()
 
-        assertEquals(listOf("Movies", "Movies"), summaries.map { it.name })
-        assertEquals(2, summaries.first { it.id == firstId }.itemCount)
         assertEquals(
-            listOf("content://one", "content://two"),
-            dao.getItems(firstId).map { it.uri },
+            listOf(
+                "Movies",
+                "Movies",
+            ),
+            summaries.map { it.name },
+        )
+        assertEquals(
+            2,
+            summaries.first { it.id == firstId }.itemCount,
+        )
+        assertEquals(
+            listOf(
+                "content://one",
+                "content://two",
+            ),
+            dao.getItems(playlistId = firstId).map { it.uri },
         )
     }
 
     @Test
     fun renameRemoveAndReorderKeepContiguousPositions() = runTest {
         val playlistId = dao.createPlaylist(
-            "Before",
-            listOf("content://one", "content://two", "content://three"),
+            name = "Before",
+            uris = listOf(
+                "content://one",
+                "content://two",
+                "content://three",
+            ),
         )
 
-        dao.renamePlaylist(playlistId, "After")
-        dao.removeItem(playlistId, "content://two")
-        dao.replaceOrder(playlistId, listOf("content://three", "content://one"))
+        dao.renamePlaylist(
+            playlistId = playlistId,
+            name = "After",
+        )
+        dao.removeItem(
+            playlistId = playlistId,
+            uri = "content://two",
+        )
+        dao.replaceOrder(
+            playlistId = playlistId,
+            orderedUris = listOf(
+                "content://three",
+                "content://one",
+            ),
+        )
 
-        val playlist = dao.observePlaylist(playlistId).first()
-        assertEquals("After", playlist?.playlist?.name)
+        val playlist = dao.observePlaylist(playlistId = playlistId).first()
         assertEquals(
-            listOf("content://three", "content://one"),
-            dao.getItems(playlistId).map { it.uri },
+            "After",
+            playlist?.playlist?.name,
         )
-        assertEquals(listOf(0, 1), dao.getItems(playlistId).map { it.position })
+        assertEquals(
+            listOf(
+                "content://three",
+                "content://one",
+            ),
+            dao.getItems(playlistId = playlistId).map { it.uri },
+        )
+        assertEquals(
+            listOf(
+                0,
+                1,
+            ),
+            dao.getItems(playlistId = playlistId).map { it.position },
+        )
     }
 
     @Test
     fun cleanupRemovesMissingVideosAndDeleteCascades() = runTest {
-        val firstId = dao.createPlaylist("First", listOf("content://one", "content://missing"))
-        val secondId = dao.createPlaylist("Second", listOf("content://missing", "content://two"))
+        val firstId = dao.createPlaylist(
+            name = "First",
+            uris = listOf(
+                "content://one",
+                "content://missing",
+            ),
+        )
+        val secondId = dao.createPlaylist(
+            name = "Second",
+            uris = listOf(
+                "content://missing",
+                "content://two",
+            ),
+        )
 
-        dao.removeMissingLocalItems(setOf("content://one", "content://two"))
+        dao.removeMissingLocalItems(
+            existingUris = setOf(
+                "content://one",
+                "content://two",
+            ),
+        )
 
-        assertEquals(listOf("content://one"), dao.getItems(firstId).map { it.uri })
-        assertEquals(listOf("content://two"), dao.getItems(secondId).map { it.uri })
-        assertEquals(listOf(0), dao.getItems(firstId).map { it.position })
-        assertEquals(listOf(0), dao.getItems(secondId).map { it.position })
+        assertEquals(
+            listOf(element = "content://one"),
+            dao.getItems(playlistId = firstId).map { it.uri },
+        )
+        assertEquals(
+            listOf(element = "content://two"),
+            dao.getItems(playlistId = secondId).map { it.uri },
+        )
+        assertEquals(
+            listOf(element = 0),
+            dao.getItems(playlistId = firstId).map { it.position },
+        )
+        assertEquals(
+            listOf(element = 0),
+            dao.getItems(playlistId = secondId).map { it.position },
+        )
 
-        dao.deletePlaylist(firstId)
-        assertEquals(emptyList<Any>(), dao.getItems(firstId))
+        dao.deletePlaylist(playlistId = firstId)
+        assertEquals(
+            emptyList<Any>(),
+            dao.getItems(playlistId = firstId),
+        )
     }
 
     @Test
     fun lastPlayedTimestampsRetainThePreviousItemAfterTheNewestIsRemoved() = runTest {
         val playlistId = dao.createPlaylist(
-            "Movies",
-            listOf("content://one", "content://two"),
+            name = "Movies",
+            uris = listOf(
+                "content://one",
+                "content://two",
+            ),
         )
 
-        dao.markItemPlayed(playlistId, "content://one", playedAt = 100)
-        dao.markItemPlayed(playlistId, "content://two", playedAt = 200)
+        dao.markItemPlayed(
+            playlistId = playlistId,
+            uri = "content://one",
+            playedAt = 100,
+        )
+        dao.markItemPlayed(
+            playlistId = playlistId,
+            uri = "content://two",
+            playedAt = 200,
+        )
         assertEquals(
-            listOf(100L, 200L),
-            dao.getItems(playlistId).map { it.lastPlayedAt },
+            listOf(
+                100L,
+                200L,
+            ),
+            dao.getItems(playlistId = playlistId).map { it.lastPlayedAt },
         )
 
-        dao.removeItem(playlistId, "content://two")
+        dao.removeItem(
+            playlistId = playlistId,
+            uri = "content://two",
+        )
         assertEquals(
-            listOf("content://one" to 100L),
-            dao.getItems(playlistId).map { it.uri to it.lastPlayedAt },
+            listOf(element = "content://one" to 100L),
+            dao.getItems(playlistId = playlistId).map { it.uri to it.lastPlayedAt },
         )
     }
 
     @Test
     fun playlistItemTableStoresIdentityMetadataAndPlaybackTimestamp() {
         val columns = database.openHelper.readableDatabase
-            .query("PRAGMA table_info(`playlist_item`)")
+            .query(query = "PRAGMA table_info(`playlist_item`)")
             .use { cursor ->
                 buildSet {
                     while (cursor.moveToNext()) add(cursor.getString(1))
@@ -139,11 +238,24 @@ class PlaylistDaoTest {
                 source = "https://example.com/list.m3u",
             ),
             items = listOf(
-                PlaylistItemEntity(0, "https://example.com/one", 0, title = "Before"),
-                PlaylistItemEntity(0, "https://example.com/removed", 1),
+                PlaylistItemEntity(
+                    playlistId = 0,
+                    uri = "https://example.com/one",
+                    position = 0,
+                    title = "Before",
+                ),
+                PlaylistItemEntity(
+                    playlistId = 0,
+                    uri = "https://example.com/removed",
+                    position = 1,
+                ),
             ),
         )
-        dao.markItemPlayed(playlistId, "https://example.com/one", playedAt = 123)
+        dao.markItemPlayed(
+            playlistId = playlistId,
+            uri = "https://example.com/one",
+            playedAt = 123,
+        )
 
         dao.replaceM3UItems(
             playlistId = playlistId,
@@ -167,18 +279,39 @@ class PlaylistDaoTest {
             refreshedAt = 999,
         )
 
-        val playlist = dao.getPlaylist(playlistId)
-        assertEquals(999L, playlist?.playlist?.lastRefreshedAt)
+        val playlist = dao.getPlaylist(playlistId = playlistId)
         assertEquals(
-            listOf("https://example.com/new", "https://example.com/one"),
+            999L,
+            playlist?.playlist?.lastRefreshedAt,
+        )
+        assertEquals(
+            listOf(
+                "https://example.com/new",
+                "https://example.com/one",
+            ),
             playlist?.items?.sortedBy { it.position }?.map { it.uri },
         )
-        val retained = playlist?.items?.single { it.uri.endsWith("/one") }
-        assertEquals("After", retained?.title)
-        assertEquals("https://example.com/logo.png", retained?.tvgLogo)
-        assertEquals(42, retained?.duration)
-        assertEquals("News", retained?.groupTitle)
-        assertEquals(123L, retained?.lastPlayedAt)
+        val retained = playlist?.items?.single { it.uri.endsWith(suffix = "/one") }
+        assertEquals(
+            "After",
+            retained?.title,
+        )
+        assertEquals(
+            "https://example.com/logo.png",
+            retained?.tvgLogo,
+        )
+        assertEquals(
+            42,
+            retained?.duration,
+        )
+        assertEquals(
+            "News",
+            retained?.groupTitle,
+        )
+        assertEquals(
+            123L,
+            retained?.lastPlayedAt,
+        )
     }
 
     @Test
@@ -190,25 +323,35 @@ class PlaylistDaoTest {
                 source = "https://example.com/list.m3u",
             ),
             items = listOf(
-                PlaylistItemEntity(0, "https://example.com/live", 0),
+                element = PlaylistItemEntity(
+                    playlistId = 0,
+                    uri = "https://example.com/live",
+                    position = 0,
+                ),
             ),
         )
 
-        dao.removeMissingLocalItems(emptySet())
+        dao.removeMissingLocalItems(existingUris = emptySet())
 
         assertEquals(
-            listOf("https://example.com/live"),
-            dao.getItems(linkedId).map { it.uri },
+            listOf(element = "https://example.com/live"),
+            dao.getItems(playlistId = linkedId).map { it.uri },
         )
     }
 
     @Test
     fun deletingPlaylistEntityCascadesThroughForeignKey() = runTest {
-        val playlistId = dao.insertPlaylist(PlaylistEntity(name = "Movies"))
-        dao.addItems(playlistId, listOf("content://one"))
+        val playlistId = dao.insertPlaylist(playlist = PlaylistEntity(name = "Movies"))
+        dao.addItems(
+            playlistId = playlistId,
+            uris = listOf(element = "content://one"),
+        )
 
-        dao.deletePlaylist(playlistId)
+        dao.deletePlaylist(playlistId = playlistId)
 
-        assertEquals(emptyList<Any>(), dao.getItems(playlistId))
+        assertEquals(
+            emptyList<Any>(),
+            dao.getItems(playlistId = playlistId),
+        )
     }
 }

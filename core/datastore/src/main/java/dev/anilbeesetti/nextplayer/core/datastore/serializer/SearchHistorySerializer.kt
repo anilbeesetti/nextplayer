@@ -22,7 +22,10 @@ object SearchHistorySerializer : Serializer<SearchHistory> {
                 string = input.readBytes().decodeToString(),
             )
         } catch (exception: SerializationException) {
-            throw CorruptionException("Cannot read datastore", exception)
+            throw CorruptionException(
+                message = "Cannot read datastore",
+                cause = exception,
+            )
         }
     }
 

@@ -23,17 +23,17 @@ class MoreViewModel(
     @InjectedParam internal var output: Output,
 ) : MviViewModel<MoreUiState, MoreAction>() {
 
-    private val stateInternal = MutableStateFlow(MoreUiState())
+    private val stateInternal = MutableStateFlow(value = MoreUiState())
     override val state: StateFlow<MoreUiState> = stateInternal.asStateFlow()
 
     init {
         viewModelScope.launch {
             mediaRepository.observePlaybackHistory()
                 .catch { error ->
-                    stateInternal.update { it.copy(history = DataState.Error(error)) }
+                    stateInternal.update { it.copy(history = DataState.Error(value = error)) }
                 }
                 .collect { history ->
-                    stateInternal.update { it.copy(history = DataState.Success(history)) }
+                    stateInternal.update { it.copy(history = DataState.Success(value = history)) }
                 }
         }
         viewModelScope.launch {

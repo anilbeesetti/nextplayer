@@ -26,8 +26,14 @@ class MediaItemTest {
         val copiedItem = mediaItem.copy(audioTrackIndex = 2)
 
         assertNotNull(copiedItem.mediaMetadata.extras)
-        assertEquals(2, copiedItem.mediaMetadata.audioTrackIndex)
-        assertEquals("Remote stream", copiedItem.mediaMetadata.title)
+        assertEquals(
+            2,
+            copiedItem.mediaMetadata.audioTrackIndex,
+        )
+        assertEquals(
+            "Remote stream",
+            copiedItem.mediaMetadata.title,
+        )
     }
 
     @Test
@@ -35,14 +41,32 @@ class MediaItemTest {
         for (videoMode in DecoderMode.entries) {
             for (audioMode in DecoderMode.entries) {
                 val item = MediaItem.Builder().build()
-                    .copy(videoDecoderMode = videoMode, audioDecoderMode = audioMode)
-                    .copy(positionMs = 12_000, subtitleTrackIndex = 2)
+                    .copy(
+                        videoDecoderMode = videoMode,
+                        audioDecoderMode = audioMode,
+                    )
+                    .copy(
+                        positionMs = 12_000,
+                        subtitleTrackIndex = 2,
+                    )
                 val restored = MediaItem.fromBundle(item.toBundle())
-                assertEquals(videoMode, restored.mediaMetadata.videoDecoderMode)
-                assertEquals(audioMode, restored.mediaMetadata.audioDecoderMode)
+                assertEquals(
+                    videoMode,
+                    restored.mediaMetadata.videoDecoderMode,
+                )
+                assertEquals(
+                    audioMode,
+                    restored.mediaMetadata.audioDecoderMode,
+                )
                 val fallback = restored.copy(audioDecoderMode = DecoderMode.SOFTWARE)
-                assertEquals(videoMode, fallback.mediaMetadata.videoDecoderMode)
-                assertEquals(DecoderMode.SOFTWARE, fallback.mediaMetadata.audioDecoderMode)
+                assertEquals(
+                    videoMode,
+                    fallback.mediaMetadata.videoDecoderMode,
+                )
+                assertEquals(
+                    DecoderMode.SOFTWARE,
+                    fallback.mediaMetadata.audioDecoderMode,
+                )
             }
         }
     }
@@ -52,13 +76,26 @@ class MediaItemTest {
         assertNull(MediaItem.EMPTY.mediaMetadata.videoDecoderMode)
         assertNull(MediaItem.EMPTY.mediaMetadata.audioDecoderMode)
         val metadata = MediaMetadata.Builder()
-            .setExtras(videoDecoderMode = DecoderMode.AUTO, audioDecoderMode = DecoderMode.HARDWARE)
+            .setExtras(
+                videoDecoderMode = DecoderMode.AUTO,
+                audioDecoderMode = DecoderMode.HARDWARE,
+            )
             .build()
-        assertEquals(DecoderMode.AUTO, metadata.videoDecoderMode)
-        assertEquals(DecoderMode.HARDWARE, metadata.audioDecoderMode)
-        metadata.extras!!.keySet().forEach { metadata.extras!!.putString(it, "unknown") }
+        assertEquals(
+            DecoderMode.AUTO,
+            metadata.videoDecoderMode,
+        )
+        assertEquals(
+            DecoderMode.HARDWARE,
+            metadata.audioDecoderMode,
+        )
+        metadata.extras!!.keySet().forEach {
+            metadata.extras!!.putString(
+                it,
+                "unknown",
+            )
+        }
         assertNull(metadata.videoDecoderMode)
         assertNull(metadata.audioDecoderMode)
     }
-
 }

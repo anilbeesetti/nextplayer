@@ -44,9 +44,18 @@ dependencies {
     implementation(libs.sardine.android) {
         // xpp3/stax bundle org.xmlpull.v1, which conflicts with the classes
         // already provided by the Android platform and breaks R8 minification.
-        exclude(group = "xpp3", module = "xpp3")
-        exclude(group = "stax", module = "stax")
-        exclude(group = "stax", module = "stax-api")
+        exclude(
+            group = "xpp3",
+            module = "xpp3",
+        )
+        exclude(
+            group = "stax",
+            module = "stax",
+        )
+        exclude(
+            group = "stax",
+            module = "stax-api",
+        )
     }
     implementation(libs.androidx.media3.datasource)
 

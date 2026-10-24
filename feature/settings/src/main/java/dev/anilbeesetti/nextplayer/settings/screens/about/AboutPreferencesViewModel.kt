@@ -10,17 +10,13 @@ import org.koin.core.annotation.InjectedParam
 import org.koin.core.annotation.KoinViewModel
 
 @KoinViewModel
-class AboutPreferencesViewModel(
-    context: Context,
-    @InjectedParam internal var output: Output,
-) : MviViewModel<AboutPreferencesUiState, AboutPreferencesAction>() {
+class AboutPreferencesViewModel(context: Context, @InjectedParam internal var output: Output) :
+    MviViewModel<AboutPreferencesUiState, AboutPreferencesAction>() {
 
-    data class Output(
-        val navigateUp: () -> Unit,
-        val openLibraries: () -> Unit,
-    )
+    data class Output(val navigateUp: () -> Unit, val openLibraries: () -> Unit)
 
-    private val stateInternal = MutableStateFlow(AboutPreferencesUiState(appVersion = context.appVersion()))
+    private val stateInternal =
+        MutableStateFlow(value = AboutPreferencesUiState(appVersion = context.appVersion()))
     override val state: StateFlow<AboutPreferencesUiState> = stateInternal.asStateFlow()
 
     override fun onAction(action: AboutPreferencesAction) {
@@ -39,7 +35,10 @@ sealed interface AboutPreferencesAction {
 }
 
 private fun Context.appVersion(): String {
-    val packageInfo = packageManager.getPackageInfo(packageName, 0)
+    val packageInfo = packageManager.getPackageInfo(
+        packageName,
+        0,
+    )
 
     @Suppress("DEPRECATION")
     val versionCode = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.P) {

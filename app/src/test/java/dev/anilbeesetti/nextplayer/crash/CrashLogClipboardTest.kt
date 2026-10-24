@@ -8,20 +8,26 @@ class CrashLogClipboardTest {
 
     @Test
     fun reportAtClipboardLimitIsUnchanged() {
-        val report = "x".repeat(MAX_CLIPBOARD_REPORT_CHARS)
+        val report = "x".repeat(n = MAX_CLIPBOARD_REPORT_CHARS)
 
-        assertEquals(report, crashReportForClipboard(report))
+        assertEquals(
+            report,
+            crashReportForClipboard(report = report),
+        )
     }
 
     @Test
     fun oversizedReportRetainsPrefixAndAddsTruncationMarkerWithinLimit() {
         val prefix = "Device info\nException:\nPrimary hide failure\n"
-        val report = prefix + "x".repeat(MAX_CLIPBOARD_REPORT_CHARS)
+        val report = prefix + "x".repeat(n = MAX_CLIPBOARD_REPORT_CHARS)
 
-        val bounded = crashReportForClipboard(report)
+        val bounded = crashReportForClipboard(report = report)
 
-        assertEquals(MAX_CLIPBOARD_REPORT_CHARS, bounded.length)
-        assertTrue(bounded.startsWith(prefix))
-        assertTrue(bounded.endsWith(CLIPBOARD_REPORT_TRUNCATION_MARKER))
+        assertEquals(
+            MAX_CLIPBOARD_REPORT_CHARS,
+            bounded.length,
+        )
+        assertTrue(bounded.startsWith(prefix = prefix))
+        assertTrue(bounded.endsWith(suffix = CLIPBOARD_REPORT_TRUNCATION_MARKER))
     }
 }
