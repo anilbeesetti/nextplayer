@@ -45,6 +45,7 @@ fun rememberMediaController(
         onStopOrDispose {
             connection.cancel()
             try {
+                mediaController?.clearVideoSurface()
                 // The service outlives these controls; clear suppression while still connected.
                 mediaController?.setIsScrubbingModeEnabled(false)
                 currentOnBeforeRelease()
