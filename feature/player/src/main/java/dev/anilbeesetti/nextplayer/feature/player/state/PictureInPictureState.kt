@@ -115,6 +115,8 @@ class PictureInPictureState(
 
     fun setVideoViewRect(rect: Rect) {
         if (pictureInPicture == null) return
+        // Layout resizes can interrupt Android 11's PiP entry animation.
+        if (activity.isInPictureInPictureMode && !isInPictureInPictureMode) return
         if (rect.width() <= 0 || rect.height() <= 0) return
 
         val newSourceRectHint = Rect(rect)
