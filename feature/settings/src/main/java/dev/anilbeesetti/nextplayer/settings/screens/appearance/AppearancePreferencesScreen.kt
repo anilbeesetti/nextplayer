@@ -38,9 +38,7 @@ import dev.anilbeesetti.nextplayer.settings.composables.OptionsDialog
 import dev.anilbeesetti.nextplayer.settings.extensions.name
 
 @Composable
-fun AppearancePreferencesScreen(
-    viewModel: AppearancePreferencesViewModel,
-) {
+fun AppearancePreferencesScreen(viewModel: AppearancePreferencesViewModel) {
     val state by viewModel.state.collectAsStateWithLifecycle()
 
     AppearancePreferencesScreenContent(
@@ -49,7 +47,10 @@ fun AppearancePreferencesScreen(
     )
 }
 
-@OptIn(ExperimentalMaterial3Api::class, ExperimentalMaterial3ExpressiveApi::class)
+@OptIn(
+    ExperimentalMaterial3Api::class,
+    ExperimentalMaterial3ExpressiveApi::class,
+)
 @Composable
 private fun AppearancePreferencesScreenContent(
     state: AppearancePreferencesUiState,
@@ -61,7 +62,12 @@ private fun AppearancePreferencesScreenContent(
             NextTopAppBar(
                 title = stringResource(id = R.string.appearance_name),
                 navigationIcon = {
-                    FilledTonalIconButton(onClick = { onAction(AppearancePreferencesEvent.NavigateUp) }, modifier = Modifier.tvFocusDown(listFocusRequester)) {
+                    FilledTonalIconButton(
+                        onClick = {
+                            onAction(AppearancePreferencesEvent.NavigateUp)
+                        },
+                        modifier = Modifier.tvFocusDown(target = listFocusRequester),
+                    ) {
                         Icon(
                             imageVector = NextIcons.ArrowBack,
                             contentDescription = stringResource(id = R.string.navigate_up),
@@ -76,8 +82,8 @@ private fun AppearancePreferencesScreenContent(
             modifier = Modifier
                 .fillMaxSize()
                 .verticalScroll(state = rememberScrollState())
-                .tvListFocus(listFocusRequester)
-                .padding(innerPadding)
+                .tvListFocus(focusRequester = listFocusRequester)
+                .padding(paddingValues = innerPadding)
                 .padding(horizontal = 16.dp),
         ) {
             ListSectionTitle(text = stringResource(id = R.string.appearance_name))
@@ -90,7 +96,13 @@ private fun AppearancePreferencesScreenContent(
                     isChecked = state.preferences.themeConfig == ThemeConfig.ON,
                     onChecked = { onAction(AppearancePreferencesEvent.ToggleDarkTheme) },
                     icon = NextIcons.DarkMode,
-                    onClick = { onAction(AppearancePreferencesEvent.ShowDialog(AppearancePreferenceDialog.Theme)) },
+                    onClick = {
+                        onAction(
+                            AppearancePreferencesEvent.ShowDialog(
+                                value = AppearancePreferenceDialog.Theme,
+                            ),
+                        )
+                    },
                     isFirstItem = true,
                 )
                 PreferenceSwitch(
@@ -98,7 +110,9 @@ private fun AppearancePreferencesScreenContent(
                     description = stringResource(R.string.high_contrast_dark_theme_desc),
                     icon = NextIcons.Contrast,
                     isChecked = state.preferences.useHighContrastDarkTheme,
-                    onClick = { onAction(AppearancePreferencesEvent.ToggleUseHighContrastDarkTheme) },
+                    onClick = {
+                        onAction(AppearancePreferencesEvent.ToggleUseHighContrastDarkTheme)
+                    },
                     isLastItem = !supportsDynamicTheming(),
                 )
                 if (supportsDynamicTheming()) {
@@ -119,15 +133,21 @@ private fun AppearancePreferencesScreenContent(
                 AppearancePreferenceDialog.Theme -> {
                     OptionsDialog(
                         text = stringResource(id = R.string.dark_theme),
-                        onDismissClick = { onAction(AppearancePreferencesEvent.ShowDialog(null)) },
+                        onDismissClick = {
+                            onAction(AppearancePreferencesEvent.ShowDialog(value = null))
+                        },
                     ) {
                         items(ThemeConfig.entries.toTypedArray()) {
                             RadioTextButton(
                                 text = it.name(),
                                 selected = (it == state.preferences.themeConfig),
                                 onClick = {
-                                    onAction(AppearancePreferencesEvent.UpdateThemeConfig(it))
-                                    onAction(AppearancePreferencesEvent.ShowDialog(null))
+                                    onAction(
+                                        AppearancePreferencesEvent.UpdateThemeConfig(
+                                            themeConfig = it,
+                                        ),
+                                    )
+                                    onAction(AppearancePreferencesEvent.ShowDialog(value = null))
                                 },
                             )
                         }

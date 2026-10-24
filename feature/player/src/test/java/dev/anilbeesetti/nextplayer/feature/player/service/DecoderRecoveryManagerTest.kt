@@ -15,80 +15,238 @@ class DecoderRecoveryManagerTest {
     @Test
     fun automaticFailureRetriesFfmpegOnce() {
         val manager = DecoderRecoveryManager()
-        assertEquals(DecoderRetry(video, DecoderMode.FFMPEG), manager.onDecoderFailure(video, DecoderMode.AUTO))
-        assertEquals(DecoderRecoveryStatus.RECOVERING, manager.state.status)
-        assertNull(manager.onDecoderFailure(video, DecoderMode.AUTO))
-        manager.onDecoderInitialized(video)
-        assertEquals(DecoderRecoveryStatus.NONE, manager.state.status)
-        assertNull(manager.onDecoderFailure(video, DecoderMode.FFMPEG))
-        assertEquals(DecoderRecoveryStatus.FAILED, manager.state.status)
+        assertEquals(
+            DecoderRetry(
+                trackType = video,
+                DecoderMode.FFMPEG,
+            ),
+            manager.onDecoderFailure(
+                trackType = video,
+                DecoderMode.AUTO,
+            ),
+        )
+        assertEquals(
+            DecoderRecoveryStatus.RECOVERING,
+            manager.state.status,
+        )
+        assertNull(
+            manager.onDecoderFailure(
+                trackType = video,
+                DecoderMode.AUTO,
+            ),
+        )
+        manager.onDecoderInitialized(trackType = video)
+        assertEquals(
+            DecoderRecoveryStatus.NONE,
+            manager.state.status,
+        )
+        assertNull(
+            manager.onDecoderFailure(
+                trackType = video,
+                DecoderMode.FFMPEG,
+            ),
+        )
+        assertEquals(
+            DecoderRecoveryStatus.FAILED,
+            manager.state.status,
+        )
     }
 
     @Test
     fun explicitHardwareRequiresConfirmationThenTriesBothSoftwareDecoders() {
         val manager = DecoderRecoveryManager()
-        manager.onUserSelection(video, DecoderMode.HARDWARE)
-        assertNull(manager.onDecoderFailure(video, DecoderMode.HARDWARE))
-        assertEquals(DecoderRecoveryStatus.AWAITING_CONFIRMATION, manager.state.status)
-        assertEquals(DecoderMode.HARDWARE, manager.state.unsupportedMode)
-        assertEquals(DecoderRetry(video, DecoderMode.SOFTWARE), manager.confirmFallback())
+        manager.onUserSelection(
+            trackType = video,
+            DecoderMode.HARDWARE,
+        )
+        assertNull(
+            manager.onDecoderFailure(
+                trackType = video,
+                DecoderMode.HARDWARE,
+            ),
+        )
+        assertEquals(
+            DecoderRecoveryStatus.AWAITING_CONFIRMATION,
+            manager.state.status,
+        )
+        assertEquals(
+            DecoderMode.HARDWARE,
+            manager.state.unsupportedMode,
+        )
+        assertEquals(
+            DecoderRetry(
+                trackType = video,
+                DecoderMode.SOFTWARE,
+            ),
+            manager.confirmFallback(),
+        )
         assertNull(manager.confirmFallback())
-        assertEquals(DecoderRetry(video, DecoderMode.FFMPEG), manager.onDecoderFailure(video, DecoderMode.SOFTWARE))
-        assertNull(manager.onDecoderFailure(video, DecoderMode.FFMPEG))
-        assertEquals(DecoderRecoveryStatus.FAILED, manager.state.status)
+        assertEquals(
+            DecoderRetry(
+                trackType = video,
+                DecoderMode.FFMPEG,
+            ),
+            manager.onDecoderFailure(
+                trackType = video,
+                DecoderMode.SOFTWARE,
+            ),
+        )
+        assertNull(
+            manager.onDecoderFailure(
+                trackType = video,
+                DecoderMode.FFMPEG,
+            ),
+        )
+        assertEquals(
+            DecoderRecoveryStatus.FAILED,
+            manager.state.status,
+        )
     }
 
     @Test
     fun explicitFfmpegReturnsToAutomaticWithoutLooping() {
         val manager = DecoderRecoveryManager()
-        manager.onUserSelection(audio, DecoderMode.FFMPEG)
-        assertNull(manager.onDecoderFailure(audio, DecoderMode.FFMPEG))
-        assertEquals(DecoderRetry(audio, DecoderMode.AUTO), manager.confirmFallback())
-        assertNull(manager.onDecoderFailure(audio, DecoderMode.AUTO))
-        assertEquals(DecoderRecoveryStatus.FAILED, manager.state.status)
+        manager.onUserSelection(
+            trackType = audio,
+            DecoderMode.FFMPEG,
+        )
+        assertNull(
+            manager.onDecoderFailure(
+                trackType = audio,
+                DecoderMode.FFMPEG,
+            ),
+        )
+        assertEquals(
+            DecoderRetry(
+                trackType = audio,
+                DecoderMode.AUTO,
+            ),
+            manager.confirmFallback(),
+        )
+        assertNull(
+            manager.onDecoderFailure(
+                trackType = audio,
+                DecoderMode.AUTO,
+            ),
+        )
+        assertEquals(
+            DecoderRecoveryStatus.FAILED,
+            manager.state.status,
+        )
     }
 
     @Test
     fun userCanStartAnotherAttemptAfterFailure() {
         val manager = DecoderRecoveryManager()
-        manager.onUserSelection(video, DecoderMode.SOFTWARE)
-        manager.onDecoderFailure(video, DecoderMode.SOFTWARE)
+        manager.onUserSelection(
+            trackType = video,
+            DecoderMode.SOFTWARE,
+        )
+        manager.onDecoderFailure(
+            trackType = video,
+            DecoderMode.SOFTWARE,
+        )
         manager.confirmFallback()
-        manager.onDecoderFailure(video, DecoderMode.FFMPEG)
-        manager.onUserSelection(video, DecoderMode.SOFTWARE)
-        assertEquals(DecoderRecoveryStatus.NONE, manager.state.status)
-        manager.onDecoderFailure(video, DecoderMode.SOFTWARE)
-        assertEquals(DecoderRetry(video, DecoderMode.FFMPEG), manager.confirmFallback())
+        manager.onDecoderFailure(
+            trackType = video,
+            DecoderMode.FFMPEG,
+        )
+        manager.onUserSelection(
+            trackType = video,
+            DecoderMode.SOFTWARE,
+        )
+        assertEquals(
+            DecoderRecoveryStatus.NONE,
+            manager.state.status,
+        )
+        manager.onDecoderFailure(
+            trackType = video,
+            DecoderMode.SOFTWARE,
+        )
+        assertEquals(
+            DecoderRetry(
+                trackType = video,
+                DecoderMode.FFMPEG,
+            ),
+            manager.confirmFallback(),
+        )
     }
 
     @Test
     fun tracksHaveIndependentAttemptsAndInitialization() {
         val manager = DecoderRecoveryManager()
-        assertNotNull(manager.onDecoderFailure(video, DecoderMode.AUTO))
-        manager.onDecoderInitialized(audio)
-        assertEquals(DecoderRecoveryStatus.RECOVERING, manager.state.status)
-        assertEquals(video, manager.state.trackType)
-        assertEquals(DecoderRetry(audio, DecoderMode.FFMPEG), manager.onDecoderFailure(audio, DecoderMode.AUTO))
+        assertNotNull(
+            manager.onDecoderFailure(
+                trackType = video,
+                DecoderMode.AUTO,
+            ),
+        )
+        manager.onDecoderInitialized(trackType = audio)
+        assertEquals(
+            DecoderRecoveryStatus.RECOVERING,
+            manager.state.status,
+        )
+        assertEquals(
+            video,
+            manager.state.trackType,
+        )
+        assertEquals(
+            DecoderRetry(
+                trackType = audio,
+                DecoderMode.FFMPEG,
+            ),
+            manager.onDecoderFailure(
+                trackType = audio,
+                DecoderMode.AUTO,
+            ),
+        )
     }
 
     @Test
     fun audioRecoveryDoesNotHidePendingVideoConfirmation() {
         val manager = DecoderRecoveryManager()
-        manager.onUserSelection(video, DecoderMode.HARDWARE)
-        manager.onDecoderFailure(video, DecoderMode.HARDWARE)
-        manager.onDecoderFailure(audio, DecoderMode.AUTO)
-        manager.onDecoderInitialized(audio)
-        assertEquals(DecoderRecoveryStatus.AWAITING_CONFIRMATION, manager.state.status)
-        assertEquals(video, manager.state.trackType)
-        assertEquals(DecoderRetry(video, DecoderMode.SOFTWARE), manager.confirmFallback())
+        manager.onUserSelection(
+            trackType = video,
+            DecoderMode.HARDWARE,
+        )
+        manager.onDecoderFailure(
+            trackType = video,
+            DecoderMode.HARDWARE,
+        )
+        manager.onDecoderFailure(
+            trackType = audio,
+            DecoderMode.AUTO,
+        )
+        manager.onDecoderInitialized(trackType = audio)
+        assertEquals(
+            DecoderRecoveryStatus.AWAITING_CONFIRMATION,
+            manager.state.status,
+        )
+        assertEquals(
+            video,
+            manager.state.trackType,
+        )
+        assertEquals(
+            DecoderRetry(
+                trackType = video,
+                DecoderMode.SOFTWARE,
+            ),
+            manager.confirmFallback(),
+        )
     }
 
     @Test
     fun nonDecoderErrorClearsRecovery() {
         val manager = DecoderRecoveryManager()
-        manager.onDecoderFailure(video, DecoderMode.AUTO)
+        manager.onDecoderFailure(
+            trackType = video,
+            DecoderMode.AUTO,
+        )
         manager.onNonDecoderError()
-        assertEquals(DecoderRecoveryStatus.NONE, manager.state.status)
+        assertEquals(
+            DecoderRecoveryStatus.NONE,
+            manager.state.status,
+        )
         assertNull(manager.confirmFallback())
     }
 }

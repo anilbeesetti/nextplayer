@@ -27,7 +27,10 @@ fun VaultProgressDialog(message: String) {
             color = MaterialTheme.colorScheme.surfaceContainerHigh,
         ) {
             Row(
-                modifier = Modifier.padding(horizontal = 24.dp, vertical = 20.dp),
+                modifier = Modifier.padding(
+                    horizontal = 24.dp,
+                    vertical = 20.dp,
+                ),
                 verticalAlignment = Alignment.CenterVertically,
                 horizontalArrangement = Arrangement.spacedBy(16.dp),
             ) {

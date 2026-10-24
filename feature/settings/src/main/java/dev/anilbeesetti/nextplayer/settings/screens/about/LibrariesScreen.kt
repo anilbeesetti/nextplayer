@@ -37,15 +37,18 @@ import dev.anilbeesetti.nextplayer.core.ui.extensions.plus
 @Composable
 fun LibrariesScreen(viewModel: LibrariesViewModel) {
     val state by viewModel.state.collectAsStateWithLifecycle()
-    LibrariesScreenContent(state = state, onAction = viewModel::onAction)
+    LibrariesScreenContent(
+        state = state,
+        onAction = viewModel::onAction,
+    )
 }
 
-@OptIn(ExperimentalMaterial3Api::class, ExperimentalMaterial3ExpressiveApi::class)
+@OptIn(
+    ExperimentalMaterial3Api::class,
+    ExperimentalMaterial3ExpressiveApi::class,
+)
 @Composable
-private fun LibrariesScreenContent(
-    state: LibrariesUiState,
-    onAction: (LibrariesAction) -> Unit,
-) {
+private fun LibrariesScreenContent(state: LibrariesUiState, onAction: (LibrariesAction) -> Unit) {
     val context = LocalContext.current
     val uriHandler = LocalUriHandler.current
 
@@ -70,7 +73,12 @@ private fun LibrariesScreenContent(
             contentPadding = innerPadding + PaddingValues(horizontal = 16.dp),
             verticalArrangement = Arrangement.spacedBy(ListItemDefaults.SegmentedGap),
         ) {
-            itemsIndexed(state.libraries, key = { _, library -> library.uniqueId }) { index, library ->
+            itemsIndexed(
+                state.libraries,
+                key = { _, library ->
+                    library.uniqueId
+                },
+            ) { index, library ->
                 NextSegmentedListItem(
                     content = {
                         Row(
@@ -81,11 +89,9 @@ private fun LibrariesScreenContent(
                                 text = library.name,
                                 maxLines = 1,
                                 overflow = TextOverflow.Ellipsis,
-                                modifier = Modifier.weight(1f),
+                                modifier = Modifier.weight(weight = 1f),
                             )
-                            library.artifactVersion?.let {
-                                Text(text = it)
-                            }
+                            library.artifactVersion?.let { Text(text = it) }
                         }
                     },
                     supportingContent = {
@@ -93,7 +99,7 @@ private fun LibrariesScreenContent(
                             Text(
                                 text = library.developers.takeIf { it.isNotEmpty() }
                                     ?.mapNotNull { it.name }
-                                    ?.joinToString(", ")
+                                    ?.joinToString(separator = ", ")
                                     ?: library.organization?.name ?: "",
                             )
                             FlowRow(
@@ -102,9 +108,13 @@ private fun LibrariesScreenContent(
                             ) {
                                 library.licenses.forEach {
                                     Badge(
-                                        containerColor = MaterialTheme.colorScheme.secondaryContainer,
+                                        containerColor =
+                                            MaterialTheme.colorScheme.secondaryContainer,
                                     ) {
-                                        Text(text = it.name, modifier = Modifier.padding(horizontal = 2.dp))
+                                        Text(
+                                            text = it.name,
+                                            modifier = Modifier.padding(horizontal = 2.dp),
+                                        )
                                     }
                                 }
                             }
@@ -114,7 +124,10 @@ private fun LibrariesScreenContent(
                     isLastItem = index == state.libraries.lastIndex,
                     onClick = {
                         library.website?.takeIf { it.isNotBlank() }?.let {
-                            uriHandler.openUriOrShowToast(uri = it, context = context)
+                            uriHandler.openUriOrShowToast(
+                                uri = it,
+                                context = context,
+                            )
                         }
                     },
                 )

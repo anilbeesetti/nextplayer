@@ -43,16 +43,23 @@ class ControlsMiddleViewTest {
         val groupFocusRequester = FocusRequester()
         val player = composeRule.runOnIdle { TestPlayer() }
         try {
-            showControls(player, groupFocusRequester)
-            val playPause = composeRule.onNodeWithContentDescription(composeRule.activity.getString(R.string.play_pause))
-            val next = composeRule.onNodeWithContentDescription(composeRule.activity.getString(R.string.player_controls_next))
+            showControls(
+                player = player,
+                groupFocusRequester = groupFocusRequester,
+            )
+            val playPause = composeRule.onNodeWithContentDescription(
+                composeRule.activity.getString(R.string.play_pause),
+            )
+            val next = composeRule.onNodeWithContentDescription(
+                composeRule.activity.getString(R.string.player_controls_next),
+            )
 
             composeRule.runOnIdle { groupFocusRequester.requestFocus() }
             playPause.assertIsFocused()
 
             playPause.performKeyInput { pressKey(Key.DirectionRight) }
             next.assertIsFocused()
-            val otherControl = composeRule.onNodeWithTag("other-control")
+            val otherControl = composeRule.onNodeWithTag(testTag = "other-control")
             otherControl.requestFocus().assertIsFocused()
 
             otherControl.performKeyInput { pressKey(Key.DirectionUp) }
@@ -67,30 +74,49 @@ class ControlsMiddleViewTest {
         val groupFocusRequester = FocusRequester()
         val player = composeRule.runOnIdle { TestPlayer() }
         try {
-            showControls(player, groupFocusRequester)
-            val playPause = composeRule.onNodeWithContentDescription(composeRule.activity.getString(R.string.play_pause))
-            val next = composeRule.onNodeWithContentDescription(composeRule.activity.getString(R.string.player_controls_next))
-            val previous = composeRule.onNodeWithContentDescription(composeRule.activity.getString(R.string.player_controls_previous))
+            showControls(
+                player = player,
+                groupFocusRequester = groupFocusRequester,
+            )
+            val playPause = composeRule.onNodeWithContentDescription(
+                composeRule.activity.getString(R.string.play_pause),
+            )
+            val next = composeRule.onNodeWithContentDescription(
+                composeRule.activity.getString(R.string.player_controls_next),
+            )
+            val previous = composeRule.onNodeWithContentDescription(
+                composeRule.activity.getString(R.string.player_controls_previous),
+            )
             composeRule.runOnIdle { groupFocusRequester.requestFocus() }
 
-            for (key in listOf(Key.DirectionCenter, Key.Enter, Key.NumPadEnter)) {
-                playPause.performKeyInput { pressKey(key) }
+            for (key in listOf(
+                Key.DirectionCenter,
+                Key.Enter,
+                Key.NumPadEnter,
+            )) {
+                playPause.performKeyInput { pressKey(key = key) }
                 composeRule.runOnIdle { assertTrue(player.playWhenReady) }
-                playPause.performKeyInput { pressKey(key) }
+                playPause.performKeyInput { pressKey(key = key) }
                 composeRule.runOnIdle { assertFalse(player.playWhenReady) }
             }
 
             playPause.performKeyInput { pressKey(Key.DirectionRight) }
             next.assertIsFocused().performKeyInput { pressKey(Key.DirectionCenter) }
             composeRule.runOnIdle {
-                assertEquals(2, player.currentMediaItemIndex)
+                assertEquals(
+                    2,
+                    player.currentMediaItemIndex,
+                )
                 assertFalse(player.playWhenReady)
             }
 
             playPause.requestFocus().performKeyInput { pressKey(Key.DirectionLeft) }
             previous.assertIsFocused().performKeyInput { pressKey(Key.DirectionCenter) }
             composeRule.runOnIdle {
-                assertEquals(1, player.currentMediaItemIndex)
+                assertEquals(
+                    1,
+                    player.currentMediaItemIndex,
+                )
                 assertFalse(player.playWhenReady)
             }
         } finally {
@@ -103,15 +129,13 @@ class ControlsMiddleViewTest {
             NextPlayerTheme {
                 Column {
                     ControlsMiddleView(
-                        modifier = Modifier.focusRequester(groupFocusRequester),
+                        modifier = Modifier.focusRequester(focusRequester = groupFocusRequester),
                         player = player,
                     )
                     Button(
-                        modifier = Modifier.testTag("other-control"),
+                        modifier = Modifier.testTag(tag = "other-control"),
                         onClick = {},
-                    ) {
-                        Text("Other control")
-                    }
+                    ) { Text(text = "Other control") }
                 }
             }
         }
@@ -130,7 +154,9 @@ class ControlsMiddleViewTest {
                     )
                     .build(),
             )
-            .setPlaylist(List(3) { MediaItemData.Builder(it).setDurationUs(60_000_000).build() })
+            .setPlaylist(
+                List(size = 3) { MediaItemData.Builder(it).setDurationUs(60_000_000).build() },
+            )
             .setCurrentMediaItemIndex(1)
             .setContentPositionMs(0)
             .setPlaybackState(Player.STATE_READY)
@@ -139,12 +165,21 @@ class ControlsMiddleViewTest {
         override fun getState(): State = state
 
         override fun handleSetPlayWhenReady(playWhenReady: Boolean): ListenableFuture<*> {
-            state = state.buildUpon().setPlayWhenReady(playWhenReady, Player.PLAY_WHEN_READY_CHANGE_REASON_USER_REQUEST).build()
+            state = state.buildUpon().setPlayWhenReady(
+                playWhenReady,
+                Player.PLAY_WHEN_READY_CHANGE_REASON_USER_REQUEST,
+            ).build()
             return Futures.immediateVoidFuture()
         }
 
-        override fun handleSeek(mediaItemIndex: Int, positionMs: Long, seekCommand: Int): ListenableFuture<*> {
-            state = state.buildUpon().setCurrentMediaItemIndex(mediaItemIndex).setContentPositionMs(0).build()
+        override fun handleSeek(
+            mediaItemIndex: Int,
+            positionMs: Long,
+            seekCommand: Int,
+        ): ListenableFuture<*> {
+            state = state.buildUpon().setCurrentMediaItemIndex(
+                mediaItemIndex,
+            ).setContentPositionMs(0).build()
             return Futures.immediateVoidFuture()
         }
     }

@@ -21,35 +21,56 @@ class SshKeyStoreInitializerTest {
     @Test
     fun `startup passes only valid SFTP key-auth references to store`() = runBlocking {
         val repository = FakeRepository(
-            flowOf(
-                listOf(
-                    connection("feed.key"),
-                    connection("feed.key"),
-                    connection(" dead-beef.key "),
-                    connection(""),
-                    connection("../invalid.key"),
-                    connection("cafe.key", protocol = NetworkProtocol.SMB),
-                    connection("beef.key", authentication = NetworkAuthentication.PASSWORD),
+            connections = flowOf(
+                value = listOf(
+                    connection(fileName = "feed.key"),
+                    connection(fileName = "feed.key"),
+                    connection(fileName = " dead-beef.key "),
+                    connection(fileName = ""),
+                    connection(fileName = "../invalid.key"),
+                    connection(
+                        fileName = "cafe.key",
+                        protocol = NetworkProtocol.SMB,
+                    ),
+                    connection(
+                        fileName = "beef.key",
+                        authentication = NetworkAuthentication.PASSWORD,
+                    ),
                 ),
             ),
         )
         val store = FakeSshKeyStore()
 
-        initializeSshKeyStore(repository, store)
+        initializeSshKeyStore(
+            repository = repository,
+            sshKeyStore = store,
+        )
 
-        assertEquals(setOf("feed.key", "dead-beef.key"), store.referencedFileNames)
+        assertEquals(
+            setOf(
+                "feed.key",
+                "dead-beef.key",
+            ),
+            store.referencedFileNames,
+        )
     }
 
     @Test
     fun `database enumeration failure initializes store without cleanup set`() = runBlocking {
         val repository = FakeRepository(
-            flow { throw IOException("database unavailable") },
+            connections = flow { throw IOException("database unavailable") },
         )
         val store = FakeSshKeyStore()
 
-        initializeSshKeyStore(repository, store)
+        initializeSshKeyStore(
+            repository = repository,
+            sshKeyStore = store,
+        )
 
-        assertEquals(null, store.referencedFileNames)
+        assertEquals(
+            null,
+            store.referencedFileNames,
+        )
     }
 
     private fun connection(
@@ -65,13 +86,12 @@ class SshKeyStoreInitializerTest {
     )
 }
 
-private class FakeRepository(
-    private val connections: Flow<List<NetworkConnection>>,
-) : NetworkConnectionRepository {
+private class FakeRepository(private val connections: Flow<List<NetworkConnection>>) :
+    NetworkConnectionRepository {
     override fun getConnections(): Flow<List<NetworkConnection>> = connections
-    override suspend fun getConnection(id: Long): NetworkConnection? = error("Not used")
-    override suspend fun upsert(connection: NetworkConnection): Long = error("Not used")
-    override suspend fun delete(id: Long) = error("Not used")
+    override suspend fun getConnection(id: Long): NetworkConnection? = error(message = "Not used")
+    override suspend fun upsert(connection: NetworkConnection): Long = error(message = "Not used")
+    override suspend fun delete(id: Long) = error(message = "Not used")
 }
 
 private class FakeSshKeyStore : SshKeyStore {
@@ -81,8 +101,8 @@ private class FakeSshKeyStore : SshKeyStore {
         this.referencedFileNames = referencedFileNames
     }
 
-    override suspend fun stage(uri: Uri): StagedSshKey = error("Not used")
-    override fun resolve(fileName: String): File = error("Not used")
-    override suspend fun commit(fileName: String): String = error("Not used")
-    override suspend fun delete(fileName: String) = error("Not used")
+    override suspend fun stage(uri: Uri): StagedSshKey = error(message = "Not used")
+    override fun resolve(fileName: String): File = error(message = "Not used")
+    override suspend fun commit(fileName: String): String = error(message = "Not used")
+    override suspend fun delete(fileName: String) = error(message = "Not used")
 }

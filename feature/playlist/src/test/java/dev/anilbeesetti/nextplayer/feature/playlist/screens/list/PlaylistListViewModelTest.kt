@@ -38,7 +38,7 @@ class PlaylistListViewModelTest {
 
     @Before
     fun setUp() {
-        Dispatchers.setMain(dispatcher)
+        Dispatchers.setMain(dispatcher = dispatcher)
         context = RuntimeEnvironment.getApplication()
         repository = FakePlaylistRepository()
         systemService = FakeSystemService()
@@ -50,22 +50,40 @@ class PlaylistListViewModelTest {
     }
 
     @Test
-    fun urlCreationParsesPersistsAndNavigatesWithoutEvents() = runTest(dispatcher) {
+    fun urlCreationParsesPersistsAndNavigatesWithoutEvents() = runTest(context = dispatcher) {
         val server = playlistServer()
         val openedIds = mutableListOf<Long>()
-        val viewModel = viewModel(openedIds)
+        val viewModel = viewModel(openedIds = openedIds)
         val source = "http://127.0.0.1:${server.address.port}/News_List.m3u"
         try {
-            viewModel.onAction(PlaylistUiAction.CreateM3UUrl(source))
+            viewModel.onAction(PlaylistUiAction.CreateM3UUrl(url = source))
             advanceUntilIdle()
 
             val call = repository.createM3UCalls.single()
-            assertEquals(PlaylistType.M3U_URL, call.type)
-            assertEquals(source, call.source)
-            assertEquals("News List", call.playlist.playlistName)
-            assertEquals(listOf("https://media.example/live"), call.playlist.items.map { it.uri })
-            assertEquals(listOf(42L), openedIds)
-            assertEquals(PlaylistCreationDialog.NONE, viewModel.state.value.creationDialog)
+            assertEquals(
+                PlaylistType.M3U_URL,
+                call.type,
+            )
+            assertEquals(
+                source,
+                call.source,
+            )
+            assertEquals(
+                "News List",
+                call.playlist.playlistName,
+            )
+            assertEquals(
+                listOf(element = "https://media.example/live"),
+                call.playlist.items.map { it.uri },
+            )
+            assertEquals(
+                listOf(element = 42L),
+                openedIds,
+            )
+            assertEquals(
+                PlaylistCreationDialog.NONE,
+                viewModel.state.value.creationDialog,
+            )
             assertTrue(viewModel.state.value.saveActionState is ActionState.Success)
             assertTrue(systemService.toasts.isEmpty())
         } finally {
@@ -74,21 +92,24 @@ class PlaylistListViewModelTest {
     }
 
     @Test
-    fun urlPersistenceFailureRemainsInlineAndDoesNotNavigate() = runTest(dispatcher) {
+    fun urlPersistenceFailureRemainsInlineAndDoesNotNavigate() = runTest(context = dispatcher) {
         val server = playlistServer()
         repository.createM3UFailure = IllegalStateException("Database unavailable")
         val openedIds = mutableListOf<Long>()
-        val viewModel = viewModel(openedIds)
+        val viewModel = viewModel(openedIds = openedIds)
         try {
             viewModel.onAction(
                 PlaylistUiAction.CreateM3UUrl(
-                    "http://127.0.0.1:${server.address.port}/News_List.m3u",
+                    url = "http://127.0.0.1:${server.address.port}/News_List.m3u",
                 ),
             )
             advanceUntilIdle()
 
             assertTrue(viewModel.state.value.saveActionState is ActionState.Failed)
-            assertEquals("Database unavailable", viewModel.state.value.saveActionState.errorMessage)
+            assertEquals(
+                "Database unavailable",
+                viewModel.state.value.saveActionState.errorMessage,
+            )
             assertTrue(openedIds.isEmpty())
             assertTrue(systemService.toasts.isEmpty())
         } finally {
@@ -97,16 +118,19 @@ class PlaylistListViewModelTest {
     }
 
     @Test
-    fun duplicateUrlCreationRequestsCreateOnlyOnePlaylist() = runTest(dispatcher) {
+    fun duplicateUrlCreationRequestsCreateOnlyOnePlaylist() = runTest(context = dispatcher) {
         val server = playlistServer()
-        val viewModel = viewModel(mutableListOf())
+        val viewModel = viewModel(openedIds = mutableListOf())
         val source = "http://127.0.0.1:${server.address.port}/News_List.m3u"
         try {
-            viewModel.onAction(PlaylistUiAction.CreateM3UUrl(source))
-            viewModel.onAction(PlaylistUiAction.CreateM3UUrl(source))
+            viewModel.onAction(PlaylistUiAction.CreateM3UUrl(url = source))
+            viewModel.onAction(PlaylistUiAction.CreateM3UUrl(url = source))
             advanceUntilIdle()
 
-            assertEquals(1, repository.createM3UCalls.size)
+            assertEquals(
+                1,
+                repository.createM3UCalls.size,
+            )
         } finally {
             server.stop(0)
         }
@@ -114,8 +138,11 @@ class PlaylistListViewModelTest {
 
     private fun viewModel(openedIds: MutableList<Long>) = PlaylistListViewModel(
         playlistRepository = repository,
-        m3uParser = M3UParser(context, Dispatchers.Unconfined),
-        documentPermissionManager = M3UDocumentPermissionManager(context),
+        m3uParser = M3UParser(
+            context = context,
+            Dispatchers.Unconfined,
+        ),
+        documentPermissionManager = M3UDocumentPermissionManager(context = context),
         mediaSynchronizer = FakeMediaSynchronizer,
         systemService = systemService,
         output = PlaylistListViewModel.Output(
@@ -124,15 +151,20 @@ class PlaylistListViewModelTest {
         ),
     )
 
-    private fun playlistServer(): HttpServer =
-        HttpServer.create(InetSocketAddress(0), 0).apply {
-            createContext("/News_List.m3u") { exchange ->
-                val body = "https://media.example/live".encodeToByteArray()
-                exchange.sendResponseHeaders(200, body.size.toLong())
-                exchange.responseBody.use { it.write(body) }
-            }
-            start()
+    private fun playlistServer(): HttpServer = HttpServer.create(
+        InetSocketAddress(0),
+        0,
+    ).apply {
+        createContext("/News_List.m3u") { exchange ->
+            val body = "https://media.example/live".encodeToByteArray()
+            exchange.sendResponseHeaders(
+                200,
+                body.size.toLong(),
+            )
+            exchange.responseBody.use { it.write(body) }
         }
+        start()
+    }
 
     private object FakeMediaSynchronizer : MediaSynchronizer {
         override suspend fun refresh(path: String?): Boolean = true

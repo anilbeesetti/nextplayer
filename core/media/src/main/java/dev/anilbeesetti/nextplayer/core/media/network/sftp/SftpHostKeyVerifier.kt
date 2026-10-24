@@ -7,12 +7,10 @@ import net.schmizz.sshj.common.Buffer
 import net.schmizz.sshj.common.SecurityUtils
 import net.schmizz.sshj.transport.verification.HostKeyVerifier
 
-class SftpHostKeyVerifier(
-    private val expectedFingerprint: String,
-) : HostKeyVerifier {
+class SftpHostKeyVerifier(private val expectedFingerprint: String) : HostKeyVerifier {
 
     override fun verify(hostname: String, port: Int, key: PublicKey): Boolean {
-        val presentedFingerprint = sha256Fingerprint(key)
+        val presentedFingerprint = sha256Fingerprint(key = key)
         if (expectedFingerprint.isBlank()) {
             throw HostKeyConfirmationRequired(
                 host = hostname,
@@ -33,7 +31,9 @@ class SftpHostKeyVerifier(
     private fun sha256Fingerprint(key: PublicKey): String {
         val encodedKey = Buffer.PlainBuffer().apply { putPublicKey(key) }.compactData
         val digest = SecurityUtils.getMessageDigest(SHA_256).digest(encodedKey)
-        val encodedDigest = Base64.Default.withPadding(Base64.PaddingOption.ABSENT).encode(digest)
+        val encodedDigest = Base64.Default.withPadding(
+            Base64.PaddingOption.ABSENT,
+        ).encode(source = digest)
         return "SHA256:$encodedDigest"
     }
 
@@ -49,7 +49,5 @@ class HostKeyConfirmationRequired(
     val fingerprint: String,
 ) : IOException("Confirm SSH host key $fingerprint for $host:$port")
 
-class HostKeyMismatch(
-    val expectedFingerprint: String,
-    val presentedFingerprint: String,
-) : IOException("SSH host key changed")
+class HostKeyMismatch(val expectedFingerprint: String, val presentedFingerprint: String) :
+    IOException("SSH host key changed")

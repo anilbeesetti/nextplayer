@@ -29,16 +29,17 @@ internal fun PlayerErrorDialogs(
         recoveryTrackType != null
     ) {
         AlertDialog(
-            onDismissRequest = { },
-            title = {
-                Text(text = stringResource(coreUiR.string.decoder))
-            },
+            onDismissRequest = {},
+            title = { Text(text = stringResource(coreUiR.string.decoder)) },
             text = {
                 Text(
                     text = stringResource(
-                        when (recoveryTrackType) {
-                            DecoderTrackType.VIDEO -> coreUiR.string.video_decoder_mode_not_supported
-                            DecoderTrackType.AUDIO -> coreUiR.string.audio_decoder_mode_not_supported
+                        id = when (recoveryTrackType) {
+                            DecoderTrackType.VIDEO ->
+                                coreUiR.string.video_decoder_mode_not_supported
+
+                            DecoderTrackType.AUDIO ->
+                                coreUiR.string.audio_decoder_mode_not_supported
                         },
                         stringResource(unsupportedMode.labelRes),
                     ),
@@ -60,15 +61,13 @@ internal fun PlayerErrorDialogs(
             )
     if (showPlayerError) {
         AlertDialog(
-            onDismissRequest = { },
-            title = {
-                Text(text = stringResource(coreUiR.string.error_playing_video))
-            },
+            onDismissRequest = {},
+            title = { Text(text = stringResource(coreUiR.string.error_playing_video)) },
             text = {
                 Text(
                     text = playbackError?.message
                         ?: stringResource(
-                            if (allDecoderModesFailed) {
+                            id = if (allDecoderModesFailed) {
                                 coreUiR.string.no_supported_decoder
                             } else {
                                 coreUiR.string.unknown_error
@@ -84,9 +83,7 @@ internal fun PlayerErrorDialogs(
                 }
             },
             dismissButton = {
-                TextButton(onClick = onExit) {
-                    Text(text = stringResource(coreUiR.string.exit))
-                }
+                TextButton(onClick = onExit) { Text(text = stringResource(coreUiR.string.exit)) }
             },
         )
     }

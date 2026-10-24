@@ -15,22 +15,18 @@ import androidx.media3.ui.compose.state.observeState
 @UnstableApi
 @Composable
 fun rememberCuesState(player: Player?): CuesState {
-    val cuesState = remember(player) { CuesState(player) }
-    LaunchedEffect(player) { cuesState.observe() }
+    val cuesState = remember(player) { CuesState(player = player) }
+    LaunchedEffect(key1 = player) { cuesState.observe() }
     return cuesState
 }
 
 @UnstableApi
-class CuesState(
-    private val player: Player?,
-) {
-    var currentCues: CueGroup? by mutableStateOf(null)
+class CuesState(private val player: Player?) {
+    var currentCues: CueGroup? by mutableStateOf(value = null)
         private set
 
     private val playerStateObserver: PlayerStateObserver? =
-        player?.observeState(Player.EVENT_CUES) {
-            currentCues = player.currentCues
-        }
+        player?.observeState(Player.EVENT_CUES) { currentCues = player.currentCues }
 
     suspend fun observe() {
         currentCues = player?.currentCues

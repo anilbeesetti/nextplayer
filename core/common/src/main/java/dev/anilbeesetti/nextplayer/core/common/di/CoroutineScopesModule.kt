@@ -13,5 +13,5 @@ class CoroutineScopesModule {
     @Named(DiQualifiers.APPLICATION_SCOPE)
     fun providesCoroutineScope(
         @Named(DiQualifiers.DEFAULT_DISPATCHER) dispatcher: CoroutineDispatcher,
-    ): CoroutineScope = CoroutineScope(SupervisorJob() + dispatcher)
+    ): CoroutineScope = CoroutineScope(context = SupervisorJob() + dispatcher)
 }

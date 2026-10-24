@@ -16,123 +16,187 @@ class GetSortedVideosUseCaseTest {
     private val mediaRepository = FakeMediaRepository()
     private val preferencesRepository = FakePreferencesRepository()
 
-    val getSortedVideosUseCase = GetSortedVideosUseCase(mediaRepository, preferencesRepository, Dispatchers.Unconfined)
+    val getSortedVideosUseCase = GetSortedVideosUseCase(
+        mediaRepository = mediaRepository,
+        preferencesRepository = preferencesRepository,
+        Dispatchers.Unconfined,
+    )
 
     @Test
     fun testGetSortedVideosUseCase_whenSortByTitleAscending() = runTest {
         preferencesRepository.updateApplicationPreferences {
-            it.copy(sortBy = Sort.By.TITLE, sortOrder = Sort.Order.ASCENDING)
+            it.copy(
+                sortBy = Sort.By.TITLE,
+                sortOrder = Sort.Order.ASCENDING,
+            )
         }
 
         mediaRepository.videos.addAll(testVideoItems.shuffled())
 
         val sortedVideos = getSortedVideosUseCase().first()
 
-        assertEquals(sortedVideos, testVideoItems.sortedBy { it.displayName.lowercase() })
+        assertEquals(
+            sortedVideos,
+            testVideoItems.sortedBy { it.displayName.lowercase() },
+        )
     }
 
     @Test
     fun testGetSortedVideosUseCase_whenSortByTitleDescending() = runTest {
         preferencesRepository.updateApplicationPreferences {
-            it.copy(sortBy = Sort.By.TITLE, sortOrder = Sort.Order.DESCENDING)
+            it.copy(
+                sortBy = Sort.By.TITLE,
+                sortOrder = Sort.Order.DESCENDING,
+            )
         }
 
         mediaRepository.videos.addAll(testVideoItems.shuffled())
 
         val sortedVideos = getSortedVideosUseCase().first()
 
-        assertEquals(sortedVideos, testVideoItems.sortedByDescending { it.displayName.lowercase() })
+        assertEquals(
+            sortedVideos,
+            testVideoItems.sortedByDescending { it.displayName.lowercase() },
+        )
     }
 
     @Test
     fun testGetSortedVideosUseCase_whenSortByDurationAscending() = runTest {
         preferencesRepository.updateApplicationPreferences {
-            it.copy(sortBy = Sort.By.LENGTH, sortOrder = Sort.Order.ASCENDING)
+            it.copy(
+                sortBy = Sort.By.LENGTH,
+                sortOrder = Sort.Order.ASCENDING,
+            )
         }
 
         mediaRepository.videos.addAll(testVideoItems.shuffled())
 
         val sortedVideos = getSortedVideosUseCase().first()
 
-        assertEquals(sortedVideos, testVideoItems.sortedBy { it.duration })
+        assertEquals(
+            sortedVideos,
+            testVideoItems.sortedBy { it.duration },
+        )
     }
 
     @Test
     fun testGetSortedVideosUseCase_whenSortByDurationDescending() = runTest {
         preferencesRepository.updateApplicationPreferences {
-            it.copy(sortBy = Sort.By.LENGTH, sortOrder = Sort.Order.DESCENDING)
+            it.copy(
+                sortBy = Sort.By.LENGTH,
+                sortOrder = Sort.Order.DESCENDING,
+            )
         }
 
         mediaRepository.videos.addAll(testVideoItems.shuffled())
 
         val sortedVideos = getSortedVideosUseCase().first()
 
-        assertEquals(sortedVideos, testVideoItems.sortedByDescending { it.duration })
+        assertEquals(
+            sortedVideos,
+            testVideoItems.sortedByDescending { it.duration },
+        )
     }
 
     @Test
     fun testGetSortedVideosUseCase_whenSortByPathAscending() = runTest {
         preferencesRepository.updateApplicationPreferences {
-            it.copy(sortBy = Sort.By.PATH, sortOrder = Sort.Order.ASCENDING)
+            it.copy(
+                sortBy = Sort.By.PATH,
+                sortOrder = Sort.Order.ASCENDING,
+            )
         }
 
         mediaRepository.videos.addAll(testVideoItems.shuffled())
 
         val sortedVideos = getSortedVideosUseCase().first()
 
-        assertEquals(sortedVideos, testVideoItems.sortedBy { it.path.lowercase() })
+        assertEquals(
+            sortedVideos,
+            testVideoItems.sortedBy { it.path.lowercase() },
+        )
     }
 
     @Test
     fun testGetSortedVideosUseCase_whenSortByPathDescending() = runTest {
         preferencesRepository.updateApplicationPreferences {
-            it.copy(sortBy = Sort.By.PATH, sortOrder = Sort.Order.DESCENDING)
+            it.copy(
+                sortBy = Sort.By.PATH,
+                sortOrder = Sort.Order.DESCENDING,
+            )
         }
 
         mediaRepository.videos.addAll(testVideoItems.shuffled())
 
         val sortedVideos = getSortedVideosUseCase().first()
 
-        assertEquals(sortedVideos, testVideoItems.sortedByDescending { it.path.lowercase() })
+        assertEquals(
+            sortedVideos,
+            testVideoItems.sortedByDescending { it.path.lowercase() },
+        )
     }
 
     @Test
     fun testGetSortedVideosUseCase_whenSortBySizeAscending() = runTest {
         preferencesRepository.updateApplicationPreferences {
-            it.copy(sortBy = Sort.By.SIZE, sortOrder = Sort.Order.ASCENDING)
+            it.copy(
+                sortBy = Sort.By.SIZE,
+                sortOrder = Sort.Order.ASCENDING,
+            )
         }
 
         mediaRepository.videos.addAll(testVideoItems.shuffled())
 
         val sortedVideos = getSortedVideosUseCase().first()
 
-        assertEquals(sortedVideos, testVideoItems.sortedBy { it.size })
+        assertEquals(
+            sortedVideos,
+            testVideoItems.sortedBy { it.size },
+        )
     }
 
     @Test
     fun testGetSortedVideosUseCase_whenSortBySizeDescending() = runTest {
         preferencesRepository.updateApplicationPreferences {
-            it.copy(sortBy = Sort.By.SIZE, sortOrder = Sort.Order.DESCENDING)
+            it.copy(
+                sortBy = Sort.By.SIZE,
+                sortOrder = Sort.Order.DESCENDING,
+            )
         }
 
         mediaRepository.videos.addAll(testVideoItems.shuffled())
 
         val sortedVideos = getSortedVideosUseCase().first()
 
-        assertEquals(sortedVideos, testVideoItems.sortedByDescending { it.size })
+        assertEquals(
+            sortedVideos,
+            testVideoItems.sortedByDescending { it.size },
+        )
     }
 
     @Test
     fun testVideoComparator_whenTitlesContainMixedDigitScripts_doesNotCreateCycle() {
-        val comparator = Sort(Sort.By.TITLE, Sort.Order.ASCENDING).videoComparator()
+        val comparator = Sort(
+            Sort.By.TITLE,
+            Sort.Order.ASCENDING,
+        ).videoComparator()
         val arabicNine = testVideoItems[0].copy(nameWithExtension = "٩.mp4")
         val asciiZeroZero = testVideoItems[1].copy(nameWithExtension = "00.mp4")
         val letterA = testVideoItems[2].copy(nameWithExtension = "a.mp4")
 
         assertFalse(
-            comparator.compare(arabicNine, asciiZeroZero) < 0 &&
-                comparator.compare(asciiZeroZero, letterA) < 0 &&
-                comparator.compare(letterA, arabicNine) < 0,
+            comparator.compare(
+                arabicNine,
+                asciiZeroZero,
+            ) < 0 &&
+                comparator.compare(
+                    asciiZeroZero,
+                    letterA,
+                ) < 0 &&
+                comparator.compare(
+                    letterA,
+                    arabicNine,
+                ) < 0,
         )
     }
 }

@@ -29,7 +29,7 @@ fun BoxScope.VideoContentScaleSelectorView(
     ) {
         Column(
             modifier = Modifier
-                .verticalScroll(rememberScrollState())
+                .verticalScroll(state = rememberScrollState())
                 .padding(bottom = 24.dp)
                 .padding(horizontal = 24.dp)
                 .selectableGroup(),

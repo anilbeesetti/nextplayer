@@ -18,10 +18,17 @@ internal suspend fun <T> runMediaRequests(
     itemExists: suspend (T) -> Boolean,
     request: suspend (List<T>) -> Boolean,
 ): Boolean {
-    require(maxBatchSize > 0)
+    require(value = maxBatchSize > 0)
 
-    for (batch in items.distinct().chunked(maxBatchSize)) {
-        if (!runMediaRequestBatch(batch, itemExists, request)) return false
+    for (batch in items.distinct().chunked(size = maxBatchSize)) {
+        if (!runMediaRequestBatch(
+                batch = batch,
+                itemExists = itemExists,
+                request = request,
+            )
+        ) {
+            return false
+        }
     }
     return true
 }

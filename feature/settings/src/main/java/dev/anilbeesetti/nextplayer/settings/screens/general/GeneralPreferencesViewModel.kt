@@ -20,17 +20,14 @@ class GeneralPreferencesViewModel(
     @InjectedParam internal var output: Output,
 ) : MviViewModel<GeneralPreferencesUiState, GeneralPreferencesUiEvent>() {
 
-    data class Output(
-        val navigateUp: () -> Unit,
-    )
+    data class Output(val navigateUp: () -> Unit)
 
-    private val stateInternal = MutableStateFlow(GeneralPreferencesUiState())
+    private val stateInternal = MutableStateFlow(value = GeneralPreferencesUiState())
     override val state: StateFlow<GeneralPreferencesUiState> = stateInternal.asStateFlow()
 
     override fun onAction(action: GeneralPreferencesUiEvent) {
         when (action) {
             is GeneralPreferencesUiEvent.NavigateUp -> output.navigateUp()
-
             is GeneralPreferencesUiEvent.ShowDialog -> showDialog(action.value)
             is GeneralPreferencesUiEvent.ClearThumbnailCache -> clearThumbnailCache()
             is GeneralPreferencesUiEvent.ResetSettings -> resetSettings()
@@ -42,21 +39,15 @@ class GeneralPreferencesViewModel(
     }
 
     private fun clearThumbnailCache() {
-        viewModelScope.launch {
-            imageLoader.clearAllCache()
-        }
+        viewModelScope.launch { imageLoader.clearAllCache() }
     }
 
     private fun resetSettings() {
-        viewModelScope.launch {
-            preferencesRepository.resetPreferences()
-        }
+        viewModelScope.launch { preferencesRepository.resetPreferences() }
     }
 }
 
-data class GeneralPreferencesUiState(
-    val showDialog: GeneralPreferencesDialog? = null,
-)
+data class GeneralPreferencesUiState(val showDialog: GeneralPreferencesDialog? = null)
 
 sealed interface GeneralPreferencesDialog {
     data object ClearThumbnailCacheDialog : GeneralPreferencesDialog

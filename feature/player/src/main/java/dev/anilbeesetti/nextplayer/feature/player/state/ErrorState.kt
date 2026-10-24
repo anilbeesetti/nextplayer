@@ -14,14 +14,12 @@ import androidx.media3.common.util.UnstableApi
 @UnstableApi
 @Composable
 fun rememberErrorState(player: Player): ErrorState {
-    val errorState = remember(player) { ErrorState(player) }
-    LaunchedEffect(player) { errorState.observe() }
+    val errorState = remember(player) { ErrorState(player = player) }
+    LaunchedEffect(key1 = player) { errorState.observe() }
     return errorState
 }
 
-class ErrorState(
-    private val player: Player,
-) {
+class ErrorState(private val player: Player) {
     var playbackError: PlaybackException? by mutableStateOf(player.playerError)
         private set
 

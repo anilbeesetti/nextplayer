@@ -22,8 +22,8 @@ class GetSortedPlaylistUseCase(
     @Named(DiQualifiers.DEFAULT_DISPATCHER) private val defaultDispatcher: CoroutineDispatcher,
 ) {
 
-    suspend operator fun invoke(uri: Uri): List<Video> = withContext(defaultDispatcher) {
-        val path = context.getPath(uri) ?: return@withContext emptyList()
+    suspend operator fun invoke(uri: Uri): List<Video> = withContext(context = defaultDispatcher) {
+        val path = context.getPath(uri = uri) ?: return@withContext emptyList()
         val parent = File(path).parent ?: return@withContext emptyList()
         val preferences = preferencesRepository.applicationPreferences.first()
 
@@ -33,10 +33,12 @@ class GetSortedPlaylistUseCase(
                 // Tree mode: the folder and its subfolders.
                 getSortedVideosUseCase(parent).first()
             }
+
             MediaViewMode.FOLDERS -> {
                 // Folders mode: only videos directly in the same folder.
                 getSortedVideosUseCase(parent).first().filter { it.parentPath == parent }
             }
+
             MediaViewMode.VIDEOS -> {
                 // Videos mode shows a single global list across all storage; play in that order.
                 getSortedVideosUseCase().first()

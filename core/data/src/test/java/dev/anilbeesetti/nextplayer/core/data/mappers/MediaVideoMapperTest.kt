@@ -9,7 +9,10 @@ import org.robolectric.RobolectricTestRunner
 import org.robolectric.annotation.Config
 
 @RunWith(RobolectricTestRunner::class)
-@Config(sdk = [30], manifest = Config.NONE)
+@Config(
+    sdk = [30],
+    manifest = Config.NONE,
+)
 class MediaVideoMapperTest {
     @Test
     fun `trashed video uses MediaStore display name and preserves its path and uri`() {
@@ -30,9 +33,21 @@ class MediaVideoMapperTest {
 
         val video = mediaVideo.toVideo()
 
-        assertEquals("Holiday.video.mp4", video.nameWithExtension)
-        assertEquals("Holiday.video", video.displayName)
-        assertEquals(mediaVideo.path, video.path)
-        assertEquals(mediaVideo.uri.toString(), video.uriString)
+        assertEquals(
+            "Holiday.video.mp4",
+            video.nameWithExtension,
+        )
+        assertEquals(
+            "Holiday.video",
+            video.displayName,
+        )
+        assertEquals(
+            mediaVideo.path,
+            video.path,
+        )
+        assertEquals(
+            mediaVideo.uri.toString(),
+            video.uriString,
+        )
     }
 }

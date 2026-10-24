@@ -9,8 +9,8 @@ import kotlinx.coroutines.flow.update
 
 class FakePreferencesRepository : PreferencesRepository {
 
-    private val applicationPreferencesStateFlow = MutableStateFlow(ApplicationPreferences())
-    private val playerPreferencesStateFlow = MutableStateFlow(PlayerPreferences())
+    private val applicationPreferencesStateFlow = MutableStateFlow(value = ApplicationPreferences())
+    private val playerPreferencesStateFlow = MutableStateFlow(value = PlayerPreferences())
 
     override val applicationPreferences: StateFlow<ApplicationPreferences>
         get() = applicationPreferencesStateFlow

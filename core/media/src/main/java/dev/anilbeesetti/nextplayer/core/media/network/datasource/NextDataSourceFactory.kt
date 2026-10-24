@@ -16,14 +16,12 @@ import org.koin.core.annotation.Single
  */
 @UnstableApi
 @Single
-class NextDataSourceFactory(
-    private val context: Context,
-    private val sessions: NetworkSessions,
-) : DataSource.Factory {
+class NextDataSourceFactory(private val context: Context, private val sessions: NetworkSessions) :
+    DataSource.Factory {
 
     override fun createDataSource(): DataSource = SchemeDispatchingDataSource(
         default = DefaultDataSource.Factory(context).createDataSource(),
-        network = NetworkDataSource(sessions),
+        network = NetworkDataSource(sessions = sessions),
     )
 
     /** Disconnects the network client held for playback. Call when the player is released. */
@@ -49,7 +47,11 @@ private class SchemeDispatchingDataSource(
     }
 
     override fun read(buffer: ByteArray, offset: Int, length: Int): Int =
-        checkNotNull(delegate) { "read() before open()" }.read(buffer, offset, length)
+        checkNotNull(value = delegate) { "read() before open()" }.read(
+            buffer,
+            offset,
+            length,
+        )
 
     override fun getUri(): Uri? = delegate?.uri
 

@@ -1,5 +1,6 @@
 package dev.anilbeesetti.nextplayer
 
+import android.content.Intent
 import android.graphics.Color
 import android.os.Bundle
 import androidx.activity.SystemBarStyle
@@ -76,6 +77,7 @@ import dev.anilbeesetti.nextplayer.navigation.mediaNavGraph
 import dev.anilbeesetti.nextplayer.navigation.moreNavGraph
 import dev.anilbeesetti.nextplayer.navigation.navigationTransition
 import dev.anilbeesetti.nextplayer.navigation.networkNavGraph
+import dev.anilbeesetti.nextplayer.navigation.openPlaylist
 import dev.anilbeesetti.nextplayer.navigation.playlistNavGraph
 import dev.anilbeesetti.nextplayer.navigation.rememberTopLevelNavState
 import dev.anilbeesetti.nextplayer.navigation.settingsNavGraph
@@ -90,11 +92,22 @@ class MainActivity : FragmentActivity() {
 
     private val viewModel: MainViewModel by viewModel()
 
+    private var pendingPlaylistId by mutableStateOf<Long?>(value = null)
+
+    override fun onNewIntent(intent: Intent) {
+        super.onNewIntent(intent)
+        setIntent(intent)
+        pendingPlaylistId = PlaylistShortcut.playlistId(intent = intent)
+    }
+
     @OptIn(ExperimentalPermissionsApi::class)
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        systemService.initialize(this@MainActivity)
-        mediaOperationsService.initialize(this@MainActivity)
+        if (savedInstanceState == null) {
+            pendingPlaylistId = PlaylistShortcut.playlistId(intent = intent)
+        }
+        systemService.initialize(activity = this@MainActivity)
+        mediaOperationsService.initialize(activity = this@MainActivity)
 
         installSplashScreen().setKeepOnScreenCondition {
             viewModel.state.value is MainActivityUiState.Loading
@@ -104,7 +117,7 @@ class MainActivity : FragmentActivity() {
             val state by viewModel.state.collectAsStateWithLifecycle()
             val shouldUseDarkTheme = shouldUseDarkTheme(state = state)
 
-            LaunchedEffect(shouldUseDarkTheme) {
+            LaunchedEffect(key1 = shouldUseDarkTheme) {
                 enableEdgeToEdge(
                     statusBarStyle = SystemBarStyle.auto(
                         lightScrim = Color.TRANSPARENT,
@@ -130,57 +143,110 @@ class MainActivity : FragmentActivity() {
                 ) {
                     val navState = rememberTopLevelNavState()
 
+                    LaunchedEffect(key1 = pendingPlaylistId) {
+                        pendingPlaylistId?.let { playlistId ->
+                            navState.openPlaylist(playlistId = playlistId)
+                            pendingPlaylistId = null
+                        }
+                    }
+
                     val mediaStack = navState.backStacks.getValue(TopLevelDestination.MEDIA.route)
-                    val playlistStack = navState.backStacks.getValue(TopLevelDestination.PLAYLISTS.route)
-                    val networkStack = navState.backStacks.getValue(TopLevelDestination.NETWORK.route)
+                    val playlistStack = navState.backStacks.getValue(
+                        TopLevelDestination.PLAYLISTS.route,
+                    )
+                    val networkStack = navState.backStacks.getValue(
+                        TopLevelDestination.NETWORK.route,
+                    )
                     val moreStack = navState.backStacks.getValue(TopLevelDestination.MORE.route)
 
                     val provider = entryProvider {
-                        mediaNavGraph(context = this@MainActivity, backStack = mediaStack)
-                        playlistNavGraph(context = this@MainActivity, backStack = playlistStack)
-                        networkNavGraph(context = this@MainActivity, backStack = networkStack)
-                        moreNavGraph(context = this@MainActivity, backStack = moreStack)
+                        mediaNavGraph(
+                            context = this@MainActivity,
+                            backStack = mediaStack,
+                        )
+                        playlistNavGraph(
+                            context = this@MainActivity,
+                            backStack = playlistStack,
+                        )
+                        networkNavGraph(
+                            context = this@MainActivity,
+                            backStack = networkStack,
+                        )
+                        moreNavGraph(
+                            context = this@MainActivity,
+                            backStack = moreStack,
+                        )
                         settingsNavGraph(backStack = navState.currentStack)
                     }
 
-                    val topLevelFabStates = remember { mutableStateMapOf<String, TopLevelFabState>() }
-                    var showTopLevelBottomBar by remember { mutableStateOf(true) }
+                    val topLevelFabStates =
+                        remember { mutableStateMapOf<String, TopLevelFabState>() }
+                    var showTopLevelBottomBar by remember { mutableStateOf(value = true) }
                     NavigationLayout(
                         state = navState,
                         fabStates = topLevelFabStates,
                         showBottomBar = showTopLevelBottomBar,
                     ) { layoutPaddingValues ->
-                        val railPadding = layoutPaddingValues.calculateStartPadding(LocalLayoutDirection.current)
-                        val navigationInsetsDecorator = remember(navState, railPadding) {
+                        val railPadding = layoutPaddingValues.calculateStartPadding(
+                            LocalLayoutDirection.current,
+                        )
+                        val navigationInsetsDecorator = remember(
+                            navState,
+                            railPadding,
+                        ) {
                             NavEntryDecorator<NavKey> { entry ->
                                 // Reserve rail space per entry without resizing the animated display.
                                 Box(
-                                    Modifier.thenIf(navState.topLevelContentKeys.contains(entry.contentKey)) {
+                                    Modifier.thenIf(
+                                        navState.topLevelContentKeys.contains(entry.contentKey),
+                                    ) {
                                         padding(start = railPadding)
-                                            .consumeWindowInsets(WindowInsets.displayCutout.only(WindowInsetsSides.Start))
+                                            .consumeWindowInsets(
+                                                WindowInsets.displayCutout.only(
+                                                    WindowInsetsSides.Start,
+                                                ),
+                                            )
                                     },
-                                ) {
-                                    entry.Content()
-                                }
+                                ) { entry.Content() }
                             }
                         }
                         CompositionLocalProvider(
-                            LocalNavigationBottomPadding provides layoutPaddingValues.calculateBottomPadding(),
-                            LocalTopLevelBottomBarVisibleSetter provides { showTopLevelBottomBar = it },
+                            LocalNavigationBottomPadding provides
+                                layoutPaddingValues.calculateBottomPadding(),
+                            LocalTopLevelBottomBarVisibleSetter provides
+                                { showTopLevelBottomBar = it },
                             LocalTopLevelFabSetter provides { key, state ->
                                 if (state == null) {
-                                    topLevelFabStates.remove(key)
+                                    topLevelFabStates.remove(key = key)
                                 } else {
                                     topLevelFabStates[key] = state
                                 }
                             },
                         ) {
                             NavDisplay(
-                                entries = navState.rememberEntries(provider, navigationInsetsDecorator),
+                                entries = navState.rememberEntries(
+                                    entryProvider = provider,
+                                    entryDecorator = navigationInsetsDecorator,
+                                ),
                                 onBack = { navState.goBack() },
-                                transitionSpec = { navState.navigationTransition(initialState, targetState) },
-                                popTransitionSpec = { navState.navigationTransition(initialState, targetState) },
-                                predictivePopTransitionSpec = { navState.navigationTransition(initialState, targetState) },
+                                transitionSpec = {
+                                    navState.navigationTransition(
+                                        initialState = initialState,
+                                        targetState = targetState,
+                                    )
+                                },
+                                popTransitionSpec = {
+                                    navState.navigationTransition(
+                                        initialState = initialState,
+                                        targetState = targetState,
+                                    )
+                                },
+                                predictivePopTransitionSpec = {
+                                    navState.navigationTransition(
+                                        initialState = initialState,
+                                        targetState = targetState,
+                                    )
+                                },
                             )
                         }
                     }
@@ -204,13 +270,17 @@ fun NavigationLayout(
     var railWidth by remember(density) { mutableStateOf(0.dp) }
     val contentFocusRequester = remember { FocusRequester() }
     val fabFocusRequester = remember { FocusRequester() }
-    val showNavRail = windowSizeClass.isWidthAtLeastBreakpoint(WindowSizeClass.WIDTH_DP_MEDIUM_LOWER_BOUND)
-    val showNavigation = state.currentStack.lastOrNull()?.let { state.topLevelContentKeys.contains(it) } == true
-    val selectedFabState = state.destinations[state.selectedIndex].fabKey?.let(fabStates::get)
-    var displayedFabState by remember { mutableStateOf<TopLevelFabState?>(null) }
-    LaunchedEffect(selectedFabState) {
-        selectedFabState?.let { displayedFabState = it }
-    }
+    val showNavRail = windowSizeClass.isWidthAtLeastBreakpoint(
+        WindowSizeClass.WIDTH_DP_MEDIUM_LOWER_BOUND,
+    )
+    val showNavigation =
+        state.currentStack.lastOrNull()?.let { state.topLevelContentKeys.contains(element = it) } ==
+            true
+    val selectedFabState = state.destinations[state.selectedIndex].fabKey?.let(
+        block = fabStates::get,
+    )
+    var displayedFabState by remember { mutableStateOf<TopLevelFabState?>(value = null) }
+    LaunchedEffect(key1 = selectedFabState) { selectedFabState?.let { displayedFabState = it } }
 
     Box(modifier = Modifier.fillMaxSize()) {
         Scaffold(
@@ -236,14 +306,15 @@ fun NavigationLayout(
                 Box(
                     modifier = Modifier
                         .fillMaxWidth()
-                        .thenIf(isTv) {
+                        .thenIf(condition = isTv) {
                             // The FAB sits outside screen content, whose full-height focus groups
                             // overlap it. Enter the content explicitly instead of searching the rail.
-                            focusRequester(contentFocusRequester)
+                            focusRequester(focusRequester = contentFocusRequester)
                                 .focusProperties {
                                     onExit = {
                                         if (requestedFocusDirection == FocusDirection.Down &&
-                                            showNavigation && showBottomBar && displayedFabState != null
+                                            showNavigation && showBottomBar &&
+                                            displayedFabState != null
                                         ) {
                                             fabFocusRequester.requestFocus()
                                         }
@@ -268,7 +339,10 @@ fun NavigationLayout(
         ) {
             NextNavigationRail(
                 state = state,
-                modifier = Modifier.onSizeChanged { railWidth = with(density) { it.width.toDp() } },
+                modifier = Modifier.onSizeChanged {
+                    railWidth =
+                        with(receiver = density) { it.width.toDp() }
+                },
             )
         }
     }
@@ -279,10 +353,9 @@ fun NavigationLayout(
  * current system context.
  */
 @Composable
-fun shouldUseDarkTheme(
-    state: MainActivityUiState,
-): Boolean = when (state) {
+fun shouldUseDarkTheme(state: MainActivityUiState): Boolean = when (state) {
     MainActivityUiState.Loading -> isSystemInDarkTheme()
+
     is MainActivityUiState.Success -> when (state.preferences.themeConfig) {
         ThemeConfig.SYSTEM -> isSystemInDarkTheme()
         ThemeConfig.OFF -> false
@@ -291,9 +364,7 @@ fun shouldUseDarkTheme(
 }
 
 @Composable
-fun shouldUseHighContrastDarkTheme(
-    state: MainActivityUiState,
-): Boolean = when (state) {
+fun shouldUseHighContrastDarkTheme(state: MainActivityUiState): Boolean = when (state) {
     MainActivityUiState.Loading -> false
     is MainActivityUiState.Success -> state.preferences.useHighContrastDarkTheme
 }
@@ -302,9 +373,7 @@ fun shouldUseHighContrastDarkTheme(
  * Returns `true` if the dynamic color is disabled, as a function of the [state].
  */
 @Composable
-fun shouldUseDynamicTheming(
-    state: MainActivityUiState,
-): Boolean = when (state) {
+fun shouldUseDynamicTheming(state: MainActivityUiState): Boolean = when (state) {
     MainActivityUiState.Loading -> false
     is MainActivityUiState.Success -> state.preferences.useDynamicColors
 }

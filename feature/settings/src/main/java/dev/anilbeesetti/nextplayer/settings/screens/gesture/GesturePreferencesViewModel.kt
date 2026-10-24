@@ -21,12 +21,10 @@ class GesturePreferencesViewModel(
     @InjectedParam internal var output: Output,
 ) : MviViewModel<GesturePreferencesUiState, GesturePreferencesUiEvent>() {
 
-    data class Output(
-        val navigateUp: () -> Unit,
-    )
+    data class Output(val navigateUp: () -> Unit)
 
     private val stateInternal = MutableStateFlow(
-        GesturePreferencesUiState(
+        value = GesturePreferencesUiState(
             preferences = preferencesRepository.playerPreferences.value,
         ),
     )
@@ -45,33 +43,57 @@ class GesturePreferencesViewModel(
             is GesturePreferencesUiEvent.NavigateUp -> output.navigateUp()
 
             is GesturePreferencesUiEvent.ShowDialog -> showDialog(action.value)
-            is GesturePreferencesUiEvent.UpdateDoubleTapGesture -> updateDoubleTapGesture(action.gesture)
+
+            is GesturePreferencesUiEvent.UpdateDoubleTapGesture -> updateDoubleTapGesture(
+                action.gesture,
+            )
+
             is GesturePreferencesUiEvent.ToggleUseLongPressControls -> toggleUseLongPressControls()
+
             is GesturePreferencesUiEvent.ToggleDoubleTapGesture -> toggleDoubleTapGesture()
-            is GesturePreferencesUiEvent.ToggleEnableBrightnessSwipeGesture -> toggleEnableBrightnessSwipeGesture()
-            is GesturePreferencesUiEvent.ToggleEnableVolumeSwipeGesture -> toggleEnableVolumeSwipeGesture()
+
+            is GesturePreferencesUiEvent.ToggleEnableBrightnessSwipeGesture ->
+                toggleEnableBrightnessSwipeGesture()
+
+            is GesturePreferencesUiEvent.ToggleEnableVolumeSwipeGesture ->
+                toggleEnableVolumeSwipeGesture()
+
             is GesturePreferencesUiEvent.ToggleUseSeekControls -> toggleUseSeekControls()
+
             is GesturePreferencesUiEvent.ToggleUseZoomControls -> toggleUseZoomControls()
+
             is GesturePreferencesUiEvent.ToggleEnablePanGesture -> toggleEnablePanGesture()
-            is GesturePreferencesUiEvent.UpdateLongPressControlsSpeed -> updateLongPressControlsSpeed(action.value)
+
+            is GesturePreferencesUiEvent.UpdateLongPressControlsSpeed ->
+                updateLongPressControlsSpeed(
+                    action.value,
+                )
+
             is GesturePreferencesUiEvent.UpdateSeekIncrement -> updateSeekIncrement(action.value)
-            is GesturePreferencesUiEvent.UpdateSeekSensitivity -> updateSeekSensitivity(action.value)
-            is GesturePreferencesUiEvent.UpdateVolumeGestureSensitivity -> updateVolumeGestureSensitivity(action.value)
-            is GesturePreferencesUiEvent.UpdateBrightnessGestureSensitivity -> updateBrightnessGestureSensitivity(action.value)
+
+            is GesturePreferencesUiEvent.UpdateSeekSensitivity -> updateSeekSensitivity(
+                action.value,
+            )
+
+            is GesturePreferencesUiEvent.UpdateVolumeGestureSensitivity ->
+                updateVolumeGestureSensitivity(
+                    action.value,
+                )
+
+            is GesturePreferencesUiEvent.UpdateBrightnessGestureSensitivity ->
+                updateBrightnessGestureSensitivity(
+                    action.value,
+                )
         }
     }
 
     private fun showDialog(value: GesturePreferenceDialog?) {
-        stateInternal.update {
-            it.copy(showDialog = value)
-        }
+        stateInternal.update { it.copy(showDialog = value) }
     }
 
     private fun updateDoubleTapGesture(gesture: DoubleTapGesture) {
         viewModelScope.launch {
-            preferencesRepository.updatePlayerPreferences {
-                it.copy(doubleTapGesture = gesture)
-            }
+            preferencesRepository.updatePlayerPreferences { it.copy(doubleTapGesture = gesture) }
         }
     }
 
@@ -139,22 +161,22 @@ class GesturePreferencesViewModel(
 
     private fun updateLongPressControlsSpeed(value: Float) {
         viewModelScope.launch {
-            preferencesRepository.updatePlayerPreferences { it.copy(longPressControlsSpeed = value) }
+            preferencesRepository.updatePlayerPreferences {
+                it.copy(longPressControlsSpeed = value)
+            }
         }
     }
 
     private fun updateSeekIncrement(value: Int) {
         viewModelScope.launch {
-            preferencesRepository.updatePlayerPreferences {
-                it.copy(seekIncrement = value)
-            }
+            preferencesRepository.updatePlayerPreferences { it.copy(seekIncrement = value) }
         }
     }
 
     private fun updateSeekSensitivity(value: Float) {
         viewModelScope.launch {
             preferencesRepository.updatePlayerPreferences {
-                it.copy(seekSensitivity = value.round(2))
+                it.copy(seekSensitivity = value.round(decimalPlaces = 2))
             }
         }
     }
@@ -162,7 +184,7 @@ class GesturePreferencesViewModel(
     private fun updateVolumeGestureSensitivity(value: Float) {
         viewModelScope.launch {
             preferencesRepository.updatePlayerPreferences {
-                it.copy(volumeGestureSensitivity = value.round(2))
+                it.copy(volumeGestureSensitivity = value.round(decimalPlaces = 2))
             }
         }
     }
@@ -170,7 +192,7 @@ class GesturePreferencesViewModel(
     private fun updateBrightnessGestureSensitivity(value: Float) {
         viewModelScope.launch {
             preferencesRepository.updatePlayerPreferences {
-                it.copy(brightnessGestureSensitivity = value.round(2))
+                it.copy(brightnessGestureSensitivity = value.round(decimalPlaces = 2))
             }
         }
     }

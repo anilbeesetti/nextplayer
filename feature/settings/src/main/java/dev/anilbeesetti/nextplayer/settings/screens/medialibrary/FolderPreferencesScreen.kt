@@ -36,10 +36,10 @@ import dev.anilbeesetti.nextplayer.core.ui.extensions.plus
 import dev.anilbeesetti.nextplayer.core.ui.theme.NextPlayerTheme
 
 @Composable
-fun FolderPreferencesScreen(
-    viewModel: FolderPreferencesViewModel,
-) {
-    val state by viewModel.state.collectAsStateWithLifecycle(minActiveState = Lifecycle.State.RESUMED)
+fun FolderPreferencesScreen(viewModel: FolderPreferencesViewModel) {
+    val state by viewModel.state.collectAsStateWithLifecycle(
+        minActiveState = Lifecycle.State.RESUMED,
+    )
 
     FolderPreferencesScreenContent(
         state = state,
@@ -47,7 +47,10 @@ fun FolderPreferencesScreen(
     )
 }
 
-@OptIn(ExperimentalMaterial3Api::class, ExperimentalMaterial3ExpressiveApi::class)
+@OptIn(
+    ExperimentalMaterial3Api::class,
+    ExperimentalMaterial3ExpressiveApi::class,
+)
 @Composable
 private fun FolderPreferencesScreenContent(
     state: FolderPreferencesUiState,
@@ -61,7 +64,7 @@ private fun FolderPreferencesScreenContent(
                 navigationIcon = {
                     FilledTonalIconButton(
                         onClick = { onAction(FolderPreferencesUiEvent.NavigateUp) },
-                        modifier = Modifier.tvFocusDown(listFocusRequester),
+                        modifier = Modifier.tvFocusDown(target = listFocusRequester),
                     ) {
                         Icon(
                             imageVector = NextIcons.ArrowBack,
@@ -78,17 +81,15 @@ private fun FolderPreferencesScreenContent(
                 Box(
                     modifier = Modifier
                         .fillMaxSize()
-                        .padding(innerPadding),
-                ) {
-                    CircularProgressIndicator(modifier = Modifier.align(Alignment.Center))
-                }
+                        .padding(paddingValues = innerPadding),
+                ) { CircularProgressIndicator(modifier = Modifier.align(Alignment.Center)) }
             }
 
             is DataState.Success -> {
                 LazyColumn(
                     modifier = Modifier
                         .fillMaxSize()
-                        .tvListFocus(listFocusRequester),
+                        .tvListFocus(focusRequester = listFocusRequester),
                     contentPadding = innerPadding + PaddingValues(horizontal = 16.dp),
                     verticalArrangement = Arrangement.spacedBy(ListItemDefaults.SegmentedGap),
                 ) {
@@ -97,7 +98,9 @@ private fun FolderPreferencesScreenContent(
                             title = folder.name,
                             description = folder.path,
                             selected = folder.path in state.preferences.excludeFolders,
-                            onClick = { onAction(FolderPreferencesUiEvent.UpdateExcludeList(folder.path)) },
+                            onClick = {
+                                onAction(FolderPreferencesUiEvent.UpdateExcludeList(folder.path))
+                            },
                             isFirstItem = index == 0,
                             isLastItem = index == state.foldersDataState.value.lastIndex,
                         )

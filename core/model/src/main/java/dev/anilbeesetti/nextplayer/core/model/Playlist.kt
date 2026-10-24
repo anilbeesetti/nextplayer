@@ -44,13 +44,15 @@ data class PlaylistItem(
     val lastPlayedAt: Long? = null,
 ) {
     val displayTitle: String
-        get() = title?.takeIf(String::isNotBlank)
+        get() = title?.takeIf(predicate = String::isNotBlank)
             ?: video?.displayName
-            ?: uri.substringBefore('?').substringAfterLast('/').substringBeforeLast('.')
+            ?: uri.substringBefore(
+                delimiter = '?',
+            ).substringAfterLast(delimiter = '/').substringBeforeLast(delimiter = '.')
                 .ifBlank { uri }
 
     val supportingText: String
-        get() = video?.parentPath?.takeIf(String::isNotBlank) ?: uri
+        get() = video?.parentPath?.takeIf(predicate = String::isNotBlank) ?: uri
 }
 
 data class Playlist(

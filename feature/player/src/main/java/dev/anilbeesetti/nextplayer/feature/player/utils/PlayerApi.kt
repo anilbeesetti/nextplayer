@@ -21,10 +21,10 @@ class PlayerApi(val activity: PlayerActivity) {
         if (extras == null) return emptyList()
         if (!extras.containsKey(API_SUBS)) return emptyList()
 
-        val subs = extras.getParcelableUriArray(API_SUBS) ?: return emptyList()
+        val subs = extras.getParcelableUriArray(key = API_SUBS) ?: return emptyList()
         val subsName = extras.getStringArray(API_SUBS_NAME)
 
-        val subsEnable = extras.getParcelableUriArray(API_SUBS_ENABLE)
+        val subsEnable = extras.getParcelableUriArray(key = API_SUBS_ENABLE)
         val defaultSub = if (!subsEnable.isNullOrEmpty()) subsEnable[0] as Uri else null
 
         return subs.mapIndexed { index, parcelable ->
@@ -41,21 +41,36 @@ class PlayerApi(val activity: PlayerActivity) {
     fun getPlaylist(): List<String> {
         if (extras == null) return emptyList()
         if (!extras.containsKey(API_PLAYLIST)) return emptyList()
-        val playlist = extras.getParcelableUriArray(API_PLAYLIST) ?: return emptyList()
+        val playlist = extras.getParcelableUriArray(key = API_PLAYLIST) ?: return emptyList()
         return playlist.map { (it as Uri).toString() }
     }
 
-    fun getResult(isPlaybackFinished: Boolean, duration: Long, position: Long): Intent {
-        return Intent(API_RESULT_INTENT).apply {
+    fun getResult(isPlaybackFinished: Boolean, duration: Long, position: Long): Intent =
+        Intent(API_RESULT_INTENT).apply {
             if (isPlaybackFinished) {
-                putExtra(API_END_BY, API_END_BY_COMPLETION)
+                putExtra(
+                    API_END_BY,
+                    API_END_BY_COMPLETION,
+                )
             } else {
-                putExtra(API_END_BY, API_END_BY_USER)
-                if (duration != C.TIME_UNSET) putExtra(API_DURATION, duration.toInt())
-                if (position != C.TIME_UNSET) putExtra(API_POSITION, position.toInt())
+                putExtra(
+                    API_END_BY,
+                    API_END_BY_USER,
+                )
+                if (duration != C.TIME_UNSET) {
+                    putExtra(
+                        API_DURATION,
+                        duration.toInt(),
+                    )
+                }
+                if (position != C.TIME_UNSET) {
+                    putExtra(
+                        API_POSITION,
+                        position.toInt(),
+                    )
+                }
             }
         }
-    }
 
     companion object {
         const val API_TITLE = "title"

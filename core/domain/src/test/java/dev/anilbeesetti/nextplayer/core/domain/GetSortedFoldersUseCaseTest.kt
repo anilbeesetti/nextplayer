@@ -14,8 +14,8 @@ class GetSortedFoldersUseCaseTest {
     private val mediaRepository = FakeMediaRepository()
     private val preferencesRepository = FakePreferencesRepository()
     private val useCase = GetSortedFoldersUseCase(
-        mediaRepository,
-        preferencesRepository,
+        mediaRepository = mediaRepository,
+        preferencesRepository = preferencesRepository,
         Dispatchers.Unconfined,
     )
     private val now = System.currentTimeMillis()
@@ -23,22 +23,41 @@ class GetSortedFoldersUseCaseTest {
 
     @Test
     fun newVideoCountsOnlyIncludeDirectVideosWithinThreshold() = runTest {
-        preferencesRepository.updateApplicationPreferences {
-            it.copy(newVideoThresholdDays = 3)
-        }
+        preferencesRepository.updateApplicationPreferences { it.copy(newVideoThresholdDays = 3) }
         mediaRepository.videos.addAll(
-            listOf(
-                video(id = 1, parentPath = "/storage/emulated/0/Movies", addedDaysAgo = 2),
-                video(id = 2, parentPath = "/storage/emulated/0/Movies", addedDaysAgo = 5),
-                video(id = 3, parentPath = "/storage/emulated/0/Movies/Action", addedDaysAgo = 1),
+            elements = listOf(
+                video(
+                    id = 1,
+                    parentPath = "/storage/emulated/0/Movies",
+                    addedDaysAgo = 2,
+                ),
+                video(
+                    id = 2,
+                    parentPath = "/storage/emulated/0/Movies",
+                    addedDaysAgo = 5,
+                ),
+                video(
+                    id = 3,
+                    parentPath = "/storage/emulated/0/Movies/Action",
+                    addedDaysAgo = 1,
+                ),
             ),
         )
 
         val folders = useCase().first().associateBy { it.path }
 
-        assertEquals(2, folders.getValue("/storage/emulated/0/Movies").videosCount)
-        assertEquals(1, folders.getValue("/storage/emulated/0/Movies").newVideosCount)
-        assertEquals(1, folders.getValue("/storage/emulated/0/Movies/Action").newVideosCount)
+        assertEquals(
+            2,
+            folders.getValue(key = "/storage/emulated/0/Movies").videosCount,
+        )
+        assertEquals(
+            1,
+            folders.getValue(key = "/storage/emulated/0/Movies").newVideosCount,
+        )
+        assertEquals(
+            1,
+            folders.getValue(key = "/storage/emulated/0/Movies/Action").newVideosCount,
+        )
     }
 
     private fun video(id: Long, parentPath: String, addedDaysAgo: Long) = Video(

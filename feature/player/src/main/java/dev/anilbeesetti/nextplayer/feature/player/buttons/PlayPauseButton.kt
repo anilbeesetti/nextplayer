@@ -15,11 +15,8 @@ import dev.anilbeesetti.nextplayer.core.ui.R as coreUiR
 
 @OptIn(UnstableApi::class)
 @Composable
-fun PlayPauseButton(
-    modifier: Modifier = Modifier,
-    player: Player?,
-) {
-    val state = rememberPlayPauseButtonState(player)
+fun PlayPauseButton(modifier: Modifier = Modifier, player: Player?) {
+    val state = rememberPlayPauseButtonState(player = player)
     val icon = when (state.showPlay) {
         true -> painterResource(coreUiR.drawable.ic_play)
         false -> painterResource(coreUiR.drawable.ic_pause)

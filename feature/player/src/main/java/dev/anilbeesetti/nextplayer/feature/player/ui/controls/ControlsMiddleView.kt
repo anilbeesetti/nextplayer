@@ -25,25 +25,23 @@ import dev.anilbeesetti.nextplayer.feature.player.ui.preview.rememberPreviewPlay
 
 @OptIn(UnstableApi::class)
 @Composable
-fun ControlsMiddleView(
-    modifier: Modifier = Modifier,
-    player: Player?,
-) {
+fun ControlsMiddleView(modifier: Modifier = Modifier, player: Player?) {
     val playPauseFocusRequester = remember { FocusRequester() }
     Row(
         modifier = modifier
             .fillMaxWidth()
-            .focusProperties {
-                onEnter = { playPauseFocusRequester.requestFocus() }
-            }
+            .focusProperties { onEnter = { playPauseFocusRequester.requestFocus() } }
             .focusGroup(),
-        horizontalArrangement = Arrangement.spacedBy(40.dp, alignment = Alignment.CenterHorizontally),
+        horizontalArrangement = Arrangement.spacedBy(
+            40.dp,
+            alignment = Alignment.CenterHorizontally,
+        ),
         verticalAlignment = Alignment.CenterVertically,
     ) {
         PreviousButton(player = player)
         PlayPauseButton(
             player = player,
-            modifier = Modifier.focusRequester(playPauseFocusRequester),
+            modifier = Modifier.focusRequester(focusRequester = playPauseFocusRequester),
         )
         NextButton(player = player)
     }

@@ -28,9 +28,9 @@ class MainActivityNavigationTest {
         recreateHome()
         val settings = composeRule.activity.getString(R.string.settings)
 
-        composeRule.onNodeWithContentDescription(settings).performClick()
+        composeRule.onNodeWithContentDescription(label = settings).performClick()
 
-        composeRule.onNodeWithText(settings).assertIsDisplayed()
+        composeRule.onNodeWithText(text = settings).assertIsDisplayed()
     }
 
     @Test
@@ -41,23 +41,27 @@ class MainActivityNavigationTest {
         val enterPin = composeRule.activity.getString(R.string.enter_vault_pin)
         val setPin = composeRule.activity.getString(R.string.set_vault_pin)
 
-        composeRule.onNodeWithContentDescription(more).performClick()
-        composeRule.onNodeWithText(vault).performClick()
+        composeRule.onNodeWithContentDescription(label = more).performClick()
+        composeRule.onNodeWithText(text = vault).performClick()
 
-        composeRule.waitUntil(10_000) {
-            composeRule.onAllNodesWithText(enterPin).fetchSemanticsNodes().isNotEmpty() ||
-                composeRule.onAllNodesWithText(setPin).fetchSemanticsNodes().isNotEmpty()
+        composeRule.waitUntil(timeoutMillis = 10_000) {
+            composeRule.onAllNodesWithText(text = enterPin).fetchSemanticsNodes().isNotEmpty() ||
+                composeRule.onAllNodesWithText(text = setPin).fetchSemanticsNodes().isNotEmpty()
         }
     }
 
     private fun recreateHome() {
         val settings = composeRule.activity.getString(R.string.settings)
-        composeRule.waitUntil(10_000) {
-            composeRule.onAllNodesWithContentDescription(settings).fetchSemanticsNodes().isNotEmpty()
+        composeRule.waitUntil(timeoutMillis = 10_000) {
+            composeRule.onAllNodesWithContentDescription(
+                label = settings,
+            ).fetchSemanticsNodes().isNotEmpty()
         }
         composeRule.activityRule.scenario.recreate()
-        composeRule.waitUntil(10_000) {
-            composeRule.onAllNodesWithContentDescription(settings).fetchSemanticsNodes().isNotEmpty()
+        composeRule.waitUntil(timeoutMillis = 10_000) {
+            composeRule.onAllNodesWithContentDescription(
+                label = settings,
+            ).fetchSemanticsNodes().isNotEmpty()
         }
     }
 }

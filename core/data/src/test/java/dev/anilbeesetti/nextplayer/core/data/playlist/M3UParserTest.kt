@@ -13,8 +13,8 @@ import kotlinx.coroutines.runBlocking
 import kotlinx.coroutines.withContext
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertNull
-import org.junit.Assert.assertTrue
 import org.junit.Assert.assertThrows
+import org.junit.Assert.assertTrue
 import org.junit.Before
 import org.junit.Test
 import org.junit.runner.RunWith
@@ -32,7 +32,10 @@ class M3UParserTest {
     @Before
     fun setUp() {
         context = RuntimeEnvironment.getApplication()
-        parser = M3UParser(context, Dispatchers.Unconfined)
+        parser = M3UParser(
+            context = context,
+            Dispatchers.Unconfined,
+        )
     }
 
     @Test
@@ -46,13 +49,34 @@ class M3UParserTest {
             source = remoteSource(),
         ).getOrThrow()
 
-        assertEquals("World News", result.playlistName)
-        assertEquals(1, result.items.size)
-        assertEquals("https://example.com/lists/streams/channel.ts", result.items.single().uri)
-        assertEquals("Visible title", result.items.single().title)
-        assertEquals("https://example.com/lists/logos/news.png", result.items.single().tvgLogo)
-        assertEquals(42, result.items.single().duration)
-        assertEquals("News, World", result.items.single().groupTitle)
+        assertEquals(
+            "World News",
+            result.playlistName,
+        )
+        assertEquals(
+            1,
+            result.items.size,
+        )
+        assertEquals(
+            "https://example.com/lists/streams/channel.ts",
+            result.items.single().uri,
+        )
+        assertEquals(
+            "Visible title",
+            result.items.single().title,
+        )
+        assertEquals(
+            "https://example.com/lists/logos/news.png",
+            result.items.single().tvgLogo,
+        )
+        assertEquals(
+            42,
+            result.items.single().duration,
+        )
+        assertEquals(
+            "News, World",
+            result.items.single().groupTitle,
+        )
     }
 
     @Test
@@ -69,12 +93,30 @@ class M3UParserTest {
             source = remoteSource(),
         ).getOrThrow()
 
-        assertEquals("Named", result.items[0].title)
-        assertEquals("https://img.example/one.png", result.items[0].tvgLogo)
-        assertEquals(M3UPlaylistItem.UNKNOWN_DURATION, result.items[0].duration)
-        assertEquals("my second video", result.items[1].title)
-        assertEquals("https://img.example/two.png", result.items[1].tvgLogo)
-        assertEquals(M3UPlaylistItem.UNKNOWN_DURATION, result.items[1].duration)
+        assertEquals(
+            "Named",
+            result.items[0].title,
+        )
+        assertEquals(
+            "https://img.example/one.png",
+            result.items[0].tvgLogo,
+        )
+        assertEquals(
+            M3UPlaylistItem.UNKNOWN_DURATION,
+            result.items[0].duration,
+        )
+        assertEquals(
+            "my second video",
+            result.items[1].title,
+        )
+        assertEquals(
+            "https://img.example/two.png",
+            result.items[1].tvgLogo,
+        )
+        assertEquals(
+            M3UPlaylistItem.UNKNOWN_DURATION,
+            result.items[1].duration,
+        )
     }
 
     @Test
@@ -118,9 +160,12 @@ class M3UParserTest {
             source = documentSource(),
         ).getOrThrow()
 
-        assertEquals(listOf("file:/tmp/playlists/video.mp4"), fileResult.items.map { it.uri })
         assertEquals(
-            listOf("https://example.com/absolute.mp4"),
+            listOf(element = "file:/tmp/playlists/video.mp4"),
+            fileResult.items.map { it.uri },
+        )
+        assertEquals(
+            listOf(element = "https://example.com/absolute.mp4"),
             contentResult.items.map { it.uri },
         )
     }
@@ -137,9 +182,18 @@ class M3UParserTest {
             source = remoteSource(),
         ).getOrThrow()
 
-        assertEquals(1, result.items.size)
-        assertEquals("First", result.items.single().title)
-        assertEquals(1, result.items.single().duration)
+        assertEquals(
+            1,
+            result.items.size,
+        )
+        assertEquals(
+            "First",
+            result.items.single().title,
+        )
+        assertEquals(
+            1,
+            result.items.single().duration,
+        )
     }
 
     @Test
@@ -152,7 +206,10 @@ class M3UParserTest {
             ),
         ).getOrThrow()
 
-        assertEquals("My  Favorites list", result.playlistName)
+        assertEquals(
+            "My  Favorites list",
+            result.playlistName,
+        )
     }
 
     @Test
@@ -178,39 +235,60 @@ class M3UParserTest {
         )
 
         assertTrue(result.isSuccess)
-        assertEquals("https://example.com/live/master.m3u8", result.getOrThrow().items.single().uri)
+        assertEquals(
+            "https://example.com/live/master.m3u8",
+            result.getOrThrow().items.single().uri,
+        )
     }
 
     @Test
     fun parsesMoreThanTwentyThousandEntriesWithoutLimit() {
         val content = buildString {
-            appendLine("#EXTM3U")
-            repeat(20_001) { index ->
-                appendLine("https://example.com/video/$index")
+            appendLine(value = "#EXTM3U")
+            repeat(times = 20_001) { index ->
+                appendLine(value = "https://example.com/video/$index")
             }
         }
 
-        val result = parser.parseContent(content, remoteSource()).getOrThrow()
+        val result = parser.parseContent(
+            content = content,
+            source = remoteSource(),
+        ).getOrThrow()
 
-        assertEquals(20_001, result.items.size)
+        assertEquals(
+            20_001,
+            result.items.size,
+        )
     }
 
     @Test
     fun readsHttpUrlAndUsesSourceNameFallback() {
-        val server = HttpServer.create(InetSocketAddress(0), 0)
+        val server = HttpServer.create(
+            InetSocketAddress(0),
+            0,
+        )
         server.createContext("/My_List.m3u") { exchange ->
             val body = "https://media.example/live".encodeToByteArray()
-            exchange.sendResponseHeaders(200, body.size.toLong())
+            exchange.sendResponseHeaders(
+                200,
+                body.size.toLong(),
+            )
             exchange.responseBody.use { it.write(body) }
         }
         server.start()
         try {
             val result = runBlocking {
-                parser.parseUrl("http://127.0.0.1:${server.address.port}/My_List.m3u")
+                parser.parseUrl(url = "http://127.0.0.1:${server.address.port}/My_List.m3u")
             }.getOrThrow()
 
-            assertEquals("My List", result.playlistName)
-            assertEquals("https://media.example/live", result.items.single().uri)
+            assertEquals(
+                "My List",
+                result.playlistName,
+            )
+            assertEquals(
+                "https://media.example/live",
+                result.items.single().uri,
+            )
         } finally {
             server.stop(0)
         }
@@ -220,14 +298,18 @@ class M3UParserTest {
     fun readsAbsoluteFileUri() {
         val file = kotlin.io.path.createTempFile(suffix = ".m3u").toFile()
         try {
-            file.writeText("#PLAYLIST:File channels\nhttps://media.example/live")
+            file.writeText(text = "#PLAYLIST:File channels\nhttps://media.example/live")
 
-            val result = runBlocking {
-                parser.parseUri(Uri.fromFile(file))
-            }.getOrThrow()
+            val result = runBlocking { parser.parseUri(Uri.fromFile(file)) }.getOrThrow()
 
-            assertEquals("File channels", result.playlistName)
-            assertEquals("https://media.example/live", result.items.single().uri)
+            assertEquals(
+                "File channels",
+                result.playlistName,
+            )
+            assertEquals(
+                "https://media.example/live",
+                result.items.single().uri,
+            )
         } finally {
             file.delete()
         }
@@ -239,7 +321,7 @@ class M3UParserTest {
 
         assertThrows(CancellationException::class.java) {
             runBlocking {
-                withContext(cancelledJob) {
+                withContext(context = cancelledJob) {
                     parser.parseUri(Uri.parse("content://provider/list.m3u"))
                 }
             }

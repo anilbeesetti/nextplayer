@@ -43,24 +43,25 @@ import dev.anilbeesetti.nextplayer.core.ui.components.NextDialog
 import dev.anilbeesetti.nextplayer.core.ui.designsystem.NextIcons
 import dev.anilbeesetti.nextplayer.feature.videopicker.extensions.name
 
-@OptIn(ExperimentalLayoutApi::class, ExperimentalMaterial3Api::class)
+@OptIn(
+    ExperimentalLayoutApi::class,
+    ExperimentalMaterial3Api::class,
+)
 @Composable
 fun QuickSettingsDialog(
     applicationPreferences: ApplicationPreferences,
     onDismiss: () -> Unit,
     updatePreferences: (ApplicationPreferences) -> Unit,
 ) {
-    var preferences by remember { mutableStateOf(applicationPreferences) }
+    var preferences by remember { mutableStateOf(value = applicationPreferences) }
 
     NextDialog(
         onDismissRequest = onDismiss,
-        title = {
-            Text(text = stringResource(R.string.quick_settings))
-        },
+        title = { Text(text = stringResource(R.string.quick_settings)) },
         content = {
             HorizontalDivider()
             Column(
-                modifier = Modifier.verticalScroll(rememberScrollState()),
+                modifier = Modifier.verticalScroll(state = rememberScrollState()),
             ) {
                 DialogSectionTitle(text = stringResource(R.string.media_view_mode))
                 SingleChoiceSegmentedButtonRow(
@@ -70,21 +71,30 @@ fun QuickSettingsDialog(
                         SegmentedButton(
                             selected = preferences.mediaViewMode == viewMode,
                             onClick = { preferences = preferences.copy(mediaViewMode = viewMode) },
-                            shape = SegmentedButtonDefaults.itemShape(index = index, count = MediaViewMode.entries.size),
+                            shape = SegmentedButtonDefaults.itemShape(
+                                index = index,
+                                count = MediaViewMode.entries.size,
+                            ),
                             colors = SegmentedButtonDefaults.colors(
                                 activeContentColor = MaterialTheme.colorScheme.primary,
                                 activeBorderColor = MaterialTheme.colorScheme.primary,
                             ),
-                        ) {
-                            Text(text = viewMode.name())
-                        }
+                        ) { Text(text = viewMode.name()) }
                     }
                 }
                 MediaLayoutAndSortSettings(
                     layoutMode = preferences.mediaLayoutMode,
-                    sort = Sort(preferences.sortBy, preferences.sortOrder),
+                    sort = Sort(
+                        preferences.sortBy,
+                        preferences.sortOrder,
+                    ),
                     onLayoutModeChange = { preferences = preferences.copy(mediaLayoutMode = it) },
-                    onSortChange = { preferences = preferences.copy(sortBy = it.by, sortOrder = it.order) },
+                    onSortChange = {
+                        preferences = preferences.copy(
+                            sortBy = it.by,
+                            sortOrder = it.order,
+                        )
+                    },
                 )
                 HorizontalDivider(modifier = Modifier.padding(top = 16.dp))
                 DialogSectionTitle(text = stringResource(R.string.fields))
@@ -97,42 +107,71 @@ fun QuickSettingsDialog(
                     FieldChip(
                         label = stringResource(id = R.string.duration),
                         selected = preferences.showDurationField,
-                        onClick = { preferences = preferences.copy(showDurationField = !preferences.showDurationField) },
+                        onClick = {
+                            preferences =
+                                preferences.copy(showDurationField = !preferences.showDurationField)
+                        },
                     )
                     FieldChip(
                         label = stringResource(id = R.string.folder_duration),
                         selected = preferences.showFolderDurationField,
-                        onClick = { preferences = preferences.copy(showFolderDurationField = !preferences.showFolderDurationField) },
+                        onClick = {
+                            preferences = preferences.copy(
+                                showFolderDurationField = !preferences.showFolderDurationField,
+                            )
+                        },
                     )
                     FieldChip(
                         label = stringResource(id = R.string.extension),
                         selected = preferences.showExtensionField,
-                        onClick = { preferences = preferences.copy(showExtensionField = !preferences.showExtensionField) },
+                        onClick = {
+                            preferences = preferences.copy(
+                                showExtensionField = !preferences.showExtensionField,
+                            )
+                        },
                     )
                     FieldChip(
                         label = stringResource(id = R.string.path),
                         selected = preferences.showPathField,
-                        onClick = { preferences = preferences.copy(showPathField = !preferences.showPathField) },
+                        onClick = {
+                            preferences =
+                                preferences.copy(showPathField = !preferences.showPathField)
+                        },
                     )
                     FieldChip(
                         label = stringResource(id = R.string.played_progress),
                         selected = preferences.showPlayedProgress,
-                        onClick = { preferences = preferences.copy(showPlayedProgress = !preferences.showPlayedProgress) },
+                        onClick = {
+                            preferences = preferences.copy(
+                                showPlayedProgress = !preferences.showPlayedProgress,
+                            )
+                        },
                     )
                     FieldChip(
                         label = stringResource(id = R.string.resolution),
                         selected = preferences.showResolutionField,
-                        onClick = { preferences = preferences.copy(showResolutionField = !preferences.showResolutionField) },
+                        onClick = {
+                            preferences = preferences.copy(
+                                showResolutionField = !preferences.showResolutionField,
+                            )
+                        },
                     )
                     FieldChip(
                         label = stringResource(id = R.string.size),
                         selected = preferences.showSizeField,
-                        onClick = { preferences = preferences.copy(showSizeField = !preferences.showSizeField) },
+                        onClick = {
+                            preferences =
+                                preferences.copy(showSizeField = !preferences.showSizeField)
+                        },
                     )
                     FieldChip(
                         label = stringResource(id = R.string.thumbnail),
                         selected = preferences.showThumbnailField,
-                        onClick = { preferences = preferences.copy(showThumbnailField = !preferences.showThumbnailField) },
+                        onClick = {
+                            preferences = preferences.copy(
+                                showThumbnailField = !preferences.showThumbnailField,
+                            )
+                        },
                     )
                 }
             }
@@ -145,9 +184,7 @@ fun QuickSettingsDialog(
                 },
             )
         },
-        dismissButton = {
-            CancelButton(onClick = onDismiss)
-        },
+        dismissButton = { CancelButton(onClick = onDismiss) },
     )
 }
 
@@ -187,7 +224,10 @@ private fun DialogSectionTitle(text: String) {
     Text(
         text = text,
         style = MaterialTheme.typography.titleMedium,
-        modifier = Modifier.padding(top = 16.dp, bottom = 8.dp),
+        modifier = Modifier.padding(
+            top = 16.dp,
+            bottom = 8.dp,
+        ),
     )
 }
 
@@ -195,6 +235,10 @@ private fun DialogSectionTitle(text: String) {
 @Composable
 fun QuickSettingsPreview() {
     Surface {
-        QuickSettingsDialog(applicationPreferences = ApplicationPreferences(), onDismiss = { }, updatePreferences = {})
+        QuickSettingsDialog(
+            applicationPreferences = ApplicationPreferences(),
+            onDismiss = {},
+            updatePreferences = {},
+        )
     }
 }

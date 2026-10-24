@@ -19,20 +19,18 @@ internal val MediaItem.isExplicitPlaylistItem: Boolean
 internal fun MediaItem.asExplicitPlaylistItem(): MediaItem = buildUpon()
     .setRequestMetadata(
         requestMetadata.buildUpon().setExtras(
-            (requestMetadata.extras?.let(::Bundle) ?: Bundle()).apply {
-                putBoolean(EXPLICIT_PLAYLIST_KEY, true)
+            (requestMetadata.extras?.let(block = ::Bundle) ?: Bundle()).apply {
+                putBoolean(
+                    EXPLICIT_PLAYLIST_KEY,
+                    true,
+                )
             },
         ).build(),
     ).build()
 
-internal data class PlaylistMediaQueue(
-    val mediaItems: List<MediaItem>,
-    val startIndex: Int,
-)
+internal data class PlaylistMediaQueue(val mediaItems: List<MediaItem>, val startIndex: Int)
 
-internal fun PlaylistRecord.toMediaQueue(
-    selectedUri: String,
-): PlaylistMediaQueue? {
+internal fun PlaylistRecord.toMediaQueue(selectedUri: String): PlaylistMediaQueue? {
     val startIndex = items.indexOfFirst { it.uri == selectedUri }
         .takeIf { it >= 0 }
         ?: return null
@@ -47,7 +45,7 @@ internal fun PlaylistRecord.toMediaQueue(
                         .setTitle(item.title)
                         .setArtworkUri(
                             item.tvgLogo
-                                ?.takeIf(String::isNotBlank)
+                                ?.takeIf(predicate = String::isNotBlank)
                                 ?.toUri(),
                         )
                         .build(),

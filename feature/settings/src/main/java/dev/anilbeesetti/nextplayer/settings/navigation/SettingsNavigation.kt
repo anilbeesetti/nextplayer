@@ -12,11 +12,19 @@ import kotlinx.serialization.Serializable
 object SettingsRoute : NavKey
 
 fun NavBackStack<NavKey>.navigateToSettings() {
-    add(SettingsRoute)
+    add(element = SettingsRoute)
 }
 
-fun EntryProviderScope<NavKey>.settingsEntry(onNavigateUp: () -> Unit, onItemClick: (Setting) -> Unit) {
+fun EntryProviderScope<NavKey>.settingsEntry(
+    onNavigateUp: () -> Unit,
+    onItemClick: (Setting) -> Unit,
+) {
     entry<SettingsRoute> {
-        SettingsScreen(output = SettingsOutput(navigateUp = onNavigateUp, openSetting = onItemClick))
+        SettingsScreen(
+            output = SettingsOutput(
+                navigateUp = onNavigateUp,
+                openSetting = onItemClick,
+            ),
+        )
     }
 }
