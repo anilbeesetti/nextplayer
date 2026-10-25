@@ -522,4 +522,6 @@
     <plurals name="days_count">
         <item quantity="other">%1$d 日</item>
     </plurals>
+    <string name="add_to_home_screen">ホーム画面に追加</string>
+    <string name="playlist_shortcut_failed">プレイリストのショートカットを追加できませんでした。もう一度お試しください。</string>
 </resources>
