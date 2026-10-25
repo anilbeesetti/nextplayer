@@ -46,11 +46,14 @@ class WebDavClient(private val connection: NetworkConnection) : NetworkClient {
                     connection.password,
                 )
             }
-            client.exists(
+            // Validate the same operation used to browse. Some WebDAV servers (including
+            // Synology) reject HEAD on collections even when PROPFIND is permitted.
+            client.list(
                 buildUrl(
                     path = "",
                     isDirectory = true,
                 ),
+                1,
             )
             sardine = client
         }
