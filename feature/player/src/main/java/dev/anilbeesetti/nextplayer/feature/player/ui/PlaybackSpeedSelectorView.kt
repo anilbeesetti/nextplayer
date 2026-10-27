@@ -37,6 +37,7 @@ import androidx.compose.ui.unit.dp
 import androidx.media3.common.Player
 import androidx.media3.common.util.UnstableApi
 import dev.anilbeesetti.nextplayer.core.common.extensions.round
+import dev.anilbeesetti.nextplayer.core.common.extensions.toString
 import dev.anilbeesetti.nextplayer.core.ui.R
 import dev.anilbeesetti.nextplayer.core.ui.components.NextSwitch
 import dev.anilbeesetti.nextplayer.feature.player.state.rememberPlaybackParametersState
@@ -49,7 +50,7 @@ fun BoxScope.PlaybackSpeedSelectorView(
     player: Player,
 ) {
     val hapticFeedback = LocalHapticFeedback.current
-    val playbackParametersState = rememberPlaybackParametersState(player)
+    val playbackParametersState = rememberPlaybackParametersState(player = player)
 
     OverlayView(
         modifier = modifier,
@@ -58,23 +59,24 @@ fun BoxScope.PlaybackSpeedSelectorView(
     ) {
         Column(
             modifier = Modifier
-                .verticalScroll(rememberScrollState())
+                .verticalScroll(state = rememberScrollState())
                 .padding(bottom = 24.dp)
                 .padding(horizontal = 24.dp),
             verticalArrangement = Arrangement.spacedBy(8.dp),
         ) {
-            val minValue = 0.2f
-            val maxValue = 4.0f
-            val stepSize = 0.1f
+            val minValue = 0.25f
+            val maxValue = 8.0f
+            val stepSize = 0.05f
             val steps = ((maxValue - minValue) / stepSize).toInt() - 1
             Row(
                 verticalAlignment = Alignment.CenterVertically,
             ) {
                 FilledTonalIconButton(
                     onClick = {
-                        val newSpeed =
-                            (playbackParametersState.speed - stepSize).coerceAtLeast(minValue)
-                        playbackParametersState.setPlaybackSpeed(newSpeed)
+                        val newSpeed = (playbackParametersState.speed - stepSize).coerceAtLeast(
+                            minimumValue = minValue,
+                        )
+                        playbackParametersState.setPlaybackSpeed(speed = newSpeed)
                     },
                 ) {
                     Icon(
@@ -84,16 +86,18 @@ fun BoxScope.PlaybackSpeedSelectorView(
                 }
 
                 Text(
-                    text = playbackParametersState.speed.round(2).toString(),
+                    text = playbackParametersState.speed.toString(decimalPlaces = 2),
                     style = MaterialTheme.typography.titleMedium,
                     textAlign = TextAlign.Center,
-                    modifier = Modifier.weight(1f),
+                    modifier = Modifier.weight(weight = 1f),
                 )
 
                 FilledTonalIconButton(
                     onClick = {
-                        val newSpeed = (playbackParametersState.speed + stepSize).coerceAtMost(maxValue)
-                        playbackParametersState.setPlaybackSpeed(newSpeed)
+                        val newSpeed = (playbackParametersState.speed + stepSize).coerceAtMost(
+                            maximumValue = maxValue,
+                        )
+                        playbackParametersState.setPlaybackSpeed(speed = newSpeed)
                     },
                 ) {
                     Icon(
@@ -111,11 +115,11 @@ fun BoxScope.PlaybackSpeedSelectorView(
                     steps = steps,
                     onValueChange = {
                         hapticFeedback.performHapticFeedback(HapticFeedbackType.TextHandleMove)
-                        playbackParametersState.setPlaybackSpeed(it)
+                        playbackParametersState.setPlaybackSpeed(speed = it)
                     },
-                    modifier = Modifier.weight(1f),
+                    modifier = Modifier.weight(weight = 1f),
                 )
-                IconButton(onClick = { playbackParametersState.setPlaybackSpeed(1f) }) {
+                IconButton(onClick = { playbackParametersState.setPlaybackSpeed(speed = 1f) }) {
                     Icon(
                         painter = painterResource(R.drawable.ic_reset),
                         contentDescription = null,
@@ -128,27 +132,41 @@ fun BoxScope.PlaybackSpeedSelectorView(
                 verticalArrangement = Arrangement.spacedBy(8.dp),
             ) {
                 listOf(
-                    0.2f, 0.5f, 0.75f, 1.0f, 1.5f, 2.0f, 2.5f, 3.0f, 3.5f, 4.0f,
+                    0.25f,
+                    0.5f,
+                    0.75f,
+                    1.0f,
+                    1.25f,
+                    1.5f,
+                    1.75f,
+                    2.0f,
+                    2.5f,
+                    3.0f,
+                    4.0f,
+                    5.0f,
+                    6.0f,
+                    7.0f,
+                    8.0f,
                 ).forEach { speed ->
                     Box(
                         modifier = Modifier
-                            .clip(CircleShape)
+                            .clip(shape = CircleShape)
                             .border(
                                 width = 1.dp,
                                 color = LocalContentColor.current,
                                 shape = CircleShape,
                             )
-                            .clickable { playbackParametersState.setPlaybackSpeed(speed) }
+                            .clickable { playbackParametersState.setPlaybackSpeed(speed = speed) }
                             .padding(
                                 horizontal = 8.dp,
                                 vertical = 8.dp,
                             )
-                            .weight(1f),
+                            .weight(weight = 1f),
                         contentAlignment = Alignment.Center,
                     ) {
                         Text(
-                            text = speed.toString(),
-                            style = MaterialTheme.typography.bodyMedium,
+                            text = "${speed}x",
+                            style = MaterialTheme.typography.labelLarge,
                             color = MaterialTheme.colorScheme.primary,
                         )
                     }
@@ -157,10 +175,12 @@ fun BoxScope.PlaybackSpeedSelectorView(
 
             Row(
                 modifier = Modifier
-                    .clip(RoundedCornerShape(4.dp))
+                    .clip(shape = RoundedCornerShape(4.dp))
                     .toggleable(
                         value = playbackParametersState.skipSilenceEnabled,
-                        onValueChange = { playbackParametersState.setIsSkipSilenceEnabled(it) },
+                        onValueChange = {
+                            playbackParametersState.setIsSkipSilenceEnabled(enabled = it)
+                        },
                     )
                     .fillMaxWidth()
                     .padding(8.dp)
@@ -171,7 +191,7 @@ fun BoxScope.PlaybackSpeedSelectorView(
                 Text(
                     text = stringResource(R.string.skip_silence),
                     style = MaterialTheme.typography.bodyLarge,
-                    modifier = Modifier.weight(1f),
+                    modifier = Modifier.weight(weight = 1f),
                 )
                 NextSwitch(
                     checked = playbackParametersState.skipSilenceEnabled,

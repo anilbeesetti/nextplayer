@@ -1,15 +1,15 @@
 package dev.anilbeesetti.nextplayer.core.domain
 
-import dev.anilbeesetti.nextplayer.core.common.Dispatcher
-import dev.anilbeesetti.nextplayer.core.common.NextDispatchers
+import dev.anilbeesetti.nextplayer.core.common.di.DiQualifiers
 import dev.anilbeesetti.nextplayer.core.model.Folder
 import dev.anilbeesetti.nextplayer.core.model.Video
-import javax.inject.Inject
 import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.flow.flowOn
+import org.koin.core.annotation.Factory
+import org.koin.core.annotation.Named
 
 data class SearchResults(
     val folders: List<Folder> = emptyList(),
@@ -22,32 +22,39 @@ data class SearchResults(
         get() = folders.size + videos.size
 }
 
-class SearchMediaUseCase @Inject constructor(
+@Factory
+class SearchMediaUseCase(
     private val getSortedVideosUseCase: GetSortedVideosUseCase,
     private val getSortedFoldersUseCase: GetSortedFoldersUseCase,
-    @Dispatcher(NextDispatchers.Default) private val defaultDispatcher: CoroutineDispatcher,
+    @Named(DiQualifiers.DEFAULT_DISPATCHER) private val defaultDispatcher: CoroutineDispatcher,
 ) {
 
     operator fun invoke(query: String): Flow<SearchResults> {
         val normalizedQuery = query.trim()
         if (normalizedQuery.isBlank()) {
-            return flowOf(SearchResults())
+            return flowOf(value = SearchResults())
         }
 
         return combine(
-            getSortedVideosUseCase(),
-            getSortedFoldersUseCase(),
+            flow = getSortedVideosUseCase(),
+            flow2 = getSortedFoldersUseCase(),
         ) { videos, folders ->
-            val searchMatcher = SearchMatcher(normalizedQuery)
+            val searchMatcher = SearchMatcher(query = normalizedQuery)
 
             // Score and filter folders
             val scoredFolders = folders.mapNotNull { folder ->
-                val score = searchMatcher.calculateScore(folder.name, folder.path)
+                val score = searchMatcher.calculateScore(
+                    folder.name,
+                    folder.path,
+                )
                 if (score > 0) folder to score else null
             }.sortedByDescending { it.second }.map { it.first }
 
             val scoredVideos = videos.mapNotNull { video ->
-                val score = searchMatcher.calculateScore(video.nameWithExtension, video.path)
+                val score = searchMatcher.calculateScore(
+                    video.nameWithExtension,
+                    video.path,
+                )
                 if (score > 0) video to score else null
             }.sortedByDescending { it.second }.map { it.first }
 
@@ -55,7 +62,7 @@ class SearchMediaUseCase @Inject constructor(
                 folders = scoredFolders,
                 videos = scoredVideos,
             )
-        }.flowOn(defaultDispatcher)
+        }.flowOn(context = defaultDispatcher)
     }
 }
 
@@ -69,10 +76,15 @@ class SearchMediaUseCase @Inject constructor(
  */
 private class SearchMatcher(query: String) {
     private val queryLower = query.lowercase()
-    private val queryWords = query.lowercase().split(Regex("\\s+")).filter { it.isNotBlank() }
+    private val queryWords = query.lowercase().split(regex = Regex(pattern = "\\s+")).filter {
+        it.isNotBlank()
+    }
 
     private val wordsInOrderPattern: Regex? = if (queryWords.size > 1) {
-        Regex(queryWords.joinToString(".*") { Regex.escape(it) }, RegexOption.IGNORE_CASE)
+        Regex(
+            queryWords.joinToString(separator = ".*") { Regex.escape(literal = it) },
+            RegexOption.IGNORE_CASE,
+        )
     } else {
         null
     }
@@ -86,7 +98,7 @@ private class SearchMatcher(query: String) {
 
         for (text in texts) {
             val textLower = text.lowercase()
-            val score = calculateTextScore(textLower)
+            val score = calculateTextScore(textLower = textLower)
             if (score > bestScore) {
                 bestScore = score
             }
@@ -97,11 +109,19 @@ private class SearchMatcher(query: String) {
 
     private fun calculateTextScore(textLower: String): Int {
         // Level 1: Exact phrase match (highest priority)
-        if (textLower.contains(queryLower)) {
+        if (textLower.contains(other = queryLower)) {
             // Bonus for exact match at word boundary
-            val wordBoundaryBonus = if (isWordBoundaryMatch(textLower, queryLower)) 50 else 0
+            val wordBoundaryBonus = if (isWordBoundaryMatch(
+                    text = textLower,
+                    query = queryLower,
+                )
+            ) {
+                50
+            } else {
+                0
+            }
             // Bonus for match at start
-            val startBonus = if (textLower.startsWith(queryLower)) 30 else 0
+            val startBonus = if (textLower.startsWith(prefix = queryLower)) 30 else 0
             return 1000 + wordBoundaryBonus + startBonus
         }
 
@@ -113,17 +133,22 @@ private class SearchMatcher(query: String) {
         // Level 2: All words appear in order (with gaps allowed)
         // e.g., "stranger 2019" matches "stranger things 2019"
         wordsInOrderPattern?.let { pattern ->
-            if (pattern.containsMatchIn(textLower)) {
+            if (pattern.containsMatchIn(input = textLower)) {
                 return 500
             }
         }
 
         // Level 3: All words appear somewhere in the text (any order)
         // e.g., "stranger 2019" matches "2019 stranger things"
-        val allWordsPresent = queryWords.all { word -> textLower.contains(word) }
+        val allWordsPresent = queryWords.all { word -> textLower.contains(other = word) }
         if (allWordsPresent) {
             // Count how many words match at word boundaries for bonus
-            val boundaryMatches = queryWords.count { word -> isWordBoundaryMatch(textLower, word) }
+            val boundaryMatches = queryWords.count { word ->
+                isWordBoundaryMatch(
+                    text = textLower,
+                    query = word,
+                )
+            }
             return 200 + (boundaryMatches * 20)
         }
 
@@ -135,7 +160,7 @@ private class SearchMatcher(query: String) {
      * Word boundaries are: start of string, space, underscore, dash, dot, etc.
      */
     private fun isWordBoundaryMatch(text: String, query: String): Boolean {
-        val index = text.indexOf(query)
+        val index = text.indexOf(string = query)
         if (index == -1) return false
 
         // Check if match is at start or preceded by word boundary
@@ -145,7 +170,16 @@ private class SearchMatcher(query: String) {
         return isAtStart || isPrecededByBoundary
     }
 
-    private fun Char.isWordBoundary(): Boolean {
-        return this in listOf(' ', '_', '-', '.', '/', '\\', '[', ']', '(', ')')
-    }
+    private fun Char.isWordBoundary(): Boolean = this in listOf(
+        ' ',
+        '_',
+        '-',
+        '.',
+        '/',
+        '\\',
+        '[',
+        ']',
+        '(',
+        ')',
+    )
 }

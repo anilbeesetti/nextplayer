@@ -2,7 +2,6 @@ package dev.anilbeesetti.nextplayer.settings.screens.about
 
 import android.content.ClipData
 import android.content.Context
-import android.os.Build
 import android.widget.Toast
 import androidx.compose.animation.core.RepeatMode
 import androidx.compose.animation.core.animateFloat
@@ -24,9 +23,6 @@ import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
-import dev.anilbeesetti.nextplayer.settings.utils.rememberTvListFocusRequester
-import dev.anilbeesetti.nextplayer.settings.utils.tvFocusDown
-import dev.anilbeesetti.nextplayer.settings.utils.tvListFocus
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.ExperimentalMaterial3Api
@@ -60,11 +56,15 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.res.vectorResource
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import dev.anilbeesetti.nextplayer.core.common.extensions.appIcon
 import dev.anilbeesetti.nextplayer.core.ui.R
 import dev.anilbeesetti.nextplayer.core.ui.components.ClickablePreferenceItem
 import dev.anilbeesetti.nextplayer.core.ui.components.ListSectionTitle
 import dev.anilbeesetti.nextplayer.core.ui.components.NextTopAppBar
+import dev.anilbeesetti.nextplayer.core.ui.components.rememberTvListFocusRequester
+import dev.anilbeesetti.nextplayer.core.ui.components.tvFocusDown
+import dev.anilbeesetti.nextplayer.core.ui.components.tvListFocus
 import dev.anilbeesetti.nextplayer.core.ui.designsystem.NextIcons
 import kotlinx.coroutines.launch
 
@@ -73,11 +73,23 @@ private const val KOFI_URL = "https://ko-fi.com/anilbeesetti"
 private const val PAYPAL_URL = "https://paypal.me/AnilBeesetti"
 private const val UPI_ID = "anilbeesetti10@oksbi"
 
-@OptIn(ExperimentalMaterial3Api::class, ExperimentalMaterial3ExpressiveApi::class)
 @Composable
-fun AboutPreferencesScreen(
-    onLibrariesClick: () -> Unit,
-    onNavigateUp: () -> Unit,
+fun AboutPreferencesScreen(viewModel: AboutPreferencesViewModel) {
+    val state by viewModel.state.collectAsStateWithLifecycle()
+    AboutPreferencesScreenContent(
+        state = state,
+        onAction = viewModel::onAction,
+    )
+}
+
+@OptIn(
+    ExperimentalMaterial3Api::class,
+    ExperimentalMaterial3ExpressiveApi::class,
+)
+@Composable
+private fun AboutPreferencesScreenContent(
+    state: AboutPreferencesUiState,
+    onAction: (AboutPreferencesAction) -> Unit,
 ) {
     val context = LocalContext.current
     val uriHandler = LocalUriHandler.current
@@ -90,7 +102,12 @@ fun AboutPreferencesScreen(
             NextTopAppBar(
                 title = stringResource(id = R.string.about_name),
                 navigationIcon = {
-                    FilledTonalIconButton(onClick = onNavigateUp, modifier = Modifier.tvFocusDown(listFocusRequester)) {
+                    FilledTonalIconButton(
+                        onClick = {
+                            onAction(AboutPreferencesAction.NavigateUp)
+                        },
+                        modifier = Modifier.tvFocusDown(target = listFocusRequester),
+                    ) {
                         Icon(
                             imageVector = NextIcons.ArrowBack,
                             contentDescription = stringResource(id = R.string.navigate_up),
@@ -104,20 +121,21 @@ fun AboutPreferencesScreen(
         Column(
             modifier = Modifier
                 .fillMaxSize()
-                .verticalScroll(rememberScrollState())
-                .tvListFocus(listFocusRequester)
-                .padding(innerPadding)
+                .verticalScroll(state = rememberScrollState())
+                .tvListFocus(focusRequester = listFocusRequester)
+                .padding(paddingValues = innerPadding)
                 .padding(horizontal = 16.dp)
                 .padding(vertical = 16.dp),
         ) {
             AboutApp(
+                appVersion = state.appVersion,
                 onGithubClick = {
                     uriHandler.openUriOrShowToast(
                         uri = GITHUB_URL,
                         context = context,
                     )
                 },
-                onLibrariesClick = onLibrariesClick,
+                onLibrariesClick = { onAction(AboutPreferencesAction.OpenLibraries) },
             )
             ListSectionTitle(text = stringResource(id = R.string.donate))
             Column(
@@ -125,7 +143,10 @@ fun AboutPreferencesScreen(
             ) {
                 ClickablePreferenceItem(
                     title = stringResource(R.string.kofi),
-                    description = stringResource(R.string.support_the_developer_on, stringResource(R.string.kofi)),
+                    description = stringResource(
+                        R.string.support_the_developer_on,
+                        stringResource(R.string.kofi),
+                    ),
                     icon = ImageVector.vectorResource(R.drawable.ic_kofi),
                     onClick = {
                         uriHandler.openUriOrShowToast(
@@ -133,11 +154,14 @@ fun AboutPreferencesScreen(
                             context = context,
                         )
                     },
-                    isFirstItem = true
+                    isFirstItem = true,
                 )
                 ClickablePreferenceItem(
                     title = stringResource(R.string.paypal),
-                    description = stringResource(R.string.support_the_developer_on, stringResource(R.string.paypal)),
+                    description = stringResource(
+                        R.string.support_the_developer_on,
+                        stringResource(R.string.paypal),
+                    ),
                     icon = ImageVector.vectorResource(R.drawable.ic_paypal),
                     onClick = {
                         uriHandler.openUriOrShowToast(
@@ -152,8 +176,19 @@ fun AboutPreferencesScreen(
                     icon = ImageVector.vectorResource(R.drawable.ic_upi),
                     onClick = {
                         scope.launch {
-                            clipboard.setClipEntry(ClipEntry(ClipData.newPlainText("text", UPI_ID)))
-                            Toast.makeText(context, "copied to clipboard", Toast.LENGTH_SHORT).show()
+                            clipboard.setClipEntry(
+                                clipEntry = ClipEntry(
+                                    ClipData.newPlainText(
+                                        "text",
+                                        UPI_ID,
+                                    ),
+                                ),
+                            )
+                            Toast.makeText(
+                                context,
+                                "copied to clipboard",
+                                Toast.LENGTH_SHORT,
+                            ).show()
                         }
                     },
                     isLastItem = true,
@@ -165,12 +200,12 @@ fun AboutPreferencesScreen(
 
 @Composable
 fun AboutApp(
+    appVersion: String,
     modifier: Modifier = Modifier,
     onGithubClick: () -> Unit,
     onLibrariesClick: () -> Unit,
 ) {
     val context = LocalContext.current
-    val appVersion = remember { context.appVersion() }
     val appIcon = remember { context.appIcon()?.asImageBitmap() }
 
     val colorPrimary = MaterialTheme.colorScheme.primaryContainer
@@ -198,8 +233,14 @@ fun AboutApp(
                 val cy = size.height * fraction
 
                 val gradient = Brush.radialGradient(
-                    colors = listOf(colorPrimary, colorTertiary),
-                    center = Offset(cx, cy),
+                    colors = listOf(
+                        colorPrimary,
+                        colorTertiary,
+                    ),
+                    center = Offset(
+                        x = cx,
+                        y = cy,
+                    ),
                     radius = 800f,
                 )
 
@@ -226,7 +267,7 @@ fun AboutApp(
                 Image(
                     bitmap = it,
                     contentDescription = "App Logo",
-                    modifier = Modifier.size(48.dp).clip(CircleShape),
+                    modifier = Modifier.size(48.dp).clip(shape = CircleShape),
                 )
             }
             Column {
@@ -247,7 +288,10 @@ fun AboutApp(
                         fontSize = 12.sp,
                     )
                     Text(
-                        text = stringResource(R.string.by, stringResource(R.string.app_developer)),
+                        text = stringResource(
+                            R.string.by,
+                            stringResource(R.string.app_developer),
+                        ),
                         style = MaterialTheme.typography.bodyMedium,
                         color = MaterialTheme.colorScheme.onSurfaceVariant,
                     )
@@ -271,10 +315,8 @@ fun AboutApp(
                 modifier = Modifier
                     .fillMaxWidth()
                     .height(52.dp)
-                    .weight(1f),
-            ) {
-                Text(text = stringResource(R.string.libraries))
-            }
+                    .weight(weight = 1f),
+            ) { Text(text = stringResource(R.string.libraries)) }
             Button(
                 onClick = onGithubClick,
                 colors = ButtonDefaults.buttonColors(
@@ -286,7 +328,7 @@ fun AboutApp(
                 shape = RoundedCornerShape(8.dp),
                 modifier = Modifier
                     .fillMaxWidth()
-                    .weight(1f)
+                    .weight(weight = 1f)
                     .height(52.dp),
             ) {
                 Icon(
@@ -301,23 +343,14 @@ fun AboutApp(
     }
 }
 
-private fun Context.appVersion(): String {
-    val packageInfo = packageManager.getPackageInfo(packageName, 0)
-
-    @Suppress("DEPRECATION")
-    val versionCode = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.P) {
-        packageInfo.longVersionCode
-    } else {
-        packageInfo.versionCode
-    }
-
-    return "${packageInfo.versionName} ($versionCode)"
-}
-
 internal fun UriHandler.openUriOrShowToast(uri: String, context: Context) {
     try {
         openUri(uri = uri)
     } catch (e: Exception) {
-        Toast.makeText(context, context.getString(R.string.error_opening_link), Toast.LENGTH_SHORT).show()
+        Toast.makeText(
+            context,
+            context.getString(R.string.error_opening_link),
+            Toast.LENGTH_SHORT,
+        ).show()
     }
 }

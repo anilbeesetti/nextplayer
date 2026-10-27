@@ -31,6 +31,8 @@ interface MediaService {
      */
     fun observeVideos(folderPath: String? = null): Flow<List<MediaVideo>>
 
+    fun observeTrashVideos(): Flow<List<MediaVideo>>
+
     /**
      * Fetches all unique folders containing videos under the given path (one-shot).
      *
@@ -42,6 +44,9 @@ interface MediaService {
 
     /**
      * Fetches all videos under the given path recursively (one-shot).
+     *
+     * Query failures are propagated so callers that reconcile persisted data can distinguish a
+     * failed query from a successful empty result.
      *
      * @param folderPath The root path to search for videos, or null to scan all storage volumes.
      * @return List of all videos found under the path.

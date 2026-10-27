@@ -11,6 +11,7 @@ data class Folder(
     val totalDuration: Long = 0,
     val videosCount: Int = 0,
     val foldersCount: Int = 0,
+    val newVideosCount: Int = 0,
 ) : Serializable {
     companion object {
         val sample = Folder(
@@ -22,13 +23,11 @@ data class Folder(
 }
 
 fun List<Folder>.findClosestFolder(videoPath: String): Folder? {
-    val videoDirectory = videoPath.substringBeforeLast("/")
+    val videoDirectory = videoPath.substringBeforeLast(delimiter = "/")
 
     return filter { folder ->
         // Match the folder itself or an ancestor, respecting path-segment boundaries so
         // that e.g. "/storage/Movies" is not treated as an ancestor of "/storage/Movies2".
-        videoDirectory == folder.path || videoDirectory.startsWith(folder.path + "/")
-    }.maxByOrNull { folder ->
-        folder.path.length
-    }
+        videoDirectory == folder.path || videoDirectory.startsWith(prefix = folder.path + "/")
+    }.maxByOrNull { folder -> folder.path.length }
 }

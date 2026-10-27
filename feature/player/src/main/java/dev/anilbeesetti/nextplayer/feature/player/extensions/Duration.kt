@@ -10,4 +10,7 @@ fun Duration.formatted(): String = toComponents { hours, minutes, seconds, nanos
     }
 }
 
-private fun Number.padStartWith0() = this.toString().padStart(2, '0')
+private fun Number.padStartWith0() = this.toString().padStart(
+    length = 2,
+    padChar = '0',
+)

@@ -221,4 +221,13 @@
     <string name="media_layout">Layout de mídia</string>
     <string name="list">Lista</string>
     <string name="grid">Grade</string>
+    <string name="folder_duration">Duração da pasta</string>
+    <string name="gestures_name">Gestos</string>
+    <string name="gestures_description">Configurar gestos de toque na reprodução</string>
+    <string name="recently_played">Reproduzidas recentemente</string>
+    <string name="delete_one_video">Apagar 1 vídeo?</string>
+    <string name="delete_videos">Apagar %1$d vídeos?</string>
+    <string name="delete_one_folder">Apagar 1 pasta?</string>
+    <string name="delete_folders">Apagar %1$d pastas?</string>
+    <string name="delete_items">Apagar %1$d itens?</string>
 </resources>

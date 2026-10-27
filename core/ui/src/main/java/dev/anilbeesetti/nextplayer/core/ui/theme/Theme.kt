@@ -4,6 +4,7 @@ import android.os.Build
 import androidx.annotation.ChecksSdkIntAtLeast
 import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.MotionScheme
 import androidx.compose.material3.darkColorScheme
 import androidx.compose.material3.dynamicDarkColorScheme
 import androidx.compose.material3.dynamicLightColorScheme
@@ -250,7 +251,9 @@ fun NextPlayerTheme(
         dynamicColor && supportsDynamicTheming() -> {
             val context = LocalContext.current
             when {
-                darkTheme && highContrastDarkTheme -> dynamicDarkColorScheme(context).copy(
+                darkTheme && highContrastDarkTheme -> dynamicDarkColorScheme(
+                    context = context,
+                ).copy(
                     background = backgroundPureBlack,
                     surface = surfacePureBlack,
                     surfaceDim = surfaceDimPureBlack,
@@ -261,8 +264,10 @@ fun NextPlayerTheme(
                     surfaceContainerHigh = surfaceContainerHighPureBlack,
                     surfaceContainerHighest = surfaceContainerHighestPureBlack,
                 )
-                darkTheme -> dynamicDarkColorScheme(context)
-                else -> dynamicLightColorScheme(context)
+
+                darkTheme -> dynamicDarkColorScheme(context = context)
+
+                else -> dynamicLightColorScheme(context = context)
             }
         }
 
@@ -277,13 +282,16 @@ fun NextPlayerTheme(
             surfaceContainerHigh = surfaceContainerHighPureBlack,
             surfaceContainerHighest = surfaceContainerHighestPureBlack,
         )
+
         darkTheme -> darkScheme
+
         else -> lightScheme
     }
 
     MaterialTheme(
         colorScheme = colorScheme,
         typography = Typography,
+        motionScheme = MotionScheme.expressive(),
         content = content,
     )
 }

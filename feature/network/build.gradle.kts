@@ -4,8 +4,7 @@ plugins {
     alias(libs.plugins.androidLibrary)
     alias(libs.plugins.composeCompiler)
     alias(libs.plugins.kotlinSerialization)
-    alias(libs.plugins.hilt)
-    alias(libs.plugins.ksp)
+    alias(libs.plugins.koin.compiler)
 }
 
 android {
@@ -19,6 +18,10 @@ android {
     compileOptions {
         sourceCompatibility = JavaVersion.toVersion(libs.versions.android.jvm.get().toInt())
         targetCompatibility = JavaVersion.toVersion(libs.versions.android.jvm.get().toInt())
+    }
+
+    testOptions {
+        unitTests.isIncludeAndroidResources = true
     }
 
     buildFeatures {
@@ -52,13 +55,18 @@ dependencies {
     implementation(libs.androidx.navigation3.ui)
     implementation(libs.androidx.lifecycle.runtime.ktx)
     implementation(libs.androidx.lifecycle.runtimeCompose)
+    implementation(libs.accompanist.permissions)
 
-    // Hilt
-    implementation(libs.hilt.android)
-    ksp(libs.hilt.compiler)
-    ksp(libs.kotlin.metadata.jvm)
-    implementation(libs.androidx.hilt.navigation.compose)
+    // Koin
+    implementation(libs.koin.core)
+    implementation(libs.koin.annotations)
+    implementation(libs.koin.compose.viewmodel)
 
     testImplementation(libs.junit4)
+    testImplementation(libs.kotlinx.coroutines.test)
+    testImplementation(libs.robolectric)
+    testImplementation(platform(libs.androidx.compose.bom))
+    testImplementation(libs.androidx.compose.ui.test)
+    debugImplementation(libs.androidx.compose.ui.testManifest)
     debugImplementation(libs.androidx.compose.ui.tooling)
 }

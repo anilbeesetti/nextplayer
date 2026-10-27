@@ -1,58 +1,77 @@
 package dev.anilbeesetti.nextplayer.settings.screens.subtitle
 
 import androidx.compose.runtime.Stable
-import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import dagger.hilt.android.lifecycle.HiltViewModel
 import dev.anilbeesetti.nextplayer.core.data.repository.PreferencesRepository
 import dev.anilbeesetti.nextplayer.core.model.Font
 import dev.anilbeesetti.nextplayer.core.model.PlayerPreferences
-import javax.inject.Inject
+import dev.anilbeesetti.nextplayer.core.ui.base.MviViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
+import org.koin.core.annotation.InjectedParam
+import org.koin.core.annotation.KoinViewModel
 
-@HiltViewModel
-class SubtitlePreferencesViewModel @Inject constructor(
+@KoinViewModel
+class SubtitlePreferencesViewModel(
     private val preferencesRepository: PreferencesRepository,
-) : ViewModel() {
+    @InjectedParam internal var output: Output,
+) : MviViewModel<SubtitlePreferencesUiState, SubtitlePreferencesUiEvent>() {
 
-    private val uiStateInternal = MutableStateFlow(
-        SubtitlePreferencesUiState(
+    data class Output(val navigateUp: () -> Unit)
+
+    private val stateInternal = MutableStateFlow(
+        value = SubtitlePreferencesUiState(
             preferences = preferencesRepository.playerPreferences.value,
         ),
     )
-    val uiState = uiStateInternal.asStateFlow()
+    override val state: StateFlow<SubtitlePreferencesUiState> = stateInternal.asStateFlow()
 
     init {
         viewModelScope.launch {
             preferencesRepository.playerPreferences.collect { preferences ->
-                uiStateInternal.update { currentState ->
+                stateInternal.update { currentState ->
                     currentState.copy(preferences = preferences)
                 }
             }
         }
     }
 
-    fun onEvent(event: SubtitlePreferencesUiEvent) {
-        when (event) {
-            is SubtitlePreferencesUiEvent.ShowDialog -> showDialog(event.value)
-            is SubtitlePreferencesUiEvent.UpdateSubtitleLanguage -> updateSubtitleLanguage(event.value)
-            is SubtitlePreferencesUiEvent.UpdateSubtitleFont -> updateSubtitleFont(event.value)
-            SubtitlePreferencesUiEvent.ToggleSubtitleTextBold -> toggleSubtitleTextBold()
-            is SubtitlePreferencesUiEvent.UpdateSubtitleFontSize -> updateSubtitleFontSize(event.value)
-            SubtitlePreferencesUiEvent.ToggleSubtitleBackground -> toggleSubtitleBackground()
-            SubtitlePreferencesUiEvent.ToggleApplyEmbeddedStyles -> toggleApplyEmbeddedStyles()
-            is SubtitlePreferencesUiEvent.UpdateSubtitleEncoding -> updateSubtitleEncoding(event.value)
-            SubtitlePreferencesUiEvent.ToggleUseSystemCaptionStyle -> toggleUseSystemCaptionStyle()
+    override fun onAction(action: SubtitlePreferencesUiEvent) {
+        when (action) {
+            is SubtitlePreferencesUiEvent.NavigateUp -> output.navigateUp()
+
+            is SubtitlePreferencesUiEvent.ShowDialog -> showDialog(action.value)
+
+            is SubtitlePreferencesUiEvent.UpdateSubtitleLanguage -> updateSubtitleLanguage(
+                action.value,
+            )
+
+            is SubtitlePreferencesUiEvent.UpdateSubtitleFont -> updateSubtitleFont(action.value)
+
+            is SubtitlePreferencesUiEvent.ToggleSubtitleTextBold -> toggleSubtitleTextBold()
+
+            is SubtitlePreferencesUiEvent.UpdateSubtitleFontSize -> updateSubtitleFontSize(
+                action.value,
+            )
+
+            is SubtitlePreferencesUiEvent.ToggleSubtitleBackground -> toggleSubtitleBackground()
+
+            is SubtitlePreferencesUiEvent.ToggleApplyEmbeddedStyles -> toggleApplyEmbeddedStyles()
+
+            is SubtitlePreferencesUiEvent.UpdateSubtitleEncoding -> updateSubtitleEncoding(
+                action.value,
+            )
+
+            is SubtitlePreferencesUiEvent.ToggleUseSystemCaptionStyle ->
+                toggleUseSystemCaptionStyle()
         }
     }
 
     private fun showDialog(value: SubtitlePreferenceDialog?) {
-        uiStateInternal.update {
-            it.copy(showDialog = value)
-        }
+        stateInternal.update { it.copy(showDialog = value) }
     }
 
     private fun updateSubtitleLanguage(value: String) {
@@ -65,9 +84,7 @@ class SubtitlePreferencesViewModel @Inject constructor(
 
     private fun updateSubtitleFont(value: Font) {
         viewModelScope.launch {
-            preferencesRepository.updatePlayerPreferences {
-                it.copy(subtitleFont = value)
-            }
+            preferencesRepository.updatePlayerPreferences { it.copy(subtitleFont = value) }
         }
     }
 
@@ -81,9 +98,7 @@ class SubtitlePreferencesViewModel @Inject constructor(
 
     private fun updateSubtitleFontSize(value: Int) {
         viewModelScope.launch {
-            preferencesRepository.updatePlayerPreferences {
-                it.copy(subtitleTextSize = value)
-            }
+            preferencesRepository.updatePlayerPreferences { it.copy(subtitleTextSize = value) }
         }
     }
 
@@ -111,7 +126,9 @@ class SubtitlePreferencesViewModel @Inject constructor(
 
     private fun toggleUseSystemCaptionStyle() {
         viewModelScope.launch {
-            preferencesRepository.updatePlayerPreferences { it.copy(useSystemCaptionStyle = !it.useSystemCaptionStyle) }
+            preferencesRepository.updatePlayerPreferences {
+                it.copy(useSystemCaptionStyle = !it.useSystemCaptionStyle)
+            }
         }
     }
 }
@@ -129,6 +146,8 @@ sealed interface SubtitlePreferenceDialog {
 }
 
 sealed interface SubtitlePreferencesUiEvent {
+    data object NavigateUp : SubtitlePreferencesUiEvent
+
     data class ShowDialog(val value: SubtitlePreferenceDialog?) : SubtitlePreferencesUiEvent
     data class UpdateSubtitleLanguage(val value: String) : SubtitlePreferencesUiEvent
     data class UpdateSubtitleFont(val value: Font) : SubtitlePreferencesUiEvent

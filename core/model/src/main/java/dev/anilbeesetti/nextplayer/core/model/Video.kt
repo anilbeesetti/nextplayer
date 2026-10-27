@@ -15,6 +15,7 @@ data class Video(
     val size: Long,
     val playbackPosition: Long? = null,
     val dateModified: Long = 0,
+    val dateAdded: Long = 0,
     val formattedDuration: String = "",
     val formattedFileSize: String = "",
     val format: String? = null,
@@ -24,9 +25,13 @@ data class Video(
     val subtitleStreams: List<SubtitleStreamInfo> = emptyList(),
 ) : Serializable {
 
-    val displayName: String = nameWithExtension.substringBeforeLast(".")
+    val displayName: String = nameWithExtension.substringBeforeLast(delimiter = ".")
     val playedPercentage: Float? = playbackPosition?.let { playbackPosition ->
-        (playbackPosition.toFloat() / duration.toFloat()).takeIf { playbackPosition >= 0 && duration > 0 }
+        when {
+            duration <= 0 -> null
+            playbackPosition < 0 -> 1f
+            else -> playbackPosition.toFloat() / duration.toFloat()
+        }
     }
 
     companion object {
@@ -49,3 +54,9 @@ data class Video(
 
 fun List<Video>.recentPlayed(): Video? =
     filter { it.lastPlayedAt != null }.sortedByDescending { it.lastPlayedAt?.time }.firstOrNull()
+
+fun Video.isNew(nowMillis: Long = System.currentTimeMillis(), thresholdDays: Int = 7): Boolean {
+    if (lastPlayedAt != null || thresholdDays <= 0) return false
+    val addedAtMillis = dateAdded * 1000L
+    return nowMillis - addedAtMillis in 0..(thresholdDays * 24L * 60L * 60L * 1000L)
+}

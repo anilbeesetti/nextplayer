@@ -11,6 +11,8 @@ android {
 
     defaultConfig {
         minSdk = libs.versions.android.minSdk.get().toInt()
+        // Keep vector resources as XML for reproducible F-Droid builds.
+        vectorDrawables.generatedDensities()
     }
 
     compileOptions {
@@ -45,8 +47,6 @@ dependencies {
     implementation(libs.androidx.lifecycle.runtime.ktx)
     implementation(libs.androidx.lifecycle.runtimeCompose)
     implementation(libs.androidx.compose.material.iconsExtended)
-
-    implementation(libs.androidx.hilt.navigation.compose)
 
     testImplementation(libs.junit4)
     androidTestImplementation(platform(libs.androidx.compose.bom))

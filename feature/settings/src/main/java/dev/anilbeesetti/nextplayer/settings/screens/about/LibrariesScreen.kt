@@ -20,26 +20,35 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.remember
+import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalUriHandler
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
-import com.mikepenz.aboutlibraries.Libs
-import com.mikepenz.aboutlibraries.util.withContext
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import dev.anilbeesetti.nextplayer.core.ui.R
 import dev.anilbeesetti.nextplayer.core.ui.components.NextSegmentedListItem
 import dev.anilbeesetti.nextplayer.core.ui.components.NextTopAppBar
 import dev.anilbeesetti.nextplayer.core.ui.designsystem.NextIcons
 import dev.anilbeesetti.nextplayer.core.ui.extensions.plus
 
-@OptIn(ExperimentalMaterial3Api::class, ExperimentalMaterial3ExpressiveApi::class)
 @Composable
-fun LibrariesScreen(
-    onNavigateUp: () -> Unit,
-) {
+fun LibrariesScreen(viewModel: LibrariesViewModel) {
+    val state by viewModel.state.collectAsStateWithLifecycle()
+    LibrariesScreenContent(
+        state = state,
+        onAction = viewModel::onAction,
+    )
+}
+
+@OptIn(
+    ExperimentalMaterial3Api::class,
+    ExperimentalMaterial3ExpressiveApi::class,
+)
+@Composable
+private fun LibrariesScreenContent(state: LibrariesUiState, onAction: (LibrariesAction) -> Unit) {
     val context = LocalContext.current
     val uriHandler = LocalUriHandler.current
 
@@ -48,7 +57,7 @@ fun LibrariesScreen(
             NextTopAppBar(
                 title = stringResource(id = R.string.libraries),
                 navigationIcon = {
-                    FilledTonalIconButton(onClick = onNavigateUp) {
+                    FilledTonalIconButton(onClick = { onAction(LibrariesAction.NavigateUp) }) {
                         Icon(
                             imageVector = NextIcons.ArrowBack,
                             contentDescription = stringResource(id = R.string.navigate_up),
@@ -59,14 +68,17 @@ fun LibrariesScreen(
         },
         containerColor = MaterialTheme.colorScheme.surfaceContainer,
     ) { innerPadding ->
-        val libs = remember { Libs.Builder().withContext(context).build() }
-
         LazyColumn(
             modifier = Modifier.fillMaxSize(),
             contentPadding = innerPadding + PaddingValues(horizontal = 16.dp),
             verticalArrangement = Arrangement.spacedBy(ListItemDefaults.SegmentedGap),
         ) {
-            itemsIndexed(libs.libraries, key = { _, library -> library.uniqueId }) { index, library ->
+            itemsIndexed(
+                state.libraries,
+                key = { _, library ->
+                    library.uniqueId
+                },
+            ) { index, library ->
                 NextSegmentedListItem(
                     content = {
                         Row(
@@ -77,11 +89,9 @@ fun LibrariesScreen(
                                 text = library.name,
                                 maxLines = 1,
                                 overflow = TextOverflow.Ellipsis,
-                                modifier = Modifier.weight(1f),
+                                modifier = Modifier.weight(weight = 1f),
                             )
-                            library.artifactVersion?.let {
-                                Text(text = it)
-                            }
+                            library.artifactVersion?.let { Text(text = it) }
                         }
                     },
                     supportingContent = {
@@ -89,7 +99,7 @@ fun LibrariesScreen(
                             Text(
                                 text = library.developers.takeIf { it.isNotEmpty() }
                                     ?.mapNotNull { it.name }
-                                    ?.joinToString(", ")
+                                    ?.joinToString(separator = ", ")
                                     ?: library.organization?.name ?: "",
                             )
                             FlowRow(
@@ -98,19 +108,26 @@ fun LibrariesScreen(
                             ) {
                                 library.licenses.forEach {
                                     Badge(
-                                        containerColor = MaterialTheme.colorScheme.secondaryContainer,
+                                        containerColor =
+                                            MaterialTheme.colorScheme.secondaryContainer,
                                     ) {
-                                        Text(text = it.name, modifier = Modifier.padding(horizontal = 2.dp))
+                                        Text(
+                                            text = it.name,
+                                            modifier = Modifier.padding(horizontal = 2.dp),
+                                        )
                                     }
                                 }
                             }
                         }
                     },
                     isFirstItem = index == 0,
-                    isLastItem = index == libs.libraries.lastIndex,
+                    isLastItem = index == state.libraries.lastIndex,
                     onClick = {
                         library.website?.takeIf { it.isNotBlank() }?.let {
-                            uriHandler.openUriOrShowToast(uri = it, context = context)
+                            uriHandler.openUriOrShowToast(
+                                uri = it,
+                                context = context,
+                            )
                         }
                     },
                 )

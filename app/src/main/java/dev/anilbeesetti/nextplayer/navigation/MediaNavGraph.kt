@@ -13,17 +13,13 @@ import dev.anilbeesetti.nextplayer.feature.videopicker.navigation.navigateToMedi
 import dev.anilbeesetti.nextplayer.feature.videopicker.navigation.navigateToSearch
 import dev.anilbeesetti.nextplayer.feature.videopicker.navigation.navigateToVault
 import dev.anilbeesetti.nextplayer.feature.videopicker.navigation.searchEntry
-import dev.anilbeesetti.nextplayer.feature.videopicker.navigation.vaultEntry
 import dev.anilbeesetti.nextplayer.settings.navigation.navigateToSettings
 
-fun EntryProviderScope<NavKey>.mediaNavGraph(
-    context: Context,
-    backStack: NavBackStack<NavKey>,
-) {
+fun EntryProviderScope<NavKey>.mediaNavGraph(context: Context, backStack: NavBackStack<NavKey>) {
     mediaPickerEntry(
-        onNavigateUp = { backStack.removeLastOrNull() },
-        onPlayVideo = { uri -> context.startPlayback(listOf(uri)) },
-        onPlayVideos = { uris -> context.startPlayback(uris) },
+        onNavigateUp = { backStack.removeLastIfNotRoot() },
+        onPlayVideo = { uri -> context.startPlayback(uri = uri) },
+        onPlayVideos = { uris -> context.startPlayback(uris = uris) },
         onFolderClick = backStack::navigateToMediaPickerScreen,
         onSettingsClick = backStack::navigateToSettings,
         onSearchClick = backStack::navigateToSearch,
@@ -31,28 +27,55 @@ fun EntryProviderScope<NavKey>.mediaNavGraph(
     )
 
     searchEntry(
-        onNavigateUp = { backStack.removeLastOrNull() },
-        onPlayVideo = { uri -> context.startPlayback(listOf(uri)) },
+        onNavigateUp = { backStack.removeLastIfNotRoot() },
+        onPlayVideo = { uri -> context.startPlayback(uri = uri) },
         onFolderClick = backStack::navigateToMediaPickerScreen,
-    )
-
-    vaultEntry(
-        onNavigateUp = { backStack.removeLastOrNull() },
-        // Vault files are served through FileProvider, so read access must be granted at
-        // playback time for both PlayerActivity and the (separate) PlayerService component.
-        onPlayVideo = { uri -> context.startPlayback(listOf(uri), grantReadPermission = true) },
-        onPlayVideos = { uris -> context.startPlayback(uris, grantReadPermission = true) },
     )
 }
 
-internal fun Context.startPlayback(uris: List<Uri>, grantReadPermission: Boolean = false) {
+internal fun Context.startPlayback(uri: Uri, grantReadPermission: Boolean = false) {
+    startPlayback(
+        uri = uri,
+        playlist = null,
+        grantReadPermission = grantReadPermission,
+    )
+}
+
+internal fun Context.startPlayback(
+    uris: List<Uri>,
+    startUri: Uri? = null,
+    grantReadPermission: Boolean = false,
+) {
+    val uri = startUri?.takeIf(predicate = uris::contains) ?: uris.firstOrNull() ?: return
+    startPlayback(
+        uri = uri,
+        playlist = uris,
+        grantReadPermission = grantReadPermission,
+    )
+}
+
+private fun Context.startPlayback(uri: Uri, playlist: List<Uri>?, grantReadPermission: Boolean) {
     if (grantReadPermission) {
-        uris.forEach { grantUriPermission(packageName, it, Intent.FLAG_GRANT_READ_URI_PERMISSION) }
+        (playlist ?: listOf(element = uri)).forEach {
+            grantUriPermission(
+                packageName,
+                it,
+                Intent.FLAG_GRANT_READ_URI_PERMISSION,
+            )
+        }
     }
-    val intent = Intent(this, PlayerActivity::class.java).apply {
+    val intent = Intent(
+        this,
+        PlayerActivity::class.java,
+    ).apply {
         action = Intent.ACTION_VIEW
-        data = uris.first()
-        if (uris.size > 1) putParcelableArrayListExtra(PlayerApi.API_PLAYLIST, ArrayList(uris))
+        data = uri
+        playlist?.let {
+            putParcelableArrayListExtra(
+                PlayerApi.API_PLAYLIST,
+                ArrayList(it),
+            )
+        }
         if (grantReadPermission) addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION)
     }
     startActivity(intent)

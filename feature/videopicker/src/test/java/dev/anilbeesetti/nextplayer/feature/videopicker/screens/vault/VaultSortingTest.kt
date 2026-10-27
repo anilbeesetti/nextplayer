@@ -1,0 +1,410 @@
+package dev.anilbeesetti.nextplayer.feature.videopicker.screens.vault
+
+import dev.anilbeesetti.nextplayer.core.data.repository.PreferencesRepository
+import dev.anilbeesetti.nextplayer.core.data.repository.UnhideResult
+import dev.anilbeesetti.nextplayer.core.data.repository.VaultPinRepository
+import dev.anilbeesetti.nextplayer.core.data.repository.VaultRepository
+import dev.anilbeesetti.nextplayer.core.domain.GetHiddenVideosUseCase
+import dev.anilbeesetti.nextplayer.core.model.ApplicationPreferences
+import dev.anilbeesetti.nextplayer.core.model.MediaInfo
+import dev.anilbeesetti.nextplayer.core.model.MediaLayoutMode
+import dev.anilbeesetti.nextplayer.core.model.PlayerPreferences
+import dev.anilbeesetti.nextplayer.core.model.Sort
+import dev.anilbeesetti.nextplayer.core.model.Video
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.ExperimentalCoroutinesApi
+import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.test.StandardTestDispatcher
+import kotlinx.coroutines.test.advanceUntilIdle
+import kotlinx.coroutines.test.resetMain
+import kotlinx.coroutines.test.runTest
+import kotlinx.coroutines.test.setMain
+import org.junit.After
+import org.junit.Assert.assertEquals
+import org.junit.Before
+import org.junit.Test
+import org.junit.runner.RunWith
+import org.robolectric.RobolectricTestRunner
+
+@RunWith(RobolectricTestRunner::class)
+@OptIn(ExperimentalCoroutinesApi::class)
+class VaultSortingTest {
+
+    private val testDispatcher = StandardTestDispatcher()
+    private val titleAscending = Sort(
+        by = Sort.By.TITLE,
+        order = Sort.Order.ASCENDING,
+    )
+    private val sizeAscending = Sort(
+        by = Sort.By.SIZE,
+        order = Sort.Order.ASCENDING,
+    )
+
+    @Before
+    fun setUp() {
+        Dispatchers.setMain(dispatcher = testDispatcher)
+    }
+
+    @After
+    fun tearDown() {
+        Dispatchers.resetMain()
+    }
+
+    @Test
+    fun `unlocked vault initially uses application preference sort`() =
+        runTest(testDispatcher.scheduler) {
+            val preferencesRepository = FakePreferencesRepository(
+                initialPreferences = ApplicationPreferences(
+                    sortBy = titleAscending.by,
+                    sortOrder = titleAscending.order,
+                ),
+            )
+            val viewModel = createViewModel(preferencesRepository = preferencesRepository)
+
+            viewModel.onAction(VaultAction.SubmitUnlockPin(pin = "1234"))
+            advanceUntilIdle()
+
+            assertEquals(
+                titleAscending,
+                viewModel.state.value.sort,
+            )
+            assertEquals(
+                listOf(
+                    "Alpha.mp4",
+                    "Bravo.mp4",
+                    "Zebra.mp4",
+                ),
+                viewModel.state.value.hiddenVideos.map { it.nameWithExtension },
+            )
+        }
+
+    @Test
+    fun `updating vault sort reorders videos without updating application preferences`() =
+        runTest(testDispatcher.scheduler) {
+            val preferencesRepository = FakePreferencesRepository(
+                initialPreferences = ApplicationPreferences(
+                    sortBy = titleAscending.by,
+                    sortOrder = titleAscending.order,
+                ),
+            )
+            val viewModel = createViewModel(preferencesRepository = preferencesRepository)
+            viewModel.onAction(VaultAction.SubmitUnlockPin(pin = "1234"))
+            advanceUntilIdle()
+
+            assertEquals(
+                titleAscending,
+                viewModel.state.value.sort,
+            )
+            assertEquals(
+                listOf(
+                    "Alpha.mp4",
+                    "Bravo.mp4",
+                    "Zebra.mp4",
+                ),
+                viewModel.state.value.hiddenVideos.map { it.nameWithExtension },
+            )
+
+            viewModel.onAction(
+                VaultAction.UpdateSort(
+                    sort = sizeAscending,
+                ),
+            )
+            advanceUntilIdle()
+
+            assertEquals(
+                sizeAscending,
+                viewModel.state.value.sort,
+            )
+            assertEquals(
+                listOf(
+                    "Zebra.mp4",
+                    "Alpha.mp4",
+                    "Bravo.mp4",
+                ),
+                viewModel.state.value.hiddenVideos.map { it.nameWithExtension },
+            )
+            assertEquals(
+                0,
+                preferencesRepository.applicationUpdateCount,
+            )
+            assertEquals(
+                Sort.By.TITLE,
+                preferencesRepository.applicationPreferences.value.sortBy,
+            )
+            assertEquals(
+                Sort.Order.ASCENDING,
+                preferencesRepository.applicationPreferences.value.sortOrder,
+            )
+        }
+
+    @Test
+    fun `application preference sort change refreshes unlocked vault before local override`() =
+        runTest(testDispatcher.scheduler) {
+            val preferencesRepository = FakePreferencesRepository(
+                initialPreferences = ApplicationPreferences(
+                    sortBy = titleAscending.by,
+                    sortOrder = titleAscending.order,
+                ),
+            )
+            val viewModel = createViewModel(preferencesRepository = preferencesRepository)
+            viewModel.onAction(VaultAction.SubmitUnlockPin(pin = "1234"))
+            advanceUntilIdle()
+
+            preferencesRepository.emitApplicationPreferences(
+                value = ApplicationPreferences(
+                    sortBy = sizeAscending.by,
+                    sortOrder = sizeAscending.order,
+                ),
+            )
+            advanceUntilIdle()
+
+            assertEquals(
+                sizeAscending,
+                viewModel.state.value.sort,
+            )
+            assertEquals(
+                listOf(
+                    "Zebra.mp4",
+                    "Alpha.mp4",
+                    "Bravo.mp4",
+                ),
+                viewModel.state.value.hiddenVideos.map { it.nameWithExtension },
+            )
+        }
+
+    @Test
+    fun `application preference change preserves local vault sort after override`() =
+        runTest(testDispatcher.scheduler) {
+            val preferencesRepository = FakePreferencesRepository(
+                initialPreferences = ApplicationPreferences(
+                    sortBy = titleAscending.by,
+                    sortOrder = titleAscending.order,
+                ),
+            )
+            val viewModel = createViewModel(preferencesRepository = preferencesRepository)
+            viewModel.onAction(VaultAction.SubmitUnlockPin(pin = "1234"))
+            advanceUntilIdle()
+            viewModel.onAction(VaultAction.UpdateSort(sort = sizeAscending))
+            advanceUntilIdle()
+
+            preferencesRepository.emitApplicationPreferences(
+                value = ApplicationPreferences(
+                    sortBy = Sort.By.DATE,
+                    sortOrder = Sort.Order.DESCENDING,
+                ),
+            )
+            advanceUntilIdle()
+
+            assertEquals(
+                Sort.By.DATE,
+                viewModel.state.value.preferences.sortBy,
+            )
+            assertEquals(
+                Sort.Order.DESCENDING,
+                viewModel.state.value.preferences.sortOrder,
+            )
+            assertEquals(
+                sizeAscending,
+                viewModel.state.value.sort,
+            )
+            assertEquals(
+                listOf(
+                    "Zebra.mp4",
+                    "Alpha.mp4",
+                    "Bravo.mp4",
+                ),
+                viewModel.state.value.hiddenVideos.map { it.nameWithExtension },
+            )
+        }
+
+    @Test
+    fun `selecting the active vault sort preserves it through later preference changes`() =
+        runTest(testDispatcher.scheduler) {
+            val preferencesRepository = FakePreferencesRepository(
+                initialPreferences = ApplicationPreferences(
+                    sortBy = titleAscending.by,
+                    sortOrder = titleAscending.order,
+                ),
+            )
+            val viewModel = createViewModel(preferencesRepository = preferencesRepository)
+            viewModel.onAction(VaultAction.SubmitUnlockPin(pin = "1234"))
+            advanceUntilIdle()
+
+            viewModel.onAction(VaultAction.UpdateSort(sort = titleAscending))
+            preferencesRepository.emitApplicationPreferences(
+                value = ApplicationPreferences(
+                    sortBy = sizeAscending.by,
+                    sortOrder = sizeAscending.order,
+                ),
+            )
+            advanceUntilIdle()
+
+            assertEquals(
+                Sort.By.SIZE,
+                viewModel.state.value.preferences.sortBy,
+            )
+            assertEquals(
+                Sort.Order.ASCENDING,
+                viewModel.state.value.preferences.sortOrder,
+            )
+            assertEquals(
+                titleAscending,
+                viewModel.state.value.sort,
+            )
+            assertEquals(
+                listOf(
+                    "Alpha.mp4",
+                    "Bravo.mp4",
+                    "Zebra.mp4",
+                ),
+                viewModel.state.value.hiddenVideos.map { it.nameWithExtension },
+            )
+        }
+
+    @Test
+    fun `quick settings preserve application sort and fields`() =
+        runTest(testDispatcher.scheduler) {
+            val preferencesRepository = FakePreferencesRepository(
+                initialPreferences = ApplicationPreferences(
+                    sortBy = titleAscending.by,
+                    sortOrder = titleAscending.order,
+                    showSizeField = true,
+                ),
+            )
+            val viewModel = createViewModel(preferencesRepository = preferencesRepository)
+            viewModel.onAction(VaultAction.SubmitUnlockPin(pin = "1234"))
+            advanceUntilIdle()
+
+            viewModel.onAction(
+                VaultAction.UpdateQuickSettings(
+                    MediaLayoutMode.GRID,
+                    sort = sizeAscending,
+                ),
+            )
+            advanceUntilIdle()
+
+            assertEquals(
+                sizeAscending,
+                viewModel.state.value.sort,
+            )
+            assertEquals(
+                listOf(
+                    "Zebra.mp4",
+                    "Alpha.mp4",
+                    "Bravo.mp4",
+                ),
+                viewModel.state.value.hiddenVideos.map { it.nameWithExtension },
+            )
+            assertEquals(
+                MediaLayoutMode.GRID,
+                viewModel.state.value.preferences.mediaLayoutMode,
+            )
+            assertEquals(
+                ApplicationPreferences(
+                    sortBy = titleAscending.by,
+                    sortOrder = titleAscending.order,
+                    showSizeField = true,
+                    mediaLayoutMode = MediaLayoutMode.GRID,
+                ),
+                preferencesRepository.applicationPreferences.value,
+            )
+            assertEquals(
+                1,
+                preferencesRepository.applicationUpdateCount,
+            )
+        }
+
+    private fun createViewModel(preferencesRepository: FakePreferencesRepository): VaultViewModel {
+        val vaultRepository = FakeVaultRepository(
+            videos = listOf(
+                Video.sample.copy(
+                    id = 1,
+                    nameWithExtension = "Zebra.mp4",
+                    path = "/vault/Zebra.mp4",
+                    uriString = "content://vault/zebra",
+                    size = 10,
+                    dateModified = 200,
+                ),
+                Video.sample.copy(
+                    id = 2,
+                    nameWithExtension = "Alpha.mp4",
+                    path = "/vault/Alpha.mp4",
+                    uriString = "content://vault/alpha",
+                    size = 20,
+                    dateModified = 100,
+                ),
+                Video.sample.copy(
+                    id = 3,
+                    nameWithExtension = "Bravo.mp4",
+                    path = "/vault/Bravo.mp4",
+                    uriString = "content://vault/bravo",
+                    size = 30,
+                    dateModified = 300,
+                ),
+            ),
+        )
+        return VaultViewModel(
+            output = VaultViewModel.Output(
+                navigateUp = {},
+                playVideo = {},
+                playVideos = {},
+            ),
+            vaultRepository = vaultRepository,
+            vaultPinRepository = FakeVaultPinRepository,
+            getHiddenVideosUseCase = GetHiddenVideosUseCase(
+                vaultRepository = vaultRepository,
+                defaultDispatcher = testDispatcher,
+            ),
+            preferencesRepository = preferencesRepository,
+        )
+    }
+
+    private class FakeVaultRepository(videos: List<Video>) : VaultRepository {
+        private val hiddenVideos = MutableStateFlow(value = videos)
+
+        override fun observeHiddenVideos(): Flow<List<Video>> = hiddenVideos
+        override suspend fun hideVideos(videos: List<Video>) = Unit
+        override suspend fun unhideVideos(videos: List<Video>) = UnhideResult()
+        override suspend fun deleteHiddenVideos(videos: List<Video>) = Unit
+        override suspend fun getHiddenVideoInfo(id: Long): MediaInfo? = null
+    }
+
+    private data object FakeVaultPinRepository : VaultPinRepository {
+        override suspend fun hasPinSet(): Boolean = true
+        override suspend fun setPin(pin: String) = Unit
+        override suspend fun isBiometricEnabled(): Boolean = false
+        override suspend fun setBiometricEnabled(enabled: Boolean) = Unit
+        override suspend fun verifyPin(pin: String): Boolean = true
+        override suspend fun hasShownHideConfirmation(): Boolean = false
+        override suspend fun setHideConfirmationShown() = Unit
+    }
+
+    private class FakePreferencesRepository(initialPreferences: ApplicationPreferences) :
+        PreferencesRepository {
+        private val preferences = MutableStateFlow(value = initialPreferences)
+        override val applicationPreferences: StateFlow<ApplicationPreferences> = preferences
+        override val playerPreferences: StateFlow<PlayerPreferences> =
+            MutableStateFlow(value = PlayerPreferences())
+        var applicationUpdateCount = 0
+            private set
+
+        override suspend fun updateApplicationPreferences(
+            transform: suspend (ApplicationPreferences) -> ApplicationPreferences,
+        ) {
+            applicationUpdateCount++
+            preferences.value = transform(preferences.value)
+        }
+
+        override suspend fun updatePlayerPreferences(
+            transform: suspend (PlayerPreferences) -> PlayerPreferences,
+        ) = Unit
+
+        override suspend fun resetPreferences() = Unit
+
+        fun emitApplicationPreferences(value: ApplicationPreferences) {
+            preferences.value = value
+        }
+    }
+}

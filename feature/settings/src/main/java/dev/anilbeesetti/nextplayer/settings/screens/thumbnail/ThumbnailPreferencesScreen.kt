@@ -7,9 +7,6 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.selection.selectableGroup
 import androidx.compose.foundation.verticalScroll
-import dev.anilbeesetti.nextplayer.settings.utils.rememberTvListFocusRequester
-import dev.anilbeesetti.nextplayer.settings.utils.tvFocusDown
-import dev.anilbeesetti.nextplayer.settings.utils.tvListFocus
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.ExperimentalMaterial3ExpressiveApi
 import androidx.compose.material3.FilledIconButton
@@ -32,47 +29,52 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.tooling.preview.PreviewLightDark
 import androidx.compose.ui.unit.dp
-import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import dev.anilbeesetti.nextplayer.core.model.ApplicationPreferences
 import dev.anilbeesetti.nextplayer.core.model.ThumbnailGenerationStrategy
-import dev.anilbeesetti.nextplayer.core.ui.components.CancelButton
 import dev.anilbeesetti.nextplayer.core.ui.R
+import dev.anilbeesetti.nextplayer.core.ui.components.CancelButton
 import dev.anilbeesetti.nextplayer.core.ui.components.ListSectionTitle
 import dev.anilbeesetti.nextplayer.core.ui.components.NextDialog
 import dev.anilbeesetti.nextplayer.core.ui.components.NextTopAppBar
 import dev.anilbeesetti.nextplayer.core.ui.components.PreferenceSlider
 import dev.anilbeesetti.nextplayer.core.ui.components.SingleSelectablePreference
+import dev.anilbeesetti.nextplayer.core.ui.components.rememberTvListFocusRequester
+import dev.anilbeesetti.nextplayer.core.ui.components.tvFocusDown
+import dev.anilbeesetti.nextplayer.core.ui.components.tvListFocus
 import dev.anilbeesetti.nextplayer.core.ui.designsystem.NextIcons
 import dev.anilbeesetti.nextplayer.core.ui.theme.NextPlayerTheme
 import kotlin.math.abs
 
 @Composable
-fun ThumbnailPreferencesScreen(
-    onNavigateUp: () -> Unit,
-    viewModel: ThumbnailPreferencesViewModel = hiltViewModel(),
-) {
-    val uiState by viewModel.uiState.collectAsStateWithLifecycle()
+fun ThumbnailPreferencesScreen(viewModel: ThumbnailPreferencesViewModel) {
+    val state by viewModel.state.collectAsStateWithLifecycle()
 
-    ThumbnailPreferencesContent(
-        uiState = uiState,
-        onNavigateUp = onNavigateUp,
-        onEvent = viewModel::onEvent,
+    ThumbnailPreferencesScreenContent(
+        state = state,
+        onAction = viewModel::onAction,
     )
 }
 
-@OptIn(ExperimentalMaterial3Api::class, ExperimentalMaterial3ExpressiveApi::class)
+@OptIn(
+    ExperimentalMaterial3Api::class,
+    ExperimentalMaterial3ExpressiveApi::class,
+)
 @Composable
-private fun ThumbnailPreferencesContent(
-    uiState: ThumbnailPreferencesUiState,
-    onNavigateUp: () -> Unit,
-    onEvent: (ThumbnailPreferencesEvent) -> Unit,
+private fun ThumbnailPreferencesScreenContent(
+    state: ThumbnailPreferencesUiState,
+    onAction: (ThumbnailPreferencesEvent) -> Unit,
 ) {
-    val preferences = uiState.preferences
-    var frameSliderValue by rememberSaveable { mutableFloatStateOf(preferences.thumbnailFramePosition * 100f) }
-    var pendingChange by remember { mutableStateOf<ThumbnailPreferenceChange?>(null) }
+    val preferences = state.preferences
+    var frameSliderValue by rememberSaveable {
+        mutableFloatStateOf(value = preferences.thumbnailFramePosition * 100f)
+    }
+    var pendingChange by remember { mutableStateOf<ThumbnailPreferenceChange?>(value = null) }
 
-    LaunchedEffect(preferences.thumbnailFramePosition, pendingChange) {
+    LaunchedEffect(
+        preferences.thumbnailFramePosition,
+        key2 = pendingChange,
+    ) {
         if (pendingChange == null) {
             frameSliderValue = preferences.thumbnailFramePosition * 100f
         }
@@ -84,7 +86,12 @@ private fun ThumbnailPreferencesContent(
             NextTopAppBar(
                 title = stringResource(id = R.string.thumbnail_generation),
                 navigationIcon = {
-                    FilledTonalIconButton(onClick = onNavigateUp, modifier = Modifier.tvFocusDown(listFocusRequester)) {
+                    FilledTonalIconButton(
+                        onClick = {
+                            onAction(ThumbnailPreferencesEvent.NavigateUp)
+                        },
+                        modifier = Modifier.tvFocusDown(target = listFocusRequester),
+                    ) {
                         Icon(
                             imageVector = NextIcons.ArrowBack,
                             contentDescription = stringResource(id = R.string.navigate_up),
@@ -99,8 +106,8 @@ private fun ThumbnailPreferencesContent(
             modifier = Modifier
                 .fillMaxSize()
                 .verticalScroll(state = rememberScrollState())
-                .tvListFocus(listFocusRequester)
-                .padding(innerPadding)
+                .tvListFocus(focusRequester = listFocusRequester)
+                .padding(paddingValues = innerPadding)
                 .padding(horizontal = 16.dp),
         ) {
             ListSectionTitle(text = stringResource(id = R.string.thumbnail_generation_strategy))
@@ -112,39 +119,67 @@ private fun ThumbnailPreferencesContent(
                 SingleSelectablePreference(
                     title = stringResource(id = R.string.first_frame),
                     description = stringResource(id = R.string.first_frame_desc),
-                    selected = preferences.thumbnailGenerationStrategy == ThumbnailGenerationStrategy.FIRST_FRAME,
+                    selected =
+                        preferences.thumbnailGenerationStrategy ==
+                            ThumbnailGenerationStrategy.FIRST_FRAME,
                     onClick = {
-                        if (preferences.thumbnailGenerationStrategy == ThumbnailGenerationStrategy.FIRST_FRAME) return@SingleSelectablePreference
-                        pendingChange = ThumbnailPreferenceChange.Strategy(ThumbnailGenerationStrategy.FIRST_FRAME)
+                        if (preferences.thumbnailGenerationStrategy ==
+                            ThumbnailGenerationStrategy.FIRST_FRAME
+                        ) {
+                            return@SingleSelectablePreference
+                        }
+                        pendingChange = ThumbnailPreferenceChange.Strategy(
+                            ThumbnailGenerationStrategy.FIRST_FRAME,
+                        )
                     },
-                    isFirstItem = true
+                    isFirstItem = true,
                 )
                 SingleSelectablePreference(
                     title = stringResource(id = R.string.frame_at_position),
                     description = stringResource(id = R.string.frame_at_position_desc),
-                    selected = preferences.thumbnailGenerationStrategy == ThumbnailGenerationStrategy.FRAME_AT_PERCENTAGE,
+                    selected =
+                        preferences.thumbnailGenerationStrategy ==
+                            ThumbnailGenerationStrategy.FRAME_AT_PERCENTAGE,
                     onClick = {
-                        if (preferences.thumbnailGenerationStrategy == ThumbnailGenerationStrategy.FRAME_AT_PERCENTAGE) return@SingleSelectablePreference
-                        pendingChange = ThumbnailPreferenceChange.Strategy(ThumbnailGenerationStrategy.FRAME_AT_PERCENTAGE)
+                        if (preferences.thumbnailGenerationStrategy ==
+                            ThumbnailGenerationStrategy.FRAME_AT_PERCENTAGE
+                        ) {
+                            return@SingleSelectablePreference
+                        }
+                        pendingChange = ThumbnailPreferenceChange.Strategy(
+                            ThumbnailGenerationStrategy.FRAME_AT_PERCENTAGE,
+                        )
                     },
                 )
                 SingleSelectablePreference(
                     title = stringResource(id = R.string.hybrid),
                     description = stringResource(id = R.string.hybrid_desc),
-                    selected = preferences.thumbnailGenerationStrategy == ThumbnailGenerationStrategy.HYBRID,
+                    selected =
+                        preferences.thumbnailGenerationStrategy ==
+                            ThumbnailGenerationStrategy.HYBRID,
                     onClick = {
-                        if (preferences.thumbnailGenerationStrategy == ThumbnailGenerationStrategy.HYBRID) return@SingleSelectablePreference
-                        pendingChange = ThumbnailPreferenceChange.Strategy(ThumbnailGenerationStrategy.HYBRID)
+                        if (preferences.thumbnailGenerationStrategy ==
+                            ThumbnailGenerationStrategy.HYBRID
+                        ) {
+                            return@SingleSelectablePreference
+                        }
+                        pendingChange =
+                            ThumbnailPreferenceChange.Strategy(ThumbnailGenerationStrategy.HYBRID)
                     },
-                    isLastItem = true
+                    isLastItem = true,
                 )
             }
 
             PreferenceSlider(
-                enabled = preferences.thumbnailGenerationStrategy != ThumbnailGenerationStrategy.FIRST_FRAME,
+                enabled =
+                    preferences.thumbnailGenerationStrategy !=
+                        ThumbnailGenerationStrategy.FIRST_FRAME,
                 modifier = Modifier.padding(vertical = 16.dp),
                 title = stringResource(R.string.frame_position),
-                description = stringResource(R.string.frame_position_value, frameSliderValue),
+                description = stringResource(
+                    R.string.frame_position_value,
+                    frameSliderValue,
+                ),
                 icon = NextIcons.Frame,
                 value = frameSliderValue,
                 valueRange = 0f..100f,
@@ -153,24 +188,34 @@ private fun ThumbnailPreferencesContent(
                 onValueChange = { frameSliderValue = it },
                 onValueChangeFinished = {
                     val newPosition = frameSliderValue / 100f
-                    if (abs(newPosition - preferences.thumbnailFramePosition) > 0.0001f) {
-                        pendingChange = ThumbnailPreferenceChange.FramePosition(newPosition)
+                    if (abs(x = newPosition - preferences.thumbnailFramePosition) > 0.0001f) {
+                        pendingChange =
+                            ThumbnailPreferenceChange.FramePosition(position = newPosition)
                     }
                 },
                 trailingContent = {
                     FilledIconButton(
-                        enabled = preferences.thumbnailGenerationStrategy != ThumbnailGenerationStrategy.FIRST_FRAME,
+                        enabled =
+                            preferences.thumbnailGenerationStrategy !=
+                                ThumbnailGenerationStrategy.FIRST_FRAME,
                         onClick = {
-                            val defaultPosition = ApplicationPreferences.DEFAULT_THUMBNAIL_FRAME_POSITION
-                            if (abs(defaultPosition - preferences.thumbnailFramePosition) > 0.0001f) {
+                            val defaultPosition =
+                                ApplicationPreferences.DEFAULT_THUMBNAIL_FRAME_POSITION
+                            if (abs(x = defaultPosition - preferences.thumbnailFramePosition) >
+                                0.0001f
+                            ) {
                                 frameSliderValue = defaultPosition * 100f
-                                pendingChange = ThumbnailPreferenceChange.FramePosition(defaultPosition)
+                                pendingChange = ThumbnailPreferenceChange.FramePosition(
+                                    position = defaultPosition,
+                                )
                             }
                         },
                     ) {
                         Icon(
                             imageVector = NextIcons.History,
-                            contentDescription = stringResource(id = R.string.reset_seek_sensitivity),
+                            contentDescription = stringResource(
+                                id = R.string.reset_seek_sensitivity,
+                            ),
                         )
                     }
                 },
@@ -189,17 +234,22 @@ private fun ThumbnailPreferencesContent(
                         onClick = {
                             when (change) {
                                 is ThumbnailPreferenceChange.Strategy -> {
-                                    onEvent(ThumbnailPreferencesEvent.UpdateStrategy(change.strategy))
+                                    onAction(
+                                        ThumbnailPreferencesEvent.UpdateStrategy(change.strategy),
+                                    )
                                 }
+
                                 is ThumbnailPreferenceChange.FramePosition -> {
-                                    onEvent(ThumbnailPreferencesEvent.UpdateFramePosition(change.position))
+                                    onAction(
+                                        ThumbnailPreferencesEvent.UpdateFramePosition(
+                                            change.position,
+                                        ),
+                                    )
                                 }
                             }
                             pendingChange = null
                         },
-                    ) {
-                        Text(text = stringResource(id = R.string.okay))
-                    }
+                    ) { Text(text = stringResource(id = R.string.okay)) }
                 },
                 dismissButton = {
                     CancelButton(
@@ -229,10 +279,9 @@ private sealed interface ThumbnailPreferenceChange {
 @Composable
 private fun ThumbnailPreferencesScreenPreview() {
     NextPlayerTheme {
-        ThumbnailPreferencesContent(
-            uiState = ThumbnailPreferencesUiState(),
-            onNavigateUp = {},
-            onEvent = {},
+        ThumbnailPreferencesScreenContent(
+            state = ThumbnailPreferencesUiState(),
+            onAction = {},
         )
     }
 }

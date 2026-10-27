@@ -2,7 +2,7 @@ import org.jetbrains.kotlin.gradle.dsl.JvmTarget
 
 plugins {
     alias(libs.plugins.androidLibrary)
-    alias(libs.plugins.hilt)
+    alias(libs.plugins.koin.compiler)
     alias(libs.plugins.ksp)
 }
 
@@ -10,8 +10,13 @@ android {
     namespace = "dev.anilbeesetti.nextplayer.core.database"
     compileSdk = libs.versions.android.compileSdk.get().toInt()
 
+    sourceSets {
+        getByName("androidTest").assets.srcDir("$projectDir/schemas")
+    }
+
     defaultConfig {
         minSdk = libs.versions.android.minSdk.get().toInt()
+        testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
     }
 
     compileOptions {
@@ -20,7 +25,16 @@ android {
     }
 
     ksp {
-        arg("room.schemaLocation", "$projectDir/schemas")
+        arg(
+            "room.schemaLocation",
+            "$projectDir/schemas",
+        )
+    }
+}
+
+androidComponents {
+    onVariants { variant ->
+        variant.androidTest?.sources?.assets?.addStaticSourceDirectory("$projectDir/schemas")
     }
 }
 
@@ -34,11 +48,9 @@ dependencies {
 
     implementation(libs.androidx.core.ktx)
 
-    // Hilt
-    implementation(libs.hilt.android)
-    ksp(libs.hilt.compiler)
-    ksp(libs.kotlin.metadata.jvm)
-    kspAndroidTest(libs.hilt.compiler)
+    // Koin
+    implementation(libs.koin.core)
+    implementation(libs.koin.annotations)
 
     // Room
     implementation(libs.androidx.room.runtime)
@@ -48,5 +60,6 @@ dependencies {
     testImplementation(libs.junit4)
     androidTestImplementation(libs.androidx.test.ext)
     androidTestImplementation(libs.androidx.test.espresso.core)
+    androidTestImplementation(libs.androidx.room.testing)
     androidTestImplementation(libs.kotlinx.coroutines.test)
 }

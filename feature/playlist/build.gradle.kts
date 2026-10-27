@@ -1,0 +1,71 @@
+import org.jetbrains.kotlin.gradle.dsl.JvmTarget
+
+plugins {
+    alias(libs.plugins.androidLibrary)
+    alias(libs.plugins.composeCompiler)
+    alias(libs.plugins.kotlinSerialization)
+    alias(libs.plugins.koin.compiler)
+}
+
+android {
+    namespace = "dev.anilbeesetti.nextplayer.feature.playlist"
+    compileSdk = libs.versions.android.compileSdk.get().toInt()
+
+    defaultConfig {
+        minSdk = libs.versions.android.minSdk.get().toInt()
+        testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
+    }
+
+    compileOptions {
+        sourceCompatibility = JavaVersion.toVersion(libs.versions.android.jvm.get().toInt())
+        targetCompatibility = JavaVersion.toVersion(libs.versions.android.jvm.get().toInt())
+    }
+
+    buildFeatures {
+        compose = true
+    }
+}
+
+kotlin {
+    compilerOptions {
+        jvmTarget.set(JvmTarget.fromTarget(libs.versions.android.jvm.get()))
+    }
+}
+
+dependencies {
+    implementation(project(":core:common"))
+    implementation(project(":core:data"))
+    implementation(project(":core:domain"))
+    implementation(project(":core:media"))
+    implementation(project(":core:model"))
+    implementation(project(":core:ui"))
+
+    implementation(libs.androidx.core.ktx)
+    implementation(libs.androidx.activity.compose)
+
+    implementation(platform(libs.androidx.compose.bom))
+    implementation(libs.androidx.compose.ui)
+    implementation(libs.androidx.compose.ui.tooling.preview)
+    implementation(libs.androidx.compose.material3)
+    implementation(libs.androidx.compose.icons)
+    implementation(libs.androidx.navigation3.runtime)
+    implementation(libs.androidx.lifecycle.runtime.ktx)
+    implementation(libs.androidx.lifecycle.runtimeCompose)
+    implementation(libs.coil.compose)
+    implementation(libs.reorderable)
+
+    implementation(libs.koin.core)
+    implementation(libs.koin.annotations)
+    implementation(libs.koin.compose.viewmodel)
+
+    testImplementation(libs.junit4)
+    testImplementation(libs.kotlinx.coroutines.test)
+    testImplementation(libs.robolectric)
+
+    androidTestImplementation(platform(libs.androidx.compose.bom))
+    androidTestImplementation(libs.androidx.test.ext)
+    androidTestImplementation(libs.androidx.test.espresso.core)
+    androidTestImplementation(libs.androidx.compose.ui.test)
+    debugImplementation(libs.androidx.compose.ui.tooling)
+    debugImplementation(libs.androidx.compose.ui.testManifest)
+}

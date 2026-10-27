@@ -10,3 +10,17 @@ sealed class DataState<out T : Any?> {
     val isLoading: Boolean get() = this is Loading
     val isError: Boolean get() = this is Error
 }
+
+sealed class ActionState {
+    data object Idle : ActionState()
+    data object Running : ActionState()
+    data object Success : ActionState()
+    data class Failed(val value: Throwable) : ActionState()
+
+    val isSuccess: Boolean get() = this is Success
+    val isRunning: Boolean get() = this is Running
+    val isFailed: Boolean get() = this is Failed
+
+    val error: Throwable? get() = (this as? Failed)?.value
+    val errorMessage: String? get() = error?.message
+}

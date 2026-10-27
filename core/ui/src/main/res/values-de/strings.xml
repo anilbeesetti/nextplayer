@@ -2,7 +2,7 @@
 <resources>
     <string name="fast_seek">Schnelle Suche</string>
     <string name="group_videos">Videos nach Ordnern gruppieren</string>
-    <string name="location">Aufnahmeort</string>
+    <string name="location">Ort</string>
     <string name="menu">Menü</string>
     <string name="navigate_up">Aufwärts navigieren</string>
     <string name="no_videos_found">Keine Videos gefunden</string>
@@ -149,7 +149,7 @@
     <string name="path">Pfad</string>
     <string name="play_url">Video-URL zum Abspielen eingeben</string>
     <string name="subtitle_text_encoding">Kodierung des Untertiteltextes</string>
-    <string name="decoder_desc">Decoder-Priorität, Wiedergabe-Decoder-Optionen</string>
+    <string name="decoder_desc">Optionen für Hardware- und Software-Decoder</string>
     <string name="best_fit">Beste Passform</string>
     <string name="stretch">Strecken</string>
     <string name="resolution">Auflösung</string>
@@ -232,4 +232,34 @@
     <string name="m_n_selected">%1$d / %2$d ausgewählt</string>
     <string name="select_all">Alles auswählen</string>
     <string name="deselect_all">Alles abwählen</string>
+    <plurals name="new_videos_count">
+        <item quantity="one">%1$d neues Video</item>
+        <item quantity="other">%1$d neue Videos</item>
+    </plurals>
+    <string name="chapters">Kapitel</string>
+    <string name="chapter_number">Kapitel %1$d</string>
+    <string name="show_chapters">Kapitel anzeigen</string>
+    <string name="folder_duration">Ordnerdauer</string>
+    <string name="history">Verlauf</string>
+    <string name="select_decoders">Dekoder auswählen</string>
+    <string name="video_decoder">Videodekoder</string>
+    <string name="audio_decoder">Audiodekoder</string>
+    <string name="decoder_mode_hardware">HW</string>
+    <string name="decoder_mode_system_software">SW+</string>
+    <string name="decoder_mode_app_software">SW</string>
+    <string name="video_decoder_mode_not_supported">%1$s Videodekoder wird nicht unterstützt</string>
+    <string name="audio_decoder_mode_not_supported">%1$s Audiodekoder wird nicht unterstützt</string>
+    <string name="no_supported_decoder">Für diese Mediendatei ist kein unterstützter Dekoder verfügbar.</string>
+    <string name="delete_permanently">Endgültig löschen</string>
+    <string name="restore">Wiederherstellen</string>
+    <string name="trash">Papierkorb</string>
+    <string name="move_to_trash">In den Papierkorb verschieben</string>
+    <string name="move_to_trash_info">Ausgewählte Elemente werden in den Papierkorb verschoben.</string>
+    <string name="trash_empty_title">Papierkorb ist leer</string>
+    <string name="open_audio">Lokales Audio öffnen</string>
+    <string name="pick_file">Datei auswählen</string>
+    <string name="play">Wiedergabe</string>
+    <string name="recently_played">Kürzlich wiedergegeben</string>
+    <string name="volume_gesture">Lautstärken-Geste</string>
+    <string name="brightness_gesture">Helligkeits-Geste</string>
 </resources>

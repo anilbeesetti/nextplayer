@@ -15,6 +15,7 @@ import androidx.media3.common.util.UnstableApi
 import androidx.media3.ui.CaptionStyleCompat
 import androidx.media3.ui.SubtitleView
 import dev.anilbeesetti.nextplayer.core.model.Font
+import dev.anilbeesetti.nextplayer.feature.player.extensions.stackUnpositionedCues
 import dev.anilbeesetti.nextplayer.feature.player.extensions.toTypeface
 import dev.anilbeesetti.nextplayer.feature.player.state.rememberCuesState
 
@@ -26,20 +27,27 @@ fun SubtitleView(
     isInPictureInPictureMode: Boolean,
     configuration: SubtitleConfiguration,
 ) {
-    val cuesState = rememberCuesState(player)
+    val cuesState = rememberCuesState(player = player)
 
     AndroidView(
         modifier = modifier.fillMaxSize(),
         factory = { context ->
             SubtitleView(context).apply {
-                val captioningManager = getSystemService(context, CaptioningManager::class.java) ?: return@apply
+                val captioningManager =
+                    getSystemService(
+                        context,
+                        CaptioningManager::class.java,
+                    ) ?: return@apply
                 if (configuration.useSystemCaptionStyle) {
-                    val systemCaptionStyle = CaptionStyleCompat.createFromCaptionStyle(captioningManager.userStyle)
+                    val systemCaptionStyle = CaptionStyleCompat.createFromCaptionStyle(
+                        captioningManager.userStyle,
+                    )
                     setStyle(systemCaptionStyle)
                 } else {
                     val userStyle = CaptionStyleCompat(
                         android.graphics.Color.WHITE,
-                        android.graphics.Color.BLACK.takeIf { configuration.showBackground } ?: android.graphics.Color.TRANSPARENT,
+                        android.graphics.Color.BLACK.takeIf { configuration.showBackground }
+                            ?: android.graphics.Color.TRANSPARENT,
                         android.graphics.Color.TRANSPARENT,
                         CaptionStyleCompat.EDGE_TYPE_DROP_SHADOW,
                         android.graphics.Color.BLACK,
@@ -49,17 +57,23 @@ fun SubtitleView(
                         ),
                     )
                     setStyle(userStyle)
-                    setFixedTextSize(TypedValue.COMPLEX_UNIT_SP, configuration.textSize.toFloat())
+                    setFixedTextSize(
+                        TypedValue.COMPLEX_UNIT_SP,
+                        configuration.textSize.toFloat(),
+                    )
                 }
                 setApplyEmbeddedStyles(configuration.applyEmbeddedStyles)
             }
         },
         update = { subtitleView ->
-            subtitleView.setCues(cuesState.cues)
+            subtitleView.setCues(cuesState.currentCues?.cues?.stackUnpositionedCues())
             if (isInPictureInPictureMode) {
                 subtitleView.setFractionalTextSize(SubtitleView.DEFAULT_TEXT_SIZE_FRACTION)
             } else {
-                subtitleView.setFixedTextSize(TypedValue.COMPLEX_UNIT_SP, configuration.textSize.toFloat())
+                subtitleView.setFixedTextSize(
+                    TypedValue.COMPLEX_UNIT_SP,
+                    configuration.textSize.toFloat(),
+                )
             }
         },
     )

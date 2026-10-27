@@ -2,12 +2,16 @@ package dev.anilbeesetti.nextplayer.core.datastore.datasource
 
 import androidx.datastore.core.DataStore
 import dev.anilbeesetti.nextplayer.core.common.Logger
+import dev.anilbeesetti.nextplayer.core.common.di.DiQualifiers
 import dev.anilbeesetti.nextplayer.core.model.SearchHistory
-import javax.inject.Inject
 import kotlinx.coroutines.flow.Flow
+import org.koin.core.annotation.Factory
+import org.koin.core.annotation.Named
 
-class SearchHistoryDataSource @Inject constructor(
-    private val searchHistoryDataStore: DataStore<SearchHistory>,
+@Factory(binds = [])
+class SearchHistoryDataSource(
+    @Named(DiQualifiers.SEARCH_HISTORY) private val searchHistoryDataStore:
+    DataStore<SearchHistory>,
 ) {
 
     companion object {
@@ -16,13 +20,14 @@ class SearchHistoryDataSource @Inject constructor(
 
     val searchHistory: Flow<SearchHistory> = searchHistoryDataStore.data
 
-    suspend fun update(
-        transform: suspend (SearchHistory) -> SearchHistory,
-    ) {
+    suspend fun update(transform: suspend (SearchHistory) -> SearchHistory) {
         try {
-            searchHistoryDataStore.updateData(transform)
+            searchHistoryDataStore.updateData(transform = transform)
         } catch (ioException: Exception) {
-            Logger.logError(TAG, "Failed to update search history: $ioException")
+            Logger.logError(
+                tag = TAG,
+                message = "Failed to update search history: $ioException",
+            )
         }
     }
 }

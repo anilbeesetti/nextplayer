@@ -1,18 +1,18 @@
 package dev.anilbeesetti.nextplayer.core.domain
 
-import dev.anilbeesetti.nextplayer.core.common.Dispatcher
-import dev.anilbeesetti.nextplayer.core.common.NextDispatchers
+import dev.anilbeesetti.nextplayer.core.common.di.DiQualifiers
 import dev.anilbeesetti.nextplayer.core.data.repository.PreferencesRepository
 import dev.anilbeesetti.nextplayer.core.model.Folder
 import dev.anilbeesetti.nextplayer.core.model.MediaViewMode
 import dev.anilbeesetti.nextplayer.core.model.Video
-import javax.inject.Inject
 import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.flatMapLatest
 import kotlinx.coroutines.flow.flowOn
 import kotlinx.coroutines.flow.map
+import org.koin.core.annotation.Factory
+import org.koin.core.annotation.Named
 
 /**
  * Use case for retrieving sorted media (videos and folders) based on the current view mode.
@@ -23,12 +23,13 @@ import kotlinx.coroutines.flow.map
  * - [MediaViewMode.FOLDERS]: Shows flat list of folders, or videos when inside a folder
  * - [MediaViewMode.VIDEOS]: Shows flat list of all videos
  */
-class GetSortedMediaUseCase @Inject constructor(
+@Factory
+class GetSortedMediaUseCase(
     private val getSortedVideosUseCase: GetSortedVideosUseCase,
     private val getSortedFoldersUseCase: GetSortedFoldersUseCase,
     private val getFolderTreeMediaUseCase: GetFolderTreeMediaUseCase,
     private val preferencesRepository: PreferencesRepository,
-    @Dispatcher(NextDispatchers.Default) private val defaultDispatcher: CoroutineDispatcher,
+    @Named(DiQualifiers.DEFAULT_DISPATCHER) private val defaultDispatcher: CoroutineDispatcher,
 ) {
 
     /**
@@ -39,8 +40,8 @@ class GetSortedMediaUseCase @Inject constructor(
      * @return A flow emitting [MediaHolder] with videos and folders appropriate for the view mode.
      */
     @OptIn(ExperimentalCoroutinesApi::class)
-    operator fun invoke(folderPath: String? = null): Flow<MediaHolder?> {
-        return preferencesRepository.applicationPreferences.flatMapLatest { preferences ->
+    operator fun invoke(folderPath: String? = null): Flow<MediaHolder?> =
+        preferencesRepository.applicationPreferences.flatMapLatest { preferences ->
             when (preferences.mediaViewMode) {
                 MediaViewMode.FOLDER_TREE -> {
                     getFolderTreeMediaUseCase(folderPath)
@@ -50,24 +51,32 @@ class GetSortedMediaUseCase @Inject constructor(
                     if (folderPath == null) {
                         // At root: show all folders as a flat list
                         getSortedFoldersUseCase().map { folders ->
-                            MediaHolder(videos = emptyList(), folders = folders)
+                            MediaHolder(
+                                videos = emptyList(),
+                                folders = folders,
+                            )
                         }
                     } else {
                         getSortedVideosUseCase(folderPath).map { videos ->
                             val directVideos = videos.filter { it.parentPath == folderPath }
-                            MediaHolder(videos = directVideos, folders = emptyList())
+                            MediaHolder(
+                                videos = directVideos,
+                                folders = emptyList(),
+                            )
                         }
                     }
                 }
 
                 MediaViewMode.VIDEOS -> {
                     getSortedVideosUseCase(folderPath).map { videos ->
-                        MediaHolder(videos = videos, folders = emptyList())
+                        MediaHolder(
+                            videos = videos,
+                            folders = emptyList(),
+                        )
                     }
                 }
             }
-        }.flowOn(defaultDispatcher)
-    }
+        }.flowOn(context = defaultDispatcher)
 }
 
 /**
@@ -76,7 +85,4 @@ class GetSortedMediaUseCase @Inject constructor(
  * @property videos List of video items to display.
  * @property folders List of folder items to display.
  */
-data class MediaHolder(
-    val videos: List<Video>,
-    val folders: List<Folder>,
-)
+data class MediaHolder(val videos: List<Video>, val folders: List<Folder>)

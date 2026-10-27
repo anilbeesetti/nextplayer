@@ -2,10 +2,7 @@ package dev.anilbeesetti.nextplayer.core.model
 
 import kotlin.comparisons.reversed as kotlinReversed
 
-data class Sort(
-    val by: By,
-    val order: Order,
-) {
+data class Sort(val by: By, val order: Order) {
     enum class By {
         TITLE,
         LENGTH,
@@ -26,15 +23,23 @@ data class Sort(
         val str2Length = str2.length
 
         while (str1Marker < str1Length && str2Marker < str2Length) {
-            val thisChunk = getChunk(str1, str1Length, str1Marker)
+            val thisChunk = getChunk(
+                string = str1,
+                length = str1Length,
+                marker = str1Marker,
+            )
             str1Marker += thisChunk.length
 
-            val thatChunk = getChunk(str2, str2Length, str2Marker)
+            val thatChunk = getChunk(
+                string = str2,
+                length = str2Length,
+                marker = str2Marker,
+            )
             str2Marker += thatChunk.length
 
             // If both chunks contain numeric characters, sort them numerically.
             val result: Int
-            if (thisChunk[0].isDigit() && thatChunk[0].isDigit()) {
+            if (thisChunk[0].isAsciiDigit() && thatChunk[0].isAsciiDigit()) {
                 // Simple chunk comparison by length.
                 val thisChunkLength = thisChunk.length
                 val lengthDiff = thisChunkLength - thatChunk.length
@@ -51,7 +56,7 @@ data class Sort(
                     result = lengthDiff
                 }
             } else {
-                result = thisChunk.compareTo(thatChunk)
+                result = thisChunk.compareTo(other = thatChunk)
             }
 
             if (result != 0) {
@@ -79,10 +84,10 @@ data class Sort(
 
         val comparator = when (by) {
             By.TITLE -> videoTitleComparator
-            By.LENGTH -> compareBy<Video> { it.duration }.then(videoTitleComparator)
+            By.LENGTH -> compareBy<Video> { it.duration }.then(comparator = videoTitleComparator)
             By.PATH -> videoPathComparator
-            By.SIZE -> compareBy<Video> { it.size }.then(videoTitleComparator)
-            By.DATE -> compareBy<Video> { it.dateModified }.then(videoTitleComparator)
+            By.SIZE -> compareBy<Video> { it.size }.then(comparator = videoTitleComparator)
+            By.DATE -> compareBy<Video> { it.dateModified }.then(comparator = videoTitleComparator)
         }
 
         return when (order) {
@@ -108,10 +113,16 @@ data class Sort(
 
         val comparator = when (by) {
             By.TITLE -> folderNameComparator
-            By.LENGTH -> compareBy<Folder> { it.totalDuration }.then(folderNameComparator)
+
+            By.LENGTH -> compareBy<Folder> {
+                it.totalDuration
+            }.then(comparator = folderNameComparator)
+
             By.PATH -> folderPathComparator
-            By.SIZE -> compareBy<Folder> { it.totalSize }.then(folderNameComparator)
-            By.DATE -> compareBy<Folder> { it.dateModified }.then(folderNameComparator)
+
+            By.SIZE -> compareBy<Folder> { it.totalSize }.then(comparator = folderNameComparator)
+
+            By.DATE -> compareBy<Folder> { it.dateModified }.then(comparator = folderNameComparator)
         }
 
         return when (order) {
@@ -120,16 +131,49 @@ data class Sort(
         }
     }
 
+    fun networkFileComparator(): Comparator<NetworkFile> {
+        val nameComparator = Comparator<NetworkFile> { first, second ->
+            stringComparator.compare(
+                first.name.lowercase(),
+                second.name.lowercase(),
+            )
+        }
+        val comparator = when (by) {
+            By.TITLE, By.LENGTH -> nameComparator
+
+            By.PATH -> Comparator<NetworkFile> { first, second ->
+                stringComparator.compare(
+                    first.path.lowercase(),
+                    second.path.lowercase(),
+                )
+            }
+
+            By.SIZE -> compareBy<NetworkFile> { it.size }.then(comparator = nameComparator)
+
+            By.DATE -> compareBy<NetworkFile> {
+                it.modified ?: 0L
+            }.then(comparator = nameComparator)
+        }.thenBy { it.path }
+        val orderedComparator = when (order) {
+            Order.ASCENDING -> comparator
+            Order.DESCENDING -> comparator.reversedCompat()
+        }
+        // Keep folders first regardless of the selected sort direction.
+        return compareByDescending<NetworkFile> {
+            it.isDirectory
+        }.then(comparator = orderedComparator)
+    }
+
     private fun getChunk(string: String, length: Int, marker: Int): String {
         var current = marker
         val chunk = StringBuilder()
         var c = string[current]
         chunk.append(c)
         current++
-        if (c.isDigit()) {
+        if (c.isAsciiDigit()) {
             while (current < length) {
                 c = string[current]
-                if (!c.isDigit()) {
+                if (!c.isAsciiDigit()) {
                     break
                 }
                 chunk.append(c)
@@ -138,7 +182,7 @@ data class Sort(
         } else {
             while (current < length) {
                 c = string[current]
-                if (c.isDigit()) {
+                if (c.isAsciiDigit()) {
                     break
                 }
                 chunk.append(c)
@@ -148,5 +192,8 @@ data class Sort(
         return chunk.toString()
     }
 }
+
+// The length-based numeric ordering is contract-safe only for the contiguous ASCII digit range.
+private fun Char.isAsciiDigit(): Boolean = this in '0'..'9'
 
 fun <T> Comparator<T>.reversedCompat(): Comparator<T> = kotlinReversed()

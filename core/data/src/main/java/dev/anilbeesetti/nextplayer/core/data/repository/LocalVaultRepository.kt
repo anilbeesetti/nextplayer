@@ -9,74 +9,206 @@ import android.provider.MediaStore
 import android.webkit.MimeTypeMap
 import androidx.core.content.FileProvider
 import androidx.core.net.toUri
-import dagger.hilt.android.qualifiers.ApplicationContext
+import dev.anilbeesetti.nextplayer.core.common.Logger
 import dev.anilbeesetti.nextplayer.core.common.Utils
 import dev.anilbeesetti.nextplayer.core.data.mappers.toAudioStreamInfo
 import dev.anilbeesetti.nextplayer.core.data.mappers.toSubtitleStreamInfo
 import dev.anilbeesetti.nextplayer.core.data.mappers.toVideoStreamInfo
 import dev.anilbeesetti.nextplayer.core.database.dao.HiddenVideoDao
+import dev.anilbeesetti.nextplayer.core.database.dao.MediumStateDao
 import dev.anilbeesetti.nextplayer.core.database.entities.HiddenVideoEntity
 import dev.anilbeesetti.nextplayer.core.media.services.MediaOperationsService
 import dev.anilbeesetti.nextplayer.core.model.MediaInfo
 import dev.anilbeesetti.nextplayer.core.model.Video
 import io.github.anilbeesetti.nextlib.mediainfo.MediaInfoBuilder
 import java.io.File
-import javax.inject.Inject
-import javax.inject.Singleton
+import java.util.UUID
+import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.NonCancellable
 import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.first
-import kotlinx.coroutines.flow.map
+import kotlinx.coroutines.flow.update
+import kotlinx.coroutines.sync.Mutex
+import kotlinx.coroutines.sync.withLock
 import kotlinx.coroutines.withContext
+import org.koin.core.annotation.Single
 
-@Singleton
-class LocalVaultRepository @Inject constructor(
+@Single
+class LocalVaultRepository(
     private val hiddenVideoDao: HiddenVideoDao,
+    private val mediumStateDao: MediumStateDao,
     private val mediaOperationsService: MediaOperationsService,
-    @ApplicationContext private val context: Context,
+    private val context: Context,
 ) : VaultRepository {
+
+    private val vaultMutationMutex = Mutex()
+    private val pendingVaultPaths = MutableStateFlow<Set<String>>(value = emptySet())
 
     private val vaultDir: File by lazy {
         val base = context.getExternalFilesDir(null) ?: context.filesDir
-        File(base, VAULT_DIR_NAME).apply { if (!exists()) mkdirs() }
+        File(
+            base,
+            VAULT_DIR_NAME,
+        ).apply { if (!exists()) mkdirs() }
     }
 
-    override fun observeHiddenVideos(): Flow<List<Video>> {
-        return hiddenVideoDao.getAll().map { entities -> entities.map { it.toVideo() } }
+    override fun observeHiddenVideos(): Flow<List<Video>> = combine(
+        hiddenVideoDao.getAll(),
+        flow2 = pendingVaultPaths,
+    ) {
+            entities,
+            pendingPaths,
+        ->
+        entities
+            .filter { it.vaultPath !in pendingPaths && File(it.vaultPath).exists() }
+            .map { it.toVideo() }
     }
 
-    override suspend fun hideVideos(videos: List<Video>) {
-        val movedFiles = mediaOperationsService.moveMedia(
-            uris = videos.map { it.uriString.toUri() },
-            targetDir = vaultDir,
-        )
+    override suspend fun hideVideos(videos: List<Video>): Unit = vaultMutationMutex.withLock {
+        val reservations = reserveVideos(videos = videos)
+        if (reservations.isEmpty()) return@withLock
 
-        videos.forEach { video ->
-            val vaultFile = movedFiles[video.uriString.toUri()] ?: return@forEach
-            hiddenVideoDao.insert(
-                HiddenVideoEntity(
-                    vaultPath = vaultFile.absolutePath,
-                    originalPath = video.path,
-                    displayName = video.nameWithExtension,
-                    duration = video.duration,
-                    size = video.size,
-                    width = video.width,
-                    height = video.height,
-                    hiddenAt = System.currentTimeMillis(),
-                ),
+        try {
+            val moveResult = try {
+                Result.success(
+                    mediaOperationsService.moveMedia(
+                        reservations.associate {
+                            it.sourceUri to
+                                it.destination
+                        },
+                    ),
+                )
+            } catch (e: Exception) {
+                Result.failure(exception = e)
+            }
+            reconcileReservations(
+                reservations = reservations,
+                moveResult = moveResult,
+            )
+            moveResult.exceptionOrNull()?.let { if (it is CancellationException) throw it }
+        } finally {
+            revealReservations(reservations.map { it.destination.absolutePath })
+        }
+    }
+
+    private suspend fun reserveVideos(videos: List<Video>): List<HideReservation> {
+        val attemptedVaultPaths = mutableListOf<String>()
+        return try {
+            videos.mapNotNull { video ->
+                val destination = createVaultDestination(video.nameWithExtension)
+                attemptedVaultPaths += destination.absolutePath
+                pendingVaultPaths.update { it + destination.absolutePath }
+                val rowId = try {
+                    hiddenVideoDao.insert(video.toHiddenVideoEntity(destination = destination))
+                } catch (e: CancellationException) {
+                    throw e
+                } catch (e: Exception) {
+                    cleanUpReservations(vaultPaths = listOf(destination.absolutePath))
+                    return@mapNotNull null
+                }
+                HideReservation(
+                    rowId = rowId,
+                    video.uriString.toUri(),
+                    destination = destination,
+                )
+            }
+        } catch (e: Exception) {
+            cleanUpReservations(vaultPaths = attemptedVaultPaths)
+            throw e
+        }
+    }
+
+    private fun Video.toHiddenVideoEntity(destination: File): HiddenVideoEntity = HiddenVideoEntity(
+        vaultPath = destination.absolutePath,
+        originalPath = path,
+        displayName = nameWithExtension,
+        duration = duration,
+        size = size,
+        width = width,
+        height = height,
+        hiddenAt = System.currentTimeMillis(),
+    )
+
+    private data class HideReservation(val rowId: Long, val sourceUri: Uri, val destination: File)
+
+    private fun createVaultDestination(displayName: String): File {
+        val extension = File(displayName).extension.takeIf { it.isNotBlank() }
+        val suffix = extension?.let { ".$it" }.orEmpty()
+        return generateSequence {
+            File(
+                vaultDir,
+                "${UUID.randomUUID()}$suffix",
             )
         }
+            .first { !it.exists() }
     }
 
-    override suspend fun unhideVideos(videos: List<Video>): UnhideResult {
-        val restored = withContext(Dispatchers.IO) {
-            entitiesFor(videos).mapNotNull { entity ->
-                restoreToMediaStore(entity)?.let { relocated -> entity.id to relocated }
+    private suspend fun reconcileReservations(
+        reservations: List<HideReservation>,
+        moveResult: Result<Map<Uri, File?>>,
+    ) {
+        val movedFiles = moveResult.getOrNull()
+        val (committed, failed) = reservations.partition { reservation ->
+            // If moving threw, the destination is the only evidence that a move committed.
+            reservation.destination.exists() &&
+                (movedFiles == null || movedFiles[reservation.sourceUri] == reservation.destination)
+        }
+        withContext(context = NonCancellable) {
+            if (failed.isNotEmpty()) {
+                runCatching { hiddenVideoDao.deleteByIds(failed.map { it.rowId }) }
+                    .onFailure {
+                        logCleanupFailure(
+                            operation = "delete failed hide reservations",
+                            throwable = it,
+                        )
+                    }
+            }
+            if (committed.isNotEmpty()) {
+                mediumStateDao.clearLastPlayedTimes(committed.map { it.sourceUri.toString() })
             }
         }
-        if (restored.isNotEmpty()) hiddenVideoDao.deleteByIds(restored.map { it.first })
-        return UnhideResult(relocatedCount = restored.count { (_, relocated) -> relocated })
     }
+
+    private suspend fun cleanUpReservations(vaultPaths: List<String>) {
+        if (vaultPaths.isEmpty()) return
+        withContext(context = NonCancellable) {
+            runCatching { hiddenVideoDao.deleteByVaultPaths(vaultPaths = vaultPaths) }
+                .onFailure {
+                    logCleanupFailure(
+                        operation = "delete reservations by vault path",
+                        throwable = it,
+                    )
+                }
+        }
+        revealReservations(vaultPaths = vaultPaths)
+    }
+
+    private fun revealReservations(vaultPaths: List<String>) {
+        pendingVaultPaths.update { it - vaultPaths.toSet() }
+    }
+
+    private fun logCleanupFailure(operation: String, throwable: Throwable) {
+        Logger.logError(
+            tag = TAG,
+            message = "Failed to $operation: ${throwable.stackTraceToString()}",
+        )
+    }
+
+    override suspend fun unhideVideos(videos: List<Video>): UnhideResult =
+        vaultMutationMutex.withLock {
+            val restored = withContext(Dispatchers.IO) {
+                entitiesFor(videos = videos).mapNotNull { entity ->
+                    restoreToMediaStore(entity = entity)?.let { relocated ->
+                        entity.id to relocated
+                    }
+                }
+            }
+            if (restored.isNotEmpty()) hiddenVideoDao.deleteByIds(restored.map { it.first })
+            UnhideResult(relocatedCount = restored.count { (_, relocated) -> relocated })
+        }
 
     /**
      * Recreates the video in shared storage via a MediaStore insert, streams the vault file
@@ -92,17 +224,22 @@ class LocalVaultRepository @Inject constructor(
         if (!vaultFile.exists()) return null
 
         val resolver = context.contentResolver
-        val inserted = insertPendingItem(entity) ?: return null
+        val inserted = insertPendingItem(entity = entity) ?: return null
 
         return try {
             resolver.openOutputStream(inserted.uri)?.use { output ->
-                vaultFile.inputStream().use { it.copyTo(output) }
-            } ?: error("Unable to open output stream for ${inserted.uri}")
+                vaultFile.inputStream().use { it.copyTo(out = output) }
+            } ?: error(message = "Unable to open output stream for ${inserted.uri}")
 
             if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
                 resolver.update(
                     inserted.uri,
-                    ContentValues().apply { put(MediaStore.MediaColumns.IS_PENDING, 0) },
+                    ContentValues().apply {
+                        put(
+                            MediaStore.MediaColumns.IS_PENDING,
+                            0,
+                        )
+                    },
                     null,
                     null,
                 )
@@ -110,7 +247,11 @@ class LocalVaultRepository @Inject constructor(
             vaultFile.delete()
             inserted.relocated
         } catch (e: Exception) {
-            resolver.delete(inserted.uri, null, null) // roll back the partially-written entry
+            resolver.delete(
+                inserted.uri,
+                null,
+                null,
+            ) // roll back the partially-written entry
             null
         }
     }
@@ -130,27 +271,71 @@ class LocalVaultRepository @Inject constructor(
 
         if (Build.VERSION.SDK_INT < Build.VERSION_CODES.Q) {
             val values = ContentValues().apply {
-                put(MediaStore.MediaColumns.DISPLAY_NAME, entity.displayName)
-                put(MediaStore.MediaColumns.MIME_TYPE, mimeType)
-                put(MediaStore.MediaColumns.DATA, entity.originalPath)
+                put(
+                    MediaStore.MediaColumns.DISPLAY_NAME,
+                    entity.displayName,
+                )
+                put(
+                    MediaStore.MediaColumns.MIME_TYPE,
+                    mimeType,
+                )
+                put(
+                    MediaStore.MediaColumns.DATA,
+                    entity.originalPath,
+                )
             }
-            val uri = runCatching { resolver.insert(MediaStore.Video.Media.EXTERNAL_CONTENT_URI, values) }.getOrNull()
-            return uri?.let { InsertedItem(it, relocated = false) }
+            val uri = runCatching {
+                resolver.insert(
+                    MediaStore.Video.Media.EXTERNAL_CONTENT_URI,
+                    values,
+                )
+            }.getOrNull()
+            return uri?.let {
+                InsertedItem(
+                    uri = it,
+                    relocated = false,
+                )
+            }
         }
 
         val collection = MediaStore.Video.Media.getContentUri(MediaStore.VOLUME_EXTERNAL_PRIMARY)
         val originalDir = relativePathFor(entity.originalPath)
-        val candidateDirs = listOfNotNull(originalDir, DEFAULT_RESTORE_DIR).distinct()
+        val candidateDirs = listOfNotNull(
+            originalDir,
+            DEFAULT_RESTORE_DIR,
+        ).distinct()
 
         return candidateDirs.firstNotNullOfOrNull { relativePath ->
             val values = ContentValues().apply {
-                put(MediaStore.MediaColumns.DISPLAY_NAME, entity.displayName)
-                put(MediaStore.MediaColumns.MIME_TYPE, mimeType)
-                put(MediaStore.MediaColumns.RELATIVE_PATH, relativePath)
-                put(MediaStore.MediaColumns.IS_PENDING, 1)
+                put(
+                    MediaStore.MediaColumns.DISPLAY_NAME,
+                    entity.displayName,
+                )
+                put(
+                    MediaStore.MediaColumns.MIME_TYPE,
+                    mimeType,
+                )
+                put(
+                    MediaStore.MediaColumns.RELATIVE_PATH,
+                    relativePath,
+                )
+                put(
+                    MediaStore.MediaColumns.IS_PENDING,
+                    1,
+                )
             }
-            runCatching { resolver.insert(collection, values) }.getOrNull()
-                ?.let { InsertedItem(it, relocated = relativePath != originalDir) }
+            runCatching {
+                resolver.insert(
+                    collection,
+                    values,
+                )
+            }.getOrNull()
+                ?.let {
+                    InsertedItem(
+                        uri = it,
+                        relocated = relativePath != originalDir,
+                    )
+                }
         }
     }
 
@@ -163,29 +348,36 @@ class LocalVaultRepository @Inject constructor(
     private fun relativePathFor(originalPath: String): String? {
         val root = Environment.getExternalStorageDirectory().path
         val parent = File(originalPath).parent ?: return null
-        if (!parent.startsWith(root)) return null
-        return parent.removePrefix(root).trim('/').takeIf { it.isNotEmpty() }?.let { "$it/" }
+        if (!parent.startsWith(prefix = root)) return null
+        return parent.removePrefix(prefix = root).trim('/').takeIf {
+            it.isNotEmpty()
+        }?.let { "$it/" }
     }
 
-    override suspend fun deleteHiddenVideos(videos: List<Video>) {
-        val entities = entitiesFor(videos)
-        if (entities.isEmpty()) return
-        entities.forEach { File(it.vaultPath).delete() }
-        hiddenVideoDao.deleteByIds(entities.map { it.id })
-    }
+    override suspend fun deleteHiddenVideos(videos: List<Video>): Unit =
+        vaultMutationMutex.withLock {
+            val entities = entitiesFor(videos = videos)
+            if (entities.isEmpty()) return@withLock
+            entities.forEach { File(it.vaultPath).delete() }
+            hiddenVideoDao.deleteByIds(entities.map { it.id })
+        }
 
     override suspend fun getHiddenVideoInfo(id: Long): MediaInfo? {
-        val entity = hiddenVideoDao.getById(id) ?: return null
+        val entity = hiddenVideoDao.getById(id = id) ?: return null
         val video = entity.toVideo()
         val mediaInfo = runCatching {
-            MediaInfoBuilder().from(context = context, uri = Uri.fromFile(File(entity.vaultPath))).build()
+            MediaInfoBuilder().from(
+                context = context,
+                uri = Uri.fromFile(File(entity.vaultPath)),
+            ).build()
         }.getOrNull()
 
         return MediaInfo(
             video = video.copy(format = mediaInfo?.format),
             videoStream = mediaInfo?.videoStream?.toVideoStreamInfo(),
             audioStreams = mediaInfo?.audioStreams?.map { it.toAudioStreamInfo() } ?: emptyList(),
-            subtitleStreams = mediaInfo?.subtitleStreams?.map { it.toSubtitleStreamInfo() } ?: emptyList(),
+            subtitleStreams =
+                mediaInfo?.subtitleStreams?.map { it.toSubtitleStreamInfo() } ?: emptyList(),
         ).also { mediaInfo?.release() }
     }
 
@@ -195,11 +387,14 @@ class LocalVaultRepository @Inject constructor(
         return hiddenVideoDao.getAll().first().filter { it.id in ids }
     }
 
-    private fun fileProviderUri(file: File): Uri =
-        FileProvider.getUriForFile(context, "${context.packageName}.fileprovider", file)
+    private fun fileProviderUri(file: File): Uri = FileProvider.getUriForFile(
+        context,
+        "${context.packageName}.fileprovider",
+        file,
+    )
 
     private fun HiddenVideoEntity.toVideo(): Video {
-        val uriString = fileProviderUri(File(vaultPath)).toString()
+        val uriString = fileProviderUri(file = File(vaultPath)).toString()
         return Video(
             id = id,
             path = vaultPath,
@@ -211,12 +406,14 @@ class LocalVaultRepository @Inject constructor(
             height = height,
             size = size,
             dateModified = hiddenAt,
-            formattedDuration = Utils.formatDurationMillis(duration),
-            formattedFileSize = Utils.formatFileSize(size),
+            dateAdded = hiddenAt / 1000L,
+            formattedDuration = Utils.formatDurationMillis(millis = duration),
+            formattedFileSize = Utils.formatFileSize(size = size),
         )
     }
 
     companion object {
+        private const val TAG = "LocalVaultRepository"
         private const val VAULT_DIR_NAME = "vault"
 
         /** Fallback folder for videos whose original location MediaStore won't accept. */

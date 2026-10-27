@@ -1,62 +1,92 @@
 package dev.anilbeesetti.nextplayer.settings.screens.player
 
 import androidx.compose.runtime.Stable
-import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import dagger.hilt.android.lifecycle.HiltViewModel
 import dev.anilbeesetti.nextplayer.core.common.extensions.round
 import dev.anilbeesetti.nextplayer.core.data.repository.PreferencesRepository
 import dev.anilbeesetti.nextplayer.core.model.ControlButtonsPosition
 import dev.anilbeesetti.nextplayer.core.model.PlayerPreferences
 import dev.anilbeesetti.nextplayer.core.model.Resume
 import dev.anilbeesetti.nextplayer.core.model.ScreenOrientation
-import javax.inject.Inject
+import dev.anilbeesetti.nextplayer.core.ui.base.MviViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
+import org.koin.core.annotation.InjectedParam
+import org.koin.core.annotation.KoinViewModel
 
-@HiltViewModel
-class PlayerPreferencesViewModel @Inject constructor(
+@KoinViewModel
+class PlayerPreferencesViewModel(
     private val preferencesRepository: PreferencesRepository,
-) : ViewModel() {
+    @InjectedParam internal var output: Output,
+) : MviViewModel<PlayerPreferencesUiState, PlayerPreferencesUiEvent>() {
 
-    private val uiStateInternal = MutableStateFlow(
-        PlayerPreferencesUiState(
+    data class Output(val navigateUp: () -> Unit)
+
+    private val stateInternal = MutableStateFlow(
+        value = PlayerPreferencesUiState(
             preferences = preferencesRepository.playerPreferences.value,
         ),
     )
-    val uiState = uiStateInternal.asStateFlow()
+    override val state: StateFlow<PlayerPreferencesUiState> = stateInternal.asStateFlow()
 
     init {
         viewModelScope.launch {
             preferencesRepository.playerPreferences.collect { preferences ->
-                uiStateInternal.update { it.copy(preferences = preferences) }
+                stateInternal.update { it.copy(preferences = preferences) }
             }
         }
     }
 
-    fun onEvent(event: PlayerPreferencesUiEvent) {
-        when (event) {
-            is PlayerPreferencesUiEvent.ShowDialog -> showDialog(event.value)
-            is PlayerPreferencesUiEvent.UpdatePlaybackResume -> updatePlaybackResume(event.resume)
-            PlayerPreferencesUiEvent.ToggleAutoplay -> toggleAutoplay()
-            PlayerPreferencesUiEvent.ToggleAutoPip -> toggleAutoPip()
-            PlayerPreferencesUiEvent.ToggleAutoBackgroundPlay -> toggleAutoBackgroundPlay()
-            PlayerPreferencesUiEvent.ToggleRememberBrightnessLevel -> toggleRememberBrightnessLevel()
-            PlayerPreferencesUiEvent.ToggleRememberSelections -> toggleRememberSelections()
-            is PlayerPreferencesUiEvent.UpdatePreferredPlayerOrientation -> updatePreferredPlayerOrientation(event.value)
-            is PlayerPreferencesUiEvent.UpdatePreferredControlButtonsPosition -> updatePreferredControlButtonsPosition(event.value)
-            is PlayerPreferencesUiEvent.UpdateDefaultPlaybackSpeed -> updateDefaultPlaybackSpeed(event.value)
-            is PlayerPreferencesUiEvent.UpdateControlAutoHideTimeout -> updateControlAutoHideTimeout(event.value)
-            PlayerPreferencesUiEvent.ToggleUseMaterialYouControls -> toggleUseMaterialYouControls()
+    override fun onAction(action: PlayerPreferencesUiEvent) {
+        when (action) {
+            is PlayerPreferencesUiEvent.NavigateUp -> output.navigateUp()
+
+            is PlayerPreferencesUiEvent.ShowDialog -> showDialog(action.value)
+
+            is PlayerPreferencesUiEvent.UpdatePlaybackResume -> updatePlaybackResume(action.resume)
+
+            is PlayerPreferencesUiEvent.ToggleAutoplay -> toggleAutoplay()
+
+            is PlayerPreferencesUiEvent.ToggleTunneledPlayback -> toggleTunneledPlayback()
+
+            is PlayerPreferencesUiEvent.ToggleAutoPip -> toggleAutoPip()
+
+            is PlayerPreferencesUiEvent.ToggleAutoBackgroundPlay -> toggleAutoBackgroundPlay()
+
+            is PlayerPreferencesUiEvent.ToggleRememberBrightnessLevel ->
+                toggleRememberBrightnessLevel()
+
+            is PlayerPreferencesUiEvent.ToggleRememberSelections -> toggleRememberSelections()
+
+            is PlayerPreferencesUiEvent.UpdatePreferredPlayerOrientation ->
+                updatePreferredPlayerOrientation(
+                    action.value,
+                )
+
+            is PlayerPreferencesUiEvent.UpdatePreferredControlButtonsPosition ->
+                updatePreferredControlButtonsPosition(
+                    action.value,
+                )
+
+            is PlayerPreferencesUiEvent.UpdateDefaultPlaybackSpeed -> updateDefaultPlaybackSpeed(
+                action.value,
+            )
+
+            is PlayerPreferencesUiEvent.UpdateControlAutoHideTimeout ->
+                updateControlAutoHideTimeout(
+                    action.value,
+                )
+
+            is PlayerPreferencesUiEvent.ToggleUseMaterialYouControls ->
+                toggleUseMaterialYouControls()
         }
     }
 
     private fun showDialog(value: PlayerPreferenceDialog?) {
-        uiStateInternal.update {
-            it.copy(showDialog = value)
-        }
+        stateInternal.update { it.copy(showDialog = value) }
     }
 
     private fun updatePlaybackResume(resume: Resume) {
@@ -71,16 +101,20 @@ class PlayerPreferencesViewModel @Inject constructor(
 
     private fun toggleAutoplay() {
         viewModelScope.launch {
-            preferencesRepository.updatePlayerPreferences {
-                it.copy(autoplay = !it.autoplay)
-            }
+            preferencesRepository.updatePlayerPreferences { it.copy(autoplay = !it.autoplay) }
         }
     }
 
     private fun toggleAutoPip() {
         viewModelScope.launch {
+            preferencesRepository.updatePlayerPreferences { it.copy(autoPip = !it.autoPip) }
+        }
+    }
+
+    private fun toggleTunneledPlayback() {
+        viewModelScope.launch {
             preferencesRepository.updatePlayerPreferences {
-                it.copy(autoPip = !it.autoPip)
+                it.copy(enableTunneledPlayback = !it.enableTunneledPlayback)
             }
         }
     }
@@ -128,7 +162,7 @@ class PlayerPreferencesViewModel @Inject constructor(
     private fun updateDefaultPlaybackSpeed(value: Float) {
         viewModelScope.launch {
             preferencesRepository.updatePlayerPreferences {
-                it.copy(defaultPlaybackSpeed = value.round(1))
+                it.copy(defaultPlaybackSpeed = value.round(decimalPlaces = 1))
             }
         }
     }
@@ -163,15 +197,20 @@ sealed interface PlayerPreferenceDialog {
 }
 
 sealed interface PlayerPreferencesUiEvent {
+    data object NavigateUp : PlayerPreferencesUiEvent
+
     data class ShowDialog(val value: PlayerPreferenceDialog?) : PlayerPreferencesUiEvent
     data class UpdatePlaybackResume(val resume: Resume) : PlayerPreferencesUiEvent
     data object ToggleAutoplay : PlayerPreferencesUiEvent
+    data object ToggleTunneledPlayback : PlayerPreferencesUiEvent
     data object ToggleAutoPip : PlayerPreferencesUiEvent
     data object ToggleAutoBackgroundPlay : PlayerPreferencesUiEvent
     data object ToggleRememberBrightnessLevel : PlayerPreferencesUiEvent
     data object ToggleRememberSelections : PlayerPreferencesUiEvent
-    data class UpdatePreferredPlayerOrientation(val value: ScreenOrientation) : PlayerPreferencesUiEvent
-    data class UpdatePreferredControlButtonsPosition(val value: ControlButtonsPosition) : PlayerPreferencesUiEvent
+    data class UpdatePreferredPlayerOrientation(val value: ScreenOrientation) :
+        PlayerPreferencesUiEvent
+    data class UpdatePreferredControlButtonsPosition(val value: ControlButtonsPosition) :
+        PlayerPreferencesUiEvent
     data class UpdateDefaultPlaybackSpeed(val value: Float) : PlayerPreferencesUiEvent
     data class UpdateControlAutoHideTimeout(val value: Int) : PlayerPreferencesUiEvent
     data object ToggleUseMaterialYouControls : PlayerPreferencesUiEvent

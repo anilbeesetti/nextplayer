@@ -11,32 +11,25 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import dev.anilbeesetti.nextplayer.core.ui.components.CancelButton
 import dev.anilbeesetti.nextplayer.core.ui.components.NextDialog
-import dev.anilbeesetti.nextplayer.settings.utils.rememberTvListFocusRequester
-import dev.anilbeesetti.nextplayer.settings.utils.tvListFocus
+import dev.anilbeesetti.nextplayer.core.ui.components.tvListFocus
 
 @Composable
-fun OptionsDialog(
-    text: String,
-    onDismissClick: () -> Unit,
-    options: LazyListScope.() -> Unit,
-) {
+fun OptionsDialog(text: String, onDismissClick: () -> Unit, options: LazyListScope.() -> Unit) {
     NextDialog(
         onDismissRequest = onDismissClick,
-        title = {
-            Text(text = text)
-        },
+        title = { Text(text = text) },
         content = {
             HorizontalDivider()
             LazyColumn(
                 contentPadding = PaddingValues(vertical = 8.dp),
                 modifier = Modifier
                     .selectableGroup()
-                    .tvListFocus(rememberTvListFocusRequester()),
+                    .tvListFocus(),
                 content = options,
             )
             HorizontalDivider()
         },
         dismissButton = { CancelButton(onClick = onDismissClick) },
-        confirmButton = { },
+        confirmButton = {},
     )
 }

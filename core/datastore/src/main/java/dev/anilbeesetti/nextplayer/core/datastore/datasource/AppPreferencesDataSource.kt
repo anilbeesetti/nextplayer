@@ -2,11 +2,15 @@ package dev.anilbeesetti.nextplayer.core.datastore.datasource
 
 import androidx.datastore.core.DataStore
 import dev.anilbeesetti.nextplayer.core.common.Logger
+import dev.anilbeesetti.nextplayer.core.common.di.DiQualifiers
 import dev.anilbeesetti.nextplayer.core.model.ApplicationPreferences
-import javax.inject.Inject
+import org.koin.core.annotation.Factory
+import org.koin.core.annotation.Named
 
-class AppPreferencesDataSource @Inject constructor(
-    private val appPreferences: DataStore<ApplicationPreferences>,
+@Factory(binds = [])
+class AppPreferencesDataSource(
+    @Named(DiQualifiers.APP_PREFERENCES) private val appPreferences:
+    DataStore<ApplicationPreferences>,
 ) : PreferencesDataSource<ApplicationPreferences> {
 
     companion object {
@@ -19,9 +23,12 @@ class AppPreferencesDataSource @Inject constructor(
         transform: suspend (ApplicationPreferences) -> ApplicationPreferences,
     ) {
         try {
-            appPreferences.updateData(transform)
+            appPreferences.updateData(transform = transform)
         } catch (ioException: Exception) {
-            Logger.logError(TAG, "Failed to update app preferences: $ioException")
+            Logger.logError(
+                tag = TAG,
+                message = "Failed to update app preferences: $ioException",
+            )
         }
     }
 }
