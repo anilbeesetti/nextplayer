@@ -95,6 +95,14 @@ fun QuickSettingsDialog(
                             sortOrder = it.order,
                         )
                     },
+                    sortOptions = listOf(
+                        Sort.By.TITLE,
+                        Sort.By.LENGTH,
+                        Sort.By.DATE,
+                        Sort.By.SIZE,
+                        Sort.By.PATH,
+                        Sort.By.WATCHED ,
+                    ),
                 )
                 HorizontalDivider(modifier = Modifier.padding(top = 16.dp))
                 DialogSectionTitle(text = stringResource(R.string.fields))
