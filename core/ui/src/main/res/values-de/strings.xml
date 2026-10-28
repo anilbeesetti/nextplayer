@@ -532,4 +532,6 @@
     <string name="hybrid">Hybrid (smart)</string>
     <string name="vault">Vault</string>
     <string name="home">Home</string>
+    <string name="add_to_home_screen">Zum Startbildschirm hinzufügen</string>
+    <string name="playlist_shortcut_failed">Playlist Verknüpfung konnte nicht erstellt werden. Bitte erneut versuchen.</string>
 </resources>
