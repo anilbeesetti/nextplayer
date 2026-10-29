@@ -38,6 +38,7 @@ import coil3.ImageLoader
 import coil3.request.ImageRequest
 import com.google.common.util.concurrent.Futures
 import com.google.common.util.concurrent.ListenableFuture
+import com.google.common.util.concurrent.MoreExecutors
 import dev.anilbeesetti.nextplayer.core.common.Logger
 import dev.anilbeesetti.nextplayer.core.common.extensions.deleteFiles
 import dev.anilbeesetti.nextplayer.core.common.extensions.getFilenameFromUri
@@ -122,6 +123,8 @@ class PlayerService : MediaSessionService() {
 
     private var isMediaItemReady = false
     private var playbackRequestGeneration = 0L
+    private var pendingMediaItemsRequest:
+        ListenableFuture<MediaSession.MediaItemsWithStartPosition>? = null
     private var pendingAudioSelection: Pair<String, Uri>? = null
 
     private var loudnessEnhancer: LoudnessEnhancer? = null
@@ -517,15 +520,26 @@ class PlayerService : MediaSessionService() {
             startIndex: Int,
             startPositionMs: Long,
         ): ListenableFuture<MediaSession.MediaItemsWithStartPosition> {
+            cancelPendingMediaItems()
             playbackRequestGeneration++
-            return serviceScope.future(Dispatchers.Default) {
-                val updatedMediaItems = updatedMediaItemsWithMetadata(mediaItems = mediaItems)
+            val request = serviceScope.future {
+                val updatedMediaItems = withContext(Dispatchers.Default) {
+                    updatedMediaItemsWithMetadata(mediaItems = mediaItems)
+                }
                 MediaSession.MediaItemsWithStartPosition(
                     updatedMediaItems,
                     startIndex,
                     startPositionMs,
                 )
             }
+            pendingMediaItemsRequest = request
+            request.addListener(
+                {
+                    if (pendingMediaItemsRequest === request) pendingMediaItemsRequest = null
+                },
+                MoreExecutors.directExecutor(),
+            )
+            return request
         }
 
         override fun onAddMediaItems(
@@ -802,7 +816,6 @@ class PlayerService : MediaSessionService() {
                 }
 
                 CustomCommands.STOP_PLAYER_SESSION -> {
-                    playbackRequestGeneration++
                     savePositionAndStopSession()
                     return@future SessionResult(SessionResult.RESULT_SUCCESS)
                 }
@@ -814,7 +827,7 @@ class PlayerService : MediaSessionService() {
         session: MediaSession,
         args: Bundle,
     ): SessionResult {
-        val generation = ++playbackRequestGeneration
+        val requestGeneration = ++playbackRequestGeneration
         val items = try {
             val binder = args.getBinder(CustomCommands.BACKGROUND_MEDIA_ITEMS_KEY)
                 ?: return SessionResult(SessionError.ERROR_BAD_VALUE)
@@ -846,6 +859,11 @@ class PlayerService : MediaSessionService() {
         ) {
             return SessionResult(SessionError.ERROR_BAD_VALUE)
         }
+        if (requestGeneration != playbackRequestGeneration || mediaSession !== session) {
+            return SessionResult(SessionError.ERROR_INVALID_STATE)
+        }
+        cancelPendingMediaItems()
+        val generation = ++playbackRequestGeneration
         val updatedItems = withContext(Dispatchers.Default) {
             updatedMediaItemsWithMetadata(items)
         }
@@ -977,20 +995,34 @@ class PlayerService : MediaSessionService() {
     }
 
     private suspend fun savePositionAndStopSession() {
+        cancelPendingMediaItems()
+        val generation = ++playbackRequestGeneration
         mediaSession?.run {
-            player.currentMediaItem?.let { mediaItem ->
-                mediaRepository.updateMediumPosition(
-                    uri = mediaItem.mediaId,
-                    position = player.currentPosition,
-                )
-            }
+            val mediaItem = player.currentMediaItem
+            val position = player.currentPosition
             player.clearMediaItems()
             player.stop()
+            mediaItem?.let {
+                mediaRepository.updateMediumPosition(
+                    uri = mediaItem.mediaId,
+                    position = position,
+                )
+            }
         }
-        stopSelf()
+        if (generation == playbackRequestGeneration) stopSelf()
+    }
+
+    private fun cancelPendingMediaItems() {
+        // Cancelling drains Media3's queued commands, which may submit another queue.
+        while (true) {
+            val request = pendingMediaItemsRequest ?: return
+            pendingMediaItemsRequest = null
+            request.cancel(false)
+        }
     }
 
     override fun onDestroy() {
+        cancelPendingMediaItems()
         super.onDestroy()
         artworkLoadJob?.cancel()
         loudnessEnhancer?.release()

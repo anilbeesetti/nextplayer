@@ -44,6 +44,8 @@ import org.robolectric.annotation.Config
 class PlaybackSpeedSessionTest {
     private val preferences = FakePreferencesRepository()
     private var metadataGate: CompletableDeferred<Unit>? = null
+    private var delayedMediaId: String? = null
+    private var metadataStarted: CompletableDeferred<Unit>? = null
 
     @Before
     fun setUp() {
@@ -57,7 +59,10 @@ class PlaybackSpeedSessionTest {
                     single<MediaRepository> {
                         object : MediaRepository by FakeMediaRepository() {
                             override suspend fun getVideoState(uri: String): VideoState? {
-                                metadataGate?.await()
+                                if (delayedMediaId == null || delayedMediaId == uri) {
+                                    metadataStarted?.complete(Unit)
+                                    metadataGate?.await()
+                                }
                                 return null
                             }
                         }
@@ -491,6 +496,99 @@ class PlaybackSpeedSessionTest {
         assertFalse(player.playWhenReady)
     }
 
+    @Test
+    fun backgroundRequestCancelsPendingForegroundMetadata() = withSession { service, player ->
+        val old = video(
+            "pending-foreground",
+            1f,
+        )
+        metadataGate = CompletableDeferred()
+        metadataStarted = CompletableDeferred()
+        delayedMediaId = old.mediaId
+        val pending = foregroundRequest(
+            service,
+            old,
+        )
+        awaitMetadataStarted()
+        val latest = video(
+            "latest-background",
+            1f,
+        )
+        val background = backgroundCommand(
+            service,
+            backgroundArgs(
+                listOf(latest),
+                0,
+                0,
+                1.5f,
+            ),
+        )
+        awaitResult(background)
+        assertTrue(pending.isCancelled)
+        metadataGate!!.complete(Unit)
+        shadowOf(Looper.getMainLooper()).idle()
+        assertEquals(
+            latest.mediaId,
+            player.currentMediaItem?.mediaId,
+        )
+        assertTrue(player.playWhenReady)
+        assertEquals(
+            1.5f,
+            player.playbackParameters.speed,
+        )
+    }
+
+    @Test
+    fun stoppingTheSessionCancelsPendingForegroundMetadata() = withSession { service, player ->
+        val old = video(
+            "pending-foreground",
+            1f,
+        )
+        metadataGate = CompletableDeferred()
+        metadataStarted = CompletableDeferred()
+        delayedMediaId = old.mediaId
+        val pending = foregroundRequest(
+            service,
+            old,
+        )
+        awaitMetadataStarted()
+        val stopped = command(
+            service,
+            CustomCommands.STOP_PLAYER_SESSION,
+            Bundle.EMPTY,
+        )
+        awaitResult(stopped)
+        assertTrue(pending.isCancelled)
+        metadataGate!!.complete(Unit)
+        shadowOf(Looper.getMainLooper()).idle()
+        assertEquals(
+            0,
+            player.mediaItemCount,
+        )
+        assertFalse(player.playWhenReady)
+    }
+
+    private fun foregroundRequest(service: PlayerService, item: MediaItem) =
+        serviceCallback(service).onSetMediaItems(
+            serviceSession(service),
+            controllerInfo(),
+            mutableListOf(item),
+            0,
+            0,
+        )
+
+    private fun awaitMetadataStarted() {
+        val deadline = System.nanoTime() + 5_000_000_000L
+        while (metadataStarted?.isCompleted != true && System.nanoTime() < deadline) {
+            shadowOf(Looper.getMainLooper()).idle()
+            Thread.sleep(5)
+        }
+        assertTrue(
+            "Foreground metadata did not start",
+            metadataStarted?.isCompleted == true,
+        )
+    }
+
     private fun backgroundArgs(items: List<MediaItem>, index: Int, position: Long, speed: Float?) =
         Bundle().apply {
             putBinder(
@@ -520,35 +618,40 @@ class PlaybackSpeedSessionTest {
     private fun backgroundCommand(
         service: PlayerService,
         args: Bundle,
-    ): ListenableFuture<SessionResult> {
-        val session = PlayerService::class.java.getDeclaredField("mediaSession").apply {
-            isAccessible =
-                true
-        }.get(service) as MediaSession
-        val callback = PlayerService::class.java.getDeclaredField("mediaSessionCallback").apply {
-            isAccessible =
-                true
-        }.get(service) as MediaSession.Callback
-        val info = MediaSession.ControllerInfo.createTestOnlyControllerInfo(
-            "test",
-            0,
-            0,
-            0,
-            0,
-            true,
-            Bundle.EMPTY,
-            true,
-        )
-        return callback.onCustomCommand(
-            session,
-            info,
-            SessionCommand(
-                "START_BACKGROUND_PLAYBACK",
-                Bundle.EMPTY,
-            ),
+    ): ListenableFuture<SessionResult> = command(
+        service,
+        CustomCommands.START_BACKGROUND_PLAYBACK,
+        args,
+    )
+
+    private fun command(service: PlayerService, command: CustomCommands, args: Bundle) =
+        serviceCallback(service).onCustomCommand(
+            serviceSession(service),
+            controllerInfo(),
+            command.sessionCommand,
             args,
         )
-    }
+
+    private fun serviceSession(service: PlayerService) =
+        PlayerService::class.java.getDeclaredField("mediaSession").apply {
+            isAccessible = true
+        }.get(service) as MediaSession
+
+    private fun serviceCallback(service: PlayerService) =
+        PlayerService::class.java.getDeclaredField("mediaSessionCallback").apply {
+            isAccessible = true
+        }.get(service) as MediaSession.Callback
+
+    private fun controllerInfo() = MediaSession.ControllerInfo.createTestOnlyControllerInfo(
+        "test",
+        0,
+        0,
+        0,
+        0,
+        true,
+        Bundle.EMPTY,
+        true,
+    )
 
     private fun awaitResult(result: ListenableFuture<SessionResult>) {
         val deadline = System.nanoTime() + 5_000_000_000L
