@@ -360,9 +360,23 @@ class PlayerApiLaunchOptionsTest {
         }
 
     private fun waitForControls(visible: Boolean) {
+        val automation = instrumentation.uiAutomation
+        automation.serviceInfo = automation.serviceInfo.apply {
+            flags =
+                flags or android.accessibilityservice.AccessibilityServiceInfo.FLAG_REPORT_VIEW_IDS
+        }
         val deadline = SystemClock.elapsedRealtime() + 10000
         while (SystemClock.elapsedRealtime() < deadline) {
-            val root = instrumentation.uiAutomation.rootInActiveWindow
+            val root = automation.rootInActiveWindow
+            if (root != null && root.packageName.toString() == "com.android.systemui" &&
+                root.findAccessibilityNodeInfosByViewId(
+                    "com.android.systemui:id/immersive_cling_title",
+                ).isNotEmpty()
+            ) {
+                root.findAccessibilityNodeInfosByViewId("com.android.systemui:id/ok")
+                    .single().performAction(AccessibilityNodeInfo.ACTION_CLICK)
+                continue
+            }
             if (root != null &&
                 root.packageName.toString() == instrumentation.targetContext.packageName &&
                 hasPlayPauseControl(root) == visible
