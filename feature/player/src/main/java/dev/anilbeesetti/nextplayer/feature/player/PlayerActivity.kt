@@ -42,6 +42,7 @@ import dev.anilbeesetti.nextplayer.feature.player.service.PlayerService
 import dev.anilbeesetti.nextplayer.feature.player.service.addAudioTrack
 import dev.anilbeesetti.nextplayer.feature.player.service.addSubtitleTrack
 import dev.anilbeesetti.nextplayer.feature.player.service.decoderServiceState
+import dev.anilbeesetti.nextplayer.feature.player.service.retainPlaybackUriPermissions
 import dev.anilbeesetti.nextplayer.feature.player.service.setAudioDecoderMode
 import dev.anilbeesetti.nextplayer.feature.player.service.setVideoDecoderMode
 import dev.anilbeesetti.nextplayer.feature.player.service.startBackgroundPlayback
@@ -507,6 +508,15 @@ class PlayerActivity : ComponentActivity() {
             currentCoroutineContext().ensureActive()
             if (request !== playerApi) return
             if (result.resultCode == SessionResult.RESULT_SUCCESS) {
+                try {
+                    retainPlaybackUriPermissions(
+                        intent,
+                        items,
+                    )
+                } catch (error: Exception) {
+                    controller.stopPlayerSession()
+                    throw error
+                }
                 backgroundLaunchAccepted = true
                 playbackFailed = false
                 lastMediaUri = result.extras.getString(

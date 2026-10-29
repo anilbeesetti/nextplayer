@@ -36,6 +36,35 @@ class StopPlayerSessionTest {
     }
 
     @Test
+    fun grantDeliveryAfterStopDoesNotKeepAnIdleServiceStarted() {
+        withSession(savePosition = { _, _ -> }) { _, _, _, service ->
+            val result = service.onStartCommand(
+                Intent(ACTION_RETAIN_PLAYBACK_GRANTS),
+                0,
+                7,
+            )
+            assertEquals(
+                android.app.Service.START_REDELIVER_INTENT,
+                result,
+            )
+            assertTrue(shadowOf(service).isStoppedBySelf)
+        }
+    }
+
+    @Test
+    fun grantDeliveryKeepsAnActiveQueueStarted() {
+        withSession(savePosition = { _, _ -> }) { player, _, _, service ->
+            player.setMediaItem(MediaItem.fromUri(VIDEO_URI))
+            service.onStartCommand(
+                Intent(ACTION_RETAIN_PLAYBACK_GRANTS),
+                0,
+                7,
+            )
+            assertFalse(shadowOf(service).isStoppedBySelf)
+        }
+    }
+
+    @Test
     fun stoppingSessionSavesLatestPositionBeforeClearingMedia() {
         val saved = mutableListOf<Pair<String, Long>>()
         withSession(savePosition = { uri, position ->

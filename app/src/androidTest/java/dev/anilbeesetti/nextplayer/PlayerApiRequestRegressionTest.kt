@@ -3,8 +3,10 @@ package dev.anilbeesetti.nextplayer
 import android.app.Activity
 import android.content.ComponentName
 import android.content.Intent
+import android.net.Uri
 import android.os.Process
 import android.os.SystemClock
+import androidx.media3.common.Player
 import androidx.media3.session.MediaController
 import androidx.media3.session.SessionToken
 import androidx.test.ext.junit.runners.AndroidJUnit4
@@ -16,11 +18,13 @@ import dev.anilbeesetti.nextplayer.core.model.LoopMode
 import dev.anilbeesetti.nextplayer.core.model.PlayerPreferences
 import dev.anilbeesetti.nextplayer.feature.player.PlayerActivity
 import dev.anilbeesetti.nextplayer.feature.player.service.PlayerService
+import dev.anilbeesetti.nextplayer.feature.player.service.stopPlayerSession
 import java.util.UUID
 import java.util.concurrent.FutureTask
 import java.util.concurrent.TimeUnit
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.runBlocking
+import kotlinx.coroutines.withTimeout
 import org.json.JSONObject
 import org.junit.After
 import org.junit.Assert.assertEquals
@@ -55,7 +59,9 @@ class PlayerApiRequestRegressionTest {
                     loopMode = LoopMode.OFF,
                 )
             }
-            preferences.playerPreferences.first { !it.autoPip && !it.autoBackgroundPlay }
+            withTimeout(10000) {
+                preferences.playerPreferences.first { !it.autoPip && !it.autoBackgroundPlay }
+            }
         }
     }
 
@@ -78,6 +84,62 @@ class PlayerApiRequestRegressionTest {
         )
         command("finish")
         runBlocking { preferences.updatePlayerPreferences { original } }
+    }
+
+    @Test
+    fun backgroundQueueRetainsReadGrantsUntilTheServiceIsReleased() {
+        launch("--ez background true --ez queue true")
+        assertEquals(
+            Activity.RESULT_OK,
+            result().getInt("code"),
+        )
+        val player = connect()
+        await("background playback after activity closes") {
+            main { activities().isEmpty() && player.isPlaying && player.mediaItemCount == 3 }
+        }
+        val media = main { player.getMediaItemAt(2).localConfiguration!!.uri }
+        val subtitle = main {
+            player.getMediaItemAt(0).localConfiguration!!.subtitleConfigurations.single().uri
+        }
+        SystemClock.sleep(500)
+        assertTrue(
+            "Queued URI remains readable",
+            canRead(media),
+        )
+        assertTrue(
+            "Subtitle URI remains readable",
+            canRead(subtitle),
+        )
+        main {
+            player.seekTo(
+                2,
+                0,
+            )
+        }
+        await("unbuffered queue item plays") {
+            main {
+                player.currentMediaItemIndex == 2 && player.playbackState == Player.STATE_READY &&
+                    player.isPlaying && player.playerError == null
+            }
+        }
+        main { player.stopPlayerSession() }
+        await("session stops") { main { player.mediaItemCount == 0 } }
+        main {
+            player.release()
+            controller = null
+        }
+        await("released service revokes media and subtitle grants") {
+            !canRead(media) && !canRead(subtitle)
+        }
+    }
+
+    private fun canRead(uri: Uri): Boolean = try {
+        context.contentResolver.openAssetFileDescriptor(
+            uri,
+            "r",
+        )?.use { true } == true
+    } catch (_: SecurityException) {
+        false
     }
 
     @Test
@@ -137,7 +199,7 @@ class PlayerApiRequestRegressionTest {
 
     private fun launch(options: String) {
         shell(
-            "am start -W --activity-clear-task -n $caller --es token $token " +
+            "am start --activity-clear-task -n $caller --es token $token " +
                 "--es target_package ${context.packageName} $options",
         )
     }
@@ -217,7 +279,7 @@ class PlayerApiRequestRegressionTest {
 
     private fun <T> main(block: () -> T): T {
         val task = FutureTask(block)
-        instrumentation.runOnMainSync(task)
+        android.os.Handler(android.os.Looper.getMainLooper()).post(task)
         return task.get(
             10,
             TimeUnit.SECONDS,

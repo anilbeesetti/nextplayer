@@ -902,6 +902,20 @@ class PlayerService : MediaSessionService() {
     override fun onGetSession(controllerInfo: MediaSession.ControllerInfo): MediaSession? =
         mediaSession
 
+    override fun onStartCommand(intent: Intent?, flags: Int, startId: Int): Int {
+        if (intent?.action == ACTION_RETAIN_PLAYBACK_GRANTS) {
+            // A stop may arrive between the handoff acknowledgement and grant delivery.
+            if (mediaSession?.player?.currentMediaItem == null) stopSelf(startId)
+            // Keep the grant-bearing start record until stop so Android can revoke its grants.
+            return START_REDELIVER_INTENT
+        }
+        return super.onStartCommand(
+            intent,
+            flags,
+            startId,
+        )
+    }
+
     override fun onCreate() {
         super.onCreate()
         decoderManager = DecoderManager()
