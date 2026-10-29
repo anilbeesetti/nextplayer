@@ -85,6 +85,8 @@
     <string name="system_default">System Default</string>
     <string name="off">Off</string>
     <string name="on">On</string>
+    <string name="hide_status_bar">Hide status bar</string>
+    <string name="hide_status_bar_description">Keep the status bar hidden when playback controls are visible</string>
     <string name="play_pause">Play/Pause</string>
     <string name="ff_rewind">Fast forward/Rewind</string>
     <string name="play_pause_ff_rewind">Play/Pause and Fast forward/Rewind</string>

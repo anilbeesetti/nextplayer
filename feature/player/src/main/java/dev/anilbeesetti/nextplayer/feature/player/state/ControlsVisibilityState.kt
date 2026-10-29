@@ -9,6 +9,7 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
+import androidx.core.view.WindowInsetsCompat.Type
 import androidx.media3.common.Player
 import androidx.media3.common.listen
 import dev.anilbeesetti.nextplayer.feature.player.extensions.toggleSystemBars
@@ -19,7 +20,11 @@ import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 
 @Composable
-fun rememberControlsVisibilityState(player: Player, hideAfter: Duration): ControlsVisibilityState {
+fun rememberControlsVisibilityState(
+    player: Player,
+    hideAfter: Duration,
+    hideStatusBar: Boolean = false,
+): ControlsVisibilityState {
     val activity = LocalActivity.current
     val coroutineScope = rememberCoroutineScope()
     val controlsVisibilityState = remember {
@@ -29,21 +34,34 @@ fun rememberControlsVisibilityState(player: Player, hideAfter: Duration): Contro
             scope = coroutineScope,
         )
     }
+
     LaunchedEffect(key1 = player) { controlsVisibilityState.observe() }
+
     LaunchedEffect(
+        activity,
         controlsVisibilityState.controlsVisible,
         controlsVisibilityState.controlsLocked,
+        hideStatusBar,
     ) {
-        if (controlsVisibilityState.controlsLocked) {
+        val showBars = controlsVisibilityState.controlsVisible &&
+            !controlsVisibilityState.controlsLocked
+
+        if (!showBars) {
             activity?.toggleSystemBars(showBars = false)
-            return@LaunchedEffect
-        }
-        if (controlsVisibilityState.controlsVisible) {
-            activity?.toggleSystemBars(showBars = true)
+        } else if (hideStatusBar) {
+            activity?.toggleSystemBars(
+                showBars = false,
+                types = Type.statusBars(),
+            )
+            activity?.toggleSystemBars(
+                showBars = true,
+                types = Type.navigationBars(),
+            )
         } else {
-            activity?.toggleSystemBars(showBars = false)
+            activity?.toggleSystemBars(showBars = true)
         }
     }
+
     return controlsVisibilityState
 }
 

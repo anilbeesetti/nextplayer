@@ -81,6 +81,7 @@ internal fun MediaPlayerContent(
     val controlsVisibilityState = rememberControlsVisibilityState(
         player = player,
         hideAfter = playerPreferences.controllerAutoHideTimeout.seconds,
+        hideStatusBar = playerPreferences.hideStatusBar,
     )
     val tapGestureState = rememberTapGestureState(
         player = player,
