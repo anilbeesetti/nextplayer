@@ -101,7 +101,7 @@ fun QuickSettingsDialog(
                         Sort.By.DATE,
                         Sort.By.SIZE,
                         Sort.By.PATH,
-                        Sort.By.WATCHED ,
+                        Sort.By.WATCHED,
                     ),
                 )
                 HorizontalDivider(modifier = Modifier.padding(top = 16.dp))
