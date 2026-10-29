@@ -19,6 +19,7 @@ import dev.anilbeesetti.nextplayer.core.model.LoopMode
 import dev.anilbeesetti.nextplayer.feature.player.PlayerActivity
 import dev.anilbeesetti.nextplayer.feature.player.service.PlayerService
 import dev.anilbeesetti.nextplayer.feature.player.utils.PlayerApi
+import dev.anilbeesetti.nextplayer.navigation.startPlayback
 import java.io.File
 import java.nio.ByteBuffer
 import java.nio.ByteOrder
@@ -169,6 +170,51 @@ class PlayerApiLaunchOptionsTest {
             await("background launch of paused session") {
                 player.isPlaying &&
                     player.playbackParameters.speed == 2f
+            }
+        }
+    }
+
+    @Test
+    fun internalSelectedVideosContinueWhenAutoplayIsDisabled() = withPlayer {
+            connectPlayer,
+            uri,
+            preferences,
+        ->
+        runBlocking {
+            preferences.updatePlayerPreferences { it.copy(autoplay = false) }
+            preferences.playerPreferences.first { !it.autoplay }
+        }
+        val player = connectPlayer()
+        val picker = instrumentation.startActivitySync(
+            Intent(
+                instrumentation.targetContext,
+                MainActivity::class.java,
+            ).addFlags(Intent.FLAG_ACTIVITY_NEW_TASK),
+        ) as MainActivity
+        try {
+            onMain {
+                picker.startPlayback(
+                    uris = listOf(
+                        uri,
+                        uri,
+                    ),
+                )
+            }
+            await("selected queue playing") {
+                player.isPlaying && player.mediaItemCount == 2 && player.duration > 0
+            }
+            onMain { player.seekTo(player.duration - 200) }
+            await("selected queue continues with autoplay disabled") {
+                player.currentMediaItemIndex == 1 && player.isPlaying
+            }
+        } finally {
+            onMain {
+                Stage.values().flatMap {
+                    ActivityLifecycleMonitorRegistry.getInstance().getActivitiesInStage(it)
+                }.filterIsInstance<PlayerActivity>().filter { !it.isDestroyed }.forEach {
+                    it.finish()
+                }
+                picker.finish()
             }
         }
     }
