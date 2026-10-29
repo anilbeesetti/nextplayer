@@ -19,17 +19,45 @@ class RequestHeadersDataSourceFactoryTest {
     @Test
     fun eachVideoSegmentAndSubtitleGetsHeadersWithoutLosingRangeOrRequestHeaders() {
         val opened = mutableListOf<DataSpec>()
-        val factory = RequestHeadersDataSourceFactory(recordingFactory(opened), mapOf("Authorization" to "Bearer test"))
-        listOf("https://host/master.m3u8", "https://host/segment.ts", "https://host/subs.vtt").forEach { uri ->
+        val factory = RequestHeadersDataSourceFactory(
+            recordingFactory(opened),
+            mapOf("Authorization" to "Bearer test"),
+        )
+        listOf(
+            "https://host/master.m3u8",
+            "https://host/segment.ts",
+            "https://host/subs.vtt",
+        ).forEach { uri ->
             val source = factory.createDataSource()
-            source.open(DataSpec.Builder().setUri(uri).setPosition(40).setLength(80).setHttpRequestHeaders(mapOf("Range" to "custom")).build())
+            source.open(
+                DataSpec.Builder().setUri(
+                    uri,
+                ).setPosition(
+                    40,
+                ).setLength(80).setHttpRequestHeaders(mapOf("Range" to "custom")).build(),
+            )
             source.close()
         }
-        assertEquals(3, opened.size)
+        assertEquals(
+            3,
+            opened.size,
+        )
         opened.forEach { spec ->
-            assertEquals(mapOf("Authorization" to "Bearer test", "Range" to "custom"), spec.httpRequestHeaders)
-            assertEquals(40L, spec.position)
-            assertEquals(80L, spec.length)
+            assertEquals(
+                mapOf(
+                    "Authorization" to "Bearer test",
+                    "Range" to "custom",
+                ),
+                spec.httpRequestHeaders,
+            )
+            assertEquals(
+                40L,
+                spec.position,
+            )
+            assertEquals(
+                80L,
+                spec.length,
+            )
         }
     }
 
@@ -37,9 +65,15 @@ class RequestHeadersDataSourceFactoryTest {
     fun localSourcesAndLaterUnrelatedRequestsNeverReceiveApiHeaders() {
         val opened = mutableListOf<DataSpec>()
         val delegate = recordingFactory(opened)
-        RequestHeadersDataSourceFactory(delegate, mapOf("Authorization" to "Bearer test"))
+        RequestHeadersDataSourceFactory(
+            delegate,
+            mapOf("Authorization" to "Bearer test"),
+        )
             .createDataSource().open(DataSpec(Uri.parse("content://host/video")))
-        RequestHeadersDataSourceFactory(delegate, emptyMap())
+        RequestHeadersDataSourceFactory(
+            delegate,
+            emptyMap(),
+        )
             .createDataSource().open(DataSpec(Uri.parse("https://host/other.mp4")))
         assertTrue(opened.all { it.httpRequestHeaders.isEmpty() })
     }

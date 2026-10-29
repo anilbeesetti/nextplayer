@@ -34,7 +34,7 @@ fun PlayerContentFrame(
     videoVisible: Boolean = true,
     displayAspectRatio: Float? = null,
 ) {
-    val presentationState = rememberPresentationState(player)
+    val presentationState = rememberPresentationState(player = player)
     Box(modifier.fillMaxSize()) {
         if (videoVisible) {
             PlayerSurface(
@@ -42,11 +42,16 @@ fun PlayerContentFrame(
                 surfaceType = SURFACE_TYPE_SURFACE_VIEW,
                 modifier = Modifier
                     .resizeWithContentScale(
-                        contentScale = videoZoomAndContentScaleState.videoContentScale.toContentScale(),
+                        contentScale = videoZoomAndContentScaleState.videoContentScale
+                            .toContentScale(),
                         sourceSizeDp = presentationState.videoSizeDp?.let { size ->
                             size.copy(
                                 width = with(LocalDensity.current) {
-                                    (displayAspectRatio?.let { size.height * it } ?: size.width).toDp().value
+                                    (
+                                        displayAspectRatio?.let {
+                                            size.height * it
+                                        } ?: size.width
+                                        ).toDp().value
                                 },
                                 height = with(LocalDensity.current) { size.height.toDp().value },
                             )

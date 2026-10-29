@@ -33,11 +33,16 @@ data class AddConnectionRoute(val connectionId: Long? = null) : NavKey
 data class NetworkBrowseRoute(val connectionId: Long, val path: String? = null) : NavKey
 
 fun NavBackStack<NavKey>.navigateToAddConnection(connectionId: Long? = null) {
-    add(AddConnectionRoute(connectionId))
+    add(element = AddConnectionRoute(connectionId = connectionId))
 }
 
 fun NavBackStack<NavKey>.navigateToNetworkBrowse(connectionId: Long, path: String? = null) {
-    add(NetworkBrowseRoute(connectionId, path))
+    add(
+        element = NetworkBrowseRoute(
+            connectionId = connectionId,
+            path = path,
+        ),
+    )
 }
 
 fun EntryProviderScope<NavKey>.networkEntry(
@@ -63,18 +68,16 @@ fun EntryProviderScope<NavKey>.networkEntry(
     }
 }
 
-fun EntryProviderScope<NavKey>.addConnectionEntry(
-    onNavigateUp: () -> Unit,
-) {
+fun EntryProviderScope<NavKey>.addConnectionEntry(onNavigateUp: () -> Unit) {
     entry<AddConnectionRoute>(
         metadata = metadata {
-            put(NavDisplay.TransitionKey) {
+            put(key = NavDisplay.TransitionKey) {
                 slideInVertically { it } togetherWith scaleOut(targetScale = 0.95f)
             }
-            put(NavDisplay.PopTransitionKey) {
+            put(key = NavDisplay.PopTransitionKey) {
                 scaleIn(initialScale = 0.95f) togetherWith slideOutVertically { it }
             }
-            put(NavDisplay.PredictivePopTransitionKey) {
+            put(key = NavDisplay.PredictivePopTransitionKey) {
                 scaleIn(initialScale = 0.95f) togetherWith slideOutVertically { it }
             }
         },
@@ -112,7 +115,10 @@ fun EntryProviderScope<NavKey>.networkBrowseEntry(
             val viewModel = koinViewModel<NetworkBrowseViewModel>(
                 parameters = {
                     parametersOf(
-                        NetworkBrowseViewModel.Input(connectionId = key.connectionId, path = key.path),
+                        NetworkBrowseViewModel.Input(
+                            connectionId = key.connectionId,
+                            path = key.path,
+                        ),
                         output,
                     )
                 },

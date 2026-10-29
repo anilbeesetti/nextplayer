@@ -73,7 +73,8 @@ class PlayerActivity : ComponentActivity() {
     private val viewModel: PlayerViewModel by viewModel { parametersOf(playerOutput()) }
     val playerPreferences get() = viewModel.state.value.playerPreferences
 
-    private val onWindowAttributesChangedListener = CopyOnWriteArrayList<Consumer<WindowManager.LayoutParams?>>()
+    private val onWindowAttributesChangedListener =
+        CopyOnWriteArrayList<Consumer<WindowManager.LayoutParams?>>()
 
     private var isPlaybackFinished = false
     private var hasPlaybackStarted = false
@@ -131,17 +132,28 @@ class PlayerActivity : ComponentActivity() {
         }
     }
 
-    private val audioFileSuspendLauncher = registerForSuspendActivityResult(OpenDocumentAtInitialUri())
+    private val audioFileSuspendLauncher =
+        registerForSuspendActivityResult(contract = OpenDocumentAtInitialUri())
 
-    private val subtitleFileSuspendLauncher = registerForSuspendActivityResult(OpenDocumentAtInitialUri())
+    private val subtitleFileSuspendLauncher =
+        registerForSuspendActivityResult(contract = OpenDocumentAtInitialUri())
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        isIntentNew = savedInstanceState?.getBoolean("isIntentNew", true) ?: true
+        isIntentNew = savedInstanceState?.getBoolean(
+            "isIntentNew",
+            true,
+        ) ?: true
         hasPlaybackStarted = savedInstanceState?.getBoolean("hasPlaybackStarted") ?: false
         playbackFailed = savedInstanceState?.getBoolean("playbackFailed") ?: false
-        lastDuration = savedInstanceState?.getLong("lastDuration", C.TIME_UNSET) ?: C.TIME_UNSET
-        lastPosition = savedInstanceState?.getLong("lastPosition", C.TIME_UNSET) ?: C.TIME_UNSET
+        lastDuration = savedInstanceState?.getLong(
+            "lastDuration",
+            C.TIME_UNSET,
+        ) ?: C.TIME_UNSET
+        lastPosition = savedInstanceState?.getLong(
+            "lastPosition",
+            C.TIME_UNSET,
+        ) ?: C.TIME_UNSET
         lastMediaUri = savedInstanceState?.getString("lastMediaUri")?.let(Uri::parse)
         lastDecoder = savedInstanceState?.getString("lastDecoder")?.let { name ->
             DecoderMode.entries.find { it.name == name }
@@ -157,13 +169,19 @@ class PlayerActivity : ComponentActivity() {
             val player = rememberMediaController(
                 onBeforeRelease = ::onControllerStopped,
                 onExtrasChanged = { extras ->
-                    viewModel.onAction(PlayerAction.UpdateDecoderServiceState(extras.decoderServiceState()))
+                    viewModel.onAction(
+                        PlayerAction.UpdateDecoderServiceState(extras.decoderServiceState()),
+                    )
                 },
             )
-            LaunchedEffect(player) {
+            LaunchedEffect(key1 = player) {
                 if (player == null || !player.isConnected) return@LaunchedEffect
                 mediaController = player
-                viewModel.onAction(PlayerAction.UpdateDecoderServiceState(player.sessionExtras.decoderServiceState()))
+                viewModel.onAction(
+                    PlayerAction.UpdateDecoderServiceState(
+                        player.sessionExtras.decoderServiceState(),
+                    ),
+                )
                 player.addListener(playbackStateListener)
                 updateKeepScreenOnFlag()
                 startPlayback()
@@ -188,19 +206,17 @@ class PlayerActivity : ComponentActivity() {
             finish()
         },
         setVideoDecoderMode = { mode ->
-            lifecycleScope.launch { mediaController?.setVideoDecoderMode(mode) }
+            lifecycleScope.launch { mediaController?.setVideoDecoderMode(mode = mode) }
         },
         setAudioDecoderMode = { mode ->
-            lifecycleScope.launch { mediaController?.setAudioDecoderMode(mode) }
+            lifecycleScope.launch { mediaController?.setAudioDecoderMode(mode = mode) }
         },
-        tryDecoderFallback = {
-            lifecycleScope.launch { mediaController?.tryDecoderFallback() }
-        },
+        tryDecoderFallback = { lifecycleScope.launch { mediaController?.tryDecoderFallback() } },
     )
 
     private suspend fun currentMediaDirectory(): Uri? {
         val uri = mediaController?.currentMediaItem?.localConfiguration?.uri ?: return null
-        return withContext(Dispatchers.IO) { getInitialDirectoryUri(uri) }
+        return withContext(Dispatchers.IO) { getInitialDirectoryUri(fileUri = uri) }
     }
 
     private fun selectSubtitle() {
@@ -218,8 +234,11 @@ class PlayerActivity : ComponentActivity() {
                     initialUri = currentMediaDirectory(),
                 ),
             ) ?: return@launch
-            contentResolver.takePersistableUriPermission(uri, Intent.FLAG_GRANT_READ_URI_PERMISSION)
-            snapshotFlow { mediaController }.filterNotNull().first().addSubtitleTrack(uri)
+            contentResolver.takePersistableUriPermission(
+                uri,
+                Intent.FLAG_GRANT_READ_URI_PERMISSION,
+            )
+            snapshotFlow { mediaController }.filterNotNull().first().addSubtitleTrack(uri = uri)
         }
     }
 
@@ -227,18 +246,32 @@ class PlayerActivity : ComponentActivity() {
         lifecycleScope.launch {
             val uri = audioFileSuspendLauncher.launch(
                 OpenDocumentAtInitialUri.Input(
-                    mimeTypes = arrayOf("audio/*", "application/ogg"),
+                    mimeTypes = arrayOf(
+                        "audio/*",
+                        "application/ogg",
+                    ),
                     initialUri = currentMediaDirectory(),
                 ),
             ) ?: return@launch
             try {
-                contentResolver.takePersistableUriPermission(uri, Intent.FLAG_GRANT_READ_URI_PERMISSION)
+                contentResolver.takePersistableUriPermission(
+                    uri,
+                    Intent.FLAG_GRANT_READ_URI_PERMISSION,
+                )
                 val controller = snapshotFlow { mediaController }.filterNotNull().first()
-                if (!controller.addAudioTrack(uri)) {
-                    Toast.makeText(this@PlayerActivity, coreUiR.string.error_opening_audio, Toast.LENGTH_LONG).show()
+                if (!controller.addAudioTrack(uri = uri)) {
+                    Toast.makeText(
+                        this@PlayerActivity,
+                        coreUiR.string.error_opening_audio,
+                        Toast.LENGTH_LONG,
+                    ).show()
                 }
             } catch (_: SecurityException) {
-                Toast.makeText(this@PlayerActivity, coreUiR.string.error_opening_audio, Toast.LENGTH_LONG).show()
+                Toast.makeText(
+                    this@PlayerActivity,
+                    coreUiR.string.error_opening_audio,
+                    Toast.LENGTH_LONG,
+                ).show()
             }
         }
     }
@@ -252,8 +285,12 @@ class PlayerActivity : ComponentActivity() {
             lastDecoder = sessionExtras.decoderServiceState().videoMode
             viewModel.onAction(PlayerAction.UpdatePlayWhenReady(playWhenReady))
             removeListener(playbackStateListener)
-            val shouldPlayInBackground = playInBackground || (playerApi.sticky ?: playerPreferences.autoBackgroundPlay)
-            if (subtitleFileSuspendLauncher.isAwaitingResult || audioFileSuspendLauncher.isAwaitingResult || !shouldPlayInBackground) {
+            val shouldPlayInBackground =
+                playInBackground || (playerApi.sticky ?: playerPreferences.autoBackgroundPlay)
+            if (subtitleFileSuspendLauncher.isAwaitingResult ||
+                audioFileSuspendLauncher.isAwaitingResult ||
+                !shouldPlayInBackground
+            ) {
                 pause()
             }
             if (isInPictureInPictureMode) {
@@ -267,7 +304,9 @@ class PlayerActivity : ComponentActivity() {
 
     private fun startPlayback() {
         val controller = mediaController ?: return
-        if (!isIntentNew && (controller.currentMediaItem == null || controller.playbackState == Player.STATE_ENDED)) {
+        if (!isIntentNew &&
+            (controller.currentMediaItem == null || controller.playbackState == Player.STATE_ENDED)
+        ) {
             // Completion can happen while the activity's playback listener is detached.
             isPlaybackFinished = true
             finishAndStopPlayerSession()
@@ -277,8 +316,9 @@ class PlayerActivity : ComponentActivity() {
 
         val returningFromBackground = !isIntentNew
         val currentUri = controller.currentMediaItem?.localConfiguration?.uri
-        val hasExplicitPlaylist = playerApi.isApiAccess || intent.hasExtra(PlayerApi.API_PLAYLIST) ||
-            intent.hasExtra(PlaylistPlaybackContract.EXTRA_PLAYLIST_ID)
+        val hasExplicitPlaylist =
+            playerApi.isApiAccess || intent.hasExtra(PlayerApi.API_PLAYLIST) ||
+                intent.hasExtra(PlaylistPlaybackContract.EXTRA_PLAYLIST_ID)
         isIntentNew = false
 
         if (shouldResumeExistingPlayback(
@@ -302,12 +342,9 @@ class PlayerActivity : ComponentActivity() {
         }
     }
 
-    private suspend fun playVideo(
-        uri: Uri,
-        playlistId: Long?,
-    ) = withContext(Dispatchers.Default) {
+    private suspend fun playVideo(uri: Uri, playlistId: Long?) = withContext(Dispatchers.Default) {
         val savedQueue = playlistId
-            ?.let { playlistRepository.getPlaylist(it) }
+            ?.let { playlistRepository.getPlaylist(playlistId = it) }
             ?.toMediaQueue(selectedUri = uri.toString())
 
         if (playlistId != null) {
@@ -321,7 +358,11 @@ class PlayerActivity : ComponentActivity() {
             ensureActive()
             withContext(Dispatchers.Main) {
                 mediaController?.run {
-                    setMediaItems(mediaItems, startIndex, C.TIME_UNSET)
+                    setMediaItems(
+                        mediaItems,
+                        startIndex,
+                        C.TIME_UNSET,
+                    )
                     playWhenReady = viewModel.state.value.playWhenReady
                     prepare()
                 }
@@ -334,12 +375,15 @@ class PlayerActivity : ComponentActivity() {
         val explicitPlaylist = request.getPlaylist()
         val playlist = explicitPlaylist.takeIf { it.isNotEmpty() }
             ?: mediaContentUri?.let { mediaUri ->
-                viewModel.getPlaylistFromUri(mediaUri)
+                viewModel.getPlaylistFromUri(uri = mediaUri)
                     .map { it.uriString }
                     .toMutableList()
                     .apply {
                         if (!contains(mediaUri.toString())) {
-                            add(index = 0, element = mediaUri.toString())
+                            add(
+                                index = 0,
+                                element = mediaUri.toString(),
+                            )
                         }
                     }
             } ?: listOf(uri.toString())
@@ -358,12 +402,20 @@ class PlayerActivity : ComponentActivity() {
                 useMediaSourceForNetwork = true,
             )
         }
-        val mediaItems = request.createMediaItems(playlist, mediaItemIndexToPlay, apiSubs)
+        val mediaItems = request.createMediaItems(
+            playlist,
+            mediaItemIndexToPlay,
+            apiSubs,
+        )
         ensureActive()
 
         withContext(Dispatchers.Main) {
             mediaController?.run {
-                setMediaItems(mediaItems, mediaItemIndexToPlay, request.position?.toLong() ?: C.TIME_UNSET)
+                setMediaItems(
+                    mediaItems,
+                    mediaItemIndexToPlay,
+                    request.position?.toLong() ?: C.TIME_UNSET,
+                )
                 playWhenReady = viewModel.state.value.playWhenReady
                 prepare()
             }
@@ -381,8 +433,11 @@ class PlayerActivity : ComponentActivity() {
                 isPlaybackFinished = isPlaybackFinished,
                 duration = mediaController?.duration ?: lastDuration,
                 position = mediaController?.currentPosition ?: lastPosition,
-                uri = mediaController?.currentMediaItem?.localConfiguration?.uri ?: lastMediaUri ?: intent.data,
-                usedDecoder = mediaController?.sessionExtras?.decoderServiceState()?.videoMode ?: lastDecoder,
+                uri =
+                    mediaController?.currentMediaItem?.localConfiguration?.uri ?: lastMediaUri
+                        ?: intent.data,
+                usedDecoder =
+                    mediaController?.sessionExtras?.decoderServiceState()?.videoMode ?: lastDecoder,
             )
             setResult(
                 when {
@@ -417,13 +472,40 @@ class PlayerActivity : ComponentActivity() {
     }
 
     override fun onSaveInstanceState(outState: Bundle) {
-        outState.putBoolean("isIntentNew", isIntentNew)
-        outState.putBoolean("hasPlaybackStarted", hasPlaybackStarted)
-        outState.putBoolean("playbackFailed", playbackFailed)
-        outState.putLong("lastDuration", mediaController?.duration ?: lastDuration)
-        outState.putLong("lastPosition", mediaController?.currentPosition ?: lastPosition)
-        outState.putString("lastMediaUri", (mediaController?.currentMediaItem?.localConfiguration?.uri ?: lastMediaUri)?.toString())
-        outState.putString("lastDecoder", (mediaController?.sessionExtras?.decoderServiceState()?.videoMode ?: lastDecoder)?.name)
+        outState.putBoolean(
+            "isIntentNew",
+            isIntentNew,
+        )
+        outState.putBoolean(
+            "hasPlaybackStarted",
+            hasPlaybackStarted,
+        )
+        outState.putBoolean(
+            "playbackFailed",
+            playbackFailed,
+        )
+        outState.putLong(
+            "lastDuration",
+            mediaController?.duration ?: lastDuration,
+        )
+        outState.putLong(
+            "lastPosition",
+            mediaController?.currentPosition ?: lastPosition,
+        )
+        outState.putString(
+            "lastMediaUri",
+            (
+                mediaController?.currentMediaItem?.localConfiguration?.uri
+                    ?: lastMediaUri
+                )?.toString(),
+        )
+        outState.putString(
+            "lastDecoder",
+            (
+                mediaController?.sessionExtras?.decoderServiceState()?.videoMode
+                    ?: lastDecoder
+                )?.name,
+        )
         super.onSaveInstanceState(outState)
     }
 
@@ -443,7 +525,7 @@ class PlayerActivity : ComponentActivity() {
     override fun onWindowAttributesChanged(params: WindowManager.LayoutParams?) {
         super.onWindowAttributesChanged(params)
         for (listener in onWindowAttributesChangedListener) {
-            listener.accept(params)
+            listener.accept(value = params)
         }
     }
 

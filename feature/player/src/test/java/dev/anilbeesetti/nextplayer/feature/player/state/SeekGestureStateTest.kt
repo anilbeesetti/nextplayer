@@ -38,35 +38,48 @@ class SeekGestureStateTest {
 
     @Test
     fun replacingPlayerOrRemovingStateEndsPreviousSeek() {
-        var player: Player by mutableStateOf(TestPlayer())
-        var visible by mutableStateOf(true)
+        var player: Player by mutableStateOf(value = TestPlayer())
+        var visible by mutableStateOf(value = true)
         var state: SeekGestureState? = null
         composeRule.setContent {
-            if (visible) state = rememberSeekGestureState(player, enableSeekGesture = true)
+            if (visible) {
+                state = rememberSeekGestureState(
+                    player = player,
+                    enableSeekGesture = true,
+                )
+            }
         }
-        val first = composeRule.runOnIdle { requireNotNull(state).also { it.onSeek(5_000) } }
+        val first = composeRule.runOnIdle {
+            requireNotNull(value = state).also { it.onSeek(value = 5_000) }
+        }
         composeRule.runOnIdle {
             assertTrue(first.isSeeking)
             player = TestPlayer()
         }
         composeRule.runOnIdle {
             assertFalse(first.isSeeking)
-            assertNotSame(first, state)
-            requireNotNull(state).onSeek(8_000)
-            assertEquals(8_000, player.currentPosition)
+            assertNotSame(
+                first,
+                state,
+            )
+            requireNotNull(value = state).onSeek(value = 8_000)
+            assertEquals(
+                8_000,
+                player.currentPosition,
+            )
             visible = false
         }
-        composeRule.runOnIdle { assertFalse(requireNotNull(state).isSeeking) }
+        composeRule.runOnIdle { assertFalse(requireNotNull(value = state).isSeeking) }
     }
 
     @Test
     fun cancellingHorizontalDetectorEndsSeekWithoutPointerUp() {
         val player = TestPlayer()
-        val state = SeekGestureState(player)
-        var enabled by mutableStateOf(true)
+        val state = SeekGestureState(player = player)
+        var enabled by mutableStateOf(value = true)
         composeRule.setContent {
             Box(
-                Modifier.size(300.dp).testTag("gesture").pointerInput(enabled) {
+                Modifier.size(300.dp).testTag(tag = "gesture").pointerInput(key1 = enabled) {
                     if (!enabled) return@pointerInput
                     detectCustomHorizontalDragGestures(
                         onDragStart = state::onDragStart,
@@ -77,30 +90,61 @@ class SeekGestureStateTest {
                 },
             )
         }
-        composeRule.onNodeWithTag("gesture").performTouchInput {
-            down(Offset(width * 0.2f, centerY))
-            moveTo(Offset(width * 0.5f, centerY))
-            moveTo(Offset(width * 0.7f, centerY))
+        composeRule.onNodeWithTag(testTag = "gesture").performTouchInput {
+            down(
+                position = Offset(
+                    x = width * 0.2f,
+                    y = centerY,
+                ),
+            )
+            moveTo(
+                position = Offset(
+                    x = width * 0.5f,
+                    y = centerY,
+                ),
+            )
+            moveTo(
+                position = Offset(
+                    x = width * 0.7f,
+                    y = centerY,
+                ),
+            )
         }
         composeRule.runOnIdle {
             assertTrue(state.isSeeking)
             enabled = false
         }
         composeRule.runOnIdle { assertFalse(state.isSeeking) }
-        composeRule.onNodeWithTag("gesture").performTouchInput { cancel() }
+        composeRule.onNodeWithTag(testTag = "gesture").performTouchInput { cancel() }
     }
 
     private class TestPlayer : SimpleBasePlayer(Looper.getMainLooper()) {
         private var state = State.Builder()
-            .setAvailableCommands(Player.Commands.Builder().addAll(Player.COMMAND_GET_CURRENT_MEDIA_ITEM, Player.COMMAND_GET_TIMELINE, Player.COMMAND_SEEK_IN_CURRENT_MEDIA_ITEM).build())
-            .setPlaylist(listOf(MediaItemData.Builder("video").setDurationUs(60_000_000).setIsSeekable(true).build()))
+            .setAvailableCommands(
+                Player.Commands.Builder().addAll(
+                    Player.COMMAND_GET_CURRENT_MEDIA_ITEM,
+                    Player.COMMAND_GET_TIMELINE,
+                    Player.COMMAND_SEEK_IN_CURRENT_MEDIA_ITEM,
+                ).build(),
+            )
+            .setPlaylist(
+                listOf(
+                    MediaItemData.Builder(
+                        "video",
+                    ).setDurationUs(60_000_000).setIsSeekable(true).build(),
+                ),
+            )
             .setContentPositionMs(1_000)
             .setPlaybackState(Player.STATE_READY)
             .build()
 
         override fun getState(): State = state
 
-        override fun handleSeek(mediaItemIndex: Int, positionMs: Long, seekCommand: Int): ListenableFuture<*> {
+        override fun handleSeek(
+            mediaItemIndex: Int,
+            positionMs: Long,
+            seekCommand: Int,
+        ): ListenableFuture<*> {
             state = state.buildUpon().setContentPositionMs(positionMs).build()
             return Futures.immediateVoidFuture()
         }

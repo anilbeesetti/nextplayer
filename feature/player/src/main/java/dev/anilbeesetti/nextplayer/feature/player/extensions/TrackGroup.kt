@@ -38,4 +38,6 @@ fun TrackGroup.getName(trackType: @C.TrackType Int, index: Int): String {
 // Format IDs retain the merged source index when MediaSession rewrites TrackGroup IDs.
 @get:UnstableApi
 val TrackGroup.externalAudioIndex: Int?
-    get() = getFormat(0).id?.substringBefore(":")?.toIntOrNull()?.minus(1)?.takeIf { it >= 0 }
+    get() = getFormat(
+        0,
+    ).id?.substringBefore(delimiter = ":")?.toIntOrNull()?.minus(other = 1)?.takeIf { it >= 0 }

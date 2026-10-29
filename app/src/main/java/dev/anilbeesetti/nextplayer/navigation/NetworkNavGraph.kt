@@ -11,16 +11,13 @@ import dev.anilbeesetti.nextplayer.feature.network.navigation.networkBrowseEntry
 import dev.anilbeesetti.nextplayer.feature.network.navigation.networkEntry
 import dev.anilbeesetti.nextplayer.settings.navigation.navigateToSettings
 
-fun EntryProviderScope<NavKey>.networkNavGraph(
-    context: Context,
-    backStack: NavBackStack<NavKey>,
-) {
+fun EntryProviderScope<NavKey>.networkNavGraph(context: Context, backStack: NavBackStack<NavKey>) {
     networkEntry(
         onAddConnection = { backStack.navigateToAddConnection() },
-        onEditConnection = { id -> backStack.navigateToAddConnection(id) },
-        onOpenConnection = { id -> backStack.navigateToNetworkBrowse(id) },
+        onEditConnection = { id -> backStack.navigateToAddConnection(connectionId = id) },
+        onOpenConnection = { id -> backStack.navigateToNetworkBrowse(connectionId = id) },
         onSettingsClick = backStack::navigateToSettings,
-        onOpenStream = { uri -> context.startPlayback(uri) },
+        onOpenStream = { uri -> context.startPlayback(uri = uri) },
     )
 
     addConnectionEntry(
@@ -29,7 +26,17 @@ fun EntryProviderScope<NavKey>.networkNavGraph(
 
     networkBrowseEntry(
         onNavigateUp = { backStack.removeLastIfNotRoot() },
-        onPlayVideos = { uris, startUri -> context.startPlayback(uris, startUri) },
-        onNavigateToFolder = { id, path -> backStack.navigateToNetworkBrowse(id, path) },
+        onPlayVideos = { uris, startUri ->
+            context.startPlayback(
+                uris = uris,
+                startUri = startUri,
+            )
+        },
+        onNavigateToFolder = { id, path ->
+            backStack.navigateToNetworkBrowse(
+                connectionId = id,
+                path = path,
+            )
+        },
     )
 }

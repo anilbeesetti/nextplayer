@@ -25,7 +25,7 @@ data class Video(
     val subtitleStreams: List<SubtitleStreamInfo> = emptyList(),
 ) : Serializable {
 
-    val displayName: String = nameWithExtension.substringBeforeLast(".")
+    val displayName: String = nameWithExtension.substringBeforeLast(delimiter = ".")
     val playedPercentage: Float? = playbackPosition?.let { playbackPosition ->
         when {
             duration <= 0 -> null

@@ -12,5 +12,5 @@ fun ControlButtonsPosition.name(): String {
         ControlButtonsPosition.RIGHT -> R.string.control_buttons_alignment_right
     }
 
-    return stringResource(stringRes)
+    return stringResource(id = stringRes)
 }

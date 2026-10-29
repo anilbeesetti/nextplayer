@@ -11,17 +11,16 @@ import dev.anilbeesetti.nextplayer.core.common.service.registerForSuspendActivit
 import org.koin.core.annotation.Single
 
 @Single
-class LocalSystemService(
-    private val context: Context,
-) : SystemService {
+class LocalSystemService(private val context: Context) : SystemService {
     private var pickDocumentTreeLauncher: SuspendActivityResultLauncher<Uri?, Uri?>? = null
 
     override fun initialize(activity: ComponentActivity) {
-        pickDocumentTreeLauncher = activity.registerForSuspendActivityResult(ActivityResultContracts.OpenDocumentTree())
+        pickDocumentTreeLauncher =
+            activity.registerForSuspendActivityResult(ActivityResultContracts.OpenDocumentTree())
     }
 
-    override suspend fun pickFolder(): Uri? {
-        return pickDocumentTreeLauncher?.launch(null)?.also { uri ->
+    override suspend fun pickFolder(): Uri? =
+        pickDocumentTreeLauncher?.launch(input = null)?.also { uri ->
             runCatching {
                 context.contentResolver.takePersistableUriPermission(
                     uri,
@@ -29,7 +28,6 @@ class LocalSystemService(
                 )
             }
         }
-    }
 
     override fun getString(stringResId: Int): String = context.getString(stringResId)
 
@@ -37,9 +35,17 @@ class LocalSystemService(
         pluralsResId: Int,
         quantity: Int,
         vararg formatArgs: Any,
-    ): String = context.resources.getQuantityString(pluralsResId, quantity, *formatArgs)
+    ): String = context.resources.getQuantityString(
+        pluralsResId,
+        quantity,
+        *formatArgs,
+    )
 
     override fun showToast(text: String, duration: Int) {
-        Toast.makeText(context, text, duration).show()
+        Toast.makeText(
+            context,
+            text,
+            duration,
+        ).show()
     }
 }

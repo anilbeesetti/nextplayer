@@ -17,11 +17,7 @@ interface PlaylistRepository {
 
     suspend fun create(name: String, videoUris: List<String> = emptyList()): Long
 
-    suspend fun createM3U(
-        type: PlaylistType,
-        source: String,
-        playlist: M3UPlaylist,
-    ): Long
+    suspend fun createM3U(type: PlaylistType, source: String, playlist: M3UPlaylist): Long
 
     suspend fun replaceM3UItems(playlistId: Long, items: List<M3UPlaylistItem>)
 

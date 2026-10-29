@@ -40,7 +40,11 @@ class MediaStoreMediaServicePermissionTest {
 
             override fun insert(uri: Uri, values: ContentValues?): Uri? = null
 
-            override fun delete(uri: Uri, selection: String?, selectionArgs: Array<out String>?): Int = 0
+            override fun delete(
+                uri: Uri,
+                selection: String?,
+                selectionArgs: Array<out String>?,
+            ): Int = 0
 
             override fun update(
                 uri: Uri,
@@ -54,11 +58,14 @@ class MediaStoreMediaServicePermissionTest {
         val context = object : ContextWrapper(targetContext) {
             override fun getContentResolver(): ContentResolver = contentResolver
         }
-        val applicationScope = CoroutineScope(SupervisorJob() + Dispatchers.Default)
+        val applicationScope = CoroutineScope(context = SupervisorJob() + Dispatchers.Default)
 
         try {
             try {
-                MediaStoreMediaService(context, applicationScope).fetchVideos()
+                MediaStoreMediaService(
+                    context = context,
+                    applicationScope = applicationScope,
+                ).fetchVideos()
                 fail("Expected MediaStore permission denial to be preserved")
             } catch (_: SecurityException) {
                 // Expected: callers decide how to handle an unavailable MediaStore snapshot.
@@ -85,7 +92,11 @@ class MediaStoreMediaServicePermissionTest {
 
             override fun insert(uri: Uri, values: ContentValues?): Uri? = null
 
-            override fun delete(uri: Uri, selection: String?, selectionArgs: Array<out String>?): Int = 0
+            override fun delete(
+                uri: Uri,
+                selection: String?,
+                selectionArgs: Array<out String>?,
+            ): Int = 0
 
             override fun update(
                 uri: Uri,
@@ -99,11 +110,14 @@ class MediaStoreMediaServicePermissionTest {
         val context = object : ContextWrapper(targetContext) {
             override fun getContentResolver(): ContentResolver = contentResolver
         }
-        val applicationScope = CoroutineScope(SupervisorJob() + Dispatchers.Default)
+        val applicationScope = CoroutineScope(context = SupervisorJob() + Dispatchers.Default)
 
         try {
             try {
-                MediaStoreMediaService(context, applicationScope).fetchVideos()
+                MediaStoreMediaService(
+                    context = context,
+                    applicationScope = applicationScope,
+                ).fetchVideos()
                 fail("Expected a null MediaStore cursor to fail the strict snapshot")
             } catch (_: IllegalStateException) {
                 // Expected: reconciliation must not treat a null cursor as an empty library.

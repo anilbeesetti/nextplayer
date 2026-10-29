@@ -14,7 +14,7 @@ import org.koin.core.parameter.parametersOf
 object SubtitlePreferencesRoute : NavKey
 
 fun NavBackStack<NavKey>.navigateToSubtitlePreferences() {
-    add(SubtitlePreferencesRoute)
+    add(element = SubtitlePreferencesRoute)
 }
 
 fun EntryProviderScope<NavKey>.subtitlePreferencesEntry(onNavigateUp: () -> Unit) {

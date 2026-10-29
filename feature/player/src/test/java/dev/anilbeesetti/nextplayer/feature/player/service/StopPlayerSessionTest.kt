@@ -25,7 +25,10 @@ import org.robolectric.Shadows.shadowOf
 import org.robolectric.annotation.Config
 
 @RunWith(RobolectricTestRunner::class)
-@Config(manifest = Config.NONE, sdk = [28])
+@Config(
+    manifest = Config.NONE,
+    sdk = [28],
+)
 class StopPlayerSessionTest {
     @After
     fun tearDown() {
@@ -35,17 +38,33 @@ class StopPlayerSessionTest {
     @Test
     fun stoppingSessionSavesLatestPositionBeforeClearingMedia() {
         val saved = mutableListOf<Pair<String, Long>>()
-        withSession(savePosition = { uri, position -> saved += uri to position }) { player, session, callback, _ ->
+        withSession(savePosition = { uri, position ->
+            saved += uri to position
+        }) { player, session, callback, _ ->
             // Closing PiP sends this command after playback has advanced from its last saved position.
             player.setMediaItem(MediaItem.Builder().setMediaId(VIDEO_URI).setUri(VIDEO_URI).build())
             player.seekTo(120_000)
 
-            val result = callback.onCustomCommand(session, controllerInfo(), CustomCommands.STOP_PLAYER_SESSION.sessionCommand, Bundle.EMPTY)
+            val result = callback.onCustomCommand(
+                session,
+                controllerInfo(),
+                CustomCommands.STOP_PLAYER_SESSION.sessionCommand,
+                Bundle.EMPTY,
+            )
             shadowOf(Looper.getMainLooper()).idle()
 
-            assertEquals(listOf(VIDEO_URI to 120_000L), saved)
-            assertEquals(0, player.mediaItemCount)
-            assertEquals(SessionResult.RESULT_SUCCESS, result.get().resultCode)
+            assertEquals(
+                listOf(element = VIDEO_URI to 120_000L),
+                saved,
+            )
+            assertEquals(
+                0,
+                player.mediaItemCount,
+            )
+            assertEquals(
+                SessionResult.RESULT_SUCCESS,
+                result.get().resultCode,
+            )
         }
     }
 
@@ -55,40 +74,70 @@ class StopPlayerSessionTest {
         val finishSave = CompletableDeferred<Unit>()
         val saved = mutableListOf<Pair<String, Long>>()
         withSession(savePosition = { uri, position ->
-            saveStarted.complete(Unit)
+            saveStarted.complete(value = Unit)
             finishSave.await()
             saved += uri to position
         }) { player, session, callback, service ->
             player.setMediaItem(MediaItem.Builder().setMediaId(VIDEO_URI).setUri(VIDEO_URI).build())
             player.seekTo(120_000)
 
-            val result = callback.onCustomCommand(session, controllerInfo(), CustomCommands.STOP_PLAYER_SESSION.sessionCommand, Bundle.EMPTY)
+            val result = callback.onCustomCommand(
+                session,
+                controllerInfo(),
+                CustomCommands.STOP_PLAYER_SESSION.sessionCommand,
+                Bundle.EMPTY,
+            )
             shadowOf(Looper.getMainLooper()).idle()
 
             assertTrue(saveStarted.isCompleted)
             assertFalse(result.isDone)
             assertFalse(shadowOf(service).isStoppedBySelf)
-            assertEquals(1, player.mediaItemCount)
+            assertEquals(
+                1,
+                player.mediaItemCount,
+            )
             assertTrue(saved.isEmpty())
 
-            finishSave.complete(Unit)
+            finishSave.complete(value = Unit)
             shadowOf(Looper.getMainLooper()).idle()
 
-            assertEquals(listOf(VIDEO_URI to 120_000L), saved)
-            assertEquals(0, player.mediaItemCount)
-            assertEquals(SessionResult.RESULT_SUCCESS, result.get().resultCode)
+            assertEquals(
+                listOf(element = VIDEO_URI to 120_000L),
+                saved,
+            )
+            assertEquals(
+                0,
+                player.mediaItemCount,
+            )
+            assertEquals(
+                SessionResult.RESULT_SUCCESS,
+                result.get().resultCode,
+            )
             assertTrue(shadowOf(service).isStoppedBySelf)
         }
     }
 
     @Test
     fun stoppingEmptySessionDoesNotWritePosition() {
-        withSession(savePosition = { _, _ -> throw AssertionError("An empty queue has no position to save") }) { player, session, callback, _ ->
-            val result = callback.onCustomCommand(session, controllerInfo(), CustomCommands.STOP_PLAYER_SESSION.sessionCommand, Bundle.EMPTY)
+        withSession(savePosition = { _, _ ->
+            throw AssertionError("An empty queue has no position to save")
+        }) { player, session, callback, _ ->
+            val result = callback.onCustomCommand(
+                session,
+                controllerInfo(),
+                CustomCommands.STOP_PLAYER_SESSION.sessionCommand,
+                Bundle.EMPTY,
+            )
             shadowOf(Looper.getMainLooper()).idle()
 
-            assertEquals(0, player.mediaItemCount)
-            assertEquals(SessionResult.RESULT_SUCCESS, result.get().resultCode)
+            assertEquals(
+                0,
+                player.mediaItemCount,
+            )
+            assertEquals(
+                SessionResult.RESULT_SUCCESS,
+                result.get().resultCode,
+            )
         }
     }
 
@@ -108,12 +157,18 @@ class StopPlayerSessionTest {
             shadowOf(Looper.getMainLooper()).idle()
 
             assertFalse(shadowOf(service).isStoppedBySelf)
-            assertEquals(1, player.mediaItemCount)
+            assertEquals(
+                1,
+                player.mediaItemCount,
+            )
 
-            finishSave.complete(Unit)
+            finishSave.complete(value = Unit)
             shadowOf(Looper.getMainLooper()).idle()
 
-            assertEquals(listOf(VIDEO_URI to 120_000L), saved)
+            assertEquals(
+                listOf(element = VIDEO_URI to 120_000L),
+                saved,
+            )
             assertTrue(shadowOf(service).isStoppedBySelf)
         }
     }
@@ -124,23 +179,40 @@ class StopPlayerSessionTest {
     ) {
         startKoin {
             modules(
-                module {
+                modules = module {
                     single<MediaRepository> {
                         object : MediaRepository by FakeMediaRepository() {
-                            override suspend fun updateMediumPosition(uri: String, position: Long) = savePosition(uri, position)
+                            override suspend fun updateMediumPosition(uri: String, position: Long) =
+                                savePosition(
+                                    uri,
+                                    position,
+                                )
                         }
                     }
                 },
             )
         }
         val player = ExoPlayer.Builder(RuntimeEnvironment.getApplication()).build()
-        val session = MediaSession.Builder(RuntimeEnvironment.getApplication(), player).build()
+        val session = MediaSession.Builder(
+            RuntimeEnvironment.getApplication(),
+            player,
+        ).build()
         val service = PlayerService()
-        PlayerService::class.java.getDeclaredField("mediaSession").apply { isAccessible = true }.set(service, session)
+        PlayerService::class.java.getDeclaredField("mediaSession").apply {
+            isAccessible = true
+        }.set(
+            service,
+            session,
+        )
         val callback = PlayerService::class.java.getDeclaredField("mediaSessionCallback")
             .apply { isAccessible = true }.get(service) as MediaSession.Callback
         try {
-            check(player, session, callback, service)
+            check(
+                player,
+                session,
+                callback,
+                service,
+            )
         } finally {
             session.release()
             player.release()

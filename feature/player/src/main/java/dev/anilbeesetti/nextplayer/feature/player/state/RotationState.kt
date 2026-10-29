@@ -17,7 +17,7 @@ import dev.anilbeesetti.nextplayer.feature.player.extensions.isPortrait
 @Composable
 fun rememberRotationState(): RotationState? {
     val activity = LocalActivity.current ?: return null
-    return remember(activity) { RotationState(activity) }
+    return remember(activity) { RotationState(activity = activity) }
 }
 
 @Stable
@@ -39,7 +39,12 @@ fun PlayerOrientationEffect(
     orientationOverride: Int? = null,
 ) {
     val activity = LocalActivity.current ?: return
-    LaunchedEffect(activity, player, screenOrientation, orientationOverride) {
+    LaunchedEffect(
+        activity,
+        player,
+        screenOrientation,
+        orientationOverride,
+    ) {
         if (orientationOverride != null) {
             activity.requestedOrientation = if (orientationOverride == 99999) {
                 activity.videoBasedOrientation(player)
@@ -49,17 +54,28 @@ fun PlayerOrientationEffect(
         } else if (activity.requestedOrientation == ActivityInfo.SCREEN_ORIENTATION_UNSPECIFIED) {
             activity.requestedOrientation = when (screenOrientation) {
                 ScreenOrientation.AUTOMATIC -> ActivityInfo.SCREEN_ORIENTATION_SENSOR
+
                 ScreenOrientation.LANDSCAPE -> ActivityInfo.SCREEN_ORIENTATION_LANDSCAPE
-                ScreenOrientation.LANDSCAPE_REVERSE -> ActivityInfo.SCREEN_ORIENTATION_REVERSE_LANDSCAPE
+
+                ScreenOrientation.LANDSCAPE_REVERSE ->
+                    ActivityInfo.SCREEN_ORIENTATION_REVERSE_LANDSCAPE
+
                 ScreenOrientation.LANDSCAPE_AUTO -> ActivityInfo.SCREEN_ORIENTATION_SENSOR_LANDSCAPE
+
                 ScreenOrientation.PORTRAIT -> ActivityInfo.SCREEN_ORIENTATION_SENSOR_PORTRAIT
-                ScreenOrientation.VIDEO_ORIENTATION -> activity.videoBasedOrientation(player)
+
+                ScreenOrientation.VIDEO_ORIENTATION -> activity.videoBasedOrientation(
+                    player = player,
+                )
             }
         }
         player.listen { events ->
             if ((
                     orientationOverride == 99999 ||
-                        (orientationOverride == null && screenOrientation == ScreenOrientation.VIDEO_ORIENTATION)
+                        (
+                            orientationOverride == null &&
+                                screenOrientation == ScreenOrientation.VIDEO_ORIENTATION
+                            )
                     ) &&
                 events.contains(Player.EVENT_VIDEO_SIZE_CHANGED)
             ) {

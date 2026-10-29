@@ -11,14 +11,14 @@ internal fun crashReportForClipboard(report: String): String {
     if (report.length <= MAX_CLIPBOARD_REPORT_CHARS) return report
 
     val prefixLength = MAX_CLIPBOARD_REPORT_CHARS - CLIPBOARD_REPORT_TRUNCATION_MARKER.length
-    return report.take(prefixLength) + CLIPBOARD_REPORT_TRUNCATION_MARKER
+    return report.take(n = prefixLength) + CLIPBOARD_REPORT_TRUNCATION_MARKER
 }
 
-internal fun copyCrashReportToClipboard(
-    clipboard: ClipboardManager,
-    report: String,
-) {
+internal fun copyCrashReportToClipboard(clipboard: ClipboardManager, report: String) {
     clipboard.setPrimaryClip(
-        ClipData.newPlainText(null, crashReportForClipboard(report)),
+        ClipData.newPlainText(
+            null,
+            crashReportForClipboard(report = report),
+        ),
     )
 }

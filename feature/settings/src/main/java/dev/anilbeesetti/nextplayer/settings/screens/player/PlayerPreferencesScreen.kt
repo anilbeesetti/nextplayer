@@ -42,11 +42,10 @@ import dev.anilbeesetti.nextplayer.core.ui.preview.DayNightPreview
 import dev.anilbeesetti.nextplayer.core.ui.theme.NextPlayerTheme
 import dev.anilbeesetti.nextplayer.settings.composables.OptionsDialog
 import dev.anilbeesetti.nextplayer.settings.extensions.name
+import dev.anilbeesetti.nextplayer.settings.screens.player.PlayerPreferencesUiEvent.UpdatePreferredControlButtonsPosition
 
 @Composable
-fun PlayerPreferencesScreen(
-    viewModel: PlayerPreferencesViewModel,
-) {
+fun PlayerPreferencesScreen(viewModel: PlayerPreferencesViewModel) {
     val state by viewModel.state.collectAsStateWithLifecycle()
 
     PlayerPreferencesScreenContent(
@@ -55,7 +54,10 @@ fun PlayerPreferencesScreen(
     )
 }
 
-@OptIn(ExperimentalMaterial3Api::class, ExperimentalMaterial3ExpressiveApi::class)
+@OptIn(
+    ExperimentalMaterial3Api::class,
+    ExperimentalMaterial3ExpressiveApi::class,
+)
 @Composable
 private fun PlayerPreferencesScreenContent(
     state: PlayerPreferencesUiState,
@@ -67,7 +69,12 @@ private fun PlayerPreferencesScreenContent(
             NextTopAppBar(
                 title = stringResource(id = R.string.player_name),
                 navigationIcon = {
-                    FilledTonalIconButton(onClick = { onAction(PlayerPreferencesUiEvent.NavigateUp) }, modifier = Modifier.tvFocusDown(listFocusRequester)) {
+                    FilledTonalIconButton(
+                        onClick = {
+                            onAction(PlayerPreferencesUiEvent.NavigateUp)
+                        },
+                        modifier = Modifier.tvFocusDown(target = listFocusRequester),
+                    ) {
                         Icon(
                             imageVector = NextIcons.ArrowBack,
                             contentDescription = stringResource(id = R.string.navigate_up),
@@ -82,8 +89,8 @@ private fun PlayerPreferencesScreenContent(
             modifier = Modifier
                 .fillMaxSize()
                 .verticalScroll(state = rememberScrollState())
-                .tvListFocus(listFocusRequester)
-                .padding(innerPadding)
+                .tvListFocus(focusRequester = listFocusRequester)
+                .padding(paddingValues = innerPadding)
                 .padding(horizontal = 16.dp),
         ) {
             ListSectionTitle(text = stringResource(id = R.string.interface_name))
@@ -103,19 +110,38 @@ private fun PlayerPreferencesScreenContent(
                     description = if (state.preferences.controllerAutoHideTimeout == 0) {
                         stringResource(R.string.off)
                     } else {
-                        stringResource(R.string.seconds, state.preferences.controllerAutoHideTimeout)
+                        stringResource(
+                            R.string.seconds,
+                            state.preferences.controllerAutoHideTimeout,
+                        )
                     },
                     icon = NextIcons.Timer,
                     value = state.preferences.controllerAutoHideTimeout.toFloat(),
                     valueRange = 0.0f..600.0f,
-                    onValueChange = { onAction(PlayerPreferencesUiEvent.UpdateControlAutoHideTimeout(it.toInt())) },
-                    onReset = { onAction(PlayerPreferencesUiEvent.UpdateControlAutoHideTimeout(PlayerPreferences.DEFAULT_CONTROLLER_AUTO_HIDE_TIMEOUT)) },
+                    onValueChange = {
+                        onAction(PlayerPreferencesUiEvent.UpdateControlAutoHideTimeout(it.toInt()))
+                    },
+                    onReset = {
+                        onAction(
+                            PlayerPreferencesUiEvent.UpdateControlAutoHideTimeout(
+                                PlayerPreferences.DEFAULT_CONTROLLER_AUTO_HIDE_TIMEOUT,
+                            ),
+                        )
+                    },
                     isLastItem = true,
                     trailingContent = {
-                        FilledIconButton(onClick = { onAction(PlayerPreferencesUiEvent.UpdateControlAutoHideTimeout(PlayerPreferences.DEFAULT_CONTROLLER_AUTO_HIDE_TIMEOUT)) }) {
+                        FilledIconButton(onClick = {
+                            onAction(
+                                PlayerPreferencesUiEvent.UpdateControlAutoHideTimeout(
+                                    PlayerPreferences.DEFAULT_CONTROLLER_AUTO_HIDE_TIMEOUT,
+                                ),
+                            )
+                        }) {
                             Icon(
                                 imageVector = NextIcons.History,
-                                contentDescription = stringResource(id = R.string.reset_controller_timeout),
+                                contentDescription = stringResource(
+                                    id = R.string.reset_controller_timeout,
+                                ),
                             )
                         }
                     },
@@ -130,7 +156,13 @@ private fun PlayerPreferencesScreenContent(
                     title = stringResource(id = R.string.resume),
                     description = stringResource(id = R.string.resume_description),
                     icon = NextIcons.Resume,
-                    onClick = { onAction(PlayerPreferencesUiEvent.ShowDialog(PlayerPreferenceDialog.ResumeDialog)) },
+                    onClick = {
+                        onAction(
+                            PlayerPreferencesUiEvent.ShowDialog(
+                                value = PlayerPreferenceDialog.ResumeDialog,
+                            ),
+                        )
+                    },
                     isFirstItem = true,
                 )
                 PreferenceSlider(
@@ -139,13 +171,23 @@ private fun PlayerPreferencesScreenContent(
                     icon = NextIcons.Speed,
                     value = state.preferences.defaultPlaybackSpeed,
                     valueRange = 0.2f..4.0f,
-                    onValueChange = { onAction(PlayerPreferencesUiEvent.UpdateDefaultPlaybackSpeed(it)) },
-                    onReset = { onAction(PlayerPreferencesUiEvent.UpdateDefaultPlaybackSpeed(1f)) },
+                    onValueChange = {
+                        onAction(PlayerPreferencesUiEvent.UpdateDefaultPlaybackSpeed(value = it))
+                    },
+                    onReset = {
+                        onAction(PlayerPreferencesUiEvent.UpdateDefaultPlaybackSpeed(value = 1f))
+                    },
                     trailingContent = {
-                        FilledIconButton(onClick = { onAction(PlayerPreferencesUiEvent.UpdateDefaultPlaybackSpeed(1f)) }) {
+                        FilledIconButton(onClick = {
+                            onAction(
+                                PlayerPreferencesUiEvent.UpdateDefaultPlaybackSpeed(value = 1f),
+                            )
+                        }) {
                             Icon(
                                 imageVector = NextIcons.History,
-                                contentDescription = stringResource(id = R.string.reset_default_playback_speed),
+                                contentDescription = stringResource(
+                                    id = R.string.reset_default_playback_speed,
+                                ),
                             )
                         }
                     },
@@ -207,7 +249,11 @@ private fun PlayerPreferencesScreenContent(
                     description = state.preferences.playerScreenOrientation.name(),
                     icon = NextIcons.Rotation,
                     onClick = {
-                        onAction(PlayerPreferencesUiEvent.ShowDialog(PlayerPreferenceDialog.PlayerScreenOrientationDialog))
+                        onAction(
+                            PlayerPreferencesUiEvent.ShowDialog(
+                                value = PlayerPreferenceDialog.PlayerScreenOrientationDialog,
+                            ),
+                        )
                     },
                     isLastItem = true,
                 )
@@ -219,15 +265,19 @@ private fun PlayerPreferencesScreenContent(
                 PlayerPreferenceDialog.ResumeDialog -> {
                     OptionsDialog(
                         text = stringResource(id = R.string.resume),
-                        onDismissClick = { onAction(PlayerPreferencesUiEvent.ShowDialog(null)) },
+                        onDismissClick = {
+                            onAction(PlayerPreferencesUiEvent.ShowDialog(value = null))
+                        },
                     ) {
                         items(Resume.entries.toTypedArray()) {
                             RadioTextButton(
                                 text = it.name(),
                                 selected = (it == state.preferences.resume),
                                 onClick = {
-                                    onAction(PlayerPreferencesUiEvent.UpdatePlaybackResume(it))
-                                    onAction(PlayerPreferencesUiEvent.ShowDialog(null))
+                                    onAction(
+                                        PlayerPreferencesUiEvent.UpdatePlaybackResume(resume = it),
+                                    )
+                                    onAction(PlayerPreferencesUiEvent.ShowDialog(value = null))
                                 },
                             )
                         }
@@ -237,15 +287,21 @@ private fun PlayerPreferencesScreenContent(
                 PlayerPreferenceDialog.PlayerScreenOrientationDialog -> {
                     OptionsDialog(
                         text = stringResource(id = R.string.player_screen_orientation),
-                        onDismissClick = { onAction(PlayerPreferencesUiEvent.ShowDialog(null)) },
+                        onDismissClick = {
+                            onAction(PlayerPreferencesUiEvent.ShowDialog(value = null))
+                        },
                     ) {
                         items(ScreenOrientation.entries.toTypedArray()) {
                             RadioTextButton(
                                 text = it.name(),
                                 selected = it == state.preferences.playerScreenOrientation,
                                 onClick = {
-                                    onAction(PlayerPreferencesUiEvent.UpdatePreferredPlayerOrientation(it))
-                                    onAction(PlayerPreferencesUiEvent.ShowDialog(null))
+                                    onAction(
+                                        PlayerPreferencesUiEvent.UpdatePreferredPlayerOrientation(
+                                            value = it,
+                                        ),
+                                    )
+                                    onAction(PlayerPreferencesUiEvent.ShowDialog(value = null))
                                 },
                             )
                         }
@@ -255,15 +311,21 @@ private fun PlayerPreferencesScreenContent(
                 PlayerPreferenceDialog.ControlButtonsDialog -> {
                     OptionsDialog(
                         text = stringResource(id = R.string.control_buttons_alignment),
-                        onDismissClick = { onAction(PlayerPreferencesUiEvent.ShowDialog(null)) },
+                        onDismissClick = {
+                            onAction(PlayerPreferencesUiEvent.ShowDialog(value = null))
+                        },
                     ) {
                         items(ControlButtonsPosition.entries.toTypedArray()) {
                             RadioTextButton(
                                 text = it.name(),
                                 selected = it == state.preferences.controlButtonsPosition,
                                 onClick = {
-                                    onAction(PlayerPreferencesUiEvent.UpdatePreferredControlButtonsPosition(it))
-                                    onAction(PlayerPreferencesUiEvent.ShowDialog(null))
+                                    onAction(
+                                        UpdatePreferredControlButtonsPosition(
+                                            value = it,
+                                        ),
+                                    )
+                                    onAction(PlayerPreferencesUiEvent.ShowDialog(value = null))
                                 },
                             )
                         }

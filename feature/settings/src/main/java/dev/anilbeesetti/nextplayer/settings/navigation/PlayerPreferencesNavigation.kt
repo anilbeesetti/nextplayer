@@ -14,7 +14,7 @@ import org.koin.core.parameter.parametersOf
 object PlayerPreferencesRoute : NavKey
 
 fun NavBackStack<NavKey>.navigateToPlayerPreferences() {
-    add(PlayerPreferencesRoute)
+    add(element = PlayerPreferencesRoute)
 }
 
 fun EntryProviderScope<NavKey>.playerPreferencesEntry(onNavigateUp: () -> Unit) {

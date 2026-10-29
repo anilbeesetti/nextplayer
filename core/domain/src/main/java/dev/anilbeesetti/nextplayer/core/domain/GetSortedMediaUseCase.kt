@@ -40,8 +40,8 @@ class GetSortedMediaUseCase(
      * @return A flow emitting [MediaHolder] with videos and folders appropriate for the view mode.
      */
     @OptIn(ExperimentalCoroutinesApi::class)
-    operator fun invoke(folderPath: String? = null): Flow<MediaHolder?> {
-        return preferencesRepository.applicationPreferences.flatMapLatest { preferences ->
+    operator fun invoke(folderPath: String? = null): Flow<MediaHolder?> =
+        preferencesRepository.applicationPreferences.flatMapLatest { preferences ->
             when (preferences.mediaViewMode) {
                 MediaViewMode.FOLDER_TREE -> {
                     getFolderTreeMediaUseCase(folderPath)
@@ -51,24 +51,32 @@ class GetSortedMediaUseCase(
                     if (folderPath == null) {
                         // At root: show all folders as a flat list
                         getSortedFoldersUseCase().map { folders ->
-                            MediaHolder(videos = emptyList(), folders = folders)
+                            MediaHolder(
+                                videos = emptyList(),
+                                folders = folders,
+                            )
                         }
                     } else {
                         getSortedVideosUseCase(folderPath).map { videos ->
                             val directVideos = videos.filter { it.parentPath == folderPath }
-                            MediaHolder(videos = directVideos, folders = emptyList())
+                            MediaHolder(
+                                videos = directVideos,
+                                folders = emptyList(),
+                            )
                         }
                     }
                 }
 
                 MediaViewMode.VIDEOS -> {
                     getSortedVideosUseCase(folderPath).map { videos ->
-                        MediaHolder(videos = videos, folders = emptyList())
+                        MediaHolder(
+                            videos = videos,
+                            folders = emptyList(),
+                        )
                     }
                 }
             }
-        }.flowOn(defaultDispatcher)
-    }
+        }.flowOn(context = defaultDispatcher)
 }
 
 /**
@@ -77,7 +85,4 @@ class GetSortedMediaUseCase(
  * @property videos List of video items to display.
  * @property folders List of folder items to display.
  */
-data class MediaHolder(
-    val videos: List<Video>,
-    val folders: List<Folder>,
-)
+data class MediaHolder(val videos: List<Video>, val folders: List<Folder>)

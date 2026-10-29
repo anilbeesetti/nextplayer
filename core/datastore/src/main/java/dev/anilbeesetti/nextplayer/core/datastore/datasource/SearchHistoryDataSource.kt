@@ -10,7 +10,8 @@ import org.koin.core.annotation.Named
 
 @Factory(binds = [])
 class SearchHistoryDataSource(
-    @Named(DiQualifiers.SEARCH_HISTORY) private val searchHistoryDataStore: DataStore<SearchHistory>,
+    @Named(DiQualifiers.SEARCH_HISTORY) private val searchHistoryDataStore:
+    DataStore<SearchHistory>,
 ) {
 
     companion object {
@@ -19,13 +20,14 @@ class SearchHistoryDataSource(
 
     val searchHistory: Flow<SearchHistory> = searchHistoryDataStore.data
 
-    suspend fun update(
-        transform: suspend (SearchHistory) -> SearchHistory,
-    ) {
+    suspend fun update(transform: suspend (SearchHistory) -> SearchHistory) {
         try {
-            searchHistoryDataStore.updateData(transform)
+            searchHistoryDataStore.updateData(transform = transform)
         } catch (ioException: Exception) {
-            Logger.logError(TAG, "Failed to update search history: $ioException")
+            Logger.logError(
+                tag = TAG,
+                message = "Failed to update search history: $ioException",
+            )
         }
     }
 }

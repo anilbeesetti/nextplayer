@@ -18,8 +18,17 @@ internal class SftpOwnedInputStream(
     private val closed = AtomicBoolean(false)
 
     override fun read(): Int {
-        val byte = ByteArray(1)
-        return if (read(byte, 0, 1) == -1) -1 else byte[0].toInt() and 0xFF
+        val byte = ByteArray(size = 1)
+        return if (read(
+                byte,
+                0,
+                1,
+            ) == -1
+        ) {
+            -1
+        } else {
+            byte[0].toInt() and 0xFF
+        }
     }
 
     override fun read(buffer: ByteArray, offset: Int, length: Int): Int {
@@ -29,13 +38,24 @@ internal class SftpOwnedInputStream(
             )
         }
         if (length == 0) return 0
-        val bytesRead = reader(position, buffer, offset, length)
+        val bytesRead = reader(
+            position,
+            buffer,
+            offset,
+            length,
+        )
         if (bytesRead > 0) position += bytesRead
         return bytesRead
     }
 
     override fun close() {
-        if (!closed.compareAndSet(false, true)) return
+        if (!closed.compareAndSet(
+                false,
+                true,
+            )
+        ) {
+            return
+        }
         runCatching { remoteFile.close() }
         runCatching { sftpClient.close() }
         runCatching { sshClient.close() }

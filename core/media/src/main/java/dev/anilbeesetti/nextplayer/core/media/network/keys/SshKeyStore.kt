@@ -3,10 +3,7 @@ package dev.anilbeesetti.nextplayer.core.media.network.keys
 import android.net.Uri
 import java.io.File
 
-data class StagedSshKey(
-    val fileName: String,
-    val displayName: String,
-)
+data class StagedSshKey(val fileName: String, val displayName: String)
 
 interface SshKeyStore {
     /**
@@ -21,8 +18,8 @@ interface SshKeyStore {
     suspend fun delete(fileName: String)
 
     companion object {
-        private val VALID_FILE_NAME = Regex("[0-9a-fA-F-]+\\.key")
+        private val VALID_FILE_NAME = Regex(pattern = "[0-9a-fA-F-]+\\.key")
 
-        fun isValidFileName(fileName: String): Boolean = VALID_FILE_NAME.matches(fileName)
+        fun isValidFileName(fileName: String): Boolean = VALID_FILE_NAME.matches(input = fileName)
     }
 }

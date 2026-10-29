@@ -44,25 +44,36 @@ class PlayerSeekbarScrubbingTest {
     @Test
     fun losingFocusBeforeSeekKeyUpResumesPlaybackForBothStyles() {
         withSeekbar { player, sliderFocus, otherFocus, setMaterial, _ ->
-            val slider = composeRule.onNode(SemanticsMatcher.keyIsDefined(SemanticsProperties.ProgressBarRangeInfo))
-            for (material in listOf(false, true)) {
-                composeRule.runOnIdle {
-                    setMaterial(material)
-                }
+            val slider = composeRule.onNode(
+                SemanticsMatcher.keyIsDefined(SemanticsProperties.ProgressBarRangeInfo),
+            )
+            for (material in listOf(
+                false,
+                true,
+            )) {
+                composeRule.runOnIdle { setMaterial(material) }
                 composeRule.runOnIdle { sliderFocus.requestFocus() }
                 slider.performKeyInput { keyDown(Key.DirectionRight) }
                 composeRule.runOnIdle {
                     assertTrue(player.isScrubbingModeEnabled)
-                    assertEquals(Player.PLAYBACK_SUPPRESSION_REASON_SCRUBBING, player.playbackSuppressionReason)
+                    assertEquals(
+                        Player.PLAYBACK_SUPPRESSION_REASON_SCRUBBING,
+                        player.playbackSuppressionReason,
+                    )
                     otherFocus.requestFocus()
                 }
                 composeRule.runOnIdle {
                     assertFalse(player.isScrubbingModeEnabled)
-                    assertEquals(Player.PLAYBACK_SUPPRESSION_REASON_NONE, player.playbackSuppressionReason)
+                    assertEquals(
+                        Player.PLAYBACK_SUPPRESSION_REASON_NONE,
+                        player.playbackSuppressionReason,
+                    )
                     assertTrue(player.playWhenReady)
                 }
                 // Key up now reaches the other control, not the slider.
-                composeRule.onNode(isFocused()).performKeyInput { keyUp(Key.DirectionRight) }
+                composeRule.onNode(matcher = isFocused()).performKeyInput {
+                    keyUp(Key.DirectionRight)
+                }
             }
         }
     }
@@ -70,8 +81,13 @@ class PlayerSeekbarScrubbingTest {
     @Test
     fun normalKeyReleasePreservesPausedPlaybackForBothStyles() {
         withSeekbar { player, sliderFocus, _, setMaterial, _ ->
-            val slider = composeRule.onNode(SemanticsMatcher.keyIsDefined(SemanticsProperties.ProgressBarRangeInfo))
-            for (material in listOf(false, true)) {
+            val slider = composeRule.onNode(
+                SemanticsMatcher.keyIsDefined(SemanticsProperties.ProgressBarRangeInfo),
+            )
+            for (material in listOf(
+                false,
+                true,
+            )) {
                 composeRule.runOnIdle {
                     player.pause()
                     setMaterial(material)
@@ -91,15 +107,30 @@ class PlayerSeekbarScrubbingTest {
     @Test
     fun removingSeekbarDuringTouchScrubResumesPlaybackForBothStyles() {
         withSeekbar { player, _, _, setMaterial, setVisible ->
-            val slider = composeRule.onNode(SemanticsMatcher.keyIsDefined(SemanticsProperties.ProgressBarRangeInfo))
-            for (material in listOf(false, true)) {
+            val slider = composeRule.onNode(
+                SemanticsMatcher.keyIsDefined(SemanticsProperties.ProgressBarRangeInfo),
+            )
+            for (material in listOf(
+                false,
+                true,
+            )) {
                 composeRule.runOnIdle {
                     setMaterial(material)
                     setVisible(true)
                 }
                 slider.performTouchInput {
-                    down(Offset(width * 0.2f, centerY))
-                    moveTo(Offset(width * 0.7f, centerY))
+                    down(
+                        position = Offset(
+                            x = width * 0.2f,
+                            y = centerY,
+                        ),
+                    )
+                    moveTo(
+                        position = Offset(
+                            x = width * 0.7f,
+                            y = centerY,
+                        ),
+                    )
                 }
                 composeRule.runOnIdle {
                     assertTrue(player.isScrubbingModeEnabled)
@@ -107,7 +138,10 @@ class PlayerSeekbarScrubbingTest {
                 }
                 composeRule.runOnIdle {
                     assertFalse(player.isScrubbingModeEnabled)
-                    assertEquals(Player.PLAYBACK_SUPPRESSION_REASON_NONE, player.playbackSuppressionReason)
+                    assertEquals(
+                        Player.PLAYBACK_SUPPRESSION_REASON_NONE,
+                        player.playbackSuppressionReason,
+                    )
                     assertTrue(player.playWhenReady)
                 }
                 composeRule.onRoot().performTouchInput { cancel() }
@@ -116,42 +150,65 @@ class PlayerSeekbarScrubbingTest {
     }
 
     private fun withSeekbar(
-        check: (ExoPlayer, FocusRequester, FocusRequester, (Boolean) -> Unit, (Boolean) -> Unit) -> Unit,
+        check: (
+            ExoPlayer,
+            FocusRequester,
+            FocusRequester,
+            (Boolean) -> Unit,
+            (Boolean) -> Unit,
+        ) -> Unit,
     ) {
-        val player = composeRule.runOnIdle { ExoPlayer.Builder(composeRule.activity).build().apply { play() } }
+        val player = composeRule.runOnIdle {
+            ExoPlayer.Builder(composeRule.activity).build().apply { play() }
+        }
         val sliderFocus = FocusRequester()
         val otherFocus = FocusRequester()
-        var position by mutableFloatStateOf(100f)
-        var material by mutableStateOf(false)
-        var visible by mutableStateOf(true)
+        var position by mutableFloatStateOf(value = 100f)
+        var material by mutableStateOf(value = false)
+        var visible by mutableStateOf(value = true)
         try {
             composeRule.setContent {
                 NextPlayerTheme {
-                    CompositionLocalProvider(LocalUseMaterialYouControls provides material) {
+                    CompositionLocalProvider(
+                        value = LocalUseMaterialYouControls provides material,
+                    ) {
                         Column {
                             if (visible) {
                                 PlayerSeekbar(
-                                    modifier = Modifier.focusRequester(sliderFocus),
+                                    modifier = Modifier.focusRequester(
+                                        focusRequester = sliderFocus,
+                                    ),
                                     position = position,
                                     duration = 1_000f,
                                     chapters = emptyList(),
                                     onSeek = {
                                         position = it
-                                        player.setIsScrubbingModeEnabled(true)
+                                        player.setIsScrubbingModeEnabled(enabled = true)
                                     },
-                                    onSeekFinished = { player.setIsScrubbingModeEnabled(false) },
+                                    onSeekFinished = {
+                                        player.setIsScrubbingModeEnabled(enabled = false)
+                                    },
                                 )
                             }
-                            Button(modifier = Modifier.focusRequester(otherFocus), onClick = {}) { Text("Other control") }
+                            Button(
+                                modifier = Modifier.focusRequester(
+                                    focusRequester = otherFocus,
+                                ),
+                                onClick = {},
+                            ) { Text(text = "Other control") }
                         }
                     }
                 }
             }
-            check(player, sliderFocus, otherFocus, { material = it }, { visible = it })
+            check(
+                player,
+                sliderFocus,
+                otherFocus,
+                { material = it },
+                { visible = it },
+            )
         } finally {
-            composeRule.runOnIdle {
-                visible = false
-            }
+            composeRule.runOnIdle { visible = false }
             composeRule.runOnIdle { player.release() }
         }
     }

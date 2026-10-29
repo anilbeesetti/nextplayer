@@ -14,7 +14,7 @@ import org.koin.core.parameter.parametersOf
 object AudioPreferencesRoute : NavKey
 
 fun NavBackStack<NavKey>.navigateToAudioPreferences() {
-    add(AudioPreferencesRoute)
+    add(element = AudioPreferencesRoute)
 }
 
 fun EntryProviderScope<NavKey>.audioPreferencesEntry(onNavigateUp: () -> Unit) {

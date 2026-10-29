@@ -18,8 +18,8 @@ internal fun MediaVideo.toVideo(mediaState: MediumStateEntity? = null) = Video(
     parentPath = parentPath,
     dateModified = dateModified,
     dateAdded = dateAdded,
-    formattedDuration = Utils.formatDurationMillis(duration),
-    formattedFileSize = Utils.formatFileSize(size),
+    formattedDuration = Utils.formatDurationMillis(millis = duration),
+    formattedFileSize = Utils.formatFileSize(size = size),
     playbackPosition = mediaState?.playbackPosition,
     lastPlayedAt = mediaState?.lastPlayedTime?.let { Date(it) },
 )

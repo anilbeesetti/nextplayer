@@ -19,7 +19,10 @@ class Migration7To8Test {
 
     @Test
     fun migrationPreservesExistingDataAndCreatesFinalPlaylistTables() {
-        helper.createDatabase(TEST_DATABASE, 7).apply {
+        helper.createDatabase(
+            name = TEST_DATABASE,
+            version = 7,
+        ).apply {
             execSQL(
                 """
                 INSERT INTO media_state (
@@ -31,22 +34,35 @@ class Migration7To8Test {
         }
 
         val migrated = helper.runMigrationsAndValidate(
-            TEST_DATABASE,
-            8,
-            true,
+            name = TEST_DATABASE,
+            version = 8,
+            validateDroppedTables = true,
             MediaDatabase.MIGRATION_7_8,
         )
 
-        migrated.query("SELECT playback_position FROM media_state WHERE uri = 'content://existing'").use {
+        migrated.query(
+            query = "SELECT playback_position FROM media_state WHERE uri = 'content://existing'",
+        ).use {
             assertTrue(it.moveToFirst())
-            assertEquals(42L, it.getLong(0))
+            assertEquals(
+                42L,
+                it.getLong(0),
+            )
         }
-        val columns = migrated.query("PRAGMA table_info(`playlist_item`)").use { cursor ->
+        val columns = migrated.query(query = "PRAGMA table_info(`playlist_item`)").use { cursor ->
             buildSet {
                 while (cursor.moveToNext()) add(cursor.getString(1))
             }
         }
-        assertEquals(setOf("playlist_id", "uri", "position", "last_played_at"), columns)
+        assertEquals(
+            setOf(
+                "playlist_id",
+                "uri",
+                "position",
+                "last_played_at",
+            ),
+            columns,
+        )
         migrated.close()
     }
 

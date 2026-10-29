@@ -19,8 +19,8 @@ internal data class CreateM3UCall(
 )
 
 internal class FakePlaylistRepository : PlaylistRepository {
-    val playlists = MutableStateFlow<List<PlaylistSummary>>(emptyList())
-    val playlist = MutableStateFlow<PlaylistRecord?>(null)
+    val playlists = MutableStateFlow<List<PlaylistSummary>>(value = emptyList())
+    val playlist = MutableStateFlow<PlaylistRecord?>(value = null)
     val createM3UCalls = mutableListOf<CreateM3UCall>()
     val replacementCalls = mutableListOf<Pair<Long, List<M3UPlaylistItem>>>()
     var createM3UFailure: Throwable? = null
@@ -40,15 +40,16 @@ internal class FakePlaylistRepository : PlaylistRepository {
         source: String,
         playlist: M3UPlaylist,
     ): Long {
-        createM3UCalls += CreateM3UCall(type, source, playlist)
+        createM3UCalls += CreateM3UCall(
+            type = type,
+            source = source,
+            playlist = playlist,
+        )
         createM3UFailure?.let { throw it }
         return createdId
     }
 
-    override suspend fun replaceM3UItems(
-        playlistId: Long,
-        items: List<M3UPlaylistItem>,
-    ) {
+    override suspend fun replaceM3UItems(playlistId: Long, items: List<M3UPlaylistItem>) {
         replacementCalls += playlistId to items
         replaceFailure?.let { throw it }
     }

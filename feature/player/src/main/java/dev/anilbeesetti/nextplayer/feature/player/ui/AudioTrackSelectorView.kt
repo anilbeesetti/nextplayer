@@ -43,12 +43,19 @@ fun BoxScope.AudioTrackSelectorView(
     onSelectAudioClick: () -> Unit,
     onDismiss: () -> Unit,
 ) {
-    val audioTracksState = rememberTracksState(player, C.TRACK_TYPE_AUDIO)
+    val audioTracksState = rememberTracksState(
+        player = player,
+        C.TRACK_TYPE_AUDIO,
+    )
     val context = LocalContext.current
-    var audioNames by remember { mutableStateOf(emptyList<String>()) }
-    LaunchedEffect(player, audioTracksState.tracks) {
+    var audioNames by remember { mutableStateOf(value = emptyList<String>()) }
+    LaunchedEffect(
+        key1 = player,
+        audioTracksState.tracks,
+    ) {
         val uris = player.currentMediaItem?.mediaMetadata?.externalAudio.orEmpty()
-        audioNames = withContext(Dispatchers.IO) { uris.map { context.getFilenameFromUri(it) } }
+        audioNames =
+            withContext(Dispatchers.IO) { uris.map { context.getFilenameFromUri(uri = it) } }
     }
 
     OverlayView(
@@ -58,7 +65,7 @@ fun BoxScope.AudioTrackSelectorView(
     ) {
         Column(
             modifier = Modifier
-                .verticalScroll(rememberScrollState())
+                .verticalScroll(state = rememberScrollState())
                 .padding(bottom = 24.dp)
                 .padding(horizontal = 24.dp)
                 .selectableGroup(),
@@ -67,10 +74,13 @@ fun BoxScope.AudioTrackSelectorView(
                 RadioButtonRow(
                     selected = track.isSelected,
                     text = track.mediaTrackGroup.externalAudioIndex
-                        ?.let { audioNames.getOrNull(it) }
-                        ?: track.mediaTrackGroup.getName(C.TRACK_TYPE_AUDIO, index),
+                        ?.let { audioNames.getOrNull(index = it) }
+                        ?: track.mediaTrackGroup.getName(
+                            C.TRACK_TYPE_AUDIO,
+                            index = index,
+                        ),
                     onClick = {
-                        audioTracksState.switchTrack(index)
+                        audioTracksState.switchTrack(index = index)
                         onDismiss()
                     },
                 )
@@ -79,7 +89,7 @@ fun BoxScope.AudioTrackSelectorView(
                 selected = audioTracksState.tracks.none { it.isSelected },
                 text = stringResource(R.string.disable),
                 onClick = {
-                    audioTracksState.switchTrack(-1)
+                    audioTracksState.switchTrack(index = -1)
                     onDismiss()
                 },
             )
@@ -90,9 +100,7 @@ fun BoxScope.AudioTrackSelectorView(
                     onSelectAudioClick()
                     onDismiss()
                 },
-            ) {
-                Text(text = stringResource(R.string.open_audio))
-            }
+            ) { Text(text = stringResource(R.string.open_audio)) }
         }
     }
 }

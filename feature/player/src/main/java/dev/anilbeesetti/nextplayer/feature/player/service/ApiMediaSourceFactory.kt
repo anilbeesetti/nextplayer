@@ -14,10 +14,18 @@ import dev.anilbeesetti.nextplayer.feature.player.utils.apiHeaders
 internal class ApiMediaSourceFactory(
     private val context: Context,
     private val dataSourceFactory: DataSource.Factory,
-) : MediaSource.Factory by DefaultMediaSourceFactory(context).setDataSourceFactory(dataSourceFactory) {
-    override fun createMediaSource(mediaItem: MediaItem): MediaSource = DefaultMediaSourceFactory(context)
-        .setDataSourceFactory(RequestHeadersDataSourceFactory(dataSourceFactory, mediaItem.apiHeaders))
-        .createMediaSource(mediaItem)
+) : MediaSource.Factory by DefaultMediaSourceFactory(
+    context,
+).setDataSourceFactory(dataSourceFactory) {
+    override fun createMediaSource(mediaItem: MediaItem): MediaSource =
+        DefaultMediaSourceFactory(context)
+            .setDataSourceFactory(
+                RequestHeadersDataSourceFactory(
+                    dataSourceFactory,
+                    mediaItem.apiHeaders,
+                ),
+            )
+            .createMediaSource(mediaItem)
 }
 
 @UnstableApi
@@ -29,8 +37,14 @@ internal class RequestHeadersDataSourceFactory(
         val source = delegate.createDataSource()
         return object : DataSource by source {
             override fun open(dataSpec: DataSpec): Long = source.open(
-                if (dataSpec.uri.scheme in listOf("http", "https")) {
-                    dataSpec.buildUpon().setHttpRequestHeaders(headers + dataSpec.httpRequestHeaders).build()
+                if (dataSpec.uri.scheme in listOf(
+                        "http",
+                        "https",
+                    )
+                ) {
+                    dataSpec.buildUpon().setHttpRequestHeaders(
+                        headers + dataSpec.httpRequestHeaders,
+                    ).build()
                 } else {
                     dataSpec
                 },

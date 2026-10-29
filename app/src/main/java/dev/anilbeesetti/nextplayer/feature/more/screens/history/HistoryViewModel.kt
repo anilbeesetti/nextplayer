@@ -23,22 +23,19 @@ class HistoryViewModel(
     @InjectedParam internal var output: Output,
 ) : MviViewModel<HistoryUiState, HistoryAction>() {
 
-    data class Output(
-        val navigateUp: () -> Unit,
-        val playVideo: (String) -> Unit,
-    )
+    data class Output(val navigateUp: () -> Unit, val playVideo: (String) -> Unit)
 
-    private val stateInternal = MutableStateFlow(HistoryUiState())
+    private val stateInternal = MutableStateFlow(value = HistoryUiState())
     override val state: StateFlow<HistoryUiState> = stateInternal.asStateFlow()
 
     init {
         viewModelScope.launch {
             mediaRepository.observePlaybackHistory()
                 .catch { error ->
-                    stateInternal.update { it.copy(history = DataState.Error(error)) }
+                    stateInternal.update { it.copy(history = DataState.Error(value = error)) }
                 }
                 .collect { history ->
-                    stateInternal.update { it.copy(history = DataState.Success(history)) }
+                    stateInternal.update { it.copy(history = DataState.Success(value = history)) }
                 }
         }
         viewModelScope.launch {
@@ -51,9 +48,11 @@ class HistoryViewModel(
     override fun onAction(action: HistoryAction) {
         when (action) {
             is HistoryAction.NavigateUp -> output.navigateUp()
+
             is HistoryAction.PlayVideo -> output.playVideo(action.uri)
 
             is HistoryAction.ClearHistory -> clearHistory()
+
             is HistoryAction.SetHistoryEnabled -> viewModelScope.launch {
                 preferencesRepository.updateApplicationPreferences {
                     it.copy(isHistoryPaused = !action.enabled)

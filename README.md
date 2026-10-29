@@ -102,6 +102,12 @@ implicit VIEW intents with an appropriate MIME type.
 | `suppress_error_message` | Skips a failed video when another is available, otherwise closes without an error dialog. |
 | `secure_uri` | Next Player has no URI property dialog; playback titles do not expose the full URI. |
 
+Set `sticky=true` to keep playback running when the activity goes into the
+background, or `sticky=false` to disable automatic background playback for that
+request. This does not launch the player directly into the background; exiting
+with Back still stops playback. Playback speed follows the player session and
+default speed setting; the intent API currently has no playback-speed extra.
+
 Results use action `com.mxtech.intent.result.VIEW`, the last media URI as data,
 `end_by` (`user` or `playback_completion`), and the actual `decode_mode` when known.
 For incomplete playback, known `position` and `duration` are integer milliseconds;

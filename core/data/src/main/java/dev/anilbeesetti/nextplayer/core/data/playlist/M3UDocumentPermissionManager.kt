@@ -5,15 +5,10 @@ import android.content.Intent
 import android.net.Uri
 import org.koin.core.annotation.Factory
 
-data class PersistedM3UGrant(
-    val uri: Uri,
-    val newlyPersisted: Boolean,
-)
+data class PersistedM3UGrant(val uri: Uri, val newlyPersisted: Boolean)
 
 @Factory
-class M3UDocumentPermissionManager(
-    private val context: Context,
-) {
+class M3UDocumentPermissionManager(private val context: Context) {
     fun acquire(uri: Uri): Result<PersistedM3UGrant> = runCatching {
         val alreadyPersisted = context.contentResolver.persistedUriPermissions.any {
             it.uri == uri && it.isReadPermission
@@ -24,7 +19,10 @@ class M3UDocumentPermissionManager(
                 Intent.FLAG_GRANT_READ_URI_PERMISSION,
             )
         }
-        PersistedM3UGrant(uri = uri, newlyPersisted = !alreadyPersisted)
+        PersistedM3UGrant(
+            uri = uri,
+            newlyPersisted = !alreadyPersisted,
+        )
     }
 
     fun release(grant: PersistedM3UGrant) {

@@ -75,7 +75,13 @@ class PlayerApi(private val intent: Intent) {
             ?.map(Uri::toString).orEmpty()
         if (playlist.isEmpty()) return emptyList()
         val requested = intent.data?.toString()
-        return if (requested != null && requested !in playlist) listOf(requested) + playlist else playlist
+        return if (requested != null &&
+            requested !in playlist
+        ) {
+            listOf(requested) + playlist
+        } else {
+            playlist
+        }
     }
 
     fun createMediaItems(
@@ -85,7 +91,10 @@ class PlayerApi(private val intent: Intent) {
     ): List<MediaItem> {
         val suppliedUris = extras?.getParcelableUriArray(API_PLAYLIST).orEmpty()
         val suppliedIndices = suppliedUris.withIndex()
-            .groupBy({ it.value?.toString() }, { it.index })
+            .groupBy(
+                { it.value?.toString() },
+                { it.index },
+            )
             .mapValues { ArrayDeque(it.value) }
         val names = value("video_list.name") as? Array<*>
         val headers = Bundle().apply {
@@ -97,7 +106,10 @@ class PlayerApi(private val intent: Intent) {
                     name.none { it <= ' ' || it >= '\u007f' || it == ':' } &&
                     content.none { it == '\r' || it == '\n' || it == '\u0000' }
                 ) {
-                    putString(name, content)
+                    putString(
+                        name,
+                        content,
+                    )
                 }
             }
         }
@@ -111,7 +123,11 @@ class PlayerApi(private val intent: Intent) {
             MediaItem.Builder()
                 .setUri(uri)
                 .setMediaId(uri)
-                .setMimeType(intent.type?.takeIf { index == selectedIndex }?.takeUnless { it.endsWith("/*") })
+                .setMimeType(
+                    intent.type?.takeIf {
+                        index == selectedIndex
+                    }?.takeUnless { it.endsWith("/*") },
+                )
                 .setMediaMetadata(
                     MediaMetadata.Builder().setTitle(itemTitle).setExtras(
                         positionMs = position?.toLong()?.takeIf { index == selectedIndex },
@@ -122,13 +138,29 @@ class PlayerApi(private val intent: Intent) {
                 .setRequestMetadata(
                     MediaItem.RequestMetadata.Builder().setExtras(
                         Bundle().apply {
-                            putBundle(API_HEADERS_KEY, headers)
-                            if (index == selectedIndex && hasPosition) putBoolean(API_POSITION_KEY, true)
+                            putBundle(
+                                API_HEADERS_KEY,
+                                headers,
+                            )
+                            if (index == selectedIndex &&
+                                hasPosition
+                            ) {
+                                putBoolean(
+                                    API_POSITION_KEY,
+                                    true,
+                                )
+                            }
                         },
                     ).build(),
                 )
                 .build().let { item ->
-                    if (boolean("video_list_is_explicit") == true) item.asExplicitPlaylistItem() else item
+                    if (boolean("video_list_is_explicit") ==
+                        true
+                    ) {
+                        item.asExplicitPlaylistItem()
+                    } else {
+                        item
+                    }
                 }
         }
     }
@@ -139,16 +171,44 @@ class PlayerApi(private val intent: Intent) {
         position: Long,
         uri: Uri? = intent.data,
         usedDecoder: DecoderMode? = null,
-    ): Intent = Intent(API_RESULT_INTENT, uri).apply {
-        putExtra(API_END_BY, if (isPlaybackFinished) "playback_completion" else "user")
+    ): Intent = Intent(
+        API_RESULT_INTENT,
+        uri,
+    ).apply {
+        putExtra(
+            API_END_BY,
+            if (isPlaybackFinished) "playback_completion" else "user",
+        )
         when (usedDecoder) {
-            DecoderMode.HARDWARE -> putExtra("decode_mode", 1.toByte())
-            DecoderMode.FFMPEG, DecoderMode.SOFTWARE -> putExtra("decode_mode", 2.toByte())
+            DecoderMode.HARDWARE -> putExtra(
+                "decode_mode",
+                1.toByte(),
+            )
+
+            DecoderMode.FFMPEG, DecoderMode.SOFTWARE -> putExtra(
+                "decode_mode",
+                2.toByte(),
+            )
+
             else -> Unit
         }
         if (!isPlaybackFinished) {
-            if (duration >= 0) putExtra(API_DURATION, duration.coerceAtMost(Int.MAX_VALUE.toLong()).toInt())
-            if (position >= 0) putExtra(API_POSITION, position.coerceAtMost(Int.MAX_VALUE.toLong()).toInt())
+            if (duration >=
+                0
+            ) {
+                putExtra(
+                    API_DURATION,
+                    duration.coerceAtMost(Int.MAX_VALUE.toLong()).toInt(),
+                )
+            }
+            if (position >=
+                0
+            ) {
+                putExtra(
+                    API_POSITION,
+                    position.coerceAtMost(Int.MAX_VALUE.toLong()).toInt(),
+                )
+            }
         }
     }
 
@@ -164,12 +224,38 @@ class PlayerApi(private val intent: Intent) {
         const val API_PLAYLIST = "video_list"
         const val API_RESULT_INTENT = "com.mxtech.intent.result.VIEW"
 
-        private val ORIENTATIONS = setOf(-1, 0, 1, 6, 7, 8, 9, 10, 99999)
+        private val ORIENTATIONS = setOf(
+            -1,
+            0,
+            1,
+            6,
+            7,
+            8,
+            9,
+            10,
+            99999,
+        )
         private val API_KEYS = setOf(
-            API_TITLE, API_POSITION, API_RETURN_RESULT, API_SUBS, API_SUBS_ENABLE,
-            API_SUBS_NAME, API_PLAYLIST, "video_list.name", "video_list_is_explicit",
-            "decode_mode", "video", "headers", "video_zoom", "sticky", "orientation",
-            "DAR_horz", "DAR_vert", "keys.dpad_up_down", "suppress_error_message", "secure_uri",
+            API_TITLE,
+            API_POSITION,
+            API_RETURN_RESULT,
+            API_SUBS,
+            API_SUBS_ENABLE,
+            API_SUBS_NAME,
+            API_PLAYLIST,
+            "video_list.name",
+            "video_list_is_explicit",
+            "decode_mode",
+            "video",
+            "headers",
+            "video_zoom",
+            "sticky",
+            "orientation",
+            "DAR_horz",
+            "DAR_vert",
+            "keys.dpad_up_down",
+            "suppress_error_message",
+            "secure_uri",
         )
     }
 }
