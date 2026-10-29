@@ -147,6 +147,7 @@ suspend fun PointerInputScope.detectCustomTransformGestures(
 }
 
 suspend fun PointerInputScope.detectCustomHorizontalDragGestures(
+    shouldStartGesture: (Offset) -> Boolean = { true },
     onDragStart: (Offset) -> Unit = {},
     onDragEnd: () -> Unit = {},
     onDragCancel: () -> Unit = {},
@@ -154,6 +155,8 @@ suspend fun PointerInputScope.detectCustomHorizontalDragGestures(
 ) {
     awaitEachGesture {
         val down = awaitFirstDown(requireUnconsumed = false)
+        // Reject the whole gesture before touch slop can move it out of a system edge.
+        if (!shouldStartGesture(down.position)) return@awaitEachGesture
         var overSlop = 0f
         val drag = awaitHorizontalTouchSlopOrCancellation(down.id) { change, over ->
             change.consume()
@@ -189,6 +192,7 @@ suspend fun PointerInputScope.detectCustomHorizontalDragGestures(
 }
 
 suspend fun PointerInputScope.detectCustomVerticalDragGestures(
+    shouldStartGesture: (Offset) -> Boolean = { true },
     onDragStart: (Offset) -> Unit = {},
     onDragEnd: () -> Unit = {},
     onDragCancel: () -> Unit = {},
@@ -196,6 +200,7 @@ suspend fun PointerInputScope.detectCustomVerticalDragGestures(
 ) {
     awaitEachGesture {
         val down = awaitFirstDown(requireUnconsumed = false)
+        if (!shouldStartGesture(down.position)) return@awaitEachGesture
         var overSlop = 0f
         val drag = awaitVerticalTouchSlopOrCancellation(down.id) { change, over ->
             change.consume()
