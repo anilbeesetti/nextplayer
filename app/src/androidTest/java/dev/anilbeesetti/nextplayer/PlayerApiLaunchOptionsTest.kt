@@ -3,8 +3,13 @@ package dev.anilbeesetti.nextplayer
 import android.app.Activity
 import android.content.ComponentName
 import android.content.Intent
+import android.graphics.Rect
+import android.media.AudioManager
 import android.net.Uri
 import android.os.SystemClock
+import android.view.KeyEvent
+import android.view.MotionEvent
+import android.view.accessibility.AccessibilityNodeInfo
 import androidx.core.content.FileProvider
 import androidx.media3.session.MediaController
 import androidx.media3.session.SessionToken
@@ -23,6 +28,7 @@ import dev.anilbeesetti.nextplayer.navigation.startPlayback
 import java.io.File
 import java.nio.ByteBuffer
 import java.nio.ByteOrder
+import java.util.concurrent.FutureTask
 import java.util.concurrent.TimeUnit
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.runBlocking
@@ -219,6 +225,170 @@ class PlayerApiLaunchOptionsTest {
         }
     }
 
+    @Test
+    fun phoneDpadNavigationOnlyActsWithHiddenControlsAndBackStillExits() = withDpadPlayer(1) {
+            player,
+            _,
+        ->
+        waitForControls(visible = false)
+        instrumentation.sendKeyDownUpSync(KeyEvent.KEYCODE_DPAD_UP)
+        await("DPAD next item") { player.currentMediaItemIndex == 1 && player.isPlaying }
+        waitForControls(visible = false)
+        instrumentation.sendKeyDownUpSync(KeyEvent.KEYCODE_DPAD_DOWN)
+        await("DPAD previous item") { player.currentMediaItemIndex == 0 && player.isPlaying }
+        showControlsByTouch()
+        instrumentation.sendKeyDownUpSync(KeyEvent.KEYCODE_DPAD_UP)
+        onMain {
+            assertEquals(
+                0,
+                player.currentMediaItemIndex,
+            )
+        }
+        instrumentation.sendKeyDownUpSync(KeyEvent.KEYCODE_BACK)
+        await("Back exits phone player with controls visible") { player.mediaItemCount == 0 }
+    }
+
+    @Test
+    fun phoneDpadVolumeChangesDoNotChangeTheQueue() = withDpadPlayer(0) { player, _ ->
+        val audio = instrumentation.targetContext.getSystemService(AudioManager::class.java)
+        val originalVolume = audio.getStreamVolume(AudioManager.STREAM_MUSIC)
+        try {
+            audio.setStreamVolume(
+                AudioManager.STREAM_MUSIC,
+                2,
+                0,
+            )
+            waitForControls(visible = false)
+            instrumentation.sendKeyDownUpSync(KeyEvent.KEYCODE_DPAD_UP)
+            await("DPAD volume up") { audio.getStreamVolume(AudioManager.STREAM_MUSIC) > 2 }
+            instrumentation.sendKeyDownUpSync(KeyEvent.KEYCODE_DPAD_DOWN)
+            await("DPAD volume down") { audio.getStreamVolume(AudioManager.STREAM_MUSIC) == 2 }
+            onMain {
+                assertEquals(
+                    0,
+                    player.currentMediaItemIndex,
+                )
+            }
+        } finally {
+            audio.setStreamVolume(
+                AudioManager.STREAM_MUSIC,
+                originalVolume,
+                0,
+            )
+        }
+    }
+
+    @Test
+    fun omittingDpadOptionRestoresPhoneKeyHandling() = withDpadPlayer(1) { player, activity ->
+        waitForControls(visible = false)
+        val uri = onMain { player.currentMediaItem!!.localConfiguration!!.uri }
+        onMain {
+            instrumentation.callActivityOnNewIntent(
+                activity,
+                request(uri),
+            )
+        }
+        waitForControls(visible = false)
+        instrumentation.sendKeyDownUpSync(KeyEvent.KEYCODE_DPAD_UP)
+        SystemClock.sleep(300)
+        onMain {
+            assertEquals(
+                0,
+                player.currentMediaItemIndex,
+            )
+        }
+    }
+
+    private fun withDpadPlayer(mode: Int, check: (MediaController, PlayerActivity) -> Unit) =
+        withPlayer {
+                connectPlayer,
+                uri,
+                preferences,
+            ->
+            runBlocking {
+                preferences.updatePlayerPreferences { it.copy(controllerAutoHideTimeout = 1) }
+                preferences.playerPreferences.first { it.controllerAutoHideTimeout == 1 }
+            }
+            val player = connectPlayer()
+            val intent = request(uri)
+                .putExtra(
+                    "keys.dpad_up_down",
+                    mode,
+                )
+                .putExtra(
+                    "video_list",
+                    arrayOf(
+                        uri,
+                        uri,
+                    ),
+                )
+                .putExtra(
+                    "video_list_is_explicit",
+                    true,
+                )
+                .addFlags(Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TASK)
+            val activity = instrumentation.startActivitySync(intent) as PlayerActivity
+            try {
+                await("phone API queue playing") { player.isPlaying && player.mediaItemCount == 2 }
+                check(
+                    player,
+                    activity,
+                )
+            } finally {
+                onMain { activity.finish() }
+            }
+        }
+
+    private fun waitForControls(visible: Boolean) {
+        val deadline = SystemClock.elapsedRealtime() + 10000
+        while (SystemClock.elapsedRealtime() < deadline) {
+            val root = instrumentation.uiAutomation.rootInActiveWindow
+            if (root != null &&
+                root.packageName.toString() == instrumentation.targetContext.packageName &&
+                hasPlayPauseControl(root) == visible
+            ) {
+                return
+            }
+            SystemClock.sleep(50)
+        }
+        throw AssertionError("Player controls visibility did not become $visible")
+    }
+
+    private fun hasPlayPauseControl(node: AccessibilityNodeInfo): Boolean {
+        val label = instrumentation.targetContext.getString(
+            dev.anilbeesetti.nextplayer.core.ui.R.string.play_pause,
+        )
+        if (node.isVisibleToUser && node.contentDescription?.toString() == label) return true
+        return (0 until node.childCount).any {
+            node.getChild(it)?.let(::hasPlayPauseControl) == true
+        }
+    }
+
+    private fun showControlsByTouch() {
+        val bounds = Rect()
+        instrumentation.uiAutomation.rootInActiveWindow.getBoundsInScreen(bounds)
+        val now = SystemClock.uptimeMillis()
+        for (action in listOf(
+            MotionEvent.ACTION_DOWN,
+            MotionEvent.ACTION_UP,
+        )) {
+            val event = MotionEvent.obtain(
+                now,
+                now,
+                action,
+                bounds.exactCenterX(),
+                bounds.exactCenterY(),
+                0,
+            )
+            try {
+                instrumentation.sendPointerSync(event)
+            } finally {
+                event.recycle()
+            }
+        }
+        waitForControls(visible = true)
+    }
+
     private fun request(uri: Uri) = Intent(
         instrumentation.targetContext,
         PlayerActivity::class.java,
@@ -307,7 +477,14 @@ class PlayerApiLaunchOptionsTest {
         }
     }
 
-    private fun onMain(block: () -> Unit) = instrumentation.runOnMainSync(block)
+    private fun <T> onMain(block: () -> T): T {
+        val task = FutureTask(block)
+        instrumentation.runOnMainSync(task)
+        return task.get(
+            10,
+            TimeUnit.SECONDS,
+        )
+    }
 
     private fun await(description: String, condition: () -> Boolean) {
         val deadline = SystemClock.elapsedRealtime() + 20_000
