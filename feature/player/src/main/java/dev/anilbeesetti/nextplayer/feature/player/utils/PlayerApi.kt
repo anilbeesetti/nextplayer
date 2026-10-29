@@ -5,6 +5,7 @@ import android.net.Uri
 import android.os.Bundle
 import androidx.media3.common.MediaItem
 import androidx.media3.common.MediaMetadata
+import androidx.media3.common.Player
 import dev.anilbeesetti.nextplayer.core.model.VideoContentScale
 import dev.anilbeesetti.nextplayer.feature.player.extensions.getParcelableUriArray
 import dev.anilbeesetti.nextplayer.feature.player.extensions.setExtras
@@ -21,6 +22,15 @@ class PlayerApi(private val intent: Intent) {
     val position: Int? get() = (value(API_POSITION) as? Int)?.takeIf { it >= 0 }
     val title: String? get() = value(API_TITLE) as? String
     val sticky: Boolean? get() = boolean("sticky")
+    val playbackSpeed: Float?
+        get() = (value(API_PLAYBACK_SPEED) as? Number)?.toFloat()?.takeIf {
+            it.isFinite() && it > 0
+        }
+    val launchInBackground: Boolean get() = boolean(API_BACKGROUND) == true
+
+    fun applyPlaybackSpeed(player: Player) {
+        playbackSpeed?.let(player::setPlaybackSpeed)
+    }
     val videoVisible: Boolean get() = boolean("video") ?: true
     val suppressErrorMessage: Boolean get() = boolean("suppress_error_message") == true
     val dpadUpDown: Int? get() = (value("keys.dpad_up_down") as? Int)?.takeIf { it in 0..1 }
@@ -213,6 +223,8 @@ class PlayerApi(private val intent: Intent) {
     }
 
     companion object {
+        const val API_PLAYBACK_SPEED = "playback_speed"
+        const val API_BACKGROUND = "background"
         const val API_TITLE = "title"
         const val API_POSITION = "position"
         const val API_DURATION = "duration"
@@ -236,6 +248,8 @@ class PlayerApi(private val intent: Intent) {
             99999,
         )
         private val API_KEYS = setOf(
+            API_PLAYBACK_SPEED,
+            API_BACKGROUND,
             API_TITLE,
             API_POSITION,
             API_RETURN_RESULT,

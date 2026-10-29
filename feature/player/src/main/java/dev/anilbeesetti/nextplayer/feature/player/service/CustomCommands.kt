@@ -23,6 +23,7 @@ enum class CustomCommands(val customAction: String) {
     GET_SUBTITLE_SPEED(customAction = "GET_SUBTITLE_SPEED"),
     SET_SUBTITLE_SPEED(customAction = "SET_SUBTITLE_SPEED"),
     STOP_PLAYER_SESSION(customAction = "STOP_PLAYER_SESSION"),
+    START_BACKGROUND_PLAYBACK(customAction = "START_BACKGROUND_PLAYBACK"),
     IS_LOUDNESS_GAIN_SUPPORTED(customAction = "IS_LOUDNESS_GAIN_SUPPORTED"),
     SET_LOUDNESS_GAIN(customAction = "SET_LOUDNESS_GAIN"),
     GET_LOUDNESS_GAIN(customAction = "GET_LOUDNESS_GAIN"),
@@ -42,6 +43,13 @@ enum class CustomCommands(val customAction: String) {
 
         fun asSessionCommands(): List<SessionCommand> = entries.map { it.sessionCommand }
 
+        const val BACKGROUND_MEDIA_ITEMS_KEY = "background_media_items"
+        const val BACKGROUND_START_INDEX_KEY = "background_start_index"
+        const val BACKGROUND_START_POSITION_KEY = "background_start_position_ms"
+        const val PLAYBACK_SPEED_KEY = "playback_speed"
+        const val BACKGROUND_MEDIA_URI_KEY = "background_media_uri"
+        const val BACKGROUND_POSITION_KEY = "background_position"
+        const val BACKGROUND_DURATION_KEY = "background_duration"
         const val AUDIO_TRACK_URI_KEY = "audio_track_uri"
         const val SUBTITLE_TRACK_URI_KEY = "subtitle_track_uri"
         const val SKIP_SILENCE_ENABLED_KEY = "skip_silence_enabled"

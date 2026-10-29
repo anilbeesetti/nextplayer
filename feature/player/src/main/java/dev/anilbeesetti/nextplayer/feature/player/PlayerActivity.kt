@@ -1,6 +1,7 @@
 package dev.anilbeesetti.nextplayer.feature.player
 
 import android.annotation.SuppressLint
+import android.content.ComponentName
 import android.content.Intent
 import android.content.pm.ActivityInfo
 import android.graphics.Color
@@ -25,6 +26,9 @@ import androidx.media3.common.MimeTypes
 import androidx.media3.common.PlaybackException
 import androidx.media3.common.Player
 import androidx.media3.session.MediaController
+import androidx.media3.session.SessionResult
+import androidx.media3.session.SessionToken
+import com.google.common.util.concurrent.ListenableFuture
 import dev.anilbeesetti.nextplayer.core.common.extensions.getInitialDirectoryUri
 import dev.anilbeesetti.nextplayer.core.common.extensions.getMediaContentUri
 import dev.anilbeesetti.nextplayer.core.common.service.registerForSuspendActivityResult
@@ -33,11 +37,14 @@ import dev.anilbeesetti.nextplayer.core.ui.R as coreUiR
 import dev.anilbeesetti.nextplayer.core.ui.theme.NextPlayerTheme
 import dev.anilbeesetti.nextplayer.feature.player.extensions.OpenDocumentAtInitialUri
 import dev.anilbeesetti.nextplayer.feature.player.extensions.uriToSubtitleConfiguration
+import dev.anilbeesetti.nextplayer.feature.player.service.CustomCommands
+import dev.anilbeesetti.nextplayer.feature.player.service.PlayerService
 import dev.anilbeesetti.nextplayer.feature.player.service.addAudioTrack
 import dev.anilbeesetti.nextplayer.feature.player.service.addSubtitleTrack
 import dev.anilbeesetti.nextplayer.feature.player.service.decoderServiceState
 import dev.anilbeesetti.nextplayer.feature.player.service.setAudioDecoderMode
 import dev.anilbeesetti.nextplayer.feature.player.service.setVideoDecoderMode
+import dev.anilbeesetti.nextplayer.feature.player.service.startBackgroundPlayback
 import dev.anilbeesetti.nextplayer.feature.player.service.stopPlayerSession
 import dev.anilbeesetti.nextplayer.feature.player.service.tryDecoderFallback
 import dev.anilbeesetti.nextplayer.feature.player.state.rememberMediaController
@@ -46,11 +53,14 @@ import dev.anilbeesetti.nextplayer.feature.player.utils.PlaylistPlaybackContract
 import dev.anilbeesetti.nextplayer.feature.player.utils.toMediaQueue
 import io.github.anilbeesetti.nextlib.media3ext.ffdecoder.DecoderMode
 import java.util.concurrent.CopyOnWriteArrayList
+import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
+import kotlinx.coroutines.currentCoroutineContext
 import kotlinx.coroutines.ensureActive
 import kotlinx.coroutines.flow.filterNotNull
 import kotlinx.coroutines.flow.first
+import kotlinx.coroutines.guava.await
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import org.koin.android.ext.android.inject
@@ -85,6 +95,9 @@ class PlayerActivity : ComponentActivity() {
     private var lastDecoder: DecoderMode? = null
     private var playInBackground: Boolean = false
     private var isIntentNew: Boolean = true
+    private var backgroundLaunchAccepted = false
+    private var activityCreated = false
+    private var backgroundControllerFuture: ListenableFuture<MediaController>? = null
 
     private var mediaController by mutableStateOf<MediaController?>(null)
     private var playerApi by mutableStateOf(PlayerApi(Intent()))
@@ -139,7 +152,16 @@ class PlayerActivity : ComponentActivity() {
         registerForSuspendActivityResult(contract = OpenDocumentAtInitialUri())
 
     override fun onCreate(savedInstanceState: Bundle?) {
+        val request = PlayerApi(intent)
+        if (request.launchInBackground) setTheme(R.style.NextPlayer_Background)
         super.onCreate(savedInstanceState)
+        activityCreated = true
+        playerApi = request
+        if (request.launchInBackground && intent.data == null) {
+            playbackFailed = true
+            finish()
+            return
+        }
         isIntentNew = savedInstanceState?.getBoolean(
             "isIntentNew",
             true,
@@ -165,6 +187,10 @@ class PlayerActivity : ComponentActivity() {
 
         viewModel.output = playerOutput()
         playerApi = PlayerApi(intent)
+        if (playerApi.launchInBackground) {
+            connectBackgroundController()
+            return
+        }
         setContent {
             val player = rememberMediaController(
                 onBeforeRelease = ::onControllerStopped,
@@ -182,19 +208,54 @@ class PlayerActivity : ComponentActivity() {
                         player.sessionExtras.decoderServiceState(),
                     ),
                 )
-                player.addListener(playbackStateListener)
+                if (!playerApi.launchInBackground) player.addListener(playbackStateListener)
                 updateKeepScreenOnFlag()
                 startPlayback()
             }
 
-            NextPlayerTheme(darkTheme = true) {
-                MediaPlayerScreen(
-                    viewModel = viewModel,
-                    player = player,
-                    api = playerApi,
-                )
+            if (!playerApi.launchInBackground) {
+                NextPlayerTheme(darkTheme = true) {
+                    MediaPlayerScreen(
+                        viewModel = viewModel,
+                        player = player,
+                        api = playerApi,
+                    )
+                }
             }
         }
+    }
+
+    private fun connectBackgroundController() {
+        val future = MediaController.Builder(
+            applicationContext,
+            SessionToken(
+                applicationContext,
+                ComponentName(
+                    applicationContext,
+                    PlayerService::class.java,
+                ),
+            ),
+        ).buildAsync()
+        backgroundControllerFuture = future
+        lifecycleScope.launch {
+            try {
+                mediaController = future.await()
+                startPlayback()
+            } catch (error: Exception) {
+                if (error is CancellationException) throw error
+                playbackFailed = true
+                finish()
+            }
+        }
+    }
+
+    override fun onDestroy() {
+        backgroundControllerFuture?.let {
+            MediaController.releaseFuture(it)
+            mediaController = null
+        }
+        backgroundControllerFuture = null
+        super.onDestroy()
     }
 
     private fun playerOutput() = PlayerViewModel.Output(
@@ -343,6 +404,7 @@ class PlayerActivity : ComponentActivity() {
     }
 
     private suspend fun playVideo(uri: Uri, playlistId: Long?) = withContext(Dispatchers.Default) {
+        val request = playerApi
         val savedQueue = playlistId
             ?.let { playlistRepository.getPlaylist(playlistId = it) }
             ?.toMediaQueue(selectedUri = uri.toString())
@@ -357,20 +419,16 @@ class PlayerActivity : ComponentActivity() {
             val startIndex = savedQueue?.startIndex ?: 0
             ensureActive()
             withContext(Dispatchers.Main) {
-                mediaController?.run {
-                    setMediaItems(
-                        mediaItems,
-                        startIndex,
-                        C.TIME_UNSET,
-                    )
-                    playWhenReady = viewModel.state.value.playWhenReady
-                    prepare()
-                }
+                startQueue(
+                    request,
+                    mediaItems,
+                    startIndex,
+                    C.TIME_UNSET,
+                )
             }
             return@withContext
         }
 
-        val request = playerApi
         val mediaContentUri = if (request.isApiAccess) null else getMediaContentUri(uri)
         val explicitPlaylist = request.getPlaylist()
         val playlist = explicitPlaylist.takeIf { it.isNotEmpty() }
@@ -410,16 +468,66 @@ class PlayerActivity : ComponentActivity() {
         ensureActive()
 
         withContext(Dispatchers.Main) {
-            mediaController?.run {
-                setMediaItems(
-                    mediaItems,
-                    mediaItemIndexToPlay,
-                    request.position?.toLong() ?: C.TIME_UNSET,
-                )
-                playWhenReady = viewModel.state.value.playWhenReady
-                prepare()
-            }
+            startQueue(
+                request,
+                mediaItems,
+                mediaItemIndexToPlay,
+                request.position?.toLong() ?: C.TIME_UNSET,
+            )
         }
+    }
+
+    private suspend fun startQueue(
+        request: PlayerApi,
+        items: List<MediaItem>,
+        index: Int,
+        position: Long,
+    ) {
+        val controller = mediaController ?: return
+        if (!request.launchInBackground) {
+            controller.setMediaItems(
+                items,
+                index,
+                position,
+            )
+            request.applyPlaybackSpeed(controller)
+            controller.playWhenReady = viewModel.state.value.playWhenReady
+            controller.prepare()
+            return
+        }
+        // This explicit background launch must survive activity release even when sticky=false.
+        playInBackground = true
+        try {
+            val result = controller.startBackgroundPlayback(
+                items,
+                index,
+                position,
+                request.playbackSpeed,
+            )
+            currentCoroutineContext().ensureActive()
+            if (request !== playerApi) return
+            if (result.resultCode == SessionResult.RESULT_SUCCESS) {
+                backgroundLaunchAccepted = true
+                playbackFailed = false
+                lastMediaUri = result.extras.getString(
+                    CustomCommands.BACKGROUND_MEDIA_URI_KEY,
+                )?.let(Uri::parse)
+                lastPosition = result.extras.getLong(
+                    CustomCommands.BACKGROUND_POSITION_KEY,
+                    C.TIME_UNSET,
+                )
+                lastDuration = result.extras.getLong(
+                    CustomCommands.BACKGROUND_DURATION_KEY,
+                    C.TIME_UNSET,
+                )
+            } else {
+                playbackFailed = true
+            }
+        } catch (error: Exception) {
+            if (error is CancellationException) throw error
+            playbackFailed = true
+        }
+        finish()
     }
 
     private fun Intent.playlistIdOrNull(): Long? = getLongExtra(
@@ -431,17 +539,37 @@ class PlayerActivity : ComponentActivity() {
         if (playerApi.shouldReturnResult) {
             val result = playerApi.getResult(
                 isPlaybackFinished = isPlaybackFinished,
-                duration = mediaController?.duration ?: lastDuration,
-                position = mediaController?.currentPosition ?: lastPosition,
-                uri =
+                duration = if (playerApi.launchInBackground) {
+                    lastDuration
+                } else {
+                    mediaController?.duration
+                        ?: lastDuration
+                },
+                position = if (playerApi.launchInBackground) {
+                    lastPosition
+                } else {
+                    mediaController?.currentPosition
+                        ?: lastPosition
+                },
+                uri = if (playerApi.launchInBackground) {
+                    lastMediaUri ?: intent.data
+                } else {
                     mediaController?.currentMediaItem?.localConfiguration?.uri ?: lastMediaUri
-                        ?: intent.data,
+                        ?: intent.data
+                },
                 usedDecoder =
-                    mediaController?.sessionExtras?.decoderServiceState()?.videoMode ?: lastDecoder,
+                    if (playerApi.launchInBackground) {
+                        null
+                    } else {
+                        mediaController?.sessionExtras?.decoderServiceState()?.videoMode
+                            ?: lastDecoder
+                    },
             )
             setResult(
                 when {
-                    playbackFailed || mediaController?.playerError != null -> RESULT_FIRST_USER
+                    playbackFailed -> RESULT_FIRST_USER
+                    backgroundLaunchAccepted -> RESULT_OK
+                    mediaController?.playerError != null -> RESULT_FIRST_USER
                     hasPlaybackStarted || isPlaybackFinished -> RESULT_OK
                     else -> RESULT_CANCELED
                 },
@@ -454,9 +582,11 @@ class PlayerActivity : ComponentActivity() {
     override fun onNewIntent(intent: Intent) {
         super.onNewIntent(intent)
         if (intent.data != null) {
+            val previousBackgroundMode = playerApi.launchInBackground
             playbackRequestJob?.cancel()
             setIntent(intent)
             playerApi = PlayerApi(intent)
+            if (playerApi.launchInBackground) mediaController?.removeListener(playbackStateListener)
             isPlaybackFinished = false
             hasPlaybackStarted = false
             playbackFailed = false
@@ -466,8 +596,13 @@ class PlayerActivity : ComponentActivity() {
             lastDecoder = null
             requestedOrientation = ActivityInfo.SCREEN_ORIENTATION_UNSPECIFIED
             playInBackground = false
+            backgroundLaunchAccepted = false
             isIntentNew = true
-            startPlayback()
+            if (activityCreated && previousBackgroundMode != playerApi.launchInBackground) {
+                recreate()
+            } else {
+                startPlayback()
+            }
         }
     }
 
@@ -510,7 +645,7 @@ class PlayerActivity : ComponentActivity() {
     }
 
     private fun updateKeepScreenOnFlag() {
-        if (mediaController?.isPlaying == true) {
+        if (!playerApi.launchInBackground && mediaController?.isPlaying == true) {
             window.addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON)
         } else {
             window.clearFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON)

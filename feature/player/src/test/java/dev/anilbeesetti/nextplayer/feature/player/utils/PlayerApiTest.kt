@@ -28,6 +28,143 @@ class PlayerApiTest {
     private fun api(intent: Intent) = PlayerApi(intent)
 
     @Test
+    fun playbackSpeedAcceptsPositiveFiniteNumbersAndRejectsInvalidInput() {
+        assertNull(api(Intent()).playbackSpeed)
+        listOf(
+            0.5f,
+            1f,
+            1.25f,
+            2f,
+            8f,
+        ).forEach { speed ->
+            assertEquals(
+                speed,
+                api(
+                    Intent().putExtra(
+                        "playback_speed",
+                        speed,
+                    ),
+                ).playbackSpeed,
+            )
+        }
+        assertEquals(
+            2f,
+            api(
+                Intent().putExtra(
+                    "playback_speed",
+                    2,
+                ),
+            ).playbackSpeed,
+        )
+        assertEquals(
+            1.5f,
+            api(
+                Intent().putExtra(
+                    "playback_speed",
+                    1.5,
+                ),
+            ).playbackSpeed,
+        )
+        listOf(
+            0f,
+            -1f,
+            Float.NaN,
+            Float.POSITIVE_INFINITY,
+            Float.NEGATIVE_INFINITY,
+        ).forEach { speed ->
+            assertNull(
+                api(
+                    Intent().putExtra(
+                        "playback_speed",
+                        speed,
+                    ),
+                ).playbackSpeed,
+            )
+        }
+        assertNull(
+            api(
+                Intent().putExtra(
+                    "playback_speed",
+                    "fast",
+                ),
+            ).playbackSpeed,
+        )
+    }
+
+    @Test
+    fun speedAndDirectBackgroundLaunchAreRecognizedAsApiRequests() {
+        assertTrue(
+            api(
+                Intent().putExtra(
+                    "playback_speed",
+                    1.5f,
+                ),
+            ).isApiAccess,
+        )
+        assertTrue(
+            api(
+                Intent().putExtra(
+                    "background",
+                    true,
+                ),
+            ).isApiAccess,
+        )
+        assertTrue(
+            api(
+                Intent().putExtra(
+                    "background",
+                    true,
+                ),
+            ).launchInBackground,
+        )
+        assertFalse(api(Intent()).launchInBackground)
+        assertFalse(
+            api(
+                Intent().putExtra(
+                    "background",
+                    false,
+                ),
+            ).launchInBackground,
+        )
+        assertFalse(
+            api(
+                Intent().putExtra(
+                    "background",
+                    "true",
+                ),
+            ).launchInBackground,
+        )
+    }
+
+    @Test
+    fun directBackgroundLaunchIsIndependentOfStickyAndDoesNotLeakToAnotherRequest() {
+        val request = api(
+            Intent().putExtra(
+                "background",
+                true,
+            ).putExtra(
+                "sticky",
+                false,
+            ),
+        )
+        assertTrue(request.launchInBackground)
+        assertEquals(
+            false,
+            request.sticky,
+        )
+        assertFalse(
+            api(
+                Intent().putExtra(
+                    "sticky",
+                    true,
+                ),
+            ).launchInBackground,
+        )
+        assertFalse(api(Intent()).launchInBackground)
+        assertNull(api(Intent()).playbackSpeed)
+    }
+
+    @Test
     fun intentMimeTypeOnlyAppliesToTheRequestedVideoInAMixedPlaylist() {
         val api = api(
             Intent(Intent.ACTION_VIEW).setDataAndType(

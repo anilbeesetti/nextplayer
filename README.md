@@ -72,6 +72,7 @@ val intent = Intent(Intent.ACTION_VIEW).apply {
     setDataAndType(videoUri, "video/*")
     putExtra("title", "Example")
     putExtra("position", 30_000) // milliseconds, overrides saved resume position
+    putExtra("playback_speed", 1.5f) // Next Player extension; leaves the saved default unchanged
     putExtra("subs", arrayOf(subtitleUri)) // Uri[], also accepts legacy ArrayList<Uri>
     putExtra("subs.name", arrayOf("English"))
     putExtra("subs.enable", arrayOf(subtitleUri))
@@ -101,12 +102,23 @@ implicit VIEW intents with an appropriate MIME type.
 | `keys.dpad_up_down` | With controls hidden, `0` adjusts volume, `1` selects next/previous media. |
 | `suppress_error_message` | Skips a failed video when another is available, otherwise closes without an error dialog. |
 | `secure_uri` | Next Player has no URI property dialog; playback titles do not expose the full URI. |
+| `playback_speed` | Next Player extension: a positive finite number, e.g. `1.5f` for 1.5× speed. Invalid values are ignored. |
+| `background` | Next Player extension: `true` starts playback in the service without showing the player screen, then closes the launch activity. Defaults to `false`. |
 
 Set `sticky=true` to keep playback running when the activity goes into the
 background, or `sticky=false` to disable automatic background playback for that
-request. This does not launch the player directly into the background; exiting
-with Back still stops playback. Playback speed follows the player session and
-default speed setting; the intent API currently has no playback-speed extra.
+request. Exiting a foreground player with Back still stops playback.
+
+For a direct background launch, add `putExtra("background", true)` to the intent.
+This starts playback even if the existing session was paused, and takes precedence
+over `sticky=false` or a disabled background-play preference. The launch activity
+waits for the service to accept the queue before closing; it does not create the
+player screen or a video surface.
+
+`playback_speed` sets the initial session speed once for that request. It persists
+across playlist transitions until changed by the user or another explicit speed
+request. Omitting it preserves the current session speed; a new session starts at
+the saved default. Neither extension changes saved player preferences.
 
 Results use action `com.mxtech.intent.result.VIEW`, the last media URI as data,
 `end_by` (`user` or `playback_completion`), and the actual `decode_mode` when known.
@@ -114,6 +126,9 @@ For incomplete playback, known `position` and `duration` are integer millisecond
 completed playback omits them. Result codes are `RESULT_OK` for played media,
 `RESULT_CANCELED` before playback starts, and `RESULT_FIRST_USER` for playback errors.
 Only `return_result=true` requests a callback.
+For `background=true`, the result is returned when the service accepts the launch,
+with `RESULT_OK` and `end_by=user`; it does not wait for background playback to
+complete. Failures after handoff cannot be reported through that closed activity.
 
 Compatibility limits: deprecated `fast_mode` is ignored. MX's OpenSubtitles search
 hints (`size`, `filename`, `hash.opensubtitles`, and their `video_list.*` forms)
