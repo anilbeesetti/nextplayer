@@ -285,9 +285,29 @@ class PlayerApiLaunchOptionsTest {
         onMain {
             instrumentation.callActivityOnNewIntent(
                 activity,
-                request(uri),
+                request(uri)
+                    .putExtra(
+                        PlayerApi.API_TITLE,
+                        "Default key handling",
+                    )
+                    .putExtra(
+                        PlayerApi.API_PLAYLIST,
+                        arrayOf(
+                            uri,
+                            uri,
+                        ),
+                    )
+                    .putExtra(
+                        "video_list_is_explicit",
+                        true,
+                    ),
             )
         }
+        await("replacement request without DPAD option") {
+            player.mediaMetadata.title == "Default key handling" &&
+                player.currentMediaItemIndex == 0 && player.isPlaying
+        }
+        instrumentation.waitForIdleSync()
         waitForControls(visible = false)
         instrumentation.sendKeyDownUpSync(KeyEvent.KEYCODE_DPAD_UP)
         SystemClock.sleep(300)
@@ -365,6 +385,10 @@ class PlayerApiLaunchOptionsTest {
     }
 
     private fun showControlsByTouch() {
+        instrumentation.uiAutomation.waitForIdle(
+            100,
+            5000,
+        )
         val bounds = Rect()
         instrumentation.uiAutomation.rootInActiveWindow.getBoundsInScreen(bounds)
         val now = SystemClock.uptimeMillis()
