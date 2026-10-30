@@ -69,6 +69,7 @@ import dev.anilbeesetti.nextplayer.core.ui.designsystem.NextIcons
 import kotlinx.coroutines.launch
 
 private const val GITHUB_URL = "https://github.com/anilbeesetti/nextplayer"
+private const val GITHUB_SPONSORS_URL = "https://github.com/sponsors/anilbeesetti"
 private const val KOFI_URL = "https://ko-fi.com/anilbeesetti"
 private const val PAYPAL_URL = "https://paypal.me/AnilBeesetti"
 private const val UPI_ID = "anilbeesetti10@oksbi"
@@ -142,6 +143,21 @@ private fun AboutPreferencesScreenContent(
                 verticalArrangement = Arrangement.spacedBy(ListItemDefaults.SegmentedGap),
             ) {
                 ClickablePreferenceItem(
+                    title = stringResource(R.string.github_sponsors),
+                    description = stringResource(
+                        R.string.support_the_developer_on,
+                        stringResource(R.string.github_sponsors),
+                    ),
+                    icon = ImageVector.vectorResource(R.drawable.ic_github),
+                    onClick = {
+                        uriHandler.openUriOrShowToast(
+                            uri = GITHUB_SPONSORS_URL,
+                            context = context,
+                        )
+                    },
+                    isFirstItem = true,
+                )
+                ClickablePreferenceItem(
                     title = stringResource(R.string.kofi),
                     description = stringResource(
                         R.string.support_the_developer_on,
@@ -154,7 +170,6 @@ private fun AboutPreferencesScreenContent(
                             context = context,
                         )
                     },
-                    isFirstItem = true,
                 )
                 ClickablePreferenceItem(
                     title = stringResource(R.string.paypal),
