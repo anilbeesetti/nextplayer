@@ -56,86 +56,10 @@ the [Issues](https://github.com/anilbeesetti/nextplayer/issues) section.**
 
 ## Player intent API
 
-Next Player accepts the [MX Player VIEW intent contract](https://mx.j2inter.com/api)
-requested in [#2017](https://github.com/anilbeesetti/nextplayer/issues/2017).
-Clients supporting `com.mxtech.videoplayer.ad` (MX Free) or `com.mxtech.videoplayer.pro`
-(MX Pro) can use the same extras with `dev.anilbeesetti.nextplayer`. Select Next
-Player's package explicitly; an intent addressed to an MX package launches MX.
-Debug builds use `dev.anilbeesetti.nextplayer.debug`.
-
-```kotlin
-val intent = Intent(Intent.ACTION_VIEW).apply {
-    setClassName(
-        "dev.anilbeesetti.nextplayer",
-        "dev.anilbeesetti.nextplayer.feature.player.PlayerActivity",
-    )
-    setDataAndType(videoUri, "video/*")
-    putExtra("title", "Example")
-    putExtra("position", 30_000) // milliseconds, overrides saved resume position
-    putExtra("playback_speed", 1.5f) // Next Player extension; leaves the saved default unchanged
-    putExtra("subs", arrayOf(subtitleUri)) // Uri[], also accepts legacy ArrayList<Uri>
-    putExtra("subs.name", arrayOf("English"))
-    putExtra("subs.enable", arrayOf(subtitleUri))
-    putExtra("headers", arrayOf("User-Agent", "Example/1.0"))
-    putExtra("return_result", true)
-    addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION)
-}
-// Launch with an Activity Result launcher to receive the playback result.
-launcher.launch(intent)
-```
-
-For `content://` media, grant access to every video and subtitle URI, including
-additional URIs through `ClipData` when needed. The player activity also accepts
-implicit VIEW intents with an appropriate MIME type.
-
-| Extras | Behavior |
-| --- | --- |
-| `video_list`, `video_list.name` | Ordered URI queue and optional per-item titles; playlist names take precedence over `title`. |
-| `video_list_is_explicit` | `true` plays the full queue even when autoplay is disabled; otherwise autoplay preferences apply. |
-| `subs`, `subs.name`, `subs.filename`, `subs.enable` | Subtitle URIs, labels, filename hints for format detection, and initial selection. Media3 displays one text track at a time. |
-| `headers` | Alternating header names and values, scoped to the request's videos, manifests, segments, and HTTP subtitles. |
-| `decode_mode` | Byte `1` (HW) and `4` (HW+) select hardware decoding; `2` (SW) selects FFmpeg. |
-| `video_zoom` | `0` stretch, `1` fit, `2` original size, `3` crop. |
-| `DAR_horz`, `DAR_vert` | Positive finite floats overriding the display aspect ratio. |
-| `video`, `sticky` | Video visibility and a request-specific background playback override. |
-| `orientation` | Android orientation constants `-1`, `0`, `1`, `6`, `7`, `8`, `9`, `10`; `99999` follows video orientation. |
-| `keys.dpad_up_down` | With controls hidden, `0` adjusts volume, `1` selects next/previous media. |
-| `suppress_error_message` | Skips a failed video when another is available, otherwise closes without an error dialog. |
-| `secure_uri` | Next Player has no URI property dialog; playback titles do not expose the full URI. |
-| `playback_speed` | Next Player extension: a positive finite number, e.g. `1.5f` for 1.5× speed. Invalid values are ignored. |
-| `background` | Next Player extension: `true` starts playback in the service without showing the player screen, then closes the launch activity. Defaults to `false`. |
-
-Set `sticky=true` to keep playback running when the activity goes into the
-background, or `sticky=false` to disable automatic background playback for that
-request. Exiting a foreground player with Back still stops playback.
-
-For a direct background launch, add `putExtra("background", true)` to the intent.
-This starts playback even if the existing session was paused, and takes precedence
-over `sticky=false` or a disabled background-play preference. The launch activity
-waits for the service to accept the queue before closing; it does not create the
-player screen or a video surface.
-
-`playback_speed` sets the initial session speed once for that request. It persists
-across playlist transitions until changed by the user or another explicit speed
-request. Omitting it preserves the current session speed; a new session starts at
-the saved default. Neither extension changes saved player preferences.
-
-Results use action `com.mxtech.intent.result.VIEW`, the last media URI as data,
-`end_by` (`user` or `playback_completion`), and the actual `decode_mode` when known.
-For incomplete playback, known `position` and `duration` are integer milliseconds;
-completed playback omits them. Result codes are `RESULT_OK` for played media,
-`RESULT_CANCELED` before playback starts, and `RESULT_FIRST_USER` for playback errors.
-Only `return_result=true` requests a callback.
-For `background=true`, the result is returned when the service accepts the launch,
-with `RESULT_OK` and `end_by=user`; it does not wait for background playback to
-complete. Failures after handoff cannot be reported through that closed activity.
-
-Compatibility limits: deprecated `fast_mode` is ignored. MX's OpenSubtitles search
-hints (`size`, `filename`, `hash.opensubtitles`, and their `video_list.*` forms)
-are ignored because Next Player does not provide that search service. SAMI
-multi-track fragments require a subtitle format supported by Media3. Network API
-subtitles load through Media3 so request headers are preserved; local subtitle
-encoding conversion continues to use the configured encoding.
+Next Player supports MX Player-compatible VIEW intents, with additional playback
+speed and direct background-play options. See the [Player intent API reference](PLAYER_API.md)
+for integration examples, supported extras, URI permissions, playback results,
+and compatibility details.
 
 ## Supported formats
 
