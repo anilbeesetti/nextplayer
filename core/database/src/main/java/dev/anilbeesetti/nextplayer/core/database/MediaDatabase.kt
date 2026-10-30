@@ -339,6 +339,7 @@ abstract class MediaDatabase : RoomDatabase() {
             10,
         ) {
             override fun migrate(db: SupportSQLiteDatabase) {
+                migrateLegacyTo9(db)
                 db.execSQL(
                     sql = "ALTER TABLE `playlist` ADD COLUMN `type` TEXT NOT NULL DEFAULT 'LOCAL'",
                 )
@@ -359,6 +360,10 @@ abstract class MediaDatabase : RoomDatabase() {
             12,
         ) {
             override fun migrate(db: SupportSQLiteDatabase) {
+                if (migrateLegacyTo9(db)) {
+                    MIGRATION_9_10.migrate(db)
+                    MIGRATION_10_11.migrate(db)
+                }
                 db.execSQL(
                     sql = "ALTER TABLE `media_state` ADD COLUMN `external_audio` " +
                         "TEXT NOT NULL DEFAULT ''",
@@ -371,8 +376,72 @@ abstract class MediaDatabase : RoomDatabase() {
             11,
         ) {
             override fun migrate(db: SupportSQLiteDatabase) {
+                if (migrateLegacyTo9(db)) MIGRATION_9_10.migrate(db)
                 db.execSQL(sql = "ALTER TABLE `media_state` ADD COLUMN `duration` INTEGER")
+                if (legacyIdentity(db) != null) {
+                    db.execSQL(
+                        "UPDATE `media_state` SET `duration` = " +
+                            "(SELECT `duration` FROM `media` " +
+                            "WHERE `media`.`uri` = `media_state`.`uri`)",
+                    )
+                }
             }
+        }
+
+        private fun legacyIdentity(db: SupportSQLiteDatabase): String? =
+            db.query("SELECT identity_hash FROM room_master_table WHERE id = 42").use { cursor ->
+                if (!cursor.moveToFirst()) return@use null
+                cursor.getString(0).takeIf {
+                    it in setOf(
+                        "50c0532bd48e25fbd2b74da3cbd218e0",
+                        "00683288787f17e20774fe6dac211ab2",
+                        "2171e54cfeaf26836e2c54d3ef13f6b3",
+                        "6fb65c72b8317cc4b692b87e68b8f8d3",
+                    )
+                }
+            }
+
+        private fun migrateLegacyTo9(db: SupportSQLiteDatabase): Boolean {
+            val identity = legacyIdentity(db) ?: return false
+            val hasState = db.query(
+                "SELECT 1 FROM sqlite_master WHERE type = 'table' AND name = 'media_state'",
+            ).use { it.moveToFirst() }
+            if (hasState) return false
+
+            // The 2024 reset reused version numbers; retain the old tables and copy playback state.
+            db.execSQL(
+                """
+                CREATE TABLE `media_state` (
+                    `uri` TEXT NOT NULL, `playback_position` INTEGER NOT NULL,
+                    `audio_track_index` INTEGER, `subtitle_track_index` INTEGER,
+                    `playback_speed` REAL, `last_played_time` INTEGER, `external_subs` TEXT NOT NULL,
+                    `video_scale` REAL NOT NULL, `subtitle_delay` INTEGER NOT NULL,
+                    `subtitle_speed` REAL NOT NULL, PRIMARY KEY(`uri`)
+                )
+                """.trimIndent(),
+            )
+            db.execSQL("CREATE UNIQUE INDEX `index_media_state_uri` ON `media_state` (`uri`)")
+            val videoScale = if (identity == "50c0532bd48e25fbd2b74da3cbd218e0" ||
+                identity == "00683288787f17e20774fe6dac211ab2"
+            ) {
+                "1"
+            } else {
+                "`video_scale`"
+            }
+            db.execSQL(
+                """
+                INSERT INTO `media_state` (uri, playback_position, audio_track_index,
+                    subtitle_track_index, playback_speed, last_played_time, external_subs,
+                    video_scale, subtitle_delay, subtitle_speed)
+                SELECT uri, playback_position, audio_track_index, subtitle_track_index,
+                    playback_speed, last_played_time, external_subs, $videoScale, 0, 1 FROM `media`
+                """.trimIndent(),
+            )
+            MIGRATION_5_6.migrate(db)
+            MIGRATION_6_7.migrate(db)
+            MIGRATION_7_8.migrate(db)
+            MIGRATION_8_9.migrate(db)
+            return true
         }
 
         val MIGRATION_12_13 = object : Migration(

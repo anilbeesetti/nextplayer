@@ -87,6 +87,66 @@ class Migration9To10Test {
         migrated.close()
     }
 
+    @Test
+    fun modern10To13PreservesPlaylistAndPlaybackState() {
+        helper.createDatabase(
+            "modern-10",
+            10,
+        ).apply {
+            execSQL(
+                "INSERT INTO playlist (id, name, type, source, created_at) VALUES (7, 'TV', 'M3U', 'content://list', 100)",
+            )
+            execSQL(
+                "INSERT INTO playlist_item (playlist_id, uri, position, title, duration) VALUES (7, 'content://video', 0, 'News', 90000)",
+            )
+            execSQL(
+                "INSERT INTO media_state (uri, playback_position, external_subs, video_scale, subtitle_delay, subtitle_speed) VALUES ('content://video', 12345, '', 1, 0, 1)",
+            )
+            close()
+        }
+        helper.runMigrationsAndValidate(
+            "modern-10",
+            13,
+            true,
+            MediaDatabase.MIGRATION_10_11,
+            MediaDatabase.MIGRATION_11_12,
+            MediaDatabase.MIGRATION_12_13,
+        ).use { db ->
+            db.query("SELECT type, source FROM playlist WHERE id = 7").use {
+                assertTrue(it.moveToFirst())
+                assertEquals(
+                    "M3U",
+                    it.getString(0),
+                )
+                assertEquals(
+                    "content://list",
+                    it.getString(1),
+                )
+            }
+            db.query("SELECT title, duration FROM playlist_item WHERE playlist_id = 7").use {
+                assertTrue(it.moveToFirst())
+                assertEquals(
+                    "News",
+                    it.getString(0),
+                )
+                assertEquals(
+                    90000L,
+                    it.getLong(1),
+                )
+            }
+            db.query(
+                "SELECT playback_position, duration FROM media_state WHERE uri = 'content://video'",
+            ).use {
+                assertTrue(it.moveToFirst())
+                assertEquals(
+                    12345L,
+                    it.getLong(0),
+                )
+                assertTrue(it.isNull(1))
+            }
+        }
+    }
+
     private companion object {
         const val TEST_DATABASE = "migration-9-10"
     }
