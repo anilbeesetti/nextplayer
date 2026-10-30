@@ -42,6 +42,94 @@ class AddConnectionViewModelTest {
     val mainDispatcherRule = MainDispatcherRule()
 
     @Test
+    fun `WebDAV save validates directory listing before persistence and navigation`() =
+        runTest(mainDispatcherRule.testDispatcher) {
+            val events = mutableListOf<String>()
+            val repository = FakeRepository(events = events)
+            val client = FakeNetworkClient(
+                connectResult = Result.success(value = Unit),
+                events = events,
+            )
+            val viewModel = viewModel(
+                repository = repository,
+                clients = ArrayDeque(elements = listOf(element = client)),
+            )
+            viewModel.output = AddConnectionViewModel.Output(
+                navigateUp = { events += "navigateUp" },
+            )
+            val draft = NetworkConnection(
+                name = "WebDAV",
+                protocol = NetworkProtocol.WEBDAV,
+                host = "dav.example",
+                path = "/Steam",
+            )
+
+            viewModel.onAction(AddConnectionAction.TestAndSave(connection = draft))
+            advanceUntilIdle()
+
+            assertEquals(
+                listOf(
+                    "client.connect",
+                    "client.listFiles:/",
+                    "client.disconnect",
+                    "repository.upsert:",
+                    "navigateUp",
+                ),
+                events,
+            )
+            assertEquals(
+                listOf(element = draft),
+                repository.upserted,
+            )
+        }
+
+    @Test
+    fun `WebDAV directory listing failure prevents saving and still disconnects`() =
+        runTest(mainDispatcherRule.testDispatcher) {
+            val events = mutableListOf<String>()
+            val repository = FakeRepository(events = events)
+            val error = IllegalStateException("Directory listing forbidden")
+            val client = FakeNetworkClient(
+                connectResult = Result.success(value = Unit),
+                events = events,
+                listResult = Result.failure(exception = error),
+            )
+            val viewModel = viewModel(
+                repository = repository,
+                clients = ArrayDeque(elements = listOf(element = client)),
+            )
+            viewModel.output = AddConnectionViewModel.Output(
+                navigateUp = { events += "navigateUp" },
+            )
+
+            viewModel.onAction(
+                AddConnectionAction.TestAndSave(
+                    connection = NetworkConnection(
+                        name = "WebDAV",
+                        protocol = NetworkProtocol.WEBDAV,
+                        host = "dav.example",
+                        path = "/Steam",
+                    ),
+                ),
+            )
+            advanceUntilIdle()
+
+            assertEquals(
+                SaveState.Error(message = error.message),
+                viewModel.state.value.saveState,
+            )
+            assertTrue(repository.upserted.isEmpty())
+            assertEquals(
+                listOf(
+                    "client.connect",
+                    "client.listFiles:/",
+                    "client.disconnect",
+                ),
+                events,
+            )
+        }
+
+    @Test
     fun `successful save navigates through the current output after resetting state`() =
         runTest(mainDispatcherRule.testDispatcher) {
             val started = CompletableDeferred<Unit>()
@@ -1544,6 +1632,7 @@ private class FakeNetworkClientFactory(private val clients: ArrayDeque<FakeNetwo
 private class FakeNetworkClient(
     private val connectResult: Result<Unit>,
     private val events: MutableList<String> = mutableListOf(),
+    private val listResult: Result<List<NetworkFile>> = Result.success(value = emptyList()),
     private val beforeConnect: suspend () -> Unit = {},
 ) : NetworkClient {
     var disconnectCount = 0
@@ -1563,8 +1652,10 @@ private class FakeNetworkClient(
 
     override fun isConnected(): Boolean = false
 
-    override suspend fun listFiles(path: String): Result<List<NetworkFile>> =
-        error(message = "Not used")
+    override suspend fun listFiles(path: String): Result<List<NetworkFile>> {
+        events += "client.listFiles:$path"
+        return listResult
+    }
 
     override suspend fun fileSize(path: String): Long = error(message = "Not used")
 

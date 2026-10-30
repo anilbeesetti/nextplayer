@@ -47,20 +47,17 @@ class WebDavClientTest {
             assertEquals(
                 listOf(
                     "PROPFIND",
-                    "PROPFIND",
                 ),
                 server.methods,
             )
             assertEquals(
                 listOf(
                     "/Steam/",
-                    "/Steam/",
                 ),
                 server.paths,
             )
             assertEquals(
                 listOf(
-                    "1",
                     "1",
                 ),
                 server.depths,
@@ -89,7 +86,7 @@ class WebDavClientTest {
     }
 
     @Test
-    fun `connection test authenticates PROPFIND after a basic auth challenge`() = runBlocking {
+    fun `listing authenticates PROPFIND after a basic auth challenge`() = runBlocking {
         DavServer(requireAuthentication = true).use { server ->
             val client = server.client(
                 path = "/Steam/",
@@ -98,6 +95,7 @@ class WebDavClientTest {
             )
 
             client.connect().getOrThrow()
+            client.listFiles(client.rootPath).getOrThrow()
             assertTrue(client.isConnected())
             assertTrue(
                 server.authorizations.contains(
@@ -113,7 +111,7 @@ class WebDavClientTest {
     }
 
     @Test
-    fun `authentication permission missing path and server errors fail connection`() = runBlocking {
+    fun `authentication permission missing path and server errors fail listing`() = runBlocking {
         for (status in listOf(
             401,
             403,
@@ -123,7 +121,8 @@ class WebDavClientTest {
             DavServer(status = status).use { server ->
                 val client = server.client(path = "/Steam/")
 
-                val error = client.connect().exceptionOrNull()
+                client.connect().getOrThrow()
+                val error = client.listFiles(client.rootPath).exceptionOrNull()
 
                 assertTrue(
                     "Expected HTTP $status failure, got $error",
@@ -133,22 +132,23 @@ class WebDavClientTest {
                     status,
                     (error as SardineException).statusCode,
                 )
-                assertFalse(client.isConnected())
                 assertEquals(
                     listOf("PROPFIND"),
                     server.methods,
                 )
+                client.disconnect()
             }
         }
     }
 
     @Test
-    fun `invalid multistatus XML fails connection`() = runBlocking {
+    fun `invalid multistatus XML fails listing`() = runBlocking {
         DavServer(bodyOverride = "not WebDAV XML").use { server ->
             val client = server.client(path = "/Steam/")
 
-            assertTrue(client.connect().isFailure)
-            assertFalse(client.isConnected())
+            client.connect().getOrThrow()
+            assertTrue(client.listFiles(client.rootPath).isFailure)
+            client.disconnect()
         }
     }
 
