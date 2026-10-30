@@ -1,0 +1,20 @@
+<?xml version="1.0" encoding="utf-8"?>
+<manifest xmlns:android="http://schemas.android.com/apk/res/android">
+    <application>
+        <activity
+            android:name="dev.anilbeesetti.nextplayer.api.ApiTestCallerActivity"
+            android:exported="true"
+            android:process=":api_test_caller"
+            android:theme="@android:style/Theme.Material.Light.NoActionBar" />
+        <provider
+            android:name="dev.anilbeesetti.nextplayer.api.ApiTestCallerActivity$MediaProvider"
+            android:authorities="${applicationId}.api-fixtures"
+            android:exported="false"
+            android:grantUriPermissions="true"
+            android:process=":api_test_caller" />
+        <receiver
+            android:name="dev.anilbeesetti.nextplayer.api.ApiTestCallerActivity$Commands"
+            android:exported="true"
+            android:process=":api_test_caller" />
+    </application>
+</manifest>

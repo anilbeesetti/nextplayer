@@ -33,14 +33,25 @@ class RotationState(private val activity: Activity) {
 /** Applies player-wide orientation policy even when the rotate button is hidden or controls are locked. */
 @UnstableApi
 @Composable
-fun PlayerOrientationEffect(player: Player, screenOrientation: ScreenOrientation) {
+fun PlayerOrientationEffect(
+    player: Player,
+    screenOrientation: ScreenOrientation,
+    orientationOverride: Int? = null,
+) {
     val activity = LocalActivity.current ?: return
     LaunchedEffect(
-        key1 = activity,
-        key2 = player,
-        key3 = screenOrientation,
+        activity,
+        player,
+        screenOrientation,
+        orientationOverride,
     ) {
-        if (activity.requestedOrientation == ActivityInfo.SCREEN_ORIENTATION_UNSPECIFIED) {
+        if (orientationOverride != null) {
+            activity.requestedOrientation = if (orientationOverride == 99999) {
+                activity.videoBasedOrientation(player)
+            } else {
+                orientationOverride
+            }
+        } else if (activity.requestedOrientation == ActivityInfo.SCREEN_ORIENTATION_UNSPECIFIED) {
             activity.requestedOrientation = when (screenOrientation) {
                 ScreenOrientation.AUTOMATIC -> ActivityInfo.SCREEN_ORIENTATION_SENSOR
 
@@ -59,10 +70,16 @@ fun PlayerOrientationEffect(player: Player, screenOrientation: ScreenOrientation
             }
         }
         player.listen { events ->
-            if (screenOrientation == ScreenOrientation.VIDEO_ORIENTATION &&
+            if ((
+                    orientationOverride == 99999 ||
+                        (
+                            orientationOverride == null &&
+                                screenOrientation == ScreenOrientation.VIDEO_ORIENTATION
+                            )
+                    ) &&
                 events.contains(Player.EVENT_VIDEO_SIZE_CHANGED)
             ) {
-                activity.requestedOrientation = activity.videoBasedOrientation(player = player)
+                activity.requestedOrientation = activity.videoBasedOrientation(player)
             }
         }
     }

@@ -54,6 +54,13 @@ the [Issues](https://github.com/anilbeesetti/nextplayer/issues) section.**
 [<img src="fastlane/metadata/android/en-US/images/tvScreenshots/4.png" width=49% alt="TV appearance settings">](fastlane/metadata/android/en-US/images/tvScreenshots/4.png)
 </div>
 
+## Player intent API
+
+Next Player supports MX Player-compatible VIEW intents, with additional playback
+speed and direct background-play options. See the [Player intent API reference](PLAYER_API.md)
+for integration examples, supported extras, URI permissions, playback results,
+and compatibility details.
+
 ## Supported formats
 
 - **Video**: H.263, H.264 AVC (Baseline Profile; Main Profile on Android 6+), H.265 HEVC, MPEG-4 SP, VP8, VP9, AV1

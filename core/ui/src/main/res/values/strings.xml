@@ -246,6 +246,7 @@
     <string name="donate">Donate</string>
     <string name="error_opening_link">No app found to handle this link</string>
     <string name="support_the_developer_on">Support the developer on %1$s</string>
+    <string name="github_sponsors">GitHub Sponsors</string>
     <string name="kofi">Ko-fi</string>
     <string name="paypal">PayPal</string>
     <string name="upi">UPI</string>
