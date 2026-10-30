@@ -15,6 +15,8 @@ import androidx.compose.ui.test.junit4.v2.createAndroidComposeRule
 import androidx.compose.ui.test.onNodeWithTag
 import androidx.compose.ui.test.performTouchInput
 import androidx.compose.ui.unit.dp
+import androidx.media3.common.C
+import androidx.media3.common.ForwardingPlayer
 import androidx.media3.common.Player
 import androidx.media3.common.SimpleBasePlayer
 import com.google.common.util.concurrent.Futures
@@ -116,6 +118,120 @@ class SeekGestureStateTest {
         }
         composeRule.runOnIdle { assertFalse(state.isSeeking) }
         composeRule.onNodeWithTag(testTag = "gesture").performTouchInput { cancel() }
+    }
+
+    @Test
+    fun seekbarRejectsInvalidDurationAndClampsValidSeeks() {
+        composeRule.runOnIdle {
+            val player = DurationPlayer()
+            val state = SeekGestureState(player = player)
+            for (duration in listOf(
+                C.TIME_UNSET,
+                -1L,
+                0L,
+            )) {
+                player.durationMs = duration
+                state.onSeek(5_000)
+                assertFalse(state.isSeeking)
+                assertEquals(
+                    0,
+                    player.seekCount,
+                )
+            }
+
+            player.durationMs = 10_000
+            state.onSeek(20_000)
+            assertEquals(
+                10_000L,
+                player.currentPosition,
+            )
+            state.onSeek(-1)
+            assertEquals(
+                0L,
+                player.currentPosition,
+            )
+            player.durationMs = C.TIME_UNSET
+            state.onSeek(5_000)
+            assertFalse(state.isSeeking)
+            assertEquals(
+                2,
+                player.seekCount,
+            )
+            state.onSeekEnd()
+        }
+    }
+
+    @Test
+    fun horizontalDragRejectsInvalidDurationEvenWhenItChangesDuringSeek() {
+        val player = DurationPlayer()
+        val state = SeekGestureState(player = player)
+        composeRule.setContent {
+            Box(
+                Modifier.size(300.dp).testTag(tag = "gesture").pointerInput(Unit) {
+                    detectCustomHorizontalDragGestures(
+                        onDragStart = state::onDragStart,
+                        onHorizontalDrag = state::onDrag,
+                        onDragEnd = state::onDragEnd,
+                        onDragCancel = state::onDragEnd,
+                    )
+                },
+            )
+        }
+        for (duration in listOf(
+            C.TIME_UNSET,
+            -1L,
+            0L,
+        )) {
+            composeRule.runOnIdle {
+                player.durationMs = duration
+                state.onDragStart(Offset.Zero)
+                assertFalse(state.isSeeking)
+                player.durationMs = 10_000
+                state.onDragStart(Offset.Zero)
+                assertTrue(state.isSeeking)
+                player.durationMs = duration
+            }
+            composeRule.onNodeWithTag(testTag = "gesture").performTouchInput {
+                down(
+                    Offset(
+                        x = width * 0.2f,
+                        y = centerY,
+                    ),
+                )
+                moveTo(
+                    Offset(
+                        x = width * 0.5f,
+                        y = centerY,
+                    ),
+                )
+                moveTo(
+                    Offset(
+                        x = width * 0.7f,
+                        y = centerY,
+                    ),
+                )
+            }
+            composeRule.runOnIdle {
+                assertFalse(state.isSeeking)
+                assertEquals(
+                    0,
+                    player.seekCount,
+                )
+            }
+            composeRule.onNodeWithTag(testTag = "gesture").performTouchInput { up() }
+        }
+    }
+
+    private class DurationPlayer : ForwardingPlayer(TestPlayer()) {
+        var durationMs = 60_000L
+        var seekCount = 0
+
+        override fun getDuration(): Long = durationMs
+
+        override fun seekTo(positionMs: Long) {
+            seekCount++
+            super.seekTo(positionMs)
+        }
     }
 
     private class TestPlayer : SimpleBasePlayer(Looper.getMainLooper()) {
