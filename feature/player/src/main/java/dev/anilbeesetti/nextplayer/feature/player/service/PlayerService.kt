@@ -9,6 +9,7 @@ import android.os.Bundle
 import androidx.annotation.OptIn
 import androidx.core.net.toUri
 import androidx.media3.common.AudioAttributes
+import androidx.media3.common.BundleListRetriever
 import androidx.media3.common.C
 import androidx.media3.common.MediaItem
 import androidx.media3.common.MediaMetadata
@@ -25,7 +26,6 @@ import androidx.media3.common.util.UnstableApi
 import androidx.media3.exoplayer.ExoPlaybackException
 import androidx.media3.exoplayer.ExoPlayer
 import androidx.media3.exoplayer.analytics.AnalyticsListener
-import androidx.media3.exoplayer.source.DefaultMediaSourceFactory
 import androidx.media3.exoplayer.trackselection.DefaultTrackSelector
 import androidx.media3.session.CommandButton
 import androidx.media3.session.CommandButton.ICON_UNDEFINED
@@ -38,6 +38,7 @@ import coil3.ImageLoader
 import coil3.request.ImageRequest
 import com.google.common.util.concurrent.Futures
 import com.google.common.util.concurrent.ListenableFuture
+import com.google.common.util.concurrent.MoreExecutors
 import dev.anilbeesetti.nextplayer.core.common.Logger
 import dev.anilbeesetti.nextplayer.core.common.extensions.deleteFiles
 import dev.anilbeesetti.nextplayer.core.common.extensions.getFilenameFromUri
@@ -73,6 +74,7 @@ import dev.anilbeesetti.nextplayer.feature.player.extensions.videoDecoderMode
 import dev.anilbeesetti.nextplayer.feature.player.extensions.videoZoom
 import dev.anilbeesetti.nextplayer.feature.player.extensions.withExternalAudio
 import dev.anilbeesetti.nextplayer.feature.player.model.DecoderTrackType
+import dev.anilbeesetti.nextplayer.feature.player.utils.hasApiPosition
 import dev.anilbeesetti.nextplayer.feature.player.utils.isExplicitPlaylistItem
 import io.github.anilbeesetti.nextlib.media3ext.ffdecoder.DecoderManager
 import io.github.anilbeesetti.nextlib.media3ext.ffdecoder.DecoderMode
@@ -120,6 +122,9 @@ class PlayerService : MediaSessionService() {
     private val customCommands = CustomCommands.asSessionCommands()
 
     private var isMediaItemReady = false
+    private var playbackRequestGeneration = 0L
+    private var pendingMediaItemsRequest:
+        ListenableFuture<MediaSession.MediaItemsWithStartPosition>? = null
     private var pendingAudioSelection: Pair<String, Uri>? = null
 
     private var loudnessEnhancer: LoudnessEnhancer? = null
@@ -225,7 +230,10 @@ class PlayerService : MediaSessionService() {
                     playerSpecificSubtitleSpeed = metadata.subtitleSpeed ?: 1f
                 }
 
-                metadata.positionMs?.takeIf { playerPreferences.resume == Resume.YES }?.let {
+                metadata.positionMs?.takeIf {
+                    mediaItem.hasApiPosition ||
+                        playerPreferences.resume == Resume.YES
+                }?.let {
                     mediaSession?.player?.seekTo(it)
                 }
             }
@@ -511,15 +519,28 @@ class PlayerService : MediaSessionService() {
             mediaItems: MutableList<MediaItem>,
             startIndex: Int,
             startPositionMs: Long,
-        ): ListenableFuture<MediaSession.MediaItemsWithStartPosition> =
-            serviceScope.future(Dispatchers.Default) {
-                val updatedMediaItems = updatedMediaItemsWithMetadata(mediaItems = mediaItems)
-                return@future MediaSession.MediaItemsWithStartPosition(
+        ): ListenableFuture<MediaSession.MediaItemsWithStartPosition> {
+            cancelPendingMediaItems()
+            playbackRequestGeneration++
+            val request = serviceScope.future {
+                val updatedMediaItems = withContext(Dispatchers.Default) {
+                    updatedMediaItemsWithMetadata(mediaItems = mediaItems)
+                }
+                MediaSession.MediaItemsWithStartPosition(
                     updatedMediaItems,
                     startIndex,
                     startPositionMs,
                 )
             }
+            pendingMediaItemsRequest = request
+            request.addListener(
+                {
+                    if (pendingMediaItemsRequest === request) pendingMediaItemsRequest = null
+                },
+                MoreExecutors.directExecutor(),
+            )
+            return request
+        }
 
         override fun onAddMediaItems(
             mediaSession: MediaSession,
@@ -787,6 +808,13 @@ class PlayerService : MediaSessionService() {
                     return@future SessionResult(SessionResult.RESULT_SUCCESS)
                 }
 
+                CustomCommands.START_BACKGROUND_PLAYBACK -> {
+                    return@future startBackgroundPlayback(
+                        session,
+                        args,
+                    )
+                }
+
                 CustomCommands.STOP_PLAYER_SESSION -> {
                     savePositionAndStopSession()
                     return@future SessionResult(SessionResult.RESULT_SUCCESS)
@@ -795,8 +823,98 @@ class PlayerService : MediaSessionService() {
         }
     }
 
+    private suspend fun startBackgroundPlayback(
+        session: MediaSession,
+        args: Bundle,
+    ): SessionResult {
+        val requestGeneration = ++playbackRequestGeneration
+        val items = try {
+            val binder = args.getBinder(CustomCommands.BACKGROUND_MEDIA_ITEMS_KEY)
+                ?: return SessionResult(SessionError.ERROR_BAD_VALUE)
+            withContext(Dispatchers.Default) {
+                BundleListRetriever.getList(binder).map { MediaItem.fromBundle(it) }
+            }
+        } catch (error: Exception) {
+            if (error is kotlinx.coroutines.CancellationException) throw error
+            return SessionResult(SessionError.ERROR_BAD_VALUE)
+        }
+        val index = args.getInt(
+            CustomCommands.BACKGROUND_START_INDEX_KEY,
+            0,
+        )
+        val position = args.getLong(
+            CustomCommands.BACKGROUND_START_POSITION_KEY,
+            C.TIME_UNSET,
+        )
+
+        @Suppress("DEPRECATION")
+        val speed = (args.get(CustomCommands.PLAYBACK_SPEED_KEY) as? Number)?.toFloat()
+        if (items.isEmpty() || index !in items.indices ||
+            items.any { it.localConfiguration?.uri == null } ||
+            (position < 0 && position != C.TIME_UNSET) ||
+            (
+                args.containsKey(CustomCommands.PLAYBACK_SPEED_KEY) &&
+                    (speed == null || !speed.isFinite() || speed <= 0)
+                )
+        ) {
+            return SessionResult(SessionError.ERROR_BAD_VALUE)
+        }
+        if (requestGeneration != playbackRequestGeneration || mediaSession !== session) {
+            return SessionResult(SessionError.ERROR_INVALID_STATE)
+        }
+        cancelPendingMediaItems()
+        val generation = ++playbackRequestGeneration
+        val updatedItems = withContext(Dispatchers.Default) {
+            updatedMediaItemsWithMetadata(items)
+        }
+        if (generation != playbackRequestGeneration || mediaSession !== session) {
+            return SessionResult(SessionError.ERROR_INVALID_STATE)
+        }
+        return session.player.run {
+            setMediaItems(
+                updatedItems,
+                index,
+                position,
+            )
+            speed?.let(::setPlaybackSpeed)
+            prepare()
+            play()
+            SessionResult(
+                SessionResult.RESULT_SUCCESS,
+                Bundle().apply {
+                    putString(
+                        CustomCommands.BACKGROUND_MEDIA_URI_KEY,
+                        currentMediaItem?.localConfiguration?.uri?.toString(),
+                    )
+                    putLong(
+                        CustomCommands.BACKGROUND_POSITION_KEY,
+                        currentPosition,
+                    )
+                    putLong(
+                        CustomCommands.BACKGROUND_DURATION_KEY,
+                        duration,
+                    )
+                },
+            )
+        }
+    }
+
     override fun onGetSession(controllerInfo: MediaSession.ControllerInfo): MediaSession? =
         mediaSession
+
+    override fun onStartCommand(intent: Intent?, flags: Int, startId: Int): Int {
+        if (intent?.action == ACTION_RETAIN_PLAYBACK_GRANTS) {
+            // A stop may arrive between the handoff acknowledgement and grant delivery.
+            if (mediaSession?.player?.currentMediaItem == null) stopSelf(startId)
+            // Keep the grant-bearing start record until stop so Android can revoke its grants.
+            return START_REDELIVER_INTENT
+        }
+        return super.onStartCommand(
+            intent,
+            flags,
+            startId,
+        )
+    }
 
     override fun onCreate() {
         super.onCreate()
@@ -819,9 +937,10 @@ class PlayerService : MediaSessionService() {
             .setTrackSelector(trackSelector)
             .setMediaSourceFactory(
                 ExternalAudioMediaSourceFactory(
-                    DefaultMediaSourceFactory(
+                    ApiMediaSourceFactory(
                         applicationContext,
-                    ).setDataSourceFactory(dataSourceFactory),
+                        dataSourceFactory,
+                    ),
                 ),
             )
             .setAudioAttributes(
@@ -890,20 +1009,34 @@ class PlayerService : MediaSessionService() {
     }
 
     private suspend fun savePositionAndStopSession() {
+        cancelPendingMediaItems()
+        val generation = ++playbackRequestGeneration
         mediaSession?.run {
-            player.currentMediaItem?.let { mediaItem ->
-                mediaRepository.updateMediumPosition(
-                    uri = mediaItem.mediaId,
-                    position = player.currentPosition,
-                )
-            }
+            val mediaItem = player.currentMediaItem
+            val position = player.currentPosition
             player.clearMediaItems()
             player.stop()
+            mediaItem?.let {
+                mediaRepository.updateMediumPosition(
+                    uri = mediaItem.mediaId,
+                    position = position,
+                )
+            }
         }
-        stopSelf()
+        if (generation == playbackRequestGeneration) stopSelf()
+    }
+
+    private fun cancelPendingMediaItems() {
+        // Cancelling drains Media3's queued commands, which may submit another queue.
+        while (true) {
+            val request = pendingMediaItemsRequest ?: return
+            pendingMediaItemsRequest = null
+            request.cancel(false)
+        }
     }
 
     override fun onDestroy() {
+        cancelPendingMediaItems()
         super.onDestroy()
         artworkLoadJob?.cancel()
         loudnessEnhancer?.release()

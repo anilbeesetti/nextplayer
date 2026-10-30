@@ -36,7 +36,12 @@ fun rememberVideoZoomAndContentScaleState(
     onEvent: (VideoZoomEvent) -> Unit = {},
 ): VideoZoomAndContentScaleState {
     val coroutineScope = rememberCoroutineScope()
-    val videoZoomAndContentScaleState = remember {
+    val videoZoomAndContentScaleState = remember(
+        player,
+        initialContentScale,
+        enableZoomGesture,
+        enablePanGesture,
+    ) {
         VideoZoomAndContentScaleState(
             player = player,
             initialContentScale = initialContentScale,
@@ -46,7 +51,7 @@ fun rememberVideoZoomAndContentScaleState(
             coroutineScope = coroutineScope,
         )
     }
-    LaunchedEffect(key1 = player) { videoZoomAndContentScaleState.observe() }
+    LaunchedEffect(videoZoomAndContentScaleState) { videoZoomAndContentScaleState.observe() }
     return videoZoomAndContentScaleState
 }
 

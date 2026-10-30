@@ -71,6 +71,10 @@ private fun Context.startPlayback(uri: Uri, playlist: List<Uri>?, grantReadPermi
         action = Intent.ACTION_VIEW
         data = uri
         playlist?.let {
+            putExtra(
+                "video_list_is_explicit",
+                true,
+            )
             putParcelableArrayListExtra(
                 PlayerApi.API_PLAYLIST,
                 ArrayList(it),

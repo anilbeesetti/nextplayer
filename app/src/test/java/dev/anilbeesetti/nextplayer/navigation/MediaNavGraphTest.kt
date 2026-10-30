@@ -10,6 +10,7 @@ import dev.anilbeesetti.nextplayer.feature.player.utils.PlaylistPlaybackContract
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertFalse
 import org.junit.Assert.assertNull
+import org.junit.Assert.assertTrue
 import org.junit.Test
 import org.junit.runner.RunWith
 import org.robolectric.Robolectric
@@ -27,6 +28,12 @@ class MediaNavGraphTest {
         context.startPlayback(uris = listOf(element = uri))
 
         val intent = shadowOf(context).nextStartedActivity
+        assertTrue(
+            intent.getBooleanExtra(
+                "video_list_is_explicit",
+                false,
+            ),
+        )
         assertEquals(
             arrayListOf(uri),
             IntentCompat.getParcelableArrayListExtra(
@@ -46,6 +53,12 @@ class MediaNavGraphTest {
 
         val intent = shadowOf(context).nextStartedActivity
         assertFalse(intent.hasExtra(PlayerApi.API_PLAYLIST))
+        assertFalse(
+            intent.getBooleanExtra(
+                "video_list_is_explicit",
+                false,
+            ),
+        )
     }
 
     @Test
@@ -72,6 +85,12 @@ class MediaNavGraphTest {
         )
 
         val intent = shadowOf(context).nextStartedActivity
+        assertTrue(
+            intent.getBooleanExtra(
+                "video_list_is_explicit",
+                false,
+            ),
+        )
         assertEquals(
             second,
             intent.data,
