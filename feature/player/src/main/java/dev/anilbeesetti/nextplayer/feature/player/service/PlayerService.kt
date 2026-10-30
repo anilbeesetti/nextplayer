@@ -659,6 +659,11 @@ class PlayerService : MediaSessionService() {
                                 enabled,
                             )
                         }
+                    serviceScope.launch {
+                        preferencesRepository.updatePlayerPreferences {
+                            it.copy(skipSilenceEnabled = enabled)
+                        }
+                    }
                     return@future SessionResult(SessionResult.RESULT_SUCCESS)
                 }
 
@@ -739,7 +744,7 @@ class PlayerService : MediaSessionService() {
 
                 CustomCommands.SET_AUDIO_DECODER_MODE -> {
                     val mode = args.decoderMode(CustomCommands.AUDIO_DECODER_MODE_KEY)
-                        ?: return@future SessionResult(SessionResult.RESULT_ERROR_BAD_VALUE)
+                        ?: return@future SessionResult(SessionError.ERROR_BAD_VALUE)
                     val player = mediaSession?.player as? ExoPlayer
                         ?: return@future SessionResult(SessionResult.RESULT_ERROR_INVALID_STATE)
                     decoderRecoveryManager.onUserSelection(
@@ -954,6 +959,7 @@ class PlayerService : MediaSessionService() {
             .build()
             .also {
                 it.setPlaybackSpeed(playerPreferences.defaultPlaybackSpeed)
+                it.skipSilenceEnabled = playerPreferences.skipSilenceEnabled
                 it.addListener(playbackStateListener)
                 it.pauseAtEndOfMediaItems = !playerPreferences.autoplay
                 it.repeatMode = when (playerPreferences.loopMode) {
