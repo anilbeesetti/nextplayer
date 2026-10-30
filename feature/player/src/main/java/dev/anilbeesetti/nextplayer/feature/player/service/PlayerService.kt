@@ -39,11 +39,10 @@ import coil3.request.ImageRequest
 import com.google.common.util.concurrent.Futures
 import com.google.common.util.concurrent.ListenableFuture
 import dev.anilbeesetti.nextplayer.core.common.Logger
-import dev.anilbeesetti.nextplayer.core.common.extensions.deleteFiles
+import dev.anilbeesetti.nextplayer.core.common.di.DiQualifiers
 import dev.anilbeesetti.nextplayer.core.common.extensions.getFilenameFromUri
 import dev.anilbeesetti.nextplayer.core.common.extensions.getLocalSubtitles
 import dev.anilbeesetti.nextplayer.core.common.extensions.getPath
-import dev.anilbeesetti.nextplayer.core.common.extensions.subtitleCacheDir
 import dev.anilbeesetti.nextplayer.core.data.repository.MediaRepository
 import dev.anilbeesetti.nextplayer.core.data.repository.PreferencesRepository
 import dev.anilbeesetti.nextplayer.core.media.network.NetworkUri
@@ -83,6 +82,7 @@ import io.github.anilbeesetti.nextlib.mediainfo.MediaInfoBuilder
 import java.io.File
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.CoroutineStart
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.SupervisorJob
@@ -91,10 +91,10 @@ import kotlinx.coroutines.awaitAll
 import kotlinx.coroutines.cancel
 import kotlinx.coroutines.guava.future
 import kotlinx.coroutines.launch
-import kotlinx.coroutines.runBlocking
 import kotlinx.coroutines.supervisorScope
 import kotlinx.coroutines.withContext
 import org.koin.android.ext.android.inject
+import org.koin.core.qualifier.named
 
 @OptIn(UnstableApi::class)
 class PlayerService : MediaSessionService() {
@@ -103,6 +103,7 @@ class PlayerService : MediaSessionService() {
         context =
             Dispatchers.Main + SupervisorJob(),
     )
+    private val applicationScope: CoroutineScope by inject(named(DiQualifiers.APPLICATION_SCOPE))
     private var mediaSession: MediaSession? = null
     private var artworkLoadJob: Job? = null
 
@@ -917,10 +918,8 @@ class PlayerService : MediaSessionService() {
             release()
             mediaSession = null
         }
-        subtitleCacheDir.deleteFiles()
-        // Drop the network connection before the scope dies, so a share isn't held open for the
-        // lifetime of the process after playback ends.
-        runBlocking { dataSourceFactory.release() }
+        // Queue release before a new service can open another connection.
+        applicationScope.launch(start = CoroutineStart.UNDISPATCHED) { dataSourceFactory.release() }
         serviceScope.cancel()
     }
 
