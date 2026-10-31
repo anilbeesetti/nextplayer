@@ -1,5 +1,6 @@
 package dev.anilbeesetti.nextplayer.core.media.services
 
+import android.Manifest
 import android.app.PendingIntent
 import android.content.ContentProvider
 import android.content.ContentResolver
@@ -41,7 +42,7 @@ import org.robolectric.shadows.ShadowContentResolver
 
 @RunWith(RobolectricTestRunner::class)
 @Config(
-    sdk = [30],
+    sdk = [24, 28, 29, 30],
     manifest = Config.NONE,
     shadows = [MediaTransferTest.MediaStoreShadow::class],
 )
@@ -73,6 +74,9 @@ class MediaTransferTest {
 
     @Before
     fun setUp() {
+        shadowOf(
+            RuntimeEnvironment.getApplication(),
+        ).grantPermissions(Manifest.permission.WRITE_EXTERNAL_STORAGE)
         source.parentFile!!.mkdirs()
         source.writeBytes(array = ByteArray(size = DEFAULT_BUFFER_SIZE * 2) { it.toByte() })
         provider.attachInfo(
@@ -124,6 +128,9 @@ class MediaTransferTest {
     @Test
     fun `copy keeps original and needs no write permission`() = runBlocking {
         writeGranted = false
+        shadowOf(
+            RuntimeEnvironment.getApplication(),
+        ).denyPermissions(Manifest.permission.WRITE_EXTERNAL_STORAGE)
         val result = transfer(TransferMode.COPY)
         assertEquals(
             1,
@@ -138,6 +145,26 @@ class MediaTransferTest {
     }
 
     @Test
+    @Config(sdk = [24, 28, 29])
+    fun `legacy move without storage write access creates no copies`() = runBlocking {
+        shadowOf(
+            RuntimeEnvironment.getApplication(),
+        ).denyPermissions(Manifest.permission.WRITE_EXTERNAL_STORAGE)
+        val result = transfer(TransferMode.MOVE)
+        assertEquals(
+            TransferResult(
+                succeeded = 0,
+                failed = 1,
+            ),
+            result,
+        )
+        assertTrue(source.exists())
+        assertTrue(provider.created.isEmpty())
+        assertTrue(MediaStoreShadow.requests.isEmpty())
+    }
+
+    @Test
+    @Config(sdk = [30])
     fun `unavailable consent creates no copies and batches sources before moving`() = runBlocking {
         writeGranted = false
         val second = Uri.parse("content://media/external/video/media/2")
@@ -172,6 +199,9 @@ class MediaTransferTest {
     @Test
     fun `same folder move skips consent and leaves source alone`() = runBlocking {
         writeGranted = false
+        shadowOf(
+            RuntimeEnvironment.getApplication(),
+        ).denyPermissions(Manifest.permission.WRITE_EXTERNAL_STORAGE)
         provider.sameFolder = true
         assertEquals(
             TransferResult(

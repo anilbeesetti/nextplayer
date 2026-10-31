@@ -1,5 +1,6 @@
 package dev.anilbeesetti.nextplayer.core.media.services
 
+import android.Manifest
 import android.app.Activity
 import android.app.PendingIntent
 import android.content.ContentValues
@@ -48,11 +49,15 @@ class LocalMediaOperationsService(private val context: Context) : MediaOperation
     private val contentResolver = context.contentResolver
     private var mediaRequestLauncher:
         SuspendActivityResultLauncher<IntentSenderRequest, ActivityResult>? = null
+    private var storagePermissionLauncher: SuspendActivityResultLauncher<String, Boolean>? = null
 
     override fun initialize(activity: ComponentActivity) {
         this.activity = activity
         mediaRequestLauncher = activity.registerForSuspendActivityResult(
             contract = ActivityResultContracts.StartIntentSenderForResult(),
+        )
+        storagePermissionLauncher = activity.registerForSuspendActivityResult(
+            contract = ActivityResultContracts.RequestPermission(),
         )
     }
 
@@ -232,9 +237,17 @@ class LocalMediaOperationsService(private val context: Context) : MediaOperation
             emptyList<Uri>() to uris
         }
 
-        if (mode == TransferMode.MOVE && Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) {
-            val mediaUris = sources.filter { it.authority == MediaStore.AUTHORITY }
-            if (!requestWriteAccessR(uris = mediaUris)) {
+        if (mode == TransferMode.MOVE && sources.isNotEmpty()) {
+            val granted = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) {
+                requestWriteAccessR(uris = sources.filter { it.authority == MediaStore.AUTHORITY })
+            } else {
+                context.checkSelfPermission(Manifest.permission.WRITE_EXTERNAL_STORAGE) ==
+                    PackageManager.PERMISSION_GRANTED ||
+                    storagePermissionLauncher?.launch(
+                        input = Manifest.permission.WRITE_EXTERNAL_STORAGE,
+                    ) == true
+            }
+            if (!granted) {
                 emit(
                     TransferEvent.Completed(
                         result = TransferResult(
