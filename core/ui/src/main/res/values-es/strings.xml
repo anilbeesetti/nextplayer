@@ -544,4 +544,5 @@
     <string name="network_watch_history_desc">Incluir en el historial los videos reproducidos en red.</string>
     <string name="add_to_home_screen">Añadir a la pantalla de inicio</string>
     <string name="playlist_shortcut_failed">No se pudo añadir el acceso directo a la lista de reproducción. Inténtalo de nuevo.</string>
+    <string name="github_sponsors">Patrocinadores de GitHub</string>
 </resources>
