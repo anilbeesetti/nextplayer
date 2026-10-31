@@ -79,7 +79,7 @@ class SubtitlePositionState(initialOffset: Offset, private val onPositionSaved: 
         const val MAX_OFFSET_Y = 0.05f
 
         // Vertical band (fraction of height) where subtitles sit before any offset is applied.
-        private const val DEFAULT_ZONE_TOP = 0.7f
-        private const val DEFAULT_ZONE_BOTTOM = 0.95f
+        private const val DEFAULT_ZONE_TOP = 0.6f
+        private const val DEFAULT_ZONE_BOTTOM = 0.97f
     }
 }

@@ -1,16 +1,23 @@
 package dev.anilbeesetti.nextplayer.feature.player.ui
 
+import android.content.Context
 import android.graphics.Typeface
 import android.util.TypedValue
 import android.view.accessibility.CaptioningManager
 import androidx.annotation.OptIn
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.Stable
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.viewinterop.AndroidView
 import androidx.core.content.ContextCompat.getSystemService
+import androidx.media3.common.text.Cue
 import androidx.media3.common.util.UnstableApi
 import androidx.media3.ui.CaptionStyleCompat
 import androidx.media3.ui.SubtitleView
@@ -28,6 +35,14 @@ fun SubtitleView(
     isInPictureInPictureMode: Boolean,
     configuration: SubtitleConfiguration,
 ) {
+    // Playback keeps going while the subtitle is moved; the text on screen stays put until release.
+    var frozenCues by remember { mutableStateOf<List<Cue>?>(null) }
+    LaunchedEffect(positionState.isDragging) {
+        frozenCues = cuesState.currentCues?.cues.takeIf { positionState.isDragging }
+    }
+    val displayedCues = frozenCues.takeIf { positionState.isDragging }
+        ?: cuesState.currentCues?.cues
+
     AndroidView(
         modifier = modifier
             .fillMaxSize()
@@ -38,30 +53,14 @@ fun SubtitleView(
             },
         factory = { context ->
             SubtitleView(context).apply {
-                val captioningManager =
-                    getSystemService(
+                setStyle(
+                    createCaptionStyle(
                         context,
-                        CaptioningManager::class.java,
-                    ) ?: return@apply
-                if (configuration.useSystemCaptionStyle) {
-                    val systemCaptionStyle = CaptionStyleCompat.createFromCaptionStyle(
-                        captioningManager.userStyle,
-                    )
-                    setStyle(systemCaptionStyle)
-                } else {
-                    val userStyle = CaptionStyleCompat(
-                        android.graphics.Color.WHITE,
-                        android.graphics.Color.BLACK.takeIf { configuration.showBackground }
-                            ?: android.graphics.Color.TRANSPARENT,
-                        android.graphics.Color.TRANSPARENT,
-                        CaptionStyleCompat.EDGE_TYPE_DROP_SHADOW,
-                        android.graphics.Color.BLACK,
-                        Typeface.create(
-                            configuration.font.toTypeface(),
-                            Typeface.BOLD.takeIf { configuration.textBold } ?: Typeface.NORMAL,
-                        ),
-                    )
-                    setStyle(userStyle)
+                        configuration,
+                        highlighted = false,
+                    ),
+                )
+                if (!configuration.useSystemCaptionStyle) {
                     setFixedTextSize(
                         TypedValue.COMPLEX_UNIT_SP,
                         configuration.textSize.toFloat(),
@@ -71,7 +70,14 @@ fun SubtitleView(
             }
         },
         update = { subtitleView ->
-            subtitleView.setCues(cuesState.currentCues?.cues)
+            subtitleView.setStyle(
+                createCaptionStyle(
+                    context = subtitleView.context,
+                    configuration = configuration,
+                    highlighted = positionState.isDragging,
+                ),
+            )
+            subtitleView.setCues(displayedCues)
             if (isInPictureInPictureMode) {
                 subtitleView.setFractionalTextSize(SubtitleView.DEFAULT_TEXT_SIZE_FRACTION)
             } else {
@@ -81,6 +87,46 @@ fun SubtitleView(
                 )
             }
         },
+    )
+}
+
+// Translucent grey box behind the text while the subtitle is being moved.
+private val DRAG_HIGHLIGHT_COLOR = 0x99808080.toInt()
+
+@OptIn(UnstableApi::class)
+private fun createCaptionStyle(
+    context: Context,
+    configuration: SubtitleConfiguration,
+    highlighted: Boolean,
+): CaptionStyleCompat {
+    val captioningManager = getSystemService(
+        context,
+        CaptioningManager::class.java,
+    )
+    val style = if (configuration.useSystemCaptionStyle && captioningManager != null) {
+        CaptionStyleCompat.createFromCaptionStyle(captioningManager.userStyle)
+    } else {
+        CaptionStyleCompat(
+            android.graphics.Color.WHITE,
+            android.graphics.Color.BLACK.takeIf { configuration.showBackground }
+                ?: android.graphics.Color.TRANSPARENT,
+            android.graphics.Color.TRANSPARENT,
+            CaptionStyleCompat.EDGE_TYPE_DROP_SHADOW,
+            android.graphics.Color.BLACK,
+            Typeface.create(
+                configuration.font.toTypeface(),
+                Typeface.BOLD.takeIf { configuration.textBold } ?: Typeface.NORMAL,
+            ),
+        )
+    }
+    if (!highlighted) return style
+    return CaptionStyleCompat(
+        style.foregroundColor,
+        DRAG_HIGHLIGHT_COLOR,
+        style.windowColor,
+        style.edgeType,
+        style.edgeColor,
+        style.typeface,
     )
 }
 

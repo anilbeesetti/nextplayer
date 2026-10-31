@@ -9,10 +9,15 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.compositionLocalOf
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.hapticfeedback.HapticFeedbackType
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.platform.LocalHapticFeedback
 import androidx.compose.ui.platform.LocalInspectionMode
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.lifecycle.Lifecycle
@@ -150,6 +155,18 @@ internal fun MediaPlayerContent(
             )
         },
     )
+    val hapticFeedback = LocalHapticFeedback.current
+    var wasDraggingSubtitle by remember { mutableStateOf(false) }
+    LaunchedEffect(subtitlePositionState.isDragging) {
+        if (subtitlePositionState.isDragging) {
+            wasDraggingSubtitle = true
+            hapticFeedback.performHapticFeedback(HapticFeedbackType.LongPress)
+            controlsVisibilityState.hideControls()
+        } else if (wasDraggingSubtitle) {
+            wasDraggingSubtitle = false
+            controlsVisibilityState.showControls()
+        }
+    }
 
     LaunchedEffect(pictureInPictureState?.isInPictureInPictureMode) {
         if (pictureInPictureState?.isInPictureInPictureMode == true) {

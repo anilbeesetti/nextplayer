@@ -10,6 +10,8 @@ import androidx.compose.foundation.layout.systemBarsIgnoringVisibility
 import androidx.compose.foundation.layout.systemGestures
 import androidx.compose.foundation.layout.union
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.rememberUpdatedState
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.input.pointer.pointerInput
@@ -44,8 +46,11 @@ fun PlayerGestures(
     subtitlePositionState: SubtitlePositionState,
     hasSubtitles: Boolean,
 ) {
+    // Read lazily: the cue can end mid-drag and must not restart the gesture handlers.
+    val currentHasSubtitles by rememberUpdatedState(hasSubtitles)
+
     fun isOnSubtitle(position: Offset) =
-        hasSubtitles && subtitlePositionState.isInDragZone(position)
+        currentHasSubtitles && subtitlePositionState.isInDragZone(position)
 
     // Keep the system's swipe-to-reveal areas reserved even while the bars are hidden.
     val gestureInsets = WindowInsets.systemGestures.union(WindowInsets.systemBarsIgnoringVisibility)
@@ -57,7 +62,6 @@ fun PlayerGestures(
                 .fillMaxSize()
                 .onSizeChanged { subtitlePositionState.containerSize = it }
                 .pointerInput(
-                    hasSubtitles,
                     controlsVisibilityState.controlsLocked,
                     pictureInPictureState.isInPictureInPictureMode,
                 ) {
