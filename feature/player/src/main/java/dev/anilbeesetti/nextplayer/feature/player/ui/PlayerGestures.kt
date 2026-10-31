@@ -24,7 +24,7 @@ import androidx.compose.ui.unit.LayoutDirection
 import dev.anilbeesetti.nextplayer.feature.player.extensions.detectCustomHorizontalDragGestures
 import dev.anilbeesetti.nextplayer.feature.player.extensions.detectCustomTransformGestures
 import dev.anilbeesetti.nextplayer.feature.player.extensions.detectCustomVerticalDragGestures
-import dev.anilbeesetti.nextplayer.feature.player.extensions.detectLongPressDragGestures
+import dev.anilbeesetti.nextplayer.feature.player.extensions.detectSubtitleDragGestures
 import dev.anilbeesetti.nextplayer.feature.player.state.ControlsVisibilityState
 import dev.anilbeesetti.nextplayer.feature.player.state.PictureInPictureState
 import dev.anilbeesetti.nextplayer.feature.player.state.SeekGestureState
@@ -68,7 +68,7 @@ fun PlayerGestures(
                     if (controlsVisibilityState.controlsLocked) return@pointerInput
                     if (pictureInPictureState.isInPictureInPictureMode) return@pointerInput
 
-                    detectLongPressDragGestures(
+                    detectSubtitleDragGestures(
                         shouldStartGesture = ::isOnSubtitle,
                         onDragStart = subtitlePositionState::onDragStart,
                         onDrag = subtitlePositionState::onDrag,

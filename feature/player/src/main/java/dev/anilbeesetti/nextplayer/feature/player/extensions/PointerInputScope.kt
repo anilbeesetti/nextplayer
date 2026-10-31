@@ -19,7 +19,6 @@ import androidx.compose.ui.input.pointer.positionChange
 import androidx.compose.ui.input.pointer.positionChanged
 import kotlin.math.abs
 import kotlinx.coroutines.CancellationException
-import kotlinx.coroutines.withTimeoutOrNull
 
 /**
  * Detects custom transform gestures including pan, zoom, and rotation gestures.
@@ -193,10 +192,11 @@ suspend fun PointerInputScope.detectCustomHorizontalDragGestures(
 }
 
 /**
- * Long-press at a position accepted by [shouldStartGesture], then drag. Once the long-press fires,
- * the pointer is consumed in the Initial pass so the tap, seek, volume and zoom gestures back off.
+ * Press at a position accepted by [shouldStartGesture] and move: the drag starts as soon as the
+ * finger passes the touch slop. From then on the pointer is consumed in the Initial pass so the
+ * tap, seek, volume and zoom gestures back off. A press that lifts without moving is left alone.
  */
-suspend fun PointerInputScope.detectLongPressDragGestures(
+suspend fun PointerInputScope.detectSubtitleDragGestures(
     shouldStartGesture: (Offset) -> Boolean,
     onDragStart: () -> Unit,
     onDrag: (Offset) -> Unit,
@@ -209,21 +209,21 @@ suspend fun PointerInputScope.detectLongPressDragGestures(
         )
         if (!shouldStartGesture(down.position)) return@awaitEachGesture
 
-        // Not awaitLongPressOrCancellation: it gives up on a down already consumed by the tap detector.
-        var cancelled = false
-        val timedOut = withTimeoutOrNull(viewConfiguration.longPressTimeoutMillis) {
-            while (!cancelled) {
-                val event = awaitPointerEvent(PointerEventPass.Initial)
-                val change = event.changes.firstOrNull { it.id == down.id }
-                cancelled = change == null ||
-                    !change.pressed ||
-                    (change.position - down.position).getDistance() > viewConfiguration.touchSlop
-            }
-        } == null
-        if (!timedOut) return@awaitEachGesture
+        // Wait in the Initial pass: other detectors may already have consumed the down event.
+        var movedPastSlop = false
+        while (!movedPastSlop) {
+            val event = awaitPointerEvent(PointerEventPass.Initial)
+            val change = event.changes.firstOrNull { it.id == down.id }
+            if (change == null || !change.pressed) return@awaitEachGesture
+            movedPastSlop =
+                (change.position - down.position).getDistance() > viewConfiguration.touchSlop
+            // Claim the move that crosses the slop, or the volume/seek swipes also start on it.
+            if (movedPastSlop) change.consume()
+        }
 
         onDragStart()
         try {
+            onDrag(currentEvent.changes.first { it.id == down.id }.position - down.position)
             while (true) {
                 val event = awaitPointerEvent(PointerEventPass.Initial)
                 val change = event.changes.firstOrNull { it.id == down.id } ?: break
