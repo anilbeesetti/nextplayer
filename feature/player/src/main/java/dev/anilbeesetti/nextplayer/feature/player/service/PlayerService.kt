@@ -3,6 +3,7 @@ package dev.anilbeesetti.nextplayer.feature.player.service
 import android.app.PendingIntent
 import android.content.ContentResolver
 import android.content.Intent
+import android.media.MediaCodec
 import android.media.audiofx.LoudnessEnhancer
 import android.net.Uri
 import android.os.Bundle
@@ -134,6 +135,7 @@ class PlayerService : MediaSessionService() {
     private lateinit var decoderManager: DecoderManager
     private lateinit var trackSelector: DefaultTrackSelector
     private val decoderRecoveryManager = DecoderRecoveryManager()
+    private var obsoleteSurfaceRetries = 0
 
     private val decoderAnalyticsListener = object : AnalyticsListener {
         override fun onEvents(player: Player, events: AnalyticsListener.Events) {
@@ -187,6 +189,7 @@ class PlayerService : MediaSessionService() {
             output: Any,
             renderTimeMs: Long,
         ) {
+            obsoleteSurfaceRetries = 0
             Logger.logInfo(
                 tag = DECODER_LOG_TAG,
                 message = "Rendered first frame with video=${decoderManager.activeVideoMode}",
@@ -384,6 +387,14 @@ class PlayerService : MediaSessionService() {
         }
 
         override fun onPlayerError(error: PlaybackException) {
+            if (error.isObsoleteSurfaceError) {
+                // The video surface was destroyed (e.g. screen locked) while a frame was being
+                // rendered. The decoder itself is fine, so don't fall back to another decoder.
+                decoderRecoveryManager.onNonDecoderError()
+                recoverFromObsoleteSurface()
+                return
+            }
+
             if (!error.isDecoderFailure) {
                 decoderRecoveryManager.onNonDecoderError()
                 return
@@ -1196,6 +1207,13 @@ class PlayerService : MediaSessionService() {
         return true
     }
 
+    private fun recoverFromObsoleteSurface() {
+        val player = mediaSession?.player as? ExoPlayer ?: return
+        if (obsoleteSurfaceRetries >= MAX_OBSOLETE_SURFACE_RETRIES) return
+        obsoleteSurfaceRetries++
+        if (player.mediaItemCount > 0) player.prepare()
+    }
+
     private fun handleUnsupportedTracks(tracks: Tracks) {
         handleUnsupportedTrack(
             tracks = tracks,
@@ -1367,6 +1385,19 @@ class PlayerService : MediaSessionService() {
         .build()
 }
 
+/**
+ * MediaCodec throws "rendering to non-initialized(obsolete) surface" when the output surface is
+ * destroyed (screen lock, activity stop) just before a decoded frame is released to it.
+ */
+internal val PlaybackException.isObsoleteSurfaceError: Boolean
+    get() = generateSequence<Throwable>(this) { it.cause }.any { cause ->
+        cause is MediaCodec.CodecException &&
+            cause.message?.contains(
+                other = "obsolete",
+                ignoreCase = true,
+            ) == true
+    }
+
 internal val PlaybackException.isDecoderFailure: Boolean
     get() = when (errorCode) {
         PlaybackException.ERROR_CODE_DECODER_INIT_FAILED,
@@ -1387,6 +1418,7 @@ private val DecoderTrackType.mediaTrackType: Int
     }
 
 private const val DECODER_LOG_TAG = "Decoder"
+private const val MAX_OBSOLETE_SURFACE_RETRIES = 3
 
 @get:UnstableApi
 @set:UnstableApi

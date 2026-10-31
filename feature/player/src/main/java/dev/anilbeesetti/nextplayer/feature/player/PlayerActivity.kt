@@ -42,6 +42,7 @@ import dev.anilbeesetti.nextplayer.feature.player.service.PlayerService
 import dev.anilbeesetti.nextplayer.feature.player.service.addAudioTrack
 import dev.anilbeesetti.nextplayer.feature.player.service.addSubtitleTrack
 import dev.anilbeesetti.nextplayer.feature.player.service.decoderServiceState
+import dev.anilbeesetti.nextplayer.feature.player.service.isObsoleteSurfaceError
 import dev.anilbeesetti.nextplayer.feature.player.service.retainPlaybackUriPermissions
 import dev.anilbeesetti.nextplayer.feature.player.service.setAudioDecoderMode
 import dev.anilbeesetti.nextplayer.feature.player.service.setVideoDecoderMode
@@ -116,6 +117,8 @@ class PlayerActivity : ComponentActivity() {
         }
 
         override fun onPlayerError(error: PlaybackException) {
+            // The service recovers from this transient error by itself.
+            if (error.isObsoleteSurfaceError) return
             playbackFailed = true
             if (playerApi.suppressErrorMessage) {
                 val controller = mediaController ?: return
