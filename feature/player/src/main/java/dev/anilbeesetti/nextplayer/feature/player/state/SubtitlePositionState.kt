@@ -8,6 +8,7 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.geometry.Offset
+import androidx.compose.ui.geometry.Rect
 import androidx.compose.ui.unit.IntSize
 
 @Composable
@@ -42,12 +43,22 @@ class SubtitlePositionState(initialOffset: Offset, private val onPositionSaved: 
     val isHighlighted: Boolean get() = isPressed || isDragging
     var containerSize by mutableStateOf(IntSize.Zero)
 
-    /** Whether the long-press at [position] landed where subtitles are currently drawn. */
-    fun isInDragZone(position: Offset): Boolean {
-        if (containerSize == IntSize.Zero) return false
-        val top = (DEFAULT_ZONE_TOP + offset.y) * containerSize.height
-        val bottom = (DEFAULT_ZONE_BOTTOM + offset.y) * containerSize.height
-        return position.y in top..bottom
+    /**
+     * Measures where the subtitle text is drawn, in the subtitle view's own coordinates (before
+     * [offset] is applied). Null when nothing is drawn. Set by the view that renders the subtitles.
+     */
+    var textBoundsProvider: (() -> Rect?)? = null
+
+    /** Whether [position] is on the subtitle text as drawn now, give or take [paddingPx]. */
+    fun isOnSubtitle(position: Offset, paddingPx: Float): Boolean {
+        val bounds = textBoundsProvider?.invoke() ?: return false
+        return bounds
+            .translate(
+                offset.x * containerSize.width,
+                offset.y * containerSize.height,
+            )
+            .inflate(paddingPx)
+            .contains(position)
     }
 
     fun onPressChange(pressed: Boolean) {
@@ -86,9 +97,5 @@ class SubtitlePositionState(initialOffset: Offset, private val onPositionSaved: 
         const val MAX_OFFSET_X = 0.4f
         const val MIN_OFFSET_Y = -0.85f
         const val MAX_OFFSET_Y = 0.05f
-
-        // Vertical band (fraction of height) where subtitles sit before any offset is applied.
-        private const val DEFAULT_ZONE_TOP = 0.6f
-        private const val DEFAULT_ZONE_BOTTOM = 0.97f
     }
 }

@@ -1,6 +1,7 @@
 package dev.anilbeesetti.nextplayer.feature.player.state
 
 import androidx.compose.ui.geometry.Offset
+import androidx.compose.ui.geometry.Rect
 import androidx.compose.ui.unit.IntSize
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertFalse
@@ -106,47 +107,127 @@ class SubtitlePositionStateTest {
     }
 
     @Test
-    fun `drag zone follows the saved offset`() {
+    fun `touch only counts on the drawn subtitle text`() {
         val state = state()
-        // Default band is the lower part of the screen.
+        // Text drawn at x 400..600, y 350..400 (container is 1000 x 500).
+        state.textBoundsProvider = {
+            Rect(
+                400f,
+                350f,
+                600f,
+                400f,
+            )
+        }
+
         assertTrue(
-            state.isInDragZone(
+            state.isOnSubtitle(
                 Offset(
-                    x = 500f,
-                    y = 400f,
+                    500f,
+                    375f,
                 ),
+                paddingPx = 0f,
             ),
         )
         assertFalse(
-            state.isInDragZone(
+            state.isOnSubtitle(
                 Offset(
-                    x = 500f,
-                    y = 100f,
+                    500f,
+                    300f,
                 ),
+                paddingPx = 0f,
             ),
         )
+        assertFalse(
+            state.isOnSubtitle(
+                Offset(
+                    100f,
+                    375f,
+                ),
+                paddingPx = 0f,
+            ),
+        )
+        // Padding gives a fingertip some reach around the text.
+        assertTrue(
+            state.isOnSubtitle(
+                Offset(
+                    500f,
+                    330f,
+                ),
+                paddingPx = 30f,
+            ),
+        )
+        assertFalse(
+            state.isOnSubtitle(
+                Offset(
+                    500f,
+                    300f,
+                ),
+                paddingPx = 30f,
+            ),
+        )
+    }
 
+    @Test
+    fun `hit area follows the saved offset`() {
+        val state = state()
+        state.textBoundsProvider = {
+            Rect(
+                400f,
+                350f,
+                600f,
+                400f,
+            )
+        }
+
+        // Moved 300px up and 100px right, as the view is translated on screen.
         state.onDrag(
             Offset(
-                x = 0f,
+                x = 100f,
                 y = -300f,
             ),
         )
 
         assertTrue(
-            state.isInDragZone(
+            state.isOnSubtitle(
                 Offset(
-                    x = 500f,
-                    y = 100f,
+                    600f,
+                    75f,
                 ),
+                paddingPx = 0f,
             ),
         )
         assertFalse(
-            state.isInDragZone(
+            state.isOnSubtitle(
                 Offset(
-                    x = 500f,
-                    y = 400f,
+                    500f,
+                    375f,
                 ),
+                paddingPx = 0f,
+            ),
+        )
+    }
+
+    @Test
+    fun `nothing is hit when no text is drawn`() {
+        val state = state()
+        assertFalse(
+            state.isOnSubtitle(
+                Offset(
+                    500f,
+                    375f,
+                ),
+                paddingPx = 50f,
+            ),
+        )
+
+        state.textBoundsProvider = { null }
+        assertFalse(
+            state.isOnSubtitle(
+                Offset(
+                    500f,
+                    375f,
+                ),
+                paddingPx = 50f,
             ),
         )
     }

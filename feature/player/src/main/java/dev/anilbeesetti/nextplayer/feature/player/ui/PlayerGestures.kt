@@ -21,6 +21,7 @@ import androidx.compose.ui.platform.LocalLayoutDirection
 import androidx.compose.ui.unit.Density
 import androidx.compose.ui.unit.IntSize
 import androidx.compose.ui.unit.LayoutDirection
+import androidx.compose.ui.unit.dp
 import dev.anilbeesetti.nextplayer.feature.player.extensions.detectCustomHorizontalDragGestures
 import dev.anilbeesetti.nextplayer.feature.player.extensions.detectCustomTransformGestures
 import dev.anilbeesetti.nextplayer.feature.player.extensions.detectCustomVerticalDragGestures
@@ -32,6 +33,9 @@ import dev.anilbeesetti.nextplayer.feature.player.state.SubtitlePositionState
 import dev.anilbeesetti.nextplayer.feature.player.state.TapGestureState
 import dev.anilbeesetti.nextplayer.feature.player.state.VideoZoomAndContentScaleState
 import dev.anilbeesetti.nextplayer.feature.player.state.VolumeAndBrightnessGestureState
+
+// Extra reach around the drawn subtitle text so a fingertip does not have to be pixel-exact.
+private val SUBTITLE_TOUCH_PADDING = 16.dp
 
 @OptIn(ExperimentalLayoutApi::class)
 @Composable
@@ -49,12 +53,17 @@ fun PlayerGestures(
     // Read lazily: the cue can end mid-drag and must not restart the gesture handlers.
     val currentHasSubtitles by rememberUpdatedState(hasSubtitles)
 
-    fun isOnSubtitle(position: Offset) =
-        currentHasSubtitles && subtitlePositionState.isInDragZone(position)
-
     // Keep the system's swipe-to-reveal areas reserved even while the bars are hidden.
     val gestureInsets = WindowInsets.systemGestures.union(WindowInsets.systemBarsIgnoringVisibility)
     val density = LocalDensity.current
+    val subtitleTouchPaddingPx = with(density) { SUBTITLE_TOUCH_PADDING.toPx() }
+
+    fun isOnSubtitle(position: Offset) = currentHasSubtitles &&
+        subtitlePositionState.isOnSubtitle(
+            position,
+            subtitleTouchPaddingPx,
+        )
+
     val layoutDirection = LocalLayoutDirection.current
     BoxWithConstraints {
         Box(
