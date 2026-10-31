@@ -82,7 +82,10 @@ class PlayerViewModel(
 
             is PlayerAction.UpdatePlayerBrightness -> updatePlayerBrightness(action.value)
 
-            is PlayerAction.UpdateSubtitleOffset -> updateSubtitleOffset(action.x, action.y)
+            is PlayerAction.UpdateSubtitleOffset -> updateSubtitleOffset(
+                action.x,
+                action.y,
+            )
 
             is PlayerAction.SetLoopMode -> setLoopMode(action.loopMode)
 
@@ -114,7 +117,10 @@ class PlayerViewModel(
     private fun updateSubtitleOffset(x: Float, y: Float) {
         viewModelScope.launch {
             preferencesRepository.updatePlayerPreferences {
-                it.copy(subtitleOffsetX = x, subtitleOffsetY = y)
+                it.copy(
+                    subtitleOffsetX = x,
+                    subtitleOffsetY = y,
+                )
             }
         }
     }

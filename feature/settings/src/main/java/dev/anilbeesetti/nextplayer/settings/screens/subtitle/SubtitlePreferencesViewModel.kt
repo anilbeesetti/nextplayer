@@ -67,6 +67,8 @@ class SubtitlePreferencesViewModel(
 
             is SubtitlePreferencesUiEvent.ToggleUseSystemCaptionStyle ->
                 toggleUseSystemCaptionStyle()
+
+            is SubtitlePreferencesUiEvent.ResetSubtitlePosition -> resetSubtitlePosition()
         }
     }
 
@@ -124,6 +126,17 @@ class SubtitlePreferencesViewModel(
         }
     }
 
+    private fun resetSubtitlePosition() {
+        viewModelScope.launch {
+            preferencesRepository.updatePlayerPreferences {
+                it.copy(
+                    subtitleOffsetX = 0f,
+                    subtitleOffsetY = 0f,
+                )
+            }
+        }
+    }
+
     private fun toggleUseSystemCaptionStyle() {
         viewModelScope.launch {
             preferencesRepository.updatePlayerPreferences {
@@ -157,4 +170,5 @@ sealed interface SubtitlePreferencesUiEvent {
     data object ToggleApplyEmbeddedStyles : SubtitlePreferencesUiEvent
     data class UpdateSubtitleEncoding(val value: String) : SubtitlePreferencesUiEvent
     data object ToggleUseSystemCaptionStyle : SubtitlePreferencesUiEvent
+    data object ResetSubtitlePosition : SubtitlePreferencesUiEvent
 }

@@ -13,6 +13,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.input.pointer.pointerInput
+import androidx.compose.ui.layout.onSizeChanged
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.platform.LocalLayoutDirection
 import androidx.compose.ui.unit.Density
@@ -21,9 +22,11 @@ import androidx.compose.ui.unit.LayoutDirection
 import dev.anilbeesetti.nextplayer.feature.player.extensions.detectCustomHorizontalDragGestures
 import dev.anilbeesetti.nextplayer.feature.player.extensions.detectCustomTransformGestures
 import dev.anilbeesetti.nextplayer.feature.player.extensions.detectCustomVerticalDragGestures
+import dev.anilbeesetti.nextplayer.feature.player.extensions.detectLongPressDragGestures
 import dev.anilbeesetti.nextplayer.feature.player.state.ControlsVisibilityState
 import dev.anilbeesetti.nextplayer.feature.player.state.PictureInPictureState
 import dev.anilbeesetti.nextplayer.feature.player.state.SeekGestureState
+import dev.anilbeesetti.nextplayer.feature.player.state.SubtitlePositionState
 import dev.anilbeesetti.nextplayer.feature.player.state.TapGestureState
 import dev.anilbeesetti.nextplayer.feature.player.state.VideoZoomAndContentScaleState
 import dev.anilbeesetti.nextplayer.feature.player.state.VolumeAndBrightnessGestureState
@@ -38,7 +41,12 @@ fun PlayerGestures(
     seekGestureState: SeekGestureState,
     videoZoomAndContentScaleState: VideoZoomAndContentScaleState,
     volumeAndBrightnessGestureState: VolumeAndBrightnessGestureState,
+    subtitlePositionState: SubtitlePositionState,
+    hasSubtitles: Boolean,
 ) {
+    fun isOnSubtitle(position: Offset) =
+        hasSubtitles && subtitlePositionState.isInDragZone(position)
+
     // Keep the system's swipe-to-reveal areas reserved even while the bars are hidden.
     val gestureInsets = WindowInsets.systemGestures.union(WindowInsets.systemBarsIgnoringVisibility)
     val density = LocalDensity.current
@@ -47,6 +55,22 @@ fun PlayerGestures(
         Box(
             modifier = modifier
                 .fillMaxSize()
+                .onSizeChanged { subtitlePositionState.containerSize = it }
+                .pointerInput(
+                    hasSubtitles,
+                    controlsVisibilityState.controlsLocked,
+                    pictureInPictureState.isInPictureInPictureMode,
+                ) {
+                    if (controlsVisibilityState.controlsLocked) return@pointerInput
+                    if (pictureInPictureState.isInPictureInPictureMode) return@pointerInput
+
+                    detectLongPressDragGestures(
+                        shouldStartGesture = ::isOnSubtitle,
+                        onDragStart = subtitlePositionState::onDragStart,
+                        onDrag = subtitlePositionState::onDrag,
+                        onDragEnd = subtitlePositionState::onDragEnd,
+                    )
+                }
                 .pointerInput(pictureInPictureState.isInPictureInPictureMode) {
                     if (pictureInPictureState.isInPictureInPictureMode) return@pointerInput
 
@@ -68,6 +92,7 @@ fun PlayerGestures(
                         },
                         onLongPress = {
                             if (controlsVisibilityState.controlsLocked) return@detectTapGestures
+                            if (isOnSubtitle(it)) return@detectTapGestures
                             tapGestureState.handleLongPress(offset = it)
                         },
                     )

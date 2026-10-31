@@ -10,6 +10,7 @@ import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.compositionLocalOf
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalInspectionMode
@@ -25,9 +26,11 @@ import dev.anilbeesetti.nextplayer.feature.player.state.ControlsVisibilityState
 import dev.anilbeesetti.nextplayer.feature.player.state.PlayerOrientationEffect
 import dev.anilbeesetti.nextplayer.feature.player.state.rememberBrightnessState
 import dev.anilbeesetti.nextplayer.feature.player.state.rememberControlsVisibilityState
+import dev.anilbeesetti.nextplayer.feature.player.state.rememberCuesState
 import dev.anilbeesetti.nextplayer.feature.player.state.rememberErrorState
 import dev.anilbeesetti.nextplayer.feature.player.state.rememberPictureInPictureState
 import dev.anilbeesetti.nextplayer.feature.player.state.rememberSeekGestureState
+import dev.anilbeesetti.nextplayer.feature.player.state.rememberSubtitlePositionState
 import dev.anilbeesetti.nextplayer.feature.player.state.rememberTapGestureState
 import dev.anilbeesetti.nextplayer.feature.player.state.rememberVideoZoomAndContentScaleState
 import dev.anilbeesetti.nextplayer.feature.player.state.rememberVolumeAndBrightnessGestureState
@@ -132,6 +135,21 @@ internal fun MediaPlayerContent(
         )
     }
     val errorState = rememberErrorState(player = player)
+    val cuesState = rememberCuesState(player = player)
+    val subtitlePositionState = rememberSubtitlePositionState(
+        savedOffset = Offset(
+            x = playerPreferences.subtitleOffsetX,
+            y = playerPreferences.subtitleOffsetY,
+        ),
+        onPositionSaved = {
+            onAction(
+                PlayerAction.UpdateSubtitleOffset(
+                    it.x,
+                    it.y,
+                ),
+            )
+        },
+    )
 
     LaunchedEffect(pictureInPictureState?.isInPictureInPictureMode) {
         if (pictureInPictureState?.isInPictureInPictureMode == true) {
@@ -162,6 +180,8 @@ internal fun MediaPlayerContent(
                 videoZoomAndContentScaleState = videoZoomAndContentScaleState,
                 videoVisible = api?.videoVisible ?: true,
                 displayAspectRatio = api?.displayAspectRatio,
+                cuesState = cuesState,
+                subtitlePositionState = subtitlePositionState,
                 subtitleConfiguration = SubtitleConfiguration(
                     useSystemCaptionStyle = playerPreferences.useSystemCaptionStyle,
                     showBackground = playerPreferences.subtitleBackground,
@@ -179,6 +199,8 @@ internal fun MediaPlayerContent(
                     seekGestureState = seekGestureState,
                     videoZoomAndContentScaleState = videoZoomAndContentScaleState,
                     volumeAndBrightnessGestureState = volumeAndBrightnessGestureState,
+                    subtitlePositionState = subtitlePositionState,
+                    hasSubtitles = cuesState.currentCues?.cues?.isNotEmpty() == true,
                 )
             }
         }

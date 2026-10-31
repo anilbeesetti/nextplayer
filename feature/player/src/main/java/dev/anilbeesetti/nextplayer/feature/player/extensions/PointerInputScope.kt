@@ -3,6 +3,7 @@ package dev.anilbeesetti.nextplayer.feature.player.extensions
 import androidx.compose.foundation.gestures.awaitEachGesture
 import androidx.compose.foundation.gestures.awaitFirstDown
 import androidx.compose.foundation.gestures.awaitHorizontalTouchSlopOrCancellation
+import androidx.compose.foundation.gestures.awaitLongPressOrCancellation
 import androidx.compose.foundation.gestures.awaitVerticalTouchSlopOrCancellation
 import androidx.compose.foundation.gestures.calculateCentroid
 import androidx.compose.foundation.gestures.calculateCentroidSize
@@ -187,6 +188,39 @@ suspend fun PointerInputScope.detectCustomHorizontalDragGestures(
                 onDragCancel()
                 throw e
             }
+        }
+    }
+}
+
+/**
+ * Long-press at a position accepted by [shouldStartGesture], then drag. Once the long-press fires,
+ * the pointer is consumed in the Initial pass so the tap, seek, volume and zoom gestures back off.
+ */
+suspend fun PointerInputScope.detectLongPressDragGestures(
+    shouldStartGesture: (Offset) -> Boolean,
+    onDragStart: () -> Unit,
+    onDrag: (Offset) -> Unit,
+    onDragEnd: () -> Unit,
+) {
+    awaitEachGesture {
+        val down = awaitFirstDown(
+            requireUnconsumed = false,
+            pass = PointerEventPass.Initial,
+        )
+        if (!shouldStartGesture(down.position)) return@awaitEachGesture
+        if (awaitLongPressOrCancellation(down.id) == null) return@awaitEachGesture
+
+        onDragStart()
+        try {
+            while (true) {
+                val event = awaitPointerEvent(PointerEventPass.Initial)
+                val change = event.changes.firstOrNull { it.id == down.id } ?: break
+                if (change.pressed) onDrag(change.positionChange())
+                change.consume()
+                if (!change.pressed) break
+            }
+        } finally {
+            onDragEnd()
         }
     }
 }

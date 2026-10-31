@@ -17,7 +17,9 @@ import androidx.media3.ui.compose.SURFACE_TYPE_SURFACE_VIEW
 import androidx.media3.ui.compose.modifiers.resizeWithContentScale
 import androidx.media3.ui.compose.state.rememberPresentationState
 import dev.anilbeesetti.nextplayer.feature.player.extensions.toContentScale
+import dev.anilbeesetti.nextplayer.feature.player.state.CuesState
 import dev.anilbeesetti.nextplayer.feature.player.state.PictureInPictureState
+import dev.anilbeesetti.nextplayer.feature.player.state.SubtitlePositionState
 import dev.anilbeesetti.nextplayer.feature.player.state.VideoZoomAndContentScaleState
 import dev.anilbeesetti.nextplayer.feature.player.ui.ShutterView
 import dev.anilbeesetti.nextplayer.feature.player.ui.SubtitleConfiguration
@@ -31,6 +33,8 @@ fun PlayerContentFrame(
     pictureInPictureState: PictureInPictureState,
     videoZoomAndContentScaleState: VideoZoomAndContentScaleState,
     subtitleConfiguration: SubtitleConfiguration,
+    cuesState: CuesState,
+    subtitlePositionState: SubtitlePositionState,
     videoVisible: Boolean = true,
     displayAspectRatio: Float? = null,
 ) {
@@ -77,7 +81,8 @@ fun PlayerContentFrame(
         }
 
         SubtitleView(
-            player = player,
+            cuesState = cuesState,
+            positionState = subtitlePositionState,
             isInPictureInPictureMode = pictureInPictureState.isInPictureInPictureMode,
             configuration = subtitleConfiguration,
         )

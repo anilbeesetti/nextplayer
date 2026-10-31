@@ -15,7 +15,12 @@ fun rememberSubtitlePositionState(
     savedOffset: Offset,
     onPositionSaved: (Offset) -> Unit,
 ): SubtitlePositionState {
-    val state = remember { SubtitlePositionState(savedOffset, onPositionSaved) }
+    val state = remember {
+        SubtitlePositionState(
+            savedOffset,
+            onPositionSaved,
+        )
+    }
     LaunchedEffect(savedOffset) { state.syncSavedOffset(savedOffset) }
     return state
 }
@@ -25,10 +30,7 @@ fun rememberSubtitlePositionState(
  * player's width and height so the position holds across rotation and screen sizes.
  */
 @Stable
-class SubtitlePositionState(
-    initialOffset: Offset,
-    private val onPositionSaved: (Offset) -> Unit,
-) {
+class SubtitlePositionState(initialOffset: Offset, private val onPositionSaved: (Offset) -> Unit) {
     var offset by mutableStateOf(initialOffset)
         private set
     var isDragging by mutableStateOf(false)
@@ -50,8 +52,14 @@ class SubtitlePositionState(
     fun onDrag(deltaPx: Offset) {
         if (containerSize == IntSize.Zero) return
         offset = Offset(
-            x = (offset.x + deltaPx.x / containerSize.width).coerceIn(-MAX_OFFSET_X, MAX_OFFSET_X),
-            y = (offset.y + deltaPx.y / containerSize.height).coerceIn(MIN_OFFSET_Y, MAX_OFFSET_Y),
+            x = (offset.x + deltaPx.x / containerSize.width).coerceIn(
+                -MAX_OFFSET_X,
+                MAX_OFFSET_X,
+            ),
+            y = (offset.y + deltaPx.y / containerSize.height).coerceIn(
+                MIN_OFFSET_Y,
+                MAX_OFFSET_Y,
+            ),
         )
     }
 
