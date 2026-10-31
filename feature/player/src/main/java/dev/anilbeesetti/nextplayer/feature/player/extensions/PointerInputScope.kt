@@ -3,7 +3,6 @@ package dev.anilbeesetti.nextplayer.feature.player.extensions
 import androidx.compose.foundation.gestures.awaitEachGesture
 import androidx.compose.foundation.gestures.awaitFirstDown
 import androidx.compose.foundation.gestures.awaitHorizontalTouchSlopOrCancellation
-import androidx.compose.foundation.gestures.awaitLongPressOrCancellation
 import androidx.compose.foundation.gestures.awaitVerticalTouchSlopOrCancellation
 import androidx.compose.foundation.gestures.calculateCentroid
 import androidx.compose.foundation.gestures.calculateCentroidSize
@@ -20,6 +19,7 @@ import androidx.compose.ui.input.pointer.positionChange
 import androidx.compose.ui.input.pointer.positionChanged
 import kotlin.math.abs
 import kotlinx.coroutines.CancellationException
+import kotlinx.coroutines.withTimeoutOrNull
 
 /**
  * Detects custom transform gestures including pan, zoom, and rotation gestures.
@@ -208,7 +208,19 @@ suspend fun PointerInputScope.detectLongPressDragGestures(
             pass = PointerEventPass.Initial,
         )
         if (!shouldStartGesture(down.position)) return@awaitEachGesture
-        if (awaitLongPressOrCancellation(down.id) == null) return@awaitEachGesture
+
+        // Not awaitLongPressOrCancellation: it gives up on a down already consumed by the tap detector.
+        var cancelled = false
+        val timedOut = withTimeoutOrNull(viewConfiguration.longPressTimeoutMillis) {
+            while (!cancelled) {
+                val event = awaitPointerEvent(PointerEventPass.Initial)
+                val change = event.changes.firstOrNull { it.id == down.id }
+                cancelled = change == null ||
+                    !change.pressed ||
+                    (change.position - down.position).getDistance() > viewConfiguration.touchSlop
+            }
+        } == null
+        if (!timedOut) return@awaitEachGesture
 
         onDragStart()
         try {
