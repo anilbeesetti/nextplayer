@@ -1,6 +1,7 @@
 package dev.anilbeesetti.nextplayer
 
 import android.content.Intent
+import android.content.res.Configuration
 import android.graphics.Color
 import android.os.Bundle
 import androidx.activity.SystemBarStyle
@@ -51,6 +52,7 @@ import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.platform.LocalLayoutDirection
 import androidx.compose.ui.unit.dp
 import androidx.core.splashscreen.SplashScreen.Companion.installSplashScreen
+import androidx.core.view.WindowCompat
 import androidx.fragment.app.FragmentActivity
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.navigation3.runtime.NavEntryDecorator
@@ -93,6 +95,7 @@ class MainActivity : FragmentActivity() {
     private val viewModel: MainViewModel by viewModel()
 
     private var pendingPlaylistId by mutableStateOf<Long?>(value = null)
+    private var darkSystemBars = false
 
     override fun onNewIntent(intent: Intent) {
         super.onNewIntent(intent)
@@ -113,23 +116,34 @@ class MainActivity : FragmentActivity() {
             viewModel.state.value is MainActivityUiState.Loading
         }
 
+        darkSystemBars = resources.configuration.uiMode and Configuration.UI_MODE_NIGHT_MASK ==
+            Configuration.UI_MODE_NIGHT_YES
+        enableEdgeToEdge(
+            statusBarStyle = SystemBarStyle.auto(
+                lightScrim = Color.TRANSPARENT,
+                darkScrim = Color.TRANSPARENT,
+                detectDarkMode = { darkSystemBars },
+            ),
+            navigationBarStyle = SystemBarStyle.auto(
+                lightScrim = Color.TRANSPARENT,
+                darkScrim = Color.TRANSPARENT,
+                detectDarkMode = { darkSystemBars },
+            ),
+        )
+
         setContent {
             val state by viewModel.state.collectAsStateWithLifecycle()
             val shouldUseDarkTheme = shouldUseDarkTheme(state = state)
 
             LaunchedEffect(key1 = shouldUseDarkTheme) {
-                enableEdgeToEdge(
-                    statusBarStyle = SystemBarStyle.auto(
-                        lightScrim = Color.TRANSPARENT,
-                        darkScrim = Color.TRANSPARENT,
-                        detectDarkMode = { shouldUseDarkTheme },
-                    ),
-                    navigationBarStyle = SystemBarStyle.auto(
-                        lightScrim = Color.TRANSPARENT,
-                        darkScrim = Color.TRANSPARENT,
-                        detectDarkMode = { shouldUseDarkTheme },
-                    ),
-                )
+                darkSystemBars = shouldUseDarkTheme
+                WindowCompat.getInsetsController(
+                    window,
+                    window.decorView,
+                ).apply {
+                    isAppearanceLightStatusBars = !shouldUseDarkTheme
+                    isAppearanceLightNavigationBars = !shouldUseDarkTheme
+                }
             }
 
             NextPlayerTheme(
