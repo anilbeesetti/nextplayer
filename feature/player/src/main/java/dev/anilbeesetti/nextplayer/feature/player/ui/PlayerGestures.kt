@@ -70,6 +70,7 @@ fun PlayerGestures(
 
                     detectSubtitleDragGestures(
                         shouldStartGesture = ::isOnSubtitle,
+                        onPressChange = subtitlePositionState::onPressChange,
                         onDragStart = subtitlePositionState::onDragStart,
                         onDrag = subtitlePositionState::onDrag,
                         onDragEnd = subtitlePositionState::onDragEnd,

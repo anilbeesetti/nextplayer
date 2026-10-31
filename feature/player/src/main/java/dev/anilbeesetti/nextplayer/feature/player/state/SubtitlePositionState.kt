@@ -35,6 +35,11 @@ class SubtitlePositionState(initialOffset: Offset, private val onPositionSaved: 
         private set
     var isDragging by mutableStateOf(false)
         private set
+    var isPressed by mutableStateOf(false)
+        private set
+
+    /** The subtitle shows a highlight from the first touch, so it is clear it can be moved. */
+    val isHighlighted: Boolean get() = isPressed || isDragging
     var containerSize by mutableStateOf(IntSize.Zero)
 
     /** Whether the long-press at [position] landed where subtitles are currently drawn. */
@@ -43,6 +48,10 @@ class SubtitlePositionState(initialOffset: Offset, private val onPositionSaved: 
         val top = (DEFAULT_ZONE_TOP + offset.y) * containerSize.height
         val bottom = (DEFAULT_ZONE_BOTTOM + offset.y) * containerSize.height
         return position.y in top..bottom
+    }
+
+    fun onPressChange(pressed: Boolean) {
+        isPressed = pressed
     }
 
     fun onDragStart() {

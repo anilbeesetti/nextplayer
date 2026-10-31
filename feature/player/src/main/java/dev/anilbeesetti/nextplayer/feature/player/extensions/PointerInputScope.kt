@@ -198,6 +198,7 @@ suspend fun PointerInputScope.detectCustomHorizontalDragGestures(
  */
 suspend fun PointerInputScope.detectSubtitleDragGestures(
     shouldStartGesture: (Offset) -> Boolean,
+    onPressChange: (Boolean) -> Unit,
     onDragStart: () -> Unit,
     onDrag: (Offset) -> Unit,
     onDragEnd: () -> Unit,
@@ -209,30 +210,36 @@ suspend fun PointerInputScope.detectSubtitleDragGestures(
         )
         if (!shouldStartGesture(down.position)) return@awaitEachGesture
 
-        // Wait in the Initial pass: other detectors may already have consumed the down event.
-        var movedPastSlop = false
-        while (!movedPastSlop) {
-            val event = awaitPointerEvent(PointerEventPass.Initial)
-            val change = event.changes.firstOrNull { it.id == down.id }
-            if (change == null || !change.pressed) return@awaitEachGesture
-            movedPastSlop =
-                (change.position - down.position).getDistance() > viewConfiguration.touchSlop
-            // Claim the move that crosses the slop, or the volume/seek swipes also start on it.
-            if (movedPastSlop) change.consume()
-        }
-
-        onDragStart()
+        // Pressed is reported straight away so the UI can show the subtitle can be moved.
+        onPressChange(true)
         try {
-            onDrag(currentEvent.changes.first { it.id == down.id }.position - down.position)
-            while (true) {
+            // Wait in the Initial pass: other detectors may already have consumed the down event.
+            var movedPastSlop = false
+            while (!movedPastSlop) {
                 val event = awaitPointerEvent(PointerEventPass.Initial)
-                val change = event.changes.firstOrNull { it.id == down.id } ?: break
-                if (change.pressed) onDrag(change.positionChange())
-                change.consume()
-                if (!change.pressed) break
+                val change = event.changes.firstOrNull { it.id == down.id }
+                if (change == null || !change.pressed) return@awaitEachGesture
+                movedPastSlop =
+                    (change.position - down.position).getDistance() > viewConfiguration.touchSlop
+                // Claim the move that crosses the slop, or the volume/seek swipes also start on it.
+                if (movedPastSlop) change.consume()
+            }
+
+            onDragStart()
+            try {
+                onDrag(currentEvent.changes.first { it.id == down.id }.position - down.position)
+                while (true) {
+                    val event = awaitPointerEvent(PointerEventPass.Initial)
+                    val change = event.changes.firstOrNull { it.id == down.id } ?: break
+                    if (change.pressed) onDrag(change.positionChange())
+                    change.consume()
+                    if (!change.pressed) break
+                }
+            } finally {
+                onDragEnd()
             }
         } finally {
-            onDragEnd()
+            onPressChange(false)
         }
     }
 }

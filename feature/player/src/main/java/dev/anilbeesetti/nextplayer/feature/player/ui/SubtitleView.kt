@@ -74,7 +74,7 @@ fun SubtitleView(
                 createCaptionStyle(
                     context = subtitleView.context,
                     configuration = configuration,
-                    highlighted = positionState.isDragging,
+                    highlighted = positionState.isHighlighted,
                 ),
             )
             subtitleView.setCues(displayedCues)

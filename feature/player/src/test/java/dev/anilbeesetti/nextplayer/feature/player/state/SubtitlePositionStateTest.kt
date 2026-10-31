@@ -152,6 +152,22 @@ class SubtitlePositionStateTest {
     }
 
     @Test
+    fun `highlight shows from the first touch and until the drag ends`() {
+        val state = state()
+        assertFalse(state.isHighlighted)
+
+        state.onPressChange(true)
+        assertTrue(state.isHighlighted)
+
+        state.onDragStart()
+        state.onPressChange(false)
+        assertTrue(state.isHighlighted)
+
+        state.onDragEnd()
+        assertFalse(state.isHighlighted)
+    }
+
+    @Test
     fun `external offset updates are ignored while dragging`() {
         val state = state()
         state.onDragStart()
