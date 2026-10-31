@@ -11,6 +11,7 @@ import androidx.media3.session.SessionCommand
 import androidx.media3.session.SessionResult
 import coil3.ImageLoader
 import com.google.common.util.concurrent.ListenableFuture
+import dev.anilbeesetti.nextplayer.core.common.di.DiQualifiers
 import dev.anilbeesetti.nextplayer.core.data.models.VideoState
 import dev.anilbeesetti.nextplayer.core.data.repository.MediaRepository
 import dev.anilbeesetti.nextplayer.core.data.repository.PreferencesRepository
@@ -22,6 +23,10 @@ import dev.anilbeesetti.nextplayer.core.media.network.datasource.NetworkSessions
 import dev.anilbeesetti.nextplayer.core.media.network.datasource.NextDataSourceFactory
 import dev.anilbeesetti.nextplayer.feature.player.utils.PlayerApi
 import kotlinx.coroutines.CompletableDeferred
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.SupervisorJob
+import kotlinx.coroutines.cancel
 import kotlinx.coroutines.runBlocking
 import org.junit.After
 import org.junit.Assert.assertEquals
@@ -32,6 +37,7 @@ import org.junit.Test
 import org.junit.runner.RunWith
 import org.koin.core.context.startKoin
 import org.koin.core.context.stopKoin
+import org.koin.core.qualifier.named
 import org.koin.dsl.module
 import org.robolectric.Robolectric
 import org.robolectric.RobolectricTestRunner
@@ -43,6 +49,7 @@ import org.robolectric.annotation.Config
 @Config(sdk = [28])
 class PlaybackSpeedSessionTest {
     private val preferences = FakePreferencesRepository()
+    private val applicationScope = CoroutineScope(SupervisorJob() + Dispatchers.Default)
     private var metadataGate: CompletableDeferred<Unit>? = null
     private var delayedMediaId: String? = null
     private var metadataStarted: CompletableDeferred<Unit>? = null
@@ -55,6 +62,9 @@ class PlaybackSpeedSessionTest {
         startKoin {
             modules(
                 modules = module {
+                    single<CoroutineScope>(named(DiQualifiers.APPLICATION_SCOPE)) {
+                        applicationScope
+                    }
                     single<PreferencesRepository> { preferences }
                     single<MediaRepository> {
                         object : MediaRepository by FakeMediaRepository() {
@@ -86,6 +96,7 @@ class PlaybackSpeedSessionTest {
 
     @After
     fun tearDown() {
+        applicationScope.cancel()
         stopKoin()
     }
 
