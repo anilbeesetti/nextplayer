@@ -554,4 +554,5 @@
     <string name="network_watch_history_desc">Додавати відео, відтворені через мережу, до історії переглядів.</string>
     <string name="add_to_home_screen">Додати на головний екран</string>
     <string name="playlist_shortcut_failed">Не вдалося додати ярлик добірки. Спробуйте ще раз.</string>
+    <string name="github_sponsors">Спонсори GitHub</string>
 </resources>
