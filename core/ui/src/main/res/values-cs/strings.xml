@@ -546,4 +546,5 @@
     <string name="watch_history_desc">Zaznamenat videa, které sledujete</string>
     <string name="add_to_home_screen">Přidat na domovskou obrazovku</string>
     <string name="playlist_shortcut_failed">Nešlo přidat zástupce pro playlist. Zkuste to znovu.</string>
+    <string name="github_sponsors">GitHub Sponsors</string>
 </resources>
