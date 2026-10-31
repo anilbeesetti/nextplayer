@@ -44,6 +44,7 @@ universalChardet = "2.5.2"
 smbj = "0.14.0"
 smbjRpc = "0.12.13"
 mockito = "5.14.2"
+okhttp = "4.12.0"
 commonsNet = "3.13.0"
 sardineAndroid = "0.9"
 
@@ -114,6 +115,7 @@ robolectric = { module = "org.robolectric:robolectric", version.ref = "robolectr
 smbj = { group = "com.hierynomus", name = "smbj", version.ref = "smbj" }
 smbj-rpc = { group = "com.rapid7.client", name = "dcerpc", version.ref = "smbjRpc" }
 mockito-core = { group = "org.mockito", name = "mockito-core", version.ref = "mockito" }
+okhttp-mockwebserver = { module = "com.squareup.okhttp3:mockwebserver", version.ref = "okhttp" }
 sshj = { group = "com.hierynomus", name = "sshj", version.ref = "sshj" }
 bouncycastle-provider = { group = "org.bouncycastle", name = "bcprov-jdk18on", version.ref = "bouncyCastle" }
 commons-net = { group = "commons-net", name = "commons-net", version.ref = "commonsNet" }
