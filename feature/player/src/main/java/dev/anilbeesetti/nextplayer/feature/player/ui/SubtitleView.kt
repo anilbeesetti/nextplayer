@@ -91,7 +91,7 @@ fun SubtitleView(
 }
 
 // Translucent grey box behind the text while the subtitle is being moved.
-private val DRAG_HIGHLIGHT_COLOR = 0x99808080.toInt()
+private val DRAG_HIGHLIGHT_COLOR = 0x99C8C8C8.toInt()
 
 @OptIn(UnstableApi::class)
 private fun createCaptionStyle(
