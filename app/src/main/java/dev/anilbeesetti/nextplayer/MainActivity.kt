@@ -78,6 +78,7 @@ import dev.anilbeesetti.nextplayer.navigation.TopLevelNavState
 import dev.anilbeesetti.nextplayer.navigation.mediaNavGraph
 import dev.anilbeesetti.nextplayer.navigation.moreNavGraph
 import dev.anilbeesetti.nextplayer.navigation.navigationTransition
+import dev.anilbeesetti.nextplayer.navigation.navigationTransitionModifier
 import dev.anilbeesetti.nextplayer.navigation.networkNavGraph
 import dev.anilbeesetti.nextplayer.navigation.openPlaylist
 import dev.anilbeesetti.nextplayer.navigation.playlistNavGraph
@@ -211,7 +212,7 @@ class MainActivity : FragmentActivity() {
                             NavEntryDecorator<NavKey> { entry ->
                                 // Reserve rail space per entry without resizing the animated display.
                                 Box(
-                                    Modifier.thenIf(
+                                    navState.navigationTransitionModifier(entry).thenIf(
                                         navState.topLevelContentKeys.contains(entry.contentKey),
                                     ) {
                                         padding(start = railPadding)
@@ -259,6 +260,7 @@ class MainActivity : FragmentActivity() {
                                     navState.navigationTransition(
                                         initialState = initialState,
                                         targetState = targetState,
+                                        isPredictive = true,
                                     )
                                 },
                             )
