@@ -103,6 +103,24 @@ class PlayerActivity : ComponentActivity() {
     private var mediaController by mutableStateOf<MediaController?>(null)
     private var playerApi by mutableStateOf(PlayerApi(Intent()))
     private var playbackRequestJob: Job? = null
+    private var retainedGrantMediaId: String? = null
+
+    /**
+     * Temporary read grants from the launching app (e.g. a FileProvider uri) are owned by this
+     * activity and revoked when it is destroyed, while the service keeps playing. Hand a grant to
+     * the service as soon as playback is ready so that seeking and reopening the file keeps working.
+     */
+    private fun retainCurrentItemUriPermission() {
+        val item = mediaController?.currentMediaItem ?: return
+        if (retainedGrantMediaId == item.mediaId) return
+        retainedGrantMediaId = item.mediaId
+        runCatching {
+            retainPlaybackUriPermissions(
+                launchIntent = intent,
+                items = listOf(item),
+            )
+        }
+    }
 
     private val playbackStateListener = object : Player.Listener {
         override fun onMediaItemTransition(mediaItem: MediaItem?, reason: Int) {
@@ -129,7 +147,10 @@ class PlayerActivity : ComponentActivity() {
         }
 
         override fun onPlaybackStateChanged(playbackState: Int) {
-            if (playbackState == Player.STATE_READY) hasPlaybackStarted = true
+            if (playbackState == Player.STATE_READY) {
+                hasPlaybackStarted = true
+                retainCurrentItemUriPermission()
+            }
             if (playbackState == Player.STATE_ENDED) {
                 isPlaybackFinished = mediaController?.playbackState == Player.STATE_ENDED
                 finishAndStopPlayerSession()
