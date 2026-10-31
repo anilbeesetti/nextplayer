@@ -60,8 +60,7 @@ data class PlayerPreferences(
     val subtitleFont: Font = Font.DEFAULT,
     val subtitleTextBold: Boolean = true,
     val applyEmbeddedStyles: Boolean = true,
-    // Distance from the default subtitle spot, as a fraction of player width / height.
-    val subtitleOffsetX: Float = 0f,
+    // Vertical distance from the default subtitle spot, as a fraction of the player height.
     val subtitleOffsetY: Float = 0f,
 ) {
 

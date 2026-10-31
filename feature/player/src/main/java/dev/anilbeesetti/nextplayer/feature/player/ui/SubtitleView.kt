@@ -56,8 +56,7 @@ fun SubtitleView(
             .fillMaxSize()
             .graphicsLayer {
                 if (isInPictureInPictureMode) return@graphicsLayer
-                translationX = positionState.offset.x * size.width
-                translationY = positionState.offset.y * size.height
+                translationY = positionState.offsetY * size.height
             },
         factory = { context ->
             SubtitleView(context).apply {

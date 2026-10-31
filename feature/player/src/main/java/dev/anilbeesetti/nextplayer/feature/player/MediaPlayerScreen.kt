@@ -13,7 +13,6 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.hapticfeedback.HapticFeedbackType
 import androidx.compose.ui.platform.LocalContext
@@ -142,18 +141,8 @@ internal fun MediaPlayerContent(
     val errorState = rememberErrorState(player = player)
     val cuesState = rememberCuesState(player = player)
     val subtitlePositionState = rememberSubtitlePositionState(
-        savedOffset = Offset(
-            x = playerPreferences.subtitleOffsetX,
-            y = playerPreferences.subtitleOffsetY,
-        ),
-        onPositionSaved = {
-            onAction(
-                PlayerAction.UpdateSubtitleOffset(
-                    it.x,
-                    it.y,
-                ),
-            )
-        },
+        savedOffsetY = playerPreferences.subtitleOffsetY,
+        onPositionSaved = { onAction(PlayerAction.UpdateSubtitleOffset(it)) },
     )
     val hapticFeedback = LocalHapticFeedback.current
     var wasDraggingSubtitle by remember { mutableStateOf(false) }

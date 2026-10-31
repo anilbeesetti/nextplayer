@@ -13,26 +13,27 @@ import androidx.compose.ui.unit.IntSize
 
 @Composable
 fun rememberSubtitlePositionState(
-    savedOffset: Offset,
-    onPositionSaved: (Offset) -> Unit,
+    savedOffsetY: Float,
+    onPositionSaved: (Float) -> Unit,
 ): SubtitlePositionState {
     val state = remember {
         SubtitlePositionState(
-            savedOffset,
+            savedOffsetY,
             onPositionSaved,
         )
     }
-    LaunchedEffect(savedOffset) { state.syncSavedOffset(savedOffset) }
+    LaunchedEffect(savedOffsetY) { state.syncSavedOffset(savedOffsetY) }
     return state
 }
 
 /**
- * Holds how far the user has dragged the subtitles from their default spot, as fractions of the
- * player's width and height so the position holds across rotation and screen sizes.
+ * Holds how far up or down the user has dragged the subtitles from their default spot, as a
+ * fraction of the player's height so the position holds across rotation and screen sizes.
+ * Subtitles only move vertically; they stay centred horizontally.
  */
 @Stable
-class SubtitlePositionState(initialOffset: Offset, private val onPositionSaved: (Offset) -> Unit) {
-    var offset by mutableStateOf(initialOffset)
+class SubtitlePositionState(initialOffsetY: Float, private val onPositionSaved: (Float) -> Unit) {
+    var offsetY by mutableStateOf(initialOffsetY)
         private set
     var isDragging by mutableStateOf(false)
         private set
@@ -45,7 +46,7 @@ class SubtitlePositionState(initialOffset: Offset, private val onPositionSaved: 
 
     /**
      * Measures where the subtitle text is drawn, in the subtitle view's own coordinates (before
-     * [offset] is applied). Null when nothing is drawn. Set by the view that renders the subtitles.
+     * [offsetY] is applied). Null when nothing is drawn. Set by the view that renders the subtitles.
      */
     var textBoundsProvider: (() -> Rect?)? = null
 
@@ -54,8 +55,8 @@ class SubtitlePositionState(initialOffset: Offset, private val onPositionSaved: 
         val bounds = textBoundsProvider?.invoke() ?: return false
         return bounds
             .translate(
-                offset.x * containerSize.width,
-                offset.y * containerSize.height,
+                0f,
+                offsetY * containerSize.height,
             )
             .inflate(paddingPx)
             .contains(position)
@@ -69,32 +70,25 @@ class SubtitlePositionState(initialOffset: Offset, private val onPositionSaved: 
         isDragging = true
     }
 
-    fun onDrag(deltaPx: Offset) {
+    fun onDrag(deltaYPx: Float) {
         if (containerSize == IntSize.Zero) return
-        offset = Offset(
-            x = (offset.x + deltaPx.x / containerSize.width).coerceIn(
-                -MAX_OFFSET_X,
-                MAX_OFFSET_X,
-            ),
-            y = (offset.y + deltaPx.y / containerSize.height).coerceIn(
-                MIN_OFFSET_Y,
-                MAX_OFFSET_Y,
-            ),
+        offsetY = (offsetY + deltaYPx / containerSize.height).coerceIn(
+            MIN_OFFSET_Y,
+            MAX_OFFSET_Y,
         )
     }
 
     fun onDragEnd() {
         isDragging = false
-        onPositionSaved(offset)
+        onPositionSaved(offsetY)
     }
 
     /** Applies the persisted value, unless the user is mid-drag. */
-    fun syncSavedOffset(saved: Offset) {
-        if (!isDragging) offset = saved
+    fun syncSavedOffset(savedOffsetY: Float) {
+        if (!isDragging) offsetY = savedOffsetY
     }
 
     companion object {
-        const val MAX_OFFSET_X = 0.4f
         const val MIN_OFFSET_Y = -0.85f
         const val MAX_OFFSET_Y = 0.05f
     }

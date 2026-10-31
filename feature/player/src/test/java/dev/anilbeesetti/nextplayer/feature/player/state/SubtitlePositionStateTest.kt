@@ -9,10 +9,10 @@ import org.junit.Assert.assertTrue
 import org.junit.Test
 
 class SubtitlePositionStateTest {
-    private val saved = mutableListOf<Offset>()
+    private val saved = mutableListOf<Float>()
 
-    private fun state(initial: Offset = Offset.Zero) = SubtitlePositionState(
-        initialOffset = initial,
+    private fun state(initialOffsetY: Float = 0f) = SubtitlePositionState(
+        initialOffsetY = initialOffsetY,
         onPositionSaved = { saved += it },
     ).apply {
         containerSize = IntSize(
@@ -22,22 +22,15 @@ class SubtitlePositionStateTest {
     }
 
     @Test
-    fun `drag converts pixels to screen fractions`() {
+    fun `drag converts pixels to a fraction of the height`() {
         val state = state()
 
-        state.onDrag(
-            Offset(
-                x = 100f,
-                y = -50f,
-            ),
-        )
+        state.onDrag(-50f)
 
         assertEquals(
-            Offset(
-                x = 0.1f,
-                y = -0.1f,
-            ),
-            state.offset,
+            -0.1f,
+            state.offsetY,
+            0f,
         )
     }
 
@@ -45,37 +38,17 @@ class SubtitlePositionStateTest {
     fun `drag is clamped so the subtitle stays on screen`() {
         val state = state()
 
-        state.onDrag(
-            Offset(
-                x = 5000f,
-                y = -5000f,
-            ),
-        )
-        assertEquals(
-            SubtitlePositionState.MAX_OFFSET_X,
-            state.offset.x,
-            0f,
-        )
+        state.onDrag(-5000f)
         assertEquals(
             SubtitlePositionState.MIN_OFFSET_Y,
-            state.offset.y,
+            state.offsetY,
             0f,
         )
 
-        state.onDrag(
-            Offset(
-                x = -50000f,
-                y = 50000f,
-            ),
-        )
-        assertEquals(
-            -SubtitlePositionState.MAX_OFFSET_X,
-            state.offset.x,
-            0f,
-        )
+        state.onDrag(50000f)
         assertEquals(
             SubtitlePositionState.MAX_OFFSET_Y,
-            state.offset.y,
+            state.offsetY,
             0f,
         )
     }
@@ -86,22 +59,12 @@ class SubtitlePositionStateTest {
 
         state.onDragStart()
         assertTrue(state.isDragging)
-        state.onDrag(
-            Offset(
-                x = 100f,
-                y = -50f,
-            ),
-        )
+        state.onDrag(-50f)
         state.onDragEnd()
 
         assertFalse(state.isDragging)
         assertEquals(
-            listOf(
-                Offset(
-                    x = 0.1f,
-                    y = -0.1f,
-                ),
-            ),
+            listOf(-0.1f),
             saved,
         )
     }
@@ -179,18 +142,13 @@ class SubtitlePositionStateTest {
             )
         }
 
-        // Moved 300px up and 100px right, as the view is translated on screen.
-        state.onDrag(
-            Offset(
-                x = 100f,
-                y = -300f,
-            ),
-        )
+        // Moved 300px up, as the view is translated on screen. Horizontal position is unchanged.
+        state.onDrag(-300f)
 
         assertTrue(
             state.isOnSubtitle(
                 Offset(
-                    600f,
+                    500f,
                     75f,
                 ),
                 paddingPx = 0f,
@@ -252,21 +210,14 @@ class SubtitlePositionStateTest {
     fun `external offset updates are ignored while dragging`() {
         val state = state()
         state.onDragStart()
-        state.onDrag(
-            Offset(
-                x = 100f,
-                y = 0f,
-            ),
-        )
+        state.onDrag(-50f)
 
-        state.syncSavedOffset(Offset.Zero)
+        state.syncSavedOffset(0f)
 
         assertEquals(
-            Offset(
-                x = 0.1f,
-                y = 0f,
-            ),
-            state.offset,
+            -0.1f,
+            state.offsetY,
+            0f,
         )
     }
 
@@ -274,19 +225,12 @@ class SubtitlePositionStateTest {
     fun `external offset updates apply when idle`() {
         val state = state()
 
-        state.syncSavedOffset(
-            Offset(
-                x = 0.2f,
-                y = -0.3f,
-            ),
-        )
+        state.syncSavedOffset(-0.3f)
 
         assertEquals(
-            Offset(
-                x = 0.2f,
-                y = -0.3f,
-            ),
-            state.offset,
+            -0.3f,
+            state.offsetY,
+            0f,
         )
     }
 }

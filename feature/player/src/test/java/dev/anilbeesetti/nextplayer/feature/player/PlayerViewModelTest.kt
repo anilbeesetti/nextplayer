@@ -98,22 +98,12 @@ class PlayerViewModelTest {
 
     @Test
     fun `subtitle offset update is saved to preferences`() = runTest(context = dispatcher) {
-        viewModel.onAction(
-            PlayerAction.UpdateSubtitleOffset(
-                x = 0.1f,
-                y = -0.4f,
-            ),
-        )
+        viewModel.onAction(PlayerAction.UpdateSubtitleOffset(y = -0.4f))
         runCurrent()
 
-        val saved = viewModel.state.value.playerPreferences
-        assertEquals(
-            0.1f,
-            saved.subtitleOffsetX,
-        )
         assertEquals(
             -0.4f,
-            saved.subtitleOffsetY,
+            viewModel.state.value.playerPreferences.subtitleOffsetY,
         )
     }
 

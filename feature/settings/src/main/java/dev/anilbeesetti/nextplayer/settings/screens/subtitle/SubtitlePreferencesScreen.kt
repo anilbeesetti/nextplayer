@@ -234,8 +234,7 @@ private fun SubtitlePreferencesScreenContent(
                     title = stringResource(id = R.string.reset_subtitle_position),
                     description = stringResource(id = R.string.reset_subtitle_position_desc),
                     icon = NextIcons.History,
-                    enabled = state.preferences.subtitleOffsetX != 0f ||
-                        state.preferences.subtitleOffsetY != 0f,
+                    enabled = state.preferences.subtitleOffsetY != 0f,
                     onClick = { onAction(SubtitlePreferencesUiEvent.ResetSubtitlePosition) },
                     isLastItem = true,
                 )
