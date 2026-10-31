@@ -1,5 +1,21 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
+    <string name="settings_export">Export settings</string>
+    <string name="settings_export_description">Save settings as JSON in Downloads</string>
+    <string name="settings_import">Import settings</string>
+    <string name="settings_import_description">Restore settings from a JSON file</string>
+    <string name="settings_export_confirmation">Export application and player settings to the Downloads folder.</string>
+    <string name="settings_export_include_credentials">Include network connections and credentials</string>
+    <string name="settings_export_credentials_warning">The JSON file is not encrypted. It may contain passwords and SSH private keys. Keep it safe.</string>
+    <string name="settings_import_confirmation">Settings in this file will overwrite your current settings. Missing, deprecated, unknown or invalid items will be ignored. Network connections and credentials will also be imported if included.</string>
+    <string name="export_action">Export</string>
+    <string name="import_action">Import</string>
+    <string name="settings_export_success">Settings exported to Downloads</string>
+    <string name="settings_export_failed">Could not export settings</string>
+    <string name="settings_export_permission_denied">Allow storage access to export settings to Downloads</string>
+    <string name="settings_import_success">Settings imported</string>
+    <string name="settings_import_failed">Could not finish importing settings. Please try again.</string>
+    <string name="settings_import_invalid">Could not read this file, or it contains no supported JSON settings</string>
     <string name="app_name" translatable="false">Next Player</string>
     <string name="about_description">Version, support, credits</string>
     <string name="about_name">About</string>

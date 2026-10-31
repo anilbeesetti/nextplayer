@@ -1,5 +1,21 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
+    <string name="settings_export">导出配置</string>
+    <string name="settings_export_description">将配置保存为 JSON 文件到下载目录</string>
+    <string name="settings_import">导入配置</string>
+    <string name="settings_import_description">从 JSON 文件恢复配置</string>
+    <string name="settings_export_confirmation">将应用和播放器的所有设置导出到下载目录。</string>
+    <string name="settings_export_include_credentials">包含网络连接和登录凭据</string>
+    <string name="settings_export_credentials_warning">JSON 文件未经加密，可能包含密码和 SSH 私钥，请妥善保管。</string>
+    <string name="settings_import_confirmation">文件中的配置将覆盖当前配置。缺失、废弃、未知或无效的配置项会被忽略。如果文件包含网络连接和登录凭据，也将一并导入。</string>
+    <string name="export_action">导出</string>
+    <string name="import_action">导入</string>
+    <string name="settings_export_success">配置已导出到下载目录</string>
+    <string name="settings_export_failed">无法导出配置</string>
+    <string name="settings_export_permission_denied">请允许存储访问权限，以将配置导出到下载目录</string>
+    <string name="settings_import_success">配置已导入</string>
+    <string name="settings_import_failed">未能完成配置导入，请重试</string>
+    <string name="settings_import_invalid">无法读取此文件，或文件中没有支持的 JSON 配置</string>
     <string name="about_name">关于</string>
     <string name="menu">菜单</string>
     <string name="player_name">播放器</string>
