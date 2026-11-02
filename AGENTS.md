@@ -45,3 +45,20 @@ Pull requests should explain the problem and solution, link the relevant issue, 
 ## Security & Local Configuration
 
 Do not commit `local.properties`, signing keys, API credentials, `google-services.json`, or generated APKs. Supply SDK paths and release secrets only through local configuration or CI secrets.
+
+## Agent skills
+
+### Issue tracker
+
+Issues and specs live in anilbeesetti/nextplayer GitHub Issues.
+Before tracker work, read `docs/agents/issue-tracker.md`.
+
+### Triage labels
+
+Use the five default triage labels.
+Before triaging, read `docs/agents/triage-labels.md`.
+
+### Domain docs
+
+Use a single-context layout.
+Before exploring the codebase, read `docs/agents/domain.md`.
