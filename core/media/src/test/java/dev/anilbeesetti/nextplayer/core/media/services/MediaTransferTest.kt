@@ -13,6 +13,7 @@ import android.database.Cursor
 import android.database.MatrixCursor
 import android.net.Uri
 import android.os.Bundle
+import android.os.Environment
 import android.os.ParcelFileDescriptor
 import android.provider.DocumentsContract
 import android.provider.MediaStore
@@ -21,8 +22,10 @@ import java.io.ByteArrayInputStream
 import java.io.File
 import java.io.InputStream
 import kotlinx.coroutines.CancellationException
+import kotlinx.coroutines.Job
 import kotlinx.coroutines.flow.filterIsInstance
 import kotlinx.coroutines.flow.single
+import kotlinx.coroutines.launch
 import kotlinx.coroutines.runBlocking
 import org.junit.After
 import org.junit.Assert.assertEquals
@@ -66,7 +69,7 @@ class MediaTransferTest {
     )
     private val provider = TransferProvider()
     private val sourceUri = Uri.parse("content://media/external/video/media/1")
-    private val folderUri = DocumentsContract.buildTreeDocumentUri(
+    private var folderUri = DocumentsContract.buildTreeDocumentUri(
         "transfer.documents",
         "target",
     )
@@ -82,7 +85,7 @@ class MediaTransferTest {
         provider.attachInfo(
             context,
             ProviderInfo().apply {
-                authority = "media;transfer.documents"
+                authority = "media;transfer.documents;com.android.externalstorage.documents"
             },
         )
         ShadowContentResolver.registerProviderInternal(
@@ -96,12 +99,17 @@ class MediaTransferTest {
         shadowOf(context.contentResolver).registerInputStreamSupplier(sourceUri) {
             source.inputStream()
         }
+        ShadowContentResolver.registerProviderInternal(
+            "com.android.externalstorage.documents",
+            provider,
+        )
         MediaStoreShadow.requests.clear()
     }
 
     @After
     fun tearDown() {
         root.deleteRecursively()
+        nativeFolder.deleteRecursively()
     }
 
     @Test
@@ -292,6 +300,297 @@ class MediaTransferTest {
         assertTrue(provider.created.single().name != existing.name)
     }
 
+    private val nativeFolder = File(
+        Environment.getExternalStorageDirectory(),
+        "Movies/transfer-native-test",
+    )
+
+    private fun useNativeFolder(
+        volume: String = "primary",
+        relativePath: String = "Movies/transfer-native-test",
+    ) {
+        provider.nativeMode = true
+        nativeFolder.mkdirs()
+        folderUri = DocumentsContract.buildTreeDocumentUri(
+            "com.android.externalstorage.documents",
+            "$volume:$relativePath",
+        )
+    }
+
+    @Test
+    fun `native move preserves timestamps without creating or deleting media`() = runBlocking {
+        useNativeFolder()
+        assertTrue(source.setLastModified(1_600_000_000_000L))
+        val expected = source.readBytes()
+        assertEquals(
+            TransferResult(
+                succeeded = 1,
+                failed = 0,
+            ),
+            transfer(TransferMode.MOVE),
+        )
+        assertFalse(source.exists())
+        assertTrue(expected.contentEquals(provider.currentFile.readBytes()))
+        assertEquals(
+            1_600_000_000_000L,
+            provider.currentFile.lastModified(),
+        )
+        assertEquals(
+            1,
+            provider.updates,
+        )
+        assertTrue(provider.created.isEmpty())
+        assertEquals(
+            0,
+            provider.deletes,
+        )
+    }
+
+    @Test
+    fun `native name collision keeps existing destination intact`() = runBlocking {
+        useNativeFolder()
+        File(
+            nativeFolder,
+            source.name,
+        ).writeText("existing video")
+        assertEquals(
+            1,
+            transfer(TransferMode.MOVE).succeeded,
+        )
+        assertEquals(
+            "existing video",
+            File(
+                nativeFolder,
+                source.name,
+            ).readText(),
+        )
+        assertEquals(
+            "video (1).mp4",
+            provider.currentFile.name,
+        )
+        assertTrue(provider.created.isEmpty())
+    }
+
+    @Test
+    @Config(sdk = [29, 30])
+    fun `native move supports a matching secondary volume`() = runBlocking {
+        useNativeFolder(volume = "ABCD-1234")
+        provider.volume = "abcd-1234"
+        assertEquals(
+            1,
+            transfer(TransferMode.MOVE).succeeded,
+        )
+        assertEquals(
+            "Movies/transfer-native-test/",
+            provider.relativePath,
+        )
+        assertTrue(provider.created.isEmpty())
+        assertEquals(
+            0,
+            provider.deletes,
+        )
+    }
+
+    @Test
+    @Config(sdk = [29, 30])
+    fun `secondary volume same folder move skips consent`() = runBlocking {
+        useNativeFolder(volume = "ABCD-1234")
+        provider.volume = "abcd-1234"
+        provider.relativePath = "Movies/transfer-native-test/"
+        writeGranted = false
+        assertEquals(
+            TransferResult(
+                succeeded = 0,
+                failed = 0,
+                sameFolderSkipped = 1,
+            ),
+            transfer(TransferMode.MOVE),
+        )
+        assertEquals(
+            0,
+            provider.updates,
+        )
+        assertTrue(MediaStoreShadow.requests.isEmpty())
+        assertTrue(source.exists())
+    }
+
+    @Test
+    @Config(sdk = [29, 30])
+    fun `different volume falls back to a verified copy`() = runBlocking {
+        useNativeFolder()
+        provider.volume = "abcd-1234"
+        assertEquals(
+            1,
+            transfer(TransferMode.MOVE).succeeded,
+        )
+        assertEquals(
+            0,
+            provider.updates,
+        )
+        assertEquals(
+            1,
+            provider.created.size,
+        )
+        assertEquals(
+            1,
+            provider.deletes,
+        )
+    }
+
+    @Test
+    fun `invalid native destination path uses the document provider`() = runBlocking {
+        useNativeFolder(relativePath = "../Movies/target")
+        assertEquals(
+            1,
+            transfer(TransferMode.MOVE).succeeded,
+        )
+        assertEquals(
+            0,
+            provider.updates,
+        )
+        assertEquals(
+            1,
+            provider.created.size,
+        )
+    }
+
+    @Test
+    fun `failed native update falls back only while source remains intact`() = runBlocking {
+        useNativeFolder()
+        provider.failUpdate = true
+        val expected = source.readBytes()
+        assertEquals(
+            1,
+            transfer(TransferMode.MOVE).succeeded,
+        )
+        assertTrue(expected.contentEquals(provider.created.single().readBytes()))
+        assertTrue(nativeFolder.listFiles().orEmpty().isEmpty())
+    }
+
+    @Test
+    @Config(sdk = [29, 30])
+    fun `provider error after a completed native move never copies or deletes it`() = runBlocking {
+        useNativeFolder()
+        provider.throwAfterMove = true
+        assertEquals(
+            1,
+            transfer(TransferMode.MOVE).succeeded,
+        )
+        assertTrue(provider.currentFile.exists())
+        assertTrue(provider.created.isEmpty())
+        assertEquals(
+            0,
+            provider.deletes,
+        )
+    }
+
+    @Test
+    @Config(sdk = [29, 30])
+    fun `provider error after file movement with stale metadata never retries from stale uri`() =
+        runBlocking {
+            useNativeFolder()
+            provider.failAfterMove = true
+            assertEquals(
+                1,
+                transfer(TransferMode.MOVE).failed,
+            )
+            assertTrue(
+                File(
+                    nativeFolder,
+                    source.name,
+                ).exists(),
+            )
+            assertFalse(source.exists())
+            assertTrue(provider.created.isEmpty())
+            assertEquals(
+                0,
+                provider.deletes,
+            )
+        }
+
+    @Test
+    @Config(sdk = [24, 28])
+    fun `legacy update applied before error leaves the committed move intact`() = runBlocking {
+        useNativeFolder()
+        provider.throwAfterMove = true
+        assertEquals(
+            1,
+            transfer(TransferMode.MOVE).succeeded,
+        )
+        assertFalse(source.exists())
+        assertTrue(provider.currentFile.exists())
+        assertTrue(provider.created.isEmpty())
+        assertEquals(
+            0,
+            provider.deletes,
+        )
+    }
+
+    @Test
+    @Config(sdk = [24, 28])
+    fun `legacy rollback failure preserves moved file and replacement source`() = runBlocking {
+        useNativeFolder()
+        provider.failUpdate = true
+        provider.replaceSourceOnFailure = true
+        val expected = source.readBytes()
+        assertEquals(
+            1,
+            transfer(TransferMode.MOVE).failed,
+        )
+        assertEquals(
+            "replacement",
+            source.readText(),
+        )
+        assertTrue(
+            expected.contentEquals(
+                File(
+                    nativeFolder,
+                    source.name,
+                ).readBytes(),
+            ),
+        )
+        assertTrue(provider.created.isEmpty())
+        assertEquals(
+            0,
+            provider.deletes,
+        )
+    }
+
+    @Test
+    fun `cancellation before native move leaves the source untouched`() = runBlocking {
+        useNativeFolder()
+        lateinit var job: Job
+        provider.onSourceRead = { job.cancel() }
+        job = launch { transfer(TransferMode.MOVE) }
+        job.join()
+        assertTrue(source.exists())
+        assertTrue(provider.created.isEmpty())
+        assertEquals(
+            0,
+            provider.updates,
+        )
+        assertEquals(
+            0,
+            provider.deletes,
+        )
+    }
+
+    @Test
+    fun `cancellation after native move keeps the committed file`() = runBlocking {
+        useNativeFolder()
+        lateinit var job: Job
+        provider.afterUpdate = { job.cancel() }
+        job = launch { transfer(TransferMode.MOVE) }
+        job.join()
+        assertFalse(source.exists())
+        assertTrue(provider.currentFile.exists())
+        assertTrue(provider.created.isEmpty())
+        assertEquals(
+            0,
+            provider.deletes,
+        )
+    }
+
     private suspend fun transfer(mode: TransferMode): TransferResult = service.transferMedia(
         uris = listOf(sourceUri),
         folderUri = folderUri,
@@ -303,6 +602,17 @@ class MediaTransferTest {
         var deletes = 0
         var allowDelete = true
         var sameFolder = false
+        var nativeMode = false
+        var currentFile = source
+        var volume = "external_primary"
+        var relativePath = "Movies/source/"
+        var updates = 0
+        var failUpdate = false
+        var throwAfterMove = false
+        var failAfterMove = false
+        var replaceSourceOnFailure = false
+        var onSourceRead: (() -> Unit)? = null
+        var afterUpdate: (() -> Unit)? = null
 
         override fun onCreate(): Boolean = true
         override fun getType(uri: Uri): String = "video/mp4"
@@ -312,7 +622,36 @@ class MediaTransferTest {
             values: ContentValues?,
             selection: String?,
             selectionArgs: Array<out String>?,
-        ): Int = error("Move must never trash an original")
+        ): Int {
+            check(nativeMode)
+            check(!values!!.containsKey(MediaStore.MediaColumns.IS_TRASHED))
+            updates++
+            if (failUpdate) {
+                if (replaceSourceOnFailure) source.writeText("replacement")
+                return 0
+            }
+            if (values.containsKey(MediaStore.MediaColumns.RELATIVE_PATH)) {
+                var destination = File(
+                    nativeFolder,
+                    currentFile.name,
+                )
+                if (destination.exists()) {
+                    destination = File(
+                        nativeFolder,
+                        "video (1).mp4",
+                    )
+                }
+                check(currentFile.renameTo(destination))
+                if (failAfterMove) return 0
+                currentFile = destination
+                relativePath = values.getAsString(MediaStore.MediaColumns.RELATIVE_PATH)
+            } else {
+                currentFile = File(values.getAsString(MediaStore.MediaColumns.DATA))
+            }
+            afterUpdate?.invoke()
+            if (throwAfterMove) throw IllegalStateException("Failed after moving")
+            return 1
+        }
 
         override fun query(
             uri: Uri,
@@ -321,12 +660,23 @@ class MediaTransferTest {
             selectionArgs: Array<out String>?,
             sortOrder: String?,
         ): Cursor = MatrixCursor(projection).apply {
+            if (uri.authority == "media" && projection!!.contains(MediaStore.MediaColumns.DATA)) {
+                onSourceRead?.invoke()
+            }
             addRow(
                 projection!!.map {
                     when (it) {
                         OpenableColumns.DISPLAY_NAME -> source.name
 
-                        MediaStore.MediaColumns.DATA -> if (sameFolder) {
+                        MediaStore.MediaColumns.VOLUME_NAME -> volume
+
+                        MediaStore.MediaColumns.RELATIVE_PATH -> relativePath
+
+                        MediaStore.MediaColumns.DATA -> if (nativeMode &&
+                            uri.authority == "media"
+                        ) {
+                            currentFile.path
+                        } else if (sameFolder) {
                             if (uri.authority == "media") source.path else source.parent
                         } else {
                             null

@@ -9,10 +9,12 @@ import android.content.Intent
 import android.content.pm.PackageManager
 import android.net.Uri
 import android.os.Build
+import android.os.Environment
 import android.os.Process
 import android.provider.BaseColumns
 import android.provider.DocumentsContract
 import android.provider.MediaStore
+import android.system.Os
 import android.webkit.MimeTypeMap
 import androidx.activity.ComponentActivity
 import androidx.activity.result.ActivityResult
@@ -30,6 +32,7 @@ import java.io.File
 import java.io.FileOutputStream
 import java.io.InputStream
 import java.io.OutputStream
+import java.util.Locale
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
@@ -286,6 +289,26 @@ class LocalMediaOperationsService(private val context: Context) : MediaOperation
             emit(TransferEvent.Progress(progress = progress(copied = 0)))
             if (name == null) return@forEachIndexed
 
+            if (mode == TransferMode.MOVE) {
+                when (
+                    moveWithinVolume(
+                        source = source,
+                        destinationDir = destinationDir,
+                    )
+                ) {
+                    DirectMoveResult.MOVED -> {
+                        succeeded++
+                        emit(TransferEvent.Progress(progress = progress(copied = currentTotal)))
+                        overallCopied += currentTotal
+                        return@forEachIndexed
+                    }
+
+                    DirectMoveResult.FAILED -> return@forEachIndexed
+
+                    DirectMoveResult.FALLBACK -> Unit
+                }
+            }
+
             val copied =
                 copyToDocument(
                     source = source,
@@ -323,10 +346,186 @@ class LocalMediaOperationsService(private val context: Context) : MediaOperation
     }.flowOn(Dispatchers.IO)
 
     private fun isInFolder(uri: Uri, folderDocUri: Uri): Boolean {
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
+            val target = folderDocUri.mediaStoreFolder()
+            val source = mediaStoreLocation(uri = uri)
+            if (target != null && source != null) return target == source.folder
+        }
         val folderPath =
             runCatching { context.getPath(uri = folderDocUri) }.getOrNull() ?: return false
         val filePath = runCatching { context.getPath(uri = uri) }.getOrNull() ?: return false
         return File(filePath).parent == folderPath
+    }
+
+    private enum class DirectMoveResult { MOVED, FALLBACK, FAILED }
+
+    private data class StorageFolder(val volume: String, val relativePath: String)
+    private data class MediaStoreLocation(val folder: StorageFolder, val path: String)
+
+    private fun Uri.mediaStoreFolder(): StorageFolder? {
+        if (authority != "com.android.externalstorage.documents") return null
+        val parts = DocumentsContract.getDocumentId(this).split(
+            ':',
+            limit = 2,
+        )
+        if (parts.size != 2) return null
+        val path = parts[1].trimEnd('/')
+        if (path.isEmpty() || path.split('/').any { it.isEmpty() || it == "." || it == ".." }) {
+            return null
+        }
+        return StorageFolder(
+            volume = if (parts[0].equals(
+                    "primary",
+                    ignoreCase = true,
+                )
+            ) {
+                "external_primary"
+            } else {
+                parts[0].lowercase(Locale.ROOT)
+            },
+            relativePath = "$path/",
+        )
+    }
+
+    @RequiresApi(Build.VERSION_CODES.Q)
+    private fun mediaStoreLocation(uri: Uri): MediaStoreLocation? {
+        if (uri.authority != MediaStore.AUTHORITY) return null
+        return runCatching {
+            contentResolver.query(
+                uri,
+                arrayOf(
+                    MediaStore.MediaColumns.VOLUME_NAME,
+                    MediaStore.MediaColumns.RELATIVE_PATH,
+                    MediaStore.MediaColumns.DATA,
+                ),
+                null,
+                null,
+                null,
+            )?.use { cursor ->
+                if (!cursor.moveToFirst()) return@use null
+                val volume = cursor.getString(0) ?: return@use null
+                val folder = cursor.getString(1) ?: return@use null
+                val path = cursor.getString(2) ?: return@use null
+                MediaStoreLocation(
+                    folder = StorageFolder(
+                        volume = volume,
+                        relativePath = folder,
+                    ),
+                    path = path,
+                )
+            }
+        }.getOrNull()
+    }
+
+    private suspend fun moveWithinVolume(source: Uri, destinationDir: Uri): DirectMoveResult {
+        if (source.authority != MediaStore.AUTHORITY) return DirectMoveResult.FALLBACK
+        val target = destinationDir.mediaStoreFolder() ?: return DirectMoveResult.FALLBACK
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
+            val before = mediaStoreLocation(uri = source) ?: return DirectMoveResult.FALLBACK
+            if (before.folder.volume != target.volume || !File(before.path).isFile) {
+                return DirectMoveResult.FALLBACK
+            }
+            currentCoroutineContext().ensureActive()
+            return withContext(NonCancellable) {
+                val updated = contentResolver.updateMedia(
+                    uri = source,
+                    contentValues = ContentValues().apply {
+                        put(
+                            MediaStore.MediaColumns.RELATIVE_PATH,
+                            target.relativePath,
+                        )
+                    },
+                )
+                if (updated) {
+                    DirectMoveResult.MOVED
+                } else {
+                    // A provider failure can happen after the file has already moved.
+                    val after = mediaStoreLocation(uri = source)
+                    when {
+                        after?.folder == target && File(after.path).isFile -> DirectMoveResult.MOVED
+                        after == before && File(before.path).isFile -> DirectMoveResult.FALLBACK
+                        else -> DirectMoveResult.FAILED
+                    }
+                }
+            }
+        }
+
+        if (target.volume != "external_primary") return DirectMoveResult.FALLBACK
+        val sourceFile = context.getPath(uri = source)?.let { File(it) }
+            ?: return DirectMoveResult.FALLBACK
+        val folder = File(
+            Environment.getExternalStorageDirectory(),
+            target.relativePath,
+        )
+        val sameFilesystem = runCatching {
+            Os.stat(sourceFile.path).st_dev == Os.stat(folder.path).st_dev
+        }.getOrDefault(false)
+        if (!sameFilesystem) return DirectMoveResult.FALLBACK
+        currentCoroutineContext().ensureActive()
+        return withContext(NonCancellable) {
+            moveLegacyFile(
+                source,
+                sourceFile,
+                folder,
+            )
+        }
+    }
+
+    private suspend fun moveLegacyFile(uri: Uri, source: File, folder: File): DirectMoveResult {
+        var destination = File(
+            folder,
+            source.name,
+        )
+        var suffix = 0
+        var reserved = false
+        var moved = false
+        var rollbackReserved = false
+        try {
+            while (!destination.createNewFile()) {
+                suffix++
+                val extension = source.extension.takeIf {
+                    it.isNotEmpty()
+                }?.let { ".$it" }.orEmpty()
+                destination = File(
+                    folder,
+                    "${source.nameWithoutExtension} ($suffix)$extension",
+                )
+            }
+            reserved = true
+            if (!source.renameTo(destination)) return DirectMoveResult.FALLBACK
+            reserved = false
+            moved = true
+            if (contentResolver.updateMedia(
+                    uri = uri,
+                    contentValues = ContentValues().apply {
+                        put(
+                            MediaStore.MediaColumns.DATA,
+                            destination.path,
+                        )
+                        put(
+                            MediaStore.MediaColumns.DISPLAY_NAME,
+                            destination.name,
+                        )
+                    },
+                )
+            ) {
+                return DirectMoveResult.MOVED
+            }
+            val storedPath = runCatching { context.getPath(uri = uri) }.getOrNull()
+            if (storedPath == destination.path) return DirectMoveResult.MOVED
+            if (storedPath != source.path) return DirectMoveResult.FAILED
+            // Roll back only into a path reserved by this move, never over another file.
+            if (!source.createNewFile()) return DirectMoveResult.FAILED
+            rollbackReserved = true
+            if (!destination.renameTo(source)) return DirectMoveResult.FAILED
+            rollbackReserved = false
+            return DirectMoveResult.FALLBACK
+        } catch (_: Exception) {
+            return if (moved) DirectMoveResult.FAILED else DirectMoveResult.FALLBACK
+        } finally {
+            if (reserved) destination.delete()
+            if (rollbackReserved) source.delete()
+        }
     }
 
     private data class CopyResult(val uri: Uri, val bytes: Long)
