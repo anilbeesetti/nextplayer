@@ -9,9 +9,14 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.compositionLocalOf
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.hapticfeedback.HapticFeedbackType
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.platform.LocalHapticFeedback
 import androidx.compose.ui.platform.LocalInspectionMode
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.lifecycle.Lifecycle
@@ -25,9 +30,11 @@ import dev.anilbeesetti.nextplayer.feature.player.state.ControlsVisibilityState
 import dev.anilbeesetti.nextplayer.feature.player.state.PlayerOrientationEffect
 import dev.anilbeesetti.nextplayer.feature.player.state.rememberBrightnessState
 import dev.anilbeesetti.nextplayer.feature.player.state.rememberControlsVisibilityState
+import dev.anilbeesetti.nextplayer.feature.player.state.rememberCuesState
 import dev.anilbeesetti.nextplayer.feature.player.state.rememberErrorState
 import dev.anilbeesetti.nextplayer.feature.player.state.rememberPictureInPictureState
 import dev.anilbeesetti.nextplayer.feature.player.state.rememberSeekGestureState
+import dev.anilbeesetti.nextplayer.feature.player.state.rememberSubtitlePositionState
 import dev.anilbeesetti.nextplayer.feature.player.state.rememberTapGestureState
 import dev.anilbeesetti.nextplayer.feature.player.state.rememberVideoZoomAndContentScaleState
 import dev.anilbeesetti.nextplayer.feature.player.state.rememberVolumeAndBrightnessGestureState
@@ -132,6 +139,23 @@ internal fun MediaPlayerContent(
         )
     }
     val errorState = rememberErrorState(player = player)
+    val cuesState = rememberCuesState(player = player)
+    val subtitlePositionState = rememberSubtitlePositionState(
+        savedOffsetY = playerPreferences.subtitleOffsetY,
+        onPositionSaved = { onAction(PlayerAction.UpdateSubtitleOffset(it)) },
+    )
+    val hapticFeedback = LocalHapticFeedback.current
+    var wasDraggingSubtitle by remember { mutableStateOf(false) }
+    LaunchedEffect(subtitlePositionState.isDragging) {
+        if (subtitlePositionState.isDragging) {
+            wasDraggingSubtitle = true
+            hapticFeedback.performHapticFeedback(HapticFeedbackType.LongPress)
+            controlsVisibilityState.hideControls()
+        } else if (wasDraggingSubtitle) {
+            wasDraggingSubtitle = false
+            controlsVisibilityState.showControls()
+        }
+    }
 
     LaunchedEffect(pictureInPictureState?.isInPictureInPictureMode) {
         if (pictureInPictureState?.isInPictureInPictureMode == true) {
@@ -162,6 +186,8 @@ internal fun MediaPlayerContent(
                 videoZoomAndContentScaleState = videoZoomAndContentScaleState,
                 videoVisible = api?.videoVisible ?: true,
                 displayAspectRatio = api?.displayAspectRatio,
+                cuesState = cuesState,
+                subtitlePositionState = subtitlePositionState,
                 subtitleConfiguration = SubtitleConfiguration(
                     useSystemCaptionStyle = playerPreferences.useSystemCaptionStyle,
                     showBackground = playerPreferences.subtitleBackground,
@@ -169,6 +195,9 @@ internal fun MediaPlayerContent(
                     textSize = playerPreferences.subtitleTextSize,
                     textBold = playerPreferences.subtitleTextBold,
                     applyEmbeddedStyles = playerPreferences.applyEmbeddedStyles,
+                    useMaterialYouControls = playerPreferences.useMaterialYouControls,
+                    controlsVisible = controlsVisibilityState.controlsVisible &&
+                        !controlsVisibilityState.controlsLocked,
                 ),
             )
             if (volumeAndBrightnessGestureState != null) {
@@ -179,6 +208,8 @@ internal fun MediaPlayerContent(
                     seekGestureState = seekGestureState,
                     videoZoomAndContentScaleState = videoZoomAndContentScaleState,
                     volumeAndBrightnessGestureState = volumeAndBrightnessGestureState,
+                    subtitlePositionState = subtitlePositionState,
+                    hasSubtitles = cuesState.currentCues?.cues?.isNotEmpty() == true,
                 )
             }
         }

@@ -97,6 +97,17 @@ class PlayerViewModelTest {
         }
 
     @Test
+    fun `subtitle offset update is saved to preferences`() = runTest(context = dispatcher) {
+        viewModel.onAction(PlayerAction.UpdateSubtitleOffset(y = -0.4f))
+        runCurrent()
+
+        assertEquals(
+            -0.4f,
+            viewModel.state.value.playerPreferences.subtitleOffsetY,
+        )
+    }
+
+    @Test
     fun `queued toggles use latest preferences and preserve playback state`() =
         runTest(context = dispatcher) {
             preferences.updatePlayerPreferences { it.copy(showRemainingTime = false) }

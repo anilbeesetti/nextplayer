@@ -10,23 +10,32 @@ import androidx.compose.foundation.layout.systemBarsIgnoringVisibility
 import androidx.compose.foundation.layout.systemGestures
 import androidx.compose.foundation.layout.union
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.rememberUpdatedState
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.input.pointer.pointerInput
+import androidx.compose.ui.layout.onSizeChanged
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.platform.LocalLayoutDirection
 import androidx.compose.ui.unit.Density
 import androidx.compose.ui.unit.IntSize
 import androidx.compose.ui.unit.LayoutDirection
+import androidx.compose.ui.unit.dp
 import dev.anilbeesetti.nextplayer.feature.player.extensions.detectCustomHorizontalDragGestures
 import dev.anilbeesetti.nextplayer.feature.player.extensions.detectCustomTransformGestures
 import dev.anilbeesetti.nextplayer.feature.player.extensions.detectCustomVerticalDragGestures
+import dev.anilbeesetti.nextplayer.feature.player.extensions.detectSubtitleDragGestures
 import dev.anilbeesetti.nextplayer.feature.player.state.ControlsVisibilityState
 import dev.anilbeesetti.nextplayer.feature.player.state.PictureInPictureState
 import dev.anilbeesetti.nextplayer.feature.player.state.SeekGestureState
+import dev.anilbeesetti.nextplayer.feature.player.state.SubtitlePositionState
 import dev.anilbeesetti.nextplayer.feature.player.state.TapGestureState
 import dev.anilbeesetti.nextplayer.feature.player.state.VideoZoomAndContentScaleState
 import dev.anilbeesetti.nextplayer.feature.player.state.VolumeAndBrightnessGestureState
+
+// Extra reach around the drawn subtitle text so a fingertip does not have to be pixel-exact.
+private val SUBTITLE_TOUCH_PADDING = 16.dp
 
 @OptIn(ExperimentalLayoutApi::class)
 @Composable
@@ -38,15 +47,45 @@ fun PlayerGestures(
     seekGestureState: SeekGestureState,
     videoZoomAndContentScaleState: VideoZoomAndContentScaleState,
     volumeAndBrightnessGestureState: VolumeAndBrightnessGestureState,
+    subtitlePositionState: SubtitlePositionState,
+    hasSubtitles: Boolean,
 ) {
+    // Read lazily: the cue can end mid-drag and must not restart the gesture handlers.
+    val currentHasSubtitles by rememberUpdatedState(hasSubtitles)
+
     // Keep the system's swipe-to-reveal areas reserved even while the bars are hidden.
     val gestureInsets = WindowInsets.systemGestures.union(WindowInsets.systemBarsIgnoringVisibility)
     val density = LocalDensity.current
+    val subtitleTouchPaddingPx = with(density) { SUBTITLE_TOUCH_PADDING.toPx() }
+
+    fun isOnSubtitle(position: Offset) = currentHasSubtitles &&
+        subtitlePositionState.isOnSubtitle(
+            position,
+            subtitleTouchPaddingPx,
+        )
+
     val layoutDirection = LocalLayoutDirection.current
     BoxWithConstraints {
         Box(
             modifier = modifier
                 .fillMaxSize()
+                .onSizeChanged { subtitlePositionState.containerSize = it }
+                .pointerInput(
+                    controlsVisibilityState.controlsLocked,
+                    pictureInPictureState.isInPictureInPictureMode,
+                ) {
+                    if (controlsVisibilityState.controlsLocked) return@pointerInput
+                    if (pictureInPictureState.isInPictureInPictureMode) return@pointerInput
+
+                    detectSubtitleDragGestures(
+                        shouldStartGesture = ::isOnSubtitle,
+                        onPressChange = subtitlePositionState::onPressChange,
+                        onDragStart = subtitlePositionState::onDragStart,
+                        onDrag = { subtitlePositionState.onDrag(it.y) },
+                        onDragEnd = subtitlePositionState::onDragEnd,
+                        onDragCancel = subtitlePositionState::onDragCancel,
+                    )
+                }
                 .pointerInput(pictureInPictureState.isInPictureInPictureMode) {
                     if (pictureInPictureState.isInPictureInPictureMode) return@pointerInput
 
@@ -68,6 +107,7 @@ fun PlayerGestures(
                         },
                         onLongPress = {
                             if (controlsVisibilityState.controlsLocked) return@detectTapGestures
+                            if (isOnSubtitle(it)) return@detectTapGestures
                             tapGestureState.handleLongPress(offset = it)
                         },
                     )

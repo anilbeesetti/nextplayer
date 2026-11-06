@@ -82,6 +82,8 @@ class PlayerViewModel(
 
             is PlayerAction.UpdatePlayerBrightness -> updatePlayerBrightness(action.value)
 
+            is PlayerAction.UpdateSubtitleOffset -> updateSubtitleOffset(action.y)
+
             is PlayerAction.SetLoopMode -> setLoopMode(action.loopMode)
 
             is PlayerAction.ToggleTimeDisplay -> toggleTimeDisplay()
@@ -106,6 +108,12 @@ class PlayerViewModel(
     private fun updatePlayerBrightness(value: Float) {
         viewModelScope.launch {
             preferencesRepository.updatePlayerPreferences { it.copy(playerBrightness = value) }
+        }
+    }
+
+    private fun updateSubtitleOffset(y: Float) {
+        viewModelScope.launch {
+            preferencesRepository.updatePlayerPreferences { it.copy(subtitleOffsetY = y) }
         }
     }
 
@@ -201,6 +209,7 @@ sealed interface PlayerAction {
     data class UpdateDecoderServiceState(val state: DecoderServiceState) : PlayerAction
     data class UpdatePlayWhenReady(val playWhenReady: Boolean) : PlayerAction
     data class UpdatePlayerBrightness(val value: Float) : PlayerAction
+    data class UpdateSubtitleOffset(val y: Float) : PlayerAction
     data class SetLoopMode(val loopMode: LoopMode) : PlayerAction
     data object ToggleTimeDisplay : PlayerAction
     data class OnVideoZoomEvent(val event: VideoZoomEvent) : PlayerAction

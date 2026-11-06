@@ -229,6 +229,13 @@ private fun SubtitlePreferencesScreenContent(
                     icon = NextIcons.Style,
                     isChecked = state.preferences.applyEmbeddedStyles,
                     onClick = { onAction(SubtitlePreferencesUiEvent.ToggleApplyEmbeddedStyles) },
+                )
+                ClickablePreferenceItem(
+                    title = stringResource(id = R.string.reset_subtitle_position),
+                    description = stringResource(id = R.string.reset_subtitle_position_desc),
+                    icon = NextIcons.History,
+                    enabled = state.preferences.subtitleOffsetY != 0f,
+                    onClick = { onAction(SubtitlePreferencesUiEvent.ResetSubtitlePosition) },
                     isLastItem = true,
                 )
             }

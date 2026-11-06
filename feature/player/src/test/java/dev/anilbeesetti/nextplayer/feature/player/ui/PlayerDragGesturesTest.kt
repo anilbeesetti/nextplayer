@@ -23,6 +23,7 @@ import androidx.compose.ui.unit.LayoutDirection
 import androidx.compose.ui.unit.dp
 import dev.anilbeesetti.nextplayer.feature.player.extensions.detectCustomHorizontalDragGestures
 import dev.anilbeesetti.nextplayer.feature.player.extensions.detectCustomVerticalDragGestures
+import dev.anilbeesetti.nextplayer.feature.player.extensions.detectSubtitleDragGestures
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertFalse
 import org.junit.Assert.assertTrue
@@ -38,6 +39,10 @@ class PlayerDragGesturesTest {
     @get:Rule
     val composeRule = createAndroidComposeRule<ComponentActivity>()
 
+    private var subtitleStarts = 0
+    private var subtitleEnds = 0
+    private var subtitleCancels = 0
+    private var subtitlePressed = false
     private var horizontalStarts = 0
     private var verticalStarts = 0
     private var dragUpdates = 0
@@ -246,7 +251,161 @@ class PlayerDragGesturesTest {
         )
     }
 
-    private fun setGestureContent() {
+    @Test
+    fun subtitleVerticalDragWinsButHorizontalSwipeSeeks() {
+        setGestureContent(subtitles = true)
+        val player = composeRule.onNodeWithTag("gestures")
+        player.performTouchInput {
+            swipe(
+                center,
+                Offset(
+                    centerX,
+                    centerY - 100f,
+                ),
+            )
+        }
+        composeRule.runOnIdle {
+            assertEquals(
+                1,
+                subtitleStarts,
+            )
+            assertEquals(
+                1,
+                subtitleEnds,
+            )
+            assertEquals(
+                0,
+                verticalStarts,
+            )
+            assertFalse(subtitlePressed)
+        }
+        player.performTouchInput {
+            swipe(
+                center,
+                Offset(
+                    centerX + 100f,
+                    centerY,
+                ),
+            )
+        }
+        composeRule.runOnIdle {
+            assertEquals(
+                1,
+                subtitleStarts,
+            )
+            assertEquals(
+                1,
+                horizontalStarts,
+            )
+            assertFalse(subtitlePressed)
+        }
+    }
+
+    @Test
+    fun subtitleCancelDoesNotSave() {
+        setGestureContent(subtitles = true)
+        composeRule.onNodeWithTag("gestures").performTouchInput {
+            down(center)
+            moveTo(
+                Offset(
+                    centerX,
+                    centerY - 100f,
+                ),
+            )
+            cancel()
+        }
+        composeRule.runOnIdle {
+            assertEquals(
+                1,
+                subtitleStarts,
+            )
+            assertEquals(
+                0,
+                subtitleEnds,
+            )
+            assertEquals(
+                1,
+                subtitleCancels,
+            )
+            assertFalse(subtitlePressed)
+        }
+    }
+
+    @Test
+    fun secondPointerDoesNotStartOrSaveSubtitleDrag() {
+        setGestureContent(subtitles = true)
+        val player = composeRule.onNodeWithTag("gestures")
+        player.performTouchInput {
+            down(center)
+            down(
+                1,
+                center + Offset(
+                    50f,
+                    0f,
+                ),
+            )
+            moveBy(
+                Offset(
+                    0f,
+                    -100f,
+                ),
+            )
+            up(1)
+            up()
+        }
+        composeRule.runOnIdle {
+            assertEquals(
+                0,
+                subtitleStarts,
+            )
+            assertEquals(
+                0,
+                subtitleEnds,
+            )
+            assertFalse(subtitlePressed)
+        }
+        player.performTouchInput {
+            down(center)
+            moveTo(
+                Offset(
+                    centerX,
+                    centerY - 100f,
+                ),
+            )
+            down(
+                1,
+                center + Offset(
+                    50f,
+                    0f,
+                ),
+            )
+            moveBy(
+                Offset(
+                    0f,
+                    -20f,
+                ),
+            )
+            up(1)
+            up()
+        }
+        composeRule.runOnIdle {
+            assertEquals(
+                1,
+                subtitleStarts,
+            )
+            assertEquals(
+                0,
+                subtitleEnds,
+            )
+            assertEquals(
+                1,
+                subtitleCancels,
+            )
+            assertFalse(subtitlePressed)
+        }
+    }
+
+    private fun setGestureContent(subtitles: Boolean = false) {
         composeRule.setContent {
             val insets = remember {
                 WindowInsets(
@@ -262,6 +421,17 @@ class PlayerDragGesturesTest {
                 Modifier
                     .size(300.dp)
                     .testTag("gestures")
+                    .pointerInput(subtitles) {
+                        if (!subtitles) return@pointerInput
+                        detectSubtitleDragGestures(
+                            shouldStartGesture = { true },
+                            onPressChange = { subtitlePressed = it },
+                            onDragStart = { subtitleStarts++ },
+                            onDrag = {},
+                            onDragEnd = { subtitleEnds++ },
+                            onDragCancel = { subtitleCancels++ },
+                        )
+                    }
                     .pointerInput(Unit) {
                         detectCustomHorizontalDragGestures(
                             shouldStartGesture = {
@@ -273,7 +443,12 @@ class PlayerDragGesturesTest {
                                 )
                             },
                             onDragStart = { horizontalStarts++ },
-                            onHorizontalDrag = { _, _ -> dragUpdates++ },
+                            onHorizontalDrag = {
+                                    _,
+                                    _,
+                                ->
+                                dragUpdates++
+                            },
                             onDragEnd = { dragEnds++ },
                         )
                     }
@@ -288,7 +463,12 @@ class PlayerDragGesturesTest {
                                 )
                             },
                             onDragStart = { verticalStarts++ },
-                            onVerticalDrag = { _, _ -> dragUpdates++ },
+                            onVerticalDrag = {
+                                    _,
+                                    _,
+                                ->
+                                dragUpdates++
+                            },
                             onDragEnd = { dragEnds++ },
                         )
                     }
