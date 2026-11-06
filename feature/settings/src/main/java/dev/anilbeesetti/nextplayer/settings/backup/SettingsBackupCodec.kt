@@ -150,9 +150,7 @@ internal class SettingsBackupCodec(private val subtitleEncodings: Set<String>) {
                     (username == null || connection.username == username)
             }
             if (matching.size > 1) return@forEach
-            val index = matching.singleOrNull() ?: candidates.singleOrNull()?.takeIf {
-                it < current.size && it !in updated
-            }
+            val index = matching.singleOrNull()
             val base = index?.let(connections::get) ?: NetworkConnection(
                 name = name,
                 host = host,

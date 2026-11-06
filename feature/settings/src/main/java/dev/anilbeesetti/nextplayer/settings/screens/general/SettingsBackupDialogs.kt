@@ -43,6 +43,7 @@ internal fun ExportSettingsDialog(
                         role = Role.Checkbox,
                         onValueChange = onIncludeNetworkConnectionsChanged,
                     ).tvFocusRing(),
+                    horizontalArrangement = Arrangement.spacedBy(12.dp),
                     verticalAlignment = Alignment.CenterVertically,
                 ) {
                     Checkbox(

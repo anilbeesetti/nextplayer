@@ -190,6 +190,7 @@ class SettingsBackupCodecTest {
             username = "alice",
             password = "existing",
             port = 445,
+            path = "Media",
         )
         val restored = codec.decode(
             codec.parse(
@@ -201,7 +202,7 @@ class SettingsBackupCodecTest {
         )
 
         assertEquals(
-            listOf(existing.copy(path = "Media")),
+            listOf(existing),
             restored.networkConnections,
         )
     }
@@ -299,6 +300,55 @@ class SettingsBackupCodecTest {
             ),
             restored.networkConnections!!.map { it.id },
         )
+    }
+
+    @Test
+    fun differentEndpointsDoNotTakeAnExistingConnectionsIdOrCredentials() {
+        val existing = NetworkConnection(
+            id = 8,
+            name = "NAS",
+            host = "nas.local",
+            protocol = NetworkProtocol.SFTP,
+            port = 2222,
+            path = "Media",
+            username = "alice",
+            password = "local-secret",
+        )
+        val endpoints = listOf(
+            """"port":22,"path":"Media","username":"alice"""",
+            """"port":2222,"path":"Other","username":"alice"""",
+            """"port":2222,"path":"Media","username":"bob"""",
+        )
+        endpoints.forEach { endpoint ->
+            val entries = listOf(
+                """{"name":"NAS","host":"nas.local","protocol":"SFTP",$endpoint}""",
+                """{"name":"NAS","host":"nas.local","protocol":"SFTP","port":2222,"path":"Media","username":"alice"}""",
+            )
+            listOf(
+                entries,
+                entries.reversed(),
+            ).forEach { ordered ->
+                val restored = codec.decode(
+                    codec.parse("""{"networkConnections":[${ordered.joinToString()}]}"""),
+                    application,
+                    player,
+                    listOf(existing),
+                ).networkConnections!!
+
+                assertEquals(
+                    2,
+                    restored.size,
+                )
+                assertEquals(
+                    existing,
+                    restored.single { it.id == existing.id },
+                )
+                assertEquals(
+                    "",
+                    restored.single { it.id == 0L }.password,
+                )
+            }
+        }
     }
 
     @Test(expected = IllegalArgumentException::class)
