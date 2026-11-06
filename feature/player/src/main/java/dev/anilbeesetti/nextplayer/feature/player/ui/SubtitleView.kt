@@ -20,6 +20,7 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.geometry.Rect
 import androidx.compose.ui.graphics.graphicsLayer
+import androidx.compose.ui.graphics.toArgb
 import androidx.compose.ui.viewinterop.AndroidView
 import androidx.core.content.ContextCompat.getSystemService
 import androidx.core.view.doOnPreDraw
@@ -28,6 +29,7 @@ import androidx.media3.common.util.UnstableApi
 import androidx.media3.ui.CaptionStyleCompat
 import androidx.media3.ui.SubtitleView
 import dev.anilbeesetti.nextplayer.core.model.Font
+import dev.anilbeesetti.nextplayer.feature.player.buttons.PlayerButtonBlackAlpha
 import dev.anilbeesetti.nextplayer.feature.player.extensions.toTypeface
 import dev.anilbeesetti.nextplayer.feature.player.state.CuesState
 import dev.anilbeesetti.nextplayer.feature.player.state.SubtitlePositionState
@@ -157,9 +159,6 @@ private fun measureDrawnBounds(view: View): Rect? {
     )
 }
 
-// Translucent grey box behind the text while the subtitle is being moved.
-private val DRAG_HIGHLIGHT_COLOR = 0x80FFFFFF.toInt()
-
 @OptIn(UnstableApi::class)
 private fun createCaptionStyle(
     context: Context,
@@ -189,7 +188,7 @@ private fun createCaptionStyle(
     if (!highlighted) return style
     return CaptionStyleCompat(
         style.foregroundColor,
-        DRAG_HIGHLIGHT_COLOR,
+        PlayerButtonBlackAlpha.toArgb(),
         style.windowColor,
         style.edgeType,
         style.edgeColor,
