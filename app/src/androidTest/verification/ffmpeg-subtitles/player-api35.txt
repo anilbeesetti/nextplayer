@@ -1,0 +1,7 @@
+dev.anilbeesetti.nextplayer.FfmpegSubtitlePlaybackTest:.
+dev.anilbeesetti.nextplayer.SubtitleInteractionTest:..
+dev.anilbeesetti.nextplayer.LocalSubtitleTest:.
+
+Time: 86.688
+
+OK (4 tests)

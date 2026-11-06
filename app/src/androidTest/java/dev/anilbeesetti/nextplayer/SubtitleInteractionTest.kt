@@ -14,9 +14,11 @@ import androidx.media3.session.SessionToken
 import androidx.media3.ui.SubtitleView
 import androidx.test.core.app.ActivityScenario
 import androidx.test.espresso.Espresso.onView
+import androidx.test.espresso.action.GeneralClickAction
 import androidx.test.espresso.action.GeneralSwipeAction
 import androidx.test.espresso.action.Press
 import androidx.test.espresso.action.Swipe
+import androidx.test.espresso.action.Tap
 import androidx.test.espresso.matcher.ViewMatchers.isRoot
 import androidx.test.ext.junit.runners.AndroidJUnit4
 import androidx.test.platform.app.InstrumentationRegistry
@@ -40,7 +42,19 @@ class SubtitleInteractionTest {
     private val preferences get() = GlobalContext.get().get<PreferencesRepository>()
 
     @Test
-    fun authoredLayoutsCannotBeDraggedAndTextRemainsMovable() {
+    fun authoredLayoutsCannotBeDragged() = verifySubtitles(
+        listOf(
+            "alignment.mkv" to true,
+            "legacy.ssa.mkv" to true,
+            "bitmap.sup.mkv" to true,
+            "alignment.mkv" to false,
+        ),
+    )
+
+    @Test
+    fun ordinaryTextCanBeDraggedAndSaved() = verifySubtitles(listOf("basic.srt.mkv" to true))
+
+    private fun verifySubtitles(cases: List<Pair<String, Boolean>>) {
         val original = preferences.playerPreferences.value
         val directory = File(
             context.cacheDir,
@@ -65,13 +79,7 @@ class SubtitleInteractionTest {
             TimeUnit.SECONDS,
         )
         try {
-            for ((file, styles) in listOf(
-                "alignment.mkv" to true,
-                "legacy.ssa.mkv" to true,
-                "bitmap.sup.mkv" to true,
-                "alignment.mkv" to false,
-                "basic.srt.mkv" to true,
-            )) {
+            for ((file, styles) in cases) {
                 val initialOffset = if (file == "basic.srt.mkv") 0f else -0.12f
                 runBlocking {
                     preferences.updatePlayerPreferences {
@@ -79,6 +87,7 @@ class SubtitleInteractionTest {
                             subtitleOffsetY = initialOffset,
                             applyEmbeddedStyles = styles,
                             autoPip = false,
+                            controllerAutoHideTimeout = 0,
                             autoBackgroundPlay = false,
                         )
                     }
@@ -101,18 +110,44 @@ class SubtitleInteractionTest {
                 ActivityScenario.launch<PlayerActivity>(intent).use { scenario ->
                     await("$file ready") {
                         main {
-                            player.playbackState == Player.STATE_READY &&
-                                player.currentCues.cues.isNotEmpty()
+                            player.currentMediaItem?.mediaId == Uri.fromFile(media).toString() &&
+                                player.playbackState == Player.STATE_READY &&
+                                player.currentCues.cues.isNotEmpty() &&
+                                player.currentCues.cues.all {
+                                    (it.bitmap == null) ==
+                                        (file == "basic.srt.mkv")
+                                }
                         }
                     }
                     main { player.pause() }
+                    instrumentation.waitForIdleSync()
+                    // Hide transport controls so their buttons do not intercept a subtitle swipe.
+                    onView(isRoot()).perform(
+                        GeneralClickAction(
+                            Tap.SINGLE,
+                            { view ->
+                                val origin = IntArray(2)
+                                view.getLocationOnScreen(origin)
+                                floatArrayOf(
+                                    origin[0] + view.width * 0.25f,
+                                    origin[1] + view.height * 0.25f,
+                                )
+                            },
+                            Press.FINGER,
+                        ),
+                    )
+                    SystemClock.sleep(350)
                     var subtitle: SubtitleView? = null
                     scenario.onActivity { subtitle = findSubtitleView(it.window.decorView) }
-                    val start = main { paintedCenter(checkNotNull(subtitle)) }
+                    var start = FloatArray(2)
                     onView(isRoot()).perform(
                         GeneralSwipeAction(
                             Swipe.SLOW,
-                            { start },
+                            {
+                                paintedCenter(checkNotNull(subtitle)).also {
+                                    start = it
+                                }
+                            },
                             {
                                 floatArrayOf(
                                     start[0],
