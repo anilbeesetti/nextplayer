@@ -195,6 +195,9 @@ internal fun MediaPlayerContent(
                     textSize = playerPreferences.subtitleTextSize,
                     textBold = playerPreferences.subtitleTextBold,
                     applyEmbeddedStyles = playerPreferences.applyEmbeddedStyles,
+                    useMaterialYouControls = playerPreferences.useMaterialYouControls,
+                    controlsVisible = controlsVisibilityState.controlsVisible &&
+                        !controlsVisibilityState.controlsLocked,
                 ),
             )
             if (volumeAndBrightnessGestureState != null) {

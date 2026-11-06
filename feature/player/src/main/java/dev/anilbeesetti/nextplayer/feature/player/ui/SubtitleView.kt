@@ -9,6 +9,8 @@ import android.view.View
 import android.view.accessibility.CaptioningManager
 import androidx.annotation.OptIn
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.material3.ExperimentalMaterial3ExpressiveApi
+import androidx.compose.material3.IconButtonDefaults
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.LaunchedEffect
@@ -18,9 +20,12 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.drawBehind
+import androidx.compose.ui.geometry.CornerRadius
 import androidx.compose.ui.geometry.Rect
+import androidx.compose.ui.graphics.compositeOver
 import androidx.compose.ui.graphics.graphicsLayer
-import androidx.compose.ui.graphics.toArgb
+import androidx.compose.ui.unit.dp
 import androidx.compose.ui.viewinterop.AndroidView
 import androidx.core.content.ContextCompat.getSystemService
 import androidx.core.view.doOnPreDraw
@@ -34,7 +39,10 @@ import dev.anilbeesetti.nextplayer.feature.player.extensions.toTypeface
 import dev.anilbeesetti.nextplayer.feature.player.state.CuesState
 import dev.anilbeesetti.nextplayer.feature.player.state.SubtitlePositionState
 
-@OptIn(UnstableApi::class)
+@OptIn(
+    UnstableApi::class,
+    ExperimentalMaterial3ExpressiveApi::class,
+)
 @Composable
 fun SubtitleView(
     modifier: Modifier = Modifier,
@@ -54,11 +62,33 @@ fun SubtitleView(
         onDispose { positionState.textBounds = null }
     }
 
+    val buttonBackground = if (configuration.useMaterialYouControls) {
+        IconButtonDefaults.filledTonalIconButtonColors().containerColor
+    } else {
+        PlayerButtonBlackAlpha
+    }
+    // The time row is drawn over the controls scrim, which disappears when dragging starts.
+    val highlightBackground = if (configuration.controlsVisible) {
+        buttonBackground
+    } else {
+        buttonBackground.compositeOver(PlayerButtonBlackAlpha)
+    }
+
     AndroidView(
         modifier = modifier
             .fillMaxSize()
             .graphicsLayer {
                 translationY = if (isInPictureInPictureMode) 0f else positionState.translationYPx
+            }
+            .drawBehind {
+                if (!positionState.isHighlighted || isInPictureInPictureMode) return@drawBehind
+                val bounds = positionState.textBounds?.inflate(4.dp.toPx()) ?: return@drawBehind
+                drawRoundRect(
+                    color = highlightBackground,
+                    topLeft = bounds.topLeft,
+                    size = bounds.size,
+                    cornerRadius = CornerRadius(8.dp.toPx()),
+                )
             },
         factory = { context ->
             SubtitleView(context).apply {
@@ -188,7 +218,7 @@ private fun createCaptionStyle(
     if (!highlighted) return style
     return CaptionStyleCompat(
         style.foregroundColor,
-        PlayerButtonBlackAlpha.toArgb(),
+        android.graphics.Color.TRANSPARENT,
         style.windowColor,
         style.edgeType,
         style.edgeColor,
@@ -204,4 +234,6 @@ data class SubtitleConfiguration(
     val textSize: Int,
     val textBold: Boolean,
     val applyEmbeddedStyles: Boolean,
+    val useMaterialYouControls: Boolean,
+    val controlsVisible: Boolean,
 )
