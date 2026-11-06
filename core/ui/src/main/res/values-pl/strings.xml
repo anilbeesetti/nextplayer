@@ -366,10 +366,10 @@
         <item quantity="other">Nie można było przenieść %1$d wideo</item>
     </plurals>
     <plurals name="moved_videos_originals_remain">
-        <item quantity="one">Przeniesiono 1 wideo, ale nie udało się usunąć oryginału</item>
-        <item quantity="few">Przeniesiono %1$d wideo, ale nie udało się usunąć oryginałów</item>
-        <item quantity="many">Przeniesiono %1$d wideo, ale nie udało się usunąć oryginałów</item>
-        <item quantity="other">Przeniesiono %1$d wideo, ale nie udało się usunąć oryginałów</item>
+        <item quantity="one">Skopiowano 1 wideo, ale nie udało się usunąć oryginału</item>
+        <item quantity="few">Skopiowano %1$d wideo, ale nie udało się usunąć oryginałów</item>
+        <item quantity="many">Skopiowano %1$d wideo, ale nie udało się usunąć oryginałów</item>
+        <item quantity="other">Skopiowano %1$d wideo, ale nie udało się usunąć oryginałów</item>
     </plurals>
     <string name="cannot_move_to_same_folder">Nie można przenieść do tego samego katalogu</string>
     <string name="folder_duration">Czas trwania katalogu</string>
@@ -555,4 +555,6 @@
     <string name="add_to_home_screen">Dodaj do ekranu głównego</string>
     <string name="playlist_shortcut_failed">Nie można dodać skrótu do listy odtwarzania. Spróbuj ponownie.</string>
     <string name="github_sponsors">Sponsorzy z GitHub</string>
+    <string name="reset_subtitle_position">Zresetuj położenie napisów</string>
+    <string name="reset_subtitle_position_desc">Aby przesunąć napisy, przeciągnij je w górę lub w dół podczas odtwarzania</string>
 </resources>
