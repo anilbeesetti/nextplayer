@@ -563,4 +563,6 @@
         <item quantity="one">%1$d day</item>
         <item quantity="other">%1$d days</item>
     </plurals>
+    <string name="cast_to_device">Cast to device</string>
+    <string name="cast_transfer_failed">Could not cast this video. Check your local network and the device’s supported formats.</string>
 </resources>

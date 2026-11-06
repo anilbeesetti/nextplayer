@@ -80,6 +80,8 @@ androidx-datastore-core = { group = "androidx.datastore", name = "datastore", ve
 androidx-lifecycle-runtime-ktx = { group = "androidx.lifecycle", name = "lifecycle-runtime-ktx", version.ref = "androidxLifecycle" }
 androidx-lifecycle-runtimeCompose = { group = "androidx.lifecycle", name = "lifecycle-runtime-compose", version.ref = "androidxLifecycle" }
 androidx-lifecycle-viewModel-ktx = { group = "androidx.lifecycle", name = "lifecycle-viewmodel-ktx", version.ref = "androidxLifecycle" }
+androidx-media3-cast = { group = "androidx.media3", name = "media3-cast", version.ref = "androidxMedia3" }
+nanohttpd = { module = "org.nanohttpd:nanohttpd", version = "2.3.1" }
 androidx-media3-common = { group = "androidx.media3", name = "media3-common", version.ref = "androidxMedia3" }
 androidx-media3-datasource = { group = "androidx.media3", name = "media3-datasource", version.ref = "androidxMedia3" }
 androidx-media3-exoplayer = { group = "androidx.media3", name = "media3-exoplayer", version.ref = "androidxMedia3" }

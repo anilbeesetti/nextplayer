@@ -8,6 +8,8 @@ on:
 jobs:
   publish:
     runs-on: ubuntu-latest
+    env:
+      GRADLE_OPTS: "-Dorg.gradle.workers.max=2 -Dorg.gradle.jvmargs=-Xmx4g"
     steps:
       - name: Checkout repository
         uses: actions/checkout@v7
@@ -55,6 +57,7 @@ jobs:
         run: bundle exec fastlane publish
         env:
           TRACK: "internal"
+          SUPPLY_AAB: ${{ github.workspace }}/app/build/outputs/bundle/playRelease/app-play-release.aab
           KEYSTORE: ${{ steps.keystore.outputs.filePath }}
           KEYSTORE_PASSWORD: ${{ secrets.KEYSTORE_PASSWORD }}
           KEY_ALIAS: ${{ secrets.KEY_ALIAS }}
@@ -63,11 +66,12 @@ jobs:
 
       - name: Rename Files
         run: |
-          mv app/build/outputs/apk/release/app-arm64-v8a-release.apk app/build/outputs/apk/release/nextplayer-v${{ env.VERSION_NAME }}-arm64-v8a.apk
-          mv app/build/outputs/apk/release/app-armeabi-v7a-release.apk app/build/outputs/apk/release/nextplayer-v${{ env.VERSION_NAME }}-armeabi-v7a.apk
-          mv app/build/outputs/apk/release/app-universal-release.apk app/build/outputs/apk/release/nextplayer-v${{ env.VERSION_NAME }}-universal.apk
-          mv app/build/outputs/apk/release/app-x86-release.apk app/build/outputs/apk/release/nextplayer-v${{ env.VERSION_NAME }}-x86.apk
-          mv app/build/outputs/apk/release/app-x86_64-release.apk app/build/outputs/apk/release/nextplayer-v${{ env.VERSION_NAME }}-x86_64.apk
+          for distribution in standard play; do
+            for apk in app/build/outputs/apk/$distribution/release/*.apk; do
+              abi=$(basename "$apk" | sed "s/app-$distribution-//;s/-release.apk//")
+              mv "$apk" "app/build/outputs/apk/nextplayer-v${{ env.VERSION_NAME }}-$distribution-$abi.apk"
+            done
+          done
 
       - name: Create Draft Release
         id: create_draft_release
@@ -75,7 +79,7 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
-          files: app/build/outputs/apk/release/nextplayer*
+          files: app/build/outputs/apk/nextplayer*
           draft: true
           name: v${{ env.VERSION_NAME }}
           generate_release_notes: true

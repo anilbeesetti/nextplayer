@@ -11,6 +11,7 @@ import androidx.core.net.toUri
 import androidx.media3.common.AudioAttributes
 import androidx.media3.common.BundleListRetriever
 import androidx.media3.common.C
+import androidx.media3.common.DeviceInfo
 import androidx.media3.common.MediaItem
 import androidx.media3.common.MediaMetadata
 import androidx.media3.common.MimeTypes
@@ -54,6 +55,7 @@ import dev.anilbeesetti.nextplayer.core.model.Resume
 import dev.anilbeesetti.nextplayer.core.ui.R as coreUiR
 import dev.anilbeesetti.nextplayer.feature.player.PlayerActivity
 import dev.anilbeesetti.nextplayer.feature.player.R
+import dev.anilbeesetti.nextplayer.feature.player.cast.PlaybackOutput
 import dev.anilbeesetti.nextplayer.feature.player.extensions.addAdditionalSubtitleConfiguration
 import dev.anilbeesetti.nextplayer.feature.player.extensions.audioDecoderMode
 import dev.anilbeesetti.nextplayer.feature.player.extensions.audioTrackIndex
@@ -107,6 +109,11 @@ class PlayerService : MediaSessionService() {
     )
     private val applicationScope: CoroutineScope by inject(named(DiQualifiers.APPLICATION_SCOPE))
     private var mediaSession: MediaSession? = null
+    private var playbackOutput: PlaybackOutput? = null
+    private var localPlayer: ExoPlayer? = null
+    private val localPlaybackPlayer: ExoPlayer?
+        get() = localPlayer ?: (mediaSession?.player as? ExoPlayer)
+
     private var artworkLoadJob: Job? = null
 
     private val preferencesRepository: PreferencesRepository by inject()
@@ -123,6 +130,10 @@ class PlayerService : MediaSessionService() {
     private val customCommands = CustomCommands.asSessionCommands()
 
     private var isMediaItemReady = false
+    private var lastPlaybackMediaId: String? = null
+    private var lastPlaybackType = DeviceInfo.PLAYBACK_TYPE_LOCAL
+    private val isRemotePlayback: Boolean
+        get() = mediaSession?.player?.deviceInfo?.playbackType == DeviceInfo.PLAYBACK_TYPE_REMOTE
     private var playbackRequestGeneration = 0L
     private var pendingMediaItemsRequest:
         ListenableFuture<MediaSession.MediaItemsWithStartPosition>? = null
@@ -208,8 +219,15 @@ class PlayerService : MediaSessionService() {
     }
 
     private val playbackStateListener = object : Player.Listener {
+        override fun onDeviceInfoChanged(deviceInfo: DeviceInfo) {
+            if (deviceInfo.playbackType == DeviceInfo.PLAYBACK_TYPE_LOCAL) {
+                isMediaItemReady = false
+                restoreDecoderChoices(mediaSession?.player?.currentMediaItem)
+            }
+        }
+
         override fun onTimelineChanged(timeline: Timeline, reason: Int) {
-            val player = mediaSession?.player as? ExoPlayer ?: return
+            val player = localPlaybackPlayer ?: return
             // Autoplay controls the implicit folder queue; explicitly chosen playlists play in full.
             player.pauseAtEndOfMediaItems = !playerPreferences.autoplay &&
                 player.currentMediaItem?.isExplicitPlaylistItem != true
@@ -221,19 +239,26 @@ class PlayerService : MediaSessionService() {
                 reason,
             )
             if (reason == Player.MEDIA_ITEM_TRANSITION_REASON_REPEAT) return
-            restoreDecoderChoices(mediaItem = mediaItem)
+            val playbackType = mediaSession?.player?.deviceInfo?.playbackType
+                ?: DeviceInfo.PLAYBACK_TYPE_LOCAL
+            val transferringSameItem = mediaItem?.mediaId == lastPlaybackMediaId &&
+                playbackType != lastPlaybackType
+            lastPlaybackMediaId = mediaItem?.mediaId
+            lastPlaybackType = playbackType
+            if (!isRemotePlayback) restoreDecoderChoices(mediaItem = mediaItem)
             isMediaItemReady = false
             loadArtworkForCurrentMediaItem()
             mediaItem?.mediaMetadata?.let { metadata ->
-                mediaSession?.player?.run {
-                    playerSpecificSubtitleDelayMilliseconds =
+                localPlaybackPlayer?.run {
+                    subtitleDelayMilliseconds =
                         metadata.subtitleDelayMilliseconds ?: 0L
-                    playerSpecificSubtitleSpeed = metadata.subtitleSpeed ?: 1f
+                    subtitleSpeed = metadata.subtitleSpeed ?: 1f
                 }
 
                 metadata.positionMs?.takeIf {
-                    mediaItem.hasApiPosition ||
-                        playerPreferences.resume == Resume.YES
+                    !transferringSameItem && (
+                        mediaItem.hasApiPosition || playerPreferences.resume == Resume.YES
+                        )
                 }?.let {
                     mediaSession?.player?.seekTo(it)
                 }
@@ -293,6 +318,7 @@ class PlayerService : MediaSessionService() {
 
         override fun onTracksChanged(tracks: Tracks) {
             super.onTracksChanged(tracks)
+            if (isRemotePlayback) return
             serviceScope.launch {
                 mediaSession?.player?.currentTracks?.let(block = ::handleUnsupportedTracks)
             }
@@ -522,14 +548,24 @@ class PlayerService : MediaSessionService() {
             startPositionMs: Long,
         ): ListenableFuture<MediaSession.MediaItemsWithStartPosition> {
             cancelPendingMediaItems()
+            playbackOutput?.onNewQueue()
             playbackRequestGeneration++
             val request = serviceScope.future {
                 val updatedMediaItems = withContext(Dispatchers.Default) {
                     updatedMediaItemsWithMetadata(mediaItems = mediaItems)
                 }
+                val queue = if (isRemotePlayback) {
+                    mediaItemsForCast(
+                        updatedMediaItems,
+                        startIndex,
+                        playerPreferences.autoplay,
+                    )
+                } else {
+                    updatedMediaItems
+                }
                 MediaSession.MediaItemsWithStartPosition(
-                    updatedMediaItems,
-                    startIndex,
+                    queue,
+                    if (queue.size == updatedMediaItems.size) startIndex else 0,
                     startPositionMs,
                 )
             }
@@ -560,6 +596,9 @@ class PlayerService : MediaSessionService() {
         ): ListenableFuture<SessionResult> = serviceScope.future {
             val command = CustomCommands.fromSessionCommand(sessionCommand = customCommand)
                 ?: return@future SessionResult(SessionError.ERROR_BAD_VALUE)
+            if (isRemotePlayback && command in LOCAL_PLAYER_COMMANDS) {
+                return@future SessionResult(SessionError.ERROR_NOT_SUPPORTED)
+            }
 
             when (command) {
                 CustomCommands.ADD_SUBTITLE_TRACK -> {
@@ -652,7 +691,7 @@ class PlayerService : MediaSessionService() {
 
                 CustomCommands.SET_SKIP_SILENCE_ENABLED -> {
                     val enabled = args.getBoolean(CustomCommands.SKIP_SILENCE_ENABLED_KEY)
-                    mediaSession?.player?.playerSpecificSkipSilenceEnabled = enabled
+                    localPlaybackPlayer?.skipSilenceEnabled = enabled
                     mediaSession?.sessionExtras =
                         Bundle(mediaSession?.sessionExtras ?: Bundle.EMPTY).apply {
                             putBoolean(
@@ -664,7 +703,7 @@ class PlayerService : MediaSessionService() {
                 }
 
                 CustomCommands.GET_SKIP_SILENCE_ENABLED -> {
-                    val enabled = mediaSession?.player?.playerSpecificSkipSilenceEnabled ?: false
+                    val enabled = localPlaybackPlayer?.skipSilenceEnabled ?: false
                     return@future SessionResult(
                         SessionResult.RESULT_SUCCESS,
                         Bundle().apply {
@@ -719,7 +758,7 @@ class PlayerService : MediaSessionService() {
                 CustomCommands.SET_VIDEO_DECODER_MODE -> {
                     val mode = args.decoderMode(CustomCommands.VIDEO_DECODER_MODE_KEY)
                         ?: return@future SessionResult(SessionResult.RESULT_ERROR_BAD_VALUE)
-                    val player = mediaSession?.player as? ExoPlayer
+                    val player = localPlaybackPlayer
                         ?: return@future SessionResult(SessionResult.RESULT_ERROR_INVALID_STATE)
                     decoderRecoveryManager.onUserSelection(
                         DecoderTrackType.VIDEO,
@@ -741,7 +780,7 @@ class PlayerService : MediaSessionService() {
                 CustomCommands.SET_AUDIO_DECODER_MODE -> {
                     val mode = args.decoderMode(CustomCommands.AUDIO_DECODER_MODE_KEY)
                         ?: return@future SessionResult(SessionResult.RESULT_ERROR_BAD_VALUE)
-                    val player = mediaSession?.player as? ExoPlayer
+                    val player = localPlaybackPlayer
                         ?: return@future SessionResult(SessionResult.RESULT_ERROR_INVALID_STATE)
                     decoderRecoveryManager.onUserSelection(
                         DecoderTrackType.AUDIO,
@@ -772,7 +811,7 @@ class PlayerService : MediaSessionService() {
 
                 CustomCommands.GET_SUBTITLE_DELAY -> {
                     val subtitleDelay =
-                        mediaSession?.player?.playerSpecificSubtitleDelayMilliseconds ?: 0
+                        localPlaybackPlayer?.subtitleDelayMilliseconds ?: 0
                     return@future SessionResult(
                         SessionResult.RESULT_SUCCESS,
                         Bundle().apply {
@@ -786,12 +825,12 @@ class PlayerService : MediaSessionService() {
 
                 CustomCommands.SET_SUBTITLE_DELAY -> {
                     val subtitleDelay = args.getLong(CustomCommands.SUBTITLE_DELAY_KEY)
-                    mediaSession?.player?.playerSpecificSubtitleDelayMilliseconds = subtitleDelay
+                    localPlaybackPlayer?.subtitleDelayMilliseconds = subtitleDelay
                     return@future SessionResult(SessionResult.RESULT_SUCCESS)
                 }
 
                 CustomCommands.GET_SUBTITLE_SPEED -> {
-                    val subtitleSpeed = mediaSession?.player?.playerSpecificSubtitleSpeed ?: 0f
+                    val subtitleSpeed = localPlaybackPlayer?.subtitleSpeed ?: 0f
                     return@future SessionResult(
                         SessionResult.RESULT_SUCCESS,
                         Bundle().apply {
@@ -805,7 +844,7 @@ class PlayerService : MediaSessionService() {
 
                 CustomCommands.SET_SUBTITLE_SPEED -> {
                     val subtitleSpeed = args.getFloat(CustomCommands.SUBTITLE_SPEED_KEY)
-                    mediaSession?.player?.playerSpecificSubtitleSpeed = subtitleSpeed
+                    localPlaybackPlayer?.subtitleSpeed = subtitleSpeed
                     return@future SessionResult(SessionResult.RESULT_SUCCESS)
                 }
 
@@ -865,16 +904,26 @@ class PlayerService : MediaSessionService() {
         }
         cancelPendingMediaItems()
         val generation = ++playbackRequestGeneration
+        playbackOutput?.onNewQueue()
         val updatedItems = withContext(Dispatchers.Default) {
             updatedMediaItemsWithMetadata(items)
         }
         if (generation != playbackRequestGeneration || mediaSession !== session) {
             return SessionResult(SessionError.ERROR_INVALID_STATE)
         }
-        return session.player.run {
-            setMediaItems(
+        val queue = if (isRemotePlayback) {
+            mediaItemsForCast(
                 updatedItems,
                 index,
+                playerPreferences.autoplay,
+            )
+        } else {
+            updatedItems
+        }
+        return session.player.run {
+            setMediaItems(
+                queue,
+                if (queue.size == updatedItems.size) index else 0,
                 position,
             )
             speed?.let(::setPlaybackSpeed)
@@ -955,7 +1004,6 @@ class PlayerService : MediaSessionService() {
             .build()
             .also {
                 it.setPlaybackSpeed(playerPreferences.defaultPlaybackSpeed)
-                it.addListener(playbackStateListener)
                 it.pauseAtEndOfMediaItems = !playerPreferences.autoplay
                 it.repeatMode = when (playerPreferences.loopMode) {
                     LoopMode.OFF -> Player.REPEAT_MODE_OFF
@@ -964,13 +1012,21 @@ class PlayerService : MediaSessionService() {
                 }
             }
 
+        localPlayer = player
+        playbackOutput = PlaybackOutput(
+            this,
+            player,
+            autoplay = { playerPreferences.autoplay },
+        )
+        val sessionPlayer = checkNotNull(playbackOutput).player
+        sessionPlayer.addListener(playbackStateListener)
         decoderManager.attach(player = player)
         player.addAnalyticsListener(decoderAnalyticsListener)
 
         try {
             mediaSession = MediaSession.Builder(
                 this,
-                player,
+                sessionPlayer,
             ).apply {
                 setSessionActivity(
                     PendingIntent.getActivity(
@@ -1047,7 +1103,9 @@ class PlayerService : MediaSessionService() {
             player.stop()
             player.removeListener(playbackStateListener)
             decoderManager.detach()
-            player.release()
+            playbackOutput?.release() ?: player.release()
+            playbackOutput = null
+            localPlayer = null
             release()
             mediaSession = null
         }
@@ -1184,7 +1242,7 @@ class PlayerService : MediaSessionService() {
     }
 
     private fun retryDecoderWith(retry: DecoderRetry): Boolean {
-        val player = mediaSession?.player as? ExoPlayer ?: return false
+        val player = localPlaybackPlayer ?: return false
         val shouldPrepare = player.playerError != null
         selectDecoder(
             retry.trackType,
@@ -1388,51 +1446,22 @@ private val DecoderTrackType.mediaTrackType: Int
 
 private const val DECODER_LOG_TAG = "Decoder"
 
-@get:UnstableApi
-@set:UnstableApi
-private var Player.playerSpecificSkipSilenceEnabled: Boolean
-    @OptIn(UnstableApi::class)
-    get() = when (this) {
-        is ExoPlayer -> this.skipSilenceEnabled
-        else -> false
-    }
-    set(value) {
-        when (this) {
-            is ExoPlayer -> this.skipSilenceEnabled = value
-        }
-    }
-
-@get:UnstableApi
-@set:UnstableApi
-private var Player.playerSpecificSubtitleDelayMilliseconds: Long
-    @OptIn(UnstableApi::class)
-    get() = when (this) {
-        is ExoPlayer -> this.subtitleDelayMilliseconds
-        else -> 0L
-    }
-    set(value) {
-        when (this) {
-            is ExoPlayer -> this.subtitleDelayMilliseconds = value
-        }
-    }
-
-@get:UnstableApi
-@set:UnstableApi
-private var Player.playerSpecificSubtitleSpeed: Float
-    @OptIn(UnstableApi::class)
-    get() = when (this) {
-        is ExoPlayer -> this.subtitleSpeed
-        else -> 0f
-    }
-    set(value) {
-        when (this) {
-            is ExoPlayer -> this.subtitleSpeed = value
-        }
-    }
-
 /** Schemes Media3 streams over the network itself, as opposed to reading from local storage. */
 private val REMOTE_SCHEMES = setOf(
     "http",
     "https",
     "rtsp",
+)
+
+private val LOCAL_PLAYER_COMMANDS = setOf(
+    CustomCommands.ADD_SUBTITLE_TRACK,
+    CustomCommands.ADD_AUDIO_TRACK,
+    CustomCommands.SET_SKIP_SILENCE_ENABLED,
+    CustomCommands.SET_IS_SCRUBBING_MODE_ENABLED,
+    CustomCommands.SET_LOUDNESS_GAIN,
+    CustomCommands.SET_VIDEO_DECODER_MODE,
+    CustomCommands.SET_AUDIO_DECODER_MODE,
+    CustomCommands.TRY_DECODER_FALLBACK,
+    CustomCommands.SET_SUBTITLE_DELAY,
+    CustomCommands.SET_SUBTITLE_SPEED,
 )

@@ -33,6 +33,7 @@ import androidx.core.content.ContextCompat.getSystemService
 import androidx.core.net.toUri
 import androidx.core.pip.PictureInPictureDelegate
 import androidx.core.pip.VideoPlaybackPictureInPicture
+import androidx.media3.common.DeviceInfo
 import androidx.media3.common.Player
 import androidx.media3.common.listen
 import dev.anilbeesetti.nextplayer.core.common.extensions.isPipFeatureSupported
@@ -80,7 +81,9 @@ class PictureInPictureState(
         private const val PIP_ACTION_PREVIOUS = 4
     }
 
-    val isPipSupported: Boolean = activity.isPipFeatureSupported
+    val isPipSupported: Boolean
+        get() = activity.isPipFeatureSupported &&
+            player.deviceInfo.playbackType == DeviceInfo.PLAYBACK_TYPE_LOCAL
 
     val hasPipPermission: Boolean
         get() = if (isPipSupported) {
@@ -140,7 +143,7 @@ class PictureInPictureState(
     }
 
     fun enterPictureInPictureMode(): Boolean {
-        if (pictureInPicture == null || isInPictureInPictureMode) return false
+        if (pictureInPicture == null || !isPipSupported || isInPictureInPictureMode) return false
         return runCatching {
             activity.enterPictureInPictureMode(params = buildPictureInPictureParams())
         }.isSuccess
@@ -209,7 +212,11 @@ class PictureInPictureState(
         applyPictureInPictureParams()
 
         player.listen { events ->
-            if (events.contains(Player.EVENT_IS_PLAYING_CHANGED)) {
+            if (events.containsAny(
+                    Player.EVENT_IS_PLAYING_CHANGED,
+                    Player.EVENT_DEVICE_INFO_CHANGED,
+                )
+            ) {
                 updatePictureInPictureActions()
                 applyPictureInPictureParams()
             }
@@ -271,7 +278,7 @@ class PictureInPictureState(
         PictureInPictureParamsCompat.Builder().apply {
             setActions(actions = actions)
             setSeamlessResizeEnabled(seamlessResizeEnabled = true)
-            setEnabled(enabled = autoEnter && player.isPlaying)
+            setEnabled(enabled = autoEnter && player.isPlaying && isPipSupported)
             aspectRatio?.let { setAspectRatio(aspectRatio = it) }
             sourceRectHint?.let { setSourceRectHint(sourceRectHint = it) }
         }.build()
