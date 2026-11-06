@@ -24,5 +24,5 @@ dependencies {
     testImplementation(libs.ktlint.rule.engine)
     testImplementation(libs.ktlint.ruleset.standard)
     testImplementation(libs.junit4)
-    testRuntimeOnly("org.slf4j:slf4j-simple:2.0.17")
+    testRuntimeOnly("org.slf4j:slf4j-simple:2.0.20")
 }
