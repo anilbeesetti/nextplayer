@@ -286,7 +286,7 @@ suspend fun Context.scanPaths(paths: List<String>): Boolean =
             MediaScannerConnection.scanFile(
                 this@scanPaths,
                 paths.toTypedArray(),
-                arrayOf("video/*"),
+                null,
             ) { path, uri ->
                 Log.d(
                     "ScanPath",
