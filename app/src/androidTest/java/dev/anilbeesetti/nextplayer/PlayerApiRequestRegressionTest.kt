@@ -97,6 +97,27 @@ class PlayerApiRequestRegressionTest {
         await("background playback after activity closes") {
             main { activities().isEmpty() && player.isPlaying && player.mediaItemCount == 3 }
         }
+        assertQueueGrantsSurviveActivity(player)
+    }
+
+    @Test
+    fun foregroundQueueRetainsReadGrantsAfterActivityCloses() {
+        runBlocking { preferences.updatePlayerPreferences { it.copy(autoBackgroundPlay = true) } }
+        launch("--ez queue true --es gate $token")
+        await("foreground queue metadata is blocked") { gateStatus() == 1 }
+        val player = connect()
+        command("release")
+        await("foreground queue is playing") {
+            main { activities().isNotEmpty() && player.isPlaying && player.mediaItemCount == 3 }
+        }
+        main { activities().forEach { it.finish() } }
+        await("foreground activity closes while playback continues") {
+            main { activities().isEmpty() && player.isPlaying }
+        }
+        assertQueueGrantsSurviveActivity(player)
+    }
+
+    private fun assertQueueGrantsSurviveActivity(player: MediaController) {
         val media = main { player.getMediaItemAt(2).localConfiguration!!.uri }
         val subtitle = main {
             player.getMediaItemAt(0).localConfiguration!!.subtitleConfigurations.single().uri
