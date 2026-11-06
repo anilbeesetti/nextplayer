@@ -17,6 +17,7 @@ import androidx.compose.animation.slideOutVertically
 import androidx.compose.foundation.focusGroup
 import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.WindowInsetsSides
@@ -25,8 +26,10 @@ import androidx.compose.foundation.layout.consumeWindowInsets
 import androidx.compose.foundation.layout.displayCutout
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.navigationBarsPadding
 import androidx.compose.foundation.layout.only
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.windowInsetsPadding
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Surface
@@ -71,6 +74,7 @@ import dev.anilbeesetti.nextplayer.core.ui.components.LocalTopLevelFabSetter
 import dev.anilbeesetti.nextplayer.core.ui.components.TopLevelFabState
 import dev.anilbeesetti.nextplayer.core.ui.components.thenIf
 import dev.anilbeesetti.nextplayer.core.ui.theme.NextPlayerTheme
+import dev.anilbeesetti.nextplayer.feature.player.BackgroundPlaybackBar
 import dev.anilbeesetti.nextplayer.navigation.NextNavigationBar
 import dev.anilbeesetti.nextplayer.navigation.NextNavigationRail
 import dev.anilbeesetti.nextplayer.navigation.TopLevelDestination
@@ -286,6 +290,8 @@ fun NavigationLayout(
     var railWidth by remember(density) { mutableStateOf(0.dp) }
     val contentFocusRequester = remember { FocusRequester() }
     val fabFocusRequester = remember { FocusRequester() }
+    val miniPlayerFocusRequester = remember { FocusRequester() }
+    var miniPlayerVisible by remember { mutableStateOf(false) }
     val showNavRail = windowSizeClass.isWidthAtLeastBreakpoint(
         WindowSizeClass.WIDTH_DP_MEDIUM_LOWER_BOUND,
     )
@@ -302,18 +308,45 @@ fun NavigationLayout(
         Scaffold(
             modifier = modifier,
             bottomBar = {
-                AnimatedVisibility(
-                    visible = showNavigation && showBottomBar,
-                    enter = fadeIn() + slideInVertically { it },
-                    exit = fadeOut() + slideOutVertically { it },
-                ) {
-                    NextNavigationBar(
-                        state = state,
-                        fabState = displayedFabState,
-                        contentFocusRequester = contentFocusRequester,
-                        fabFocusRequester = fabFocusRequester,
-                        showFabOnly = showNavRail,
-                    )
+                Column(horizontalAlignment = Alignment.CenterHorizontally) {
+                    if (showNavigation) {
+                        BackgroundPlaybackBar(
+                            modifier = Modifier
+                                .padding(start = if (showNavRail) railWidth else 0.dp)
+                                .windowInsetsPadding(
+                                    WindowInsets.displayCutout.only(WindowInsetsSides.Horizontal),
+                                )
+                                .padding(horizontal = 16.dp)
+                                .padding(bottom = 8.dp)
+                                .thenIf(!showBottomBar) { navigationBarsPadding() }
+                                .focusRequester(miniPlayerFocusRequester)
+                                .focusProperties {
+                                    if (isTv) {
+                                        up = contentFocusRequester
+                                        if (showBottomBar && displayedFabState != null) {
+                                            down = fabFocusRequester
+                                        }
+                                    }
+                                },
+                            onVisibilityChanged = { miniPlayerVisible = it },
+                        )
+                    }
+                    AnimatedVisibility(
+                        visible = showNavigation && showBottomBar,
+                        enter = fadeIn() + slideInVertically { it },
+                        exit = fadeOut() + slideOutVertically { it },
+                    ) {
+                        NextNavigationBar(
+                            state = state,
+                            fabState = displayedFabState,
+                            contentFocusRequester = contentFocusRequester,
+                            fabFocusRequester = fabFocusRequester,
+                            miniPlayerFocusRequester = miniPlayerFocusRequester.takeIf {
+                                miniPlayerVisible
+                            },
+                            showFabOnly = showNavRail,
+                        )
+                    }
                 }
             },
             containerColor = MaterialTheme.colorScheme.surfaceContainer,
@@ -323,16 +356,23 @@ fun NavigationLayout(
                     modifier = Modifier
                         .fillMaxWidth()
                         .thenIf(condition = isTv) {
-                            // The FAB sits outside screen content, whose full-height focus groups
-                            // overlap it. Enter the content explicitly instead of searching the rail.
+                            // Full-height content groups overlap these controls.
+                            // Route focus explicitly between content and the controls.
                             focusRequester(focusRequester = contentFocusRequester)
                                 .focusProperties {
                                     onExit = {
                                         if (requestedFocusDirection == FocusDirection.Down &&
-                                            showNavigation && showBottomBar &&
-                                            displayedFabState != null
+                                            showNavigation &&
+                                            (
+                                                miniPlayerVisible ||
+                                                    (showBottomBar && displayedFabState != null)
+                                                )
                                         ) {
-                                            fabFocusRequester.requestFocus()
+                                            if (miniPlayerVisible) {
+                                                miniPlayerFocusRequester.requestFocus()
+                                            } else {
+                                                fabFocusRequester.requestFocus()
+                                            }
                                         }
                                     }
                                 }

@@ -565,4 +565,9 @@
     </plurals>
     <string name="cast_to_device">Cast to device</string>
     <string name="cast_transfer_failed">Could not cast this video. Check your local network and the device’s supported formats.</string>
+    <string name="pause_playback">Pause</string>
+    <string name="casting_on_device">Casting to %1$s</string>
+    <string name="casting_video">Casting video</string>
+    <string name="cast_volume">Device volume</string>
+    <string name="play_on_phone">Play on phone</string>
 </resources>

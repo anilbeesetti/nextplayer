@@ -1,5 +1,6 @@
 package dev.anilbeesetti.nextplayer
 
+import android.content.ComponentName
 import androidx.activity.ComponentActivity
 import androidx.compose.foundation.focusGroup
 import androidx.compose.foundation.layout.Box
@@ -21,19 +22,26 @@ import androidx.compose.ui.test.SemanticsMatcher
 import androidx.compose.ui.test.assertIsFocused
 import androidx.compose.ui.test.isFocused
 import androidx.compose.ui.test.junit4.v2.createAndroidComposeRule
+import androidx.compose.ui.test.onAllNodesWithTag
 import androidx.compose.ui.test.onNodeWithTag
 import androidx.compose.ui.test.onNodeWithText
 import androidx.compose.ui.test.onRoot
 import androidx.compose.ui.test.performKeyInput
 import androidx.compose.ui.test.pressKey
 import androidx.compose.ui.test.requestFocus
+import androidx.media3.common.MediaItem
+import androidx.media3.session.MediaController
+import androidx.media3.session.SessionToken
 import androidx.test.ext.junit.runners.AndroidJUnit4
 import dev.anilbeesetti.nextplayer.core.common.extensions.isTelevision
 import dev.anilbeesetti.nextplayer.core.ui.components.TopLevelFabKey
 import dev.anilbeesetti.nextplayer.core.ui.components.TopLevelFabState
 import dev.anilbeesetti.nextplayer.core.ui.designsystem.NextIcons
 import dev.anilbeesetti.nextplayer.core.ui.theme.NextPlayerTheme
+import dev.anilbeesetti.nextplayer.feature.player.service.PlayerService
+import dev.anilbeesetti.nextplayer.feature.player.service.stopPlayerSession
 import dev.anilbeesetti.nextplayer.navigation.rememberTopLevelNavState
+import java.util.concurrent.TimeUnit
 import org.junit.Assume.assumeTrue
 import org.junit.Before
 import org.junit.Rule
@@ -94,6 +102,53 @@ class NavigationLayoutFabFocusTest {
                     Role.Tab,
                 ),
         ).assertExists()
+    }
+
+    @Test
+    fun loadedMiniPlayerConnectsContentAndFabFocusInBothDirections() {
+        showScreen()
+        val context = composeRule.activity
+        val future = composeRule.runOnIdle {
+            MediaController.Builder(
+                context,
+                SessionToken(
+                    context,
+                    ComponentName(
+                        context,
+                        PlayerService::class.java,
+                    ),
+                ),
+            ).buildAsync()
+        }
+        val player = future.get(
+            15,
+            TimeUnit.SECONDS,
+        )
+        try {
+            composeRule.runOnIdle {
+                player.setMediaItem(
+                    MediaItem.Builder().setMediaId("file:///focus-mini.mp4")
+                        .setUri("file:///focus-mini.mp4").build(),
+                )
+            }
+            composeRule.waitUntil(10_000) {
+                composeRule.onAllNodesWithTag("mini_player").fetchSemanticsNodes().isNotEmpty()
+            }
+            composeRule.onNodeWithText("Second item").requestFocus()
+            composeRule.onRoot().performKeyInput { pressKey(Key.DirectionDown) }
+            composeRule.onNodeWithTag("mini_player").assertIsFocused()
+            composeRule.onRoot().performKeyInput { pressKey(Key.DirectionDown) }
+            composeRule.onNodeWithTag("top_level_fab").assertIsFocused()
+            composeRule.onRoot().performKeyInput { pressKey(Key.DirectionUp) }
+            composeRule.onNodeWithTag("mini_player").assertIsFocused()
+            composeRule.onRoot().performKeyInput { pressKey(Key.DirectionUp) }
+            composeRule.onNodeWithText("Second item").assertIsFocused()
+        } finally {
+            composeRule.runOnIdle {
+                player.stopPlayerSession()
+                MediaController.releaseFuture(future)
+            }
+        }
     }
 
     private fun showScreen(empty: Boolean = false) {

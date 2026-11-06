@@ -118,14 +118,16 @@ class MediaControllerTest {
     }
 
     @Test
-    fun controllerClearsVideoSurfaceOnStopOrCompositionDisposalWithoutPausingPlayback() {
+    fun controllerClearsVideoSurfaceOnStopOrCompositionDisposalWithoutPausingPlayback() =
+        checkVideoSurfaceOnRelease(ownsVideoSurface = true)
+
+    @Test
+    fun homeControllerLeavesVideoSurfaceAndScrubbingUntouched() =
+        checkVideoSurfaceOnRelease(ownsVideoSurface = false)
+
+    private fun checkVideoSurfaceOnRelease(ownsVideoSurface: Boolean) {
         val player = composeRule.runOnIdle { ExoPlayer.Builder(composeRule.activity).build() }
-        val session = composeRule.runOnIdle {
-            MediaSession.Builder(
-                composeRule.activity,
-                player,
-            ).build()
-        }
+        val session = composeRule.runOnIdle { scrubbingSession(player) }
         val service = composeRule.runOnIdle { bindSessionService(session) }
         val owner = TestLifecycleOwner()
         val visible = mutableStateOf(true)
@@ -136,7 +138,7 @@ class MediaControllerTest {
             composeRule.setContent {
                 CompositionLocalProvider(LocalLifecycleOwner provides owner) {
                     if (visible.value) {
-                        val connected = rememberMediaController()
+                        val connected = rememberMediaController(ownsVideoSurface = ownsVideoSurface)
                         SideEffect { controller = connected }
                     } else {
                         SideEffect { controller = null }
@@ -149,6 +151,7 @@ class MediaControllerTest {
             composeRule.runOnIdle {
                 requireNotNull(controller).apply {
                     setVideoSurface(surface)
+                    setIsScrubbingModeEnabled(true)
                     play()
                 }
             }
@@ -162,10 +165,14 @@ class MediaControllerTest {
             }
             composeRule.runOnIdle {
                 assertEquals(
-                    Size.ZERO,
+                    if (ownsVideoSurface) Size.ZERO else Size.UNKNOWN,
                     player.surfaceSize,
                 )
                 assertTrue(player.playWhenReady)
+                assertEquals(
+                    !ownsVideoSurface,
+                    player.isScrubbingModeEnabled,
+                )
                 owner.registry.currentState = Lifecycle.State.STARTED
             }
             composeRule.waitForIdle()
@@ -180,7 +187,7 @@ class MediaControllerTest {
             }
             composeRule.runOnIdle {
                 assertEquals(
-                    Size.ZERO,
+                    if (ownsVideoSurface) Size.ZERO else Size.UNKNOWN,
                     player.surfaceSize,
                 )
                 assertTrue(player.playWhenReady)
@@ -266,6 +273,40 @@ class MediaControllerTest {
                 session.release()
                 player.release()
             }
+        }
+    }
+
+    @Test
+    fun refusedHomeConnectionDoesNotCrashOrPublishController() {
+        val service = composeRule.runOnIdle {
+            Robolectric.buildService(RejectingMediaSessionService::class.java).create()
+        }
+        val application = composeRule.activity.application
+        shadowOf(application).setComponentNameAndServiceForBindService(
+            ComponentName(
+                application,
+                PlayerService::class.java,
+            ),
+            service.get().onBind(Intent(MediaSessionService.SERVICE_INTERFACE)),
+        )
+        var controller: MediaController? = null
+        try {
+            composeRule.setContent {
+                val connected = rememberMediaController(ownsVideoSurface = false)
+                SideEffect { controller = connected }
+            }
+            composeRule.waitUntil { service.get().attemptedConnection }
+            composeRule.runOnIdle { assertNull(controller) }
+        } finally {
+            composeRule.runOnIdle { service.destroy() }
+        }
+    }
+
+    class RejectingMediaSessionService : MediaSessionService() {
+        var attemptedConnection = false
+        override fun onGetSession(controllerInfo: MediaSession.ControllerInfo): MediaSession? {
+            attemptedConnection = true
+            return null
         }
     }
 
