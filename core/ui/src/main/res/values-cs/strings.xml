@@ -357,10 +357,10 @@
         <item quantity="other">%1$d videí nešlo přesunout</item>
     </plurals>
     <plurals name="moved_videos_originals_remain">
-        <item quantity="one">Jedno video přesunuto, ale původní nešlo odebrat</item>
-        <item quantity="few">%1$d videa přesunuty, ale původní nešly odebrat</item>
-        <item quantity="many">%1$d videí přesunuty, ale původní nešly odebrat</item>
-        <item quantity="other">%1$d videí přesunuty, ale původní nešly odebrat</item>
+        <item quantity="one">Jedno video zkopírováno, ale původní nešlo odebrat</item>
+        <item quantity="few">%1$d videa zkopírovány, ale původní nešly odebrat</item>
+        <item quantity="many">%1$d videí zkopírovány, ale původní nešly odebrat</item>
+        <item quantity="other">%1$d videí zkopírovány, ale původní nešly odebrat</item>
     </plurals>
     <string name="cannot_move_to_same_folder">Nelze přesunout do stejné složky</string>
     <string name="folder_duration">Délka složky</string>
