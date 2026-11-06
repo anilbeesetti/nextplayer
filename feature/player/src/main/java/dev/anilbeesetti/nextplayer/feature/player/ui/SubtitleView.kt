@@ -158,7 +158,7 @@ private fun measureDrawnBounds(view: View): Rect? {
 }
 
 // Translucent grey box behind the text while the subtitle is being moved.
-private val DRAG_HIGHLIGHT_COLOR = 0x60DDDDDD.toInt()
+private val DRAG_HIGHLIGHT_COLOR = 0x80FFFFFF.toInt()
 
 @OptIn(UnstableApi::class)
 private fun createCaptionStyle(
