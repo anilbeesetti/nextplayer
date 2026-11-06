@@ -557,4 +557,19 @@
     <string name="github_sponsors">Sponsorzy z GitHub</string>
     <string name="reset_subtitle_position">Zresetuj położenie napisów</string>
     <string name="reset_subtitle_position_desc">Aby przesunąć napisy, przeciągnij je w górę lub w dół podczas odtwarzania</string>
+    <string name="settings_export">Wyeksportuj ustawienia</string>
+    <string name="settings_export_description">Zapisz ustawienia w pliku JSON</string>
+    <string name="settings_import_description">Przywróć ustawienia z pliku JSON</string>
+    <string name="settings_export_confirmation">Eksportuj ustawienia aplikacji i odtwarzacza do pliku JSON.</string>
+    <string name="settings_export_include_credentials">Uwzględniaj połączenia sieciowe i dane uwierzytelniające</string>
+    <string name="settings_export_credentials_warning">Plik JSON nie jest zaszyfrowany. Może zawierać hasła i klucze prywatne SSH. Należy go przechowywać w bezpiecznym miejscu.</string>
+    <string name="settings_import_confirmation">Ustawienia zawarte w tym pliku zastąpią bieżące ustawienia. Brakujące, przestarzałe, nieznane lub nieprawidłowe pozycje zostaną zignorowane. Jeśli plik zawiera informacje o połączeniach sieciowych i danych uwierzytelniających, zostaną one również zaimportowane.</string>
+    <string name="settings_import">Zaimportuj ustawienia</string>
+    <string name="export_action">Eksportuj</string>
+    <string name="import_action">Importuj</string>
+    <string name="settings_export_success">Ustawienia zostały wyeksportowane</string>
+    <string name="settings_export_failed">Nie udało się wyeksportować ustawień</string>
+    <string name="settings_import_success">Ustawienia zostały zaimportowane</string>
+    <string name="settings_import_failed">Nie udało się zakończyć importowania ustawień. Spróbuj ponownie.</string>
+    <string name="settings_import_invalid">Nie udało się odczytać tego pliku lub nie zawiera on obsługiwanych ustawień JSON</string>
 </resources>
