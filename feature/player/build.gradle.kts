@@ -84,6 +84,7 @@ dependencies {
     implementation(libs.koin.annotations)
 
     testImplementation(libs.junit4)
+    testImplementation(libs.mockito.core)
     testImplementation(libs.kotlinx.coroutines.test)
     testImplementation(libs.robolectric)
     testImplementation(libs.androidx.compose.ui.test)
