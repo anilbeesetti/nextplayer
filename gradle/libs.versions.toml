@@ -44,7 +44,7 @@ universalChardet = "2.5.2"
 smbj = "0.14.0"
 smbjRpc = "0.12.13"
 mockito = "5.14.2"
-okhttp = "4.12.0"
+okhttp = "4.12.1"
 commonsNet = "3.13.0"
 sardineAndroid = "0.9"
 
