@@ -72,10 +72,7 @@ internal fun ImportSettingsDialog(onConfirm: () -> Unit, onDismiss: () -> Unit) 
         },
         dismissButton = { CancelButton(onClick = onDismiss) },
         content = {
-            Text(
-                text = stringResource(R.string.settings_import_confirmation),
-                style = MaterialTheme.typography.titleSmall,
-            )
+            Text(text = stringResource(R.string.settings_import_confirmation))
         },
     )
 }
