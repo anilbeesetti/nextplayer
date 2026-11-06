@@ -170,6 +170,10 @@ class PlaylistCompletionTest {
                     PlayerApi.API_PLAYLIST,
                     ArrayList(uris),
                 )
+                .putExtra(
+                    "video_list_is_explicit",
+                    true,
+                )
             onMain { context.startActivity(intent) }
             await(description = "player activity to resume") {
                 activity = ActivityLifecycleMonitorRegistry.getInstance()

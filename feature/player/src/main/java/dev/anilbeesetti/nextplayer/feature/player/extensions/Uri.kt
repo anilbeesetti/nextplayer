@@ -3,9 +3,7 @@ package dev.anilbeesetti.nextplayer.feature.player.extensions
 import android.content.ContentResolver
 import android.content.Context
 import android.net.Uri
-import android.os.Build
 import android.os.Bundle
-import android.os.Parcelable
 import androidx.media3.common.C
 import androidx.media3.common.MediaItem
 import androidx.media3.common.MimeTypes
@@ -42,33 +40,41 @@ suspend fun Context.uriToSubtitleConfiguration(
     uri: Uri,
     subtitleEncoding: String = "",
     isSelected: Boolean = false,
+    label: String? = null,
+    filename: String? = null,
+    useMediaSourceForNetwork: Boolean = false,
 ): MediaItem.SubtitleConfiguration {
     val charset = if (subtitleEncoding.isNotEmpty() && Charset.isSupported(subtitleEncoding)) {
         Charset.forName(subtitleEncoding)
     } else {
         null
     }
-    val label = getFilenameFromUri(uri = uri)
-    val mimeType = uri.getSubtitleMime()
-    val utf8ConvertedUri = convertToUTF8(
-        uri = uri,
-        charset = charset,
-    )
+    val subtitleLabel = label ?: filename ?: getFilenameFromUri(uri)
+    val mimeType = (filename?.let(Uri::parse) ?: uri).getSubtitleMime()
+    val utf8ConvertedUri = if (useMediaSourceForNetwork && uri.scheme in listOf(
+            "http",
+            "https",
+        )
+    ) {
+        uri
+    } else {
+        convertToUTF8(
+            uri = uri,
+            charset = charset,
+        )
+    }
     return MediaItem.SubtitleConfiguration.Builder(utf8ConvertedUri).apply {
         setId(uri.toString())
         setMimeType(mimeType)
-        setLabel(label)
+        setLabel(subtitleLabel)
         if (isSelected) setSelectionFlags(C.SELECTION_FLAG_DEFAULT)
     }.build()
 }
 
+/** Accept the documented Uri[] and legacy clients sending an ArrayList<Uri>. */
 @Suppress("DEPRECATION")
-fun Bundle.getParcelableUriArray(key: String): ArrayList<out Parcelable>? =
-    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
-        getParcelableArrayList(
-            key,
-            Uri::class.java,
-        )
-    } else {
-        getParcelableArrayList(key)
-    }
+fun Bundle.getParcelableUriArray(key: String): List<Uri?>? = when (val value = get(key)) {
+    is Array<*> -> value.map { it as? Uri }
+    is ArrayList<*> -> value.map { it as? Uri }
+    else -> null
+}

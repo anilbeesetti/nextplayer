@@ -2,10 +2,6 @@ package dev.anilbeesetti.nextplayer.feature.player
 
 import androidx.activity.compose.BackHandler
 import androidx.annotation.OptIn
-import androidx.compose.animation.AnimatedVisibility
-import androidx.compose.animation.fadeIn
-import androidx.compose.animation.fadeOut
-import androidx.compose.foundation.background
 import androidx.compose.foundation.focusable
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxSize
@@ -23,7 +19,8 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.focus.FocusRequester
 import androidx.compose.ui.focus.focusRequester
 import androidx.compose.ui.focus.onFocusChanged
-import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.input.key.Key
+import androidx.compose.ui.input.key.key
 import androidx.compose.ui.input.key.onPreviewKeyEvent
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
@@ -61,6 +58,7 @@ internal fun MediaPlayerControls(
     isPipSupported: Boolean,
     onPictureInPictureClick: () -> Unit,
     modifier: Modifier = Modifier,
+    dpadUpDown: Int? = null,
 ) {
     val playerPreferences = state.playerPreferences
     val metadataState = rememberMetadataState(player = player)
@@ -74,6 +72,7 @@ internal fun MediaPlayerControls(
         player = player,
         controls = controlsVisibilityState,
         seekIncrementMs = playerPreferences.seekIncrement.seconds.inWholeMilliseconds,
+        dpadUpDown = dpadUpDown,
     )
     var overlayView by remember { mutableStateOf<OverlayView?>(value = null) }
     LaunchedEffect(metadataState.mediaId) {
@@ -87,19 +86,20 @@ internal fun MediaPlayerControls(
 
     val context = LocalContext.current
     val isTv = remember { context.isTelevision }
+    val handleDpadKeys = isTv || dpadUpDown != null
     val rootFocusRequester = remember { FocusRequester() }
     val middleControlsFocusRequester = remember { FocusRequester() }
     val unlockFocusRequester = remember { FocusRequester() }
     var isMiddleControlsFocused by remember { mutableStateOf(value = false) }
     var isUnlockFocused by remember { mutableStateOf(value = false) }
-    if (isTv) {
+    if (handleDpadKeys) {
         LaunchedEffect(
             controlsVisibilityState.controlsVisible,
             controlsVisibilityState.controlsLocked,
             key3 = overlayView,
         ) {
             if (overlayView != null) return@LaunchedEffect
-            if (!controlsVisibilityState.controlsVisible) {
+            if (!isTv || !controlsVisibilityState.controlsVisible) {
                 runCatching { rootFocusRequester.requestFocus() }
                 return@LaunchedEffect
             }
@@ -118,11 +118,16 @@ internal fun MediaPlayerControls(
         Box(
             modifier = modifier
                 .fillMaxSize()
-                .thenIf(condition = isTv) {
+                .thenIf(condition = handleDpadKeys) {
                     focusRequester(focusRequester = rootFocusRequester)
                         .focusable()
                         .onPreviewKeyEvent { keyEvent ->
-                            if (overlayView != null) {
+                            if (overlayView != null ||
+                                (
+                                    !isTv && keyEvent.key != Key.DirectionUp &&
+                                        keyEvent.key != Key.DirectionDown
+                                    )
+                            ) {
                                 false
                             } else {
                                 keyInputState.onKeyEvent(keyEvent = keyEvent)
@@ -130,19 +135,6 @@ internal fun MediaPlayerControls(
                         }
                 },
         ) {
-            AnimatedVisibility(
-                visible =
-                    controlsVisibilityState.controlsVisible &&
-                        !controlsVisibilityState.controlsLocked,
-                enter = fadeIn(),
-                exit = fadeOut(),
-            ) {
-                Box(
-                    Modifier
-                        .fillMaxSize()
-                        .background(Color.Black.copy(alpha = 0.3f)),
-                )
-            }
             if (mediaPresentationState.isBuffering) {
                 CircularProgressIndicator(
                     Modifier

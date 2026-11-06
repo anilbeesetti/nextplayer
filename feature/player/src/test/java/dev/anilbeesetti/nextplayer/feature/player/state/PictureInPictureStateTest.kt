@@ -4,6 +4,7 @@ import android.app.PictureInPictureParams
 import android.app.PictureInPictureUiState
 import android.content.pm.PackageManager
 import android.content.res.Configuration
+import android.graphics.Rect
 import android.os.Looper
 import androidx.activity.ComponentActivity
 import androidx.compose.runtime.DisposableEffectResult
@@ -75,6 +76,40 @@ class PictureInPictureStateTest {
     fun enteredCallbackUpdatesPipStateWithoutAnAnimationCallback() {
         enterPip()
         assertTrue(state.isInPictureInPictureMode)
+    }
+
+    @Test
+    fun layoutChangesWaitForPipEntryBeforeUpdatingParameters() {
+        val fullscreenRect = Rect(
+            240,
+            0,
+            2160,
+            1080,
+        )
+        val pipRect = Rect(
+            0,
+            0,
+            1080,
+            608,
+        )
+        state.setVideoViewRect(rect = fullscreenRect)
+        val updatesBeforeEntry = activity.paramsUpdateCount
+        activity.enterPictureInPictureMode(PictureInPictureParams.Builder().build())
+        assertTrue(activity.isInPictureInPictureMode)
+
+        state.setVideoViewRect(rect = pipRect)
+        assertEquals(
+            updatesBeforeEntry,
+            activity.paramsUpdateCount,
+        )
+
+        enterPip()
+        val updatesAfterEntry = activity.paramsUpdateCount
+        state.setVideoViewRect(rect = pipRect)
+        assertEquals(
+            updatesAfterEntry + 1,
+            activity.paramsUpdateCount,
+        )
     }
 
     @Test
@@ -221,9 +256,11 @@ class PictureInPictureStateTest {
 
     class PipActivity : ComponentActivity() {
         var params: PictureInPictureParams? = null
+        var paramsUpdateCount = 0
 
         override fun setPictureInPictureParams(params: PictureInPictureParams) {
             this.params = params
+            paramsUpdateCount++
         }
     }
 

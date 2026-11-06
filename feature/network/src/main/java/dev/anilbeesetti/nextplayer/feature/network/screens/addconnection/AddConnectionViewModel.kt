@@ -267,6 +267,9 @@ class AddConnectionViewModel(
             val client = clientFactory.create(operation.draft)
             try {
                 client.connect().getOrThrow()
+                if (operation.draft.protocol == NetworkProtocol.WEBDAV) {
+                    client.listFiles(client.rootPath).getOrThrow()
+                }
             } finally {
                 withContext(context = NonCancellable) { runCatching { client.disconnect() } }
             }

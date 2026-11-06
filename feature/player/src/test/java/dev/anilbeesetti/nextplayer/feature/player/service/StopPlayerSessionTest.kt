@@ -36,6 +36,35 @@ class StopPlayerSessionTest {
     }
 
     @Test
+    fun grantDeliveryAfterStopDoesNotKeepAnIdleServiceStarted() {
+        withSession(savePosition = { _, _ -> }) { _, _, _, service ->
+            val result = service.onStartCommand(
+                Intent(ACTION_RETAIN_PLAYBACK_GRANTS),
+                0,
+                7,
+            )
+            assertEquals(
+                android.app.Service.START_REDELIVER_INTENT,
+                result,
+            )
+            assertTrue(shadowOf(service).isStoppedBySelf)
+        }
+    }
+
+    @Test
+    fun grantDeliveryKeepsAnActiveQueueStarted() {
+        withSession(savePosition = { _, _ -> }) { player, _, _, service ->
+            player.setMediaItem(MediaItem.fromUri(VIDEO_URI))
+            service.onStartCommand(
+                Intent(ACTION_RETAIN_PLAYBACK_GRANTS),
+                0,
+                7,
+            )
+            assertFalse(shadowOf(service).isStoppedBySelf)
+        }
+    }
+
+    @Test
     fun stoppingSessionSavesLatestPositionBeforeClearingMedia() {
         val saved = mutableListOf<Pair<String, Long>>()
         withSession(savePosition = { uri, position ->
@@ -69,7 +98,7 @@ class StopPlayerSessionTest {
     }
 
     @Test
-    fun stoppingSessionWaitsForPositionPersistence() {
+    fun stoppingSessionClearsPlaybackBeforeWaitingForPositionPersistence() {
         val saveStarted = CompletableDeferred<Unit>()
         val finishSave = CompletableDeferred<Unit>()
         val saved = mutableListOf<Pair<String, Long>>()
@@ -93,7 +122,7 @@ class StopPlayerSessionTest {
             assertFalse(result.isDone)
             assertFalse(shadowOf(service).isStoppedBySelf)
             assertEquals(
-                1,
+                0,
                 player.mediaItemCount,
             )
             assertTrue(saved.isEmpty())
@@ -114,6 +143,45 @@ class StopPlayerSessionTest {
                 result.get().resultCode,
             )
             assertTrue(shadowOf(service).isStoppedBySelf)
+        }
+    }
+
+    @Test
+    fun delayedStopDoesNotClearANewerQueueOrStopItsService() {
+        val finishSave = CompletableDeferred<Unit>()
+        withSession(savePosition = { _, _ ->
+            finishSave.await()
+        }) { player, session, callback, service ->
+            player.setMediaItem(MediaItem.fromUri(VIDEO_URI))
+            val stopped = callback.onCustomCommand(
+                session,
+                controllerInfo(),
+                CustomCommands.STOP_PLAYER_SESSION.sessionCommand,
+                Bundle.EMPTY,
+            )
+            shadowOf(Looper.getMainLooper()).idle()
+            assertFalse(stopped.isDone)
+
+            callback.onSetMediaItems(
+                session,
+                controllerInfo(),
+                emptyList(),
+                0,
+                0,
+            )
+            val next = MediaItem.fromUri("content://media/external/video/media/2")
+            player.setMediaItem(next)
+            player.play()
+            finishSave.complete(Unit)
+            shadowOf(Looper.getMainLooper()).idle()
+
+            assertTrue(stopped.isDone)
+            assertEquals(
+                next,
+                player.currentMediaItem,
+            )
+            assertTrue(player.playWhenReady)
+            assertFalse(shadowOf(service).isStoppedBySelf)
         }
     }
 
@@ -158,7 +226,7 @@ class StopPlayerSessionTest {
 
             assertFalse(shadowOf(service).isStoppedBySelf)
             assertEquals(
-                1,
+                0,
                 player.mediaItemCount,
             )
 

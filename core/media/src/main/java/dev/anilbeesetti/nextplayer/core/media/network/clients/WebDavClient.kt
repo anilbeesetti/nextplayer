@@ -46,12 +46,6 @@ class WebDavClient(private val connection: NetworkConnection) : NetworkClient {
                     connection.password,
                 )
             }
-            client.exists(
-                buildUrl(
-                    path = "",
-                    isDirectory = true,
-                ),
-            )
             sardine = client
         }
     }

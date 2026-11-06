@@ -9,12 +9,16 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.compositionLocalOf
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.hapticfeedback.HapticFeedbackType
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.platform.LocalHapticFeedback
 import androidx.compose.ui.platform.LocalInspectionMode
 import androidx.compose.ui.tooling.preview.Preview
-import androidx.compose.ui.tooling.preview.PreviewScreenSizes
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.compose.LifecycleEventEffect
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
@@ -26,9 +30,11 @@ import dev.anilbeesetti.nextplayer.feature.player.state.ControlsVisibilityState
 import dev.anilbeesetti.nextplayer.feature.player.state.PlayerOrientationEffect
 import dev.anilbeesetti.nextplayer.feature.player.state.rememberBrightnessState
 import dev.anilbeesetti.nextplayer.feature.player.state.rememberControlsVisibilityState
+import dev.anilbeesetti.nextplayer.feature.player.state.rememberCuesState
 import dev.anilbeesetti.nextplayer.feature.player.state.rememberErrorState
 import dev.anilbeesetti.nextplayer.feature.player.state.rememberPictureInPictureState
 import dev.anilbeesetti.nextplayer.feature.player.state.rememberSeekGestureState
+import dev.anilbeesetti.nextplayer.feature.player.state.rememberSubtitlePositionState
 import dev.anilbeesetti.nextplayer.feature.player.state.rememberTapGestureState
 import dev.anilbeesetti.nextplayer.feature.player.state.rememberVideoZoomAndContentScaleState
 import dev.anilbeesetti.nextplayer.feature.player.state.rememberVolumeAndBrightnessGestureState
@@ -38,6 +44,7 @@ import dev.anilbeesetti.nextplayer.feature.player.ui.PlayerGestures
 import dev.anilbeesetti.nextplayer.feature.player.ui.PlayerVerticalGestureIndicators
 import dev.anilbeesetti.nextplayer.feature.player.ui.SubtitleConfiguration
 import dev.anilbeesetti.nextplayer.feature.player.ui.preview.rememberPreviewPlayer
+import dev.anilbeesetti.nextplayer.feature.player.utils.PlayerApi
 import kotlin.time.Duration.Companion.seconds
 
 val LocalControlsVisibilityState = compositionLocalOf<ControlsVisibilityState?> { null }
@@ -45,13 +52,14 @@ val LocalUseMaterialYouControls = compositionLocalOf { false }
 
 @OptIn(UnstableApi::class)
 @Composable
-fun MediaPlayerScreen(viewModel: PlayerViewModel, player: Player?) {
+fun MediaPlayerScreen(viewModel: PlayerViewModel, player: Player?, api: PlayerApi? = null) {
     val state by viewModel.state.collectAsStateWithLifecycle()
 
     MediaPlayerContent(
         player = player,
         state = state,
         onAction = viewModel::onAction,
+        api = api,
     )
 }
 
@@ -61,6 +69,7 @@ internal fun MediaPlayerContent(
     player: Player?,
     state: PlayerUiState,
     onAction: (PlayerAction) -> Unit,
+    api: PlayerApi? = null,
 ) {
     val playerPreferences = state.playerPreferences
     val isPreview = LocalInspectionMode.current
@@ -104,7 +113,7 @@ internal fun MediaPlayerContent(
     }
     val videoZoomAndContentScaleState = rememberVideoZoomAndContentScaleState(
         player = player,
-        initialContentScale = playerPreferences.playerVideoZoom,
+        initialContentScale = api?.videoContentScale ?: playerPreferences.playerVideoZoom,
         enableZoomGesture = playerPreferences.useZoomControls,
         enablePanGesture = playerPreferences.enablePanGesture,
         onEvent = { onAction(PlayerAction.OnVideoZoomEvent(event = it)) },
@@ -126,9 +135,27 @@ internal fun MediaPlayerContent(
         PlayerOrientationEffect(
             player = player,
             screenOrientation = playerPreferences.playerScreenOrientation,
+            orientationOverride = api?.orientation,
         )
     }
     val errorState = rememberErrorState(player = player)
+    val cuesState = rememberCuesState(player = player)
+    val subtitlePositionState = rememberSubtitlePositionState(
+        savedOffsetY = playerPreferences.subtitleOffsetY,
+        onPositionSaved = { onAction(PlayerAction.UpdateSubtitleOffset(it)) },
+    )
+    val hapticFeedback = LocalHapticFeedback.current
+    var wasDraggingSubtitle by remember { mutableStateOf(false) }
+    LaunchedEffect(subtitlePositionState.isDragging) {
+        if (subtitlePositionState.isDragging) {
+            wasDraggingSubtitle = true
+            hapticFeedback.performHapticFeedback(HapticFeedbackType.LongPress)
+            controlsVisibilityState.hideControls()
+        } else if (wasDraggingSubtitle) {
+            wasDraggingSubtitle = false
+            controlsVisibilityState.showControls()
+        }
+    }
 
     LaunchedEffect(pictureInPictureState?.isInPictureInPictureMode) {
         if (pictureInPictureState?.isInPictureInPictureMode == true) {
@@ -157,6 +184,10 @@ internal fun MediaPlayerContent(
                 player = player,
                 pictureInPictureState = pictureInPictureState,
                 videoZoomAndContentScaleState = videoZoomAndContentScaleState,
+                videoVisible = api?.videoVisible ?: true,
+                displayAspectRatio = api?.displayAspectRatio,
+                cuesState = cuesState,
+                subtitlePositionState = subtitlePositionState,
                 subtitleConfiguration = SubtitleConfiguration(
                     useSystemCaptionStyle = playerPreferences.useSystemCaptionStyle,
                     showBackground = playerPreferences.subtitleBackground,
@@ -164,6 +195,9 @@ internal fun MediaPlayerContent(
                     textSize = playerPreferences.subtitleTextSize,
                     textBold = playerPreferences.subtitleTextBold,
                     applyEmbeddedStyles = playerPreferences.applyEmbeddedStyles,
+                    useMaterialYouControls = playerPreferences.useMaterialYouControls,
+                    controlsVisible = controlsVisibilityState.controlsVisible &&
+                        !controlsVisibilityState.controlsLocked,
                 ),
             )
             if (volumeAndBrightnessGestureState != null) {
@@ -174,6 +208,8 @@ internal fun MediaPlayerContent(
                     seekGestureState = seekGestureState,
                     videoZoomAndContentScaleState = videoZoomAndContentScaleState,
                     volumeAndBrightnessGestureState = volumeAndBrightnessGestureState,
+                    subtitlePositionState = subtitlePositionState,
+                    hasSubtitles = cuesState.currentCues?.cues?.isNotEmpty() == true,
                 )
             }
         }
@@ -185,6 +221,7 @@ internal fun MediaPlayerContent(
             tapGestureState = tapGestureState,
             seekGestureState = seekGestureState,
             videoZoomAndContentScaleState = videoZoomAndContentScaleState,
+            dpadUpDown = api?.dpadUpDown,
             isPipSupported = pictureInPictureState?.isPipSupported == true,
             onPictureInPictureClick = {
                 pictureInPictureState?.let {
@@ -213,21 +250,23 @@ internal fun MediaPlayerContent(
         }
     }
 
-    PlayerErrorDialogs(
-        decoderRecoveryState = state.decoderServiceState.recoveryState,
-        playbackError = errorState.playbackError,
-        hasNextMediaItem = player.hasNextMediaItem(),
-        onTryDecoderFallback = { onAction(PlayerAction.TryDecoderFallback) },
-        onPlayNextVideo = {
-            errorState.dismiss()
-            player.seekToNext()
-            player.play()
-        },
-        onExit = {
-            errorState.dismiss()
-            onAction(PlayerAction.NavigateUp)
-        },
-    )
+    if (api?.suppressErrorMessage != true) {
+        PlayerErrorDialogs(
+            decoderRecoveryState = state.decoderServiceState.recoveryState,
+            playbackError = errorState.playbackError,
+            hasNextMediaItem = player.hasNextMediaItem(),
+            onTryDecoderFallback = { onAction(PlayerAction.TryDecoderFallback) },
+            onPlayNextVideo = {
+                errorState.dismiss()
+                player.seekToNext()
+                player.play()
+            },
+            onExit = {
+                errorState.dismiss()
+                onAction(PlayerAction.NavigateUp)
+            },
+        )
+    }
 }
 
 @OptIn(UnstableApi::class)

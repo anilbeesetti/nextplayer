@@ -128,6 +128,8 @@
     <string name="subtitle_text_bold">Bold subtitle text</string>
     <string name="subtitle_text_bold_desc">Use bold text for subtitle</string>
     <string name="subtitle_text_size">Subtitle text size</string>
+    <string name="reset_subtitle_position">Reset subtitle position</string>
+    <string name="reset_subtitle_position_desc">Drag subtitles up or down while playing to move them</string>
     <string name="subtitle_desc">Subtitle appearance, playback options</string>
     <string name="subtitle_background">Subtitle background</string>
     <string name="subtitle_background_desc">Enable background to subtitle text</string>
@@ -246,6 +248,7 @@
     <string name="donate">Donate</string>
     <string name="error_opening_link">No app found to handle this link</string>
     <string name="support_the_developer_on">Support the developer on %1$s</string>
+    <string name="github_sponsors">GitHub Sponsors</string>
     <string name="kofi">Ko-fi</string>
     <string name="paypal">PayPal</string>
     <string name="upi">UPI</string>
@@ -461,8 +464,8 @@
         <item quantity="other">Couldn\'t move %1$d videos</item>
     </plurals>
     <plurals name="moved_videos_originals_remain">
-        <item quantity="one">Moved 1 video, but couldn\'t remove the original</item>
-        <item quantity="other">Moved %1$d videos, but couldn\'t remove the originals</item>
+        <item quantity="one">Copied 1 video, but couldn\'t remove the original</item>
+        <item quantity="other">Copied %1$d videos, but couldn\'t remove the originals</item>
     </plurals>
     <string name="cannot_move_to_same_folder">Can\'t move to the same folder</string>
 
