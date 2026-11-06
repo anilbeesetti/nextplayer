@@ -49,3 +49,4 @@ vendor/
 docs/*
 !docs/agents/
 .superpowers
+.koda

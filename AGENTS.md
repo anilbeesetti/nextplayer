@@ -48,6 +48,10 @@ Do not commit `local.properties`, signing keys, API credentials, `google-service
 
 ## Agent skills
 
+### Android skills
+
+When an Android skill is available for the task, read and use it before implementing. Prioritize its recommended approach over a custom solution.
+
 ### Issue tracker
 
 Issues and specs live in anilbeesetti/nextplayer GitHub Issues.
