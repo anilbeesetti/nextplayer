@@ -11,6 +11,7 @@ android {
     namespace = "dev.anilbeesetti.nextplayer"
 
     compileSdk = libs.versions.android.compileSdk.get().toInt()
+    ndkVersion = libs.versions.android.ndk.get()
     defaultConfig {
         minSdk = libs.versions.android.minSdk.get().toInt()
         targetSdk = libs.versions.android.targetSdk.get().toInt()
@@ -38,6 +39,7 @@ android {
         getByName("release") {
             isMinifyEnabled = true
             isShrinkResources = true
+            ndk.debugSymbolLevel = "FULL"
             proguardFiles(
                 getDefaultProguardFile("proguard-android-optimize.txt"),
                 "proguard-rules.pro",
