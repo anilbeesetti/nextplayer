@@ -48,15 +48,28 @@ class SubtitlePositionState(initialOffsetY: Float, private val onPositionSaved: 
      * Measures where the subtitle text is drawn, in the subtitle view's own coordinates (before
      * [offsetY] is applied). Null when nothing is drawn. Set by the view that renders the subtitles.
      */
-    var textBoundsProvider: (() -> Rect?)? = null
+    var textBounds by mutableStateOf<Rect?>(null)
+
+    val translationYPx: Float
+        get() {
+            val height = containerSize.height.toFloat()
+            val bounds = textBounds ?: return 0f
+            if (height <= 0f) return 0f
+            return (offsetY * height).coerceIn(
+                -bounds.top,
+                (height - bounds.bottom).coerceAtLeast(-bounds.top),
+            )
+        }
+
+    private var offsetBeforeDrag = initialOffsetY
 
     /** Whether [position] is on the subtitle text as drawn now, give or take [paddingPx]. */
     fun isOnSubtitle(position: Offset, paddingPx: Float): Boolean {
-        val bounds = textBoundsProvider?.invoke() ?: return false
+        val bounds = textBounds ?: return false
         return bounds
             .translate(
                 0f,
-                offsetY * containerSize.height,
+                translationYPx,
             )
             .inflate(paddingPx)
             .contains(position)
@@ -67,15 +80,18 @@ class SubtitlePositionState(initialOffsetY: Float, private val onPositionSaved: 
     }
 
     fun onDragStart() {
+        offsetBeforeDrag = offsetY
         isDragging = true
     }
 
     fun onDrag(deltaYPx: Float) {
-        if (containerSize == IntSize.Zero) return
-        offsetY = (offsetY + deltaYPx / containerSize.height).coerceIn(
-            MIN_OFFSET_Y,
-            MAX_OFFSET_Y,
-        )
+        if (containerSize.height <= 0 || textBounds == null) return
+        val height = containerSize.height.toFloat()
+        val bounds = textBounds ?: return
+        offsetY = (translationYPx + deltaYPx).coerceIn(
+            -bounds.top,
+            (height - bounds.bottom).coerceAtLeast(-bounds.top),
+        ) / height
     }
 
     fun onDragEnd() {
@@ -83,13 +99,13 @@ class SubtitlePositionState(initialOffsetY: Float, private val onPositionSaved: 
         onPositionSaved(offsetY)
     }
 
+    fun onDragCancel() {
+        offsetY = offsetBeforeDrag
+        isDragging = false
+    }
+
     /** Applies the persisted value, unless the user is mid-drag. */
     fun syncSavedOffset(savedOffsetY: Float) {
         if (!isDragging) offsetY = savedOffsetY
-    }
-
-    companion object {
-        const val MIN_OFFSET_Y = -0.85f
-        const val MAX_OFFSET_Y = 0.05f
     }
 }

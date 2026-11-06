@@ -22,6 +22,7 @@ import androidx.compose.ui.geometry.Rect
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.viewinterop.AndroidView
 import androidx.core.content.ContextCompat.getSystemService
+import androidx.core.view.doOnPreDraw
 import androidx.media3.common.text.Cue
 import androidx.media3.common.util.UnstableApi
 import androidx.media3.ui.CaptionStyleCompat
@@ -42,21 +43,20 @@ fun SubtitleView(
 ) {
     // Playback keeps going while the subtitle is moved; the text on screen stays put until release.
     var frozenCues by remember { mutableStateOf<List<Cue>?>(null) }
-    LaunchedEffect(positionState.isDragging) {
-        frozenCues = cuesState.currentCues?.cues.takeIf { positionState.isDragging }
+    LaunchedEffect(positionState.isHighlighted) {
+        frozenCues = cuesState.currentCues?.cues.takeIf { positionState.isHighlighted }
     }
-    val displayedCues = frozenCues.takeIf { positionState.isDragging }
+    val displayedCues = frozenCues.takeIf { positionState.isHighlighted }
         ?: cuesState.currentCues?.cues
     DisposableEffect(positionState) {
-        onDispose { positionState.textBoundsProvider = null }
+        onDispose { positionState.textBounds = null }
     }
 
     AndroidView(
         modifier = modifier
             .fillMaxSize()
             .graphicsLayer {
-                if (isInPictureInPictureMode) return@graphicsLayer
-                translationY = positionState.offsetY * size.height
+                translationY = if (isInPictureInPictureMode) 0f else positionState.translationYPx
             },
         factory = { context ->
             SubtitleView(context).apply {
@@ -74,8 +74,9 @@ fun SubtitleView(
                     )
                 }
                 setApplyEmbeddedStyles(configuration.applyEmbeddedStyles)
-                val subtitleView = this
-                positionState.textBoundsProvider = { measureDrawnBounds(subtitleView) }
+                addOnLayoutChangeListener { view, _, _, _, _, _, _, _, _ ->
+                    positionState.textBounds = measureDrawnBounds(view)
+                }
             }
         },
         update = { subtitleView ->
@@ -86,6 +87,7 @@ fun SubtitleView(
                     highlighted = positionState.isHighlighted,
                 ),
             )
+            subtitleView.setApplyEmbeddedStyles(configuration.applyEmbeddedStyles)
             subtitleView.setCues(displayedCues)
             if (isInPictureInPictureMode) {
                 subtitleView.setFractionalTextSize(SubtitleView.DEFAULT_TEXT_SIZE_FRACTION)
@@ -95,6 +97,7 @@ fun SubtitleView(
                     configuration.textSize.toFloat(),
                 )
             }
+            subtitleView.doOnPreDraw { positionState.textBounds = measureDrawnBounds(it) }
         },
     )
 }

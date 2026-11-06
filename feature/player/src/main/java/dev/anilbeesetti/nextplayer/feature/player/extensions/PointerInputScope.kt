@@ -202,6 +202,7 @@ suspend fun PointerInputScope.detectSubtitleDragGestures(
     onDragStart: () -> Unit,
     onDrag: (Offset) -> Unit,
     onDragEnd: () -> Unit,
+    onDragCancel: () -> Unit,
 ) {
     awaitEachGesture {
         val down = awaitFirstDown(
@@ -218,25 +219,36 @@ suspend fun PointerInputScope.detectSubtitleDragGestures(
             while (!movedPastSlop) {
                 val event = awaitPointerEvent(PointerEventPass.Initial)
                 val change = event.changes.firstOrNull { it.id == down.id }
+                if (event.changes.count { it.pressed } > 1) return@awaitEachGesture
                 if (change == null || !change.pressed) return@awaitEachGesture
-                movedPastSlop =
-                    (change.position - down.position).getDistance() > viewConfiguration.touchSlop
+                val delta = change.position - down.position
+                if (abs(delta.x) > viewConfiguration.touchSlop && abs(delta.x) >= abs(delta.y)) {
+                    return@awaitEachGesture
+                }
+                movedPastSlop = abs(delta.y) > viewConfiguration.touchSlop
                 // Claim the move that crosses the slop, or the volume/seek swipes also start on it.
                 if (movedPastSlop) change.consume()
             }
 
             onDragStart()
+            var released = false
             try {
                 onDrag(currentEvent.changes.first { it.id == down.id }.position - down.position)
                 while (true) {
                     val event = awaitPointerEvent(PointerEventPass.Initial)
                     val change = event.changes.firstOrNull { it.id == down.id } ?: break
+                    if (event.changes.count { it.pressed } > 1) break
+                    if (change.isConsumed) break
                     if (change.pressed) onDrag(change.positionChange())
+                    if (!change.pressed) {
+                        released = true
+                        change.consume()
+                        break
+                    }
                     change.consume()
-                    if (!change.pressed) break
                 }
             } finally {
-                onDragEnd()
+                if (released) onDragEnd() else onDragCancel()
             }
         } finally {
             onPressChange(false)

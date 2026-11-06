@@ -19,6 +19,12 @@ class SubtitlePositionStateTest {
             width = 1000,
             height = 500,
         )
+        textBounds = Rect(
+            400f,
+            350f,
+            600f,
+            400f,
+        )
     }
 
     @Test
@@ -40,14 +46,14 @@ class SubtitlePositionStateTest {
 
         state.onDrag(-5000f)
         assertEquals(
-            SubtitlePositionState.MIN_OFFSET_Y,
+            -0.7f,
             state.offsetY,
             0f,
         )
 
         state.onDrag(50000f)
         assertEquals(
-            SubtitlePositionState.MAX_OFFSET_Y,
+            0.2f,
             state.offsetY,
             0f,
         )
@@ -73,14 +79,12 @@ class SubtitlePositionStateTest {
     fun `touch only counts on the drawn subtitle text`() {
         val state = state()
         // Text drawn at x 400..600, y 350..400 (container is 1000 x 500).
-        state.textBoundsProvider = {
-            Rect(
-                400f,
-                350f,
-                600f,
-                400f,
-            )
-        }
+        state.textBounds = Rect(
+            400f,
+            350f,
+            600f,
+            400f,
+        )
 
         assertTrue(
             state.isOnSubtitle(
@@ -133,14 +137,12 @@ class SubtitlePositionStateTest {
     @Test
     fun `hit area follows the saved offset`() {
         val state = state()
-        state.textBoundsProvider = {
-            Rect(
-                400f,
-                350f,
-                600f,
-                400f,
-            )
-        }
+        state.textBounds = Rect(
+            400f,
+            350f,
+            600f,
+            400f,
+        )
 
         // Moved 300px up, as the view is translated on screen. Horizontal position is unchanged.
         state.onDrag(-300f)
@@ -167,7 +169,7 @@ class SubtitlePositionStateTest {
 
     @Test
     fun `nothing is hit when no text is drawn`() {
-        val state = state()
+        val state = state().apply { textBounds = null }
         assertFalse(
             state.isOnSubtitle(
                 Offset(
@@ -178,7 +180,7 @@ class SubtitlePositionStateTest {
             ),
         )
 
-        state.textBoundsProvider = { null }
+        state.textBounds = null
         assertFalse(
             state.isOnSubtitle(
                 Offset(
@@ -217,6 +219,102 @@ class SubtitlePositionStateTest {
         assertEquals(
             -0.1f,
             state.offsetY,
+            0f,
+        )
+    }
+
+    @Test
+    fun `saved position stays visible after cue and size changes`() {
+        val state = state(initialOffsetY = -0.7f)
+        state.textBounds = Rect(
+            400f,
+            200f,
+            600f,
+            400f,
+        )
+        assertEquals(
+            -200f,
+            state.translationYPx,
+            0f,
+        )
+        state.containerSize = IntSize(
+            500,
+            250,
+        )
+        state.textBounds = Rect(
+            100f,
+            80f,
+            400f,
+            230f,
+        )
+        assertEquals(
+            -80f,
+            state.translationYPx,
+            0f,
+        )
+        assertTrue(
+            state.isOnSubtitle(
+                Offset(
+                    200f,
+                    20f,
+                ),
+                0f,
+            ),
+        )
+        assertEquals(
+            -0.7f,
+            state.offsetY,
+            0f,
+        )
+        state.onDrag(10f)
+        assertEquals(
+            -70f,
+            state.translationYPx,
+            0.001f,
+        )
+        assertTrue(saved.isEmpty())
+    }
+
+    @Test
+    fun `cancel restores position without saving`() {
+        val state = state(initialOffsetY = -0.1f)
+        state.onDragStart()
+        state.onDrag(-50f)
+        state.onDragCancel()
+        assertFalse(state.isDragging)
+        assertEquals(
+            -0.1f,
+            state.offsetY,
+            0f,
+        )
+        assertTrue(saved.isEmpty())
+    }
+
+    @Test
+    fun `top positioned and oversized cues have safe bounds`() {
+        val state = state()
+        state.textBounds = Rect(
+            0f,
+            10f,
+            100f,
+            60f,
+        )
+        state.onDrag(-5000f)
+        assertEquals(
+            -10f,
+            state.translationYPx,
+            0f,
+        )
+        state.textBounds = Rect(
+            0f,
+            0f,
+            100f,
+            800f,
+        )
+        state.onDrag(5000f)
+        assertEquals(
+            0f,
+            state.translationYPx,
             0f,
         )
     }

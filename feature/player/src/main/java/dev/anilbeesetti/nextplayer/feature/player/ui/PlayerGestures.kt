@@ -83,6 +83,7 @@ fun PlayerGestures(
                         onDragStart = subtitlePositionState::onDragStart,
                         onDrag = { subtitlePositionState.onDrag(it.y) },
                         onDragEnd = subtitlePositionState::onDragEnd,
+                        onDragCancel = subtitlePositionState::onDragCancel,
                     )
                 }
                 .pointerInput(pictureInPictureState.isInPictureInPictureMode) {
