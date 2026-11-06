@@ -43,6 +43,7 @@ class GeneralPreferencesViewModel(
             is GeneralPreferencesUiEvent.ResetSettings -> resetSettings()
 
             is GeneralPreferencesUiEvent.ExportSettings -> exportSettings(
+                action.uri,
                 action.includeNetworkConnections,
             )
 
@@ -65,10 +66,13 @@ class GeneralPreferencesViewModel(
         viewModelScope.launch { preferencesRepository.resetPreferences() }
     }
 
-    private fun exportSettings(includeNetworkConnections: Boolean) {
+    private fun exportSettings(uri: Uri, includeNetworkConnections: Boolean) {
         showDialog(null)
         backupOperation(R.string.settings_export_failed) {
-            settingsBackupService.exportSettings(includeNetworkConnections)
+            settingsBackupService.exportSettings(
+                uri,
+                includeNetworkConnections,
+            )
             output.showMessage(R.string.settings_export_success)
         }
     }
@@ -128,7 +132,8 @@ sealed interface GeneralPreferencesUiEvent {
     data class ShowDialog(val value: GeneralPreferencesDialog?) : GeneralPreferencesUiEvent
     data object ClearThumbnailCache : GeneralPreferencesUiEvent
     data object ResetSettings : GeneralPreferencesUiEvent
-    data class ExportSettings(val includeNetworkConnections: Boolean) : GeneralPreferencesUiEvent
+    data class ExportSettings(val uri: Uri, val includeNetworkConnections: Boolean) :
+        GeneralPreferencesUiEvent
     data class PrepareImport(val uri: Uri) : GeneralPreferencesUiEvent
     data object ImportSettings : GeneralPreferencesUiEvent
 }

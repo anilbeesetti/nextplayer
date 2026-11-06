@@ -105,31 +105,71 @@ class SettingsBackupTest {
     }
 
     @Test
-    fun exportCreatesJsonInDownloadsWithoutCredentials() {
-        click(R.string.settings_export)
-        click(R.string.export_action)
-        composeRule.waitUntil(timeoutMillis = 10_000) {
-            (downloads() - originalBackups).isNotEmpty()
+    fun exportWritesJsonToSelectedDocumentWithoutCredentials() {
+        val uri = createDocument()
+        val instrumentation = InstrumentationRegistry.getInstrumentation()
+        val monitor = object : Instrumentation.ActivityMonitor() {
+            override fun onStartActivity(intent: Intent): Instrumentation.ActivityResult? =
+                if (intent.action == Intent.ACTION_CREATE_DOCUMENT) {
+                    assertEquals(
+                        "application/json",
+                        intent.type,
+                    )
+                    assertTrue(intent.getStringExtra(Intent.EXTRA_TITLE)!!.endsWith(".json"))
+                    Instrumentation.ActivityResult(
+                        Activity.RESULT_OK,
+                        Intent().setData(uri),
+                    )
+                } else {
+                    null
+                }
         }
-        val uri = (downloads() - originalBackups).single()
-        val root = JSONObject(runBlocking { backup.readSettings(uri) })
+        instrumentation.addMonitor(monitor)
+        try {
+            click(R.string.settings_export)
+            click(R.string.export_action)
+            composeRule.waitUntil(timeoutMillis = 10_000) {
+                composeRule.activity.contentResolver.openInputStream(uri)!!.use {
+                    it.read() != -1
+                }
+            }
+            val root = JSONObject(runBlocking { backup.readSettings(uri) })
+            assertFalse(root.getJSONObject("playerPreferences").getBoolean("autoplay"))
+            assertTrue(root.getJSONObject("playerPreferences").has("subtitleTextSize"))
+            assertFalse(root.has("networkConnections"))
+            assertFalse(root.has("sshKeys"))
+        } finally {
+            instrumentation.removeMonitor(monitor)
+        }
+    }
 
-        assertFalse(root.getJSONObject("playerPreferences").getBoolean("autoplay"))
-        assertTrue(root.getJSONObject("playerPreferences").has("subtitleTextSize"))
-        assertFalse(root.has("networkConnections"))
-        assertFalse(root.has("sshKeys"))
-        composeRule.activity.contentResolver.query(
-            uri,
-            arrayOf(MediaStore.Downloads.RELATIVE_PATH),
-            null,
-            null,
-            null,
-        )!!.use { cursor ->
-            assertTrue(cursor.moveToFirst())
+    @Test
+    fun cancellingExportPickerDoesNotCreateABackup() {
+        val instrumentation = InstrumentationRegistry.getInstrumentation()
+        val monitor = object : Instrumentation.ActivityMonitor() {
+            override fun onStartActivity(intent: Intent): Instrumentation.ActivityResult? =
+                if (intent.action == Intent.ACTION_CREATE_DOCUMENT) {
+                    Instrumentation.ActivityResult(
+                        Activity.RESULT_CANCELED,
+                        null,
+                    )
+                } else {
+                    null
+                }
+        }
+        instrumentation.addMonitor(monitor)
+        try {
+            click(R.string.settings_export)
+            click(R.string.export_action)
+            composeRule.waitForIdle()
             assertEquals(
-                "${Environment.DIRECTORY_DOWNLOADS}/",
-                cursor.getString(0),
+                originalBackups,
+                downloads(),
             )
+            click(R.string.settings_export)
+            composeRule.onNodeWithText(text(R.string.export_action)).assertIsDisplayed()
+        } finally {
+            instrumentation.removeMonitor(monitor)
         }
     }
 
@@ -199,7 +239,11 @@ class SettingsBackupTest {
                 privateKeyPassphrase = "key-passphrase",
             ),
         )
-        val uri = backup.exportSettings(includeNetworkConnections = true)
+        val uri = createDocument()
+        backup.exportSettings(
+            uri,
+            includeNetworkConnections = true,
+        )
         val content = backup.readSettings(uri)
         val root = JSONObject(content)
         assertEquals(
@@ -398,7 +442,7 @@ class SettingsBackupTest {
         preferences.updatePlayerPreferences { originalPlayer }
     }
 
-    private fun chooseImport(content: String) {
+    private fun createDocument(): Uri {
         val resolver = composeRule.activity.contentResolver
         val values = ContentValues().apply {
             put(
@@ -421,7 +465,14 @@ class SettingsBackupTest {
             ),
         )
         createdDocuments.add(uri)
-        resolver.openOutputStream(uri)!!.use { it.write(content.toByteArray()) }
+        return uri
+    }
+
+    private fun chooseImport(content: String) {
+        val uri = createDocument()
+        composeRule.activity.contentResolver.openOutputStream(uri)!!.use {
+            it.write(content.toByteArray())
+        }
         val instrumentation = InstrumentationRegistry.getInstrumentation()
         val monitor = object : Instrumentation.ActivityMonitor() {
             override fun onStartActivity(intent: Intent): Instrumentation.ActivityResult? =

@@ -1,11 +1,7 @@
 package dev.anilbeesetti.nextplayer.settings.backup
 
-import android.content.ContentValues
 import android.content.Context
 import android.net.Uri
-import android.os.Build
-import android.os.Environment
-import android.provider.MediaStore
 import android.util.Base64
 import dev.anilbeesetti.nextplayer.core.data.repository.NetworkConnectionRepository
 import dev.anilbeesetti.nextplayer.core.data.repository.PreferencesRepository
@@ -16,9 +12,6 @@ import dev.anilbeesetti.nextplayer.core.model.NetworkConnection
 import dev.anilbeesetti.nextplayer.core.ui.R
 import java.io.ByteArrayOutputStream
 import java.io.File
-import java.text.SimpleDateFormat
-import java.util.Date
-import java.util.Locale
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.NonCancellable
 import kotlinx.coroutines.flow.first
@@ -43,7 +36,7 @@ class SettingsBackupService(
         }.toSet(),
     )
 
-    suspend fun exportSettings(includeNetworkConnections: Boolean): Uri =
+    suspend fun exportSettings(uri: Uri, includeNetworkConnections: Boolean): Unit =
         withContext(Dispatchers.IO) {
             val connections = if (includeNetworkConnections) {
                 networkConnectionRepository.getConnections().first()
@@ -68,70 +61,13 @@ class SettingsBackupService(
                 sshKeys = keys,
             ).toByteArray(Charsets.UTF_8)
             require(bytes.size <= MAX_BACKUP_BYTES)
-            val timestamp = SimpleDateFormat(
-                "yyyyMMdd-HHmmss-SSS",
-                Locale.ROOT,
-            ).format(Date())
-            val fileName = "nextplayer-settings-$timestamp.json"
-
-            if (Build.VERSION.SDK_INT < Build.VERSION_CODES.Q) {
-                return@withContext exportLegacy(
-                    fileName,
-                    bytes,
-                )
-            }
-            val resolver = context.contentResolver
-            val values = ContentValues().apply {
-                put(
-                    MediaStore.Downloads.DISPLAY_NAME,
-                    fileName,
-                )
-                put(
-                    MediaStore.Downloads.MIME_TYPE,
-                    "application/json",
-                )
-                put(
-                    MediaStore.Downloads.RELATIVE_PATH,
-                    Environment.DIRECTORY_DOWNLOADS,
-                )
-                put(
-                    MediaStore.Downloads.IS_PENDING,
-                    1,
-                )
-            }
-            val uri = checkNotNull(
-                resolver.insert(
-                    MediaStore.Downloads.EXTERNAL_CONTENT_URI,
-                    values,
+            checkNotNull(
+                context.contentResolver.openOutputStream(
+                    uri,
+                    "wt",
                 ),
-            )
-            try {
-                checkNotNull(resolver.openOutputStream(uri)).use { it.write(bytes) }
-                values.clear()
-                values.put(
-                    MediaStore.Downloads.IS_PENDING,
-                    0,
-                )
-                check(
-                    resolver.update(
-                        uri,
-                        values,
-                        null,
-                        null,
-                    ) == 1,
-                )
-                uri
-            } catch (exception: Exception) {
-                try {
-                    resolver.delete(
-                        uri,
-                        null,
-                        null,
-                    )
-                } catch (cleanupFailure: Exception) {
-                    exception.addSuppressed(cleanupFailure)
-                }
-                throw exception
+            ).use {
+                it.write(bytes)
             }
         }
 
@@ -270,26 +206,6 @@ class SettingsBackupService(
                 // Startup reconciliation removes unreferenced keys if cleanup cannot finish here.
             }
         }
-
-    @Suppress("DEPRECATION")
-    private fun exportLegacy(fileName: String, bytes: ByteArray): Uri {
-        val downloads = Environment.getExternalStoragePublicDirectory(
-            Environment.DIRECTORY_DOWNLOADS,
-        )
-        check(downloads.isDirectory || downloads.mkdirs())
-        val file = File(
-            downloads,
-            fileName,
-        )
-        check(file.createNewFile())
-        try {
-            file.writeBytes(bytes)
-            return Uri.fromFile(file)
-        } catch (exception: Exception) {
-            file.delete()
-            throw exception
-        }
-    }
 
     private companion object {
         const val MAX_BACKUP_BYTES = 32 * 1024 * 1024

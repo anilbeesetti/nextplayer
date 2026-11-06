@@ -5,7 +5,6 @@ import android.content.ContentValues
 import android.content.pm.ProviderInfo
 import android.database.Cursor
 import android.net.Uri
-import android.os.Environment
 import android.os.ParcelFileDescriptor
 import dev.anilbeesetti.nextplayer.core.data.repository.NetworkConnectionRepository
 import dev.anilbeesetti.nextplayer.core.data.repository.fake.FakePreferencesRepository
@@ -49,21 +48,19 @@ class SettingsBackupServiceTest {
     )
 
     @Test
-    @Suppress("DEPRECATION")
-    fun legacyAndroidExportsReadableJsonToDownloads() = runBlocking {
-        preferences.updatePlayerPreferences { it.copy(autoplay = false) }
-        val uri = service.exportSettings(includeNetworkConnections = false)
-        val file = File(requireNotNull(uri.path))
+    fun exportsReadableJsonToSelectedDocumentAndTruncatesOldContents() = runBlocking {
+        val file = File.createTempFile(
+            "settings-backup",
+            ".json",
+        )
+        val uri = Uri.fromFile(file)
+        file.writeText("x".repeat(100_000))
         try {
-            assertEquals(
-                "file",
-                uri.scheme,
+            preferences.updatePlayerPreferences { it.copy(autoplay = false) }
+            service.exportSettings(
+                uri,
+                includeNetworkConnections = false,
             )
-            assertEquals(
-                Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DOWNLOADS),
-                file.parentFile,
-            )
-            assertTrue(file.name.startsWith("nextplayer-settings-"))
             val content = service.readSettings(uri)
             preferences.updatePlayerPreferences { it.copy(autoplay = true) }
             service.importSettings(content)
@@ -94,7 +91,7 @@ class SettingsBackupServiceTest {
 
     @Test
     @Config(sdk = [35])
-    fun failedDownloadWriteRemovesThePendingDocument() = runBlocking {
+    fun failedDocumentWriteIsReportedWithoutDeletingSelectedDocument() = runBlocking {
         val provider = FailedWriteProvider()
         provider.attachInfo(
             RuntimeEnvironment.getApplication(),
@@ -105,12 +102,14 @@ class SettingsBackupServiceTest {
             provider,
         )
         try {
-            service.exportSettings(includeNetworkConnections = false)
+            service.exportSettings(
+                provider.document,
+                includeNetworkConnections = false,
+            )
             error("A failed write was reported as an export")
         } catch (_: FileNotFoundException) {
-            assertTrue(provider.inserted)
             assertEquals(
-                listOf(provider.document),
+                emptyList<Uri>(),
                 provider.deleted,
             )
         }
@@ -119,14 +118,10 @@ class SettingsBackupServiceTest {
     private class FailedWriteProvider : ContentProvider() {
         val document: Uri = Uri.parse("content://media/external/downloads/42")
         val deleted = mutableListOf<Uri>()
-        var inserted = false
 
         override fun onCreate(): Boolean = true
         override fun getType(uri: Uri): String = "application/json"
-        override fun insert(uri: Uri, values: ContentValues?): Uri {
-            inserted = true
-            return document
-        }
+        override fun insert(uri: Uri, values: ContentValues?): Uri = error("Not used")
 
         override fun openFile(uri: Uri, mode: String): ParcelFileDescriptor =
             throw FileNotFoundException("Cannot write document")

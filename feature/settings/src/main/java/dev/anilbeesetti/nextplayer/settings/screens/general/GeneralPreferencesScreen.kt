@@ -1,9 +1,5 @@
 package dev.anilbeesetti.nextplayer.settings.screens.general
 
-import android.Manifest
-import android.content.pm.PackageManager
-import android.os.Build
-import android.widget.Toast
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.layout.Arrangement
@@ -29,10 +25,8 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
-import androidx.core.content.ContextCompat
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import dev.anilbeesetti.nextplayer.core.ui.R
 import dev.anilbeesetti.nextplayer.core.ui.components.CancelButton
@@ -44,6 +38,9 @@ import dev.anilbeesetti.nextplayer.core.ui.components.rememberTvListFocusRequest
 import dev.anilbeesetti.nextplayer.core.ui.components.tvFocusDown
 import dev.anilbeesetti.nextplayer.core.ui.components.tvListFocus
 import dev.anilbeesetti.nextplayer.core.ui.designsystem.NextIcons
+import java.text.SimpleDateFormat
+import java.util.Date
+import java.util.Locale
 
 @Composable
 fun GeneralPreferencesScreen(viewModel: GeneralPreferencesViewModel) {
@@ -64,19 +61,17 @@ private fun GeneralPreferencesScreenContent(
     state: GeneralPreferencesUiState,
     onAction: (GeneralPreferencesUiEvent) -> Unit,
 ) {
-    val context = LocalContext.current
     var includeNetworkConnections by rememberSaveable { mutableStateOf(false) }
-    val exportPermission = rememberLauncherForActivityResult(
-        ActivityResultContracts.RequestPermission(),
-    ) { granted ->
-        if (granted) {
-            onAction(GeneralPreferencesUiEvent.ExportSettings(includeNetworkConnections))
-        } else {
-            Toast.makeText(
-                context,
-                R.string.settings_export_permission_denied,
-                Toast.LENGTH_LONG,
-            ).show()
+    val exportDocument = rememberLauncherForActivityResult(
+        ActivityResultContracts.CreateDocument("application/json"),
+    ) { uri ->
+        uri?.let {
+            onAction(
+                GeneralPreferencesUiEvent.ExportSettings(
+                    it,
+                    includeNetworkConnections,
+                ),
+            )
         }
     }
     val importDocument =
@@ -121,7 +116,7 @@ private fun GeneralPreferencesScreenContent(
                 ClickablePreferenceItem(
                     title = stringResource(R.string.settings_export),
                     description = stringResource(R.string.settings_export_description),
-                    icon = NextIcons.ArrowDownward,
+                    icon = NextIcons.ArrowUpward,
                     enabled = !state.isBusy,
                     onClick = {
                         includeNetworkConnections = false
@@ -136,7 +131,7 @@ private fun GeneralPreferencesScreenContent(
                 ClickablePreferenceItem(
                     title = stringResource(R.string.settings_import),
                     description = stringResource(R.string.settings_import_description),
-                    icon = NextIcons.ArrowUpward,
+                    icon = NextIcons.ArrowDownward,
                     enabled = !state.isBusy,
                     onClick = {
                         importDocument.launch(
@@ -186,19 +181,11 @@ private fun GeneralPreferencesScreenContent(
                     onDismiss = { onAction(GeneralPreferencesUiEvent.ShowDialog(null)) },
                     onConfirm = {
                         onAction(GeneralPreferencesUiEvent.ShowDialog(null))
-                        if (Build.VERSION.SDK_INT < Build.VERSION_CODES.Q &&
-                            ContextCompat.checkSelfPermission(
-                                context,
-                                Manifest.permission.WRITE_EXTERNAL_STORAGE,
-                            ) !=
-                            PackageManager.PERMISSION_GRANTED
-                        ) {
-                            exportPermission.launch(Manifest.permission.WRITE_EXTERNAL_STORAGE)
-                        } else {
-                            onAction(
-                                GeneralPreferencesUiEvent.ExportSettings(includeNetworkConnections),
-                            )
-                        }
+                        val timestamp = SimpleDateFormat(
+                            "yyyyMMdd-HHmmss-SSS",
+                            Locale.ROOT,
+                        ).format(Date())
+                        exportDocument.launch("nextplayer-settings-$timestamp.json")
                     },
                 )
 
