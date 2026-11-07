@@ -1,9 +1,9 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <string name="settings_export">导出配置</string>
-    <string name="settings_export_description">将配置保存为 JSON 文件</string>
-    <string name="settings_import">导入配置</string>
-    <string name="settings_import_description">从 JSON 文件恢复配置</string>
+    <string name="settings_export">导出设置</string>
+    <string name="settings_export_description">将设置保存到 JSON 文件</string>
+    <string name="settings_import">导入设置</string>
+    <string name="settings_import_description">从 JSON 文件恢复设置</string>
     <string name="settings_export_confirmation">将应用和播放器的所有设置导出为 JSON 文件。</string>
     <string name="settings_export_include_credentials">包含网络连接和登录凭据</string>
     <string name="settings_export_credentials_warning">JSON 文件未经加密，可能包含密码和 SSH 私钥，请妥善保管。</string>
@@ -541,5 +541,5 @@
     <string name="playlist_shortcut_failed">无法添加播放列表快捷方式。请重试。</string>
     <string name="github_sponsors">GitHub Sponsors</string>
     <string name="reset_subtitle_position">重置字幕位置</string>
-    <string name="reset_subtitle_position_desc">播放时上下拖动字幕来移动它们</string>
+    <string name="reset_subtitle_position_desc">播放时上下拖动字幕可移动它们</string>
 </resources>
