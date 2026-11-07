@@ -16,6 +16,7 @@ import androidx.media3.session.MediaController
 import androidx.media3.session.SessionToken
 import dev.anilbeesetti.nextplayer.feature.player.extensions.setIsScrubbingModeEnabled
 import dev.anilbeesetti.nextplayer.feature.player.service.PlayerService
+import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.guava.await
 import kotlinx.coroutines.launch
 
@@ -24,6 +25,7 @@ import kotlinx.coroutines.launch
 fun rememberMediaController(
     onBeforeRelease: () -> Unit = {},
     onExtrasChanged: (Bundle) -> Unit = {},
+    ownsVideoSurface: Boolean = true,
 ): MediaController? {
     val context = LocalContext.current.applicationContext
     val token = remember(context) {
@@ -40,25 +42,42 @@ fun rememberMediaController(
     val currentOnBeforeRelease by rememberUpdatedState(newValue = onBeforeRelease)
     val currentOnExtrasChanged by rememberUpdatedState(newValue = onExtrasChanged)
 
-    LifecycleStartEffect(key1 = context) {
+    LifecycleStartEffect(
+        context,
+        ownsVideoSurface,
+    ) {
         val future = MediaController.Builder(
             context,
             token,
         ).setListener(
             object : MediaController.Listener {
+                override fun onDisconnected(controller: MediaController) {
+                    if (controller === mediaController) mediaController = null
+                }
+
                 override fun onExtrasChanged(controller: MediaController, extras: Bundle) {
                     if (controller === mediaController) currentOnExtrasChanged(extras)
                 }
             },
         ).buildAsync()
-        val connection = scope.launch { mediaController = future.await() }
+        val connection = scope.launch {
+            try {
+                mediaController = future.await()
+            } catch (error: CancellationException) {
+                throw error
+            } catch (_: Exception) {
+                mediaController = null
+            }
+        }
 
         onStopOrDispose {
             connection.cancel()
             try {
-                mediaController?.clearVideoSurface()
-                // The service outlives these controls; clear suppression while still connected.
-                mediaController?.setIsScrubbingModeEnabled(enabled = false)
+                if (ownsVideoSurface) {
+                    mediaController?.clearVideoSurface()
+                    // The service outlives these controls; clear suppression while connected.
+                    mediaController?.setIsScrubbingModeEnabled(enabled = false)
+                }
                 currentOnBeforeRelease()
             } finally {
                 mediaController = null

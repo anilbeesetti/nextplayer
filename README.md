@@ -78,6 +78,11 @@ Casting continues when leaving the player. Disconnecting returns playback to the
 the live position. With folder autoplay off, only the selected video is cast; explicit
 playlists still play in full.
 
+Background sessions appear in a mini player above home navigation in both distributions.
+Tap it to reopen the player, or while casting, to open a sheet with playback, seek, queue,
+volume and return-to-phone controls. Paused sessions remain available; stopped and completed
+sessions disappear.
+
 ## Supported formats
 
 - **Video**: H.263, H.264 AVC (Baseline Profile; Main Profile on Android 6+), H.265 HEVC, MPEG-4 SP, VP8, VP9, AV1
