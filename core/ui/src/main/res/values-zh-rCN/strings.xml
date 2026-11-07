@@ -4,7 +4,7 @@
     <string name="settings_export_description">将设置保存到 JSON 文件</string>
     <string name="settings_import">导入设置</string>
     <string name="settings_import_description">从 JSON 文件恢复设置</string>
-    <string name="settings_export_confirmation">将应用和播放器的所有设置导出为 JSON 文件。</string>
+    <string name="settings_export_confirmation">将应用和播放器设置导出到 JSON 文件</string>
     <string name="settings_export_include_credentials">包含网络连接和登录凭据</string>
     <string name="settings_export_credentials_warning">JSON 文件未经加密，可能包含密码和 SSH 私钥，请妥善保管。</string>
     <string name="settings_import_confirmation">文件中的配置将覆盖当前配置。缺失、废弃、未知或无效的配置项会被忽略。如果文件包含网络连接和登录凭据，也将一并导入。</string>
