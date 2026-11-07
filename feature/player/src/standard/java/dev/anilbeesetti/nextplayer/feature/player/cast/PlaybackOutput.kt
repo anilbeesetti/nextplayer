@@ -7,5 +7,6 @@ import androidx.media3.exoplayer.ExoPlayer
 internal class PlaybackOutput(context: Context, localPlayer: ExoPlayer, autoplay: () -> Boolean) {
     val player: Player = localPlayer
     fun onNewQueue() = Unit
+    fun onStop() = Unit
     fun release() = player.release()
 }

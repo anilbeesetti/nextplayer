@@ -54,21 +54,12 @@ internal class PlaybackOutput(context: Context, localPlayer: ExoPlayer, autoplay
             }
             .build()
             .also { output ->
-                output.addListener(object : Player.Listener {
-                    override fun onTimelineChanged(timeline: Timeline, reason: Int) {
-                        if (timeline.isEmpty) {
-                            server.stop()
-                            converter.clear()
-                        }
-                    }
-
-                    override fun onDeviceInfoChanged(deviceInfo: DeviceInfo) {
-                        if (deviceInfo.playbackType == DeviceInfo.PLAYBACK_TYPE_LOCAL) {
-                            server.stop()
-                            converter.clear()
-                        }
-                    }
-                })
+                output.addListener(
+                    CastResourceCleanup(output) {
+                        server.stop()
+                        converter.clear()
+                    },
+                )
             }
     } catch (error: RuntimeException) {
         // Devices without Google Play services must retain ordinary local playback.
@@ -81,9 +72,30 @@ internal class PlaybackOutput(context: Context, localPlayer: ExoPlayer, autoplay
 
     fun onNewQueue() = transfer?.clearSavedQueue()
 
-    fun release() {
-        player.release()
+    fun onStop() {
         server.stop()
         converter.clear()
+    }
+
+    fun release() {
+        player.release()
+        onStop()
+    }
+}
+
+@UnstableApi
+internal class CastResourceCleanup(private val player: Player, private val clear: () -> Unit) :
+    Player.Listener {
+    override fun onTimelineChanged(timeline: Timeline, reason: Int) {
+        // A Cast queue stays empty until the receiver acknowledges the asynchronous load.
+        if (timeline.isEmpty &&
+            player.deviceInfo.playbackType == DeviceInfo.PLAYBACK_TYPE_LOCAL
+        ) {
+            clear()
+        }
+    }
+
+    override fun onDeviceInfoChanged(deviceInfo: DeviceInfo) {
+        if (deviceInfo.playbackType == DeviceInfo.PLAYBACK_TYPE_LOCAL) clear()
     }
 }

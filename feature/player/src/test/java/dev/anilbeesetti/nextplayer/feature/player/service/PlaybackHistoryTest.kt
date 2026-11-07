@@ -2,6 +2,7 @@ package dev.anilbeesetti.nextplayer.feature.player.service
 
 import android.os.Looper
 import androidx.media3.common.C
+import androidx.media3.common.DeviceInfo
 import androidx.media3.common.FlagSet
 import androidx.media3.common.ForwardingPlayer
 import androidx.media3.common.MediaItem
@@ -32,6 +33,65 @@ class PlaybackHistoryTest {
     @After
     fun tearDown() {
         stopKoin()
+    }
+
+    @Test
+    fun remoteQueueUpdatesDoNotReplaceMediaOrRecordUnresolvedItems() {
+        val recorded = mutableListOf<String>()
+        startKoin {
+            modules(
+                module {
+                    single<MediaRepository> {
+                        object : MediaRepository by FakeMediaRepository() {
+                            override suspend fun updateMediumLastPlayedTime(
+                                uri: String,
+                                lastPlayedTime: Long,
+                                duration: Long?,
+                            ) {
+                                recorded += uri
+                            }
+                        }
+                    }
+                },
+            )
+        }
+        val listener = PlayerService::class.java.getDeclaredField("playbackStateListener")
+            .apply { isAccessible = true }.get(PlayerService()) as Player.Listener
+        val exo = ExoPlayer.Builder(RuntimeEnvironment.getApplication()).build()
+        var item = MediaItem.EMPTY
+        val player = object : ForwardingPlayer(exo) {
+            override fun getDeviceInfo() =
+                DeviceInfo.Builder(DeviceInfo.PLAYBACK_TYPE_REMOTE).build()
+            override fun getPlaybackState() = Player.STATE_READY
+            override fun getCurrentMediaItem() = item
+            override fun getDuration() = 120_000L
+            override fun replaceMediaItem(index: Int, mediaItem: MediaItem) {
+                error("Metadata updates must not remove and reinsert a remote queue item")
+            }
+        }
+        fun notifyReady() {
+            listener.onEvents(
+                player,
+                Player.Events(
+                    FlagSet.Builder()
+                        .add(Player.EVENT_PLAYBACK_STATE_CHANGED).build(),
+                ),
+            )
+            shadowOf(Looper.getMainLooper()).idle()
+        }
+        try {
+            notifyReady()
+            assertTrue(recorded.isEmpty())
+            item = MediaItem.Builder().setMediaId("content://media/42")
+                .setUri("content://media/42").build()
+            notifyReady()
+            assertEquals(
+                listOf("content://media/42"),
+                recorded,
+            )
+        } finally {
+            exo.release()
+        }
     }
 
     @Test

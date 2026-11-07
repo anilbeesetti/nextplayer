@@ -239,6 +239,7 @@ class PlayerService : MediaSessionService() {
                 reason,
             )
             if (reason == Player.MEDIA_ITEM_TRANSITION_REASON_REPEAT) return
+            if (isRemotePlayback && mediaItem?.localConfiguration == null) return
             val playbackType = mediaSession?.player?.deviceInfo?.playbackType
                 ?: DeviceInfo.PLAYBACK_TYPE_LOCAL
             val transferringSameItem = mediaItem?.mediaId == lastPlaybackMediaId &&
@@ -288,10 +289,13 @@ class PlayerService : MediaSessionService() {
                     val updatedPosition =
                         oldPosition.positionMs.takeIf { reason == DISCONTINUITY_REASON_SEEK }
                             ?: C.TIME_UNSET
-                    mediaSession?.player?.replaceMediaItem(
-                        oldPosition.mediaItemIndex,
-                        oldMediaItem.copy(positionMs = updatedPosition),
-                    )
+                    if (oldMediaItem.localConfiguration == null) return
+                    if (!isRemotePlayback) {
+                        mediaSession?.player?.replaceMediaItem(
+                            oldPosition.mediaItemIndex,
+                            oldMediaItem.copy(positionMs = updatedPosition),
+                        )
+                    }
                     serviceScope.launch {
                         mediaRepository.updateMediumPosition(
                             uri = oldMediaItem.mediaId,
@@ -301,6 +305,7 @@ class PlayerService : MediaSessionService() {
                 }
 
                 DISCONTINUITY_REASON_REMOVE -> {
+                    if (oldMediaItem.localConfiguration == null) return
                     serviceScope.launch {
                         val durationMs = oldMediaItem.mediaMetadata.durationMs
                         val isAtEnd =
@@ -362,6 +367,7 @@ class PlayerService : MediaSessionService() {
 
         override fun onTrackSelectionParametersChanged(parameters: TrackSelectionParameters) {
             super.onTrackSelectionParametersChanged(parameters)
+            if (isRemotePlayback) return
             val player = mediaSession?.player ?: return
             val currentMediaItem = player.currentMediaItem ?: return
 
@@ -438,6 +444,7 @@ class PlayerService : MediaSessionService() {
                     player.clearMediaItems()
                     player.stop()
                 }
+                playbackOutput?.onStop()
                 stopSelf()
             }
         }
@@ -453,12 +460,15 @@ class PlayerService : MediaSessionService() {
                 return
             }
             val currentMediaItem = player.currentMediaItem ?: return
+            if (currentMediaItem.localConfiguration == null) return
             val duration = player.duration.validDurationOrNull()
             // Update the media metadata duration so that it will be used later in position discontinuity handling
-            player.replaceMediaItem(
-                player.currentMediaItemIndex,
-                currentMediaItem.copy(durationMs = duration ?: 0),
-            )
+            if (player.deviceInfo.playbackType == DeviceInfo.PLAYBACK_TYPE_LOCAL) {
+                player.replaceMediaItem(
+                    player.currentMediaItemIndex,
+                    currentMediaItem.copy(durationMs = duration ?: 0),
+                )
+            }
 
             serviceScope.launch {
                 mediaRepository.updateMediumLastPlayedTime(
@@ -1073,6 +1083,7 @@ class PlayerService : MediaSessionService() {
             val position = player.currentPosition
             player.clearMediaItems()
             player.stop()
+            playbackOutput?.onStop()
             mediaItem?.let {
                 mediaRepository.updateMediumPosition(
                     uri = mediaItem.mediaId,
@@ -1363,9 +1374,11 @@ class PlayerService : MediaSessionService() {
 
     private fun loadArtworkForCurrentMediaItem() {
         artworkLoadJob?.cancel()
+        if (isRemotePlayback) return
         artworkLoadJob = serviceScope.launch(Dispatchers.Main) {
             val player = mediaSession?.player ?: return@launch
             val currentMediaItem = player.currentMediaItem ?: return@launch
+            if (currentMediaItem.localConfiguration == null) return@launch
             if (currentMediaItem.mediaMetadata.artworkData != null) return@launch
 
             val artworkUri = loadArtworkForMediaItem(mediaItem = currentMediaItem)
@@ -1373,6 +1386,7 @@ class PlayerService : MediaSessionService() {
 
             val updatedPlayer = mediaSession?.player ?: return@launch
             val updatedMediaItem = updatedPlayer.currentMediaItem ?: return@launch
+            if (isRemotePlayback || updatedMediaItem.localConfiguration == null) return@launch
             if (updatedMediaItem.mediaId != currentMediaItem.mediaId) return@launch
 
             updatedPlayer.replaceMediaItem(
