@@ -20,6 +20,12 @@ android {
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
     }
 
+    flavorDimensions += "distribution"
+    productFlavors {
+        create("standard") { dimension = "distribution" }
+        create("play") { dimension = "distribution" }
+    }
+
     buildFeatures {
         compose = true
         buildConfig = true

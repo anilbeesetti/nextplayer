@@ -22,6 +22,7 @@ import androidx.compose.runtime.snapshotFlow
 import androidx.core.util.Consumer
 import androidx.lifecycle.lifecycleScope
 import androidx.media3.common.C
+import androidx.media3.common.DeviceInfo
 import androidx.media3.common.MediaItem
 import androidx.media3.common.MimeTypes
 import androidx.media3.common.PlaybackException
@@ -367,7 +368,8 @@ class PlayerActivity : ComponentActivity() {
             viewModel.onAction(PlayerAction.UpdatePlayWhenReady(playWhenReady))
             removeListener(playbackStateListener)
             val shouldPlayInBackground =
-                playInBackground || (playerApi.sticky ?: playerPreferences.autoBackgroundPlay)
+                deviceInfo.playbackType == DeviceInfo.PLAYBACK_TYPE_REMOTE ||
+                    playInBackground || (playerApi.sticky ?: playerPreferences.autoBackgroundPlay)
             if (subtitleFileSuspendLauncher.isAwaitingResult ||
                 audioFileSuspendLauncher.isAwaitingResult ||
                 !shouldPlayInBackground
@@ -685,7 +687,9 @@ class PlayerActivity : ComponentActivity() {
 
     private fun finishAndStopPlayerSession() {
         finish()
-        mediaController?.stopPlayerSession()
+        if (mediaController?.deviceInfo?.playbackType != DeviceInfo.PLAYBACK_TYPE_REMOTE) {
+            mediaController?.stopPlayerSession()
+        }
     }
 
     override fun onWindowAttributesChanged(params: WindowManager.LayoutParams?) {

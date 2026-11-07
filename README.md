@@ -61,6 +61,23 @@ speed and direct background-play options. See the [Player intent API reference](
 for integration examples, supported extras, URI permissions, playback results,
 and compatibility details.
 
+## Google Cast and build variants
+
+The `play` variant includes Google Cast; `standard` keeps Google Cast and Play services out
+of the app. Build with `./gradlew :app:assemblePlayDebug :app:assembleStandardDebug` and install
+your chosen variant with `:app:installPlayDebug` or `:app:installStandardDebug`.
+
+Use the Cast button in the player's top controls on a device with Google Play services.
+The phone and receiver must share a reachable local network. Android 37+ also requires
+local-network permission. Public HTTP(S) streams play directly; local videos stream from
+the phone, which must stay connected. There is no transcoding, so receiver codec/container
+support applies. Network-storage protocols, external audio and sidecar subtitles currently
+play on the phone only.
+
+Casting continues when leaving the player. Disconnecting returns playback to the phone at
+the live position. With folder autoplay off, only the selected video is cast; explicit
+playlists still play in full.
+
 ## Supported formats
 
 - **Video**: H.263, H.264 AVC (Baseline Profile; Main Profile on Android 6+), H.265 HEVC, MPEG-4 SP, VP8, VP9, AV1
