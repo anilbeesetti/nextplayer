@@ -481,13 +481,14 @@ class PlayerService : MediaSessionService() {
 
         override fun onIsPlayingChanged(isPlaying: Boolean) {
             super.onIsPlayingChanged(isPlaying)
-            mediaSession?.run {
-                serviceScope.launch {
-                    mediaRepository.updateMediumPosition(
-                        uri = player.currentMediaItem?.mediaId ?: return@launch,
-                        position = player.currentPosition,
-                    )
-                }
+            val player = mediaSession?.player ?: return
+            val item = player.currentMediaItem?.takeIf { it.localConfiguration != null } ?: return
+            val position = player.currentPosition
+            serviceScope.launch {
+                mediaRepository.updateMediumPosition(
+                    uri = item.mediaId,
+                    position = position,
+                )
             }
         }
 
@@ -1079,7 +1080,7 @@ class PlayerService : MediaSessionService() {
         cancelPendingMediaItems()
         val generation = ++playbackRequestGeneration
         mediaSession?.run {
-            val mediaItem = player.currentMediaItem
+            val mediaItem = player.currentMediaItem?.takeIf { it.localConfiguration != null }
             val position = player.currentPosition
             player.clearMediaItems()
             player.stop()
