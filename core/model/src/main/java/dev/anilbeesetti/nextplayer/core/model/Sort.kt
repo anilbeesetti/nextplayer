@@ -9,6 +9,7 @@ data class Sort(val by: By, val order: Order) {
         PATH,
         SIZE,
         DATE,
+        WATCHED,
     }
 
     enum class Order {
@@ -84,10 +85,18 @@ data class Sort(val by: By, val order: Order) {
 
         val comparator = when (by) {
             By.TITLE -> videoTitleComparator
+
             By.LENGTH -> compareBy<Video> { it.duration }.then(comparator = videoTitleComparator)
+
             By.PATH -> videoPathComparator
+
             By.SIZE -> compareBy<Video> { it.size }.then(comparator = videoTitleComparator)
+
             By.DATE -> compareBy<Video> { it.dateModified }.then(comparator = videoTitleComparator)
+
+            By.WATCHED -> compareBy<Video> {
+                it.playedPercentage ?: 0f
+            }.then(comparator = videoTitleComparator)
         }
 
         return when (order) {
@@ -123,6 +132,8 @@ data class Sort(val by: By, val order: Order) {
             By.SIZE -> compareBy<Folder> { it.totalSize }.then(comparator = folderNameComparator)
 
             By.DATE -> compareBy<Folder> { it.dateModified }.then(comparator = folderNameComparator)
+
+            By.WATCHED -> folderNameComparator
         }
 
         return when (order) {
@@ -139,7 +150,7 @@ data class Sort(val by: By, val order: Order) {
             )
         }
         val comparator = when (by) {
-            By.TITLE, By.LENGTH -> nameComparator
+            By.TITLE, By.LENGTH, By.WATCHED -> nameComparator
 
             By.PATH -> Comparator<NetworkFile> { first, second ->
                 stringComparator.compare(
