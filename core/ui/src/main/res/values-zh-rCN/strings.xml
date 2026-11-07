@@ -1,10 +1,10 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <string name="settings_export">导出配置</string>
-    <string name="settings_export_description">将配置保存为 JSON 文件</string>
-    <string name="settings_import">导入配置</string>
-    <string name="settings_import_description">从 JSON 文件恢复配置</string>
-    <string name="settings_export_confirmation">将应用和播放器的所有设置导出为 JSON 文件。</string>
+    <string name="settings_export">导出设置</string>
+    <string name="settings_export_description">将设置保存到 JSON 文件</string>
+    <string name="settings_import">导入设置</string>
+    <string name="settings_import_description">从 JSON 文件恢复设置</string>
+    <string name="settings_export_confirmation">将应用和播放器设置导出到 JSON 文件</string>
     <string name="settings_export_include_credentials">包含网络连接和登录凭据</string>
     <string name="settings_export_credentials_warning">JSON 文件未经加密，可能包含密码和 SSH 私钥，请妥善保管。</string>
     <string name="settings_import_confirmation">文件中的配置将覆盖当前配置。缺失、废弃、未知或无效的配置项会被忽略。如果文件包含网络连接和登录凭据，也将一并导入。</string>
@@ -13,7 +13,7 @@
     <string name="settings_export_success">配置已导出</string>
     <string name="settings_export_failed">无法导出配置</string>
     <string name="settings_import_success">配置已导入</string>
-    <string name="settings_import_failed">未能完成配置导入，请重试</string>
+    <string name="settings_import_failed">未能完成设置导入，请重试。</string>
     <string name="settings_import_invalid">无法读取此文件，或文件中没有支持的 JSON 配置</string>
     <string name="about_name">关于</string>
     <string name="menu">菜单</string>
@@ -366,7 +366,7 @@
     </plurals>
     <string name="transfer_file_progress">文件 %1$d/%2$d</string>
     <plurals name="moved_videos_originals_remain">
-        <item quantity="other">已移动 %1$d 个视频，但无法移除原始视频</item>
+        <item quantity="other">已复制 %1$d 个视频，但无法移除原始视频</item>
     </plurals>
     <string name="cannot_move_to_same_folder">无法移动到相同文件夹</string>
     <string name="folder_duration">文件夹时长</string>
@@ -540,4 +540,6 @@
     <string name="add_to_home_screen">添加到主屏幕</string>
     <string name="playlist_shortcut_failed">无法添加播放列表快捷方式。请重试。</string>
     <string name="github_sponsors">GitHub Sponsors</string>
+    <string name="reset_subtitle_position">重置字幕位置</string>
+    <string name="reset_subtitle_position_desc">播放时上下拖动字幕可移动它们</string>
 </resources>

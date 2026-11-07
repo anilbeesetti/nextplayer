@@ -362,9 +362,9 @@
         <item quantity="other">No se pudieron mover %1$d vídeos</item>
     </plurals>
     <plurals name="moved_videos_originals_remain">
-        <item quantity="one">Se movió 1 vídeo, pero no se pudo eliminar el original</item>
-        <item quantity="many">Se movieron %1$d vídeos, pero no se pudieron eliminar los originales</item>
-        <item quantity="other">Se movieron %1$d vídeos, pero no se pudieron eliminar los originales</item>
+        <item quantity="one">Se copió 1 vídeo, pero no se pudo eliminar el original</item>
+        <item quantity="many">Se copiaron %1$d vídeos, pero no se pudieron eliminar los originales</item>
+        <item quantity="other">Se copiaron %1$d vídeos, pero no se pudieron eliminar los originales</item>
     </plurals>
     <string name="cannot_move_to_same_folder">No se puede mover a la misma carpeta</string>
     <string name="home">Inicio</string>
