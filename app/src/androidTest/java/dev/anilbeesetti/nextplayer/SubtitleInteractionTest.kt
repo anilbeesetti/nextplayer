@@ -8,6 +8,11 @@ import android.net.Uri
 import android.os.SystemClock
 import android.view.View
 import android.view.ViewGroup
+import androidx.compose.ui.platform.ViewRootForTest
+import androidx.compose.ui.semantics.SemanticsProperties
+import androidx.compose.ui.semantics.getAllSemanticsNodes
+import androidx.compose.ui.semantics.getOrNull
+import androidx.core.view.doOnPreDraw
 import androidx.media3.common.Player
 import androidx.media3.session.MediaController
 import androidx.media3.session.SessionToken
@@ -23,9 +28,11 @@ import androidx.test.espresso.matcher.ViewMatchers.isRoot
 import androidx.test.ext.junit.runners.AndroidJUnit4
 import androidx.test.platform.app.InstrumentationRegistry
 import dev.anilbeesetti.nextplayer.core.data.repository.PreferencesRepository
+import dev.anilbeesetti.nextplayer.core.ui.R as coreUiR
 import dev.anilbeesetti.nextplayer.feature.player.PlayerActivity
 import dev.anilbeesetti.nextplayer.feature.player.service.PlayerService
 import java.io.File
+import java.util.concurrent.CountDownLatch
 import java.util.concurrent.FutureTask
 import java.util.concurrent.TimeUnit
 import kotlinx.coroutines.runBlocking
@@ -120,25 +127,74 @@ class SubtitleInteractionTest {
                         }
                     }
                     main { player.pause() }
-                    instrumentation.waitForIdleSync()
-                    // Hide transport controls so their buttons do not intercept a subtitle swipe.
-                    onView(isRoot()).perform(
-                        GeneralClickAction(
-                            Tap.SINGLE,
-                            { view ->
-                                val origin = IntArray(2)
-                                view.getLocationOnScreen(origin)
-                                floatArrayOf(
-                                    origin[0] + view.width * 0.25f,
-                                    origin[1] + view.height * 0.25f,
-                                )
-                            },
-                            Press.FINGER,
-                        ),
-                    )
-                    SystemClock.sleep(350)
+                    await("$file paused") { main { !player.playWhenReady && !player.isPlaying } }
+                    var decor: View? = null
+                    scenario.onActivity { decor = it.window.decorView }
+                    await("$file window focused") { main { checkNotNull(decor).hasWindowFocus() } }
+                    await("$file ($styles) transport controls visible") {
+                        main {
+                            controlsPresent(checkNotNull(decor)) ==
+                                true
+                        }
+                    }
                     var subtitle: SubtitleView? = null
                     scenario.onActivity { subtitle = findSubtitleView(it.window.decorView) }
+                    await("$file landscape layout") {
+                        main {
+                            checkNotNull(decor).width >
+                                checkNotNull(decor).height
+                        }
+                    }
+                    await("$file painted") {
+                        main { runCatching { paintedCenter(checkNotNull(subtitle)) }.isSuccess }
+                    }
+                    awaitSubtitleDraw(checkNotNull(subtitle))
+                    // Hide transport controls so their buttons do not intercept a subtitle swipe.
+                    for (attempt in 0 until 2) {
+                        val present = checkNotNull(main { controlsPresent(checkNotNull(decor)) })
+                        if (!present) break
+                        assertTrue(
+                            "Player window must retain focus",
+                            main {
+                                checkNotNull(decor).hasWindowFocus()
+                            },
+                        )
+                        if (attempt >
+                            0
+                        ) {
+                            android.util.Log.w(
+                                "SubtitleQA",
+                                "Retrying dropped setup tap for $file ($styles)",
+                            )
+                        }
+                        onView(isRoot()).perform(
+                            GeneralClickAction(
+                                Tap.SINGLE,
+                                { view ->
+                                    val origin = IntArray(2)
+                                    view.getLocationOnScreen(origin)
+                                    floatArrayOf(
+                                        origin[0] + view.width * 0.25f,
+                                        origin[1] + view.height * 0.25f,
+                                    )
+                                },
+                                Press.FINGER,
+                            ),
+                        )
+                        val deadline = SystemClock.uptimeMillis() + 4000
+                        while (SystemClock.uptimeMillis() < deadline &&
+                            main { controlsPresent(checkNotNull(decor)) == true }
+                        ) {
+                            SystemClock.sleep(50)
+                        }
+                    }
+                    await("$file ($styles) transport controls hidden") {
+                        main {
+                            controlsPresent(checkNotNull(decor)) ==
+                                false
+                        }
+                    }
+                    awaitSubtitleDraw(checkNotNull(subtitle))
                     var start = FloatArray(2)
                     onView(isRoot()).perform(
                         GeneralSwipeAction(
@@ -158,6 +214,19 @@ class SubtitleInteractionTest {
                         ),
                     )
                     instrumentation.waitForIdleSync()
+                    assertTrue(
+                        "Playback must stay paused during the swipe",
+                        main {
+                            !player.playWhenReady &&
+                                !player.isPlaying
+                        },
+                    )
+                    assertTrue(
+                        "The subtitle must remain present",
+                        main {
+                            player.currentCues.cues.isNotEmpty()
+                        },
+                    )
                     if (file == "basic.srt.mkv") {
                         await("SRT position saved") {
                             preferences.playerPreferences.value.subtitleOffsetY != initialOffset
@@ -190,6 +259,39 @@ class SubtitleInteractionTest {
             )
             runBlocking { preferences.updatePlayerPreferences { original } }
             directory.deleteRecursively()
+        }
+    }
+
+    private fun awaitSubtitleDraw(view: View) {
+        val drawn = CountDownLatch(1)
+        main {
+            view.doOnPreDraw { drawn.countDown() }
+            view.invalidate()
+        }
+        assertTrue(
+            "Subtitle bounds must be drawn before swiping",
+            drawn.await(
+                5,
+                TimeUnit.SECONDS,
+            ),
+        )
+    }
+
+    private fun controlsPresent(view: View): Boolean? {
+        fun findRoot(view: View): ViewRootForTest? {
+            if (view is ViewRootForTest) return view
+            if (view is ViewGroup) {
+                for (i in 0 until view.childCount) {
+                    findRoot(view.getChildAt(i))?.let { return it }
+                }
+            }
+            return null
+        }
+        val root = findRoot(view) ?: return null
+        val description = context.getString(coreUiR.string.select_decoders)
+        return root.semanticsOwner.getAllSemanticsNodes(mergingEnabled = true).any {
+            it.config.getOrNull(SemanticsProperties.ContentDescription)?.contains(description) ==
+                true
         }
     }
 

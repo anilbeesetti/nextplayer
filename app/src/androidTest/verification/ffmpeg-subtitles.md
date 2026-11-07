@@ -2,7 +2,7 @@
 
 NextPlayer targets `1.11.1-0.18.0`. Until that artifact is published, build against
 [nextlib PR #214](https://github.com/anilbeesetti/nextlib/pull/214), including its
-buffered-seek fixes at `a1b816f`:
+startup, timing and buffered-seek fixes at `f0e59cd`:
 
 ```sh
 ./gradlew test ktlintCheck assembleDebug :app:assembleDebugAndroidTest \
@@ -35,7 +35,11 @@ preserving audio/video decoder selections through reloads and playlist navigatio
 `SubtitleInteractionTest` swipes the actual painted subtitle bounds on the player
 screen, with transport controls hidden. Authored ASS/SSA/PGS must preserve a saved
 nonzero text offset without moving. ASS is also checked with embedded styles off.
-The SRT control case must change and save its initial offset.
+The SRT control case must change and save its initial offset. Gesture setup waits
+for paused playback, a focused landscape window, painted subtitle pixels and a
+completed draw. It reads Compose's test semantics directly to verify that controls
+have disappeared after their exit animation. A dropped setup tap can be retried
+once; subtitle swipes and saved-offset assertions are never retried.
 
 The production `PlayerGestures` Compose regression starts a real drag, changes
 eligibility to an authored track while the pointer is down, and verifies rollback,
@@ -56,6 +60,22 @@ EOS, bitmap packet replay and clears, viewport changes, and WebM extraction.
   and [16 native tests](ffmpeg-subtitles/nextlib-api37.txt) passed.
 - Both nextlib release AARs passed native dependency, export and 16 KiB alignment
   checks for all four packaged ABIs.
+
+### Recheck — 2026-11-07
+
+Against nextlib `f0e59cd`, on a fresh ARM64 API 35 emulator:
+
+- All four app instrumentation tests passed together, including the 17-case playback
+  matrix, authored ASS/SSA/PGS drag locks, the SRT drag control and local subtitles.
+- All 27 nextlib subtitle device tests passed, including initialization failures,
+  abandoned initialization, seeks during initialization with delay, bitmap timing
+  changes, fonts, fallback formats and viewport resizing.
+- All 15 nextlib JVM tests, setup regression checks, debug/release builds and native
+  package checks passed. Both AARs contain all four ABIs with 16 KiB alignment.
+- The final app run had no crash-log entries. One dropped setup tap required the
+  bounded retry; every actual subtitle drag assertion passed on its first attempt.
+
+This recheck ran on API 35. The API 37 results above are from the earlier run.
 
 ## Visual evidence
 
