@@ -1,13 +1,17 @@
 package dev.anilbeesetti.nextplayer.feature.player.cast
 
+import android.graphics.SurfaceTexture
+import android.view.Surface
 import androidx.media3.common.MediaItem
 import androidx.media3.common.Player
+import androidx.media3.common.util.Size
 import androidx.media3.exoplayer.ExoPlayer
 import dev.anilbeesetti.nextplayer.feature.player.extensions.copy
 import dev.anilbeesetti.nextplayer.feature.player.extensions.videoDecoderMode
 import io.github.anilbeesetti.nextlib.media3ext.ffdecoder.DecoderMode
 import org.junit.After
 import org.junit.Assert.assertEquals
+import org.junit.Assert.assertNotEquals
 import org.junit.Test
 import org.junit.runner.RunWith
 import org.robolectric.RobolectricTestRunner
@@ -27,6 +31,49 @@ class CastTransferCallbackTest {
     fun tearDown() {
         local.release()
         remote.release()
+    }
+
+    @Test
+    fun leavingPhoneDetachesSurfaceBeforeItsViewIsDestroyed() {
+        val texture = SurfaceTexture(0)
+        val surface = Surface(texture)
+        val callback = CastTransferCallback(remote) { false }
+        try {
+            local.setMediaItems(
+                items,
+                1,
+                34_000,
+            )
+            local.setVideoSurface(surface)
+            assertNotEquals(
+                Size.ZERO,
+                local.surfaceSize,
+            )
+            callback.transferState(
+                local,
+                remote,
+            )
+            assertEquals(
+                Size.ZERO,
+                local.surfaceSize,
+            )
+            surface.release()
+            callback.transferState(
+                remote,
+                local,
+            )
+            assertEquals(
+                "1",
+                local.currentMediaItem?.mediaId,
+            )
+            assertEquals(
+                34_000L,
+                local.currentPosition,
+            )
+        } finally {
+            surface.release()
+            texture.release()
+        }
     }
 
     @Test

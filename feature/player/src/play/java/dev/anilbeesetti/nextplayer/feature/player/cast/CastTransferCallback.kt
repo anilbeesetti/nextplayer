@@ -34,6 +34,13 @@ internal class CastTransferCallback(
                     if (queue.size == items.size) state.currentMediaItemIndex else 0,
                 )
                 .build().setToPlayer(target)
+            // UI surface cleanup will be forwarded to the remote player after this switch.
+            if (source.isCommandAvailable(
+                    Player.COMMAND_SET_VIDEO_SURFACE,
+                )
+            ) {
+                source.clearVideoSurface()
+            }
         } else {
             val index = folderQueue.indexOfFirst {
                 it.mediaId == source.currentMediaItem?.mediaId
