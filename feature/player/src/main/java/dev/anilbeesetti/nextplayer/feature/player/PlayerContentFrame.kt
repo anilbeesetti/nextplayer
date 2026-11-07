@@ -44,28 +44,35 @@ fun PlayerContentFrame(
     displayAspectRatio: Float? = null,
 ) {
     val presentationState = rememberPresentationState(player = player)
+    val videoModifier = Modifier
+        .resizeWithContentScale(
+            contentScale = videoZoomAndContentScaleState.videoContentScale
+                .toContentScale(),
+            sourceSizeDp = presentationState.videoSizeDp?.let { size ->
+                size.copy(
+                    width = with(LocalDensity.current) {
+                        (
+                            displayAspectRatio?.let {
+                                size.height * it
+                            } ?: size.width
+                            ).toDp().value
+                    },
+                    height = with(LocalDensity.current) { size.height.toDp().value },
+                )
+            },
+        )
+        .graphicsLayer {
+            scaleX = videoZoomAndContentScaleState.zoom
+            scaleY = videoZoomAndContentScaleState.zoom
+            translationX = videoZoomAndContentScaleState.offset.x
+            translationY = videoZoomAndContentScaleState.offset.y
+        }
     Box(modifier.fillMaxSize()) {
         if (videoVisible) {
             PlayerSurface(
                 player = player,
                 surfaceType = SURFACE_TYPE_SURFACE_VIEW,
-                modifier = Modifier
-                    .resizeWithContentScale(
-                        contentScale = videoZoomAndContentScaleState.videoContentScale
-                            .toContentScale(),
-                        sourceSizeDp = presentationState.videoSizeDp?.let { size ->
-                            size.copy(
-                                width = with(LocalDensity.current) {
-                                    (
-                                        displayAspectRatio?.let {
-                                            size.height * it
-                                        } ?: size.width
-                                        ).toDp().value
-                                },
-                                height = with(LocalDensity.current) { size.height.toDp().value },
-                            )
-                        },
-                    )
+                modifier = videoModifier
                     .onGloballyPositioned {
                         val bounds = it.boundsInWindow()
                         val rect = Rect(
@@ -75,12 +82,6 @@ fun PlayerContentFrame(
                             bounds.bottom.toInt(),
                         )
                         pictureInPictureState.setVideoViewRect(rect)
-                    }
-                    .graphicsLayer {
-                        scaleX = videoZoomAndContentScaleState.zoom
-                        scaleY = videoZoomAndContentScaleState.zoom
-                        translationX = videoZoomAndContentScaleState.offset.x
-                        translationY = videoZoomAndContentScaleState.offset.y
                     },
             )
         }
@@ -98,6 +99,7 @@ fun PlayerContentFrame(
             )
         }
         SubtitleView(
+            bitmapModifier = videoModifier,
             cuesState = cuesState,
             positionState = subtitlePositionState,
             isInPictureInPictureMode = pictureInPictureState.isInPictureInPictureMode,

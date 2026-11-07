@@ -1,0 +1,18 @@
+WEBVTT
+
+STYLE
+::cue(.green) { color: lime; font-style: italic; }
+
+first
+00:01.000 --> 00:07.000 line:20% position:10% align:start size:80%
+<c.green>WebVTT green positioned</c>
+<b>bold</b> &amp; <u>underlined</u>
+
+00:02.000 --> 00:06.000 line:70% position:50% align:center
+WebVTT overlapping cue
+
+00:08.000 --> 00:14.000
+WebVTT English — हिन्दी — العربية — 日本語
+
+00:16.000 --> 00:21.000 vertical:rl line:20% position:20% size:70%
+WebVTT vertical <ruby>字幕<rt>subtitles</rt></ruby>
