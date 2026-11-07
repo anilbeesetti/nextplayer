@@ -197,19 +197,11 @@ class TopLevelNavState(
             )
         }
 
-    /**
-     * The [androidx.navigation3.runtime.NavEntry.contentKey]s of the top-level destinations. Used to
-     * decide whether a rendered scene should show the nav bar/rail. `contentKey` defaults to the
-     * route's `toString()`, matching how the entries are created.
-     */
+    /** Raw routes and Navigation 3 content keys for the top-level destinations. */
     val topLevelContentKeys: Set<Any> = destinations.flatMap { dest ->
         listOf(
             dest.route,
-            dest.route.toString(),
-            Pair(
-                first = "${dest.route}",
-                second = "${dest.route::class}",
-            ),
+            NavEntry(key = dest.route) {}.contentKey,
         )
     }.toSet()
 
