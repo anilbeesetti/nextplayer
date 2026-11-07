@@ -34,4 +34,27 @@ class PlayerPreferencesTest {
             restored,
         )
     }
+
+    @Test
+    fun `existing preferences keep the status bar visible`() {
+        val preferences = Json.decodeFromString<PlayerPreferences>(
+            string = """{"autoplay":false}""",
+        )
+
+        assertFalse(preferences.hideStatusBar)
+    }
+
+    @Test
+    fun `hide status bar survives serialization`() {
+        val preferences = PlayerPreferences(hideStatusBar = true)
+        val restored = Json.decodeFromString<PlayerPreferences>(
+            Json.encodeToString(value = preferences),
+        )
+
+        assertTrue(restored.hideStatusBar)
+        assertEquals(
+            preferences,
+            restored,
+        )
+    }
 }

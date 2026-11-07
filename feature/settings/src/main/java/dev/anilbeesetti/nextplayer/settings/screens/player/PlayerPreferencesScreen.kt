@@ -105,6 +105,13 @@ private fun PlayerPreferencesScreenContent(
                     onClick = { onAction(PlayerPreferencesUiEvent.ToggleUseMaterialYouControls) },
                     isFirstItem = true,
                 )
+                PreferenceSwitch(
+                    title = stringResource(id = R.string.hide_status_bar),
+                    description = stringResource(id = R.string.hide_status_bar_description),
+                    icon = NextIcons.HideSource,
+                    isChecked = state.preferences.hideStatusBar,
+                    onClick = { onAction(PlayerPreferencesUiEvent.ToggleHideStatusBar) },
+                )
                 PreferenceSlider(
                     title = stringResource(R.string.controller_timeout),
                     description = if (state.preferences.controllerAutoHideTimeout == 0) {
