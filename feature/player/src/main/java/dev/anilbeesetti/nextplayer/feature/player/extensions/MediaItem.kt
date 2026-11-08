@@ -126,6 +126,16 @@ val MediaMetadata.positionMs: Long?
             .takeIf { containsKey(MEDIA_METADATA_POSITION_KEY) }
     }
 
+internal fun MediaItem.withoutResumePosition(): MediaItem {
+    val extras = mediaMetadata.extras?.takeIf { it.containsKey(MEDIA_METADATA_POSITION_KEY) }
+        ?: return this
+    return buildUpon().setMediaMetadata(
+        mediaMetadata.buildUpon().setExtras(
+            Bundle(extras).apply { remove(MEDIA_METADATA_POSITION_KEY) },
+        ).build(),
+    ).build()
+}
+
 val MediaMetadata.audioTrackIndex: Int?
     get() = extras?.run {
         getInt(MEDIA_METADATA_AUDIO_TRACK_INDEX_KEY)
