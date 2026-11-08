@@ -169,6 +169,7 @@ fun PlayerGestures(
                     )
                 }
                 .pointerInput(
+                    videoZoomAndContentScaleState,
                     controlsVisibilityState.controlsLocked,
                     pictureInPictureState.isInPictureInPictureMode,
                 ) {
