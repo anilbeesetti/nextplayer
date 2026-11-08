@@ -8,6 +8,8 @@ import androidx.media3.datasource.DataSpec
 import androidx.media3.exoplayer.source.DefaultMediaSourceFactory
 import androidx.media3.exoplayer.source.MediaSource
 import dev.anilbeesetti.nextplayer.feature.player.utils.apiHeaders
+import io.github.anilbeesetti.nextlib.media3ext.ffdecoder.FfmpegSubtitleExtractorsFactory
+import io.github.anilbeesetti.nextlib.media3ext.ffdecoder.withFfmpegSubtitles
 
 /** Creates independent sources so headers follow an item, including manifests, segments and subtitles. */
 @UnstableApi
@@ -17,15 +19,19 @@ internal class ApiMediaSourceFactory(
 ) : MediaSource.Factory by DefaultMediaSourceFactory(
     context,
 ).setDataSourceFactory(dataSourceFactory) {
-    override fun createMediaSource(mediaItem: MediaItem): MediaSource =
-        DefaultMediaSourceFactory(context)
-            .setDataSourceFactory(
-                RequestHeadersDataSourceFactory(
-                    dataSourceFactory,
-                    mediaItem.apiHeaders,
-                ),
-            )
+    override fun createMediaSource(mediaItem: MediaItem): MediaSource {
+        val sources = RequestHeadersDataSourceFactory(
+            dataSourceFactory,
+            mediaItem.apiHeaders,
+        )
+        return DefaultMediaSourceFactory(
+            context,
+            FfmpegSubtitleExtractorsFactory(),
+        )
+            .setDataSourceFactory(sources)
+            .withFfmpegSubtitles(sources)
             .createMediaSource(mediaItem)
+    }
 }
 
 @UnstableApi

@@ -1,0 +1,5 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<tt xmlns="http://www.w3.org/ns/ttml" xmlns:tts="http://www.w3.org/ns/ttml#styling">
+<head><styling><style xml:id="green" tts:color="lime" tts:fontStyle="italic"/></styling></head>
+<body><div><p begin="1s" end="7s" style="green">TTML green italic<br/>Second line</p>
+<p begin="8s" end="14s">TTML second cue</p></div></body></tt>

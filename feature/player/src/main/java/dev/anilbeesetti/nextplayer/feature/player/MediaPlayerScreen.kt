@@ -210,6 +210,7 @@ internal fun MediaPlayerContent(
                     volumeAndBrightnessGestureState = volumeAndBrightnessGestureState,
                     subtitlePositionState = subtitlePositionState,
                     hasSubtitles = cuesState.currentCues?.cues?.isNotEmpty() == true,
+                    canRepositionSubtitles = cuesState.canReposition,
                 )
             }
         }

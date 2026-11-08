@@ -1,0 +1,33 @@
+[Script Info]
+ScriptType: v4.00+
+PlayResX: 1280
+PlayResY: 720
+WrapStyle: 0
+
+[V4+ Styles]
+Format: Name, Fontname, Fontsize, PrimaryColour, SecondaryColour, OutlineColour, BackColour, Bold, Italic, Underline, StrikeOut, ScaleX, ScaleY, Spacing, Angle, BorderStyle, Outline, Shadow, Alignment, MarginL, MarginR, MarginV, Encoding
+Style: Default,Nextlib Test Shapes,100,&H00FFFFFF,&H000000FF,&H00000000,&H80000000,0,0,0,0,100,100,0,0,1,2,1,2,30,30,40,1
+
+[Events]
+Format: Layer, Start, End, Style, Name, MarginL, MarginR, MarginV, Effect, Text
+Dialogue: 0,0:00:01.00,0:00:07.00,Default,,0,0,0,,ABC
+Dialogue: 0,0:00:08.00,0:00:14.00,Default,,0,0,0,,ABC
+Dialogue: 0,0:00:16.00,0:00:21.00,Default,,0,0,0,,ABC
+
+[Fonts]
+fontname: shapes.ttf
+!!%!!!!+!)!!!Q!A4V-P-E5!2==!!!%I!!!!9'.N98!!>A"=!!!"F!!!!$RH<(FGK8\Q2Q!!!>Q!!!"3
+;'6B:&N*J*Q!!!#M!!!!.GBI:7%(#A.5!!!!Z!!!!#2I<82Y"%Q!FA!!!9A!!!!-<'^D91!:!$9!!!(1
+!!!!$'VB?(!!"Q!'!!!"#!!!!#"O97VFKC4U@!!!!D!!!!$`='^T>!!P!%I!!!-Q!!!!,!!"!!!!!1!!
+J9<SN&]0005!!Q0I!!!!!(QFM)!!!!!!@#7QA!!S!!!$NA+]!!!!!Q!#!!!!!!!!!!%!!!-A`TA!!!0I
+!$)!-A/W!!%!!!!!!!!!!!!!!!!!!!!"!!%!!!!&!!1!!1!!!!!!!A!!!!!!!!!!!!!!!!!!!!!!!Q0I
+!:!!"1!%!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!"!!!!!!!!!!!!!!!!0T]`0Q!!
+!#!!1Q-A`TA!!!-A!-A!!!!!!!!!!!!!!!!!!!!A!!!$[!!S!$)!-A!S!$)!!!!#!!!!!Q!!!"1!!Q!"
+!!!!&!!%!#A!!!!'!!1!!1!#!#!!1```!!!!)!""````Y@`"!!%!!!!!!!!!!!!!!!!!$1!:!#E!!1!S
+!!!$NA+]!!-!!$-B%3%S!Y4]@!+]!!!"!$)!!!/W!LQ!!A!!-S%"-A/%`DY#P!!"!$)!!!/W!LQ!!Q!!
+%QE#-A(#!=,_0A%M`N1",!'1!!!!!!!+!(Y!!1!!!!!!!1!4!!!!!1!!!!!!!A!(!"-!!1!!!!!!!Q!2
+!"I!!1!!!!!!"!!4!!!!!1!!!!!!"A!2!"I!!Q!""!E!!1!G!#M!!Q!""!E!!A!/!&%!!Q!""!E!!Q!C
+!&]!!Q!""!E!"!!G!#M!!Q!""!E!"A!C!&^/:8BU<'FC)&2F=X1A5WBB='6T5G6H>7RB=EZF?(2M;7*5
+:8.U5WBB='6T!%Y!:1"Y!(1!<!"J!')!)!"5!'5!=Q"U!#!!5Q"I!'%!=!"F!(-!5A"F!'=!>1"M!'%!
+=A"/!'5!?!"U!'Q!;1"C!&1!:1"T!(1!5Q"I!'%!=!"F!(-!!!)!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+!!!!!!!!!!!!"1!!!!-!*!!F!#9
