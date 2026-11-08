@@ -1,10 +1,12 @@
 package dev.anilbeesetti.nextplayer.feature.player.cast
 
 import androidx.media3.cast.CastPlayer
+import androidx.media3.common.ForwardingPlayer
 import androidx.media3.common.MediaItem
 import androidx.media3.common.Player
 import androidx.media3.common.PlayerTransferState
 import androidx.media3.common.util.UnstableApi
+import dev.anilbeesetti.nextplayer.feature.player.extensions.withoutResumePosition
 import dev.anilbeesetti.nextplayer.feature.player.service.mediaItemsForCast
 
 @UnstableApi
@@ -36,7 +38,13 @@ internal class CastTransferCallback(
             target.stop()
             return
         }
-        val state = PlayerTransferState.fromPlayer(source)
+        // The transfer carries live position; a late receiver event must not restore an old hint.
+        val transferSource = object : ForwardingPlayer(source) {
+            override fun getMediaItemAt(index: Int): MediaItem = source.getMediaItemAt(index).let {
+                if (index == source.currentMediaItemIndex) it.withoutResumePosition() else it
+            }
+        }
+        val state = PlayerTransferState.fromPlayer(transferSource)
         val items = state.mediaItems
         if (target === remote) {
             stopping = false
@@ -64,11 +72,14 @@ internal class CastTransferCallback(
                 it.mediaId == source.currentMediaItem?.mediaId
             }
             if (index >= 0 && items.size == 1) {
-                state.buildUpon().setMediaItems(folderQueue)
+                val queue = folderQueue.mapIndexed { itemIndex, item ->
+                    if (itemIndex == index) item.withoutResumePosition() else item
+                }
+                state.buildUpon().setMediaItems(queue)
                     .setCurrentMediaItemIndex(index).build().setToPlayer(target)
             } else {
                 CastPlayer.TransferCallback.DEFAULT.transferState(
-                    source,
+                    transferSource,
                     target,
                 )
             }

@@ -2,19 +2,32 @@ package dev.anilbeesetti.nextplayer.feature.player.cast
 
 import android.graphics.SurfaceTexture
 import android.view.Surface
+import androidx.media3.common.DeviceInfo
+import androidx.media3.common.ForwardingPlayer
 import androidx.media3.common.MediaItem
 import androidx.media3.common.Player
 import androidx.media3.common.util.Size
 import androidx.media3.exoplayer.ExoPlayer
+import androidx.media3.session.MediaSession
+import dev.anilbeesetti.nextplayer.core.data.repository.PreferencesRepository
+import dev.anilbeesetti.nextplayer.core.data.repository.fake.FakePreferencesRepository
+import dev.anilbeesetti.nextplayer.core.model.Resume
 import dev.anilbeesetti.nextplayer.feature.player.extensions.copy
+import dev.anilbeesetti.nextplayer.feature.player.extensions.positionMs
 import dev.anilbeesetti.nextplayer.feature.player.extensions.videoDecoderMode
+import dev.anilbeesetti.nextplayer.feature.player.service.PlayerService
 import io.github.anilbeesetti.nextlib.media3ext.ffdecoder.DecoderMode
+import kotlinx.coroutines.runBlocking
 import org.junit.After
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertFalse
 import org.junit.Assert.assertNotEquals
+import org.junit.Assert.assertNull
 import org.junit.Test
 import org.junit.runner.RunWith
+import org.koin.core.context.startKoin
+import org.koin.core.context.stopKoin
+import org.koin.dsl.module
 import org.robolectric.RobolectricTestRunner
 import org.robolectric.RuntimeEnvironment
 import org.robolectric.annotation.Config
@@ -26,6 +39,105 @@ class CastTransferCallbackTest {
     private val remote = ExoPlayer.Builder(RuntimeEnvironment.getApplication()).build()
     private val items = (0..2).map {
         MediaItem.Builder().setMediaId("$it").setUri("file:///$it.mp4").build()
+    }
+
+    @Test
+    fun repeatedTransferDoesNotReapplyStaleResumeMetadata() {
+        val preferences = FakePreferencesRepository()
+        runBlocking { preferences.updatePlayerPreferences { it.copy(resume = Resume.YES) } }
+        startKoin { modules(module { single<PreferencesRepository> { preferences } }) }
+        val player = object : ForwardingPlayer(remote) {
+            override fun getDeviceInfo() =
+                DeviceInfo.Builder(DeviceInfo.PLAYBACK_TYPE_REMOTE).build()
+        }
+        val session = MediaSession.Builder(
+            RuntimeEnvironment.getApplication(),
+            player,
+        ).build()
+        val service = PlayerService()
+        fun field(name: String) = PlayerService::class.java.getDeclaredField(name)
+            .apply { isAccessible = true }
+        field("mediaSession").set(
+            service,
+            session,
+        )
+        val listener = field("playbackStateListener").get(service) as Player.Listener
+        val callback = CastTransferCallback(remote) { false }
+        try {
+            local.setMediaItems(
+                items.map { it.copy(positionMs = 58_000) },
+                1,
+                152_000,
+            )
+            callback.transferState(
+                local,
+                remote,
+            )
+            callback.transferState(
+                remote,
+                local,
+            )
+            local.seekTo(165_000)
+            callback.transferState(
+                local,
+                remote,
+            )
+            // Receiver acknowledgments can follow transient folder items while route info lags.
+            field("lastPlaybackMediaId").set(
+                service,
+                items[0].mediaId,
+            )
+            field("lastPlaybackType").set(
+                service,
+                DeviceInfo.PLAYBACK_TYPE_REMOTE,
+            )
+            listener.onMediaItemTransition(
+                remote.currentMediaItem,
+                Player.MEDIA_ITEM_TRANSITION_REASON_AUTO,
+            )
+            assertEquals(
+                165_000L,
+                remote.currentPosition,
+            )
+            remote.seekTo(170_000)
+            listener.onMediaItemTransition(
+                remote.currentMediaItem,
+                Player.MEDIA_ITEM_TRANSITION_REASON_AUTO,
+            )
+            assertEquals(
+                170_000L,
+                remote.currentPosition,
+            )
+            callback.transferState(
+                remote,
+                local,
+            )
+            assertEquals(
+                170_000L,
+                local.currentPosition,
+            )
+            assertEquals(
+                3,
+                local.mediaItemCount,
+            )
+            assertNull(local.currentMediaItem?.mediaMetadata?.positionMs)
+            assertEquals(
+                58_000L,
+                local.getMediaItemAt(0).mediaMetadata.positionMs,
+            )
+            remote.setMediaItem(items[0].copy(positionMs = 60_000))
+            listener.onMediaItemTransition(
+                remote.currentMediaItem,
+                Player.MEDIA_ITEM_TRANSITION_REASON_PLAYLIST_CHANGED,
+            )
+            assertEquals(
+                60_000L,
+                remote.currentPosition,
+            )
+        } finally {
+            session.release()
+            stopKoin()
+        }
     }
 
     @After
@@ -249,7 +361,10 @@ class CastTransferCallbackTest {
     @Test
     fun advancingRemotelyTransfersCurrentItemsDecoderMetadataAndPosition() {
         val callback = CastTransferCallback(remote) { true }
-        val second = items[1].copy(videoDecoderMode = DecoderMode.SOFTWARE)
+        val second = items[1].copy(
+            positionMs = 58_000,
+            videoDecoderMode = DecoderMode.SOFTWARE,
+        )
         local.setMediaItems(
             listOf(
                 items[0],
@@ -282,6 +397,11 @@ class CastTransferCallbackTest {
         assertEquals(
             35_000L,
             local.currentPosition,
+        )
+        assertNull(local.currentMediaItem?.mediaMetadata?.positionMs)
+        assertEquals(
+            58_000L,
+            second.mediaMetadata.positionMs,
         )
         assertEquals(
             false,
