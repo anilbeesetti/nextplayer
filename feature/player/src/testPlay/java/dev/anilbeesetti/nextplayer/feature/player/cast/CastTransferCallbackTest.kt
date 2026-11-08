@@ -11,6 +11,7 @@ import dev.anilbeesetti.nextplayer.feature.player.extensions.videoDecoderMode
 import io.github.anilbeesetti.nextlib.media3ext.ffdecoder.DecoderMode
 import org.junit.After
 import org.junit.Assert.assertEquals
+import org.junit.Assert.assertFalse
 import org.junit.Assert.assertNotEquals
 import org.junit.Test
 import org.junit.runner.RunWith
@@ -31,6 +32,91 @@ class CastTransferCallbackTest {
     fun tearDown() {
         local.release()
         remote.release()
+    }
+
+    @Test
+    fun explicitStopDoesNotRestoreAnAsynchronouslyClearedRemoteQueue() {
+        val callback = CastTransferCallback(remote) { false }
+        local.setMediaItems(
+            items,
+            1,
+            12_000,
+        )
+        local.playWhenReady = true
+        callback.transferState(
+            local,
+            remote,
+        )
+        callback.onStop()
+        callback.clearSavedQueue()
+        // The receiver can still report its old queue when the Cast session disconnects.
+        remote.stop()
+        assertEquals(
+            1,
+            remote.mediaItemCount,
+        )
+        callback.transferState(
+            remote,
+            local,
+        )
+        assertEquals(
+            0,
+            local.mediaItemCount,
+        )
+        assertFalse(local.playWhenReady)
+
+        local.setMediaItem(items[2])
+        callback.transferState(
+            local,
+            remote,
+        )
+        callback.transferState(
+            remote,
+            local,
+        )
+        assertEquals(
+            "2",
+            local.currentMediaItem?.mediaId,
+        )
+    }
+
+    @Test
+    fun newQueueAcceptedWhileDisconnectingSurvivesTheStop() {
+        val callback = CastTransferCallback(remote) { false }
+        local.setMediaItems(
+            items,
+            1,
+            12_000,
+        )
+        callback.transferState(
+            local,
+            remote,
+        )
+        callback.onStop()
+        val next = MediaItem.Builder().setMediaId("new")
+            .setUri("https://example.com/new.mp4").build()
+        remote.setMediaItem(
+            next,
+            34_000,
+        )
+        callback.onQueueReady()
+        remote.playWhenReady = true
+        callback.transferState(
+            remote,
+            local,
+        )
+        assertEquals(
+            "new",
+            local.currentMediaItem?.mediaId,
+        )
+        assertEquals(
+            34_000L,
+            local.currentPosition,
+        )
+        assertEquals(
+            true,
+            local.playWhenReady,
+        )
     }
 
     @Test
