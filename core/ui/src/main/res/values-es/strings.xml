@@ -545,4 +545,21 @@
     <string name="add_to_home_screen">Añadir a la pantalla de inicio</string>
     <string name="playlist_shortcut_failed">No se pudo añadir el acceso directo a la lista de reproducción. Inténtalo de nuevo.</string>
     <string name="github_sponsors">Patrocinadores de GitHub</string>
+    <string name="settings_export_description">Guardar configuración en un archivo JSON</string>
+    <string name="settings_import">Importar configuración</string>
+    <string name="settings_export">Exportar configuración</string>
+    <string name="settings_import_description">Restaurar configuración desde un archivo JSON</string>
+    <string name="settings_export_confirmation">Exportar la configuración de la aplicación y del reproductor a un archivo JSON.</string>
+    <string name="settings_export_include_credentials">Incluir conexiones de red y credenciales</string>
+    <string name="settings_export_credentials_warning">El archivo JSON no está cifrado. Puede contener contraseñas y claves privadas SSH. Manténgalo a salvo.</string>
+    <string name="settings_import_confirmation">La configuración de este archivo sobrescribirá tu configuración actual. Se ignorarán los elementos faltantes, obsoletos, desconocidos o no válidos. Las conexiones de red y las credenciales también se importarán si están incluidas.</string>
+    <string name="export_action">Exportar</string>
+    <string name="import_action">Importar</string>
+    <string name="settings_export_success">Configuración exportada</string>
+    <string name="settings_export_failed">Error al exportar la configuración</string>
+    <string name="settings_import_success">Configuración importada</string>
+    <string name="settings_import_failed">No se pudo completar la importación de la configuración. Inténtalo de nuevo.</string>
+    <string name="settings_import_invalid">No se pudo leer este archivo o no contiene una configuración JSON compatible</string>
+    <string name="reset_subtitle_position">Restablecer la posición de los subtítulos</string>
+    <string name="reset_subtitle_position_desc">Arrastra los subtítulos hacia arriba o hacia abajo durante la reproducción para moverlos</string>
 </resources>
