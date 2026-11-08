@@ -3,8 +3,10 @@ package dev.anilbeesetti.nextplayer.navigation
 import androidx.compose.runtime.mutableIntStateOf
 import androidx.navigation3.runtime.NavBackStack
 import androidx.navigation3.runtime.NavKey
+import androidx.navigation3.runtime.entryProvider
 import dev.anilbeesetti.nextplayer.feature.playlist.navigation.PlaylistDetailRoute
 import org.junit.Assert.assertEquals
+import org.junit.Assert.assertTrue
 import org.junit.Test
 
 class TopLevelNavigationTest {
@@ -99,16 +101,14 @@ class TopLevelNavigationTest {
             backStacks = stacks,
             selectedIndexState = mutableIntStateOf(value = 0),
         )
+        val provider = entryProvider<NavKey> {
+            TopLevelDestination.entries.forEach { destination ->
+                entry(key = destination.route) {}
+            }
+        }
         for (dest in TopLevelDestination.entries) {
-            assert(state.topLevelContentKeys.contains(dest.route))
-            assert(
-                state.topLevelContentKeys.contains(
-                    element = Pair(
-                        first = "${dest.route}",
-                        second = "${dest.route::class}",
-                    ),
-                ),
-            )
+            assertTrue(state.topLevelContentKeys.contains(dest.route))
+            assertTrue(state.topLevelContentKeys.contains(provider(dest.route).contentKey))
         }
     }
 }

@@ -21,6 +21,7 @@ enum class NetworkAuthentication {
  * directory for FTP, SFTP, and WebDAV. Imported SSH keys remain in app-private storage and are
  * referenced by their generated [privateKeyFileName].
  */
+@kotlinx.serialization.Serializable
 data class NetworkConnection(
     val id: Long = 0,
     val name: String,
