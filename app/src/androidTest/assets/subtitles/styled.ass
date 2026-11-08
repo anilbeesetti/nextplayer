@@ -1,0 +1,17 @@
+[Script Info]
+ScriptType: v4.00+
+PlayResX: 1280
+PlayResY: 720
+WrapStyle: 0
+
+[V4+ Styles]
+Format: Name, Fontname, Fontsize, PrimaryColour, SecondaryColour, OutlineColour, BackColour, Bold, Italic, Underline, StrikeOut, ScaleX, ScaleY, Spacing, Angle, BorderStyle, Outline, Shadow, Alignment, MarginL, MarginR, MarginV, Encoding
+Style: Default,Roboto,48,&H00FFFFFF,&H000000FF,&H00000000,&H80000000,0,0,0,0,100,100,0,0,1,2,1,2,30,30,40,1
+
+[Events]
+Format: Layer, Start, End, Style, Name, MarginL, MarginR, MarginV, Effect, Text
+Dialogue: 0,0:00:01.00,0:00:07.00,Default,,0,0,0,,{\an7\pos(100,100)\1c&H00FF00&}ASS positioned green
+Dialogue: 1,0:00:01.00,0:00:07.00,Default,,0,0,0,,{\an7\pos(100,200)\1c&H0000FF&\bord0\shad0\p1}m 0 0 l 160 0 160 40 0 40
+Dialogue: 0,0:00:01.00,0:00:07.00,Default,,0,0,0,,{\an2\move(250,500,1000,500)}ASS moving text
+Dialogue: 0,0:00:08.00,0:00:14.00,Default,,0,0,0,,{\k100}Ka{\k100}ra{\k100}o{\k100}ke\NEnglish — हिन्दी — العربية — 日本語
+Dialogue: 0,0:00:16.00,0:00:21.00,Default,,0,0,0,,{\fad(1000,1000)\i1}ASS fade and italic

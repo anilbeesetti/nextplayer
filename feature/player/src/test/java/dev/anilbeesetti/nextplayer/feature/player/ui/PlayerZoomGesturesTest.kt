@@ -107,6 +107,7 @@ class PlayerZoomGesturesTest {
                     ),
                     subtitlePositionState = SubtitlePositionState(0f) {},
                     hasSubtitles = false,
+                    canRepositionSubtitles = false,
                 )
             }
             pinchOut()

@@ -1,0 +1,11 @@
+[Script Info]
+ScriptType: v4.00
+PlayResX: 1280
+PlayResY: 720
+[V4 Styles]
+Format: Name, Fontname, Fontsize, PrimaryColour, SecondaryColour, TertiaryColour, BackColour, Bold, Italic, BorderStyle, Outline, Shadow, Alignment, MarginL, MarginR, MarginV, AlphaLevel, Encoding
+Style: Default,Roboto,48,65535,255,0,0,0,0,1,2,1,2,30,30,40,0,1
+[Events]
+Format: Marked, Start, End, Style, Name, MarginL, MarginR, MarginV, Effect, Text
+Dialogue: Marked=0,0:00:01.00,0:00:07.00,Default,,0,0,0,,SSA yellow subtitle
+Dialogue: Marked=0,0:00:08.00,0:00:14.00,Default,,0,0,0,,SSA second cue

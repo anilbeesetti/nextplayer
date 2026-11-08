@@ -49,16 +49,18 @@ fun PlayerGestures(
     volumeAndBrightnessGestureState: VolumeAndBrightnessGestureState,
     subtitlePositionState: SubtitlePositionState,
     hasSubtitles: Boolean,
+    canRepositionSubtitles: Boolean,
 ) {
     // Read lazily: the cue can end mid-drag and must not restart the gesture handlers.
     val currentHasSubtitles by rememberUpdatedState(hasSubtitles)
+    val currentCanReposition by rememberUpdatedState(canRepositionSubtitles)
 
     // Keep the system's swipe-to-reveal areas reserved even while the bars are hidden.
     val gestureInsets = WindowInsets.systemGestures.union(WindowInsets.systemBarsIgnoringVisibility)
     val density = LocalDensity.current
     val subtitleTouchPaddingPx = with(density) { SUBTITLE_TOUCH_PADDING.toPx() }
 
-    fun isOnSubtitle(position: Offset) = currentHasSubtitles &&
+    fun isOnSubtitle(position: Offset) = currentCanReposition && currentHasSubtitles &&
         subtitlePositionState.isOnSubtitle(
             position,
             subtitleTouchPaddingPx,
@@ -71,6 +73,7 @@ fun PlayerGestures(
                 .fillMaxSize()
                 .onSizeChanged { subtitlePositionState.containerSize = it }
                 .pointerInput(
+                    canRepositionSubtitles,
                     controlsVisibilityState.controlsLocked,
                     pictureInPictureState.isInPictureInPictureMode,
                 ) {
