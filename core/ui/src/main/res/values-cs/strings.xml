@@ -547,4 +547,21 @@
     <string name="add_to_home_screen">Přidat na domovskou obrazovku</string>
     <string name="playlist_shortcut_failed">Nešlo přidat zástupce pro playlist. Zkuste to znovu.</string>
     <string name="github_sponsors">GitHub Sponsors</string>
+    <string name="settings_export">Exportovat nastavení</string>
+    <string name="settings_export_description">Uložit nastavení do JSON souboru</string>
+    <string name="settings_import">Importovat nastavení</string>
+    <string name="settings_import_description">Obnovit nastavení z JSON souboru</string>
+    <string name="settings_export_confirmation">Exportovat nastavení aplikace a přehrávače do JSON souboru.</string>
+    <string name="settings_export_include_credentials">Zahrnout uložené síťové připojení a údaje</string>
+    <string name="settings_export_credentials_warning">JSON soubor není zašifrován. Možná bude obsahovat hesla a soukromé klíče SSH. Mějte ho v bezpečí.</string>
+    <string name="settings_import_confirmation">Nastavení v tomto souboru nahradí vaše aktuální nastavení. Chybějící, zastaralé, neznámé nebo neplatné nastavení budou ignorovány. Jestli byly zahrnuty síťové připojení a údaje, budou také importovány.</string>
+    <string name="export_action">Exportovat</string>
+    <string name="import_action">Importovat</string>
+    <string name="settings_export_success">Nastavení exportovány</string>
+    <string name="settings_export_failed">Nešlo exportovat nastavení</string>
+    <string name="settings_import_success">Nastavení importovány</string>
+    <string name="settings_import_failed">Nešlo dokončit importování nastavení. Zkuste to znovu.</string>
+    <string name="settings_import_invalid">Nešlo přečíst tento soubor nebo neobsahuje žádné podporované JSON nastavení</string>
+    <string name="reset_subtitle_position">Resetovat umístění titulek</string>
+    <string name="reset_subtitle_position_desc">Posuňte titulky nahoru nebo dolů při přehráváním pro jejich přesun</string>
 </resources>
