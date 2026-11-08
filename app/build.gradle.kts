@@ -163,6 +163,7 @@ dependencies {
     androidTestImplementation(project(":core:domain"))
     androidTestImplementation(libs.androidx.datastore.core)
     androidTestImplementation(libs.androidx.media3.session)
+    androidTestImplementation(libs.androidx.media3.ui)
     androidTestImplementation(libs.github.anilbeesetti.nextlib.media3ext)
     androidTestImplementation(platform(libs.androidx.compose.bom))
     androidTestImplementation(libs.androidx.test.ext)

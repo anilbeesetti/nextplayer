@@ -20,6 +20,7 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
 import androidx.compose.runtime.snapshotFlow
 import androidx.core.util.Consumer
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.lifecycleScope
 import androidx.media3.common.C
 import androidx.media3.common.DeviceInfo
@@ -35,6 +36,7 @@ import dev.anilbeesetti.nextplayer.core.common.extensions.getInitialDirectoryUri
 import dev.anilbeesetti.nextplayer.core.common.extensions.getMediaContentUri
 import dev.anilbeesetti.nextplayer.core.common.service.registerForSuspendActivityResult
 import dev.anilbeesetti.nextplayer.core.data.repository.PlaylistRepository
+import dev.anilbeesetti.nextplayer.core.data.repository.PreferencesRepository
 import dev.anilbeesetti.nextplayer.core.ui.R as coreUiR
 import dev.anilbeesetti.nextplayer.core.ui.theme.NextPlayerTheme
 import dev.anilbeesetti.nextplayer.feature.player.extensions.OpenDocumentAtInitialUri
@@ -82,6 +84,7 @@ internal fun shouldResumeExistingPlayback(
 class PlayerActivity : ComponentActivity() {
 
     private val playlistRepository: PlaylistRepository by inject()
+    private val preferencesRepository: PreferencesRepository by inject()
 
     private val viewModel: PlayerViewModel by viewModel { parametersOf(playerOutput()) }
     val playerPreferences get() = viewModel.state.value.playerPreferences
@@ -235,7 +238,12 @@ class PlayerActivity : ComponentActivity() {
             }
 
             if (!playerApi.launchInBackground) {
-                NextPlayerTheme(darkTheme = true) {
+                val preferences by preferencesRepository.applicationPreferences
+                    .collectAsStateWithLifecycle()
+                NextPlayerTheme(
+                    darkTheme = true,
+                    dynamicColor = preferences.useDynamicColors,
+                ) {
                     MediaPlayerScreen(
                         viewModel = viewModel,
                         player = player,

@@ -18,6 +18,7 @@ import androidx.compose.runtime.Stable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberUpdatedState
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.drawBehind
@@ -46,17 +47,21 @@ import dev.anilbeesetti.nextplayer.feature.player.state.SubtitlePositionState
 @Composable
 fun SubtitleView(
     modifier: Modifier = Modifier,
+    bitmapModifier: Modifier = modifier,
     cuesState: CuesState,
     positionState: SubtitlePositionState,
     isInPictureInPictureMode: Boolean,
     configuration: SubtitleConfiguration,
 ) {
+    val canReposition = cuesState.canReposition
+    val currentCanReposition by rememberUpdatedState(canReposition)
+    val highlighted = canReposition && positionState.isHighlighted
     // Playback keeps going while the subtitle is moved; the text on screen stays put until release.
     var frozenCues by remember { mutableStateOf<List<Cue>?>(null) }
-    LaunchedEffect(positionState.isHighlighted) {
-        frozenCues = cuesState.currentCues?.cues.takeIf { positionState.isHighlighted }
+    LaunchedEffect(highlighted) {
+        frozenCues = cuesState.currentCues?.cues.takeIf { highlighted }
     }
-    val displayedCues = frozenCues.takeIf { positionState.isHighlighted }
+    val displayedCues = frozenCues.takeIf { highlighted }
         ?: cuesState.currentCues?.cues
     DisposableEffect(positionState) {
         onDispose { positionState.textBounds = null }
@@ -75,13 +80,28 @@ fun SubtitleView(
     }
 
     AndroidView(
-        modifier = modifier
+        modifier = (
+            if (cuesState.currentCues?.cues?.any { it.bitmap != null } ==
+                true
+            ) {
+                bitmapModifier
+            } else {
+                modifier
+            }
+            )
             .fillMaxSize()
             .graphicsLayer {
-                translationY = if (isInPictureInPictureMode) 0f else positionState.translationYPx
+                translationY =
+                    if (isInPictureInPictureMode ||
+                        !canReposition
+                    ) {
+                        0f
+                    } else {
+                        positionState.translationYPx
+                    }
             }
             .drawBehind {
-                if (!positionState.isHighlighted || isInPictureInPictureMode) return@drawBehind
+                if (!highlighted || isInPictureInPictureMode) return@drawBehind
                 val bounds = positionState.textBounds?.inflate(4.dp.toPx()) ?: return@drawBehind
                 drawRoundRect(
                     color = highlightBackground,
@@ -107,7 +127,8 @@ fun SubtitleView(
                 }
                 setApplyEmbeddedStyles(configuration.applyEmbeddedStyles)
                 addOnLayoutChangeListener { view, _, _, _, _, _, _, _, _ ->
-                    positionState.textBounds = measureDrawnBounds(view)
+                    positionState.textBounds =
+                        if (currentCanReposition) measureDrawnBounds(view) else null
                 }
             }
         },
@@ -116,7 +137,7 @@ fun SubtitleView(
                 createCaptionStyle(
                     context = subtitleView.context,
                     configuration = configuration,
-                    highlighted = positionState.isHighlighted,
+                    highlighted = highlighted,
                 ),
             )
             subtitleView.setApplyEmbeddedStyles(configuration.applyEmbeddedStyles)
@@ -129,7 +150,10 @@ fun SubtitleView(
                     configuration.textSize.toFloat(),
                 )
             }
-            subtitleView.doOnPreDraw { positionState.textBounds = measureDrawnBounds(it) }
+            subtitleView.doOnPreDraw {
+                positionState.textBounds =
+                    if (currentCanReposition) measureDrawnBounds(it) else null
+            }
         },
     )
 }
