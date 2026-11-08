@@ -578,7 +578,7 @@ class PlayerService : MediaSessionService() {
                     queue,
                     if (queue.size == updatedMediaItems.size) startIndex else 0,
                     startPositionMs,
-                )
+                ).also { playbackOutput?.onQueueReady() }
             }
             pendingMediaItemsRequest = request
             request.addListener(
@@ -937,6 +937,7 @@ class PlayerService : MediaSessionService() {
                 if (queue.size == updatedItems.size) index else 0,
                 position,
             )
+            playbackOutput?.onQueueReady()
             speed?.let(::setPlaybackSpeed)
             prepare()
             play()

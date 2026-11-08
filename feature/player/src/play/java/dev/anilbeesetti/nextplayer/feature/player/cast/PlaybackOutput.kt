@@ -10,6 +10,8 @@ import androidx.media3.common.Timeline
 import androidx.media3.common.util.UnstableApi
 import androidx.media3.datasource.DefaultDataSource
 import androidx.media3.exoplayer.ExoPlayer
+import com.google.android.gms.cast.framework.CastContext
+import com.google.android.gms.cast.framework.SessionManager
 import dev.anilbeesetti.nextplayer.core.common.Logger
 import dev.anilbeesetti.nextplayer.core.ui.R
 
@@ -24,6 +26,7 @@ internal class PlaybackOutput(context: Context, localPlayer: ExoPlayer, autoplay
         server,
     )
     private var transfer: CastTransferCallback? = null
+    private var sessionManager: SessionManager? = null
     val player: Player = try {
         val remote = RemoteCastPlayer.Builder(context).setMediaItemConverter(converter).build()
         val transfer = CastTransferCallback(
@@ -54,6 +57,7 @@ internal class PlaybackOutput(context: Context, localPlayer: ExoPlayer, autoplay
             }
             .build()
             .also { output ->
+                sessionManager = CastContext.getSharedInstance(context).sessionManager
                 output.addListener(
                     CastResourceCleanup(output) {
                         server.stop()
@@ -71,8 +75,18 @@ internal class PlaybackOutput(context: Context, localPlayer: ExoPlayer, autoplay
     }
 
     fun onNewQueue() = transfer?.clearSavedQueue()
+    fun onQueueReady() = transfer?.onQueueReady()
 
     fun onStop() {
+        transfer?.onStop()
+        try {
+            sessionManager?.endCurrentSession(true)
+        } catch (error: RuntimeException) {
+            Logger.logError(
+                "Cast",
+                "Cast disconnect failed: ${error.message}",
+            )
+        }
         server.stop()
         converter.clear()
     }

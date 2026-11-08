@@ -13,15 +13,33 @@ internal class CastTransferCallback(
     private val autoplay: () -> Boolean,
 ) : CastPlayer.TransferCallback {
     private var folderQueue = emptyList<MediaItem>()
+    private var stopping = false
 
     fun clearSavedQueue() {
         folderQueue = emptyList()
     }
 
+    fun onStop() {
+        stopping = true
+        clearSavedQueue()
+    }
+
+    fun onQueueReady() {
+        stopping = false
+    }
+
     override fun transferState(source: Player, target: Player) {
+        if (target !== remote && stopping) {
+            stopping = false
+            target.pause()
+            target.clearMediaItems()
+            target.stop()
+            return
+        }
         val state = PlayerTransferState.fromPlayer(source)
         val items = state.mediaItems
         if (target === remote) {
+            stopping = false
             val queue = mediaItemsForCast(
                 items,
                 state.currentMediaItemIndex,
