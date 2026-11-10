@@ -10,6 +10,7 @@ import android.os.SystemClock
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.asAndroidBitmap
 import androidx.compose.ui.semantics.SemanticsActions
+import androidx.compose.ui.semantics.SemanticsProperties
 import androidx.compose.ui.test.assertIsDisplayed
 import androidx.compose.ui.test.captureToImage
 import androidx.compose.ui.test.junit4.v2.createAndroidComposeRule
@@ -471,13 +472,11 @@ class MiniPlayerIntegrationTest {
         val progress = composeRule.onNodeWithContentDescription(
             context.getString(R.string.player_controls_progress),
         )
+        progress.assertIsDisplayed()
+        // Android touch coordinates can quantize the endpoint by one physical pixel.
+        val tolerance = 1.5f / progress.fetchSemanticsNode().boundsInRoot.width
         progress.performTouchInput {
-            down(
-                Offset(
-                    0f,
-                    centerY,
-                ),
-            )
+            down(center)
             moveTo(
                 Offset(
                     -20f,
@@ -487,16 +486,28 @@ class MiniPlayerIntegrationTest {
             )
         }
         try {
+            val start = progress.fetchSemanticsNode().config
+            assertEquals(
+                0f,
+                start[SemanticsProperties.ProgressBarRangeInfo].current,
+                tolerance,
+            )
             capturePlayback("dark-landscape-seek-start")
             progress.performTouchInput {
                 moveTo(
                     Offset(
-                        width + 20f,
+                        width + 200f,
                         centerY,
                     ),
                     delayMillis = 300,
                 )
             }
+            val end = progress.fetchSemanticsNode().config
+            assertEquals(
+                1f,
+                end[SemanticsProperties.ProgressBarRangeInfo].current,
+                tolerance,
+            )
             capturePlayback("dark-landscape-seek-end")
         } finally {
             progress.performTouchInput { up() }
