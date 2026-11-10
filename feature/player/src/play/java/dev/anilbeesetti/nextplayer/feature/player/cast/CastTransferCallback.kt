@@ -8,6 +8,7 @@ import androidx.media3.common.PlayerTransferState
 import androidx.media3.common.util.UnstableApi
 import dev.anilbeesetti.nextplayer.feature.player.extensions.withoutResumePosition
 import dev.anilbeesetti.nextplayer.feature.player.service.mediaItemsForCast
+import dev.anilbeesetti.nextplayer.feature.player.service.playbackTransferState
 
 @UnstableApi
 internal class CastTransferCallback(
@@ -35,7 +36,7 @@ internal class CastTransferCallback(
     }
 
     fun snapshotForPhone(source: Player): PlayerTransferState {
-        val state = PlayerTransferState.fromPlayer(source)
+        val state = playbackTransferState(source)
         val index = folderQueue.indexOfFirst { it.mediaId == source.currentMediaItem?.mediaId }
         return if (index >= 0 && state.mediaItems.size == 1) {
             state.buildUpon().setMediaItems(

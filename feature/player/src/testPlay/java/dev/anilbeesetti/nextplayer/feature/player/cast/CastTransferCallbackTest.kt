@@ -140,6 +140,34 @@ class CastTransferCallbackTest {
         }
     }
 
+    @Test
+    fun dismissalSnapshotDropsConsumedHintAfterRemoteQueueAdvances() {
+        val callback = CastTransferCallback(remote) { true }
+        local.setMediaItems(
+            items.map { it.copy(positionMs = 58_000) },
+            0,
+            0,
+        )
+        callback.transferState(
+            local,
+            remote,
+        )
+        remote.seekTo(
+            1,
+            35_000,
+        )
+        val saved = callback.snapshotForPhone(remote)
+        assertEquals(
+            35_000,
+            saved.currentPosition,
+        )
+        assertNull(saved.mediaItems[1].mediaMetadata.positionMs)
+        assertEquals(
+            58_000L,
+            saved.mediaItems[2].mediaMetadata.positionMs,
+        )
+    }
+
     @After
     fun tearDown() {
         local.release()
