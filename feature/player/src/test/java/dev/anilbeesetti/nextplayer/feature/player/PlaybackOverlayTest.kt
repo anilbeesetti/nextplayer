@@ -217,6 +217,46 @@ class PlaybackOverlayTest {
         }
     }
 
+    @Test fun artworkMetadataEnrichmentAndDuplicateItemsDoNotSeekOrResetThePage() {
+        expanded = true
+        composeRule.runOnIdle {
+            player.update {
+                setPlaylist(
+                    listOf(
+                        player.item(0),
+                        player.item(1).buildUpon()
+                            .setMediaItem(player.item(0).mediaItem).build(),
+                    ),
+                )
+                setCurrentMediaItemIndex(1)
+            }
+        }
+        show()
+        composeRule.mainClock.advanceTimeBy(600)
+        composeRule.runOnIdle {
+            player.update {
+                setPlaylist(
+                    listOf(
+                        player.item(0),
+                        player.item(1).buildUpon()
+                            .setMediaItem(player.item(0).mediaItem)
+                            .setMediaMetadata(
+                                MediaMetadata.Builder().setTitle("Enriched").build(),
+                            ).build(),
+                    ),
+                )
+            }
+        }
+        composeRule.mainClock.advanceTimeBy(600)
+        composeRule.runOnIdle {
+            assertEquals(
+                1,
+                player.currentMediaItemIndex,
+            )
+            assertTrue(player.seeks.isEmpty())
+        }
+    }
+
     @Test fun artworkSwipeSelectsNextWithoutDismissing() {
         expanded = true
         show()
@@ -490,21 +530,20 @@ class PlaybackOverlayTest {
 
     @Test
     @Config(qualifiers = "w1400dp-h900dp-land")
-    fun pausedLandscapeCollapseStaysInsideScaledArtworkOnLargeWindows() {
+    fun largeLandscapeArtworkFitsAndDoesNotRescaleOnPlayPause() {
         expanded = true
         show()
         composeRule.mainClock.advanceTimeBy(600)
         val frame = composeRule.onNodeWithTag("landscape_artwork_frame").getUnclippedBoundsInRoot()
         val button = composeRule.onNodeWithTag("landscape_collapse").getUnclippedBoundsInRoot()
-        val shrink = (frame.right - frame.left) * .025f
         assertTrue(frame.right - frame.left > 440.dp)
         assertEquals(
-            (frame.left + shrink + 8.dp).value,
+            (frame.left + 8.dp).value,
             button.left.value,
             .5f,
         )
         assertEquals(
-            (frame.top + shrink + 8.dp).value,
+            (frame.top + 8.dp).value,
             button.top.value,
             .5f,
         )
@@ -512,9 +551,19 @@ class PlaybackOverlayTest {
         val root = composeRule.onNodeWithTag("expanded_player").getUnclippedBoundsInRoot()
         assertTrue(frame.left >= root.left && frame.top >= root.top)
         assertTrue(frame.right <= metadata.left && frame.bottom <= root.bottom)
-        assertTrue(button.right <= frame.right - shrink)
-        assertTrue(button.bottom <= frame.bottom - shrink)
+        assertTrue(button.right <= frame.right)
+        assertTrue(button.bottom <= frame.bottom)
         assertTrue(button.right - button.left >= 48.dp)
+        composeRule.runOnIdle { player.play() }
+        composeRule.mainClock.advanceTimeBy(600)
+        assertEquals(
+            frame,
+            composeRule.onNodeWithTag("landscape_artwork_frame").getUnclippedBoundsInRoot(),
+        )
+        assertEquals(
+            button,
+            composeRule.onNodeWithTag("landscape_collapse").getUnclippedBoundsInRoot(),
+        )
     }
 
     @Test

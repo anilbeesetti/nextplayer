@@ -21,6 +21,7 @@ import dev.anilbeesetti.nextplayer.core.media.network.NetworkClientFactory
 import dev.anilbeesetti.nextplayer.core.media.network.NetworkConnectionResolver
 import dev.anilbeesetti.nextplayer.core.media.network.datasource.NetworkSessions
 import dev.anilbeesetti.nextplayer.core.media.network.datasource.NextDataSourceFactory
+import dev.anilbeesetti.nextplayer.core.model.Video
 import dev.anilbeesetti.nextplayer.feature.player.utils.PlayerApi
 import kotlinx.coroutines.CompletableDeferred
 import kotlinx.coroutines.CoroutineScope
@@ -50,6 +51,7 @@ import org.robolectric.annotation.Config
 class PlaybackSpeedSessionTest {
     private val preferences = FakePreferencesRepository()
     private val applicationScope = CoroutineScope(SupervisorJob() + Dispatchers.Default)
+    private var libraryVideo: Video? = null
     private var metadataGate: CompletableDeferred<Unit>? = null
     private var delayedMediaId: String? = null
     private var metadataStarted: CompletableDeferred<Unit>? = null
@@ -68,6 +70,9 @@ class PlaybackSpeedSessionTest {
                     single<PreferencesRepository> { preferences }
                     single<MediaRepository> {
                         object : MediaRepository by FakeMediaRepository() {
+                            override suspend fun getVideoByUri(uri: String): Video? =
+                                libraryVideo?.takeIf { it.uriString == uri }
+
                             override suspend fun getVideoState(uri: String): VideoState? {
                                 if (delayedMediaId == null || delayedMediaId == uri) {
                                     metadataStarted?.complete(Unit)
@@ -577,6 +582,48 @@ class PlaybackSpeedSessionTest {
             player.mediaItemCount,
         )
         assertFalse(player.playWhenReady)
+    }
+
+    @Test
+    fun queueEnrichmentKeepsSuppliedAndLibraryDurationsBeforePlayback() = withSession {
+            service,
+            _,
+        ->
+        val supplied = MediaItem.Builder().setMediaId("file:///supplied.mp4")
+            .setUri("file:///supplied.mp4")
+            .setMediaMetadata(MediaMetadata.Builder().setDurationMs(15_000).build()).build()
+        libraryVideo = Video.sample.copy(
+            uriString = "file:///library.mp4",
+            duration = 20_000,
+        )
+        val library = MediaItem.Builder().setMediaId("file:///library.mp4")
+            .setUri("file:///library.mp4").build()
+        val pending = serviceCallback(service).onSetMediaItems(
+            serviceSession(service),
+            controllerInfo(),
+            mutableListOf(
+                supplied,
+                library,
+            ),
+            0,
+            0,
+        )
+        val deadline = System.nanoTime() + 5_000_000_000L
+        while (!pending.isDone && System.nanoTime() < deadline) {
+            shadowOf(Looper.getMainLooper()).idle()
+            Thread.sleep(5)
+        }
+        val items = pending.get(
+            1,
+            java.util.concurrent.TimeUnit.SECONDS,
+        ).mediaItems
+        assertEquals(
+            listOf(
+                15_000L,
+                20_000L,
+            ),
+            items.map { it.mediaMetadata.durationMs },
+        )
     }
 
     private fun foregroundRequest(service: PlayerService, item: MediaItem) =

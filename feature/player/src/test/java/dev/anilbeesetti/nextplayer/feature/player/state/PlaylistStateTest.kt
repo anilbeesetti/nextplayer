@@ -62,6 +62,40 @@ class PlaylistStateTest {
         )
     }
 
+    @Test
+    fun duplicateUrisHaveDistinctStableKeysAndKnownDurations() = withPlaylist(
+        "same",
+        "same",
+    ) {
+            state,
+            player,
+        ->
+        val firstKey = state.getKeyAt(0)
+        org.junit.Assert.assertNotEquals(
+            firstKey,
+            state.getKeyAt(1),
+        )
+        val item = player.getMediaItemAt(1).buildUpon().setMediaMetadata(
+            androidx.media3.common.MediaMetadata.Builder().setDurationMs(20_000).build(),
+        ).build()
+        player.replaceMediaItem(
+            1,
+            item,
+        )
+        assertEquals(
+            firstKey,
+            state.getKeyAt(0),
+        )
+        assertEquals(
+            20_000L,
+            PlaylistState(player).getDurationAt(1),
+        )
+        assertEquals(
+            null,
+            state.getDurationAt(0),
+        )
+    }
+
     private fun withPlaylist(vararg ids: String, assertion: (PlaylistState, Player) -> Unit) {
         val player = ExoPlayer.Builder(RuntimeEnvironment.getApplication()).build()
         try {

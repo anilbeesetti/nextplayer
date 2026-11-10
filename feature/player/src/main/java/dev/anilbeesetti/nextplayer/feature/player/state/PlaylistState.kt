@@ -4,6 +4,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableIntStateOf
+import androidx.compose.runtime.mutableLongStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
@@ -37,10 +38,14 @@ class PlaylistState(private val player: Player?) {
     val mediaItemCount: Int
         get() = if (canGetTimeline) timeline.windowCount else 0
 
+    private var currentDuration by mutableLongStateOf(C.TIME_UNSET)
+
     var playlistMetadata: MediaMetadata by mutableStateOf(MediaMetadata.EMPTY)
         private set
 
     private val playerStateObserver = player?.observeState(
+        Player.EVENT_PLAYBACK_STATE_CHANGED,
+        Player.EVENT_MEDIA_METADATA_CHANGED,
         Player.EVENT_TIMELINE_CHANGED,
         Player.EVENT_POSITION_DISCONTINUITY,
         Player.EVENT_PLAYLIST_METADATA_CHANGED,
@@ -48,6 +53,11 @@ class PlaylistState(private val player: Player?) {
     ) { player ->
         canGetTimeline = player.isCommandAvailable(Player.COMMAND_GET_TIMELINE)
         canGetMetadata = player.isCommandAvailable(Player.COMMAND_GET_METADATA)
+        currentDuration = if (player.isCommandAvailable(Player.COMMAND_GET_CURRENT_MEDIA_ITEM)) {
+            player.duration
+        } else {
+            C.TIME_UNSET
+        }
 
         playlistMetadata = if (canGetMetadata) player.playlistMetadata else MediaMetadata.EMPTY
         timeline = if (canGetTimeline) player.currentTimeline else Timeline.EMPTY
@@ -87,6 +97,21 @@ class PlaylistState(private val player: Player?) {
         if (index !in 0 until timeline.windowCount) return
         if (player?.currentMediaItemIndex == index) return
         player?.seekToDefaultPosition(index)
+    }
+
+    fun getKeyAt(index: Int): String = timeline.getWindow(
+        index,
+        Timeline.Window(),
+    ).uid.toString()
+
+    fun getDurationAt(index: Int): Long? {
+        val window = timeline.getWindow(
+            index,
+            Timeline.Window(),
+        )
+        return window.mediaItem.mediaMetadata.durationMs?.takeIf { it > 0 }
+            ?: window.durationMs.takeIf { it > 0 }
+            ?: currentDuration.takeIf { index == currentMediaItemIndex && it > 0 }
     }
 
     fun getMediaItemAt(index: Int): MediaItem {

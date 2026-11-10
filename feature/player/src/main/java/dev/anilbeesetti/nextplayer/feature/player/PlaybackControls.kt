@@ -44,10 +44,13 @@ import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.unit.LayoutDirection
 import androidx.compose.ui.unit.dp
 import androidx.media3.common.Player
+import androidx.media3.common.util.UnstableApi
+import androidx.media3.ui.compose.state.rememberProgressStateWithTickInterval
 import dev.anilbeesetti.nextplayer.core.common.Utils
 import dev.anilbeesetti.nextplayer.core.ui.R
 import dev.anilbeesetti.nextplayer.feature.player.state.PlaybackSnapshot
 
+@androidx.annotation.OptIn(UnstableApi::class)
 @OptIn(
     ExperimentalMaterial3Api::class,
     ExperimentalMaterial3ExpressiveApi::class,
@@ -58,8 +61,14 @@ internal fun PlaybackSeekControl(
     snapshot: PlaybackSnapshot,
     controlsEnabled: Boolean = true,
 ) {
+    val progress = rememberProgressStateWithTickInterval(
+        player = player.takeIf { controlsEnabled },
+        tickIntervalMs = 16,
+    )
+    val duration = progress.durationMs.takeIf { it > 0 } ?: snapshot.duration
+    val position = if (controlsEnabled) progress.currentPositionMs else snapshot.position
     var dragged by remember(snapshot.item?.mediaId) { mutableStateOf<Float?>(null) }
-    val enabled = controlsEnabled && snapshot.duration > 0 &&
+    val enabled = controlsEnabled && duration > 0 &&
         snapshot.commands.contains(Player.COMMAND_SEEK_IN_CURRENT_MEDIA_ITEM)
     val label = stringResource(R.string.player_controls_progress)
     val interaction = remember { MutableInteractionSource() }
@@ -97,7 +106,7 @@ internal fun PlaybackSeekControl(
             alpha = .38f,
         )
     }
-    val value = (dragged ?: snapshot.progress).coerceIn(
+    val value = (dragged ?: if (duration > 0) position.toFloat() / duration else 0f).coerceIn(
         0f,
         1f,
     )
@@ -159,9 +168,9 @@ internal fun PlaybackSeekControl(
                     dragged?.let {
                         if (enabled) {
                             player.seekTo(
-                                (it * snapshot.duration).toLong().coerceIn(
+                                (it * duration).toLong().coerceIn(
                                     0,
-                                    snapshot.duration,
+                                    duration,
                                 ),
                             )
                         }
@@ -187,15 +196,15 @@ internal fun PlaybackSeekControl(
             Modifier.fillMaxWidth(),
             horizontalArrangement = Arrangement.SpaceBetween,
         ) {
-            val position = dragged?.let { (it * snapshot.duration.coerceAtLeast(0)).toLong() }
-                ?: snapshot.position
+            val displayedPosition = dragged?.let { (it * duration.coerceAtLeast(0)).toLong() }
+                ?: position
             Text(
-                Utils.formatDurationMillis(position),
+                Utils.formatDurationMillis(displayedPosition),
                 modifier = Modifier.testTag("playback_position"),
                 style = MaterialTheme.typography.labelMedium,
             )
             Text(
-                if (snapshot.duration > 0) Utils.formatDurationMillis(snapshot.duration) else "—",
+                if (duration > 0) Utils.formatDurationMillis(duration) else "—",
                 style = MaterialTheme.typography.labelMedium,
             )
         }

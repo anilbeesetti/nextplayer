@@ -580,4 +580,11 @@
     <string name="player_controls_shuffle">Shuffle</string>
     <string name="player_controls_repeat">Repeat</string>
     <string name="volume">Volume</string>
+    <string name="queue_next_up">Next up</string>
+    <string name="queue_move_up">Move earlier in queue</string>
+    <string name="queue_move_down">Move later in queue</string>
+    <plurals name="queue_videos_count">
+        <item quantity="one">%d video lined up</item>
+        <item quantity="other">%d videos lined up</item>
+    </plurals>
 </resources>

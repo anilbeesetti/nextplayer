@@ -1348,7 +1348,11 @@ class PlayerService : MediaSessionService() {
                 mediaItem.buildUpon().apply {
                     setSubtitleConfigurations(existingSubConfigurations + subConfigurations)
                     setMediaMetadata(
-                        MediaMetadata.Builder().apply {
+                        mediaItem.mediaMetadata.buildUpon().apply {
+                            setDurationMs(
+                                mediaItem.mediaMetadata.durationMs?.takeIf { it > 0 }
+                                    ?: video?.duration?.takeIf { it > 0 },
+                            )
                             setTitle(title)
                             setArtworkUri(artworkUri)
                             setExtras(

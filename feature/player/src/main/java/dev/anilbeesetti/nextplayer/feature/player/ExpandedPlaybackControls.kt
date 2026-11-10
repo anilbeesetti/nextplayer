@@ -5,22 +5,15 @@ import android.database.ContentObserver
 import android.os.Handler
 import android.os.Looper
 import android.provider.Settings
-import androidx.compose.animation.AnimatedContent
 import androidx.compose.animation.animateContentSize
 import androidx.compose.animation.core.FastOutSlowInEasing
 import androidx.compose.animation.core.Spring
 import androidx.compose.animation.core.animateDpAsState
-import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.animation.core.spring
 import androidx.compose.animation.core.tween
-import androidx.compose.animation.fadeIn
-import androidx.compose.animation.fadeOut
-import androidx.compose.animation.slideInHorizontally
-import androidx.compose.animation.slideOutHorizontally
-import androidx.compose.animation.togetherWith
 import androidx.compose.foundation.MarqueeSpacing
 import androidx.compose.foundation.basicMarquee
-import androidx.compose.foundation.gestures.detectHorizontalDragGestures
+import androidx.compose.foundation.interaction.DragInteraction
 import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -39,6 +32,8 @@ import androidx.compose.foundation.layout.safeDrawingPadding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.layout.widthIn
+import androidx.compose.foundation.pager.HorizontalPager
+import androidx.compose.foundation.pager.rememberPagerState
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
@@ -72,11 +67,11 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableFloatStateOf
 import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
+import androidx.compose.runtime.snapshotFlow
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.drawWithContent
@@ -87,7 +82,6 @@ import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.CompositingStrategy
 import androidx.compose.ui.graphics.graphicsLayer
-import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalLayoutDirection
 import androidx.compose.ui.platform.testTag
@@ -107,7 +101,7 @@ import dev.anilbeesetti.nextplayer.core.ui.components.tvFocusRing
 import dev.anilbeesetti.nextplayer.feature.player.service.CustomCommands
 import dev.anilbeesetti.nextplayer.feature.player.service.PlaybackConnection
 import dev.anilbeesetti.nextplayer.feature.player.state.PlaybackSnapshot
-import kotlin.math.abs
+import dev.anilbeesetti.nextplayer.feature.player.state.rememberPlaylistState
 
 @Composable
 internal fun ExpandedPlaybackControls(
@@ -127,14 +121,6 @@ internal fun ExpandedPlaybackControls(
     onCommand: (CustomCommands) -> Unit,
     dragModifier: Modifier,
 ) {
-    val artworkScale by animateFloatAsState(
-        if (snapshot.playWhenReady) 1f else .95f,
-        animationSpec = tween(
-            260,
-            easing = FastOutSlowInEasing,
-        ),
-        label = "playback_artwork_scale",
-    )
     var titleWidth by remember(title) { mutableIntStateOf(0) }
     val collapseFocus = remember { FocusRequester() }
     LaunchedEffect(Unit) { collapseFocus.requestFocus() }
@@ -294,14 +280,13 @@ internal fun ExpandedPlaybackControls(
                             player,
                             snapshot,
                             controlsEnabled,
-                            artworkScale,
                             Modifier.fillMaxSize().then(dragModifier),
                         )
                         PlaybackCollapseButton(
                             onCollapse,
                             Modifier.align(
                                 Alignment.TopStart,
-                            ).padding(8.dp + maxWidth * ((1f - artworkScale) / 2f))
+                            ).padding(8.dp)
                                 .testTag("landscape_collapse")
                                 .then(dragModifier).focusRequester(collapseFocus),
                         )
@@ -362,7 +347,6 @@ internal fun ExpandedPlaybackControls(
                                 player,
                                 snapshot,
                                 controlsEnabled,
-                                artworkScale,
                                 Modifier.fillMaxWidth().aspectRatio(1f).then(dragModifier),
                             )
                         }
@@ -533,77 +517,102 @@ private fun PlaybackHeaderActions(
     }
 }
 
+@androidx.annotation.OptIn(androidx.media3.common.util.UnstableApi::class)
 @Composable
 private fun PlaybackArtworkCarousel(
     player: Player,
     snapshot: PlaybackSnapshot,
     controlsEnabled: Boolean,
-    artworkScale: Float,
     modifier: Modifier,
 ) {
-    val rtl = LocalLayoutDirection.current == LayoutDirection.Rtl
-    var direction by remember { mutableFloatStateOf(0f) }
-    var drag by remember { mutableFloatStateOf(0f) }
-    Box(
-        modifier.testTag("playback_artwork").pointerInput(
-            player,
-            controlsEnabled,
-            rtl,
-        ) {
-            detectHorizontalDragGestures(
-                onHorizontalDrag = { change, amount ->
-                    change.consume()
-                    drag += amount
-                },
-                onDragCancel = { drag = 0f },
-                onDragEnd = {
-                    if (controlsEnabled && abs(drag) > size.width * .2f) {
-                        val next = (drag < 0) != rtl
-                        direction = if (next) 1f else -1f
-                        val command = if (next) {
-                            Player.COMMAND_SEEK_TO_NEXT_MEDIA_ITEM
-                        } else {
-                            Player.COMMAND_SEEK_TO_PREVIOUS_MEDIA_ITEM
-                        }
-                        if (player.isCommandAvailable(command)) {
-                            if (next) {
-                                player.seekToNextMediaItem()
-                            } else {
-                                player.seekToPreviousMediaItem()
-                            }
-                        }
-                    }
-                    drag = 0f
-                },
-            )
-        },
-        contentAlignment = Alignment.Center,
-    ) {
-        AnimatedContent(
-            targetState = snapshot.item,
-            transitionSpec = {
-                (slideInHorizontally { (it * direction).toInt() } + fadeIn()) togetherWith
-                    (slideOutHorizontally { (-it * direction).toInt() } + fadeOut())
-            },
-            label = "playback_artwork",
-        ) { item ->
-            PlaybackArtwork(
-                snapshot.copy(
-                    item = item,
-                    metadata =
-                        item?.mediaMetadata ?: snapshot.metadata,
-                ),
-                Modifier.aspectRatio(
-                    1f,
-                    matchHeightConstraintsFirst = true,
-                ).graphicsLayer {
-                    translationX = drag
-                    scaleX = artworkScale
-                    scaleY = artworkScale
-                },
-                RoundedCornerShape(18.dp),
-            )
+    val queue = rememberPlaylistState(player)
+    val count = queue.mediaItemCount.coerceAtLeast(1)
+    val current = queue.currentMediaItemIndex.coerceIn(
+        0,
+        count - 1,
+    )
+    val pager = rememberPagerState(
+        initialPage = current,
+        pageCount = { count },
+    )
+    var userPaging by remember { mutableStateOf(false) }
+    val canSelect = controlsEnabled && (
+        snapshot.commands.contains(Player.COMMAND_SEEK_TO_MEDIA_ITEM) ||
+            snapshot.commands.contains(Player.COMMAND_SEEK_TO_NEXT_MEDIA_ITEM) ||
+            snapshot.commands.contains(Player.COMMAND_SEEK_TO_PREVIOUS_MEDIA_ITEM)
+        )
+    LaunchedEffect(pager) {
+        pager.interactionSource.interactions.collect {
+            if (it is DragInteraction.Start) userPaging = true
         }
+    }
+    LaunchedEffect(
+        pager,
+        controlsEnabled,
+        count,
+    ) {
+        snapshotFlow { pager.isScrollInProgress }.collect { scrolling ->
+            if (!scrolling && userPaging) {
+                userPaging = false
+                val target = pager.settledPage
+                val playing = player.currentMediaItemIndex
+                if (controlsEnabled && target != playing) {
+                    when {
+                        player.isCommandAvailable(Player.COMMAND_SEEK_TO_MEDIA_ITEM) ->
+                            player.seekToDefaultPosition(target)
+
+                        target == playing + 1 &&
+                            player.isCommandAvailable(Player.COMMAND_SEEK_TO_NEXT_MEDIA_ITEM) ->
+                            player.seekToNextMediaItem()
+
+                        target == playing - 1 &&
+                            player.isCommandAvailable(Player.COMMAND_SEEK_TO_PREVIOUS_MEDIA_ITEM) ->
+                            player.seekToPreviousMediaItem()
+                    }
+                }
+                pager.animateScrollToPage(
+                    player.currentMediaItemIndex.coerceIn(
+                        0,
+                        count - 1,
+                    ),
+                )
+            }
+        }
+    }
+    LaunchedEffect(
+        current,
+        count,
+    ) {
+        if (!userPaging && current != pager.settledPage) pager.animateScrollToPage(current)
+    }
+    HorizontalPager(
+        state = pager,
+        modifier = modifier.testTag("playback_artwork"),
+        userScrollEnabled = canSelect && count > 1,
+        beyondViewportPageCount = 1,
+        key = { index ->
+            "$index:${if (queue.mediaItemCount > index) {
+                queue.getMediaItemAt(
+                    index,
+                ).mediaId
+            } else {
+                ""
+            }}"
+        },
+    ) { index ->
+        val item = if (queue.mediaItemCount > index) queue.getMediaItemAt(index) else snapshot.item
+        PlaybackArtwork(
+            snapshot.copy(
+                item = item,
+                metadata = if (index == current) {
+                    snapshot.metadata
+                } else {
+                    item?.mediaMetadata ?: snapshot.metadata
+                },
+            ),
+            Modifier.fillMaxSize(),
+            RoundedCornerShape(18.dp),
+        )
     }
 }
 

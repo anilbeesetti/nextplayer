@@ -11,6 +11,7 @@ import com.google.common.util.concurrent.Futures
 import com.google.common.util.concurrent.ListenableFuture
 
 internal class MiniPlayerTestPlayer : SimpleBasePlayer(Looper.getMainLooper()) {
+    val seeks = mutableListOf<Int>()
     private var state = State.Builder()
         .setAvailableCommands(
             Player.Commands.Builder().addAll(
@@ -73,6 +74,7 @@ internal class MiniPlayerTestPlayer : SimpleBasePlayer(Looper.getMainLooper()) {
         positionMs: Long,
         seekCommand: Int,
     ): ListenableFuture<*> {
+        seeks += mediaItemIndex
         state = state.buildUpon().setCurrentMediaItemIndex(mediaItemIndex)
             .setContentPositionMs(if (positionMs == C.TIME_UNSET) 0 else positionMs).build()
         return Futures.immediateVoidFuture()

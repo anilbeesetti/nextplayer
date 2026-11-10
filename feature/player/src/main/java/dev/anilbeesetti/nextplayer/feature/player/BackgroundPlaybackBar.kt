@@ -1,11 +1,13 @@
 package dev.anilbeesetti.nextplayer.feature.player
 
+import androidx.compose.foundation.Image
 import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
@@ -32,7 +34,9 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Shape
+import androidx.compose.ui.graphics.painter.Painter
 import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
@@ -45,7 +49,8 @@ import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.media3.common.Player
-import coil3.compose.AsyncImage
+import coil3.compose.rememberAsyncImagePainter
+import coil3.request.ImageRequest
 import dev.anilbeesetti.nextplayer.core.ui.R
 import dev.anilbeesetti.nextplayer.core.ui.components.tvFocusRing
 import dev.anilbeesetti.nextplayer.feature.player.state.PlaybackSnapshot
@@ -62,6 +67,8 @@ internal fun MiniPlayer(
     snapshot: PlaybackSnapshot = rememberPlaybackSnapshot(player),
     secondaryText: String? = null,
     connecting: Boolean = false,
+    artworkModifier: Modifier = Modifier,
+    artworkPainter: Painter = rememberPlaybackArtworkPainter(snapshot),
 ) {
     if (!snapshot.visible) return
     val title = snapshot.metadata.title?.toString()?.takeIf { it.isNotBlank() }
@@ -114,8 +121,9 @@ internal fun MiniPlayer(
             ) {
                 PlaybackArtwork(
                     snapshot,
-                    Modifier.size(44.dp),
-                    CircleShape,
+                    Modifier.size(44.dp).then(artworkModifier),
+                    RoundedCornerShape(8.dp),
+                    artworkPainter,
                 )
                 Spacer(Modifier.width(12.dp))
                 Column(Modifier.weight(1f)) {
@@ -216,29 +224,44 @@ internal fun MiniPlayer(
 }
 
 @Composable
+internal fun rememberPlaybackArtworkPainter(snapshot: PlaybackSnapshot): Painter {
+    val fallback = painterResource(
+        dev.anilbeesetti.nextplayer.feature.player.R.drawable.artwork_default,
+    )
+    val model = snapshot.metadata.artworkData ?: snapshot.metadata.artworkUri
+        ?.takeUnless { it.scheme == "android.resource" }
+        ?: snapshot.item?.localConfiguration?.uri?.takeIf {
+            it.scheme in setOf(
+                "content",
+                "file",
+            )
+        }
+        ?: snapshot.metadata.artworkUri
+    return rememberAsyncImagePainter(
+        model = ImageRequest.Builder(LocalContext.current).data(model).size(512).build(),
+        placeholder = fallback,
+        error = fallback,
+        fallback = fallback,
+    )
+}
+
+@Composable
 internal fun PlaybackArtwork(
     snapshot: PlaybackSnapshot,
     modifier: Modifier = Modifier,
     shape: Shape = RoundedCornerShape(12.dp),
+    painter: Painter = rememberPlaybackArtworkPainter(snapshot),
 ) {
     Surface(
         modifier.clip(shape),
         color = MaterialTheme.colorScheme.secondaryContainer,
     ) {
-        Box(contentAlignment = Alignment.Center) {
-            AsyncImage(
-                model = snapshot.metadata.artworkUri,
-                contentDescription = null,
-                contentScale = ContentScale.Crop,
-                placeholder = painterResource(
-                    dev.anilbeesetti.nextplayer.feature.player.R.drawable.artwork_default,
-                ),
-                error = painterResource(
-                    dev.anilbeesetti.nextplayer.feature.player.R.drawable.artwork_default,
-                ),
-                modifier = Modifier.matchParentSize(),
-            )
-        }
+        Image(
+            painter,
+            contentDescription = null,
+            contentScale = ContentScale.Crop,
+            modifier = Modifier.fillMaxSize(),
+        )
     }
 }
 
