@@ -5,15 +5,30 @@ import android.content.Intent
 import android.content.pm.ActivityInfo
 import android.content.res.Configuration
 import android.graphics.Bitmap
+import android.graphics.Color
 import android.net.Uri
 import android.os.SystemClock
+import androidx.activity.compose.setContent
+import androidx.compose.foundation.background
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.fillMaxHeight
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.width
+import androidx.compose.runtime.remember
+import androidx.compose.ui.Modifier
+import androidx.compose.ui.focus.FocusRequester
 import androidx.compose.ui.geometry.Offset
+import androidx.compose.ui.graphics.Color as ComposeColor
 import androidx.compose.ui.graphics.asAndroidBitmap
+import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.semantics.SemanticsActions
 import androidx.compose.ui.semantics.SemanticsProperties
+import androidx.compose.ui.test.assertCountEquals
 import androidx.compose.ui.test.assertIsDisplayed
+import androidx.compose.ui.test.assertTextEquals
 import androidx.compose.ui.test.captureToImage
 import androidx.compose.ui.test.junit4.v2.createAndroidComposeRule
+import androidx.compose.ui.test.onAllNodesWithContentDescription
 import androidx.compose.ui.test.onAllNodesWithTag
 import androidx.compose.ui.test.onNodeWithContentDescription
 import androidx.compose.ui.test.onNodeWithTag
@@ -24,6 +39,8 @@ import androidx.compose.ui.test.performSemanticsAction
 import androidx.compose.ui.test.performTextInput
 import androidx.compose.ui.test.performTouchInput
 import androidx.compose.ui.test.swipeLeft
+import androidx.compose.ui.test.swipeRight
+import androidx.compose.ui.unit.dp
 import androidx.media3.common.MediaItem
 import androidx.media3.common.MediaMetadata
 import androidx.media3.common.Player
@@ -43,6 +60,8 @@ import dev.anilbeesetti.nextplayer.core.model.LoopMode
 import dev.anilbeesetti.nextplayer.core.model.PlayerPreferences
 import dev.anilbeesetti.nextplayer.core.model.ThemeConfig
 import dev.anilbeesetti.nextplayer.core.ui.R
+import dev.anilbeesetti.nextplayer.core.ui.theme.NextPlayerTheme
+import dev.anilbeesetti.nextplayer.feature.player.PlaybackOverlay
 import dev.anilbeesetti.nextplayer.feature.player.PlayerActivity
 import dev.anilbeesetti.nextplayer.feature.player.service.PlayerService
 import dev.anilbeesetti.nextplayer.feature.player.service.stopPlayerSession
@@ -75,6 +94,7 @@ class MiniPlayerIntegrationTest {
     private val context get() = instrumentation.targetContext
     private lateinit var player: MediaController
     private lateinit var future: ListenableFuture<MediaController>
+    private val additionalMedia = mutableListOf<File>()
     private lateinit var media: File
     private lateinit var originalPreferences: PlayerPreferences
     private lateinit var originalApplicationPreferences: ApplicationPreferences
@@ -158,6 +178,7 @@ class MiniPlayerIntegrationTest {
             }
         }
         onMain { composeRule.activity.requestedOrientation = originalOrientation }
+        additionalMedia.forEach { it.delete() }
         if (::media.isInitialized) media.delete()
     }
 
@@ -297,10 +318,13 @@ class MiniPlayerIntegrationTest {
             context.getString(R.string.settings),
         ).performClick()
         waitForMiniPlayer()
+        composeRule.mainClock.autoAdvance = false
         onMain { player.sessionActivity!!.send() }
         composeRule.waitUntil(10_000) {
+            composeRule.mainClock.advanceTimeByFrame()
             composeRule.onAllNodesWithTag("expanded_player").fetchSemanticsNodes().isNotEmpty()
         }
+        settlePlaybackUi()
         composeRule.onNodeWithTag("expanded_player").assertIsDisplayed()
         onMain { assertTrue(player.isPlaying) }
     }
@@ -347,170 +371,202 @@ class MiniPlayerIntegrationTest {
             player.isPlaying && ActivityLifecycleMonitorRegistry.getInstance()
                 .getActivitiesInStage(Stage.RESUMED).any { it is PlayerActivity }
         }
+        composeRule.mainClock.autoAdvance = false
         onMain { player.sessionActivity!!.send() }
         composeRule.waitUntil(10_000) {
+            composeRule.mainClock.advanceTimeByFrame()
             composeRule.onAllNodesWithTag("expanded_player").fetchSemanticsNodes().isNotEmpty()
         }
+        settlePlaybackUi()
         onMain { assertTrue(player.isPlaying) }
     }
 
     @Test
     fun expandedLayoutsKeepEveryActionVisibleAcrossRotationAndThemes() {
-        onMain {
-            val uri = Uri.fromFile(media)
-            player.setMediaItems(
-                (0..2).map { index ->
-                    MediaItem.Builder().setMediaId("$uri#$index").setUri(uri)
-                        .setMediaMetadata(
-                            MediaMetadata.Builder().setTitle("Playback design check.mp4")
-                                .setSubtitle("Test media").build(),
-                        ).build()
-                },
-                1,
-                30_000,
-            )
-            player.prepare()
-            player.pause()
-        }
-        await("visual test queue") { player.playbackState == Player.STATE_READY }
-        expand()
-        for (dark in listOf(
-            false,
-            true,
-        )) {
-            runBlocking {
-                preferences.updateApplicationPreferences {
-                    it.copy(themeConfig = if (dark) ThemeConfig.ON else ThemeConfig.OFF)
-                }
+        val clock = composeRule.mainClock
+        val automatic = clock.autoAdvance
+        clock.autoAdvance = false
+        try {
+            onMain {
+                val uri = Uri.fromFile(media)
+                player.setMediaItems(
+                    (0..2).map { index ->
+                        MediaItem.Builder().setMediaId("$uri#$index").setUri(uri)
+                            .setMediaMetadata(
+                                MediaMetadata.Builder().setTitle("Playback design check.mp4")
+                                    .setSubtitle("Test media").build(),
+                            ).build()
+                    },
+                    1,
+                    30_000,
+                )
+                player.prepare()
+                player.pause()
             }
-            for (landscape in listOf(
+            await("visual test queue") { player.playbackState == Player.STATE_READY }
+            expand()
+            for (dark in listOf(
                 false,
                 true,
             )) {
-                onMain {
-                    composeRule.activity.requestedOrientation = if (landscape) {
-                        ActivityInfo.SCREEN_ORIENTATION_LANDSCAPE
-                    } else {
-                        ActivityInfo.SCREEN_ORIENTATION_PORTRAIT
+                runBlocking {
+                    preferences.updateApplicationPreferences {
+                        it.copy(themeConfig = if (dark) ThemeConfig.ON else ThemeConfig.OFF)
                     }
                 }
-                composeRule.waitUntil(10_000) {
-                    val expected = if (landscape) {
-                        Configuration.ORIENTATION_LANDSCAPE
-                    } else {
-                        Configuration.ORIENTATION_PORTRAIT
-                    }
-                    composeRule.activity.resources.configuration.orientation == expected
-                }
-                for (playing in listOf(
+                for (landscape in listOf(
                     false,
                     true,
                 )) {
                     onMain {
-                        player.pause()
-                        player.seekTo(30_000)
-                        if (playing) player.play()
+                        composeRule.activity.requestedOrientation = if (landscape) {
+                            ActivityInfo.SCREEN_ORIENTATION_LANDSCAPE
+                        } else {
+                            ActivityInfo.SCREEN_ORIENTATION_PORTRAIT
+                        }
                     }
-                    await("visual playback state") { player.isPlaying == playing }
-                    composeRule.waitForIdle()
-                    composeRule.onNodeWithContentDescription(
-                        context.getString(R.string.playback_output),
-                    )
-                        .assertIsDisplayed()
-                    composeRule.onNodeWithContentDescription(
-                        context.getString(R.string.stop_player_session),
-                    )
-                        .assertIsDisplayed()
-                    composeRule.onNodeWithText(
-                        context.getString(R.string.watch_video),
-                    ).assertIsDisplayed()
-                    if (landscape) {
-                        composeRule.onNodeWithTag("playback_header").assertDoesNotExist()
-                    } else {
-                        composeRule.onNodeWithTag("playback_header").assertIsDisplayed()
+                    composeRule.waitUntil(10_000) {
+                        val expected = if (landscape) {
+                            Configuration.ORIENTATION_LANDSCAPE
+                        } else {
+                            Configuration.ORIENTATION_PORTRAIT
+                        }
+                        composeRule.activity.resources.configuration.orientation == expected
                     }
-                    val theme = if (dark) "dark" else "light"
-                    val orientation = if (landscape) "landscape" else "portrait"
-                    val state = if (playing) "playing" else "paused"
-                    capturePlayback("$theme-$orientation-$state")
+                    for (playing in listOf(
+                        false,
+                        true,
+                    )) {
+                        onMain {
+                            player.pause()
+                            player.seekTo(30_000)
+                            if (playing) player.play()
+                        }
+                        await("visual playback state") { player.isPlaying == playing }
+                        settlePlaybackUi()
+                        composeRule.onNodeWithContentDescription(
+                            context.getString(R.string.playback_output),
+                        )
+                            .assertIsDisplayed()
+                        composeRule.onNodeWithContentDescription(
+                            context.getString(R.string.stop_player_session),
+                        )
+                            .assertIsDisplayed()
+                        composeRule.onNodeWithText(
+                            context.getString(R.string.watch_video),
+                        ).assertIsDisplayed()
+                        if (landscape) {
+                            composeRule.onNodeWithTag("playback_header").assertDoesNotExist()
+                        } else {
+                            composeRule.onNodeWithTag("playback_header").assertIsDisplayed()
+                        }
+                        val theme = if (dark) "dark" else "light"
+                        val orientation = if (landscape) "landscape" else "portrait"
+                        val state = if (playing) "playing" else "paused"
+                        settlePlaybackUi()
+                        capturePlayback("$theme-$orientation-$state")
+                    }
+                    val progress = composeRule.onNodeWithContentDescription(
+                        context.getString(R.string.player_controls_progress),
+                    )
+                    progress.performTouchInput {
+                        down(center)
+                        moveBy(
+                            Offset(
+                                width * .2f,
+                                0f,
+                            ),
+                            delayMillis = 300,
+                        )
+                    }
+                    try {
+                        val theme = if (dark) "dark" else "light"
+                        val orientation = if (landscape) "landscape" else "portrait"
+                        settlePlaybackUi()
+                        capturePlayback("$theme-$orientation-scrubbing")
+                    } finally {
+                        progress.performTouchInput { up() }
+                        settlePlaybackUi()
+                    }
+                    await("committed visual seek") { player.currentPosition > 40_000 }
+                    composeRule.onNodeWithTag("expanded_player").assertIsDisplayed()
                 }
-                val progress = composeRule.onNodeWithContentDescription(
-                    context.getString(R.string.player_controls_progress),
+            }
+            onMain {
+                player.pause()
+                player.seekTo(
+                    1,
+                    30_000,
                 )
+            }
+            await("paused endpoint capture") {
+                !player.playWhenReady &&
+                    player.currentPosition == 30_000L
+            }
+            val progress = composeRule.onNodeWithContentDescription(
+                context.getString(R.string.player_controls_progress),
+            )
+            settlePlaybackUi()
+            progress.assertIsDisplayed()
+            // Android touch coordinates can quantize the endpoint by one physical pixel.
+            val tolerance = 1.5f / progress.fetchSemanticsNode().boundsInRoot.width
+            progress.performTouchInput {
+                down(center)
+            }
+            settlePlaybackUi()
+            repeat(12) { step ->
                 progress.performTouchInput {
-                    down(center)
-                    moveBy(
+                    moveTo(
                         Offset(
-                            width * .2f,
-                            0f,
+                            centerX - (centerX + 100f) * (step + 1) / 12f,
+                            centerY,
+                        ),
+                        delayMillis = 25,
+                    )
+                }
+                clock.advanceTimeByFrame()
+                composeRule.waitForIdle()
+            }
+            try {
+                settlePlaybackUi()
+                val start = progress.fetchSemanticsNode().config
+                val sliderBounds = progress.fetchSemanticsNode().boundsInRoot
+                val touchSlop = android.view.ViewConfiguration.get(context).scaledTouchSlop
+                val positionText = composeRule.onNodeWithTag("playback_position")
+                    .fetchSemanticsNode().config[SemanticsProperties.Text]
+                assertEquals(
+                    "Slider=$sliderBounds slop=$touchSlop time=$positionText",
+                    0f,
+                    start[SemanticsProperties.ProgressBarRangeInfo].current,
+                    tolerance,
+                )
+                settlePlaybackUi()
+                capturePlayback("dark-landscape-seek-start")
+                progress.performTouchInput {
+                    moveTo(
+                        Offset(
+                            width + 200f,
+                            centerY,
                         ),
                         delayMillis = 300,
                     )
                 }
-                try {
-                    val theme = if (dark) "dark" else "light"
-                    val orientation = if (landscape) "landscape" else "portrait"
-                    capturePlayback("$theme-$orientation-scrubbing")
-                } finally {
-                    progress.performTouchInput { up() }
-                }
-                await("committed visual seek") { player.currentPosition > 40_000 }
-                composeRule.onNodeWithTag("expanded_player").assertIsDisplayed()
-            }
-        }
-        onMain {
-            player.pause()
-            player.seekTo(
-                1,
-                30_000,
-            )
-        }
-        await("paused endpoint capture") {
-            !player.playWhenReady &&
-                player.currentPosition == 30_000L
-        }
-        val progress = composeRule.onNodeWithContentDescription(
-            context.getString(R.string.player_controls_progress),
-        )
-        progress.assertIsDisplayed()
-        // Android touch coordinates can quantize the endpoint by one physical pixel.
-        val tolerance = 1.5f / progress.fetchSemanticsNode().boundsInRoot.width
-        progress.performTouchInput {
-            down(center)
-            moveTo(
-                Offset(
-                    -20f,
-                    centerY,
-                ),
-                delayMillis = 300,
-            )
-        }
-        try {
-            val start = progress.fetchSemanticsNode().config
-            assertEquals(
-                0f,
-                start[SemanticsProperties.ProgressBarRangeInfo].current,
-                tolerance,
-            )
-            capturePlayback("dark-landscape-seek-start")
-            progress.performTouchInput {
-                moveTo(
-                    Offset(
-                        width + 200f,
-                        centerY,
-                    ),
-                    delayMillis = 300,
+                settlePlaybackUi()
+                val end = progress.fetchSemanticsNode().config
+                assertEquals(
+                    1f,
+                    end[SemanticsProperties.ProgressBarRangeInfo].current,
+                    tolerance,
                 )
+                settlePlaybackUi()
+                capturePlayback("dark-landscape-seek-end")
+            } finally {
+                progress.performTouchInput { up() }
             }
-            val end = progress.fetchSemanticsNode().config
-            assertEquals(
-                1f,
-                end[SemanticsProperties.ProgressBarRangeInfo].current,
-                tolerance,
-            )
-            capturePlayback("dark-landscape-seek-end")
         } finally {
-            progress.performTouchInput { up() }
+            onMain { player.pause() }
+            clock.advanceTimeByFrame()
+            clock.autoAdvance = automatic
         }
     }
 
@@ -563,6 +619,355 @@ class MiniPlayerIntegrationTest {
         }
     }
 
+    @Test
+    fun shortVideosUpdateProgressBetweenSnapshotTicksIncludingDoubleSpeed() {
+        onMain { player.pause() }
+        val clock = composeRule.mainClock
+        val automatic = clock.autoAdvance
+        clock.autoAdvance = false
+        try {
+            for ((asset, duration) in listOf(
+                "playback-red-15s.mp4" to 15_000L,
+                "playback-blue-20s.mp4" to 20_000L,
+            )) {
+                val file = testVideo(asset)
+                onMain {
+                    player.setMediaItem(MediaItem.fromUri(Uri.fromFile(file)))
+                    player.prepare()
+                }
+                await("short video ready") { player.playbackState == Player.STATE_READY }
+                if (composeRule.onAllNodesWithTag(
+                        "mini_player",
+                    ).fetchSemanticsNodes().isNotEmpty()
+                ) {
+                    expand()
+                    clock.advanceTimeBy(400)
+                }
+                val slider = composeRule.onNodeWithContentDescription(
+                    context.getString(R.string.player_controls_progress),
+                )
+                fun progress(): Float {
+                    val config = slider.fetchSemanticsNode().config
+                    return config[SemanticsProperties.ProgressBarRangeInfo].current
+                }
+                for (speed in listOf(
+                    1f,
+                    2f,
+                )) {
+                    onMain {
+                        player.seekTo(0)
+                        player.setPlaybackSpeed(speed)
+                        player.play()
+                    }
+                    await("short video playing") { player.isPlaying }
+                    val samples = mutableListOf<Float>()
+                    repeat(12) {
+                        SystemClock.sleep(25)
+                        clock.advanceTimeByFrame()
+                        samples += progress()
+                    }
+                    assertTrue(
+                        "Progress must update within 500ms: $samples",
+                        samples.distinct().size >= 6,
+                    )
+                    assertTrue(samples.zipWithNext().all { (a, b) -> b >= a && b - a < .08f })
+                    onMain { player.pause() }
+                    clock.advanceTimeBy(64)
+                    val paused = progress()
+                    SystemClock.sleep(100)
+                    clock.advanceTimeBy(64)
+                    assertEquals(
+                        paused,
+                        progress(),
+                        .003f,
+                    )
+                    onMain { player.seekTo(duration / 2) }
+                    await("short video seek") {
+                        kotlin.math.abs(player.currentPosition - duration / 2) <
+                            200
+                    }
+                    clock.advanceTimeBy(64)
+                    assertEquals(
+                        .5f,
+                        progress(),
+                        .02f,
+                    )
+                }
+            }
+            capturePlayback("short-video-paused-seek")
+        } finally {
+            onMain {
+                player.pause()
+                player.setPlaybackSpeed(1f)
+            }
+            clock.advanceTimeByFrame()
+            clock.autoAdvance = automatic
+        }
+    }
+
+    @Test
+    fun artworkMorphAndPagingKeepRealThumbnailsAndQueueDurations() {
+        val red = testVideo("playback-red-15s.mp4")
+        val blue = testVideo("playback-blue-20s.mp4")
+        onMain {
+            player.pause()
+            player.setMediaItems(
+                listOf(
+                    red,
+                    blue,
+                    red,
+                ).mapIndexed { index, file ->
+                    MediaItem.Builder().setMediaId(
+                        Uri.fromFile(file).toString(),
+                    ).setUri(Uri.fromFile(file))
+                        .setMediaMetadata(
+                            MediaMetadata.Builder().setTitle("Playback motion ${index + 1}")
+                                .setDurationMs(if (index == 1) 20_000 else 15_000).build(),
+                        ).build()
+                },
+            )
+            player.prepare()
+        }
+        await("artwork video ready") { player.playbackState == Player.STATE_READY }
+        fun artworkIsBlue(blueExpected: Boolean): Boolean {
+            val bitmap = composeRule.onNodeWithTag(
+                "playback_artwork",
+            ).captureToImage().asAndroidBitmap()
+            val color = bitmap.getPixel(
+                bitmap.width / 2 + 10,
+                bitmap.height / 2 + 10,
+            )
+            return if (blueExpected) {
+                Color.blue(color) > Color.red(color) + 70
+            } else {
+                Color.red(color) >
+                    Color.blue(color) + 70
+            }
+        }
+        val clock = composeRule.mainClock
+        val automatic = clock.autoAdvance
+        clock.autoAdvance = false
+        try {
+            clock.advanceTimeByFrame()
+            composeRule.waitForIdle()
+            captureNode(
+                "mini_player",
+                "motion-compact",
+            )
+            expand(advanceTransition = false)
+            for (step in 1..5) {
+                clock.advanceTimeBy(64)
+                capturePlayback("motion-expand-$step")
+            }
+            composeRule.waitUntil(10_000) { artworkIsBlue(false) }
+            capturePlayback("motion-expanded-red")
+        } finally {
+            clock.autoAdvance = automatic
+        }
+        composeRule.onNodeWithTag("playback_artwork").performTouchInput { swipeLeft() }
+        composeRule.waitForIdle()
+        await("paged to blue video") { player.currentMediaItemIndex == 1 }
+        composeRule.waitUntil(10_000) { artworkIsBlue(true) }
+        capturePlayback("motion-expanded-blue")
+        composeRule.onNodeWithTag("playback_artwork").performTouchInput { swipeLeft() }
+        composeRule.waitForIdle()
+        await("paged to duplicate red video") { player.currentMediaItemIndex == 2 }
+        composeRule.waitUntil(10_000) { artworkIsBlue(false) }
+        composeRule.onNodeWithTag("playback_artwork").performTouchInput { swipeRight() }
+        composeRule.waitForIdle()
+        await("paged back to blue video") { player.currentMediaItemIndex == 1 }
+        composeRule.waitUntil(10_000) { artworkIsBlue(true) }
+        composeRule.onNodeWithTag("playback_queue_action").performClick()
+        composeRule.onNodeWithText(context.getString(R.string.queue_next_up)).assertIsDisplayed()
+        composeRule.onNodeWithTag(
+            "queue_duration_0",
+            useUnmergedTree = true,
+        ).assertTextEquals("00:15")
+        composeRule.onNodeWithTag(
+            "queue_duration_1",
+            useUnmergedTree = true,
+        ).assertTextEquals("00:20")
+        captureNode(
+            "playback_queue",
+            "motion-queue",
+        )
+        val move = composeRule.onNodeWithTag("queue_item_1").fetchSemanticsNode()
+            .config[SemanticsActions.CustomActions].first {
+            it.label ==
+                context.getString(R.string.queue_move_up)
+        }
+        composeRule.runOnIdle { assertTrue(move.action()) }
+        await("queue reorder") { player.getMediaItemAt(0).mediaId == Uri.fromFile(blue).toString() }
+        repeat(2) {
+            composeRule.onAllNodesWithContentDescription(
+                context.getString(R.string.remove),
+            )[0].performClick()
+            val remaining = 2 - it
+            await("queue removal") { player.mediaItemCount == remaining }
+        }
+        composeRule.onAllNodesWithContentDescription(
+            context.getString(R.string.remove),
+        ).assertCountEquals(0)
+    }
+
+    @Test
+    fun compactNavigationKeepsItsNodeAndMovesWithoutAJump() {
+        onMain { player.pause() }
+        val mini = composeRule.onNodeWithTag("mini_player")
+        val initial = mini.fetchSemanticsNode()
+        val initialBounds = initial.boundsInRoot
+        val clock = composeRule.mainClock
+        val automatic = clock.autoAdvance
+        clock.autoAdvance = false
+        try {
+            composeRule.onNodeWithContentDescription(
+                context.getString(R.string.settings),
+            ).performClick()
+            clock.advanceTimeBy(64)
+            val mid = mini.fetchSemanticsNode()
+            val midBounds = mid.boundsInRoot
+            clock.advanceTimeBy(300)
+            val end = mini.fetchSemanticsNode()
+            val endBounds = end.boundsInRoot
+            assertEquals(
+                initial.id,
+                mid.id,
+            )
+            assertEquals(
+                initial.id,
+                end.id,
+            )
+            assertTrue(midBounds.top >= initialBounds.top)
+            assertTrue(midBounds.top < endBounds.top)
+            onMain { composeRule.activity.onBackPressedDispatcher.onBackPressed() }
+            clock.advanceTimeBy(400)
+            assertEquals(
+                initial.id,
+                mini.fetchSemanticsNode().id,
+            )
+            assertEquals(
+                initialBounds.top,
+                mini.fetchSemanticsNode().boundsInRoot.top,
+                1f,
+            )
+        } finally {
+            clock.autoAdvance = automatic
+        }
+    }
+
+    @Test
+    fun portraitRailTransitionClipsControlsInsideTheMovingSheet() {
+        onMain {
+            player.pause()
+            composeRule.activity.requestedOrientation = ActivityInfo.SCREEN_ORIENTATION_PORTRAIT
+        }
+        composeRule.waitUntil(10_000) {
+            composeRule.activity.resources.configuration.orientation ==
+                Configuration.ORIENTATION_PORTRAIT
+        }
+        val clock = composeRule.mainClock
+        val automatic = clock.autoAdvance
+        clock.autoAdvance = false
+        try {
+            onMain {
+                composeRule.activity.setContent {
+                    NextPlayerTheme {
+                        Box(Modifier.fillMaxSize().testTag("rail_motion_root")) {
+                            Box(
+                                Modifier.width(
+                                    80.dp,
+                                ).fillMaxHeight().background(ComposeColor.Magenta),
+                            )
+                            PlaybackOverlay(
+                                compactBottom = 24.dp,
+                                compactStart = 80.dp,
+                                hidden = false,
+                                expansionRequest = 0,
+                                focusRequester = remember {
+                                    FocusRequester()
+                                },
+                                onCompactHeightChanged = {},
+                                onVisibilityChanged = {},
+                                onExpandedChanged = {},
+                            )
+                        }
+                    }
+                }
+            }
+            composeRule.waitUntil(10_000) {
+                clock.advanceTimeByFrame()
+                composeRule.onAllNodesWithTag("rail_motion_root").fetchSemanticsNodes().isNotEmpty()
+            }
+            waitForMiniPlayer()
+            expand(advanceTransition = false)
+            clock.advanceTimeByFrame()
+            composeRule.waitForIdle()
+            clock.advanceTimeBy(64)
+            composeRule.waitForIdle()
+            clock.advanceTimeByFrame()
+            val root = composeRule.onNodeWithTag("rail_motion_root")
+            val sheet = composeRule.onNodeWithTag(
+                "playback_sheet",
+            ).fetchSemanticsNode().boundsInRoot
+            val track = composeRule.onNodeWithTag(
+                "playback_seek_track",
+            ).fetchSemanticsNode().boundsInRoot
+            val rootBounds = root.fetchSemanticsNode().boundsInRoot
+            val bitmap = root.captureToImage().asAndroidBitmap()
+            val x = (track.left - rootBounds.left + 4).toInt()
+            val y = (track.center.y - rootBounds.top).toInt()
+            assertTrue(
+                "Sheet=$sheet track=$track root=$rootBounds sample=$x,$y",
+                x < sheet.left - rootBounds.left - 8,
+            )
+            assertEquals(
+                Color.MAGENTA,
+                bitmap.getPixel(
+                    x,
+                    y,
+                ),
+            )
+            captureNode(
+                "rail_motion_root",
+                "motion-portrait-rail",
+            )
+        } finally {
+            clock.advanceTimeBy(400)
+            clock.autoAdvance = automatic
+        }
+    }
+
+    private fun testVideo(asset: String): File = File(
+        context.cacheDir,
+        asset,
+    ).also { file ->
+        additionalMedia += file
+        instrumentation.context.assets.open(asset).use { source ->
+            file.outputStream().use { source.copyTo(it) }
+        }
+    }
+
+    private fun captureNode(tag: String, name: String) {
+        if (InstrumentationRegistry.getArguments().getString("playbackScreenshots") !=
+            "true"
+        ) {
+            return
+        }
+        val file = File(
+            context.getExternalFilesDir(null),
+            "playback-motion/$name.png",
+        )
+        file.parentFile!!.mkdirs()
+        file.outputStream().use {
+            composeRule.onNodeWithTag(tag).captureToImage().asAndroidBitmap()
+                .compress(
+                    Bitmap.CompressFormat.PNG,
+                    100,
+                    it,
+                )
+        }
+    }
+
     private fun capturePlayback(name: String) {
         if (InstrumentationRegistry.getArguments().getString("playbackScreenshots") !=
             "true"
@@ -574,7 +979,13 @@ class MiniPlayerIntegrationTest {
         val bitmap = root.captureToImage().asAndroidBitmap()
         val directory = File(
             context.getExternalFilesDir(null),
-            "playback-parity",
+            if (name.startsWith("motion-") ||
+                name.startsWith("short-video")
+            ) {
+                "playback-motion"
+            } else {
+                "playback-parity"
+            },
         ).apply {
             mkdirs()
         }
@@ -604,7 +1015,16 @@ class MiniPlayerIntegrationTest {
             "playback_queue_action",
             "playback_transport",
             "playback_modes",
+            "transition_artwork",
+            "transition_metadata",
         )) {
+            if (composeRule.onAllNodesWithTag(
+                    tag,
+                    useUnmergedTree = true,
+                ).fetchSemanticsNodes().isEmpty()
+            ) {
+                continue
+            }
             val rect = composeRule.onNodeWithTag(
                 tag,
                 useUnmergedTree = true,
@@ -627,11 +1047,24 @@ class MiniPlayerIntegrationTest {
         ).writeText(measurements.toString())
     }
 
-    private fun expand() = composeRule.onNodeWithTag("mini_player")
-        .performSemanticsAction(SemanticsActions.OnClick) { it() }
+    private fun expand(advanceTransition: Boolean = true) {
+        composeRule.onNodeWithTag("mini_player")
+            .performSemanticsAction(SemanticsActions.OnClick) { it() }
+        if (advanceTransition) settlePlaybackUi()
+    }
+
+    private fun settlePlaybackUi() {
+        if (!composeRule.mainClock.autoAdvance) {
+            composeRule.mainClock.advanceTimeByFrame()
+            composeRule.waitForIdle()
+            composeRule.mainClock.advanceTimeBy(400)
+            composeRule.waitForIdle()
+        }
+    }
 
     private fun waitForMiniPlayer() {
         composeRule.waitUntil(10_000) {
+            if (!composeRule.mainClock.autoAdvance) composeRule.mainClock.advanceTimeByFrame()
             composeRule.onAllNodesWithTag("mini_player").fetchSemanticsNodes().isNotEmpty()
         }
         composeRule.onNodeWithTag("mini_player").assertIsDisplayed()

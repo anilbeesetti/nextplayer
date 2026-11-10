@@ -1,4 +1,6 @@
-# Playback design parity: second round
+# Playback design parity: second round (historical)
+
+These captures and reviews record the UI through `7cec80fc`. The later [motion follow-up](motion-review.md) is current, including square compact artwork, continuous expansion and removal of play/pause artwork scaling.
 
 Scope: third layer only, on `cast/global-playback-controls`, above #2086 and #2087. Next Player colors, typography, icons and video/Cast actions remain the approved application differences. No reference source or assets are incorporated into the application.
 

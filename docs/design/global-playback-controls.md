@@ -19,7 +19,7 @@ The existing high-bitrate Camera casting limitation remains unresolved and is ou
 - Selecting a Cast receiver immediately pauses phone playback, leaves full-screen video and opens the expanded player with the receiver name, Connecting indication and Cancel action.
 - Cast controls become active only after the receiver acknowledges the selected video and its controls are available. A loaded, paused video counts as ready; receiver session connection alone does not.
 - Failed or cancelled connections return playback to the phone at the same position and restore its previous playing/paused state.
-- The compact bar has circular artwork, video title, folder/device text and previous/play-pause/next buttons.
+- The compact bar has square artwork with softly rounded corners, video title, folder/device text and previous/play-pause/next buttons.
 - The expanded player adds large artwork, seek/time, shuffle/repeat, queue, output/volume, Stop, and Watch video for local output or Play on phone for Cast. Music-specific lyrics and album navigation are outside this PR.
 - Back from full-screen video opened through Watch video returns to the expanded player and keeps playback active. Direct video launches keep their existing Back/background-playback behavior.
 - Videos opened from Files or another app also transition into Next Player's expanded Connecting/Cast controls when a receiver is selected.
@@ -80,3 +80,14 @@ https://github.com/PixelPlayerHQ/PixelPlayer/blob/63cb59b97aff1d60c5aa46afdf5ce4
 - Keep the existing high-bitrate Camera buffering failure visible in verification results; do not claim this UI work fixes it.
 
 The design interview is complete. Implement and verify the agreed behavior, then open the third PR above #2086 and #2087.
+
+## Playback motion follow-up (2026-11-10)
+
+The user requested these refinements after using the installed build. They supersede the earlier circular-artwork and pause-scale reference observations:
+
+- Read seek progress at fine media-time resolution so 10–20-second videos advance smoothly; keep pause, seek and Cast connection-loss positions authoritative.
+- Page between stable queue occurrences with adjacent artwork ready. Metadata enrichment must not restart a selection transition or show a blank artwork surface.
+- Keep compact artwork square. Move one artwork image and coordinated text continuously into/out of the expanded layout, including interrupted drags, RTL and system motion settings.
+- Keep compact playback mounted through browsing changes. Animate navigation/rail space and its anchor together without recreating browsing entry decorators on every frame.
+- Use a single queue sheet with a Next up header, compact artwork rows, durations, selection, reorder and removal. Keep command gating and the final-item removal guard; no clear/save/music actions are added.
+- Do not scale artwork when playing or pausing.

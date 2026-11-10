@@ -11,7 +11,7 @@ Run with JDK 17 launcher, the repository's JVM 21 daemon criteria, and `ANDROID_
   '-Dorg.gradle.jvmargs=-Xmx4096m -Dfile.encoding=UTF-8'
 ```
 
-Final XML totals after visual refinement: **867 tests in 155 suites, zero failures, errors or skips**. This includes 846 Android local tests and 21 JVM model/ktlint-rule tests. XML is inspected because local tests use `ignoreFailures=true`.
+Final XML totals after visual refinement: **877 tests in 155 suites, zero failures, errors or skips**. This includes 856 Android local tests and 21 JVM model/ktlint-rule tests. XML is inspected because local tests use `ignoreFailures=true`.
 
 Meaningful regressions cover:
 
@@ -29,16 +29,25 @@ Final applicable instrumentation runs:
 
 | Distribution | Tests | Result |
 | --- | ---: | --- |
-| Play | 29 | Zero failures/errors/skips |
-| Standard | 12 | Zero failures/errors/skips |
+| Play full acceptance | 33 | Zero failures/errors/skips |
+| Play final UI rerun | 15 | Zero failures/errors/skips |
+| Standard final UI + external handoff | 16 | Zero failures/errors/skips |
 
-Play covers `MiniPlayerIntegrationTest`, `PlayerApiRequestRegressionTest`, `PlayerApiLaunchOptionsTest`, `BackgroundPlaybackCompletionTest` and `PlaylistCompletionTest`. Standard covers `MiniPlayerIntegrationTest` plus the external handoff/Undo/grants regression. These are focused acceptance runs, not the entire instrumentation suite.
+The final metadata-staging adjustment was followed by the 15-case Play UI rerun and the 16-case standard run; the earlier full Play run also covers the unchanged API/completion behavior.
+
+Play full acceptance covers `MiniPlayerIntegrationTest`, `PlayerApiRequestRegressionTest`, `PlayerApiLaunchOptionsTest`, `BackgroundPlaybackCompletionTest` and `PlaylistCompletionTest`. Standard covers `MiniPlayerIntegrationTest` plus the external handoff/Undo/grants regression. These are focused acceptance runs, not the entire instrumentation suite.
 
 Flows include root tabs and recreation, nested settings, compact/expanded entry, Watch video return with paused position, notification entry from direct fullscreen with background playback disabled, playing/paused Undo, Stop persistence, vault PIN exclusion, playlist-form text entry without stopping playback, external API results/grants, queue completion and autoplay/repeat compatibility.
 
 The Cast dismissal snapshot correction and visual refinement were included in the full root checks and the latest Pixel_6a device runs. The Play APK is restored after standard verification.
 
 The external-caller regression runs under a different UID and checks result code, URI and position, then dismisses/restores the paused queue, verifies URI access throughout Undo, plays another queued item, and confirms media/subtitle grant revocation after all service controllers are released.
+
+## Current motion follow-up
+
+The current UI is documented in [the motion follow-up](motion-review.md), with 13 fresh PNGs and 10 geometry JSON files. It adds generated 15/20-second video checks at 1× and 2×, real artwork paging including duplicate queue items, queue duration/reorder/removal, compact navigation continuity, and a partial-transition rail clipping fixture. The four light/dark × portrait/landscape artwork crops are pixel-identical between paused and playing states, confirming that play/pause no longer scales artwork.
+
+The screenshots below and in the earlier parity review are historical; the user's square-artwork/no-pause-scaling follow-up supersedes those visual choices.
 
 ## Visual refinement evidence
 
