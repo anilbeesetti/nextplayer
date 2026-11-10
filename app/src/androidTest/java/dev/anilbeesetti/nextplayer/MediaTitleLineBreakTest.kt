@@ -58,7 +58,7 @@ class MediaTitleLineBreakTest {
     @Test
     fun playerTitleDoesNotIsolateChinesePrefix() = assertTitleWraps {
         ControlsTopView(
-            modifier = Modifier.requiredWidth(700.dp),
+            modifier = Modifier.requiredWidth(400.dp),
             title = title,
             videoDecoderMode = null,
             onBackClick = {},
