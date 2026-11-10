@@ -25,7 +25,12 @@ The existing high-bitrate Camera casting limitation remains unresolved and is ou
 - Videos opened from Files or another app also transition into Next Player's expanded Connecting/Cast controls when a receiver is selected.
 - Tapping the active playback notification opens expanded controls for both local and Cast output.
 - Unexpected Cast loss retains the queue and last known position, leaves phone playback paused, and presents connection-lost recovery with Retry and Play on phone.
-- The playlist-creation form should slide up from the bottom and cover the compact player while open, matching the requested PixelPlayer flow. The underlying browsing screen keeps the mini player above bottom navigation. Other keyboard cases remain under reference inspection.
+- Playlist creation opens a full-screen form that animates in from below and covers the compact player and app navigation. Playback continues underneath, and the form handles its keyboard insets. The underlying browsing screen keeps the mini player above bottom navigation.
+- The playback overlay persists above the browsing navigation host. It does not leave or move with individual screen navigation transitions.
+- Follow PixelPlayer's visibility pattern rather than interpreting all screens literally. Visibility for Next Player-specific screens is delegated to implementation judgment. Do not impose a global policy that floats the mini player above every keyboard or modal form.
+- Hide compact and expanded playback surfaces while the vault PIN/unlock screen is visible; retain existing vault playback and lock behavior otherwise.
+- Swiping up from fully expanded controls opens the existing queue with select, reorder and remove actions. Keep the cannot-remove-final-item rule and leave new clear/save-as-playlist actions out of this PR.
+- Horizontal swipes on expanded artwork select the previous/next video with a carousel animation. The compact bar's horizontal swipe remains stop-and-dismiss.
 
 ## Reference observations
 
@@ -36,17 +41,23 @@ PixelPlayer was inspected at `63cb59b97aff1d60c5aa46afdf5ce489e632b267`. These a
 - Horizontal dragging in either direction dismisses the compact player and stops/clears the session. It does not select the previous or next queue item. A separate Undo action follows dismissal.
 - The global sheet remains mounted when the keyboard appears.
 - Music-specific features include artist/album navigation, lyrics and an artwork carousel.
+- Library playlist creation is a full-window opaque dialog/form with an upward slide/fade. It covers the still-mounted player and app navigation independently of keyboard visibility. Other playlist entry points use different dialog/sheet presentations.
+- The main player has no explicit IME lift or hide-on-keyboard policy. Search content applies keyboard padding separately; exact mini positioning also depends on Android window resizing.
+- Undo records queue/current item/position without the old receiver or playing/paused intent. It dispatches ordinary playback and does not reconnect the previous receiver; the normal path after a completed Cast disconnect resumes on the phone.
 
 Source and assets will not be copied. The reference repository's license restricts redistribution and derivative works:
 https://github.com/PixelPlayerHQ/PixelPlayer/blob/63cb59b97aff1d60c5aa46afdf5ce489e632b267/LICENSE
 
 ## Open decisions
 
-- Q15: Match the requested playlist modal presentation; inspect the reference before deciding behavior in other keyboard contexts.
-- Q16: Hide playback surfaces while the vault PIN/unlock screen is visible, or keep them visible there.
-- Q17: Swipe up from fully expanded controls opens the existing queue with select/reorder/remove, retaining the cannot-remove-final-item rule and excluding new clear/save actions.
-- Q18: Horizontal swipes on expanded artwork select adjacent videos with a carousel animation, or remain button-only.
-- Cast output restoration after Undo, and automatic reconnection presentation.
+- Q19: Undo playback output and playing/paused restoration policy, especially after Cast dismissal.
+- Final shared-understanding confirmation after the remaining choice is resolved.
+
+## Delegated presentation defaults for final confirmation
+
+- Keep the current browsing screen and compact/expanded presentation during automatic Cast recovery. Expand for an explicit receiver selection, Retry or player/notification tap.
+- Tap/upward drag expands, downward drag/collapse/Back minimizes, and gestures follow the finger before settling. Dismissing a child queue or output sheet precedes collapsing the expanded player.
+- Keep the playback overlay stable through navigation; foreground forms can cover it. Use normal window/inset behavior in ordinary text-entry screens rather than an additional forced IME lift.
 
 ## Implementation and verification constraints
 

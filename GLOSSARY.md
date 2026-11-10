@@ -10,6 +10,9 @@ The active media queue and its playback state, including the current item, posit
 **Mini player**:
 The compact view of an active playback session available while browsing the app.
 
+**Playback overlay**:
+The persistent playback view above browsing screens, which can be compact or expanded while screen navigation happens underneath it.
+
 **Cast controls**:
 The playback controls for a session whose output is a Cast receiver.
 
