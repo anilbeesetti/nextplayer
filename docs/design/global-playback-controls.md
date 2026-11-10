@@ -14,7 +14,13 @@ The existing high-bitrate Camera casting limitation remains unresolved and is ou
 - Hide the compact view while the full-screen video player or expanded player is open.
 - Tapping the mini player expands controls for both local and Cast playback. The local expanded player has a separate Watch video action; it does not embed another video surface.
 - Use PixelPlayer's layout, UI structure and motion as a reference, with Next Player's colors, typography and icons.
-- Selecting a Cast receiver pauses local playback and presents a connecting indication. The connecting presentation, successful handoff threshold and failure behavior still need decisions.
+- Swiping the compact bar left or right stops playback and dismisses the session, including ending Cast playback on the receiver. Previous/next remain explicit buttons. Undo is still an open decision.
+- Selecting a Cast receiver immediately pauses phone playback, leaves full-screen video and opens the expanded player with the receiver name, Connecting indication and Cancel action.
+- Cast controls become active only after the receiver acknowledges the selected video and its controls are available. A loaded, paused video counts as ready; receiver session connection alone does not.
+- Failed or cancelled connections return playback to the phone at the same position and restore its previous playing/paused state.
+- The compact bar has circular artwork, video title, folder/device text and previous/play-pause/next buttons.
+- The expanded player adds large artwork, seek/time, shuffle/repeat, queue, output/volume, Stop, and Watch video for local output or Play on phone for Cast. Music-specific lyrics and album navigation are outside this PR.
+- Back from full-screen video opened through Watch video returns to the expanded player and keeps playback active. Direct video launches keep their existing Back/background-playback behavior.
 
 ## Reference observations
 
@@ -31,10 +37,8 @@ https://github.com/PixelPlayerHQ/PixelPlayer/blob/63cb59b97aff1d60c5aa46afdf5ce4
 
 ## Open decisions
 
-- The horizontal swipe action; Undo behavior is a subsequent decision if dismissal is selected.
-- Connecting UI placement, readiness, cancellation and failure recovery.
+- Undo availability; restoration details are subsequent decisions if Undo is selected.
 - Cast handoff from externally launched video playback, notification re-entry and reconnection.
-- Expanded controls appropriate to video playback and queue interactions.
-- Full-screen return behavior, keyboard placement, locked vault screens and adaptive/accessibility behavior.
+- Queue interactions, keyboard placement, locked vault screens and adaptive/accessibility behavior.
 
 The interview must finish with a shared-understanding confirmation before application implementation.

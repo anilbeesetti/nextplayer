@@ -16,5 +16,8 @@ The playback controls for a session whose output is a Cast receiver.
 **Expanded player**:
 The expanded view of a playback session, showing its artwork and playback controls. Local video is watched through the separate full-screen video player.
 
+**Connecting to Cast**:
+The period after selecting a receiver and before it acknowledges the selected video with available playback controls. Phone playback is paused during this period.
+
 **Full-screen video player**:
 The view for watching video on the device running Next Player.
