@@ -12,6 +12,7 @@ import dev.anilbeesetti.nextplayer.core.model.Video
 import dev.anilbeesetti.nextplayer.core.model.VideoContentScale
 import dev.anilbeesetti.nextplayer.core.ui.base.MviViewModel
 import dev.anilbeesetti.nextplayer.feature.player.model.DecoderServiceState
+import dev.anilbeesetti.nextplayer.feature.player.model.SecondarySubtitle
 import dev.anilbeesetti.nextplayer.feature.player.state.SubtitleOptionsEvent
 import dev.anilbeesetti.nextplayer.feature.player.state.VideoZoomEvent
 import io.github.anilbeesetti.nextlib.media3ext.ffdecoder.DecoderMode
@@ -39,6 +40,7 @@ class PlayerViewModel(
         val setVideoDecoderMode: (DecoderMode) -> Unit,
         val setAudioDecoderMode: (DecoderMode) -> Unit,
         val tryDecoderFallback: () -> Unit,
+        val selectSecondarySubtitle: () -> Unit = {},
     )
 
     private val stateInternal = MutableStateFlow(
@@ -61,6 +63,12 @@ class PlayerViewModel(
             is PlayerAction.NavigateUp -> output.navigateUp()
 
             is PlayerAction.SelectSubtitle -> output.selectSubtitle()
+
+            is PlayerAction.SelectSecondarySubtitle -> output.selectSecondarySubtitle()
+
+            is PlayerAction.SetSecondarySubtitle -> stateInternal.update {
+                it.copy(secondarySubtitle = action.subtitle)
+            }
 
             is PlayerAction.SelectAudio -> output.selectAudio()
 
@@ -196,11 +204,14 @@ data class PlayerUiState(
     val playerPreferences: PlayerPreferences = PlayerPreferences(),
     val playWhenReady: Boolean = true,
     val decoderServiceState: DecoderServiceState = DecoderServiceState(),
+    val secondarySubtitle: SecondarySubtitle? = null,
 )
 
 sealed interface PlayerAction {
     data object NavigateUp : PlayerAction
     data object SelectSubtitle : PlayerAction
+    data object SelectSecondarySubtitle : PlayerAction
+    data class SetSecondarySubtitle(val subtitle: SecondarySubtitle?) : PlayerAction
     data object SelectAudio : PlayerAction
     data object PlayInBackground : PlayerAction
     data class SetVideoDecoderMode(val mode: DecoderMode) : PlayerAction
