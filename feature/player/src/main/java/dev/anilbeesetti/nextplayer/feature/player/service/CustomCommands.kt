@@ -22,6 +22,11 @@ enum class CustomCommands(val customAction: String) {
     SET_SUBTITLE_DELAY(customAction = "SET_SUBTITLE_DELAY"),
     GET_SUBTITLE_SPEED(customAction = "GET_SUBTITLE_SPEED"),
     SET_SUBTITLE_SPEED(customAction = "SET_SUBTITLE_SPEED"),
+    DISMISS_PLAYBACK(customAction = "DISMISS_PLAYBACK"),
+    UNDO_DISMISSAL(customAction = "UNDO_DISMISSAL"),
+    CANCEL_CAST(customAction = "CANCEL_CAST"),
+    RETRY_CAST(customAction = "RETRY_CAST"),
+    PLAY_ON_PHONE(customAction = "PLAY_ON_PHONE"),
     STOP_PLAYER_SESSION(customAction = "STOP_PLAYER_SESSION"),
     START_BACKGROUND_PLAYBACK(customAction = "START_BACKGROUND_PLAYBACK"),
     IS_LOUDNESS_GAIN_SUPPORTED(customAction = "IS_LOUDNESS_GAIN_SUPPORTED"),
@@ -278,3 +283,8 @@ internal fun Bundle.decoderMode(key: String): DecoderMode? {
     val value = getString(key) ?: return null
     return DecoderMode.entries.find { it.name == value }
 }
+
+internal fun MediaController.playbackCommand(command: CustomCommands) = sendCustomCommand(
+    command.sessionCommand,
+    Bundle.EMPTY,
+)

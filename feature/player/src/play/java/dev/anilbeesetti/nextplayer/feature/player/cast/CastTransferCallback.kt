@@ -30,6 +30,20 @@ internal class CastTransferCallback(
         stopping = false
     }
 
+    fun snapshotForPhone(source: Player): PlayerTransferState {
+        val state = PlayerTransferState.fromPlayer(source)
+        val index = folderQueue.indexOfFirst { it.mediaId == source.currentMediaItem?.mediaId }
+        return if (index >= 0 && state.mediaItems.size == 1) {
+            state.buildUpon().setMediaItems(
+                folderQueue.mapIndexed { itemIndex, item ->
+                    if (itemIndex == index) item.withoutResumePosition() else item
+                },
+            ).setCurrentMediaItemIndex(index).build()
+        } else {
+            state
+        }
+    }
+
     override fun transferState(source: Player, target: Player) {
         if (target !== remote && stopping) {
             stopping = false

@@ -20,6 +20,7 @@ import androidx.media3.common.Player
 import androidx.media3.common.Player.DISCONTINUITY_REASON_AUTO_TRANSITION
 import androidx.media3.common.Player.DISCONTINUITY_REASON_REMOVE
 import androidx.media3.common.Player.DISCONTINUITY_REASON_SEEK
+import androidx.media3.common.PlayerTransferState
 import androidx.media3.common.Timeline
 import androidx.media3.common.TrackSelectionParameters
 import androidx.media3.common.Tracks
@@ -93,6 +94,7 @@ import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.async
 import kotlinx.coroutines.awaitAll
 import kotlinx.coroutines.cancel
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.guava.future
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.supervisorScope
@@ -110,6 +112,9 @@ class PlayerService : MediaSessionService() {
     private val applicationScope: CoroutineScope by inject(named(DiQualifiers.APPLICATION_SCOPE))
     private var mediaSession: MediaSession? = null
     private var playbackOutput: PlaybackOutput? = null
+    private var dismissedPlayback: PlayerTransferState? = null
+    private var dismissalExpiry: Job? = null
+    private var dismissalDeadline = 0L
     private var localPlayer: ExoPlayer? = null
     private val localPlaybackPlayer: ExoPlayer?
         get() = localPlayer ?: (mediaSession?.player as? ExoPlayer)
@@ -558,6 +563,7 @@ class PlayerService : MediaSessionService() {
             startIndex: Int,
             startPositionMs: Long,
         ): ListenableFuture<MediaSession.MediaItemsWithStartPosition> {
+            invalidateDismissal()
             cancelPendingMediaItems()
             playbackOutput?.onNewQueue()
             playbackRequestGeneration++
@@ -578,7 +584,19 @@ class PlayerService : MediaSessionService() {
                     queue,
                     if (queue.size == updatedMediaItems.size) startIndex else 0,
                     startPositionMs,
-                ).also { playbackOutput?.onQueueReady() }
+                ).also {
+                    playbackOutput?.onQueueReady(
+                        queue.getOrNull(
+                            if (queue.size ==
+                                updatedMediaItems.size
+                            ) {
+                                startIndex
+                            } else {
+                                0
+                            },
+                        )?.mediaId,
+                    )
+                }
             }
             pendingMediaItemsRequest = request
             request.addListener(
@@ -866,6 +884,42 @@ class PlayerService : MediaSessionService() {
                     )
                 }
 
+                CustomCommands.DISMISS_PLAYBACK -> {
+                    dismissPlayback(session)
+                    return@future SessionResult(SessionResult.RESULT_SUCCESS)
+                }
+
+                CustomCommands.UNDO_DISMISSAL -> {
+                    val saved = dismissedPlayback
+                    if (saved == null ||
+                        android.os.SystemClock.elapsedRealtime() >= dismissalDeadline
+                    ) {
+                        return@future SessionResult(SessionError.ERROR_INVALID_STATE)
+                    }
+                    invalidateDismissal()
+                    playbackRequestGeneration++
+                    playbackOutput?.restoreOnPhone(saved) ?: run {
+                        saved.setToPlayer(session.player)
+                        session.player.prepare()
+                    }
+                    return@future SessionResult(SessionResult.RESULT_SUCCESS)
+                }
+
+                CustomCommands.CANCEL_CAST -> {
+                    playbackOutput?.cancelConnection()
+                    return@future SessionResult(SessionResult.RESULT_SUCCESS)
+                }
+
+                CustomCommands.RETRY_CAST -> {
+                    playbackOutput?.retry()
+                    return@future SessionResult(SessionResult.RESULT_SUCCESS)
+                }
+
+                CustomCommands.PLAY_ON_PHONE -> {
+                    playbackOutput?.playOnPhone()
+                    return@future SessionResult(SessionResult.RESULT_SUCCESS)
+                }
+
                 CustomCommands.STOP_PLAYER_SESSION -> {
                     savePositionAndStopSession()
                     return@future SessionResult(SessionResult.RESULT_SUCCESS)
@@ -913,6 +967,7 @@ class PlayerService : MediaSessionService() {
         if (requestGeneration != playbackRequestGeneration || mediaSession !== session) {
             return SessionResult(SessionError.ERROR_INVALID_STATE)
         }
+        invalidateDismissal()
         cancelPendingMediaItems()
         val generation = ++playbackRequestGeneration
         playbackOutput?.onNewQueue()
@@ -937,7 +992,17 @@ class PlayerService : MediaSessionService() {
                 if (queue.size == updatedItems.size) index else 0,
                 position,
             )
-            playbackOutput?.onQueueReady()
+            playbackOutput?.onQueueReady(
+                queue.getOrNull(
+                    if (queue.size ==
+                        updatedItems.size
+                    ) {
+                        index
+                    } else {
+                        0
+                    },
+                )?.mediaId,
+            )
             speed?.let(::setPlaybackSpeed)
             prepare()
             play()
@@ -967,7 +1032,11 @@ class PlayerService : MediaSessionService() {
     override fun onStartCommand(intent: Intent?, flags: Int, startId: Int): Int {
         if (intent?.action == ACTION_RETAIN_PLAYBACK_GRANTS) {
             // A stop may arrive between the handoff acknowledgement and grant delivery.
-            if (mediaSession?.player?.currentMediaItem == null) stopSelf(startId)
+            if (mediaSession?.player?.currentMediaItem == null &&
+                dismissedPlayback == null
+            ) {
+                stopSelf(startId)
+            }
             // Keep the grant-bearing start record until stop so Android can revoke its grants.
             return START_REDELIVER_INTENT
         }
@@ -1029,6 +1098,13 @@ class PlayerService : MediaSessionService() {
             this,
             player,
             autoplay = { playerPreferences.autoplay },
+            onPresentationChanged = { presentation ->
+                mediaSession?.let { session ->
+                    session.sessionExtras = Bundle(session.sessionExtras).apply {
+                        presentation.writeTo(this)
+                    }
+                }
+            },
         )
         val sessionPlayer = checkNotNull(playbackOutput).player
         sessionPlayer.addListener(playbackStateListener)
@@ -1044,10 +1120,7 @@ class PlayerService : MediaSessionService() {
                     PendingIntent.getActivity(
                         this@PlayerService,
                         0,
-                        Intent(
-                            this@PlayerService,
-                            PlayerActivity::class.java,
-                        ),
+                        expandedPlaybackIntent(),
                         PendingIntent.FLAG_IMMUTABLE,
                     ),
                 )
@@ -1069,6 +1142,7 @@ class PlayerService : MediaSessionService() {
     }
 
     override fun onTaskRemoved(rootIntent: Intent?) {
+        if (dismissedPlayback != null) return
         val player = mediaSession?.player ?: return
         if (!player.playWhenReady || player.mediaItemCount == 0 ||
             player.playbackState == Player.STATE_ENDED
@@ -1077,7 +1151,39 @@ class PlayerService : MediaSessionService() {
         }
     }
 
+    private fun invalidateDismissal() {
+        dismissalExpiry?.cancel()
+        dismissalExpiry = null
+        dismissedPlayback = null
+    }
+
+    private fun dismissPlayback(session: MediaSession) {
+        invalidateDismissal()
+        cancelPendingMediaItems()
+        playbackRequestGeneration++
+        val saved = playbackOutput?.snapshotForPhone() ?: playbackTransferState(session.player)
+        if (saved.mediaItems.isEmpty()) return
+        dismissedPlayback = saved.buildUpon()
+            .setPlayWhenReady(saved.playWhenReady && !isRemotePlayback).build()
+        dismissalDeadline = android.os.SystemClock.elapsedRealtime() + 4_000
+        session.player.pause()
+        session.player.clearMediaItems()
+        session.player.stop()
+        playbackOutput?.onStop()
+        dismissalExpiry = serviceScope.launch {
+            delay(4_000)
+            dismissedPlayback = null
+            dismissalExpiry = null
+            mediaRepository.updateMediumPosition(
+                uri = saved.mediaItems[saved.currentMediaItemIndex].mediaId,
+                position = saved.currentPosition,
+            )
+            if (session.player.mediaItemCount == 0) stopSelf()
+        }
+    }
+
     private suspend fun savePositionAndStopSession() {
+        invalidateDismissal()
         cancelPendingMediaItems()
         val generation = ++playbackRequestGeneration
         mediaSession?.run {
@@ -1106,6 +1212,7 @@ class PlayerService : MediaSessionService() {
     }
 
     override fun onDestroy() {
+        invalidateDismissal()
         cancelPendingMediaItems()
         super.onDestroy()
         artworkLoadJob?.cancel()
