@@ -21,3 +21,9 @@ The period after selecting a receiver and before it acknowledges the selected vi
 
 **Full-screen video player**:
 The view for watching video on the device running Next Player.
+
+**Dismiss playback**:
+Stop playback and remove its active session from the player controls, including ending playback on a Cast receiver when applicable.
+
+**Undo dismissal**:
+Restore the queue and playback position of a recently dismissed session.

@@ -14,13 +14,18 @@ The existing high-bitrate Camera casting limitation remains unresolved and is ou
 - Hide the compact view while the full-screen video player or expanded player is open.
 - Tapping the mini player expands controls for both local and Cast playback. The local expanded player has a separate Watch video action; it does not embed another video surface.
 - Use PixelPlayer's layout, UI structure and motion as a reference, with Next Player's colors, typography and icons.
-- Swiping the compact bar left or right stops playback and dismisses the session, including ending Cast playback on the receiver. Previous/next remain explicit buttons. Undo is still an open decision.
+- Swiping the compact bar left or right stops playback and dismisses the session, including ending Cast playback on the receiver. Previous/next remain explicit buttons.
+- Swipe dismissal offers Undo for four seconds to restore the queue and position. Restoring a dismissed Cast output is still an open decision.
 - Selecting a Cast receiver immediately pauses phone playback, leaves full-screen video and opens the expanded player with the receiver name, Connecting indication and Cancel action.
 - Cast controls become active only after the receiver acknowledges the selected video and its controls are available. A loaded, paused video counts as ready; receiver session connection alone does not.
 - Failed or cancelled connections return playback to the phone at the same position and restore its previous playing/paused state.
 - The compact bar has circular artwork, video title, folder/device text and previous/play-pause/next buttons.
 - The expanded player adds large artwork, seek/time, shuffle/repeat, queue, output/volume, Stop, and Watch video for local output or Play on phone for Cast. Music-specific lyrics and album navigation are outside this PR.
 - Back from full-screen video opened through Watch video returns to the expanded player and keeps playback active. Direct video launches keep their existing Back/background-playback behavior.
+- Videos opened from Files or another app also transition into Next Player's expanded Connecting/Cast controls when a receiver is selected.
+- Tapping the active playback notification opens expanded controls for both local and Cast output.
+- Unexpected Cast loss retains the queue and last known position, leaves phone playback paused, and presents connection-lost recovery with Retry and Play on phone.
+- The playlist-creation form should slide up from the bottom and cover the compact player while open, matching the requested PixelPlayer flow. The underlying browsing screen keeps the mini player above bottom navigation. Other keyboard cases remain under reference inspection.
 
 ## Reference observations
 
@@ -37,15 +42,11 @@ https://github.com/PixelPlayerHQ/PixelPlayer/blob/63cb59b97aff1d60c5aa46afdf5ce4
 
 ## Open decisions
 
-- Q11: Four-second Undo for swipe dismissal. Output restoration is a subsequent decision if Undo is selected.
-- Q12: Open expanded Connecting/Cast controls when playback originated in another app.
-- Q13: Open expanded controls when the playback notification is tapped.
-- Q14: Unexpected Cast loss keeps the last queue/position paused locally and offers recovery, or immediately resumes on the phone.
-- Q15: Keep the mini player above the keyboard, or hide it while the keyboard is open.
+- Q15: Match the requested playlist modal presentation; inspect the reference before deciding behavior in other keyboard contexts.
 - Q16: Hide playback surfaces while the vault PIN/unlock screen is visible, or keep them visible there.
 - Q17: Swipe up from fully expanded controls opens the existing queue with select/reorder/remove, retaining the cannot-remove-final-item rule and excluding new clear/save actions.
 - Q18: Horizontal swipes on expanded artwork select adjacent videos with a carousel animation, or remain button-only.
-- Recovery/reconnection presentation follows the selected disconnect behavior.
+- Cast output restoration after Undo, and automatic reconnection presentation.
 
 ## Implementation and verification constraints
 
