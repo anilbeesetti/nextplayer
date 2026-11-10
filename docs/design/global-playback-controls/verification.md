@@ -11,7 +11,7 @@ Run with JDK 17 launcher, the repository's JVM 21 daemon criteria, and `ANDROID_
   '-Dorg.gradle.jvmargs=-Xmx4096m -Dfile.encoding=UTF-8'
 ```
 
-Final XML totals after visual refinement: **837 tests in 149 suites, zero failures, errors or skips**. This includes 816 Android local tests and 21 JVM model/ktlint-rule tests. XML is inspected because local tests use `ignoreFailures=true`.
+Final XML totals after visual refinement: **847 tests in 151 suites, zero failures, errors or skips**. This includes 826 Android local tests and 21 JVM model/ktlint-rule tests. XML is inspected because local tests use `ignoreFailures=true`.
 
 Meaningful regressions cover:
 
@@ -23,14 +23,14 @@ Meaningful regressions cover:
 
 ## Device acceptance
 
-Latest device: the existing `Pixel_6a`, API 37, arm64 emulator. The initial implementation had also passed the same focused runs on `NextPlayer_Cast_QA_API35` (Android 15 / API 35); that AVD is now closed. UI actions and screenshots use the thread's Device panel and its returned `agent-device` CLI; instrumentation uses the project's AndroidX runner. The UI session is closed before instrumentation to avoid concurrent UiAutomation ownership.
+Latest device: the existing `Pixel_6a`, API 37, arm64 emulator. The initial implementation had also passed the same focused runs on `NextPlayer_Cast_QA_API35` (Android 15 / API 35); that AVD is now closed. Manual UI actions use the thread's Device panel and its returned `agent-device` CLI. The second parity round uses the project's AndroidX runner for acceptance and Compose screenshot artifacts. The UI session is closed before instrumentation to avoid concurrent UiAutomation ownership.
 
 Final applicable instrumentation runs:
 
 | Distribution | Tests | Result |
 | --- | ---: | --- |
-| Play | 27 | Zero failures/errors/skips |
-| Standard | 10 | Zero failures/errors/skips |
+| Play | 28 | Zero failures/errors/skips |
+| Standard | 11 | Zero failures/errors/skips |
 
 Play covers `MiniPlayerIntegrationTest`, `PlayerApiRequestRegressionTest`, `PlayerApiLaunchOptionsTest`, `BackgroundPlaybackCompletionTest` and `PlaylistCompletionTest`. Standard covers `MiniPlayerIntegrationTest` plus the external handoff/Undo/grants regression. These are focused acceptance runs, not the entire instrumentation suite.
 
@@ -56,6 +56,10 @@ All screenshots use a generated test pattern on the existing **Pixel_6a / API 37
 Additional states: [compact playing](after-compact-playing.png), [expanded paused](after-expanded-paused.png), [landscape](after-landscape.png), [accessibility-large text](after-large-text.png).
 
 Manual flows checked paused/playing controls, an artwork-origin downward drag through halfway to compact controls without interrupting playback, portrait/landscape rotation, landscape scrolling to the lower controls, enlarged text and collapse/expanded entry with system animations disabled. The original text-size and animation settings were restored. RTL/2× text, capability gating, seek/output semantics and D-pad traversal remain covered by automated tests. Manual window resizing, D-pad input and a visual IME-position audit remain unchecked.
+
+## Second parity round
+
+See [the parity comparison](parity-review.md) for the landscape/header/seek/contrast corrections, current screenshots and review evidence. The latest instrumentation adds rotation across light/dark and playing/paused states, plus touch scrubbing without collapsing the overlay. It asserts all expanded actions are visible in landscape without scrolling.
 
 ## Limits
 
