@@ -58,4 +58,11 @@ The second capture set contains 17 images: the original 12 light/dark portrait/l
 
 Additional evidence: [seek start](parity/dark-landscape-seek-start.png), [seek end](parity/dark-landscape-seek-end.png), [title before scrolling](parity/landscape-title-scroll-start.png), [title after scrolling](parity/landscape-title-scroll-end.png), [paused title](parity/landscape-title-paused.png).
 
-A fresh Claude Opus 5.5 recheck is requested against the corrected source and captures. The reference-runtime comparison limitation above remains unchanged.
+The fresh Claude Opus 5.5 recheck ran on `c6c5bfd7`, inspected all 17 captures, JSON geometry, production code, tests and the pinned reference, and confirmed all five earlier fixes with no correctness defects. It identified two additional P3 visual details, addressed afterward:
+
+| Before | After | Why |
+| --- | --- | --- |
+| Collapse was inset from the unscaled frame, so paused artwork could shrink past it in a large landscape window. | Share the artwork's animated scale with the collapse inset, adding half the shrink on each side while retaining a 48 dp touch target. | Keeps the button inside the visible artwork through pause/play and window-size changes; a paused 1400 × 900 dp regression covers frames above 440 dp and checks that the square fits its column without crossing metadata. |
+| Playing landscape titles clipped glyphs sharply beside the output chip. | Fade overflowing text over 24 dp on both edges, with a 2-second delay, 25 dp/s velocity and 30 dp marquee spacing. Short, paused and reduced-motion titles retain their usual rendering. | Matches the reference title treatment without changing native text semantics or introducing a new dependency. |
+
+The title-paused capture also waits for the 260 ms artwork animation to settle. Both distributions passed the two focused matrix/title-motion tests again. Refreshed title pixels fade to within 2/255 channel difference of the background at the viewport edges while interior text remains visible. These final two corrections are verified locally after the Opus recheck; they were not separately reviewed by Opus. The reference-runtime comparison limitation above remains unchanged.

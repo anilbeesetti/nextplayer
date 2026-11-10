@@ -7,11 +7,11 @@ Third stack layer: `cast/global-playback-controls`, based on `cast/home-mini-pla
 Run with JDK 17 launcher, the repository's JVM 21 daemon criteria, and `ANDROID_HOME=/Users/anil/Library/Android/sdk`:
 
 ```sh
-./gradlew assembleDebug :app:assemblePlayDebugAndroidTest test ktlintCheck --max-workers=2 \
+./gradlew assembleDebug :app:assemblePlayDebugAndroidTest :app:assembleStandardDebugAndroidTest test ktlintCheck --max-workers=2 \
   '-Dorg.gradle.jvmargs=-Xmx4096m -Dfile.encoding=UTF-8'
 ```
 
-Final XML totals after visual refinement: **865 tests in 155 suites, zero failures, errors or skips**. This includes 844 Android local tests and 21 JVM model/ktlint-rule tests. XML is inspected because local tests use `ignoreFailures=true`.
+Final XML totals after visual refinement: **867 tests in 155 suites, zero failures, errors or skips**. This includes 846 Android local tests and 21 JVM model/ktlint-rule tests. XML is inspected because local tests use `ignoreFailures=true`.
 
 Meaningful regressions cover:
 
@@ -59,10 +59,10 @@ Manual flows checked paused/playing controls, an artwork-origin downward drag th
 
 ## Second parity round
 
-See [the parity comparison](parity-review.md) for the landscape/header/seek/contrast corrections, current screenshots and review evidence. The latest instrumentation verifies actual title movement/paused ellipsis and held seek endpoints, in addition to rotation across light/dark and playing/paused states, plus touch scrubbing without collapsing the overlay. It asserts all expanded actions are visible in landscape without scrolling.
+See [the parity comparison](parity-review.md) for the landscape/header/seek/contrast corrections, current screenshots and review evidence. The latest instrumentation verifies actual title movement/paused ellipsis and held seek endpoints, in addition to rotation across light/dark and playing/paused states, plus touch scrubbing without collapsing the overlay. It asserts all expanded actions are visible in landscape without scrolling. After the final large-window/collapse and title-fade corrections, both distributions passed the two visual/native-motion cases again. Refreshed title PNGs have at most 2/255 channel difference from the background at the viewport edges while interior text remains above 80/255; a pixel self-check required edge differences ≤8/255. The paused artwork capture now waits for its animation to settle.
 
 ## Limits
 
-- The earlier Play build was installed on the connected OPPO CPH2689 without clearing its data. The visual refinement was tested on Pixel_6a only, following the user's instruction. No phone/receiver runtime playback claim is made; Cast connection/recovery timing still needs hardware verification.
+- The latest Play build was installed on the connected OPPO CPH2689 and Pixel_6a without clearing data. The visual refinement was tested on Pixel_6a only, following the user's instruction. No phone/receiver runtime playback claim is made; Cast connection/recovery timing still needs hardware verification.
 - The prior original 4K/~59fps/~56 Mbps Camera buffering problem remains outside this UI layer. No transcoding or server-performance fix is claimed.
 - No PixelPlayer source or assets were copied. No dependencies or `fastlane/` files changed.

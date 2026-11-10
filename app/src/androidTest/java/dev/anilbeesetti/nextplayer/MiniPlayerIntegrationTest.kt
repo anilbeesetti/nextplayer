@@ -550,7 +550,7 @@ class MiniPlayerIntegrationTest {
             )
             onMain { player.pause() }
             await("paused marquee") { !player.playWhenReady }
-            clock.advanceTimeBy(100)
+            clock.advanceTimeBy(400)
             composeRule.waitUntil(10_000) {
                 clock.advanceTimeByFrame()
                 val layouts = mutableListOf<androidx.compose.ui.text.TextLayoutResult>()

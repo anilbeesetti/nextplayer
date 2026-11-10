@@ -18,6 +18,7 @@ import androidx.compose.animation.fadeOut
 import androidx.compose.animation.slideInHorizontally
 import androidx.compose.animation.slideOutHorizontally
 import androidx.compose.animation.togetherWith
+import androidx.compose.foundation.MarqueeSpacing
 import androidx.compose.foundation.basicMarquee
 import androidx.compose.foundation.gestures.detectHorizontalDragGestures
 import androidx.compose.foundation.interaction.MutableInteractionSource
@@ -72,13 +73,19 @@ import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableFloatStateOf
+import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.drawWithContent
 import androidx.compose.ui.focus.FocusRequester
 import androidx.compose.ui.focus.focusRequester
+import androidx.compose.ui.graphics.BlendMode
+import androidx.compose.ui.graphics.Brush
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.CompositingStrategy
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.platform.LocalContext
@@ -120,6 +127,15 @@ internal fun ExpandedPlaybackControls(
     onCommand: (CustomCommands) -> Unit,
     dragModifier: Modifier,
 ) {
+    val artworkScale by animateFloatAsState(
+        if (snapshot.playWhenReady) 1f else .95f,
+        animationSpec = tween(
+            260,
+            easing = FastOutSlowInEasing,
+        ),
+        label = "playback_artwork_scale",
+    )
+    var titleWidth by remember(title) { mutableIntStateOf(0) }
     val collapseFocus = remember { FocusRequester() }
     LaunchedEffect(Unit) { collapseFocus.requestFocus() }
     val pane = stringResource(R.string.now_playing)
@@ -147,11 +163,33 @@ internal fun ExpandedPlaybackControls(
                         title,
                         modifier = Modifier.testTag("playback_media_title").then(
                             if (scrollTitle) {
-                                Modifier.basicMarquee(iterations = Int.MAX_VALUE)
+                                Modifier.graphicsLayer {
+                                    compositingStrategy = CompositingStrategy.Offscreen
+                                }.drawWithContent {
+                                    drawContent()
+                                    if (titleWidth > size.width && size.width > 0f) {
+                                        val edge = (24.dp.toPx() / size.width).coerceAtMost(.5f)
+                                        drawRect(
+                                            Brush.horizontalGradient(
+                                                0f to Color.Transparent,
+                                                edge to Color.Black,
+                                                1f - edge to Color.Black,
+                                                1f to Color.Transparent,
+                                            ),
+                                            blendMode = BlendMode.DstIn,
+                                        )
+                                    }
+                                }.basicMarquee(
+                                    iterations = Int.MAX_VALUE,
+                                    initialDelayMillis = 2000,
+                                    velocity = 25.dp,
+                                    spacing = MarqueeSpacing(30.dp),
+                                )
                             } else {
                                 Modifier
                             },
                         ),
+                        onTextLayout = { titleWidth = it.size.width },
                         style = MaterialTheme.typography.headlineSmall.copy(
                             fontWeight = FontWeight.Bold,
                         ),
@@ -245,8 +283,8 @@ internal fun ExpandedPlaybackControls(
                     Modifier.weight(1f).fillMaxHeight().padding(vertical = 8.dp),
                     contentAlignment = Alignment.Center,
                 ) {
-                    Box(
-                        Modifier.fillMaxHeight().aspectRatio(
+                    BoxWithConstraints(
+                        Modifier.aspectRatio(
                             1f,
                             matchHeightConstraintsFirst = true,
                         )
@@ -256,13 +294,15 @@ internal fun ExpandedPlaybackControls(
                             player,
                             snapshot,
                             controlsEnabled,
+                            artworkScale,
                             Modifier.fillMaxSize().then(dragModifier),
                         )
                         PlaybackCollapseButton(
                             onCollapse,
                             Modifier.align(
                                 Alignment.TopStart,
-                            ).padding(8.dp).testTag("landscape_collapse")
+                            ).padding(8.dp + maxWidth * ((1f - artworkScale) / 2f))
+                                .testTag("landscape_collapse")
                                 .then(dragModifier).focusRequester(collapseFocus),
                         )
                     }
@@ -322,6 +362,7 @@ internal fun ExpandedPlaybackControls(
                                 player,
                                 snapshot,
                                 controlsEnabled,
+                                artworkScale,
                                 Modifier.fillMaxWidth().aspectRatio(1f).then(dragModifier),
                             )
                         }
@@ -497,17 +538,10 @@ private fun PlaybackArtworkCarousel(
     player: Player,
     snapshot: PlaybackSnapshot,
     controlsEnabled: Boolean,
+    artworkScale: Float,
     modifier: Modifier,
 ) {
     val rtl = LocalLayoutDirection.current == LayoutDirection.Rtl
-    val artworkScale by animateFloatAsState(
-        if (snapshot.playWhenReady) 1f else .95f,
-        animationSpec = tween(
-            260,
-            easing = FastOutSlowInEasing,
-        ),
-        label = "playback_artwork_scale",
-    )
     var direction by remember { mutableFloatStateOf(0f) }
     var drag by remember { mutableFloatStateOf(0f) }
     Box(

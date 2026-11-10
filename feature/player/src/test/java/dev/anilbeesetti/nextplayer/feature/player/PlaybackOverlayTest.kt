@@ -489,6 +489,35 @@ class PlaybackOverlayTest {
     }
 
     @Test
+    @Config(qualifiers = "w1400dp-h900dp-land")
+    fun pausedLandscapeCollapseStaysInsideScaledArtworkOnLargeWindows() {
+        expanded = true
+        show()
+        composeRule.mainClock.advanceTimeBy(600)
+        val frame = composeRule.onNodeWithTag("landscape_artwork_frame").getUnclippedBoundsInRoot()
+        val button = composeRule.onNodeWithTag("landscape_collapse").getUnclippedBoundsInRoot()
+        val shrink = (frame.right - frame.left) * .025f
+        assertTrue(frame.right - frame.left > 440.dp)
+        assertEquals(
+            (frame.left + shrink + 8.dp).value,
+            button.left.value,
+            .5f,
+        )
+        assertEquals(
+            (frame.top + shrink + 8.dp).value,
+            button.top.value,
+            .5f,
+        )
+        val metadata = composeRule.onNodeWithTag("playback_metadata").getUnclippedBoundsInRoot()
+        val root = composeRule.onNodeWithTag("expanded_player").getUnclippedBoundsInRoot()
+        assertTrue(frame.left >= root.left && frame.top >= root.top)
+        assertTrue(frame.right <= metadata.left && frame.bottom <= root.bottom)
+        assertTrue(button.right <= frame.right - shrink)
+        assertTrue(button.bottom <= frame.bottom - shrink)
+        assertTrue(button.right - button.left >= 48.dp)
+    }
+
+    @Test
     @Config(qualifiers = "w640dp-h360dp-land")
     fun longLandscapeTitleScrollsOnlyDuringPlaybackWithSystemMotionEnabled() {
         val resolver = composeRule.activity.contentResolver
