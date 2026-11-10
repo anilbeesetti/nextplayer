@@ -42,6 +42,20 @@ The artwork pause-scale settles over 260 ms. Native Material expressive controls
 
 Screenshots contain only generated test media. Adjacent JSON files record component bounds in image coordinates for review. No private media, URI grants or capability URLs are included.
 
-## Independent review
+## Independent review and fixes
 
-Claude Opus 5.5 review is requested after the implementation and acceptance evidence are ready. Findings and their resolution will be recorded here.
+The first Claude Opus 5.5 review ran on `5a6bcb8c` and inspected all 12 original parity images plus the pinned reference source. It found no correctness defects, but identified two P2 and three P3 visual mismatches. All five are addressed:
+
+| Finding | Correction | Regression/evidence |
+| --- | --- | --- |
+| P2: the track widened while the thumb narrowed, and was inset from the labels. | Full-width decorative wave/thumb layer independent of native Slider measurement; fixed native input geometry. The thumb is clamped at both ends in physical RTL/LTR coordinates. | Stable track bounds before/during/after scrubbing; label alignment; narrow/zero-width and RTL clamp tests; endpoint captures. |
+| P2: 80% portrait artwork did not match the default no-peek presentation. | Full content-width square with the reference's artwork padding and paused scale. | The playing portrait artwork and metadata are both 954 px / 363.4 dp wide on Pixel_6a; large-text/RTL actions remain reachable in Compose tests. |
+| P3: landscape collapse straddled the artwork edge. | Collapse lives in the same centered, unscaled square host, inset 8 dp. | Frame/inset bounds regression and refreshed landscape images. |
+| P3: Now playing was crowded by a named receiver chip. | Hide that title while retaining weighted space during Connecting/Cast. Animate chip width/corners; clamp spring overshoot to valid corner sizes. | Local→named receiver→local transition, title exclusion, bounded chip width and queue visibility tests. |
+| P3: long landscape filenames were permanently ellipsized. | Native marquee only during acknowledged playback when system motion permits; paused, Connecting/Lost and reduced-motion states retain bounded text. Observe motion-setting changes live with API24-compatible reads. | API24/36 setting regression; bounded/unbounded UI layout tests; actual Pixel_6a title pixels change over 2.4 seconds and return to native ellipsis after Pause. |
+
+The second capture set contains 17 images: the original 12 light/dark portrait/landscape states, two held seek endpoints and three title-motion/paused frames. Track X bounds are identical in paused, playing and scrubbing states: **63–1017 px portrait** and **1278–2337 px landscape**, with the left edge equal to the time-label edge.
+
+Additional evidence: [seek start](parity/dark-landscape-seek-start.png), [seek end](parity/dark-landscape-seek-end.png), [title before scrolling](parity/landscape-title-scroll-start.png), [title after scrolling](parity/landscape-title-scroll-end.png), [paused title](parity/landscape-title-paused.png).
+
+A fresh Claude Opus 5.5 recheck is requested against the corrected source and captures. The reference-runtime comparison limitation above remains unchanged.

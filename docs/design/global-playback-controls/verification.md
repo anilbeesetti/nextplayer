@@ -11,7 +11,7 @@ Run with JDK 17 launcher, the repository's JVM 21 daemon criteria, and `ANDROID_
   '-Dorg.gradle.jvmargs=-Xmx4096m -Dfile.encoding=UTF-8'
 ```
 
-Final XML totals after visual refinement: **847 tests in 151 suites, zero failures, errors or skips**. This includes 826 Android local tests and 21 JVM model/ktlint-rule tests. XML is inspected because local tests use `ignoreFailures=true`.
+Final XML totals after visual refinement: **865 tests in 155 suites, zero failures, errors or skips**. This includes 844 Android local tests and 21 JVM model/ktlint-rule tests. XML is inspected because local tests use `ignoreFailures=true`.
 
 Meaningful regressions cover:
 
@@ -29,8 +29,8 @@ Final applicable instrumentation runs:
 
 | Distribution | Tests | Result |
 | --- | ---: | --- |
-| Play | 28 | Zero failures/errors/skips |
-| Standard | 11 | Zero failures/errors/skips |
+| Play | 29 | Zero failures/errors/skips |
+| Standard | 12 | Zero failures/errors/skips |
 
 Play covers `MiniPlayerIntegrationTest`, `PlayerApiRequestRegressionTest`, `PlayerApiLaunchOptionsTest`, `BackgroundPlaybackCompletionTest` and `PlaylistCompletionTest`. Standard covers `MiniPlayerIntegrationTest` plus the external handoff/Undo/grants regression. These are focused acceptance runs, not the entire instrumentation suite.
 
@@ -59,7 +59,7 @@ Manual flows checked paused/playing controls, an artwork-origin downward drag th
 
 ## Second parity round
 
-See [the parity comparison](parity-review.md) for the landscape/header/seek/contrast corrections, current screenshots and review evidence. The latest instrumentation adds rotation across light/dark and playing/paused states, plus touch scrubbing without collapsing the overlay. It asserts all expanded actions are visible in landscape without scrolling.
+See [the parity comparison](parity-review.md) for the landscape/header/seek/contrast corrections, current screenshots and review evidence. The latest instrumentation verifies actual title movement/paused ellipsis and held seek endpoints, in addition to rotation across light/dark and playing/paused states, plus touch scrubbing without collapsing the overlay. It asserts all expanded actions are visible in landscape without scrolling.
 
 ## Limits
 
