@@ -23,6 +23,7 @@ import androidx.media3.common.Timeline
 import androidx.media3.common.TrackSelectionParameters
 import androidx.media3.common.Tracks
 import androidx.media3.common.util.UnstableApi
+import androidx.media3.datasource.DataSourceBitmapLoader
 import androidx.media3.exoplayer.ExoPlaybackException
 import androidx.media3.exoplayer.ExoPlayer
 import androidx.media3.exoplayer.analytics.AnalyticsListener
@@ -34,6 +35,7 @@ import androidx.media3.session.MediaSessionService
 import androidx.media3.session.SessionCommand
 import androidx.media3.session.SessionError
 import androidx.media3.session.SessionResult
+import androidx.media3.session.SizeLimitedBitmapLoader
 import coil3.ImageLoader
 import coil3.request.ImageRequest
 import com.google.common.util.concurrent.Futures
@@ -972,6 +974,16 @@ class PlayerService : MediaSessionService() {
                 this,
                 player,
             ).apply {
+                // Some Android 15 ROMs recycle shared artwork when resizing it above 500px.
+                setBitmapLoader(
+                    SizeLimitedBitmapLoader(
+                        DataSourceBitmapLoader.Builder(this@PlayerService)
+                            .setMaximumOutputDimension(MAX_SESSION_ARTWORK_SIZE * 2 - 1)
+                            .build(),
+                        MAX_SESSION_ARTWORK_SIZE,
+                        false,
+                    ),
+                )
                 setSessionActivity(
                     PendingIntent.getActivity(
                         this@PlayerService,
@@ -1387,6 +1399,7 @@ private val DecoderTrackType.mediaTrackType: Int
     }
 
 private const val DECODER_LOG_TAG = "Decoder"
+private const val MAX_SESSION_ARTWORK_SIZE = 500
 
 @get:UnstableApi
 @set:UnstableApi
