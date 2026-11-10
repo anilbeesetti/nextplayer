@@ -22,6 +22,7 @@ import androidx.compose.material.icons.rounded.SkipPrevious
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.FilledIconButton
 import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButtonColors
 import androidx.compose.material3.IconButtonDefaults
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
@@ -147,7 +148,7 @@ internal fun MiniPlayer(
                         Text(
                             output,
                             style = MaterialTheme.typography.bodySmall.copy(fontSize = 13.sp),
-                            color = MaterialTheme.colorScheme.onPrimaryContainer.copy(alpha = 0.7f),
+                            color = MaterialTheme.colorScheme.onPrimaryContainer,
                             maxLines = 1,
                             overflow = TextOverflow.Ellipsis,
                         )
@@ -250,6 +251,7 @@ internal fun PlaybackPlayPauseButton(
     shape: Shape = CircleShape,
     iconSize: Dp = 22.dp,
     interactionSource: MutableInteractionSource? = null,
+    colors: IconButtonColors = IconButtonDefaults.filledIconButtonColors(),
 ) {
     FilledIconButton(
         onClick = {
@@ -268,6 +270,7 @@ internal fun PlaybackPlayPauseButton(
         modifier = modifier.tvFocusRing(shape),
         shape = shape,
         interactionSource = interactionSource,
+        colors = colors,
     ) {
         Icon(
             if (snapshot.playWhenReady) Icons.Rounded.Pause else Icons.Rounded.PlayArrow,

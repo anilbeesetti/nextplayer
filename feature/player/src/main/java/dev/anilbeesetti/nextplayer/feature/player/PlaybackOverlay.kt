@@ -419,6 +419,7 @@ internal fun PlaybackOverlayContent(
                     controlsEnabled,
                     landscape = maxWidth > maxHeight,
                     connection = presentation.connection,
+                    deviceName = presentation.deviceName,
                     onCollapse = { onExpandedChanged(false) },
                     onQueue = { queue = true },
                     onOutput = { output = true },

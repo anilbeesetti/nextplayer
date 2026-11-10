@@ -1,12 +1,19 @@
 package dev.anilbeesetti.nextplayer.feature.player
 
+import androidx.compose.animation.core.FastOutSlowInEasing
+import androidx.compose.animation.core.animateDpAsState
+import androidx.compose.animation.core.tween
 import androidx.compose.foundation.background
+import androidx.compose.foundation.interaction.MutableInteractionSource
+import androidx.compose.foundation.interaction.collectIsDraggedAsState
+import androidx.compose.foundation.interaction.collectIsPressedAsState
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material3.ExperimentalMaterial3Api
@@ -20,7 +27,9 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.StrokeCap
 import androidx.compose.ui.graphics.drawscope.Stroke
 import androidx.compose.ui.platform.LocalDensity
@@ -48,20 +57,42 @@ internal fun PlaybackSeekControl(
     val enabled = controlsEnabled && snapshot.duration > 0 &&
         snapshot.commands.contains(Player.COMMAND_SEEK_IN_CURRENT_MEDIA_ITEM)
     val label = stringResource(R.string.player_controls_progress)
+    val interaction = remember { MutableInteractionSource() }
+    val pressed by interaction.collectIsPressedAsState()
+    val dragging by interaction.collectIsDraggedAsState()
+    val seeking = pressed || dragging || dragged != null
+    val thumbWidth by animateDpAsState(
+        if (seeking) 6.dp else 16.dp,
+        animationSpec = tween(
+            250,
+            easing = FastOutSlowInEasing,
+        ),
+        label = "seek_thumb_width",
+    )
+    val thumbHeight by animateDpAsState(
+        if (seeking) 24.dp else 16.dp,
+        animationSpec = tween(
+            250,
+            easing = FastOutSlowInEasing,
+        ),
+        label = "seek_thumb_height",
+    )
+    val waving = enabled && snapshot.playWhenReady &&
+        snapshot.playbackState == Player.STATE_READY && !seeking
     val stroke = with(LocalDensity.current) {
         Stroke(
-            4.dp.toPx(),
+            5.dp.toPx(),
             cap = StrokeCap.Round,
         )
     }
     val color = if (enabled) {
-        MaterialTheme.colorScheme.primary
+        MaterialTheme.colorScheme.onPrimaryContainer
     } else {
         MaterialTheme.colorScheme.onSurface.copy(
             alpha = .38f,
         )
     }
-    Column {
+    Column(Modifier.heightIn(min = 70.dp)) {
         Slider(
             value = (dragged ?: snapshot.progress).coerceIn(
                 0f,
@@ -82,28 +113,43 @@ internal fun PlaybackSeekControl(
                 dragged = null
             },
             enabled = enabled,
+            interactionSource = interaction,
             thumb = {
                 Box(
-                    Modifier.size(16.dp).background(
+                    Modifier.size(
+                        thumbWidth,
+                        thumbHeight,
+                    ).background(
                         color,
                         CircleShape,
                     ),
                 )
             },
             track = { state ->
-                LinearWavyProgressIndicator(
-                    progress = { state.value },
-                    modifier = Modifier.fillMaxWidth().height(16.dp).clearAndSetSemantics {},
-                    color = color,
-                    trackColor = MaterialTheme.colorScheme.onPrimaryContainer.copy(alpha = .18f),
-                    stroke = stroke,
-                    trackStroke = stroke,
-                    gapSize = 0.dp,
-                    stopSize = 0.dp,
-                    amplitude = { if (snapshot.playWhenReady) 1f else 0f },
-                    wavelength = 20.dp,
-                    waveSpeed = if (snapshot.playWhenReady) 20.dp else 0.dp,
-                )
+                Box(
+                    Modifier.fillMaxWidth().height(24.dp),
+                    contentAlignment = Alignment.Center,
+                ) {
+                    LinearWavyProgressIndicator(
+                        progress = { state.value },
+                        modifier = Modifier.fillMaxWidth().clearAndSetSemantics {},
+                        color = color,
+                        trackColor = playbackInactiveTrackColor(
+                            MaterialTheme.colorScheme.onPrimaryContainer,
+                        ),
+                        stroke = stroke,
+                        trackStroke = stroke,
+                        gapSize = when {
+                            seeking -> 8.4.dp
+                            waving -> 14.dp
+                            else -> 12.dp
+                        },
+                        stopSize = 3.dp,
+                        amplitude = { if (waving) 1f else 0f },
+                        wavelength = 40.dp,
+                        waveSpeed = if (waving) 20.dp else 0.dp,
+                    )
+                }
             },
             modifier = Modifier.fillMaxWidth().semantics { contentDescription = label },
         )
@@ -178,3 +224,5 @@ internal fun PlaybackVolumeControl(player: Player, snapshot: PlaybackSnapshot) {
         )
     }
 }
+
+internal fun playbackInactiveTrackColor(onContainer: Color): Color = onContainer.copy(alpha = .7f)

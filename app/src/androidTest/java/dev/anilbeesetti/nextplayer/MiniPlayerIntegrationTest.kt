@@ -2,10 +2,16 @@ package dev.anilbeesetti.nextplayer
 
 import android.content.ComponentName
 import android.content.Intent
+import android.content.pm.ActivityInfo
+import android.content.res.Configuration
+import android.graphics.Bitmap
 import android.net.Uri
 import android.os.SystemClock
+import androidx.compose.ui.geometry.Offset
+import androidx.compose.ui.graphics.asAndroidBitmap
 import androidx.compose.ui.semantics.SemanticsActions
 import androidx.compose.ui.test.assertIsDisplayed
+import androidx.compose.ui.test.captureToImage
 import androidx.compose.ui.test.junit4.v2.createAndroidComposeRule
 import androidx.compose.ui.test.onAllNodesWithTag
 import androidx.compose.ui.test.onNodeWithContentDescription
@@ -18,6 +24,8 @@ import androidx.compose.ui.test.performTextInput
 import androidx.compose.ui.test.performTouchInput
 import androidx.compose.ui.test.swipeLeft
 import androidx.media3.common.MediaItem
+import androidx.media3.common.MediaMetadata
+import androidx.media3.common.Player
 import androidx.media3.session.MediaController
 import androidx.media3.session.SessionToken
 import androidx.test.ext.junit.runners.AndroidJUnit4
@@ -29,8 +37,10 @@ import com.google.common.util.concurrent.ListenableFuture
 import dev.anilbeesetti.nextplayer.core.common.storagePermission
 import dev.anilbeesetti.nextplayer.core.data.repository.MediaRepository
 import dev.anilbeesetti.nextplayer.core.data.repository.PreferencesRepository
+import dev.anilbeesetti.nextplayer.core.model.ApplicationPreferences
 import dev.anilbeesetti.nextplayer.core.model.LoopMode
 import dev.anilbeesetti.nextplayer.core.model.PlayerPreferences
+import dev.anilbeesetti.nextplayer.core.model.ThemeConfig
 import dev.anilbeesetti.nextplayer.core.ui.R
 import dev.anilbeesetti.nextplayer.feature.player.PlayerActivity
 import dev.anilbeesetti.nextplayer.feature.player.service.PlayerService
@@ -40,6 +50,8 @@ import java.nio.ByteBuffer
 import java.nio.ByteOrder
 import java.util.concurrent.TimeUnit
 import kotlinx.coroutines.runBlocking
+import org.json.JSONArray
+import org.json.JSONObject
 import org.junit.After
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertFalse
@@ -64,11 +76,15 @@ class MiniPlayerIntegrationTest {
     private lateinit var future: ListenableFuture<MediaController>
     private lateinit var media: File
     private lateinit var originalPreferences: PlayerPreferences
+    private lateinit var originalApplicationPreferences: ApplicationPreferences
+    private var originalOrientation = ActivityInfo.SCREEN_ORIENTATION_UNSPECIFIED
     private val preferences get() = GlobalContext.get().get<PreferencesRepository>()
 
     @Before
     fun startPlayback() {
         originalPreferences = preferences.playerPreferences.value
+        originalApplicationPreferences = preferences.applicationPreferences.value
+        originalOrientation = composeRule.activity.requestedOrientation
         runBlocking {
             preferences.updatePlayerPreferences {
                 it.copy(
@@ -135,6 +151,12 @@ class MiniPlayerIntegrationTest {
         if (::originalPreferences.isInitialized) {
             runBlocking { preferences.updatePlayerPreferences { originalPreferences } }
         }
+        if (::originalApplicationPreferences.isInitialized) {
+            runBlocking {
+                preferences.updateApplicationPreferences { originalApplicationPreferences }
+            }
+        }
+        onMain { composeRule.activity.requestedOrientation = originalOrientation }
         if (::media.isInitialized) media.delete()
     }
 
@@ -329,6 +351,170 @@ class MiniPlayerIntegrationTest {
             composeRule.onAllNodesWithTag("expanded_player").fetchSemanticsNodes().isNotEmpty()
         }
         onMain { assertTrue(player.isPlaying) }
+    }
+
+    @Test
+    fun expandedLayoutsKeepEveryActionVisibleAcrossRotationAndThemes() {
+        onMain {
+            val uri = Uri.fromFile(media)
+            player.setMediaItems(
+                (0..2).map { index ->
+                    MediaItem.Builder().setMediaId("$uri#$index").setUri(uri)
+                        .setMediaMetadata(
+                            MediaMetadata.Builder().setTitle("Playback design check.mp4")
+                                .setSubtitle("Test media").build(),
+                        ).build()
+                },
+                1,
+                30_000,
+            )
+            player.prepare()
+            player.pause()
+        }
+        await("visual test queue") { player.playbackState == Player.STATE_READY }
+        expand()
+        for (dark in listOf(
+            false,
+            true,
+        )) {
+            runBlocking {
+                preferences.updateApplicationPreferences {
+                    it.copy(themeConfig = if (dark) ThemeConfig.ON else ThemeConfig.OFF)
+                }
+            }
+            for (landscape in listOf(
+                false,
+                true,
+            )) {
+                onMain {
+                    composeRule.activity.requestedOrientation = if (landscape) {
+                        ActivityInfo.SCREEN_ORIENTATION_LANDSCAPE
+                    } else {
+                        ActivityInfo.SCREEN_ORIENTATION_PORTRAIT
+                    }
+                }
+                composeRule.waitUntil(10_000) {
+                    val expected = if (landscape) {
+                        Configuration.ORIENTATION_LANDSCAPE
+                    } else {
+                        Configuration.ORIENTATION_PORTRAIT
+                    }
+                    composeRule.activity.resources.configuration.orientation == expected
+                }
+                for (playing in listOf(
+                    false,
+                    true,
+                )) {
+                    onMain {
+                        player.pause()
+                        player.seekTo(30_000)
+                        if (playing) player.play()
+                    }
+                    await("visual playback state") { player.isPlaying == playing }
+                    composeRule.waitForIdle()
+                    composeRule.onNodeWithContentDescription(
+                        context.getString(R.string.playback_output),
+                    )
+                        .assertIsDisplayed()
+                    composeRule.onNodeWithContentDescription(
+                        context.getString(R.string.stop_player_session),
+                    )
+                        .assertIsDisplayed()
+                    composeRule.onNodeWithText(
+                        context.getString(R.string.watch_video),
+                    ).assertIsDisplayed()
+                    if (landscape) {
+                        composeRule.onNodeWithTag("playback_header").assertDoesNotExist()
+                    } else {
+                        composeRule.onNodeWithTag("playback_header").assertIsDisplayed()
+                    }
+                    val theme = if (dark) "dark" else "light"
+                    val orientation = if (landscape) "landscape" else "portrait"
+                    val state = if (playing) "playing" else "paused"
+                    capturePlayback("$theme-$orientation-$state")
+                }
+                val progress = composeRule.onNodeWithContentDescription(
+                    context.getString(R.string.player_controls_progress),
+                )
+                progress.performTouchInput {
+                    down(center)
+                    moveBy(
+                        Offset(
+                            width * .2f,
+                            0f,
+                        ),
+                        delayMillis = 300,
+                    )
+                }
+                try {
+                    val theme = if (dark) "dark" else "light"
+                    val orientation = if (landscape) "landscape" else "portrait"
+                    capturePlayback("$theme-$orientation-scrubbing")
+                } finally {
+                    progress.performTouchInput { up() }
+                }
+                await("committed visual seek") { player.currentPosition > 40_000 }
+                composeRule.onNodeWithTag("expanded_player").assertIsDisplayed()
+            }
+        }
+    }
+
+    private fun capturePlayback(name: String) {
+        if (InstrumentationRegistry.getArguments().getString("playbackScreenshots") !=
+            "true"
+        ) {
+            return
+        }
+        val root = composeRule.onNodeWithTag("expanded_player")
+        val bounds = root.fetchSemanticsNode().boundsInRoot
+        val bitmap = root.captureToImage().asAndroidBitmap()
+        val directory = File(
+            context.getExternalFilesDir(null),
+            "playback-parity",
+        ).apply {
+            mkdirs()
+        }
+        File(
+            directory,
+            "$name.png",
+        ).outputStream().use {
+            bitmap.compress(
+                Bitmap.CompressFormat.PNG,
+                100,
+                it,
+            )
+        }
+        val measurements = JSONObject().put(
+            "width",
+            bitmap.width,
+        ).put(
+            "height",
+            bitmap.height,
+        )
+        for (tag in listOf(
+            "playback_title",
+            "playback_output_action",
+            "playback_queue_action",
+            "playback_transport",
+            "playback_modes",
+        )) {
+            val rect = composeRule.onNodeWithTag(tag).fetchSemanticsNode().boundsInRoot
+            measurements.put(
+                tag,
+                JSONArray(
+                    listOf(
+                        rect.left - bounds.left,
+                        rect.top - bounds.top,
+                        rect.right - bounds.left,
+                        rect.bottom - bounds.top,
+                    ),
+                ),
+            )
+        }
+        File(
+            directory,
+            "$name.json",
+        ).writeText(measurements.toString())
     }
 
     private fun expand() = composeRule.onNodeWithTag("mini_player")

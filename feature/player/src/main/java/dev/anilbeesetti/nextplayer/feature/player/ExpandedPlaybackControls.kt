@@ -1,8 +1,10 @@
 package dev.anilbeesetti.nextplayer.feature.player
 
 import androidx.compose.animation.AnimatedContent
+import androidx.compose.animation.core.FastOutSlowInEasing
 import androidx.compose.animation.core.animateDpAsState
 import androidx.compose.animation.core.animateFloatAsState
+import androidx.compose.animation.core.tween
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
 import androidx.compose.animation.slideInHorizontally
@@ -25,6 +27,8 @@ import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.safeDrawingPadding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.layout.widthIn
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
@@ -32,6 +36,7 @@ import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.rounded.QueueMusic
 import androidx.compose.material.icons.rounded.Cast
+import androidx.compose.material.icons.rounded.CastConnected
 import androidx.compose.material.icons.rounded.KeyboardArrowDown
 import androidx.compose.material.icons.rounded.PhoneAndroid
 import androidx.compose.material.icons.rounded.Repeat
@@ -41,6 +46,7 @@ import androidx.compose.material.icons.rounded.SkipNext
 import androidx.compose.material.icons.rounded.SkipPrevious
 import androidx.compose.material.icons.rounded.SmartDisplay
 import androidx.compose.material.icons.rounded.Stop
+import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.ButtonGroup
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.ExperimentalMaterial3ExpressiveApi
@@ -67,7 +73,9 @@ import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.platform.LocalLayoutDirection
 import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.semantics.paneTitle
+import androidx.compose.ui.semantics.role
 import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.semantics.stateDescription
 import androidx.compose.ui.text.font.FontWeight
@@ -91,6 +99,7 @@ internal fun ExpandedPlaybackControls(
     controlsEnabled: Boolean,
     landscape: Boolean,
     connection: PlaybackConnection,
+    deviceName: String?,
     onCollapse: () -> Unit,
     onQueue: () -> Unit,
     onOutput: () -> Unit,
@@ -102,47 +111,57 @@ internal fun ExpandedPlaybackControls(
     val collapseFocus = remember { FocusRequester() }
     LaunchedEffect(Unit) { collapseFocus.requestFocus() }
     val pane = stringResource(R.string.now_playing)
-    val buttonColors = IconButtonDefaults.filledIconButtonColors(
-        containerColor = MaterialTheme.colorScheme.primary.copy(alpha = .12f),
-        contentColor = MaterialTheme.colorScheme.onPrimaryContainer,
-    )
-    val details: @Composable () -> Unit = {
-        Column(Modifier.fillMaxWidth()) {
-            Text(
-                title,
-                style = MaterialTheme.typography.headlineSmall.copy(fontWeight = FontWeight.Bold),
-                maxLines = 2,
-                overflow = TextOverflow.Ellipsis,
-            )
-            Text(
-                secondary,
-                style = MaterialTheme.typography.titleMedium,
-                color = MaterialTheme.colorScheme.onPrimaryContainer.copy(alpha = .7f),
-                maxLines = 2,
-                overflow = TextOverflow.Ellipsis,
-            )
+    val actions: @Composable () -> Unit = {
+        PlaybackHeaderActions(
+            snapshot,
+            connection,
+            deviceName,
+            controlsEnabled,
+            onOutput,
+            onQueue,
+            showDeviceLabel = !landscape,
+        )
+    }
+    val metadata: @Composable () -> Unit = {
+        Column(Modifier.fillMaxWidth().testTag("playback_metadata")) {
+            Row(verticalAlignment = Alignment.CenterVertically) {
+                Column(Modifier.weight(1f).testTag("playback_title")) {
+                    Text(
+                        title,
+                        style = MaterialTheme.typography.headlineSmall.copy(
+                            fontWeight = FontWeight.Bold,
+                        ),
+                        maxLines = if (landscape) 1 else 2,
+                        overflow = TextOverflow.Ellipsis,
+                    )
+                    Text(
+                        secondary,
+                        style = MaterialTheme.typography.titleMedium,
+                        color = MaterialTheme.colorScheme.onPrimaryContainer,
+                        maxLines = if (landscape) 1 else 2,
+                        overflow = TextOverflow.Ellipsis,
+                    )
+                }
+                if (landscape) {
+                    Spacer(Modifier.width(8.dp))
+                    actions()
+                }
+            }
             ConnectionControls(
                 connection,
                 onCommand,
             )
-            Spacer(Modifier.height(12.dp))
-            PlaybackSeekControl(
-                player,
-                snapshot,
-                controlsEnabled,
-            )
         }
     }
     val controls: @Composable () -> Unit = {
-        Column(
-            Modifier.fillMaxWidth(),
-            horizontalAlignment = Alignment.CenterHorizontally,
-        ) {
-            PlaybackTransportControls(
-                player,
-                snapshot,
-                controlsEnabled,
-            )
+        Column(horizontalAlignment = Alignment.CenterHorizontally) {
+            Box(Modifier.padding(vertical = 8.dp)) {
+                PlaybackTransportControls(
+                    player,
+                    snapshot,
+                    controlsEnabled,
+                )
+            }
             Spacer(Modifier.height(14.dp))
             PlaybackModeControls(
                 player,
@@ -151,17 +170,22 @@ internal fun ExpandedPlaybackControls(
                 onStop,
             )
             if (connection == PlaybackConnection.LOCAL || connection == PlaybackConnection.CAST) {
-                Spacer(Modifier.height(8.dp))
                 FilledTonalButton(
                     onClick = {
                         if (snapshot.isRemote) {
-                            onCommand(CustomCommands.PLAY_ON_PHONE)
+                            onCommand(
+                                CustomCommands.PLAY_ON_PHONE,
+                            )
                         } else {
                             onWatchVideo()
                         }
                     },
-                    modifier = Modifier.tvFocusRing(CircleShape),
+                    modifier = Modifier.padding(top = 8.dp).tvFocusRing(CircleShape),
                     shape = CircleShape,
+                    colors = ButtonDefaults.filledTonalButtonColors(
+                        containerColor = MaterialTheme.colorScheme.secondaryContainer,
+                        contentColor = MaterialTheme.colorScheme.onSecondaryContainer,
+                    ),
                 ) {
                     Icon(
                         if (snapshot.isRemote) {
@@ -182,114 +206,74 @@ internal fun ExpandedPlaybackControls(
             }
         }
     }
-    Box(
+    BoxWithConstraints(
         Modifier.fillMaxSize().testTag("expanded_player")
             .semantics { paneTitle = pane }.safeDrawingPadding(),
     ) {
-        Column(Modifier.fillMaxSize()) {
+        val viewportHeight = maxHeight
+        if (landscape) {
             Row(
-                Modifier.fillMaxWidth().testTag("expanded_drag_handle").then(dragModifier)
-                    .padding(
-                        horizontal = 16.dp,
-                        vertical = 8.dp,
-                    ),
+                Modifier.fillMaxSize().padding(horizontal = 24.dp),
                 verticalAlignment = Alignment.CenterVertically,
+                horizontalArrangement = Arrangement.spacedBy(9.dp),
             ) {
-                FilledIconButton(
-                    onClick = onCollapse,
-                    colors = buttonColors,
-                    modifier = Modifier.size(
-                        48.dp,
-                    ).focusRequester(collapseFocus).tvFocusRing(CircleShape),
-                ) {
-                    Icon(
-                        Icons.Rounded.KeyboardArrowDown,
-                        stringResource(R.string.collapse_player),
+                Box(Modifier.weight(1f).fillMaxHeight()) {
+                    PlaybackArtworkCarousel(
+                        player,
+                        snapshot,
+                        controlsEnabled,
+                        Modifier.fillMaxSize().padding(vertical = 8.dp).then(dragModifier),
+                    )
+                    PlaybackCollapseButton(
+                        onCollapse,
+                        Modifier.align(
+                            Alignment.TopStart,
+                        ).then(dragModifier).focusRequester(collapseFocus),
                     )
                 }
-                Text(
-                    pane,
-                    Modifier.weight(1f).padding(horizontal = 16.dp),
-                    style = MaterialTheme.typography.titleMedium,
-                    maxLines = 1,
-                    overflow = TextOverflow.Ellipsis,
-                )
-                Row(horizontalArrangement = Arrangement.spacedBy(2.dp)) {
-                    val outputShape = RoundedCornerShape(
-                        topStart = 24.dp,
-                        bottomStart = 24.dp,
-                        topEnd = 6.dp,
-                        bottomEnd = 6.dp,
+                Column(
+                    Modifier.weight(1f).fillMaxHeight().verticalScroll(rememberScrollState())
+                        .heightIn(min = viewportHeight),
+                    horizontalAlignment = Alignment.CenterHorizontally,
+                    verticalArrangement = Arrangement.SpaceEvenly,
+                ) {
+                    metadata()
+                    PlaybackSeekControl(
+                        player,
+                        snapshot,
+                        controlsEnabled,
                     )
-                    FilledIconButton(
-                        onClick = onOutput,
-                        enabled = controlsEnabled,
-                        colors = buttonColors,
-                        shape = outputShape,
-                        modifier = Modifier.size(44.dp).tvFocusRing(outputShape),
-                    ) {
-                        Icon(
-                            Icons.Rounded.Cast,
-                            stringResource(R.string.playback_output),
-                        )
-                    }
-                    val queueShape = RoundedCornerShape(
-                        topStart = 6.dp,
-                        bottomStart = 6.dp,
-                        topEnd = 24.dp,
-                        bottomEnd = 24.dp,
-                    )
-                    FilledIconButton(
-                        onClick = onQueue,
-                        enabled =
-                            controlsEnabled &&
-                                snapshot.commands.contains(Player.COMMAND_GET_TIMELINE),
-                        colors = buttonColors,
-                        shape = queueShape,
-                        modifier = Modifier.size(44.dp).tvFocusRing(queueShape),
-                    ) {
-                        Icon(
-                            Icons.AutoMirrored.Rounded.QueueMusic,
-                            stringResource(R.string.now_playing),
-                        )
-                    }
+                    controls()
                 }
             }
-            BoxWithConstraints(Modifier.weight(1f).fillMaxWidth()) {
-                if (landscape) {
-                    Row(
-                        Modifier.fillMaxSize().padding(
-                            horizontal = 24.dp,
-                            vertical = 8.dp,
+        } else {
+            Column(Modifier.fillMaxSize()) {
+                Row(
+                    Modifier.fillMaxWidth().heightIn(min = 64.dp).testTag("playback_header")
+                        .then(dragModifier).padding(horizontal = 14.dp),
+                    verticalAlignment = Alignment.CenterVertically,
+                ) {
+                    PlaybackCollapseButton(
+                        onCollapse,
+                        Modifier.focusRequester(collapseFocus),
+                    )
+                    Text(
+                        pane,
+                        Modifier.weight(1f).padding(horizontal = 18.dp),
+                        style = MaterialTheme.typography.labelLarge.copy(
+                            fontWeight = FontWeight.SemiBold,
                         ),
-                        verticalAlignment = Alignment.CenterVertically,
-                        horizontalArrangement = Arrangement.spacedBy(24.dp),
-                    ) {
-                        PlaybackArtworkCarousel(
-                            player,
-                            snapshot,
-                            controlsEnabled,
-                            Modifier.weight(1f).fillMaxHeight().then(dragModifier),
-                        )
-                        Column(
-                            Modifier.weight(
-                                1f,
-                            ).fillMaxHeight().verticalScroll(rememberScrollState()),
-                            verticalArrangement = Arrangement.spacedBy(16.dp),
-                        ) {
-                            details()
-                            controls()
-                        }
-                    }
-                } else {
+                        maxLines = 1,
+                        overflow = TextOverflow.Ellipsis,
+                    )
+                    actions()
+                }
+                BoxWithConstraints(Modifier.weight(1f).fillMaxWidth()) {
                     Column(
                         Modifier.fillMaxSize().verticalScroll(rememberScrollState())
-                            .heightIn(min = maxHeight).padding(
-                                horizontal = 24.dp,
-                                vertical = 8.dp,
-                            ),
+                            .heightIn(min = maxHeight).padding(horizontal = 24.dp),
                         horizontalAlignment = Alignment.CenterHorizontally,
-                        verticalArrangement = Arrangement.SpaceEvenly,
+                        verticalArrangement = Arrangement.SpaceAround,
                     ) {
                         PlaybackArtworkCarousel(
                             player,
@@ -297,10 +281,155 @@ internal fun ExpandedPlaybackControls(
                             controlsEnabled,
                             Modifier.fillMaxWidth(.8f).aspectRatio(1f).then(dragModifier),
                         )
-                        details()
+                        Column(verticalArrangement = Arrangement.spacedBy(4.dp)) {
+                            metadata()
+                            PlaybackSeekControl(
+                                player,
+                                snapshot,
+                                controlsEnabled,
+                            )
+                        }
                         controls()
                     }
                 }
+            }
+        }
+    }
+}
+
+@Composable
+private fun PlaybackCollapseButton(onCollapse: () -> Unit, modifier: Modifier) {
+    Box(
+        modifier.size(48.dp),
+        contentAlignment = Alignment.Center,
+    ) {
+        FilledIconButton(
+            onClick = onCollapse,
+            modifier = Modifier.size(42.dp).tvFocusRing(CircleShape),
+            colors = IconButtonDefaults.filledIconButtonColors(
+                containerColor = MaterialTheme.colorScheme.onPrimary,
+                contentColor = MaterialTheme.colorScheme.primary,
+            ),
+        ) {
+            Icon(
+                Icons.Rounded.KeyboardArrowDown,
+                stringResource(R.string.collapse_player),
+            )
+        }
+    }
+}
+
+@Composable
+private fun PlaybackHeaderActions(
+    snapshot: PlaybackSnapshot,
+    connection: PlaybackConnection,
+    deviceName: String?,
+    enabled: Boolean,
+    onOutput: () -> Unit,
+    onQueue: () -> Unit,
+    showDeviceLabel: Boolean,
+) {
+    val showDevice = showDeviceLabel &&
+        (connection == PlaybackConnection.CONNECTING || snapshot.isRemote)
+    val outputShape = RoundedCornerShape(
+        topStart = 50.dp,
+        bottomStart = 50.dp,
+        topEnd = if (showDevice) 50.dp else 6.dp,
+        bottomEnd = if (showDevice) 50.dp else 6.dp,
+    )
+    val queueShape = RoundedCornerShape(
+        topStart = 6.dp,
+        bottomStart = 6.dp,
+        topEnd = 50.dp,
+        bottomEnd = 50.dp,
+    )
+    val colors = IconButtonDefaults.filledIconButtonColors(
+        containerColor = MaterialTheme.colorScheme.onPrimary,
+        contentColor = MaterialTheme.colorScheme.primary,
+    )
+    Row(
+        Modifier.testTag("playback_output_actions"),
+        horizontalArrangement = Arrangement.spacedBy(6.dp),
+        verticalAlignment = Alignment.CenterVertically,
+    ) {
+        Box(
+            Modifier.height(48.dp),
+            contentAlignment = Alignment.Center,
+        ) {
+            Surface(
+                onClick = onOutput,
+                enabled = enabled,
+                shape = outputShape,
+                color = if (enabled) colors.containerColor else colors.disabledContainerColor,
+                contentColor = if (enabled) colors.contentColor else colors.disabledContentColor,
+                modifier = Modifier.height(42.dp).widthIn(
+                    min = 50.dp,
+                    max = 190.dp,
+                )
+                    .testTag("playback_output_action").semantics {
+                        role = Role.Button
+                    }.tvFocusRing(outputShape),
+            ) {
+                Row(
+                    Modifier.padding(
+                        start = 14.dp,
+                        end = if (showDevice) 16.dp else 12.dp,
+                    ),
+                    verticalAlignment = Alignment.CenterVertically,
+                    horizontalArrangement = Arrangement.spacedBy(8.dp),
+                ) {
+                    Icon(
+                        when {
+                            snapshot.isRemote -> Icons.Rounded.CastConnected
+                            connection == PlaybackConnection.CONNECTING -> Icons.Rounded.Cast
+                            else -> Icons.Rounded.PhoneAndroid
+                        },
+                        stringResource(R.string.playback_output),
+                        Modifier.size(24.dp),
+                    )
+                    if (showDevice) {
+                        Text(
+                            if (connection ==
+                                PlaybackConnection.CONNECTING
+                            ) {
+                                stringResource(R.string.connecting)
+                            } else {
+                                deviceName.orEmpty()
+                            },
+                            style = MaterialTheme.typography.labelMedium,
+                            maxLines = 1,
+                            overflow = TextOverflow.Ellipsis,
+                            modifier = Modifier.weight(
+                                1f,
+                                fill = false,
+                            ),
+                        )
+                    }
+                }
+            }
+        }
+        Box(
+            Modifier.size(
+                width = 50.dp,
+                height = 48.dp,
+            ),
+            contentAlignment = Alignment.Center,
+        ) {
+            FilledIconButton(
+                onClick = onQueue,
+                enabled = enabled && snapshot.commands.contains(Player.COMMAND_GET_TIMELINE),
+                colors = colors,
+                shape = queueShape,
+                modifier = Modifier.size(
+                    width = 50.dp,
+                    height = 42.dp,
+                )
+                    .testTag("playback_queue_action").tvFocusRing(queueShape),
+            ) {
+                Icon(
+                    Icons.AutoMirrored.Rounded.QueueMusic,
+                    stringResource(R.string.now_playing),
+                )
             }
         }
     }
@@ -316,6 +445,10 @@ private fun PlaybackArtworkCarousel(
     val rtl = LocalLayoutDirection.current == LayoutDirection.Rtl
     val artworkScale by animateFloatAsState(
         if (snapshot.playWhenReady) 1f else .95f,
+        animationSpec = tween(
+            260,
+            easing = FastOutSlowInEasing,
+        ),
         label = "playback_artwork_scale",
     )
     var direction by remember { mutableFloatStateOf(0f) }
@@ -395,18 +528,19 @@ private fun PlaybackTransportControls(
     val next = remember { MutableInteractionSource() }
     val playCorner by animateDpAsState(
         if (snapshot.playWhenReady) 26.dp else 40.dp,
+        animationSpec = MaterialTheme.motionScheme.fastSpatialSpec(),
         label = "playback_play_shape",
     )
     val skipColors = IconButtonDefaults.filledIconButtonColors(
-        containerColor = MaterialTheme.colorScheme.secondaryContainer,
-        contentColor = MaterialTheme.colorScheme.onSecondaryContainer,
+        containerColor = MaterialTheme.colorScheme.primary,
+        contentColor = MaterialTheme.colorScheme.onPrimary,
     )
     ButtonGroup(
         modifier = Modifier.fillMaxWidth().height(
             80.dp,
         ).testTag("playback_transport").padding(horizontal = 12.dp),
         horizontalArrangement = Arrangement.spacedBy(6.dp),
-        expandedRatio = .2f,
+        expandedRatio = .375f,
     ) {
         FilledIconButton(
             onClick = player::seekToPrevious,
@@ -432,6 +566,10 @@ private fun PlaybackTransportControls(
             RoundedCornerShape(playCorner),
             36.dp,
             play,
+            IconButtonDefaults.filledIconButtonColors(
+                containerColor = MaterialTheme.colorScheme.tertiaryContainer,
+                contentColor = MaterialTheme.colorScheme.onTertiaryContainer,
+            ),
         )
         FilledIconButton(
             onClick = player::seekToNext,
@@ -467,17 +605,19 @@ private fun PlaybackModeControls(
         },
     )
     val colors = IconButtonDefaults.filledIconToggleButtonColors(
-        containerColor = MaterialTheme.colorScheme.primary.copy(alpha = .1f),
-        contentColor = MaterialTheme.colorScheme.onPrimaryContainer,
+        containerColor = MaterialTheme.colorScheme.surfaceContainerHigh,
+        contentColor = MaterialTheme.colorScheme.onSurface,
+        checkedContainerColor = MaterialTheme.colorScheme.primary,
+        checkedContentColor = MaterialTheme.colorScheme.onPrimary,
     )
     Surface(
-        Modifier.padding(horizontal = 26.dp).testTag("playback_modes"),
+        Modifier.padding(horizontal = 26.dp).padding(bottom = 6.dp).testTag("playback_modes"),
         shape = CircleShape,
-        color = MaterialTheme.colorScheme.primary.copy(alpha = .16f),
+        color = MaterialTheme.colorScheme.surfaceContainerLowest,
     ) {
         Row(
-            Modifier.fillMaxWidth().padding(8.dp),
-            horizontalArrangement = Arrangement.spacedBy(8.dp),
+            Modifier.fillMaxWidth().padding(6.dp),
+            horizontalArrangement = Arrangement.spacedBy(6.dp),
         ) {
             val first = RoundedCornerShape(
                 topStart = 30.dp,
@@ -531,8 +671,8 @@ private fun PlaybackModeControls(
                 modifier = Modifier.weight(1f).height(48.dp).tvFocusRing(last),
                 shape = last,
                 colors = IconButtonDefaults.filledIconButtonColors(
-                    containerColor = MaterialTheme.colorScheme.primary.copy(alpha = .1f),
-                    contentColor = MaterialTheme.colorScheme.onPrimaryContainer,
+                    containerColor = MaterialTheme.colorScheme.surfaceContainerHigh,
+                    contentColor = MaterialTheme.colorScheme.onSurface,
                 ),
             ) {
                 Icon(

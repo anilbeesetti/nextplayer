@@ -10,7 +10,11 @@ import androidx.compose.ui.focus.FocusRequester
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.platform.LocalLayoutDirection
+import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.semantics.SemanticsActions
+import androidx.compose.ui.semantics.SemanticsProperties
+import androidx.compose.ui.test.SemanticsMatcher
+import androidx.compose.ui.test.assertCountEquals
 import androidx.compose.ui.test.assertIsDisplayed
 import androidx.compose.ui.test.assertIsNotEnabled
 import androidx.compose.ui.test.getUnclippedBoundsInRoot
@@ -300,6 +304,99 @@ class PlaybackOverlayTest {
         }
     }
 
+    @Test
+    @Config(qualifiers = "w915dp-h412dp-land")
+    fun landscapeUsesFullHeightAndKeepsOutputAndAllControlsVisible() {
+        expanded = true
+        show()
+        composeRule.onNodeWithTag("playback_header").assertDoesNotExist()
+        composeRule.onNodeWithContentDescription(text(R.string.collapse_player)).assertIsDisplayed()
+        composeRule.onNodeWithContentDescription(text(R.string.playback_output)).assertIsDisplayed()
+        composeRule.onNodeWithContentDescription(
+            text(R.string.stop_player_session),
+        ).assertIsDisplayed()
+        composeRule.onNodeWithText(text(R.string.watch_video)).assertIsDisplayed()
+        val artwork = composeRule.onNodeWithTag("playback_artwork").getUnclippedBoundsInRoot()
+        val metadata = composeRule.onNodeWithTag("playback_metadata").getUnclippedBoundsInRoot()
+        val actions = composeRule.onNodeWithTag(
+            "playback_output_actions",
+        ).getUnclippedBoundsInRoot()
+        assertTrue(artwork.right < metadata.left)
+        assertTrue(actions.top >= metadata.top && actions.bottom <= metadata.bottom)
+    }
+
+    @Test
+    @Config(qualifiers = "w640dp-h360dp-land")
+    fun narrowLandscapeRetainsMetadataWithALongCastReceiverName() {
+        expanded = true
+        composeRule.runOnIdle { player.remote(true) }
+        show(
+            PlaybackConnection.CAST,
+            deviceName = "Living room receiver with a very long name",
+        )
+        val title = composeRule.onNodeWithTag("playback_title").getUnclippedBoundsInRoot()
+        assertTrue(title.right - title.left >= 120.dp)
+        val output = composeRule.onNodeWithTag("playback_output_action").getUnclippedBoundsInRoot()
+        assertEquals(
+            50.dp,
+            output.right - output.left,
+        )
+        composeRule.onNodeWithContentDescription(text(R.string.playback_output)).assertIsDisplayed()
+        composeRule.onNodeWithText(
+            text(R.string.play_on_phone),
+        ).performScrollTo().assertIsDisplayed()
+    }
+
+    @Test fun portraitHeaderUsesWideSeparatedOutputAndQueueChips() {
+        expanded = true
+        show()
+        composeRule.onNodeWithTag("playback_header").assertIsDisplayed()
+        assertEquals(
+            Role.Button,
+            composeRule.onNodeWithTag(
+                "playback_output_action",
+            ).fetchSemanticsNode().config[SemanticsProperties.Role],
+        )
+        val output = composeRule.onNodeWithTag("playback_output_action").getUnclippedBoundsInRoot()
+        val queue = composeRule.onNodeWithTag("playback_queue_action").getUnclippedBoundsInRoot()
+        assertEquals(
+            50.dp,
+            output.right - output.left,
+        )
+        assertEquals(
+            50.dp,
+            queue.right - queue.left,
+        )
+        assertEquals(
+            6.dp,
+            queue.left - output.right,
+        )
+    }
+
+    @Test fun seekHasOneAccessibleProgressNodeAndDoesNotCollapseWhileScrubbing() {
+        expanded = true
+        show()
+        composeRule.onAllNodes(
+            SemanticsMatcher.keyIsDefined(SemanticsProperties.ProgressBarRangeInfo),
+        )
+            .assertCountEquals(1)
+        val initial = player.currentPosition
+        composeRule.onNodeWithContentDescription(text(R.string.player_controls_progress))
+            .performScrollTo().performTouchInput {
+                down(center)
+                moveBy(
+                    Offset(
+                        width * .2f,
+                        height * .2f,
+                    ),
+                    delayMillis = 400,
+                )
+                up()
+            }
+        composeRule.onNodeWithTag("expanded_player").assertIsDisplayed()
+        composeRule.runOnIdle { assertTrue(player.currentPosition > initial) }
+    }
+
     @Test fun portraitArtworkIsSquareAndTransportModesHaveSeparateRows() {
         expanded = true
         show()
@@ -320,6 +417,7 @@ class PlaybackOverlayTest {
     private fun show(
         connection: PlaybackConnection = PlaybackConnection.LOCAL,
         largeText: Boolean = false,
+        deviceName: String = "TV",
     ) {
         composeRule.setContent {
             val density = LocalDensity.current
@@ -337,7 +435,7 @@ class PlaybackOverlayTest {
                         rememberPlaybackSnapshot(player),
                         PlaybackPresentation(
                             connection,
-                            "TV",
+                            deviceName,
                         ),
                         expanded,
                         {
