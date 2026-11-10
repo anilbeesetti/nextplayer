@@ -31,6 +31,7 @@ import androidx.media3.session.MediaController
 import androidx.media3.session.SessionResult
 import androidx.media3.session.SessionToken
 import com.google.common.util.concurrent.ListenableFuture
+import dev.anilbeesetti.nextplayer.core.common.extensions.getFilenameFromUri
 import dev.anilbeesetti.nextplayer.core.common.extensions.getInitialDirectoryUri
 import dev.anilbeesetti.nextplayer.core.common.extensions.getMediaContentUri
 import dev.anilbeesetti.nextplayer.core.common.service.registerForSuspendActivityResult
@@ -40,6 +41,7 @@ import dev.anilbeesetti.nextplayer.core.ui.R as coreUiR
 import dev.anilbeesetti.nextplayer.core.ui.theme.NextPlayerTheme
 import dev.anilbeesetti.nextplayer.feature.player.extensions.OpenDocumentAtInitialUri
 import dev.anilbeesetti.nextplayer.feature.player.extensions.uriToSubtitleConfiguration
+import dev.anilbeesetti.nextplayer.feature.player.model.SecondarySubtitle
 import dev.anilbeesetti.nextplayer.feature.player.service.CustomCommands
 import dev.anilbeesetti.nextplayer.feature.player.service.PlayerService
 import dev.anilbeesetti.nextplayer.feature.player.service.addAudioTrack
@@ -301,6 +303,7 @@ class PlayerActivity : ComponentActivity() {
             lifecycleScope.launch { mediaController?.setAudioDecoderMode(mode = mode) }
         },
         tryDecoderFallback = { lifecycleScope.launch { mediaController?.tryDecoderFallback() } },
+        selectSecondarySubtitle = ::selectSecondarySubtitle,
     )
 
     private suspend fun currentMediaDirectory(): Uri? {
@@ -308,26 +311,48 @@ class PlayerActivity : ComponentActivity() {
         return withContext(Dispatchers.IO) { getInitialDirectoryUri(fileUri = uri) }
     }
 
+    private suspend fun pickSubtitleUri(): Uri? {
+        val uri = subtitleFileSuspendLauncher.launch(
+            OpenDocumentAtInitialUri.Input(
+                mimeTypes = arrayOf(
+                    MimeTypes.APPLICATION_SUBRIP,
+                    MimeTypes.APPLICATION_TTML,
+                    MimeTypes.TEXT_VTT,
+                    MimeTypes.TEXT_SSA,
+                    MimeTypes.BASE_TYPE_APPLICATION + "/octet-stream",
+                    MimeTypes.BASE_TYPE_TEXT + "/*",
+                ),
+                initialUri = currentMediaDirectory(),
+            ),
+        ) ?: return null
+        contentResolver.takePersistableUriPermission(
+            uri,
+            Intent.FLAG_GRANT_READ_URI_PERMISSION,
+        )
+        return uri
+    }
+
     private fun selectSubtitle() {
         lifecycleScope.launch {
-            val uri = subtitleFileSuspendLauncher.launch(
-                OpenDocumentAtInitialUri.Input(
-                    mimeTypes = arrayOf(
-                        MimeTypes.APPLICATION_SUBRIP,
-                        MimeTypes.APPLICATION_TTML,
-                        MimeTypes.TEXT_VTT,
-                        MimeTypes.TEXT_SSA,
-                        MimeTypes.BASE_TYPE_APPLICATION + "/octet-stream",
-                        MimeTypes.BASE_TYPE_TEXT + "/*",
-                    ),
-                    initialUri = currentMediaDirectory(),
-                ),
-            ) ?: return@launch
-            contentResolver.takePersistableUriPermission(
-                uri,
-                Intent.FLAG_GRANT_READ_URI_PERMISSION,
-            )
+            val uri = pickSubtitleUri() ?: return@launch
             snapshotFlow { mediaController }.filterNotNull().first().addSubtitleTrack(uri = uri)
+        }
+    }
+
+    private fun selectSecondarySubtitle() {
+        lifecycleScope.launch {
+            val uri = pickSubtitleUri() ?: return@launch
+            val controller = snapshotFlow { mediaController }.filterNotNull().first()
+            val mediaId = controller.currentMediaItem?.mediaId ?: return@launch
+            viewModel.onAction(
+                PlayerAction.SetSecondarySubtitle(
+                    subtitle = SecondarySubtitle(
+                        uri = uri,
+                        mediaId = mediaId,
+                        name = getFilenameFromUri(uri),
+                    ),
+                ),
+            )
         }
     }
 
