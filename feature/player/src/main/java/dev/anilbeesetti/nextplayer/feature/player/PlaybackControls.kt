@@ -23,9 +23,11 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Slider
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -45,10 +47,12 @@ import androidx.compose.ui.unit.LayoutDirection
 import androidx.compose.ui.unit.dp
 import androidx.media3.common.Player
 import androidx.media3.common.util.UnstableApi
-import androidx.media3.ui.compose.state.rememberProgressStateWithTickInterval
+import androidx.media3.ui.compose.state.ProgressStateWithTickInterval
 import dev.anilbeesetti.nextplayer.core.common.Utils
 import dev.anilbeesetti.nextplayer.core.ui.R
 import dev.anilbeesetti.nextplayer.feature.player.state.PlaybackSnapshot
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.withContext
 
 @androidx.annotation.OptIn(UnstableApi::class)
 @OptIn(
@@ -60,11 +64,20 @@ internal fun PlaybackSeekControl(
     player: Player,
     snapshot: PlaybackSnapshot,
     controlsEnabled: Boolean = true,
+    modifier: Modifier = Modifier,
 ) {
-    val progress = rememberProgressStateWithTickInterval(
-        player = player.takeIf { controlsEnabled },
-        tickIntervalMs = 16,
-    )
+    val observedPlayer = player.takeIf { controlsEnabled }
+    val scope = rememberCoroutineScope { Dispatchers.Main.immediate }
+    val progress = remember(observedPlayer) {
+        ProgressStateWithTickInterval(
+            observedPlayer,
+            tickIntervalMs = 16,
+            scope = scope,
+        )
+    }
+    LaunchedEffect(progress) {
+        withContext(Dispatchers.Main.immediate) { progress.observe() }
+    }
     val duration = progress.durationMs.takeIf { it > 0 } ?: snapshot.duration
     val position = if (controlsEnabled) progress.currentPositionMs else snapshot.position
     var dragged by remember(snapshot.item?.mediaId) { mutableStateOf<Float?>(null) }
@@ -110,7 +123,7 @@ internal fun PlaybackSeekControl(
         0f,
         1f,
     )
-    Column(Modifier.heightIn(min = 70.dp)) {
+    Column(modifier.heightIn(min = 70.dp)) {
         Box(
             Modifier.fillMaxWidth(),
             contentAlignment = Alignment.Center,

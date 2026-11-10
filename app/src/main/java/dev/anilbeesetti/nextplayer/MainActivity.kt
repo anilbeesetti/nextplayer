@@ -8,6 +8,8 @@ import androidx.activity.SystemBarStyle
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
 import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.animation.core.animateDpAsState
+import androidx.compose.animation.core.tween
 import androidx.compose.animation.expandHorizontally
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
@@ -26,6 +28,7 @@ import androidx.compose.foundation.layout.asPaddingValues
 import androidx.compose.foundation.layout.calculateStartPadding
 import androidx.compose.foundation.layout.consumeWindowInsets
 import androidx.compose.foundation.layout.displayCutout
+import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
@@ -33,6 +36,9 @@ import androidx.compose.foundation.layout.navigationBars
 import androidx.compose.foundation.layout.navigationBarsPadding
 import androidx.compose.foundation.layout.only
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.layout.wrapContentHeight
+import androidx.compose.foundation.layout.wrapContentWidth
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Surface
@@ -44,10 +50,12 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateMapOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberUpdatedState
 import androidx.compose.runtime.setValue
 import androidx.compose.runtime.snapshots.SnapshotStateMap
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clipToBounds
 import androidx.compose.ui.focus.FocusDirection
 import androidx.compose.ui.focus.FocusRequester
 import androidx.compose.ui.focus.focusProperties
@@ -241,11 +249,9 @@ class MainActivity : FragmentActivity() {
                             layoutPaddingValues.calculateBottomPadding() -
                                 systemBottomPadding
                             ).coerceAtLeast(0.dp)
-                        val navigationInsetsDecorator = remember(
-                            navState,
-                            railPadding,
-                            nestedBottomPadding,
-                        ) {
+                        val currentRailPadding = rememberUpdatedState(railPadding)
+                        val currentNestedBottomPadding = rememberUpdatedState(nestedBottomPadding)
+                        val navigationInsetsDecorator = remember(navState) {
                             NavEntryDecorator<NavKey> { entry ->
                                 val topLevel = navState.topLevelContentKeys.contains(
                                     entry.contentKey,
@@ -255,7 +261,7 @@ class MainActivity : FragmentActivity() {
                                     navState.navigationTransitionModifier(entry).thenIf(
                                         topLevel,
                                     ) {
-                                        padding(start = railPadding)
+                                        padding(start = currentRailPadding.value)
                                             .consumeWindowInsets(
                                                 WindowInsets.displayCutout.only(
                                                     WindowInsetsSides.Start,
@@ -264,7 +270,7 @@ class MainActivity : FragmentActivity() {
                                     }.thenIf(
                                         !topLevel,
                                     ) {
-                                        padding(bottom = nestedBottomPadding)
+                                        padding(bottom = currentNestedBottomPadding.value)
                                     },
                                 ) {
                                     CompositionLocalProvider(
@@ -371,6 +377,17 @@ fun NavigationLayout(
     var displayedFabState by remember { mutableStateOf<TopLevelFabState?>(value = null) }
     LaunchedEffect(key1 = selectedFabState) { selectedFabState?.let { displayedFabState = it } }
 
+    val systemBottom = WindowInsets.navigationBars.asPaddingValues().calculateBottomPadding()
+    val navigationExtent by animateDpAsState(
+        if (showNavigation && showBottomBar) navigationHeight else systemBottom,
+        tween(220),
+        label = "playback_navigation_extent",
+    )
+    val railExtent by animateDpAsState(
+        if (showNavRail && showNavigation) railWidth else 0.dp,
+        tween(220),
+        label = "playback_rail_extent",
+    )
     Box(modifier = Modifier.fillMaxSize()) {
         Scaffold(
             modifier = modifier.thenIf(playerExpanded) {
@@ -380,21 +397,21 @@ fun NavigationLayout(
             },
             bottomBar = {
                 Column(horizontalAlignment = Alignment.CenterHorizontally) {
-                    Spacer(
-                        Modifier.height(compactHeight).thenIf(!showNavigation || !showBottomBar) {
-                            navigationBarsPadding()
-                        },
-                    )
-                    AnimatedVisibility(
-                        visible = showNavigation && showBottomBar,
-                        enter = fadeIn() + slideInVertically { it },
-                        exit = fadeOut() + slideOutVertically { it },
-                    ) {
+                    Spacer(Modifier.height(compactHeight))
+                    Box(Modifier.height(navigationExtent).clipToBounds()) {
                         Box(
-                            Modifier.onSizeChanged {
-                                navigationHeight =
-                                    with(density) { it.height.toDp() }
-                            },
+                            Modifier.wrapContentHeight(
+                                Alignment.Bottom,
+                                unbounded = true,
+                            )
+                                .onSizeChanged {
+                                    navigationHeight =
+                                        with(density) { it.height.toDp() }
+                                }
+                                .thenIf(!showNavigation || !showBottomBar) {
+                                    semantics { hideFromAccessibility() }
+                                        .focusProperties { onEnter = { cancelFocusChange() } }
+                                },
                         ) {
                             NextNavigationBar(
                                 state = state,
@@ -447,7 +464,7 @@ fun NavigationLayout(
                     ) {
                         content(
                             PaddingValues(
-                                start = if (showNavRail) railWidth else 0.dp,
+                                start = railExtent,
                                 bottom = it.calculateBottomPadding(),
                             ),
                         )
@@ -455,27 +472,26 @@ fun NavigationLayout(
                 }
             },
         )
-        AnimatedVisibility(
-            visible = showNavRail && showNavigation && !playerExpanded,
-            enter = fadeIn() + expandHorizontally(expandFrom = Alignment.Start),
-            exit = fadeOut() + shrinkHorizontally(shrinkTowards = Alignment.Start),
-        ) {
-            NextNavigationRail(
-                state = state,
-                modifier = Modifier.onSizeChanged {
-                    railWidth =
-                        with(receiver = density) { it.width.toDp() }
-                },
-            )
+        if (showNavRail) {
+            Box(Modifier.width(railExtent).fillMaxHeight().clipToBounds()) {
+                NextNavigationRail(
+                    state = state,
+                    modifier = Modifier.wrapContentWidth(
+                        Alignment.Start,
+                        unbounded = true,
+                    )
+                        .onSizeChanged { railWidth = with(density) { it.width.toDp() } }
+                        .thenIf(!showNavigation || playerExpanded) {
+                            semantics { hideFromAccessibility() }
+                                .focusProperties { onEnter = { cancelFocusChange() } }
+                        },
+                )
+            }
         }
         PlaybackOverlay(
             modifier = Modifier.fillMaxSize(),
-            compactBottom = if (showNavigation && showBottomBar) {
-                navigationHeight
-            } else {
-                WindowInsets.navigationBars.asPaddingValues().calculateBottomPadding()
-            },
-            compactStart = if (showNavigation && showNavRail) railWidth else 0.dp,
+            compactBottom = navigationExtent,
+            compactStart = railExtent,
             hidden = overlayHidden,
             expansionRequest = expansionRequest,
             focusRequester = miniPlayerFocusRequester,

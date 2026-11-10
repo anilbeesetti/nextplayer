@@ -68,6 +68,7 @@ internal fun MiniPlayer(
     secondaryText: String? = null,
     connecting: Boolean = false,
     artworkModifier: Modifier = Modifier,
+    metadataModifier: Modifier = Modifier,
     artworkPainter: Painter = rememberPlaybackArtworkPainter(snapshot),
 ) {
     if (!snapshot.visible) return
@@ -121,12 +122,12 @@ internal fun MiniPlayer(
             ) {
                 PlaybackArtwork(
                     snapshot,
-                    Modifier.size(44.dp).then(artworkModifier),
+                    Modifier.size(44.dp).testTag("compact_artwork").then(artworkModifier),
                     RoundedCornerShape(8.dp),
                     artworkPainter,
                 )
                 Spacer(Modifier.width(12.dp))
-                Column(Modifier.weight(1f)) {
+                Column(Modifier.weight(1f).then(metadataModifier)) {
                     Text(
                         title,
                         style = MaterialTheme.typography.titleSmall.copy(

@@ -82,6 +82,102 @@ class PlaybackOverlayTest {
         composeRule.onNodeWithTag("mini_player").assertIsDisplayed()
     }
 
+    @Test fun artworkMorphTracksExpansionAndCanReverseBeforeSettling() {
+        show()
+        val compact = composeRule.onNodeWithTag(
+            "compact_artwork",
+            useUnmergedTree = true,
+        ).getUnclippedBoundsInRoot()
+        composeRule.mainClock.autoAdvance = false
+        try {
+            composeRule.onNodeWithTag(
+                "mini_player",
+            ).performSemanticsAction(SemanticsActions.OnClick) {
+                it()
+            }
+            composeRule.mainClock.advanceTimeByFrame()
+            composeRule.waitForIdle()
+            composeRule.mainClock.advanceTimeBy(120)
+            composeRule.waitForIdle()
+            composeRule.mainClock.advanceTimeByFrame()
+            val mid = composeRule.onNodeWithTag(
+                "transition_artwork",
+                useUnmergedTree = true,
+            ).getUnclippedBoundsInRoot()
+            assertTrue(mid.right - mid.left > compact.right - compact.left)
+            assertTrue(mid.top < compact.top)
+            composeRule.onNodeWithContentDescription(
+                text(R.string.stop_player_session),
+            ).assertIsNotEnabled()
+            composeRule.onNodeWithText(text(R.string.watch_video)).assertIsNotEnabled()
+            composeRule.runOnIdle { composeRule.activity.onBackPressedDispatcher.onBackPressed() }
+            composeRule.mainClock.advanceTimeBy(100)
+            val reversed = composeRule.onNodeWithTag(
+                "transition_artwork",
+                useUnmergedTree = true,
+            ).getUnclippedBoundsInRoot()
+            assertTrue(reversed.right - reversed.left < mid.right - mid.left)
+            composeRule.mainClock.advanceTimeBy(400)
+            composeRule.onNodeWithTag(
+                "transition_artwork",
+                useUnmergedTree = true,
+            ).assertDoesNotExist()
+            assertEquals(
+                compact,
+                composeRule.onNodeWithTag(
+                    "compact_artwork",
+                    useUnmergedTree = true,
+                ).getUnclippedBoundsInRoot(),
+            )
+        } finally {
+            composeRule.mainClock.autoAdvance = true
+        }
+    }
+
+    @Test fun rtlArtworkMorphUsesPhysicalBoundsWithoutMirroringTwice() {
+        show(largeText = true)
+        val compact = composeRule.onNodeWithTag(
+            "compact_artwork",
+            useUnmergedTree = true,
+        )
+            .getUnclippedBoundsInRoot()
+        composeRule.mainClock.autoAdvance = false
+        try {
+            composeRule.onNodeWithTag(
+                "mini_player",
+            ).performSemanticsAction(SemanticsActions.OnClick) {
+                it()
+            }
+            composeRule.mainClock.advanceTimeByFrame()
+            composeRule.waitForIdle()
+            composeRule.mainClock.advanceTimeBy(120)
+            composeRule.waitForIdle()
+            composeRule.mainClock.advanceTimeByFrame()
+            val mid = composeRule.onNodeWithTag(
+                "transition_artwork",
+                useUnmergedTree = true,
+            )
+                .getUnclippedBoundsInRoot()
+            val target = composeRule.onNodeWithTag("playback_artwork").getUnclippedBoundsInRoot()
+            assertTrue(
+                mid.left >= minOf(
+                    compact.left,
+                    target.left,
+                ),
+            )
+            assertTrue(
+                mid.left <= maxOf(
+                    compact.left,
+                    target.left,
+                ),
+            )
+            assertTrue(mid.right <= composeRule.onRoot().getUnclippedBoundsInRoot().right)
+        } finally {
+            composeRule.mainClock.advanceTimeBy(400)
+            composeRule.mainClock.autoAdvance = true
+        }
+    }
+
     @Test fun compactHorizontalSwipesDismissInBothDirections() {
         show()
         composeRule.onNodeWithTag("mini_player").performTouchInput { swipeLeft() }

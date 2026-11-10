@@ -4,6 +4,8 @@ import android.content.Intent
 import android.os.Bundle
 import androidx.activity.compose.BackHandler
 import androidx.compose.animation.core.Animatable
+import androidx.compose.animation.core.FastOutSlowInEasing
+import androidx.compose.animation.core.tween
 import androidx.compose.foundation.gestures.Orientation
 import androidx.compose.foundation.gestures.detectHorizontalDragGestures
 import androidx.compose.foundation.gestures.detectTapGestures
@@ -15,10 +17,12 @@ import androidx.compose.foundation.layout.BoxWithConstraints
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.WindowInsets
+import androidx.compose.foundation.layout.absoluteOffset
 import androidx.compose.foundation.layout.asPaddingValues
 import androidx.compose.foundation.layout.calculateEndPadding
 import androidx.compose.foundation.layout.calculateStartPadding
 import androidx.compose.foundation.layout.displayCutout
+import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
@@ -49,21 +53,37 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
+import androidx.compose.ui.AbsoluteAlignment
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.drawWithContent
 import androidx.compose.ui.focus.FocusRequester
+import androidx.compose.ui.focus.focusProperties
 import androidx.compose.ui.focus.focusRequester
+import androidx.compose.ui.geometry.Offset
+import androidx.compose.ui.geometry.Rect
+import androidx.compose.ui.geometry.lerp
+import androidx.compose.ui.graphics.drawscope.clipRect
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.input.pointer.pointerInput
+import androidx.compose.ui.layout.boundsInRoot
+import androidx.compose.ui.layout.onGloballyPositioned
+import androidx.compose.ui.layout.positionInRoot
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.platform.LocalLayoutDirection
 import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.semantics.clearAndSetSemantics
+import androidx.compose.ui.semantics.hideFromAccessibility
 import androidx.compose.ui.semantics.semantics
+import androidx.compose.ui.semantics.testTag
+import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.IntOffset
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
 import androidx.media3.common.Player
 import androidx.media3.common.util.UnstableApi
 import dev.anilbeesetti.nextplayer.core.ui.R
@@ -78,7 +98,7 @@ import dev.anilbeesetti.nextplayer.feature.player.service.stopPlayerSession
 import dev.anilbeesetti.nextplayer.feature.player.state.PlaybackSnapshot
 import dev.anilbeesetti.nextplayer.feature.player.state.rememberMediaController
 import dev.anilbeesetti.nextplayer.feature.player.state.rememberPlaybackSnapshot
-import dev.anilbeesetti.nextplayer.feature.player.ui.PlaylistView
+import dev.anilbeesetti.nextplayer.feature.player.ui.PlaybackQueueContent
 import kotlin.math.abs
 import kotlin.math.roundToInt
 import kotlinx.coroutines.CoroutineStart
@@ -292,7 +312,18 @@ internal fun PlaybackOverlayContent(
                 )?.substringAfterLast('/')
                 ?: stringResource(R.string.background_play)
     }
-    BoxWithConstraints(Modifier.fillMaxSize()) {
+    val artworkPainter = rememberPlaybackArtworkPainter(snapshot)
+    var rootOrigin by remember { mutableStateOf(Offset.Zero) }
+    var compactArtwork by remember { mutableStateOf(Rect.Zero) }
+    var expandedArtwork by remember { mutableStateOf(Rect.Zero) }
+    var compactMetadata by remember { mutableStateOf(Rect.Zero) }
+    var expandedMetadata by remember { mutableStateOf(Rect.Zero) }
+    BoxWithConstraints(
+        Modifier.fillMaxSize().onGloballyPositioned {
+            rootOrigin = it.positionInRoot()
+        },
+    ) {
+        val landscape = maxWidth > maxHeight
         val travel = with(density) {
             (maxHeight - compactBottom - compactHeight - 8.dp).toPx()
         }.coerceAtLeast(1f)
@@ -300,7 +331,15 @@ internal fun PlaybackOverlayContent(
         var upwardPull by remember { mutableFloatStateOf(0f) }
         val expansion = remember { Animatable(if (expanded) 1f else 0f) }
         val gestureScope = rememberCoroutineScope()
-        LaunchedEffect(expanded) { expansion.animateTo(if (expanded) 1f else 0f) }
+        LaunchedEffect(expanded) {
+            expansion.animateTo(
+                if (expanded) 1f else 0f,
+                tween(
+                    280,
+                    easing = FastOutSlowInEasing,
+                ),
+            )
+        }
         val progress = expansion.value
         val dragState = rememberDraggableState { delta ->
             if (controlsEnabled && expanded && progress >= .99f && delta < 0f) {
@@ -337,7 +376,13 @@ internal fun PlaybackOverlayContent(
             }
             dragging = false
             if (target == expanded) {
-                expansion.animateTo(if (target) 1f else 0f)
+                expansion.animateTo(
+                    if (target) 1f else 0f,
+                    tween(
+                        280,
+                        easing = FastOutSlowInEasing,
+                    ),
+                )
             } else {
                 onExpandedChanged(target)
             }
@@ -353,6 +398,23 @@ internal fun PlaybackOverlayContent(
         val cutout = WindowInsets.displayCutout.asPaddingValues()
         val start = (compactStart + cutout.calculateStartPadding(direction)) * (1f - progress)
         val end = cutout.calculateEndPadding(direction) * (1f - progress)
+        val horizontalPadding = 16.dp * (1f - progress)
+        val rtl = direction == androidx.compose.ui.unit.LayoutDirection.Rtl
+        val leftInset = if (rtl) end else start
+        val rightInset = if (rtl) start else end
+        val sheetTop = travel * (1f - progress)
+        val sheetHeight = compactHeight + (maxHeight - compactHeight) * progress
+        val sheetBounds = with(density) {
+            Rect(
+                (leftInset + horizontalPadding).toPx(),
+                sheetTop,
+                maxWidth.toPx() - (rightInset + horizontalPadding).toPx(),
+                sheetTop + sheetHeight.toPx(),
+            )
+        }
+        val transitioning = progress > 0f && progress < 1f
+        val morphArtwork = transitioning && compactArtwork.width > 0 && expandedArtwork.width > 0
+        val morphMetadata = transitioning && compactMetadata.width > 0 && expandedMetadata.width > 0
         Surface(
             modifier = Modifier
                 .offset {
@@ -381,56 +443,204 @@ internal fun PlaybackOverlayContent(
             color = MaterialTheme.colorScheme.primaryContainer,
             contentColor = MaterialTheme.colorScheme.onPrimaryContainer,
             shadowElevation = 3.dp,
-        ) {
-            if (progress < .01f && !expanded && !dragging) {
-                var horizontal by remember { mutableFloatStateOf(0f) }
-                MiniPlayer(
-                    player = player,
-                    onOpenPlayer = { onExpandedChanged(true) },
-                    onStop = onDismissPlayback,
-                    deviceName = presentation.deviceName,
-                    controlsEnabled = controlsEnabled,
-                    snapshot = snapshot,
-                    secondaryText = secondary,
-                    connecting = presentation.connection == PlaybackConnection.CONNECTING,
-                    modifier = Modifier.focusRequester(focusRequester).then(compactModifier)
-                        .graphicsLayer { translationX = horizontal }
-                        .pointerInput(player) {
-                            detectHorizontalDragGestures(
-                                onHorizontalDrag = { change, amount ->
-                                    change.consume()
-                                    horizontal +=
-                                        amount
-                                },
-                                onDragCancel = { horizontal = 0f },
-                                onDragEnd = {
-                                    if (abs(horizontal) > size.width * .25f) onDismissPlayback()
-                                    horizontal = 0f
-                                },
-                            )
+        ) {}
+        if (progress < 1f) {
+            var horizontal by remember { mutableFloatStateOf(0f) }
+            MiniPlayer(
+                player = player,
+                onOpenPlayer = { if (progress == 0f) onExpandedChanged(true) },
+                onStop = onDismissPlayback,
+                deviceName = presentation.deviceName,
+                controlsEnabled = controlsEnabled && progress == 0f,
+                snapshot = snapshot,
+                artworkPainter = artworkPainter,
+                artworkModifier = Modifier.onGloballyPositioned {
+                    compactArtwork = it.boundsInRoot().translate(-rootOrigin)
+                }.graphicsLayer { alpha = if (morphArtwork) 0f else 1f },
+                metadataModifier = Modifier.onGloballyPositioned {
+                    compactMetadata = it.boundsInRoot().translate(-rootOrigin)
+                }.graphicsLayer { alpha = if (morphMetadata) 0f else 1f },
+                secondaryText = secondary,
+                connecting = presentation.connection == PlaybackConnection.CONNECTING,
+                modifier = Modifier
+                    .offset {
+                        IntOffset(
+                            0,
+                            travel.roundToInt(),
+                        )
+                    }
+                    .padding(
+                        start = compactStart + cutout.calculateStartPadding(direction),
+                        end = cutout.calculateEndPadding(direction),
+                    )
+                    .padding(horizontal = 16.dp)
+                    .draggable(
+                        dragState,
+                        Orientation.Vertical,
+                        enabled = !expanded,
+                        onDragStarted = dragStarted,
+                        onDragStopped = dragStopped,
+                    )
+                    .focusRequester(focusRequester).then(compactModifier)
+                    .semantics { if (progress > 0f) hideFromAccessibility() }
+                    .focusProperties { canFocus = progress == 0f }
+                    .graphicsLayer {
+                        translationX = horizontal
+                        alpha = (1f - progress * 2f).coerceIn(
+                            0f,
+                            1f,
+                        )
+                    }
+                    .pointerInput(
+                        player,
+                        progress == 0f,
+                    ) {
+                        if (progress != 0f) return@pointerInput
+                        detectHorizontalDragGestures(
+                            onHorizontalDrag = { change, amount ->
+                                change.consume()
+                                horizontal +=
+                                    amount
+                            },
+                            onDragCancel = { horizontal = 0f },
+                            onDragEnd = {
+                                if (abs(horizontal) > size.width * .25f) onDismissPlayback()
+                                horizontal = 0f
+                            },
+                        )
+                    },
+            )
+        }
+        if (progress > 0f || expanded || dragging) {
+            ExpandedPlaybackControls(
+                player,
+                snapshot,
+                title,
+                secondary,
+                controlsEnabled && progress >= .99f,
+                landscape = landscape,
+                connection = presentation.connection,
+                deviceName = presentation.deviceName,
+                onCollapse = { onExpandedChanged(false) },
+                onQueue = { queue = true },
+                onOutput = { output = true },
+                onStop = onStop,
+                onWatchVideo = onWatchVideo,
+                onCommand = onCommand,
+                dragModifier = verticalDrag,
+                transitionProgress = progress,
+                controlsTranslationY = if (morphMetadata) {
+                    (compactMetadata.bottom - expandedMetadata.bottom) * (1f - progress)
+                } else {
+                    0f
+                },
+                artworkPainter = artworkPainter,
+                artworkModifier = Modifier.onGloballyPositioned {
+                    expandedArtwork = it.boundsInRoot().translate(-rootOrigin)
+                }.graphicsLayer { alpha = if (morphArtwork) 0f else 1f },
+                metadataModifier = Modifier.onGloballyPositioned {
+                    expandedMetadata = it.boundsInRoot().translate(-rootOrigin)
+                }.graphicsLayer { alpha = if (morphMetadata) 0f else 1f },
+                modifier = Modifier.semantics {
+                    if (progress < .99f) hideFromAccessibility()
+                }.focusProperties {
+                    if (progress < .99f) onEnter = { cancelFocusChange() }
+                }.drawWithContent {
+                    clipRect(
+                        left = sheetBounds.left,
+                        top = sheetBounds.top,
+                        right = sheetBounds.right,
+                        bottom = sheetBounds.bottom,
+                    ) {
+                        this@drawWithContent.drawContent()
+                    }
+                },
+            )
+        }
+        if (morphArtwork) {
+            val bounds = lerp(
+                compactArtwork,
+                expandedArtwork,
+                progress,
+            )
+            PlaybackArtwork(
+                snapshot,
+                Modifier.align(AbsoluteAlignment.TopLeft).absoluteOffset {
+                    IntOffset(
+                        bounds.left.roundToInt(),
+                        bounds.top.roundToInt(),
+                    )
+                }
+                    .size(
+                        with(density) {
+                            bounds.width.toDp()
                         },
-                )
-            } else {
-                ExpandedPlaybackControls(
-                    player,
-                    snapshot,
+                        with(density) { bounds.height.toDp() },
+                    )
+                    .clearAndSetSemantics { testTag = "transition_artwork" },
+                RoundedCornerShape(8.dp + 10.dp * progress),
+                artworkPainter,
+            )
+        }
+        if (morphMetadata) {
+            val bounds = lerp(
+                compactMetadata,
+                expandedMetadata,
+                progress,
+            )
+            val titleStyle = androidx.compose.ui.text.lerp(
+                MaterialTheme.typography.titleSmall.copy(
+                    fontSize = 15.sp,
+                    fontWeight = FontWeight.SemiBold,
+                    letterSpacing = (-.2).sp,
+                ),
+                MaterialTheme.typography.headlineSmall.copy(fontWeight = FontWeight.Bold),
+                progress,
+            )
+            val secondaryStyle = androidx.compose.ui.text.lerp(
+                MaterialTheme.typography.bodySmall.copy(fontSize = 13.sp),
+                MaterialTheme.typography.titleMedium,
+                progress,
+            )
+            Column(
+                Modifier.align(AbsoluteAlignment.TopLeft).absoluteOffset {
+                    IntOffset(
+                        bounds.left.roundToInt(),
+                        bounds.top.roundToInt(),
+                    )
+                }
+                    .size(
+                        with(density) {
+                            bounds.width.toDp()
+                        },
+                        with(density) { bounds.height.toDp() },
+                    )
+                    .clearAndSetSemantics {},
+            ) {
+                Text(
                     title,
+                    maxLines = if (landscape ||
+                        progress < .8f
+                    ) {
+                        1
+                    } else {
+                        2
+                    },
+                    overflow = TextOverflow.Ellipsis,
+                    style = titleStyle,
+                    color = MaterialTheme.colorScheme.onPrimaryContainer,
+                )
+                Text(
                     secondary,
-                    controlsEnabled,
-                    landscape = maxWidth > maxHeight,
-                    connection = presentation.connection,
-                    deviceName = presentation.deviceName,
-                    onCollapse = { onExpandedChanged(false) },
-                    onQueue = { queue = true },
-                    onOutput = { output = true },
-                    onStop = onStop,
-                    onWatchVideo = onWatchVideo,
-                    onCommand = onCommand,
-                    dragModifier = verticalDrag,
+                    maxLines = 1,
+                    overflow = TextOverflow.Ellipsis,
+                    style = secondaryStyle,
+                    color = MaterialTheme.colorScheme.onPrimaryContainer,
                 )
             }
         }
     }
+
     LaunchedEffect(controlsEnabled) {
         if (!controlsEnabled) {
             queue = false
@@ -442,12 +652,8 @@ internal fun PlaybackOverlayContent(
             onDismissRequest = { queue = false },
             sheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true),
         ) {
-            Box(Modifier.fillMaxWidth().height(500.dp).testTag("playback_queue")) {
-                PlaylistView(
-                    show = true,
-                    player = player,
-                    fullSize = true,
-                )
+            Box(Modifier.fillMaxWidth().fillMaxHeight(.9f).testTag("playback_queue")) {
+                PlaybackQueueContent(player)
             }
         }
     }

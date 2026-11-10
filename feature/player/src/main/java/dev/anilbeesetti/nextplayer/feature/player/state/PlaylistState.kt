@@ -15,12 +15,16 @@ import androidx.media3.common.Player
 import androidx.media3.common.Timeline
 import androidx.media3.common.util.UnstableApi
 import androidx.media3.ui.compose.state.observeState
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.withContext
 
 @UnstableApi
 @Composable
 fun rememberPlaylistState(player: Player): PlaylistState {
     val playlistState = remember(player) { PlaylistState(player = player) }
-    LaunchedEffect(key1 = player) { playlistState.observe() }
+    LaunchedEffect(key1 = player) {
+        withContext(Dispatchers.Main.immediate) { playlistState.observe() }
+    }
     return playlistState
 }
 

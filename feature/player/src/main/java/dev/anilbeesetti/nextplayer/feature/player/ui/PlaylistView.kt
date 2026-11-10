@@ -151,6 +151,8 @@ internal fun PlaybackQueueContent(
                 ) { index ->
                     val item = queue.getMediaItemAt(index)
                     val current = index == queue.currentMediaItemIndex
+                    val canMoveEarlier = editable && index > 0
+                    val canMoveLater = editable && index < queue.mediaItemCount - 1
                     val shape = RoundedCornerShape(if (current) 60.dp else 22.dp)
                     ReorderableItem(
                         reorder,
@@ -162,12 +164,14 @@ internal fun PlaybackQueueContent(
                             shape = shape,
                             color = MaterialTheme.colorScheme.surfaceContainerLowest,
                             tonalElevation = 1.dp,
-                            modifier = Modifier.fillMaxWidth().tvFocusRing(shape)
+                            modifier = Modifier.fillMaxWidth().testTag(
+                                "queue_item_$index",
+                            ).tvFocusRing(shape)
                                 .semantics {
                                     selected = current
                                     if (editable) {
                                         customActions = buildList {
-                                            if (index > 0) {
+                                            if (canMoveEarlier) {
                                                 add(
                                                     CustomAccessibilityAction(moveUp) {
                                                         queue.moveItem(
@@ -178,9 +182,7 @@ internal fun PlaybackQueueContent(
                                                     },
                                                 )
                                             }
-                                            if (index <
-                                                queue.mediaItemCount - 1
-                                            ) {
+                                            if (canMoveLater) {
                                                 add(
                                                     CustomAccessibilityAction(moveDown) {
                                                         queue.moveItem(
