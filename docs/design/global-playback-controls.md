@@ -37,8 +37,22 @@ https://github.com/PixelPlayerHQ/PixelPlayer/blob/63cb59b97aff1d60c5aa46afdf5ce4
 
 ## Open decisions
 
-- Undo availability; restoration details are subsequent decisions if Undo is selected.
-- Cast handoff from externally launched video playback, notification re-entry and reconnection.
-- Queue interactions, keyboard placement, locked vault screens and adaptive/accessibility behavior.
+- Q11: Four-second Undo for swipe dismissal. Output restoration is a subsequent decision if Undo is selected.
+- Q12: Open expanded Connecting/Cast controls when playback originated in another app.
+- Q13: Open expanded controls when the playback notification is tapped.
+- Q14: Unexpected Cast loss keeps the last queue/position paused locally and offers recovery, or immediately resumes on the phone.
+- Q15: Keep the mini player above the keyboard, or hide it while the keyboard is open.
+- Q16: Hide playback surfaces while the vault PIN/unlock screen is visible, or keep them visible there.
+- Q17: Swipe up from fully expanded controls opens the existing queue with select/reorder/remove, retaining the cannot-remove-final-item rule and excluding new clear/save actions.
+- Q18: Horizontal swipes on expanded artwork select adjacent videos with a carousel animation, or remain button-only.
+- Recovery/reconnection presentation follows the selected disconnect behavior.
+
+## Implementation and verification constraints
+
+- Support portrait/landscape, window-size changes and both bottom navigation and navigation rail layouts.
+- Keep controls reachable with accessibility services, large text, RTL and TV/D-pad input. Provide button equivalents for touch gestures and respect system motion settings.
+- Reserve space on nested screens so the compact bar does not cover content or form controls.
+- Preserve URI access and playback state across activity handoffs and external launches.
+- Verify behavior in both distributions, with Cast implementation confined to `play`.
 
 The interview must finish with a shared-understanding confirmation before application implementation.
