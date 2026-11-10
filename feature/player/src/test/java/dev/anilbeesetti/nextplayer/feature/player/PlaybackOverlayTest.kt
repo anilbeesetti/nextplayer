@@ -441,6 +441,30 @@ class PlaybackOverlayTest {
         )
     }
 
+    @Test fun outputChipTransitionsBetweenLocalAndNamedReceiverWithoutCrowding() {
+        expanded = true
+        show(deviceName = "Living room receiver with a long name")
+        val output = composeRule.onNodeWithTag("playback_output_action")
+        val local = output.getUnclippedBoundsInRoot()
+        assertEquals(
+            50.dp,
+            local.right - local.left,
+        )
+        composeRule.runOnIdle { player.remote(true) }
+        composeRule.onNodeWithTag("playback_header_title").assertDoesNotExist()
+        val remote = output.getUnclippedBoundsInRoot()
+        assertTrue(remote.right - remote.left > 50.dp)
+        assertTrue(remote.right - remote.left <= 190.dp)
+        composeRule.onNodeWithTag("playback_queue_action").assertIsDisplayed()
+        composeRule.runOnIdle { player.remote(false) }
+        composeRule.onNodeWithTag("playback_header_title").assertIsDisplayed()
+        val restored = output.getUnclippedBoundsInRoot()
+        assertEquals(
+            50.dp,
+            restored.right - restored.left,
+        )
+    }
+
     @Test fun portraitCastHeaderLeavesRoomForReceiverInsteadOfNowPlaying() {
         expanded = true
         composeRule.runOnIdle { player.remote(true) }

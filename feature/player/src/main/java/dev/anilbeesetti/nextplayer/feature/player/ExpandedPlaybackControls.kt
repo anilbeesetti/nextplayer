@@ -6,9 +6,12 @@ import android.os.Handler
 import android.os.Looper
 import android.provider.Settings
 import androidx.compose.animation.AnimatedContent
+import androidx.compose.animation.animateContentSize
 import androidx.compose.animation.core.FastOutSlowInEasing
+import androidx.compose.animation.core.Spring
 import androidx.compose.animation.core.animateDpAsState
 import androidx.compose.animation.core.animateFloatAsState
+import androidx.compose.animation.core.spring
 import androidx.compose.animation.core.tween
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
@@ -372,11 +375,19 @@ private fun PlaybackHeaderActions(
 ) {
     val showDevice = showDeviceLabel &&
         (connection == PlaybackConnection.CONNECTING || snapshot.isRemote)
+    val innerCorner by animateDpAsState(
+        if (showDevice) 50.dp else 6.dp,
+        animationSpec = spring(
+            dampingRatio = Spring.DampingRatioMediumBouncy,
+            stiffness = Spring.StiffnessLow,
+        ),
+        label = "playback_output_corner",
+    )
     val outputShape = RoundedCornerShape(
         topStart = 50.dp,
         bottomStart = 50.dp,
-        topEnd = if (showDevice) 50.dp else 6.dp,
-        bottomEnd = if (showDevice) 50.dp else 6.dp,
+        topEnd = innerCorner.coerceAtLeast(0.dp),
+        bottomEnd = innerCorner.coerceAtLeast(0.dp),
     )
     val queueShape = RoundedCornerShape(
         topStart = 6.dp,
@@ -403,7 +414,12 @@ private fun PlaybackHeaderActions(
                 shape = outputShape,
                 color = if (enabled) colors.containerColor else colors.disabledContainerColor,
                 contentColor = if (enabled) colors.contentColor else colors.disabledContentColor,
-                modifier = Modifier.height(42.dp).widthIn(
+                modifier = Modifier.animateContentSize(
+                    animationSpec = spring(
+                        dampingRatio = Spring.DampingRatioMediumBouncy,
+                        stiffness = Spring.StiffnessLow,
+                    ),
+                ).height(42.dp).widthIn(
                     min = 50.dp,
                     max = 190.dp,
                 )
