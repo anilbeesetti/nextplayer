@@ -64,6 +64,19 @@ https://github.com/PixelPlayerHQ/PixelPlayer/blob/63cb59b97aff1d60c5aa46afdf5ce4
 - Keep controls reachable with accessibility services, large text, RTL and TV/D-pad input. Provide button equivalents for touch gestures and respect system motion settings.
 - Reserve space on nested screens so the compact bar does not cover content or form controls.
 - Preserve URI access and playback state across activity handoffs and external launches.
+- Preserve existing external player API result behavior.
+- Honor available playback commands; unavailable queue, seek and output controls must not issue unsupported commands.
 - Verify behavior in both distributions, with Cast implementation confined to `play`.
+
+## Acceptance coverage
+
+- Navigate across root tabs, folders, search, playlists, network and settings while the overlay stays independent of screen transitions and content remains unobscured.
+- Expand/collapse with touch and buttons; open the queue; distinguish compact dismiss gestures from expanded artwork selection; exercise Back and Watch video return behavior.
+- Verify four-second Undo for previously playing and paused local sessions, and paused local restoration after Cast dismissal, without reviving an old receiver session.
+- Exercise Cast selection, connecting cancellation/failure, acknowledged paused/playing media, unexpected disconnect, explicit Retry and Play on phone.
+- Repeat Cast handoff for videos opened inside Next Player, external video intents and notification re-entry, preserving position and caller compatibility.
+- Check playlist creation covering the overlay, text-entry insets, vault PIN exclusion, rotation/window changes, RTL, large text, motion settings and D-pad focus.
+- Run applicable unit, integration, build and formatting checks for both distributions; validate flows on an emulator and on the connected phone/receiver when available.
+- Keep the existing high-bitrate Camera buffering failure visible in verification results; do not claim this UI work fixes it.
 
 The interview must finish with a shared-understanding confirmation before application implementation.
