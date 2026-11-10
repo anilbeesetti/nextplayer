@@ -75,6 +75,7 @@ import dev.anilbeesetti.nextplayer.core.model.MediaLayoutMode
 import dev.anilbeesetti.nextplayer.core.model.Sort
 import dev.anilbeesetti.nextplayer.core.model.Video
 import dev.anilbeesetti.nextplayer.core.ui.R
+import dev.anilbeesetti.nextplayer.core.ui.components.BindPlaybackOverlayHidden
 import dev.anilbeesetti.nextplayer.core.ui.components.CancelButton
 import dev.anilbeesetti.nextplayer.core.ui.components.MediaQuickSettingsDialog
 import dev.anilbeesetti.nextplayer.core.ui.components.NextDialog
@@ -103,6 +104,7 @@ import dev.anilbeesetti.nextplayer.feature.videopicker.state.rememberSelectionMa
 @Composable
 fun VaultScreen(viewModel: VaultViewModel) {
     val state by viewModel.state.collectAsStateWithLifecycle()
+    BindPlaybackOverlayHidden(hidden = state.stage != VaultStage.UNLOCKED)
     val context = LocalContext.current
     val lifecycleOwner = LocalLifecycleOwner.current
 

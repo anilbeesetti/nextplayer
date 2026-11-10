@@ -45,19 +45,42 @@ internal class PlaybackOutput(
     private var localBeforeConnection: PlayerTransferState? = null
     private var lastRemote: PlayerTransferState? = null
     private var restoreAfterDisconnect: PlayerTransferState? = null
+    private var restoredOnPhone = false
     private var expectedMediaId: String? = null
+    private var outboundPlaying = false
     private var routeId: String? = null
     private var stopping = false
     private var returningToPhone = false
+    private var rejectRemoteTransfers = false
     private val handler = Handler(Looper.getMainLooper())
     private val timeout = Runnable { cancelConnection() }
+    private val snapshotTick = object : Runnable {
+        override fun run() {
+            acknowledgeRemote()
+            handler.postDelayed(
+                this,
+                500,
+            )
+        }
+    }
+    val hasPendingPlayback: Boolean get() =
+        presentation.connection == PlaybackConnection.CONNECTING && localBeforeConnection != null
 
     private fun publish(
         connection: PlaybackConnection,
         expand: Boolean = false,
         name: String? = null,
     ) {
+        val retained = if (connection ==
+            PlaybackConnection.CONNECTING
+        ) {
+            localBeforeConnection
+        } else {
+            lastRemote
+        }
         presentation = presentation.copy(
+            mediaItem = retained?.mediaItems?.getOrNull(retained.currentMediaItemIndex),
+            position = retained?.currentPosition ?: 0,
             connection = connection,
             deviceName = name ?: presentation.deviceName,
             expansionRequest = presentation.expansionRequest + if (expand) 1 else 0,
@@ -66,18 +89,26 @@ internal class PlaybackOutput(
     }
 
     private fun beginConnection(session: CastSession?, explicit: Boolean) {
-        if (stopping || localPlayer.mediaItemCount == 0) return
+        if ((!explicit && rejectRemoteTransfers) || stopping ||
+            localPlayer.mediaItemCount == 0
+        ) {
+            return
+        }
+        if (explicit) {
+            rejectRemoteTransfers = false
+            restoreAfterDisconnect = null
+        }
         if (presentation.connection != PlaybackConnection.CONNECTING) {
-            localBeforeConnection = playbackTransferState(localPlayer).let { state ->
-                if (!explicit && presentation.connection == PlaybackConnection.LOST) {
-                    state.buildUpon().setPlayWhenReady(lastRemote?.playWhenReady ?: false).build()
-                } else {
-                    state
-                }
+            localBeforeConnection = playbackTransferState(localPlayer)
+            outboundPlaying = if (!explicit && presentation.connection == PlaybackConnection.LOST) {
+                lastRemote?.playWhenReady ?: false
+            } else {
+                localBeforeConnection?.playWhenReady ?: false
             }
             expectedMediaId = localPlayer.currentMediaItem?.mediaId
         }
         routeId = MediaRouter.getInstance(context).selectedRoute.id
+        returningToPhone = false
         localPlayer.pause()
         publish(
             PlaybackConnection.CONNECTING,
@@ -125,17 +156,27 @@ internal class PlaybackOutput(
 
     private fun acknowledgeRemote() {
         val remote = remotePlayer ?: return
-        if (stopping || presentation.connection == PlaybackConnection.LOCAL) return
+        if (stopping || returningToPhone || rejectRemoteTransfers) return
+        if (presentation.connection != PlaybackConnection.CONNECTING &&
+            presentation.connection != PlaybackConnection.CAST
+        ) {
+            return
+        }
+        val mediaId = if (presentation.connection == PlaybackConnection.CAST) {
+            remote.currentMediaItem?.mediaId
+        } else {
+            expectedMediaId
+        }
         if (!isAcknowledgedCastMedia(
                 remote,
-                expectedMediaId,
+                mediaId,
             )
         ) {
             return
         }
         lastRemote = transfer?.snapshotForPhone(remote)
         handler.removeCallbacks(timeout)
-        publish(PlaybackConnection.CAST)
+        if (presentation.connection != PlaybackConnection.CAST) publish(PlaybackConnection.CAST)
     }
 
     val player: Player = try {
@@ -149,69 +190,12 @@ internal class PlaybackOutput(
             .setLocalPlayer(localPlayer)
             .setRemotePlayer(remote)
             .setTransferCallback { source, target ->
-                try {
-                    if (target === remote) {
-                        if (stopping) {
-                            target.pause()
-                            target.clearMediaItems()
-                        } else {
-                            if (presentation.connection != PlaybackConnection.CONNECTING) {
-                                beginConnection(
-                                    sessionManager?.currentCastSession,
-                                    false,
-                                )
-                            }
-                            val intendedPlaying = localBeforeConnection?.playWhenReady ?: false
-                            callback.transferState(
-                                object : ForwardingPlayer(source) {
-                                    override fun getPlayWhenReady() = intendedPlaying
-                                },
-                                target,
-                            )
-                        }
-                    } else {
-                        val restore = restoreAfterDisconnect
-                        when {
-                            restore != null -> {
-                                restore.setToPlayer(target)
-                                restoreAfterDisconnect = null
-                                target.prepare()
-                            }
-
-                            stopping -> callback.transferState(
-                                source,
-                                target,
-                            )
-
-                            presentation.connection == PlaybackConnection.CONNECTING -> {
-                                localBeforeConnection?.setToPlayer(target)
-                                target.prepare()
-                                publish(PlaybackConnection.LOCAL)
-                            }
-
-                            else -> {
-                                if (source.mediaItemCount > 0) {
-                                    callback.transferState(
-                                        source,
-                                        target,
-                                    )
-                                } else {
-                                    lastRemote?.setToPlayer(target)
-                                }
-                                target.playWhenReady = returningToPhone &&
-                                    (lastRemote?.playWhenReady ?: source.playWhenReady)
-                                if (!returningToPhone) connectionLost()
-                            }
-                        }
-                    }
-                } catch (error: Exception) {
-                    Logger.logError(
-                        "Cast",
-                        "Playback transfer failed: ${error.message}",
-                    )
-                    target.pause()
-                    handler.post { cancelConnection() }
-                }
+                transferState(
+                    source,
+                    target,
+                    remote,
+                    callback,
+                )
             }
             .build()
             .also { output ->
@@ -221,6 +205,7 @@ internal class PlaybackOutput(
                         CastSession::class.java,
                     )
                 }
+                handler.post(snapshotTick)
                 remote.addListener(object : Player.Listener {
                     override fun onEvents(player: Player, events: Player.Events) {
                         acknowledgeRemote()
@@ -241,9 +226,84 @@ internal class PlaybackOutput(
         localPlayer
     }
 
+    internal fun transferState(
+        source: Player,
+        target: Player,
+        remote: Player,
+        callback: CastTransferCallback,
+    ) {
+        try {
+            if (target === remote) {
+                if (stopping || rejectRemoteTransfers) {
+                    target.pause()
+                    target.clearMediaItems()
+                    handler.post { sessionManager?.endCurrentSession(true) }
+                } else {
+                    if (presentation.connection != PlaybackConnection.CONNECTING) {
+                        beginConnection(
+                            sessionManager?.currentCastSession,
+                            false,
+                        )
+                    }
+                    val intendedPlaying = outboundPlaying
+                    callback.transferState(
+                        object : ForwardingPlayer(source) {
+                            override fun getPlayWhenReady() = intendedPlaying
+                        },
+                        target,
+                    )
+                }
+            } else {
+                val restore = restoreAfterDisconnect
+                when {
+                    restore != null -> {
+                        if (!restoredOnPhone) {
+                            restore.setToPlayer(target)
+                            target.prepare()
+                            restoredOnPhone = true
+                        }
+                    }
+
+                    stopping -> {
+                        target.pause()
+                        target.clearMediaItems()
+                        target.stop()
+                    }
+
+                    presentation.connection == PlaybackConnection.CONNECTING -> {
+                        localBeforeConnection?.setToPlayer(target)
+                        target.prepare()
+                        publish(PlaybackConnection.LOCAL)
+                    }
+
+                    else -> {
+                        if (source.currentMediaItem?.localConfiguration != null) {
+                            callback.transferState(
+                                source,
+                                target,
+                            )
+                        } else {
+                            lastRemote?.setToPlayer(target)
+                        }
+                        target.playWhenReady = returningToPhone &&
+                            (lastRemote?.playWhenReady ?: source.playWhenReady)
+                        if (!returningToPhone) connectionLost()
+                    }
+                }
+            }
+        } catch (error: Exception) {
+            Logger.logError(
+                "Cast",
+                "Playback transfer failed: ${error.message}",
+            )
+            target.pause()
+            handler.post { cancelConnection() }
+        }
+    }
+
     fun snapshotForPhone(): PlayerTransferState =
         if (player.deviceInfo.playbackType == DeviceInfo.PLAYBACK_TYPE_REMOTE) {
-            if (player.mediaItemCount > 0) {
+            if (player.currentMediaItem?.localConfiguration != null) {
                 transfer?.snapshotForPhone(player)
                     ?: playbackTransferState(player)
             } else {
@@ -257,14 +317,16 @@ internal class PlaybackOutput(
         if (presentation.connection != PlaybackConnection.CONNECTING) return
         handler.removeCallbacks(timeout)
         restoreAfterDisconnect = localBeforeConnection
+        restoredOnPhone = false
+        rejectRemoteTransfers = true
         returningToPhone = true
+        publish(PlaybackConnection.LOCAL)
         sessionManager?.endCurrentSession(true)
         if (player.deviceInfo.playbackType == DeviceInfo.PLAYBACK_TYPE_LOCAL) {
             restoreAfterDisconnect?.setToPlayer(localPlayer)
-            restoreAfterDisconnect = null
             localPlayer.prepare()
+            restoredOnPhone = true
         }
-        publish(PlaybackConnection.LOCAL)
     }
 
     fun retry() {
@@ -280,14 +342,22 @@ internal class PlaybackOutput(
         }
         stopping = false
         returningToPhone = false
-        beginConnection(
-            null,
-            true,
-        )
-        route.select()
+        val router = MediaRouter.getInstance(context)
+        if (router.selectedRoute.id == route.id) {
+            router.unselect(MediaRouter.UNSELECT_REASON_DISCONNECTED)
+        }
+        handler.post {
+            beginConnection(
+                null,
+                true,
+            )
+            routeId = route.id
+            route.select()
+        }
     }
 
     fun playOnPhone() {
+        rejectRemoteTransfers = true
         handler.removeCallbacks(timeout)
         returningToPhone = true
         if (player.deviceInfo.playbackType == DeviceInfo.PLAYBACK_TYPE_REMOTE) {
@@ -301,14 +371,16 @@ internal class PlaybackOutput(
     }
 
     fun restoreOnPhone(state: PlayerTransferState) {
+        rejectRemoteTransfers = true
         restoreAfterDisconnect = state
+        restoredOnPhone = false
         returningToPhone = true
         stopping = false
         sessionManager?.endCurrentSession(true)
         if (player.deviceInfo.playbackType == DeviceInfo.PLAYBACK_TYPE_LOCAL) {
             state.setToPlayer(localPlayer)
-            restoreAfterDisconnect = null
             localPlayer.prepare()
+            restoredOnPhone = true
         }
         publish(PlaybackConnection.LOCAL)
     }
@@ -321,14 +393,30 @@ internal class PlaybackOutput(
         expectedMediaId = null
     }
 
-    fun onQueueReady(mediaId: String? = null) {
+    fun onQueueReady(mediaId: String? = null, pendingState: PlayerTransferState? = null) {
         stopping = false
         returningToPhone = false
         transfer?.onQueueReady()
         expectedMediaId = mediaId ?: player.currentMediaItem?.mediaId
+        if (player.deviceInfo.playbackType == DeviceInfo.PLAYBACK_TYPE_REMOTE) {
+            localBeforeConnection = pendingState ?: localBeforeConnection
+            pendingState?.let { transfer?.retainFolderQueue(it.mediaItems) }
+            publish(
+                PlaybackConnection.CONNECTING,
+                expand = true,
+            )
+            handler.removeCallbacks(timeout)
+            handler.postDelayed(
+                timeout,
+                20_000,
+            )
+        } else {
+            publish(PlaybackConnection.LOCAL)
+        }
     }
 
     fun onStop() {
+        rejectRemoteTransfers = true
         stopping = true
         returningToPhone = false
         restoreAfterDisconnect = null
@@ -342,12 +430,13 @@ internal class PlaybackOutput(
                 "Cast disconnect failed: ${error.message}",
             )
         }
-        publish(PlaybackConnection.LOCAL)
+        publish(PlaybackConnection.STOPPED)
         server.stop()
         converter.clear()
     }
 
     fun release() {
+        handler.removeCallbacks(snapshotTick)
         sessionManager?.removeSessionManagerListener(
             sessionListener,
             CastSession::class.java,

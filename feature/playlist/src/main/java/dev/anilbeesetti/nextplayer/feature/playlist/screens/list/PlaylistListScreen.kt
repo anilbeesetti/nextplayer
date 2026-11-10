@@ -53,6 +53,7 @@ import dev.anilbeesetti.nextplayer.core.ui.components.NextDialog
 import dev.anilbeesetti.nextplayer.core.ui.components.NextOutlinedTextField
 import dev.anilbeesetti.nextplayer.core.ui.components.NextSegmentedListItem
 import dev.anilbeesetti.nextplayer.core.ui.components.NextTopAppBar
+import dev.anilbeesetti.nextplayer.core.ui.components.PlaylistCreationForm
 import dev.anilbeesetti.nextplayer.core.ui.components.TopLevelFabKey
 import dev.anilbeesetti.nextplayer.core.ui.components.tvFocusRing
 import dev.anilbeesetti.nextplayer.core.ui.components.tvListFocus
@@ -202,6 +203,7 @@ internal fun PlaylistListScreenContent(
         )
 
         PlaylistCreationDialog.LOCAL_NAME -> PlaylistNameDialog(
+            fullScreen = true,
             title = stringResource(R.string.create_local_playlist),
             confirmLabel = stringResource(R.string.create),
             isSaving = state.saveActionState.isRunning,
@@ -336,7 +338,7 @@ private fun M3UUrlDialog(
     val trimmedUrl = url.trim()
     val isValid = remember(trimmedUrl) { trimmedUrl.isHttpUrl() }
 
-    NextDialog(
+    PlaylistCreationForm(
         onDismissRequest = onDismissRequest,
         title = { Text(text = stringResource(R.string.add_m3u_url_playlist)) },
         content = {
@@ -394,56 +396,70 @@ private fun PlaylistNameDialog(
     onDismissRequest: () -> Unit,
     onConfirm: (String) -> Unit,
     initialName: String = "",
+    fullScreen: Boolean = false,
 ) {
     var name by rememberSaveable(initialName) { mutableStateOf(value = initialName) }
     val trimmedName = name.trim()
 
-    NextDialog(
-        onDismissRequest = onDismissRequest,
-        title = { Text(text = title) },
-        content = {
-            Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
-                NextOutlinedTextField(
-                    value = name,
-                    onValueChange = { name = it },
-                    label = { Text(text = stringResource(R.string.playlist_name)) },
-                    enabled = !isSaving,
-                    singleLine = true,
-                    isError = error != null && trimmedName.isEmpty(),
-                    supportingText = {
-                        when {
-                            error != null -> Text(text = error)
-
-                            trimmedName.isEmpty() ->
-                                Text(text = stringResource(R.string.name_required))
-                        }
-                    },
-                )
-                if (isSaving) {
-                    Text(
-                        text = stringResource(R.string.saving_playlist),
-                        style = MaterialTheme.typography.bodySmall,
-                    )
-                }
-            }
-        },
-        confirmButton = {
-            TextButton(
-                onClick = {
-                    if (trimmedName.isNotEmpty()) onConfirm(trimmedName)
-                },
-                enabled = !isSaving && trimmedName.isNotEmpty(),
-                modifier = Modifier.tvFocusRing(),
-            ) { Text(text = confirmLabel) }
-        },
-        dismissButton = {
-            TextButton(
-                onClick = onDismissRequest,
+    val content: @Composable () -> Unit = {
+        Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
+            NextOutlinedTextField(
+                value = name,
+                onValueChange = { name = it },
+                label = { Text(text = stringResource(R.string.playlist_name)) },
                 enabled = !isSaving,
-                modifier = Modifier.tvFocusRing(),
-            ) { Text(text = stringResource(R.string.cancel)) }
-        },
-    )
+                singleLine = true,
+                isError = error != null && trimmedName.isEmpty(),
+                supportingText = {
+                    when {
+                        error != null -> Text(text = error)
+
+                        trimmedName.isEmpty() ->
+                            Text(text = stringResource(R.string.name_required))
+                    }
+                },
+            )
+            if (isSaving) {
+                Text(
+                    text = stringResource(R.string.saving_playlist),
+                    style = MaterialTheme.typography.bodySmall,
+                )
+            }
+        }
+    }
+    val confirmButton: @Composable () -> Unit = {
+        TextButton(
+            onClick = {
+                if (trimmedName.isNotEmpty()) onConfirm(trimmedName)
+            },
+            enabled = !isSaving && trimmedName.isNotEmpty(),
+            modifier = Modifier.tvFocusRing(),
+        ) { Text(text = confirmLabel) }
+    }
+    val dismissButton: @Composable () -> Unit = {
+        TextButton(
+            onClick = onDismissRequest,
+            enabled = !isSaving,
+            modifier = Modifier.tvFocusRing(),
+        ) { Text(text = stringResource(R.string.cancel)) }
+    }
+    if (fullScreen) {
+        PlaylistCreationForm(
+            title = { Text(title) },
+            content = content,
+            confirmButton = confirmButton,
+            dismissButton = dismissButton,
+            onDismissRequest = { if (!isSaving) onDismissRequest() },
+        )
+    } else {
+        NextDialog(
+            title = { Text(title) },
+            content = content,
+            confirmButton = confirmButton,
+            dismissButton = dismissButton,
+            onDismissRequest = onDismissRequest,
+        )
+    }
 }
 
 @OptIn(ExperimentalMaterial3ExpressiveApi::class)

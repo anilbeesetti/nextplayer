@@ -60,8 +60,13 @@ class PlaylistState(private val player: Player?) {
     }
 
     fun moveItem(fromIndex: Int, toIndex: Int) {
+        if (player?.isCommandAvailable(Player.COMMAND_CHANGE_MEDIA_ITEMS) != true) return
         if (fromIndex == toIndex) return
-        if (fromIndex !in 0 until timeline.windowCount || toIndex >= timeline.windowCount) return
+        if (fromIndex !in 0 until timeline.windowCount ||
+            toIndex !in 0 until timeline.windowCount
+        ) {
+            return
+        }
 
         player?.moveMediaItem(
             fromIndex,
@@ -70,6 +75,7 @@ class PlaylistState(private val player: Player?) {
     }
 
     fun removeItem(index: Int) {
+        if (player?.isCommandAvailable(Player.COMMAND_CHANGE_MEDIA_ITEMS) != true) return
         if (index !in 0 until timeline.windowCount) return
         if (timeline.windowCount <= 1) return // Don't remove the last item
 
@@ -77,6 +83,7 @@ class PlaylistState(private val player: Player?) {
     }
 
     fun seekToItem(index: Int) {
+        if (player?.isCommandAvailable(Player.COMMAND_SEEK_TO_MEDIA_ITEM) != true) return
         if (index !in 0 until timeline.windowCount) return
         if (player?.currentMediaItemIndex == index) return
         player?.seekToDefaultPosition(index)

@@ -42,10 +42,14 @@ import dev.anilbeesetti.nextplayer.core.ui.theme.NextPlayerTheme
 import dev.anilbeesetti.nextplayer.feature.player.extensions.OpenDocumentAtInitialUri
 import dev.anilbeesetti.nextplayer.feature.player.extensions.uriToSubtitleConfiguration
 import dev.anilbeesetti.nextplayer.feature.player.service.CustomCommands
+import dev.anilbeesetti.nextplayer.feature.player.service.EXTRA_WATCH_VIDEO
+import dev.anilbeesetti.nextplayer.feature.player.service.PlaybackConnection
+import dev.anilbeesetti.nextplayer.feature.player.service.PlaybackPresentation
 import dev.anilbeesetti.nextplayer.feature.player.service.PlayerService
 import dev.anilbeesetti.nextplayer.feature.player.service.addAudioTrack
 import dev.anilbeesetti.nextplayer.feature.player.service.addSubtitleTrack
 import dev.anilbeesetti.nextplayer.feature.player.service.decoderServiceState
+import dev.anilbeesetti.nextplayer.feature.player.service.expandedPlaybackIntent
 import dev.anilbeesetti.nextplayer.feature.player.service.retainPlaybackUriPermissions
 import dev.anilbeesetti.nextplayer.feature.player.service.setAudioDecoderMode
 import dev.anilbeesetti.nextplayer.feature.player.service.setVideoDecoderMode
@@ -102,6 +106,8 @@ class PlayerActivity : ComponentActivity() {
     private var playInBackground: Boolean = false
     private var isIntentNew: Boolean = true
     private var backgroundLaunchAccepted = false
+    private var handedOff = false
+    private var pendingControlsIntent: Intent? = null
     private var activityCreated = false
     private var backgroundControllerFuture: ListenableFuture<MediaController>? = null
 
@@ -180,6 +186,7 @@ class PlayerActivity : ComponentActivity() {
         if (request.launchInBackground) setTheme(R.style.NextPlayer_Background)
         super.onCreate(savedInstanceState)
         activityCreated = true
+        activePlayers.add(this)
         playerApi = request
         if (request.launchInBackground && intent.data == null) {
             playbackFailed = true
@@ -219,6 +226,11 @@ class PlayerActivity : ComponentActivity() {
             val player = rememberMediaController(
                 onBeforeRelease = ::onControllerStopped,
                 onExtrasChanged = { extras ->
+                    if (PlaybackPresentation.from(extras).connection ==
+                        PlaybackConnection.CONNECTING
+                    ) {
+                        openExpandedPlayback()
+                    }
                     viewModel.onAction(
                         PlayerAction.UpdateDecoderServiceState(extras.decoderServiceState()),
                     )
@@ -284,7 +296,11 @@ class PlayerActivity : ComponentActivity() {
             mediaController = null
         }
         backgroundControllerFuture = null
+        activePlayers.remove(this)
         super.onDestroy()
+        // Finish first so an external caller receives its result before controls take focus.
+        pendingControlsIntent?.let(applicationContext::startActivity)
+        pendingControlsIntent = null
     }
 
     private fun playerOutput() = PlayerViewModel.Output(
@@ -395,6 +411,15 @@ class PlayerActivity : ComponentActivity() {
 
     private fun startPlayback() {
         val controller = mediaController ?: return
+        if (intent.getBooleanExtra(
+                EXTRA_WATCH_VIDEO,
+                false,
+            )
+        ) {
+            isIntentNew = false
+            intent.data = controller.currentMediaItem?.localConfiguration?.uri
+            return
+        }
         if (!isIntentNew &&
             (controller.currentMediaItem == null || controller.playbackState == Player.STATE_ENDED)
         ) {
@@ -580,19 +605,19 @@ class PlayerActivity : ComponentActivity() {
         if (playerApi.shouldReturnResult) {
             val result = playerApi.getResult(
                 isPlaybackFinished = isPlaybackFinished,
-                duration = if (playerApi.launchInBackground) {
+                duration = if (playerApi.launchInBackground || handedOff) {
                     lastDuration
                 } else {
                     mediaController?.duration
                         ?: lastDuration
                 },
-                position = if (playerApi.launchInBackground) {
+                position = if (playerApi.launchInBackground || handedOff) {
                     lastPosition
                 } else {
                     mediaController?.currentPosition
                         ?: lastPosition
                 },
-                uri = if (playerApi.launchInBackground) {
+                uri = if (playerApi.launchInBackground || handedOff) {
                     lastMediaUri ?: intent.data
                 } else {
                     mediaController?.currentMediaItem?.localConfiguration?.uri ?: lastMediaUri
@@ -638,6 +663,7 @@ class PlayerActivity : ComponentActivity() {
             requestedOrientation = ActivityInfo.SCREEN_ORIENTATION_UNSPECIFIED
             playInBackground = false
             backgroundLaunchAccepted = false
+            handedOff = false
             isIntentNew = true
             if (activityCreated && previousBackgroundMode != playerApi.launchInBackground) {
                 recreate()
@@ -693,10 +719,70 @@ class PlayerActivity : ComponentActivity() {
         }
     }
 
+    private fun openExpandedPlayback() {
+        if (isFinishing) return
+        val controller = mediaController ?: return
+        try {
+            val grants = pendingGrantItems + (0 until controller.mediaItemCount)
+                .map(controller::getMediaItemAt)
+            retainPlaybackUriPermissions(
+                intent,
+                grants.distinctBy { it.mediaId },
+            )
+        } catch (error: Exception) {
+            Log.w(
+                "PlayerActivity",
+                "Unable to retain handoff grants",
+                error,
+            )
+            controller.sendCustomCommand(
+                CustomCommands.CANCEL_CAST.sessionCommand,
+                Bundle.EMPTY,
+            )
+            return
+        }
+        playInBackground = true
+        handedOff = true
+        val retained = PlaybackPresentation.from(controller.sessionExtras)
+        hasPlaybackStarted = hasPlaybackStarted || controller.currentMediaItem != null ||
+            pendingGrantItems.isNotEmpty() || retained.mediaItem != null
+        val handoffItem = retained.mediaItem.takeIf {
+            retained.connection == PlaybackConnection.CONNECTING
+        }
+        lastPosition = if (handoffItem != null) retained.position else controller.currentPosition
+        lastDuration = controller.duration.takeIf { it >= 0 }
+            ?: handoffItem?.mediaMetadata?.durationMs ?: C.TIME_UNSET
+        lastMediaUri = handoffItem?.localConfiguration?.uri
+            ?: controller.currentMediaItem?.localConfiguration?.uri ?: lastMediaUri
+        lastDecoder = controller.sessionExtras.decoderServiceState().videoMode
+        pendingControlsIntent = expandedPlaybackIntent().addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
+        finish()
+    }
+
     private fun finishAndStopPlayerSession() {
+        if (intent.getBooleanExtra(
+                EXTRA_WATCH_VIDEO,
+                false,
+            )
+        ) {
+            playInBackground = true
+            finish()
+            return
+        }
         finish()
         if (mediaController?.deviceInfo?.playbackType != DeviceInfo.PLAYBACK_TYPE_REMOTE) {
             mediaController?.stopPlayerSession()
+        }
+    }
+
+    companion object {
+        private val activePlayers = java.util.Collections.newSetFromMap(
+            java.util.WeakHashMap<PlayerActivity, Boolean>(),
+        )
+
+        fun prepareForExpandedControls() {
+            // MainActivity can cover an external player's task without destroying that activity.
+            activePlayers.forEach { it.playInBackground = true }
         }
     }
 

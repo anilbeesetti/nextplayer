@@ -20,6 +20,8 @@ internal class MiniPlayerTestPlayer : SimpleBasePlayer(Looper.getMainLooper()) {
                 Player.COMMAND_GET_TIMELINE,
                 Player.COMMAND_SEEK_IN_CURRENT_MEDIA_ITEM,
                 Player.COMMAND_SEEK_TO_NEXT,
+                Player.COMMAND_SEEK_TO_NEXT_MEDIA_ITEM,
+                Player.COMMAND_SEEK_TO_PREVIOUS_MEDIA_ITEM,
                 Player.COMMAND_SEEK_TO_PREVIOUS,
                 Player.COMMAND_GET_DEVICE_VOLUME,
                 Player.COMMAND_SET_DEVICE_VOLUME_WITH_FLAGS,

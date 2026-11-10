@@ -1,32 +1,15 @@
 package dev.anilbeesetti.nextplayer.feature.player
 
-import android.os.Looper
 import androidx.activity.ComponentActivity
-import androidx.compose.runtime.CompositionLocalProvider
-import androidx.compose.ui.platform.LocalDensity
-import androidx.compose.ui.platform.LocalLayoutDirection
 import androidx.compose.ui.semantics.SemanticsActions
 import androidx.compose.ui.test.assertIsDisplayed
-import androidx.compose.ui.test.assertIsNotEnabled
 import androidx.compose.ui.test.junit4.v2.createAndroidComposeRule
-import androidx.compose.ui.test.onAllNodesWithText
-import androidx.compose.ui.test.onFirst
 import androidx.compose.ui.test.onNodeWithContentDescription
 import androidx.compose.ui.test.onNodeWithTag
-import androidx.compose.ui.test.onNodeWithText
 import androidx.compose.ui.test.performClick
-import androidx.compose.ui.test.performScrollTo
 import androidx.compose.ui.test.performSemanticsAction
-import androidx.compose.ui.unit.Density
-import androidx.compose.ui.unit.LayoutDirection
 import androidx.media3.common.C
-import androidx.media3.common.DeviceInfo
-import androidx.media3.common.MediaItem
-import androidx.media3.common.MediaMetadata
 import androidx.media3.common.Player
-import androidx.media3.common.SimpleBasePlayer
-import com.google.common.util.concurrent.Futures
-import com.google.common.util.concurrent.ListenableFuture
 import dev.anilbeesetti.nextplayer.core.ui.R
 import dev.anilbeesetti.nextplayer.core.ui.theme.NextPlayerTheme
 import dev.anilbeesetti.nextplayer.feature.player.state.PlaybackSnapshot
@@ -78,10 +61,14 @@ class MiniPlayerTest {
     }
 
     @Test
-    fun localTapOpensPlayerAndCloseDoesNotOpenIt() {
+    fun localTapExpandsAndAccessibilityActionDismissesPlayback() {
         showPlayer()
-        composeRule.onNodeWithTag("mini_player").performClick()
-        composeRule.onNodeWithContentDescription(text(R.string.stop_player_session)).performClick()
+        composeRule.onNodeWithTag("mini_player").performSemanticsAction(SemanticsActions.OnClick) {
+            it()
+        }
+        val actions = composeRule.onNodeWithTag("mini_player").fetchSemanticsNode()
+            .config[SemanticsActions.CustomActions]
+        composeRule.runOnIdle { assertTrue(actions.first().action()) }
         composeRule.runOnIdle {
             assertEquals(
                 1,
@@ -141,7 +128,6 @@ class MiniPlayerTest {
                     player = player,
                     onOpenPlayer = { opened++ },
                     onStop = { stopped++ },
-                    onPlayOnPhone = {},
                 )
             }
         }

@@ -570,4 +570,14 @@
     <string name="casting_video">Casting video</string>
     <string name="cast_volume">Device volume</string>
     <string name="play_on_phone">Play on phone</string>
+    <string name="collapse_player">Collapse player</string>
+    <string name="watch_video">Watch video</string>
+    <string name="playback_output">Playback output and volume</string>
+    <string name="playback_dismissed">Playback dismissed</string>
+    <string name="undo">Undo</string>
+    <string name="connecting_to_device">Connecting to %1$s</string>
+    <string name="cast_connection_lost">Connection to %1$s lost</string>
+    <string name="player_controls_shuffle">Shuffle</string>
+    <string name="player_controls_repeat">Repeat</string>
+    <string name="volume">Volume</string>
 </resources>

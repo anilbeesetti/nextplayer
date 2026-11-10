@@ -99,7 +99,10 @@ public final class ApiTestCallerActivity extends Activity {
         JSONObject result = new JSONObject();
         try {
             result.put("code", resultCode).put("callerUid", Process.myUid());
-            if (data != null) result.put("uri", data.getDataString());
+            if (data != null) {
+                result.put("uri", data.getDataString());
+                result.put("position", data.getIntExtra("position", -1));
+            }
             writeResult(result, null);
         } catch (Exception error) {
             writeResult(result, error);

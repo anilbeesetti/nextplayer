@@ -1,7 +1,5 @@
 package dev.anilbeesetti.nextplayer.feature.player
 
-import android.app.PendingIntent
-import androidx.annotation.OptIn
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -10,9 +8,11 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.outlined.CastConnected
+import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.LinearProgressIndicator
@@ -20,95 +20,43 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.DisposableEffect
-import androidx.compose.runtime.LaunchedEffect
-import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
-import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.graphics.Shape
 import androidx.compose.ui.layout.ContentScale
-import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.semantics.CustomAccessibilityAction
+import androidx.compose.ui.semantics.customActions
+import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
-import androidx.media3.common.DeviceInfo
 import androidx.media3.common.Player
-import androidx.media3.common.util.UnstableApi
 import coil3.compose.AsyncImage
 import dev.anilbeesetti.nextplayer.core.ui.R
 import dev.anilbeesetti.nextplayer.core.ui.components.tvFocusRing
-import dev.anilbeesetti.nextplayer.feature.player.cast.castDeviceName
-import dev.anilbeesetti.nextplayer.feature.player.cast.playOnPhone
-import dev.anilbeesetti.nextplayer.feature.player.service.stopPlayerSession
 import dev.anilbeesetti.nextplayer.feature.player.state.PlaybackSnapshot
-import dev.anilbeesetti.nextplayer.feature.player.state.rememberDeviceInfo
-import dev.anilbeesetti.nextplayer.feature.player.state.rememberMediaController
 import dev.anilbeesetti.nextplayer.feature.player.state.rememberPlaybackSnapshot
-
-@OptIn(UnstableApi::class)
-@Composable
-fun BackgroundPlaybackBar(
-    modifier: Modifier = Modifier,
-    onVisibilityChanged: (Boolean) -> Unit = {},
-) {
-    val controller = rememberMediaController(ownsVideoSurface = false)
-    val context = LocalContext.current
-    if (controller == null) {
-        LaunchedEffect(Unit) { onVisibilityChanged(false) }
-        return
-    }
-    val deviceInfo = rememberDeviceInfo(controller)
-    MiniPlayer(
-        player = controller,
-        modifier = modifier,
-        deviceName = if (deviceInfo.playbackType == DeviceInfo.PLAYBACK_TYPE_REMOTE) {
-            castDeviceName(context)
-        } else {
-            null
-        },
-        onOpenPlayer = {
-            try {
-                controller.sessionActivity?.send()
-            } catch (_: PendingIntent.CanceledException) {
-                // The session ended between the tap and delivery.
-            }
-        },
-        onStop = controller::stopPlayerSession,
-        onPlayOnPhone = { playOnPhone(context) },
-        onVisibilityChanged = onVisibilityChanged,
-    )
-}
 
 @Composable
 internal fun MiniPlayer(
     player: Player,
     onOpenPlayer: () -> Unit,
     onStop: () -> Unit,
-    onPlayOnPhone: () -> Unit,
     modifier: Modifier = Modifier,
     deviceName: String? = null,
-    onVisibilityChanged: (Boolean) -> Unit = {},
+    controlsEnabled: Boolean = true,
+    snapshot: PlaybackSnapshot = rememberPlaybackSnapshot(player),
+    secondaryText: String? = null,
+    connecting: Boolean = false,
 ) {
-    val snapshot = rememberPlaybackSnapshot(player)
-    LaunchedEffect(snapshot.visible) { onVisibilityChanged(snapshot.visible) }
-    DisposableEffect(Unit) { onDispose { onVisibilityChanged(false) } }
-    var showCastControls by remember(player) { mutableStateOf(false) }
-    LaunchedEffect(
-        snapshot.isRemote,
-        snapshot.visible,
-    ) {
-        if (!snapshot.isRemote || !snapshot.visible) showCastControls = false
-    }
     if (!snapshot.visible) return
     val title = snapshot.metadata.title?.toString()?.takeIf { it.isNotBlank() }
         ?: snapshot.item?.localConfiguration?.uri?.lastPathSegment
         ?: stringResource(R.string.player_name)
-    val output = if (snapshot.isRemote) {
+    val output = secondaryText ?: if (snapshot.isRemote) {
         deviceName?.let {
             stringResource(
                 R.string.casting_on_device,
@@ -117,13 +65,26 @@ internal fun MiniPlayer(
         }
             ?: stringResource(R.string.casting_video)
     } else {
-        stringResource(R.string.background_play)
+        snapshot.metadata.subtitle?.toString()?.takeIf { it.isNotBlank() }
+            ?: snapshot.item?.localConfiguration?.uri?.path?.substringBeforeLast(
+                '/',
+            )?.substringAfterLast('/')
+            ?: stringResource(R.string.background_play)
     }
+    val stopLabel = stringResource(R.string.stop_player_session)
     val shape = RoundedCornerShape(20.dp)
     Surface(
-        onClick = { if (snapshot.isRemote) showCastControls = true else onOpenPlayer() },
+        onClick = onOpenPlayer,
         modifier = modifier
             .testTag("mini_player")
+            .semantics {
+                customActions = listOf(
+                    CustomAccessibilityAction(stopLabel) {
+                        onStop()
+                        true
+                    },
+                )
+            }
             .tvFocusRing(shape),
         shape = shape,
         color = MaterialTheme.colorScheme.surfaceContainerHigh,
@@ -144,6 +105,7 @@ internal fun MiniPlayer(
                 PlaybackArtwork(
                     snapshot,
                     Modifier.size(48.dp),
+                    CircleShape,
                 )
                 Column(Modifier.weight(1f)) {
                     Text(
@@ -156,7 +118,12 @@ internal fun MiniPlayer(
                         verticalAlignment = Alignment.CenterVertically,
                         horizontalArrangement = Arrangement.spacedBy(4.dp),
                     ) {
-                        if (snapshot.isRemote) {
+                        if (connecting) {
+                            CircularProgressIndicator(
+                                Modifier.size(14.dp),
+                                strokeWidth = 2.dp,
+                            )
+                        } else if (snapshot.isRemote) {
                             Icon(
                                 Icons.Outlined.CastConnected,
                                 contentDescription = null,
@@ -172,17 +139,32 @@ internal fun MiniPlayer(
                         )
                     }
                 }
-                MiniPlayPauseButton(
-                    player,
-                    snapshot,
-                )
                 IconButton(
-                    onClick = onStop,
+                    onClick = player::seekToPrevious,
+                    enabled =
+                        controlsEnabled &&
+                            snapshot.commands.contains(Player.COMMAND_SEEK_TO_PREVIOUS),
                     modifier = Modifier.tvFocusRing(),
                 ) {
                     Icon(
-                        painterResource(R.drawable.ic_close),
-                        stringResource(R.string.stop_player_session),
+                        painterResource(R.drawable.ic_skip_prev),
+                        stringResource(R.string.player_controls_previous),
+                    )
+                }
+                MiniPlayPauseButton(
+                    player,
+                    snapshot,
+                    enabled = controlsEnabled,
+                )
+                IconButton(
+                    onClick = player::seekToNext,
+                    enabled =
+                        controlsEnabled && snapshot.commands.contains(Player.COMMAND_SEEK_TO_NEXT),
+                    modifier = Modifier.tvFocusRing(),
+                ) {
+                    Icon(
+                        painterResource(R.drawable.ic_skip_next),
+                        stringResource(R.string.player_controls_next),
                     )
                 }
             }
@@ -194,25 +176,16 @@ internal fun MiniPlayer(
             )
         }
     }
-    if (showCastControls && snapshot.isRemote) {
-        CastControlsSheet(
-            player,
-            snapshot,
-            title,
-            output,
-            onDismiss = {
-                showCastControls = false
-            },
-            onPlayOnPhone = onPlayOnPhone,
-            onStop = onStop,
-        )
-    }
 }
 
 @Composable
-internal fun PlaybackArtwork(snapshot: PlaybackSnapshot, modifier: Modifier = Modifier) {
+internal fun PlaybackArtwork(
+    snapshot: PlaybackSnapshot,
+    modifier: Modifier = Modifier,
+    shape: Shape = RoundedCornerShape(12.dp),
+) {
     Surface(
-        modifier.clip(RoundedCornerShape(12.dp)),
+        modifier.clip(shape),
         color = MaterialTheme.colorScheme.secondaryContainer,
     ) {
         Box(contentAlignment = Alignment.Center) {
@@ -237,6 +210,7 @@ internal fun MiniPlayPauseButton(
     player: Player,
     snapshot: PlaybackSnapshot,
     modifier: Modifier = Modifier,
+    enabled: Boolean = true,
 ) {
     IconButton(
         onClick = {
@@ -251,7 +225,7 @@ internal fun MiniPlayPauseButton(
                 player.play()
             }
         },
-        enabled = snapshot.commands.contains(Player.COMMAND_PLAY_PAUSE),
+        enabled = enabled && snapshot.commands.contains(Player.COMMAND_PLAY_PAUSE),
         modifier = modifier.tvFocusRing(),
     ) {
         Icon(

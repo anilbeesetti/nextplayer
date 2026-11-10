@@ -54,7 +54,6 @@ import dev.anilbeesetti.nextplayer.core.model.LoopMode
 import dev.anilbeesetti.nextplayer.core.model.PlayerPreferences
 import dev.anilbeesetti.nextplayer.core.model.Resume
 import dev.anilbeesetti.nextplayer.core.ui.R as coreUiR
-import dev.anilbeesetti.nextplayer.feature.player.PlayerActivity
 import dev.anilbeesetti.nextplayer.feature.player.R
 import dev.anilbeesetti.nextplayer.feature.player.cast.PlaybackOutput
 import dev.anilbeesetti.nextplayer.feature.player.extensions.addAdditionalSubtitleConfiguration
@@ -586,15 +585,17 @@ class PlayerService : MediaSessionService() {
                     startPositionMs,
                 ).also {
                     playbackOutput?.onQueueReady(
-                        queue.getOrNull(
-                            if (queue.size ==
-                                updatedMediaItems.size
-                            ) {
-                                startIndex
-                            } else {
-                                0
-                            },
-                        )?.mediaId,
+                        updatedMediaItems.getOrNull(startIndex.coerceAtLeast(0))?.mediaId,
+                        if (isRemotePlayback) {
+                            queueTransferState(
+                                mediaSession.player,
+                                updatedMediaItems,
+                                startIndex,
+                                startPositionMs,
+                            )
+                        } else {
+                            null
+                        },
                     )
                 }
             }
@@ -993,15 +994,17 @@ class PlayerService : MediaSessionService() {
                 position,
             )
             playbackOutput?.onQueueReady(
-                queue.getOrNull(
-                    if (queue.size ==
-                        updatedItems.size
-                    ) {
-                        index
-                    } else {
-                        0
-                    },
-                )?.mediaId,
+                updatedItems.getOrNull(index)?.mediaId,
+                if (isRemotePlayback) {
+                    queueTransferState(
+                        this,
+                        updatedItems,
+                        index,
+                        position,
+                    )
+                } else {
+                    null
+                },
             )
             speed?.let(::setPlaybackSpeed)
             prepare()
@@ -1033,7 +1036,7 @@ class PlayerService : MediaSessionService() {
         if (intent?.action == ACTION_RETAIN_PLAYBACK_GRANTS) {
             // A stop may arrive between the handoff acknowledgement and grant delivery.
             if (mediaSession?.player?.currentMediaItem == null &&
-                dismissedPlayback == null
+                dismissedPlayback == null && playbackOutput?.hasPendingPlayback != true
             ) {
                 stopSelf(startId)
             }
@@ -1151,6 +1154,34 @@ class PlayerService : MediaSessionService() {
         }
     }
 
+    private fun queueTransferState(
+        player: Player,
+        items: List<MediaItem>,
+        index: Int,
+        position: Long,
+    ): PlayerTransferState = PlayerTransferState.builderFromPlayer(player)
+        .setMediaItems(items)
+        .setCurrentMediaItemIndex(
+            if (items.isEmpty()) {
+                C.INDEX_UNSET
+            } else {
+                index.coerceIn(
+                    0,
+                    items.lastIndex,
+                )
+            },
+        )
+        .setCurrentPosition(
+            if (position >=
+                0
+            ) {
+                position
+            } else {
+                items.getOrNull(index)?.mediaMetadata?.positionMs ?: 0
+            },
+        )
+        .build()
+
     private fun invalidateDismissal() {
         dismissalExpiry?.cancel()
         dismissalExpiry = null
@@ -1170,15 +1201,20 @@ class PlayerService : MediaSessionService() {
         session.player.clearMediaItems()
         session.player.stop()
         playbackOutput?.onStop()
+        val generation = playbackRequestGeneration
         dismissalExpiry = serviceScope.launch {
             delay(4_000)
             dismissedPlayback = null
-            dismissalExpiry = null
             mediaRepository.updateMediumPosition(
                 uri = saved.mediaItems[saved.currentMediaItemIndex].mediaId,
                 position = saved.currentPosition,
             )
-            if (session.player.mediaItemCount == 0) stopSelf()
+            if (generation == playbackRequestGeneration &&
+                session.player.mediaItemCount == 0
+            ) {
+                stopSelf()
+            }
+            dismissalExpiry = null
         }
     }
 

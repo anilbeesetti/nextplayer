@@ -101,6 +101,65 @@ class PlayerApiRequestRegressionTest {
     }
 
     @Test
+    fun externalQueueHandoffReturnsResultAndRetainsGrantsForExpandedControls() {
+        launch("--ez queue true")
+        val player = connect()
+        await("external queue accepted") {
+            main {
+                activities().isNotEmpty() && player.mediaItemCount == 3 &&
+                    player.playbackState == Player.STATE_READY
+            }
+        }
+        main {
+            player.pause()
+            player.seekTo(12_000)
+        }
+        await("paused seek reaches fullscreen controller") {
+            main {
+                val activity = activities().first()
+                val peer = activity.javaClass.getDeclaredField("mediaController")
+                    .apply { isAccessible = true }.get(activity) as MediaController
+                peer.playWhenReady == false && peer.currentPosition == 12_000L
+            }
+        }
+        main {
+            activities().first().let { activity ->
+                activity.javaClass.getDeclaredMethod("openExpandedPlayback").apply {
+                    isAccessible =
+                        true
+                }
+                    .invoke(activity)
+            }
+        }
+        val returned = result()
+        assertEquals(
+            Activity.RESULT_OK,
+            returned.getInt("code"),
+        )
+        assertEquals(
+            12_000,
+            returned.getInt("position"),
+        )
+        assertTrue(returned.getString("uri").contains("first.wav"))
+        await("expanded controls activity") {
+            main {
+                ActivityLifecycleMonitorRegistry.getInstance().getActivitiesInStage(Stage.RESUMED)
+                    .any { it is MainActivity }
+            }
+        }
+        await("external handoff leaves video activity") { main { activities().isEmpty() } }
+        main {
+            assertFalse(player.playWhenReady)
+            assertEquals(
+                12_000,
+                player.currentPosition,
+            )
+        }
+        main { player.play() }
+        assertQueueGrantsSurviveActivity(player)
+    }
+
+    @Test
     fun foregroundQueueRetainsReadGrantsAfterActivityCloses() {
         runBlocking { preferences.updatePlayerPreferences { it.copy(autoBackgroundPlay = true) } }
         launch("--ez queue true --es gate $token")

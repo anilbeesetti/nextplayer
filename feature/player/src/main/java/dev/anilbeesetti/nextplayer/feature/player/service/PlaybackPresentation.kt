@@ -3,19 +3,30 @@ package dev.anilbeesetti.nextplayer.feature.player.service
 import android.content.Context
 import android.content.Intent
 import android.os.Bundle
+import androidx.media3.common.MediaItem
 import androidx.media3.common.Player
 import androidx.media3.common.PlayerTransferState
 import androidx.media3.common.util.UnstableApi
 import dev.anilbeesetti.nextplayer.feature.player.extensions.withoutResumePosition
 
-internal enum class PlaybackConnection { LOCAL, CONNECTING, CAST, LOST }
+internal enum class PlaybackConnection { LOCAL, CONNECTING, CAST, LOST, STOPPED }
 
 internal data class PlaybackPresentation(
     val connection: PlaybackConnection = PlaybackConnection.LOCAL,
     val deviceName: String? = null,
     val expansionRequest: Long = 0,
+    val mediaItem: MediaItem? = null,
+    val position: Long = 0,
 ) {
     fun writeTo(bundle: Bundle) {
+        bundle.putBundle(
+            MEDIA_ITEM,
+            mediaItem?.toBundleIncludeLocalConfiguration(),
+        )
+        bundle.putLong(
+            POSITION,
+            position,
+        )
         bundle.putString(
             CONNECTION,
             connection.name,
@@ -31,6 +42,8 @@ internal data class PlaybackPresentation(
     }
 
     companion object {
+        private const val MEDIA_ITEM = "playback_retained_media_item"
+        private const val POSITION = "playback_retained_position"
         private const val CONNECTION = "playback_connection"
         private const val DEVICE_NAME = "playback_device_name"
         private const val EXPANSION_REQUEST = "playback_expansion_request"
@@ -39,6 +52,8 @@ internal data class PlaybackPresentation(
                 ?: PlaybackConnection.LOCAL,
             deviceName = bundle.getString(DEVICE_NAME),
             expansionRequest = bundle.getLong(EXPANSION_REQUEST),
+            mediaItem = bundle.getBundle(MEDIA_ITEM)?.let(MediaItem::fromBundle),
+            position = bundle.getLong(POSITION),
         )
     }
 }

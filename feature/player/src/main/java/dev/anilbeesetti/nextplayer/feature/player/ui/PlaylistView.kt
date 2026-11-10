@@ -15,7 +15,6 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
-import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.material3.ExperimentalMaterial3ExpressiveApi
 import androidx.compose.material3.Icon
@@ -62,7 +61,12 @@ import sh.calvin.reorderable.rememberReorderableLazyListState
 
 @OptIn(UnstableApi::class)
 @Composable
-fun BoxScope.PlaylistView(modifier: Modifier = Modifier, show: Boolean, player: Player) {
+fun BoxScope.PlaylistView(
+    modifier: Modifier = Modifier,
+    show: Boolean,
+    player: Player,
+    fullSize: Boolean = false,
+) {
     val hapticFeedback = LocalHapticFeedback.current
     val playlistState = rememberPlaylistState(player = player)
     val lazyListState = rememberLazyListState()
@@ -88,6 +92,7 @@ fun BoxScope.PlaylistView(modifier: Modifier = Modifier, show: Boolean, player: 
     OverlayView(
         modifier = modifier,
         show = show,
+        fullSize = fullSize,
         title = stringResource(R.string.now_playing),
     ) {
         if (playlistState.mediaItemCount == 0) {
@@ -115,7 +120,9 @@ fun BoxScope.PlaylistView(modifier: Modifier = Modifier, show: Boolean, player: 
                             isFirstItem = index == 0,
                             isLastItem = index == playlistState.mediaItemCount - 1,
                             isCurrentItem = isCurrentItem,
-                            canDelete = playlistState.mediaItemCount > 1,
+                            canDelete =
+                                playlistState.mediaItemCount > 1 &&
+                                    player.isCommandAvailable(Player.COMMAND_CHANGE_MEDIA_ITEMS),
                             onClick = { playlistState.seekToItem(index = index) },
                             onDelete = { playlistState.removeItem(index = index) },
                         )

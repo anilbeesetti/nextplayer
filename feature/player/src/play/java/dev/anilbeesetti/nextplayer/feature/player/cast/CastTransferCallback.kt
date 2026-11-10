@@ -17,6 +17,10 @@ internal class CastTransferCallback(
     private var folderQueue = emptyList<MediaItem>()
     private var stopping = false
 
+    fun retainFolderQueue(items: List<MediaItem>) {
+        folderQueue = items
+    }
+
     fun clearSavedQueue() {
         folderQueue = emptyList()
     }

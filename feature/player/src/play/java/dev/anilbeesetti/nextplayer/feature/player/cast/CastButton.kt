@@ -28,7 +28,7 @@ import dev.anilbeesetti.nextplayer.core.ui.R
 
 @UnstableApi
 @Composable
-internal fun CastButton() {
+internal fun CastButton(contentColor: Color = Color.White) {
     val context = LocalContext.current
     val available = remember(context) {
         GoogleApiAvailability.getInstance().isGooglePlayServicesAvailable(context) ==
@@ -46,7 +46,7 @@ internal fun CastButton() {
     val launcher = rememberLauncherForActivityResult(ActivityResultContracts.RequestPermission()) {
         granted = it
     }
-    CompositionLocalProvider(LocalContentColor provides Color.White) {
+    CompositionLocalProvider(LocalContentColor provides contentColor) {
         if (granted) {
             MediaRouteButton()
         } else {

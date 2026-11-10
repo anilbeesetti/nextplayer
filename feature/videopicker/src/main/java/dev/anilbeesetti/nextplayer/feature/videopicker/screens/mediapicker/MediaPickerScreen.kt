@@ -105,6 +105,7 @@ import dev.anilbeesetti.nextplayer.core.ui.components.LocalNavigationBottomPaddi
 import dev.anilbeesetti.nextplayer.core.ui.components.NextDialog
 import dev.anilbeesetti.nextplayer.core.ui.components.NextOutlinedTextField
 import dev.anilbeesetti.nextplayer.core.ui.components.NextTopAppBar
+import dev.anilbeesetti.nextplayer.core.ui.components.PlaylistCreationForm
 import dev.anilbeesetti.nextplayer.core.ui.components.TextIconToggleButton
 import dev.anilbeesetti.nextplayer.core.ui.components.TopLevelFabKey
 import dev.anilbeesetti.nextplayer.core.ui.components.rememberRestorableFocusState
@@ -1001,7 +1002,7 @@ private fun PlaylistTargetDialog(
     if (showCreateDialog) {
         var name by rememberSaveable { mutableStateOf(value = "") }
         val trimmedName = name.trim()
-        NextDialog(
+        PlaylistCreationForm(
             onDismissRequest = {
                 if (!state.isSaving) showCreateDialog = false
             },

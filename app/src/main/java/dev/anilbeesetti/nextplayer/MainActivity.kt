@@ -19,17 +19,20 @@ import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
+import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.WindowInsetsSides
+import androidx.compose.foundation.layout.asPaddingValues
 import androidx.compose.foundation.layout.calculateStartPadding
 import androidx.compose.foundation.layout.consumeWindowInsets
 import androidx.compose.foundation.layout.displayCutout
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.navigationBars
 import androidx.compose.foundation.layout.navigationBarsPadding
 import androidx.compose.foundation.layout.only
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.windowInsetsPadding
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Surface
@@ -53,6 +56,8 @@ import androidx.compose.ui.layout.onSizeChanged
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.platform.LocalLayoutDirection
+import androidx.compose.ui.semantics.hideFromAccessibility
+import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.unit.dp
 import androidx.core.splashscreen.SplashScreen.Companion.installSplashScreen
 import androidx.core.view.WindowCompat
@@ -69,12 +74,15 @@ import dev.anilbeesetti.nextplayer.core.common.service.system.SystemService
 import dev.anilbeesetti.nextplayer.core.media.services.MediaOperationsService
 import dev.anilbeesetti.nextplayer.core.model.ThemeConfig
 import dev.anilbeesetti.nextplayer.core.ui.components.LocalNavigationBottomPadding
+import dev.anilbeesetti.nextplayer.core.ui.components.LocalPlaybackOverlayHiddenSetter
 import dev.anilbeesetti.nextplayer.core.ui.components.LocalTopLevelBottomBarVisibleSetter
 import dev.anilbeesetti.nextplayer.core.ui.components.LocalTopLevelFabSetter
 import dev.anilbeesetti.nextplayer.core.ui.components.TopLevelFabState
 import dev.anilbeesetti.nextplayer.core.ui.components.thenIf
 import dev.anilbeesetti.nextplayer.core.ui.theme.NextPlayerTheme
-import dev.anilbeesetti.nextplayer.feature.player.BackgroundPlaybackBar
+import dev.anilbeesetti.nextplayer.feature.player.PlaybackOverlay
+import dev.anilbeesetti.nextplayer.feature.player.PlayerActivity
+import dev.anilbeesetti.nextplayer.feature.player.service.ACTION_EXPAND_PLAYBACK
 import dev.anilbeesetti.nextplayer.navigation.NextNavigationBar
 import dev.anilbeesetti.nextplayer.navigation.NextNavigationRail
 import dev.anilbeesetti.nextplayer.navigation.TopLevelDestination
@@ -101,19 +109,36 @@ class MainActivity : FragmentActivity() {
 
     private var pendingPlaylistId by mutableStateOf<Long?>(value = null)
     private var darkSystemBars = false
+    private var playbackExpansionRequest by mutableStateOf(0L)
 
     override fun onNewIntent(intent: Intent) {
         super.onNewIntent(intent)
-        setIntent(intent)
+        if (intent.action == ACTION_EXPAND_PLAYBACK) PlayerActivity.prepareForExpandedControls()
+        if (intent.action != ACTION_EXPAND_PLAYBACK) setIntent(intent)
         pendingPlaylistId = PlaylistShortcut.playlistId(intent = intent)
+        if (intent.action ==
+            ACTION_EXPAND_PLAYBACK
+        ) {
+            playbackExpansionRequest =
+                android.os.SystemClock.elapsedRealtimeNanos()
+        }
     }
 
     @OptIn(ExperimentalPermissionsApi::class)
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+        if (intent.action == ACTION_EXPAND_PLAYBACK) PlayerActivity.prepareForExpandedControls()
         if (savedInstanceState == null) {
             pendingPlaylistId = PlaylistShortcut.playlistId(intent = intent)
         }
+        playbackExpansionRequest = savedInstanceState?.getLong("playbackExpansionRequest")
+            ?: if (intent.action ==
+                ACTION_EXPAND_PLAYBACK
+            ) {
+                android.os.SystemClock.elapsedRealtimeNanos()
+            } else {
+                0L
+            }
         systemService.initialize(activity = this@MainActivity)
         mediaOperationsService.initialize(activity = this@MainActivity)
 
@@ -205,19 +230,30 @@ class MainActivity : FragmentActivity() {
                         state = navState,
                         fabStates = topLevelFabStates,
                         showBottomBar = showTopLevelBottomBar,
+                        expansionRequest = playbackExpansionRequest,
                     ) { layoutPaddingValues ->
                         val railPadding = layoutPaddingValues.calculateStartPadding(
                             LocalLayoutDirection.current,
                         )
+                        val systemBottomPadding = WindowInsets.navigationBars
+                            .asPaddingValues().calculateBottomPadding()
+                        val nestedBottomPadding = (
+                            layoutPaddingValues.calculateBottomPadding() -
+                                systemBottomPadding
+                            ).coerceAtLeast(0.dp)
                         val navigationInsetsDecorator = remember(
                             navState,
                             railPadding,
+                            nestedBottomPadding,
                         ) {
                             NavEntryDecorator<NavKey> { entry ->
-                                // Reserve rail space per entry without resizing the animated display.
+                                val topLevel = navState.topLevelContentKeys.contains(
+                                    entry.contentKey,
+                                )
+                                // Reserve space per entry without resizing the animated display.
                                 Box(
                                     navState.navigationTransitionModifier(entry).thenIf(
-                                        navState.topLevelContentKeys.contains(entry.contentKey),
+                                        topLevel,
                                     ) {
                                         padding(start = railPadding)
                                             .consumeWindowInsets(
@@ -225,8 +261,20 @@ class MainActivity : FragmentActivity() {
                                                     WindowInsetsSides.Start,
                                                 ),
                                             )
+                                    }.thenIf(
+                                        !topLevel,
+                                    ) {
+                                        padding(bottom = nestedBottomPadding)
                                     },
-                                ) { entry.Content() }
+                                ) {
+                                    CompositionLocalProvider(
+                                        LocalNavigationBottomPadding provides if (topLevel) {
+                                            LocalNavigationBottomPadding.current
+                                        } else {
+                                            0.dp
+                                        },
+                                    ) { entry.Content() }
+                                }
                             }
                         }
                         CompositionLocalProvider(
@@ -274,6 +322,13 @@ class MainActivity : FragmentActivity() {
             }
         }
     }
+    override fun onSaveInstanceState(outState: Bundle) {
+        outState.putLong(
+            "playbackExpansionRequest",
+            playbackExpansionRequest,
+        )
+        super.onSaveInstanceState(outState)
+    }
 }
 
 @Composable
@@ -282,6 +337,7 @@ fun NavigationLayout(
     state: TopLevelNavState,
     fabStates: SnapshotStateMap<String, TopLevelFabState>,
     showBottomBar: Boolean,
+    expansionRequest: Long = 0,
     windowSizeClass: WindowSizeClass = currentWindowAdaptiveInfoV2().windowSizeClass,
     content: @Composable (PaddingValues) -> Unit,
 ) {
@@ -292,6 +348,17 @@ fun NavigationLayout(
     val fabFocusRequester = remember { FocusRequester() }
     val miniPlayerFocusRequester = remember { FocusRequester() }
     var miniPlayerVisible by remember { mutableStateOf(false) }
+    var playerExpanded by remember { mutableStateOf(false) }
+    var compactHeight by remember { mutableStateOf(0.dp) }
+    var navigationHeight by remember { mutableStateOf(0.dp) }
+    val hiddenOwners = remember { mutableStateMapOf<Any, Boolean>() }
+    val setOverlayHidden = remember {
+        { owner: Any, hidden: Boolean ->
+            if (hidden) hiddenOwners[owner] = true else hiddenOwners.remove(owner)
+            Unit
+        }
+    }
+    val overlayHidden = hiddenOwners.isNotEmpty()
     val showNavRail = windowSizeClass.isWidthAtLeastBreakpoint(
         WindowSizeClass.WIDTH_DP_MEDIUM_LOWER_BOUND,
     )
@@ -306,46 +373,40 @@ fun NavigationLayout(
 
     Box(modifier = Modifier.fillMaxSize()) {
         Scaffold(
-            modifier = modifier,
+            modifier = modifier.thenIf(playerExpanded) {
+                semantics { hideFromAccessibility() }.focusProperties {
+                    onEnter = { cancelFocusChange() }
+                }.focusGroup()
+            },
             bottomBar = {
                 Column(horizontalAlignment = Alignment.CenterHorizontally) {
-                    if (showNavigation) {
-                        BackgroundPlaybackBar(
-                            modifier = Modifier
-                                .padding(start = if (showNavRail) railWidth else 0.dp)
-                                .windowInsetsPadding(
-                                    WindowInsets.displayCutout.only(WindowInsetsSides.Horizontal),
-                                )
-                                .padding(horizontal = 16.dp)
-                                .padding(bottom = 8.dp)
-                                .thenIf(!showBottomBar) { navigationBarsPadding() }
-                                .focusRequester(miniPlayerFocusRequester)
-                                .focusProperties {
-                                    if (isTv) {
-                                        up = contentFocusRequester
-                                        if (showBottomBar && displayedFabState != null) {
-                                            down = fabFocusRequester
-                                        }
-                                    }
-                                },
-                            onVisibilityChanged = { miniPlayerVisible = it },
-                        )
-                    }
+                    Spacer(
+                        Modifier.height(compactHeight).thenIf(!showNavigation || !showBottomBar) {
+                            navigationBarsPadding()
+                        },
+                    )
                     AnimatedVisibility(
                         visible = showNavigation && showBottomBar,
                         enter = fadeIn() + slideInVertically { it },
                         exit = fadeOut() + slideOutVertically { it },
                     ) {
-                        NextNavigationBar(
-                            state = state,
-                            fabState = displayedFabState,
-                            contentFocusRequester = contentFocusRequester,
-                            fabFocusRequester = fabFocusRequester,
-                            miniPlayerFocusRequester = miniPlayerFocusRequester.takeIf {
-                                miniPlayerVisible
+                        Box(
+                            Modifier.onSizeChanged {
+                                navigationHeight =
+                                    with(density) { it.height.toDp() }
                             },
-                            showFabOnly = showNavRail,
-                        )
+                        ) {
+                            NextNavigationBar(
+                                state = state,
+                                fabState = displayedFabState,
+                                contentFocusRequester = contentFocusRequester,
+                                fabFocusRequester = fabFocusRequester,
+                                miniPlayerFocusRequester = miniPlayerFocusRequester.takeIf {
+                                    miniPlayerVisible
+                                },
+                                showFabOnly = showNavRail,
+                            )
+                        }
                     }
                 }
             },
@@ -362,10 +423,12 @@ fun NavigationLayout(
                                 .focusProperties {
                                     onExit = {
                                         if (requestedFocusDirection == FocusDirection.Down &&
-                                            showNavigation &&
                                             (
                                                 miniPlayerVisible ||
-                                                    (showBottomBar && displayedFabState != null)
+                                                    (
+                                                        showNavigation && showBottomBar &&
+                                                            displayedFabState != null
+                                                        )
                                                 )
                                         ) {
                                             if (miniPlayerVisible) {
@@ -379,17 +442,21 @@ fun NavigationLayout(
                                 .focusGroup()
                         },
                 ) {
-                    content(
-                        PaddingValues(
-                            start = if (showNavRail) railWidth else 0.dp,
-                            bottom = it.calculateBottomPadding(),
-                        ),
-                    )
+                    CompositionLocalProvider(
+                        LocalPlaybackOverlayHiddenSetter provides setOverlayHidden,
+                    ) {
+                        content(
+                            PaddingValues(
+                                start = if (showNavRail) railWidth else 0.dp,
+                                bottom = it.calculateBottomPadding(),
+                            ),
+                        )
+                    }
                 }
             },
         )
         AnimatedVisibility(
-            visible = showNavRail && showNavigation,
+            visible = showNavRail && showNavigation && !playerExpanded,
             enter = fadeIn() + expandHorizontally(expandFrom = Alignment.Start),
             exit = fadeOut() + shrinkHorizontally(shrinkTowards = Alignment.Start),
         ) {
@@ -401,6 +468,31 @@ fun NavigationLayout(
                 },
             )
         }
+        PlaybackOverlay(
+            modifier = Modifier.fillMaxSize(),
+            compactBottom = if (showNavigation && showBottomBar) {
+                navigationHeight
+            } else {
+                WindowInsets.navigationBars.asPaddingValues().calculateBottomPadding()
+            },
+            compactStart = if (showNavigation && showNavRail) railWidth else 0.dp,
+            hidden = overlayHidden,
+            expansionRequest = expansionRequest,
+            focusRequester = miniPlayerFocusRequester,
+            compactModifier = Modifier.focusProperties {
+                if (isTv) {
+                    up = contentFocusRequester
+                    if (showNavigation && showBottomBar &&
+                        displayedFabState != null
+                    ) {
+                        down = fabFocusRequester
+                    }
+                }
+            },
+            onCompactHeightChanged = { compactHeight = it },
+            onVisibilityChanged = { miniPlayerVisible = it },
+            onExpandedChanged = { playerExpanded = it },
+        )
     }
 }
 

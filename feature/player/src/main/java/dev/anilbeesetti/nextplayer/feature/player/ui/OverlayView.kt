@@ -17,7 +17,6 @@ import androidx.compose.foundation.layout.calculateEndPadding
 import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.imePadding
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.safeDrawing
 import androidx.compose.foundation.layout.size
@@ -46,6 +45,7 @@ fun BoxScope.OverlayView(
     modifier: Modifier = Modifier,
     show: Boolean,
     title: String,
+    fullSize: Boolean = false,
     content: @Composable ColumnScope.() -> Unit,
 ) {
     val configuration = LocalConfiguration.current
@@ -87,7 +87,9 @@ fun BoxScope.OverlayView(
             shape = RoundedCornerShape(16.dp),
             modifier = modifier
                 .then(
-                    other = if (configuration.isPortrait) {
+                    other = if (fullSize) {
+                        Modifier.fillMaxSize()
+                    } else if (configuration.isPortrait) {
                         Modifier
                             .fillMaxWidth()
                             .fillMaxHeight(fraction = 0.45f)

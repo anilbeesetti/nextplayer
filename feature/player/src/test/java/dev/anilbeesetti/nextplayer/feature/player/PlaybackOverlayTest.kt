@@ -1,0 +1,315 @@
+package dev.anilbeesetti.nextplayer.feature.player
+
+import androidx.activity.ComponentActivity
+import androidx.compose.runtime.CompositionLocalProvider
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
+import androidx.compose.ui.focus.FocusRequester
+import androidx.compose.ui.geometry.Offset
+import androidx.compose.ui.platform.LocalDensity
+import androidx.compose.ui.platform.LocalLayoutDirection
+import androidx.compose.ui.semantics.SemanticsActions
+import androidx.compose.ui.test.assertIsDisplayed
+import androidx.compose.ui.test.assertIsNotEnabled
+import androidx.compose.ui.test.junit4.v2.createAndroidComposeRule
+import androidx.compose.ui.test.onNodeWithContentDescription
+import androidx.compose.ui.test.onNodeWithTag
+import androidx.compose.ui.test.onNodeWithText
+import androidx.compose.ui.test.onRoot
+import androidx.compose.ui.test.performClick
+import androidx.compose.ui.test.performScrollTo
+import androidx.compose.ui.test.performSemanticsAction
+import androidx.compose.ui.test.performTouchInput
+import androidx.compose.ui.test.swipeLeft
+import androidx.compose.ui.test.swipeRight
+import androidx.compose.ui.test.swipeUp
+import androidx.compose.ui.unit.Density
+import androidx.compose.ui.unit.LayoutDirection
+import androidx.compose.ui.unit.dp
+import androidx.media3.common.Player
+import dev.anilbeesetti.nextplayer.core.ui.R
+import dev.anilbeesetti.nextplayer.core.ui.theme.NextPlayerTheme
+import dev.anilbeesetti.nextplayer.feature.player.service.CustomCommands
+import dev.anilbeesetti.nextplayer.feature.player.service.PlaybackConnection
+import dev.anilbeesetti.nextplayer.feature.player.service.PlaybackPresentation
+import dev.anilbeesetti.nextplayer.feature.player.state.rememberPlaybackSnapshot
+import org.junit.After
+import org.junit.Assert.assertEquals
+import org.junit.Assert.assertTrue
+import org.junit.Rule
+import org.junit.Test
+import org.junit.runner.RunWith
+import org.robolectric.RobolectricTestRunner
+import org.robolectric.annotation.Config
+
+@RunWith(RobolectricTestRunner::class)
+@Config(sdk = [36])
+class PlaybackOverlayTest {
+    @get:Rule val composeRule = createAndroidComposeRule<ComponentActivity>()
+    private val player = MiniPlayerTestPlayer()
+    private var expanded by mutableStateOf(false)
+    private var hidden by mutableStateOf(false)
+    private var dismissed = 0
+    private var watched = 0
+    private val commands = mutableListOf<CustomCommands>()
+
+    @After fun tearDown() = composeRule.runOnIdle { player.release() }
+
+    @Test fun tapAndBackExpandAndCollapseTheSameSession() {
+        show()
+        composeRule.onNodeWithTag("mini_player").performSemanticsAction(SemanticsActions.OnClick) {
+            it()
+        }
+        composeRule.onNodeWithTag("expanded_player").assertIsDisplayed()
+        composeRule.onNodeWithText(text(R.string.watch_video)).performScrollTo().performClick()
+        composeRule.runOnIdle {
+            assertEquals(
+                1,
+                watched,
+            )
+            composeRule.activity.onBackPressedDispatcher.onBackPressed()
+        }
+        composeRule.onNodeWithTag("mini_player").assertIsDisplayed()
+    }
+
+    @Test fun compactHorizontalSwipesDismissInBothDirections() {
+        show()
+        composeRule.onNodeWithTag("mini_player").performTouchInput { swipeLeft() }
+        composeRule.onNodeWithTag("mini_player").performTouchInput { swipeRight() }
+        composeRule.runOnIdle {
+            assertEquals(
+                2,
+                dismissed,
+            )
+            assertEquals(
+                false,
+                expanded,
+            )
+        }
+    }
+
+    @Test fun upwardDragExpandsAndQueueBackPrecedesCollapse() {
+        show()
+        composeRule.onNodeWithTag("mini_player").performTouchInput { swipeUp() }
+        composeRule.onNodeWithTag("expanded_player").assertIsDisplayed()
+        composeRule.onNodeWithText(
+            text(R.string.now_playing),
+            substring = false,
+        )
+        composeRule.onNodeWithTag("playback_artwork").performTouchInput { swipeUp() }
+        composeRule.onNodeWithTag("playback_queue").assertIsDisplayed()
+        composeRule.runOnIdle { composeRule.activity.onBackPressedDispatcher.onBackPressed() }
+        composeRule.onNodeWithTag("playback_queue").assertDoesNotExist()
+        composeRule.onNodeWithTag("expanded_player").assertIsDisplayed()
+    }
+
+    @Test fun connectingDisablesPlaybackAndOffersCancel() {
+        expanded = true
+        show(PlaybackConnection.CONNECTING)
+        composeRule.onNodeWithContentDescription(
+            text(R.string.play),
+        ).performScrollTo().assertIsNotEnabled()
+        composeRule.onNodeWithContentDescription(
+            text(R.string.player_controls_progress),
+        ).assertIsNotEnabled()
+        composeRule.onNodeWithText(text(R.string.cancel)).performScrollTo().performClick()
+        composeRule.runOnIdle {
+            assertEquals(
+                listOf(CustomCommands.CANCEL_CAST),
+                commands,
+            )
+        }
+    }
+
+    @Test fun lostConnectionOffersExplicitRecoveryWithoutPlaying() {
+        expanded = true
+        show(PlaybackConnection.LOST)
+        composeRule.onNodeWithText(text(R.string.retry)).performScrollTo().performClick()
+        composeRule.onNodeWithText(text(R.string.play_on_phone)).performScrollTo().performClick()
+        composeRule.runOnIdle {
+            assertEquals(
+                listOf(
+                    CustomCommands.RETRY_CAST,
+                    CustomCommands.PLAY_ON_PHONE,
+                ),
+                commands,
+            )
+            assertEquals(
+                false,
+                player.playWhenReady,
+            )
+        }
+    }
+
+    @Test fun vaultPinHidesBothPlaybackPresentations() {
+        show()
+        composeRule.runOnIdle { hidden = true }
+        composeRule.onNodeWithTag("mini_player").assertDoesNotExist()
+        composeRule.runOnIdle { expanded = true }
+        composeRule.onNodeWithTag("expanded_player").assertDoesNotExist()
+        composeRule.runOnIdle { hidden = false }
+        composeRule.onNodeWithTag("expanded_player").assertIsDisplayed()
+    }
+
+    @Test fun largeTextAndRtlKeepExpandedActionsReachable() {
+        expanded = true
+        show(largeText = true)
+        composeRule.onNodeWithContentDescription(text(R.string.collapse_player)).assertIsDisplayed()
+        composeRule.onNodeWithText(text(R.string.watch_video)).performScrollTo().assertIsDisplayed()
+        composeRule.onNodeWithText(
+            text(R.string.stop_player_session),
+        ).performScrollTo().assertIsDisplayed()
+    }
+
+    @Test fun slowPartialExpansionFollowsFingerAndReversesWithoutDisposal() {
+        show()
+        val before = composeRule.onNodeWithTag(
+            "playback_sheet",
+        ).fetchSemanticsNode().boundsInRoot.top
+        composeRule.onNodeWithTag("mini_player").performTouchInput {
+            down(
+                Offset(
+                    50f,
+                    centerY,
+                ),
+            )
+            moveBy(
+                Offset(
+                    0f,
+                    -150f,
+                ),
+                delayMillis = 500,
+            )
+        }
+        val during = composeRule.onNodeWithTag(
+            "playback_sheet",
+        ).fetchSemanticsNode().boundsInRoot.top
+        assertTrue(
+            "Sheet must follow the finger: before=$before during=$during",
+            during < before - 50f,
+        )
+        composeRule.onRoot().performTouchInput {
+            moveBy(
+                Offset(
+                    0f,
+                    150f,
+                ),
+                delayMillis = 500,
+            )
+            up()
+        }
+        composeRule.onNodeWithTag("mini_player").assertIsDisplayed()
+        composeRule.runOnIdle {
+            assertEquals(
+                false,
+                expanded,
+            )
+        }
+    }
+
+    @Test fun artworkSwipeSelectsNextWithoutDismissing() {
+        expanded = true
+        show()
+        composeRule.onNodeWithTag("playback_artwork").performTouchInput { swipeLeft() }
+        composeRule.runOnIdle {
+            assertEquals(
+                1,
+                player.currentMediaItemIndex,
+            )
+            assertEquals(
+                0,
+                dismissed,
+            )
+        }
+    }
+
+    @Test fun expandedSeekAndOutputVolumeUseSessionCommands() {
+        expanded = true
+        composeRule.runOnIdle { player.remote(true) }
+        show(PlaybackConnection.CAST)
+        composeRule.onNodeWithContentDescription(text(R.string.player_controls_progress))
+            .performScrollTo().performSemanticsAction(SemanticsActions.SetProgress) { it(.5f) }
+        composeRule.runOnIdle {
+            assertEquals(
+                30_000,
+                player.currentPosition,
+            )
+        }
+        composeRule.onNodeWithContentDescription(
+            text(R.string.playback_output),
+        ).performScrollTo().performClick()
+        composeRule.onNodeWithContentDescription(text(R.string.cast_volume))
+            .performSemanticsAction(SemanticsActions.SetProgress) { it(75f) }
+        composeRule.runOnIdle {
+            assertEquals(
+                75,
+                player.deviceVolume,
+            )
+        }
+    }
+
+    @Test fun unavailableSeekAndPlaybackCommandsStayDisabled() {
+        expanded = true
+        composeRule.runOnIdle {
+            player.update {
+                setAvailableCommands(
+                    Player.Commands.Builder().addAll(
+                        Player.COMMAND_GET_CURRENT_MEDIA_ITEM,
+                        Player.COMMAND_GET_TIMELINE,
+                    ).build(),
+                )
+            }
+        }
+        show()
+        composeRule.onNodeWithContentDescription(
+            text(R.string.play),
+        ).performScrollTo().assertIsNotEnabled()
+        composeRule.onNodeWithContentDescription(
+            text(R.string.player_controls_progress),
+        ).assertIsNotEnabled()
+    }
+
+    private fun show(
+        connection: PlaybackConnection = PlaybackConnection.LOCAL,
+        largeText: Boolean = false,
+    ) {
+        composeRule.setContent {
+            val density = LocalDensity.current
+            CompositionLocalProvider(
+                LocalDensity provides Density(
+                    density.density,
+                    if (largeText) 2f else 1f,
+                ),
+                LocalLayoutDirection provides
+                    if (largeText) LayoutDirection.Rtl else LayoutDirection.Ltr,
+            ) {
+                NextPlayerTheme {
+                    PlaybackOverlayContent(
+                        player,
+                        rememberPlaybackSnapshot(player),
+                        PlaybackPresentation(
+                            connection,
+                            "TV",
+                        ),
+                        expanded,
+                        {
+                            expanded = it
+                        },
+                        0.dp,
+                        0.dp,
+                        hidden,
+                        remember { FocusRequester() },
+                        onCompactHeightChanged = {},
+                        onDismissPlayback = { dismissed++ },
+                        onCommand = { commands += it },
+                        onStop = {},
+                        onWatchVideo = { watched++ },
+                    )
+                }
+            }
+        }
+    }
+    private fun text(id: Int) = composeRule.activity.getString(id)
+}

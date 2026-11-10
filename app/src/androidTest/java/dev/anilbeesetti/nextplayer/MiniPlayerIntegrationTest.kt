@@ -1,14 +1,22 @@
 package dev.anilbeesetti.nextplayer
 
 import android.content.ComponentName
+import android.content.Intent
 import android.net.Uri
 import android.os.SystemClock
+import androidx.compose.ui.semantics.SemanticsActions
 import androidx.compose.ui.test.assertIsDisplayed
 import androidx.compose.ui.test.junit4.v2.createAndroidComposeRule
 import androidx.compose.ui.test.onAllNodesWithTag
 import androidx.compose.ui.test.onNodeWithContentDescription
 import androidx.compose.ui.test.onNodeWithTag
+import androidx.compose.ui.test.onNodeWithText
 import androidx.compose.ui.test.performClick
+import androidx.compose.ui.test.performScrollTo
+import androidx.compose.ui.test.performSemanticsAction
+import androidx.compose.ui.test.performTextInput
+import androidx.compose.ui.test.performTouchInput
+import androidx.compose.ui.test.swipeLeft
 import androidx.media3.common.MediaItem
 import androidx.media3.session.MediaController
 import androidx.media3.session.SessionToken
@@ -160,7 +168,10 @@ class MiniPlayerIntegrationTest {
             player.seekTo(30_000)
         }
         await("paused seek") { !player.playWhenReady && player.currentPosition == 30_000L }
-        composeRule.onNodeWithTag("mini_player").performClick()
+        expand()
+        composeRule.onNodeWithTag("expanded_player").assertIsDisplayed()
+        composeRule.onNodeWithText(context.getString(R.string.watch_video))
+            .performScrollTo().performClick()
         await("player activity") {
             ActivityLifecycleMonitorRegistry.getInstance().getActivitiesInStage(Stage.RESUMED)
                 .any { it is PlayerActivity }
@@ -180,8 +191,21 @@ class MiniPlayerIntegrationTest {
             )
             assertFalse(player.playWhenReady)
             ActivityLifecycleMonitorRegistry.getInstance().getActivitiesInStage(Stage.RESUMED)
-                .filterIsInstance<PlayerActivity>().forEach { it.finish() }
+                .filterIsInstance<PlayerActivity>().forEach {
+                    it.onBackPressedDispatcher.onBackPressed()
+                }
         }
+        composeRule.onNodeWithTag("expanded_player").assertIsDisplayed()
+        onMain {
+            assertFalse(player.playWhenReady)
+            assertEquals(
+                30_000L,
+                player.currentPosition,
+            )
+        }
+        composeRule.onNodeWithContentDescription(
+            context.getString(R.string.collapse_player),
+        ).performClick()
         waitForMiniPlayer()
     }
 
@@ -192,9 +216,10 @@ class MiniPlayerIntegrationTest {
             player.seekTo(42_000)
         }
         await("paused seek") { player.currentPosition == 42_000L }
-        composeRule.onNodeWithContentDescription(
+        expand()
+        composeRule.onNodeWithText(
             context.getString(R.string.stop_player_session),
-        ).performClick()
+        ).performScrollTo().performClick()
         await("cleared queue") { player.currentMediaItem == null }
         composeRule.waitUntil(10_000) {
             composeRule.onAllNodesWithTag("mini_player").fetchSemanticsNodes().isEmpty()
@@ -220,6 +245,94 @@ class MiniPlayerIntegrationTest {
             composeRule.onAllNodesWithTag("mini_player").fetchSemanticsNodes().isEmpty()
         }
     }
+
+    @Test
+    fun swipeDismissalUndoRestoresPlayingAndPausedSessions() {
+        listOf(
+            false,
+            true,
+        ).forEach { playing ->
+            onMain {
+                player.seekTo(24_000)
+                player.playWhenReady = playing
+            }
+            await("set playing intent") { player.playWhenReady == playing }
+            waitForMiniPlayer()
+            composeRule.onNodeWithTag("mini_player").performTouchInput { swipeLeft() }
+            await("dismissed queue") { player.currentMediaItem == null }
+            composeRule.onNodeWithText(context.getString(R.string.undo)).performClick()
+            await("restored queue") {
+                player.mediaItemCount == 1 && player.playWhenReady == playing
+            }
+            onMain { assertTrue(player.currentPosition in 24_000..26_000) }
+        }
+    }
+
+    @Test
+    fun nestedSettingsAndNotificationReentryKeepTheSession() {
+        composeRule.onNodeWithContentDescription(
+            context.getString(R.string.settings),
+        ).performClick()
+        waitForMiniPlayer()
+        onMain { player.sessionActivity!!.send() }
+        composeRule.waitUntil(10_000) {
+            composeRule.onAllNodesWithTag("expanded_player").fetchSemanticsNodes().isNotEmpty()
+        }
+        composeRule.onNodeWithTag("expanded_player").assertIsDisplayed()
+        onMain { assertTrue(player.isPlaying) }
+    }
+
+    @Test
+    fun vaultPinExcludesPlaybackWithoutStoppingIt() {
+        composeRule.onNodeWithContentDescription(context.getString(R.string.more)).performClick()
+        composeRule.onNodeWithText(context.getString(R.string.vault)).performClick()
+        composeRule.waitUntil(10_000) {
+            composeRule.onAllNodesWithTag("mini_player").fetchSemanticsNodes().isEmpty()
+        }
+        onMain { assertTrue(player.isPlaying) }
+    }
+
+    @Test
+    fun playlistCreationCoversNavigationAndKeepsPlayingWithKeyboard() {
+        composeRule.onNodeWithContentDescription(
+            context.getString(R.string.playlists),
+        ).performClick()
+        composeRule.onNodeWithTag("top_level_fab").performClick()
+        composeRule.onNodeWithText(context.getString(R.string.create_local_playlist)).performClick()
+        composeRule.onNodeWithTag("playlist_creation_form").assertIsDisplayed()
+        composeRule.onNodeWithText(
+            context.getString(R.string.playlist_name),
+        ).performTextInput("Playback demo")
+        composeRule.onNodeWithText(context.getString(R.string.create)).assertIsDisplayed()
+        onMain { assertTrue(player.isPlaying) }
+        composeRule.onNodeWithText(context.getString(R.string.cancel)).performClick()
+        waitForMiniPlayer()
+    }
+
+    @Test
+    fun notificationFromDirectFullscreenKeepsPlayingWithBackgroundPreferenceOff() {
+        onMain {
+            composeRule.activity.startActivity(
+                Intent(
+                    context,
+                    PlayerActivity::class.java,
+                )
+                    .setData(Uri.fromFile(media)),
+            )
+        }
+        await("direct fullscreen playback") {
+            player.isPlaying && ActivityLifecycleMonitorRegistry.getInstance()
+                .getActivitiesInStage(Stage.RESUMED).any { it is PlayerActivity }
+        }
+        onMain { player.sessionActivity!!.send() }
+        composeRule.waitUntil(10_000) {
+            composeRule.onAllNodesWithTag("expanded_player").fetchSemanticsNodes().isNotEmpty()
+        }
+        onMain { assertTrue(player.isPlaying) }
+    }
+
+    private fun expand() = composeRule.onNodeWithTag("mini_player")
+        .performSemanticsAction(SemanticsActions.OnClick) { it() }
 
     private fun waitForMiniPlayer() {
         composeRule.waitUntil(10_000) {
