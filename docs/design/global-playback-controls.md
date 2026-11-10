@@ -13,7 +13,7 @@ The existing high-bitrate Camera casting limitation remains unresolved and is ou
 - Show the mini player on browsing and settings screens, including folders, search, playlists and network screens.
 - Hide the compact view while the full-screen video player or expanded player is open.
 - Tapping the mini player expands controls for both local and Cast playback. The local expanded player has a separate Watch video action; it does not embed another video surface.
-- Use PixelPlayer's layout, UI structure and motion as a reference, with Next Player's colors, typography and icons.
+- Use PixelPlayer's layout, UI structure and motion as a reference, with Next Player's colors, typography and icons. The visual refinement uses its filled circular compact buttons, large capsule transport controls, segmented secondary actions, square artwork and wavy seek track. Verify future UI changes on the existing Pixel_6a emulator, as requested by the user.
 - Swiping the compact bar left or right stops playback and dismisses the session, including ending Cast playback on the receiver. Previous/next remain explicit buttons.
 - Swipe dismissal offers Undo for four seconds to restore the queue and position. Undo of local playback restores its prior playing/paused state. Undo of Cast playback restores the queue on the phone paused at the last known position; it does not reconnect the receiver automatically.
 - Selecting a Cast receiver immediately pauses phone playback, leaves full-screen video and opens the expanded player with the receiver name, Connecting indication and Cancel action.

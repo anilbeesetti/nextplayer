@@ -11,7 +11,7 @@ Run with JDK 17 launcher, the repository's JVM 21 daemon criteria, and `ANDROID_
   '-Dorg.gradle.jvmargs=-Xmx4096m -Dfile.encoding=UTF-8'
 ```
 
-Final XML totals: **812 tests in 144 suites, zero failures, errors or skips**. XML is inspected because local tests use `ignoreFailures=true`.
+Final XML totals after visual refinement: **837 tests in 149 suites, zero failures, errors or skips**. This includes 816 Android local tests and 21 JVM model/ktlint-rule tests. XML is inspected because local tests use `ignoreFailures=true`.
 
 Meaningful regressions cover:
 
@@ -23,7 +23,7 @@ Meaningful regressions cover:
 
 ## Device acceptance
 
-Device: `NextPlayer_Cast_QA_API35`, Android 15 / API 35, arm64 emulator. UI actions and screenshots use the thread's Device panel and its returned `agent-device` CLI; instrumentation uses the project's AndroidX runner. The UI session is closed before instrumentation to avoid concurrent UiAutomation ownership.
+Latest device: the existing `Pixel_6a`, API 37, arm64 emulator. The initial implementation had also passed the same focused runs on `NextPlayer_Cast_QA_API35` (Android 15 / API 35); that AVD is now closed. UI actions and screenshots use the thread's Device panel and its returned `agent-device` CLI; instrumentation uses the project's AndroidX runner. The UI session is closed before instrumentation to avoid concurrent UiAutomation ownership.
 
 Final applicable instrumentation runs:
 
@@ -36,20 +36,29 @@ Play covers `MiniPlayerIntegrationTest`, `PlayerApiRequestRegressionTest`, `Play
 
 Flows include root tabs and recreation, nested settings, compact/expanded entry, Watch video return with paused position, notification entry from direct fullscreen with background playback disabled, playing/paused Undo, Stop persistence, vault PIN exclusion, playlist-form text entry without stopping playback, external API results/grants, queue completion and autoplay/repeat compatibility.
 
-The final one-line Cast snapshot-helper correction was verified by eight transfer tests and the complete root checks after these device runs. It changes Cast dismissal snapshots, not the local flows exercised by the emulator. The current Play APK was reinstalled afterward.
+The Cast dismissal snapshot correction and visual refinement were included in the full root checks and the latest Pixel_6a device runs. The Play APK is restored after standard verification.
 
 The external-caller regression runs under a different UID and checks result code, URI and position, then dismisses/restores the paused queue, verifies URI access throughout Undo, plays another queued item, and confirms media/subtitle grant revocation after all service controllers are released.
 
-## Screenshots
+## Visual refinement evidence
 
-All media is a generated test pattern. The before build is the exact parent commit `da80c29f23f3304775420b7a5869265410ba67bd`, built from an isolated archive; parent branches were not modified.
+The user requested closer PixelPlayer styling after the initial implementation. Compact controls now use 36 dp filled circles and 44 dp circular artwork; expanded controls use square artwork, an 80 dp filled transport row with pressed-width feedback, a segmented shuffle/repeat/Stop row, filled header actions and a wavy seek track. The play shape and artwork size animate between playing and paused states. Next Player color roles, typography and icons remain in use. Existing Material 3 components provide controls and animations; no dependency was added.
 
-Before/after screenshots were not captured. The Device CLI's explicit activity launch normalized a fully qualified activity into an invalid component and returned `adb exited with code 1`. The permitted debug retry reproduced it, so manual device automation stopped under the device-tool rule. Ordinary baseline app navigation had worked; this was a launcher-tool failure, not a reported app crash.
+Layout selection uses full-window constraints rather than the animated sheet height, so an artwork-origin drag does not replace its gesture node halfway through expansion/collapse. A regression checks that a slow downward drag crosses halfway and finishes collapsed. Separate coverage checks square artwork, transport height and secondary-row separation.
 
-Manual visual checks for rotation/resizing, IME positioning and direct D-pad interaction therefore remain incomplete. JVM/Compose coverage exercises RTL, 2× text, rail layouts, D-pad traversal and gestures; instrumentation covers activity recreation and form text entry.
+All screenshots use a generated test pattern on the existing **Pixel_6a / API 37 / arm64** emulator. The before images are the initial third-layer implementation at `97191ecfa63ad24dd0dbfd654cc908b1b52398d2`, not parent #2087. No parent branch was modified. The earlier activity-launch problem was resolved by passing an explicit package/activity component to the Device CLI. The old QA AVD was closed and all subsequent UI verification used Pixel_6a, as requested.
+
+| Before | After |
+| --- | --- |
+| ![Initial compact controls](before-compact.png) | ![Filled compact controls](after-compact-paused.png) |
+| ![Initial expanded controls](before-expanded.png) | ![Expanded playing controls](after-expanded-playing.png) |
+
+Additional states: [compact playing](after-compact-playing.png), [expanded paused](after-expanded-paused.png), [landscape](after-landscape.png), [accessibility-large text](after-large-text.png).
+
+Manual flows checked paused/playing controls, an artwork-origin downward drag through halfway to compact controls without interrupting playback, portrait/landscape rotation, landscape scrolling to the lower controls, enlarged text and collapse/expanded entry with system animations disabled. The original text-size and animation settings were restored. RTL/2× text, capability gating, seek/output semantics and D-pad traversal remain covered by automated tests. Manual window resizing, D-pad input and a visual IME-position audit remain unchecked.
 
 ## Limits
 
-- No physical phone was connected during rediscovery, so no phone/receiver runtime claims are made. Cast connection/recovery timing still needs hardware verification.
+- The earlier Play build was installed on the connected OPPO CPH2689 without clearing its data. The visual refinement was tested on Pixel_6a only, following the user's instruction. No phone/receiver runtime playback claim is made; Cast connection/recovery timing still needs hardware verification.
 - The prior original 4K/~59fps/~56 Mbps Camera buffering problem remains outside this UI layer. No transcoding or server-performance fix is claimed.
 - No PixelPlayer source or assets were copied. No dependencies or `fastlane/` files changed.
