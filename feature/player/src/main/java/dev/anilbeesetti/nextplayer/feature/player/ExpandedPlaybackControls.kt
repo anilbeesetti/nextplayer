@@ -123,6 +123,7 @@ internal fun ExpandedPlaybackControls(
     dragModifier: Modifier,
     modifier: Modifier = Modifier,
     transitionProgress: Float = 1f,
+    metadataVisibility: Float = 1f,
     controlsTranslationY: Float = 0f,
     artworkModifier: Modifier = Modifier,
     metadataModifier: Modifier = Modifier,
@@ -214,7 +215,7 @@ internal fun ExpandedPlaybackControls(
     val controls: @Composable () -> Unit = {
         Column(
             modifier = Modifier.graphicsLayer {
-                alpha = ((transitionProgress - .35f) / .65f).coerceIn(
+                alpha = metadataVisibility * ((transitionProgress - .35f) / .65f).coerceIn(
                     0f,
                     1f,
                 )
@@ -327,10 +328,11 @@ internal fun ExpandedPlaybackControls(
                         snapshot,
                         controlsEnabled,
                         modifier = Modifier.graphicsLayer {
-                            alpha = ((transitionProgress - .35f) / .65f).coerceIn(
-                                0f,
-                                1f,
-                            )
+                            alpha =
+                                metadataVisibility * ((transitionProgress - .35f) / .65f).coerceIn(
+                                    0f,
+                                    1f,
+                                )
                             translationY = controlsTranslationY
                         },
                     )
@@ -390,10 +392,12 @@ internal fun ExpandedPlaybackControls(
                                 snapshot,
                                 controlsEnabled,
                                 modifier = Modifier.graphicsLayer {
-                                    alpha = ((transitionProgress - .35f) / .65f).coerceIn(
-                                        0f,
-                                        1f,
-                                    )
+                                    alpha =
+                                        metadataVisibility *
+                                        ((transitionProgress - .35f) / .65f).coerceIn(
+                                            0f,
+                                            1f,
+                                        )
                                     translationY = controlsTranslationY
                                 },
                             )

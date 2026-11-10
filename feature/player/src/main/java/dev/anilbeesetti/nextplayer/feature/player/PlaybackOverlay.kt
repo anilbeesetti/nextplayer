@@ -415,6 +415,42 @@ internal fun PlaybackOverlayContent(
         val transitioning = progress > 0f && progress < 1f
         val morphArtwork = transitioning && compactArtwork.width > 0 && expandedArtwork.width > 0
         val morphMetadata = transitioning && compactMetadata.width > 0 && expandedMetadata.width > 0
+        val artworkBounds = lerp(
+            compactArtwork,
+            expandedArtwork,
+            progress,
+        )
+        val metadataBounds = lerp(
+            compactMetadata,
+            expandedMetadata,
+            progress,
+        )
+        val metadataVisibility = if (morphMetadata && morphArtwork) {
+            val fadeDistance = minOf(
+                separationBetween(
+                    compactArtwork,
+                    compactMetadata,
+                ),
+                separationBetween(
+                    expandedArtwork,
+                    expandedMetadata,
+                ),
+            )
+            (
+                (
+                    separationBetween(
+                        artworkBounds,
+                        metadataBounds,
+                    ) - 1f
+                    ) /
+                    (fadeDistance - 1f).coerceAtLeast(1f)
+                ).coerceIn(
+                0f,
+                1f,
+            )
+        } else {
+            1f
+        }
         Surface(
             modifier = Modifier
                 .offset {
@@ -529,6 +565,7 @@ internal fun PlaybackOverlayContent(
                 onCommand = onCommand,
                 dragModifier = verticalDrag,
                 transitionProgress = progress,
+                metadataVisibility = metadataVisibility,
                 controlsTranslationY = if (morphMetadata) {
                     (compactMetadata.bottom - expandedMetadata.bottom) * (1f - progress)
                 } else {
@@ -558,11 +595,7 @@ internal fun PlaybackOverlayContent(
             )
         }
         if (morphArtwork) {
-            val bounds = lerp(
-                compactArtwork,
-                expandedArtwork,
-                progress,
-            )
+            val bounds = artworkBounds
             PlaybackArtwork(
                 snapshot,
                 Modifier.align(AbsoluteAlignment.TopLeft).absoluteOffset {
@@ -582,12 +615,8 @@ internal fun PlaybackOverlayContent(
                 artworkPainter,
             )
         }
-        if (morphMetadata) {
-            val bounds = lerp(
-                compactMetadata,
-                expandedMetadata,
-                progress,
-            )
+        if (morphMetadata && metadataVisibility > 0f) {
+            val bounds = metadataBounds
             val titleStyle = androidx.compose.ui.text.lerp(
                 MaterialTheme.typography.titleSmall.copy(
                     fontSize = 15.sp,
@@ -615,7 +644,8 @@ internal fun PlaybackOverlayContent(
                         },
                         with(density) { bounds.height.toDp() },
                     )
-                    .clearAndSetSemantics {},
+                    .graphicsLayer { alpha = metadataVisibility }
+                    .clearAndSetSemantics { testTag = "transition_metadata" },
             ) {
                 Text(
                     title,
@@ -679,3 +709,15 @@ internal fun PlaybackOverlayContent(
         }
     }
 }
+
+// Fade crossing metadata instead of letting it draw through the growing artwork.
+private fun separationBetween(first: Rect, second: Rect): Float = maxOf(
+    maxOf(
+        first.left - second.right,
+        second.left - first.right,
+    ),
+    maxOf(
+        first.top - second.bottom,
+        second.top - first.bottom,
+    ),
+)

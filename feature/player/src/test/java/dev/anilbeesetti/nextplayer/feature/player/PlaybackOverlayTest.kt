@@ -20,6 +20,7 @@ import androidx.compose.ui.test.assertIsDisplayed
 import androidx.compose.ui.test.assertIsNotEnabled
 import androidx.compose.ui.test.getUnclippedBoundsInRoot
 import androidx.compose.ui.test.junit4.v2.createAndroidComposeRule
+import androidx.compose.ui.test.onAllNodesWithTag
 import androidx.compose.ui.test.onNodeWithContentDescription
 import androidx.compose.ui.test.onNodeWithTag
 import androidx.compose.ui.test.onNodeWithText
@@ -97,9 +98,11 @@ class PlaybackOverlayTest {
             }
             composeRule.mainClock.advanceTimeByFrame()
             composeRule.waitForIdle()
-            composeRule.mainClock.advanceTimeBy(120)
-            composeRule.waitForIdle()
-            composeRule.mainClock.advanceTimeByFrame()
+            repeat(8) {
+                composeRule.mainClock.advanceTimeBy(16)
+                composeRule.waitForIdle()
+                assertTransitionMetadataDoesNotCoverArtwork()
+            }
             val mid = composeRule.onNodeWithTag(
                 "transition_artwork",
                 useUnmergedTree = true,
@@ -150,9 +153,11 @@ class PlaybackOverlayTest {
             }
             composeRule.mainClock.advanceTimeByFrame()
             composeRule.waitForIdle()
-            composeRule.mainClock.advanceTimeBy(120)
-            composeRule.waitForIdle()
-            composeRule.mainClock.advanceTimeByFrame()
+            repeat(8) {
+                composeRule.mainClock.advanceTimeBy(16)
+                composeRule.waitForIdle()
+                assertTransitionMetadataDoesNotCoverArtwork()
+            }
             val mid = composeRule.onNodeWithTag(
                 "transition_artwork",
                 useUnmergedTree = true,
@@ -787,6 +792,24 @@ class PlaybackOverlayTest {
             transport.bottom - transport.top,
         )
         assertTrue(modes.top >= transport.bottom)
+    }
+
+    private fun assertTransitionMetadataDoesNotCoverArtwork() {
+        val artwork = composeRule.onAllNodesWithTag(
+            "transition_artwork",
+            useUnmergedTree = true,
+        )
+            .fetchSemanticsNodes().singleOrNull()?.boundsInRoot ?: return
+        val metadata = composeRule.onAllNodesWithTag(
+            "transition_metadata",
+            useUnmergedTree = true,
+        )
+            .fetchSemanticsNodes().singleOrNull()?.boundsInRoot ?: return
+        assertTrue(
+            "Metadata $metadata overlaps artwork $artwork",
+            metadata.right <= artwork.left || metadata.left >= artwork.right ||
+                metadata.bottom <= artwork.top || metadata.top >= artwork.bottom,
+        )
     }
 
     private fun show(
