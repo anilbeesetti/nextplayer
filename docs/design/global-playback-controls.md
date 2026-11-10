@@ -1,6 +1,6 @@
 # Global playback controls
 
-Status: design interview in progress. Application implementation has not started.
+Status: product choices resolved; awaiting final shared-understanding confirmation. Application implementation has not started.
 
 ## Scope
 
@@ -15,7 +15,7 @@ The existing high-bitrate Camera casting limitation remains unresolved and is ou
 - Tapping the mini player expands controls for both local and Cast playback. The local expanded player has a separate Watch video action; it does not embed another video surface.
 - Use PixelPlayer's layout, UI structure and motion as a reference, with Next Player's colors, typography and icons.
 - Swiping the compact bar left or right stops playback and dismisses the session, including ending Cast playback on the receiver. Previous/next remain explicit buttons.
-- Swipe dismissal offers Undo for four seconds to restore the queue and position. Restoring a dismissed Cast output is still an open decision.
+- Swipe dismissal offers Undo for four seconds to restore the queue and position. Undo of local playback restores its prior playing/paused state. Undo of Cast playback restores the queue on the phone paused at the last known position; it does not reconnect the receiver automatically.
 - Selecting a Cast receiver immediately pauses phone playback, leaves full-screen video and opens the expanded player with the receiver name, Connecting indication and Cancel action.
 - Cast controls become active only after the receiver acknowledges the selected video and its controls are available. A loaded, paused video counts as ready; receiver session connection alone does not.
 - Failed or cancelled connections return playback to the phone at the same position and restore its previous playing/paused state.
@@ -48,12 +48,11 @@ PixelPlayer was inspected at `63cb59b97aff1d60c5aa46afdf5ce489e632b267`. These a
 Source and assets will not be copied. The reference repository's license restricts redistribution and derivative works:
 https://github.com/PixelPlayerHQ/PixelPlayer/blob/63cb59b97aff1d60c5aa46afdf5ce489e632b267/LICENSE
 
-## Open decisions
+## Remaining confirmation
 
-- Q19: Undo playback output and playing/paused restoration policy, especially after Cast dismissal.
-- Final shared-understanding confirmation after the remaining choice is resolved.
+- No unanswered product choices remain. Present the complete behavior summary for final shared-understanding confirmation before implementation.
 
-## Delegated presentation defaults for final confirmation
+## Delegated presentation defaults
 
 - Keep the current browsing screen and compact/expanded presentation during automatic Cast recovery. Expand for an explicit receiver selection, Retry or player/notification tap.
 - Tap/upward drag expands, downward drag/collapse/Back minimizes, and gestures follow the finger before settling. Dismissing a child queue or output sheet precedes collapsing the expanded player.
