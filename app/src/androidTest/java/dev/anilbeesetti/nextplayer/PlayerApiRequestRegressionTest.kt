@@ -4,6 +4,7 @@ import android.app.Activity
 import android.content.ComponentName
 import android.content.Intent
 import android.net.Uri
+import android.os.Bundle
 import android.os.Process
 import android.os.SystemClock
 import androidx.media3.common.Player
@@ -17,6 +18,7 @@ import dev.anilbeesetti.nextplayer.core.data.repository.PreferencesRepository
 import dev.anilbeesetti.nextplayer.core.model.LoopMode
 import dev.anilbeesetti.nextplayer.core.model.PlayerPreferences
 import dev.anilbeesetti.nextplayer.feature.player.PlayerActivity
+import dev.anilbeesetti.nextplayer.feature.player.service.CustomCommands
 import dev.anilbeesetti.nextplayer.feature.player.service.PlayerService
 import dev.anilbeesetti.nextplayer.feature.player.service.stopPlayerSession
 import java.util.UUID
@@ -117,8 +119,8 @@ class PlayerApiRequestRegressionTest {
         await("paused seek reaches fullscreen controller") {
             main {
                 val activity = activities().first()
-                val peer = activity.javaClass.getDeclaredField("mediaController")
-                    .apply { isAccessible = true }.get(activity) as MediaController
+                val peer = activity.javaClass.getDeclaredMethod("getMediaController")
+                    .apply { isAccessible = true }.invoke(activity) as MediaController
                 peer.playWhenReady == false && peer.currentPosition == 12_000L
             }
         }
@@ -154,6 +156,43 @@ class PlayerApiRequestRegressionTest {
                 12_000,
                 player.currentPosition,
             )
+        }
+        main {
+            player.sendCustomCommand(
+                CustomCommands.DISMISS_PLAYBACK.sessionCommand,
+                Bundle.EMPTY,
+            )
+        }
+            .get(
+                10,
+                TimeUnit.SECONDS,
+            )
+        await("dismissed external queue") { main { player.mediaItemCount == 0 } }
+        assertTrue(
+            "URI grant survives the Undo window",
+            canRead(Uri.parse(returned.getString("uri"))),
+        )
+        main {
+            player.sendCustomCommand(
+                CustomCommands.UNDO_DISMISSAL.sessionCommand,
+                Bundle.EMPTY,
+            )
+        }
+            .get(
+                10,
+                TimeUnit.SECONDS,
+            )
+        await("paused external queue restored") {
+            main {
+                player.mediaItemCount == 3 && !player.playWhenReady &&
+                    player.currentPosition == 12_000L
+            }
+        }
+        // Release the browsing controller before asserting service-owned grant revocation.
+        main {
+            Stage.entries.filter { it != Stage.DESTROYED }.flatMap {
+                ActivityLifecycleMonitorRegistry.getInstance().getActivitiesInStage(it)
+            }.filterIsInstance<MainActivity>().forEach { it.finish() }
         }
         main { player.play() }
         assertQueueGrantsSurviveActivity(player)
