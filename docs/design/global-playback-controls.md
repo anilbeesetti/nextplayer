@@ -1,6 +1,6 @@
 # Global playback controls
 
-Status: product choices resolved; awaiting final shared-understanding confirmation. Application implementation has not started.
+Status: shared understanding confirmed by the user on 2026-11-10. Implementation is authorized as the third PR in the stack and will continue in a fresh thread.
 
 ## Scope
 
@@ -48,9 +48,9 @@ PixelPlayer was inspected at `63cb59b97aff1d60c5aa46afdf5ce489e632b267`. These a
 Source and assets will not be copied. The reference repository's license restricts redistribution and derivative works:
 https://github.com/PixelPlayerHQ/PixelPlayer/blob/63cb59b97aff1d60c5aa46afdf5ce489e632b267/LICENSE
 
-## Remaining confirmation
+## Approval
 
-- No unanswered product choices remain. Present the complete behavior summary for final shared-understanding confirmation before implementation.
+- The user confirmed the full design and requested implementation in a new thread with a focused context handoff. Do not restart the design interview or request the same confirmation again.
 
 ## Delegated presentation defaults
 
@@ -79,4 +79,4 @@ https://github.com/PixelPlayerHQ/PixelPlayer/blob/63cb59b97aff1d60c5aa46afdf5ce4
 - Run applicable unit, integration, build and formatting checks for both distributions; validate flows on an emulator and on the connected phone/receiver when available.
 - Keep the existing high-bitrate Camera buffering failure visible in verification results; do not claim this UI work fixes it.
 
-The interview must finish with a shared-understanding confirmation before application implementation.
+The design interview is complete. Implement and verify the agreed behavior, then open the third PR above #2086 and #2087.
