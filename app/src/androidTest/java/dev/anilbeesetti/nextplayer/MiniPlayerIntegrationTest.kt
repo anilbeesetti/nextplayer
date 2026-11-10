@@ -457,6 +457,99 @@ class MiniPlayerIntegrationTest {
                 composeRule.onNodeWithTag("expanded_player").assertIsDisplayed()
             }
         }
+        onMain {
+            player.pause()
+            player.seekTo(
+                1,
+                30_000,
+            )
+        }
+        await("paused endpoint capture") {
+            !player.playWhenReady &&
+                player.currentPosition == 30_000L
+        }
+        val progress = composeRule.onNodeWithContentDescription(
+            context.getString(R.string.player_controls_progress),
+        )
+        progress.performTouchInput {
+            down(
+                Offset(
+                    0f,
+                    centerY,
+                ),
+            )
+            moveTo(
+                Offset(
+                    -20f,
+                    centerY,
+                ),
+                delayMillis = 300,
+            )
+        }
+        try {
+            capturePlayback("dark-landscape-seek-start")
+            progress.performTouchInput {
+                moveTo(
+                    Offset(
+                        width + 20f,
+                        centerY,
+                    ),
+                    delayMillis = 300,
+                )
+            }
+            capturePlayback("dark-landscape-seek-end")
+        } finally {
+            progress.performTouchInput { up() }
+        }
+    }
+
+    @Test
+    fun overflowingLandscapeTitleActuallyMovesWhilePlayingAndEllipsizesWhenPaused() {
+        onMain {
+            player.pause()
+            composeRule.activity.requestedOrientation = ActivityInfo.SCREEN_ORIENTATION_LANDSCAPE
+        }
+        composeRule.waitUntil(10_000) {
+            composeRule.activity.resources.configuration.orientation ==
+                Configuration.ORIENTATION_LANDSCAPE
+        }
+        expand()
+        val clock = composeRule.mainClock
+        val originalAutoAdvance = clock.autoAdvance
+        try {
+            clock.autoAdvance = false
+            onMain { player.play() }
+            await("marquee playback") { player.isPlaying }
+            val title = composeRule.onNodeWithTag("playback_media_title")
+            composeRule.waitUntil(10_000) {
+                clock.advanceTimeByFrame()
+                val layouts = mutableListOf<androidx.compose.ui.text.TextLayoutResult>()
+                title.performSemanticsAction(SemanticsActions.GetTextLayoutResult) { it(layouts) }
+                layouts.singleOrNull()?.isLineEllipsized(0) == false
+            }
+            clock.advanceTimeBy(400)
+            val before = title.captureToImage().asAndroidBitmap()
+            capturePlayback("landscape-title-scroll-start")
+            clock.advanceTimeBy(2400)
+            val after = title.captureToImage().asAndroidBitmap()
+            capturePlayback("landscape-title-scroll-end")
+            assertFalse(
+                "Overflowing playing title must scroll",
+                before.sameAs(after),
+            )
+            onMain { player.pause() }
+            await("paused marquee") { !player.playWhenReady }
+            clock.advanceTimeBy(100)
+            composeRule.waitUntil(10_000) {
+                clock.advanceTimeByFrame()
+                val layouts = mutableListOf<androidx.compose.ui.text.TextLayoutResult>()
+                title.performSemanticsAction(SemanticsActions.GetTextLayoutResult) { it(layouts) }
+                layouts.singleOrNull()?.isLineEllipsized(0) == true
+            }
+            capturePlayback("landscape-title-paused")
+        } finally {
+            clock.autoAdvance = originalAutoAdvance
+        }
     }
 
     private fun capturePlayback(name: String) {
@@ -493,12 +586,18 @@ class MiniPlayerIntegrationTest {
         )
         for (tag in listOf(
             "playback_title",
+            "playback_artwork",
+            "playback_seek_track",
+            "playback_position",
             "playback_output_action",
             "playback_queue_action",
             "playback_transport",
             "playback_modes",
         )) {
-            val rect = composeRule.onNodeWithTag(tag).fetchSemanticsNode().boundsInRoot
+            val rect = composeRule.onNodeWithTag(
+                tag,
+                useUnmergedTree = true,
+            ).fetchSemanticsNode().boundsInRoot
             measurements.put(
                 tag,
                 JSONArray(

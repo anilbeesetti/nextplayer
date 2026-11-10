@@ -1,5 +1,10 @@
 package dev.anilbeesetti.nextplayer.feature.player
 
+import android.content.ContentResolver
+import android.database.ContentObserver
+import android.os.Handler
+import android.os.Looper
+import android.provider.Settings
 import androidx.compose.animation.AnimatedContent
 import androidx.compose.animation.core.FastOutSlowInEasing
 import androidx.compose.animation.core.animateDpAsState
@@ -10,6 +15,7 @@ import androidx.compose.animation.fadeOut
 import androidx.compose.animation.slideInHorizontally
 import androidx.compose.animation.slideOutHorizontally
 import androidx.compose.animation.togetherWith
+import androidx.compose.foundation.basicMarquee
 import androidx.compose.foundation.gestures.detectHorizontalDragGestures
 import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.Arrangement
@@ -59,9 +65,11 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableFloatStateOf
+import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
@@ -70,6 +78,7 @@ import androidx.compose.ui.focus.FocusRequester
 import androidx.compose.ui.focus.focusRequester
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.input.pointer.pointerInput
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalLayoutDirection
 import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.res.stringResource
@@ -111,6 +120,11 @@ internal fun ExpandedPlaybackControls(
     val collapseFocus = remember { FocusRequester() }
     LaunchedEffect(Unit) { collapseFocus.requestFocus() }
     val pane = stringResource(R.string.now_playing)
+    val showDevice = connection == PlaybackConnection.CONNECTING || snapshot.isRemote
+    // Basic marquee deliberately ignores the platform animation duration scale.
+    val motionEnabled = rememberPlaybackMotionEnabled(LocalContext.current.contentResolver)
+    val scrollTitle = landscape && controlsEnabled && snapshot.playWhenReady &&
+        snapshot.playbackState == Player.STATE_READY && motionEnabled
     val actions: @Composable () -> Unit = {
         PlaybackHeaderActions(
             snapshot,
@@ -128,6 +142,13 @@ internal fun ExpandedPlaybackControls(
                 Column(Modifier.weight(1f).testTag("playback_title")) {
                     Text(
                         title,
+                        modifier = Modifier.testTag("playback_media_title").then(
+                            if (scrollTitle) {
+                                Modifier.basicMarquee(iterations = Int.MAX_VALUE)
+                            } else {
+                                Modifier
+                            },
+                        ),
                         style = MaterialTheme.typography.headlineSmall.copy(
                             fontWeight = FontWeight.Bold,
                         ),
@@ -217,19 +238,31 @@ internal fun ExpandedPlaybackControls(
                 verticalAlignment = Alignment.CenterVertically,
                 horizontalArrangement = Arrangement.spacedBy(9.dp),
             ) {
-                Box(Modifier.weight(1f).fillMaxHeight()) {
-                    PlaybackArtworkCarousel(
-                        player,
-                        snapshot,
-                        controlsEnabled,
-                        Modifier.fillMaxSize().padding(vertical = 8.dp).then(dragModifier),
-                    )
-                    PlaybackCollapseButton(
-                        onCollapse,
-                        Modifier.align(
-                            Alignment.TopStart,
-                        ).then(dragModifier).focusRequester(collapseFocus),
-                    )
+                Box(
+                    Modifier.weight(1f).fillMaxHeight().padding(vertical = 8.dp),
+                    contentAlignment = Alignment.Center,
+                ) {
+                    Box(
+                        Modifier.fillMaxHeight().aspectRatio(
+                            1f,
+                            matchHeightConstraintsFirst = true,
+                        )
+                            .testTag("landscape_artwork_frame"),
+                    ) {
+                        PlaybackArtworkCarousel(
+                            player,
+                            snapshot,
+                            controlsEnabled,
+                            Modifier.fillMaxSize().then(dragModifier),
+                        )
+                        PlaybackCollapseButton(
+                            onCollapse,
+                            Modifier.align(
+                                Alignment.TopStart,
+                            ).padding(8.dp).testTag("landscape_collapse")
+                                .then(dragModifier).focusRequester(collapseFocus),
+                        )
+                    }
                 }
                 Column(
                     Modifier.weight(1f).fillMaxHeight().verticalScroll(rememberScrollState())
@@ -257,15 +290,21 @@ internal fun ExpandedPlaybackControls(
                         onCollapse,
                         Modifier.focusRequester(collapseFocus),
                     )
-                    Text(
-                        pane,
-                        Modifier.weight(1f).padding(horizontal = 18.dp),
-                        style = MaterialTheme.typography.labelLarge.copy(
-                            fontWeight = FontWeight.SemiBold,
-                        ),
-                        maxLines = 1,
-                        overflow = TextOverflow.Ellipsis,
-                    )
+                    Box(Modifier.weight(1f)) {
+                        if (!showDevice) {
+                            Text(
+                                pane,
+                                Modifier.padding(
+                                    horizontal = 18.dp,
+                                ).testTag("playback_header_title"),
+                                style = MaterialTheme.typography.labelLarge.copy(
+                                    fontWeight = FontWeight.SemiBold,
+                                ),
+                                maxLines = 1,
+                                overflow = TextOverflow.Ellipsis,
+                            )
+                        }
+                    }
                     actions()
                 }
                 BoxWithConstraints(Modifier.weight(1f).fillMaxWidth()) {
@@ -275,12 +314,14 @@ internal fun ExpandedPlaybackControls(
                         horizontalAlignment = Alignment.CenterHorizontally,
                         verticalArrangement = Arrangement.SpaceAround,
                     ) {
-                        PlaybackArtworkCarousel(
-                            player,
-                            snapshot,
-                            controlsEnabled,
-                            Modifier.fillMaxWidth(.8f).aspectRatio(1f).then(dragModifier),
-                        )
+                        Box(Modifier.padding(vertical = 8.dp)) {
+                            PlaybackArtworkCarousel(
+                                player,
+                                snapshot,
+                                controlsEnabled,
+                                Modifier.fillMaxWidth().aspectRatio(1f).then(dragModifier),
+                            )
+                        }
                         Column(verticalArrangement = Arrangement.spacedBy(4.dp)) {
                             metadata()
                             PlaybackSeekControl(
@@ -728,4 +769,31 @@ private fun ConnectionControls(
             }
         }
     }
+}
+
+internal fun playbackAnimationsEnabled(resolver: ContentResolver): Boolean =
+    Settings.Global.getFloat(
+        resolver,
+        Settings.Global.ANIMATOR_DURATION_SCALE,
+        1f,
+    ) > 0f
+
+@Composable
+private fun rememberPlaybackMotionEnabled(resolver: ContentResolver): Boolean {
+    var enabled by remember(resolver) { mutableStateOf(playbackAnimationsEnabled(resolver)) }
+    DisposableEffect(resolver) {
+        val observer = object : ContentObserver(Handler(Looper.getMainLooper())) {
+            override fun onChange(selfChange: Boolean) {
+                enabled = playbackAnimationsEnabled(resolver)
+            }
+        }
+        resolver.registerContentObserver(
+            Settings.Global.getUriFor(Settings.Global.ANIMATOR_DURATION_SCALE),
+            false,
+            observer,
+        )
+        enabled = playbackAnimationsEnabled(resolver)
+        onDispose { resolver.unregisterContentObserver(observer) }
+    }
+    return enabled
 }

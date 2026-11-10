@@ -1,5 +1,6 @@
 package dev.anilbeesetti.nextplayer.feature.player
 
+import android.provider.Settings
 import androidx.activity.ComponentActivity
 import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.getValue
@@ -30,9 +31,11 @@ import androidx.compose.ui.test.performTouchInput
 import androidx.compose.ui.test.swipeLeft
 import androidx.compose.ui.test.swipeRight
 import androidx.compose.ui.test.swipeUp
+import androidx.compose.ui.text.TextLayoutResult
 import androidx.compose.ui.unit.Density
 import androidx.compose.ui.unit.LayoutDirection
 import androidx.compose.ui.unit.dp
+import androidx.media3.common.MediaMetadata
 import androidx.media3.common.Player
 import dev.anilbeesetti.nextplayer.core.ui.R
 import dev.anilbeesetti.nextplayer.core.ui.theme.NextPlayerTheme
@@ -397,6 +400,175 @@ class PlaybackOverlayTest {
         composeRule.runOnIdle { assertTrue(player.currentPosition > initial) }
     }
 
+    @Test fun seekTrackDoesNotMoveDuringScrubbingAndAlignsWithTimeLabels() {
+        expanded = true
+        show()
+        val progress = composeRule.onNodeWithContentDescription(
+            text(R.string.player_controls_progress),
+        )
+        progress.performScrollTo()
+        val track = composeRule.onNodeWithTag(
+            "playback_seek_track",
+            useUnmergedTree = true,
+        )
+        val before = track.getUnclippedBoundsInRoot()
+        val label = composeRule.onNodeWithTag("playback_position").getUnclippedBoundsInRoot()
+        assertEquals(
+            label.left,
+            before.left,
+        )
+        progress.performTouchInput {
+            down(center)
+            moveBy(
+                Offset(
+                    width * .15f,
+                    0f,
+                ),
+                delayMillis = 300,
+            )
+        }
+        try {
+            assertEquals(
+                before,
+                track.getUnclippedBoundsInRoot(),
+            )
+        } finally {
+            progress.performTouchInput { up() }
+        }
+        assertEquals(
+            before,
+            track.getUnclippedBoundsInRoot(),
+        )
+    }
+
+    @Test fun portraitCastHeaderLeavesRoomForReceiverInsteadOfNowPlaying() {
+        expanded = true
+        composeRule.runOnIdle { player.remote(true) }
+        show(
+            PlaybackConnection.CAST,
+            deviceName = "Living room receiver with a long name",
+        )
+        composeRule.onNodeWithTag("playback_header_title").assertDoesNotExist()
+        composeRule.onNodeWithTag("playback_output_action").assertIsDisplayed()
+        composeRule.onNodeWithTag("playback_queue_action").assertIsDisplayed()
+    }
+
+    @Test
+    @Config(qualifiers = "w915dp-h412dp-land")
+    fun landscapeCollapseIsInsetInsideTheArtworkFrame() {
+        expanded = true
+        show()
+        val frame = composeRule.onNodeWithTag("landscape_artwork_frame").getUnclippedBoundsInRoot()
+        val button = composeRule.onNodeWithTag("landscape_collapse").getUnclippedBoundsInRoot()
+        assertTrue(button.left >= frame.left + 8.dp && button.top >= frame.top + 8.dp)
+        assertTrue(button.right <= frame.right && button.bottom <= frame.bottom)
+    }
+
+    @Test
+    @Config(qualifiers = "w640dp-h360dp-land")
+    fun longLandscapeTitleScrollsOnlyDuringPlaybackWithSystemMotionEnabled() {
+        val resolver = composeRule.activity.contentResolver
+        val original = Settings.Global.getString(
+            resolver,
+            Settings.Global.ANIMATOR_DURATION_SCALE,
+        )
+        val title = "Very long video filename with a distinguishing episode number.mp4"
+        composeRule.runOnIdle {
+            Settings.Global.putFloat(
+                resolver,
+                Settings.Global.ANIMATOR_DURATION_SCALE,
+                1f,
+            )
+            player.update {
+                setPlaylist(
+                    listOf(
+                        player.item(0).buildUpon().setMediaMetadata(
+                            MediaMetadata.Builder().setTitle(title).build(),
+                        ).build(),
+                        player.item(1),
+                    ),
+                )
+            }
+        }
+        expanded = true
+        show()
+        fun titleIsBounded(): Boolean {
+            val layouts = mutableListOf<TextLayoutResult>()
+            composeRule.onNodeWithText(
+                title,
+            ).performSemanticsAction(SemanticsActions.GetTextLayoutResult) {
+                it(layouts)
+            }
+            return layouts.single().layoutInput.constraints.hasBoundedWidth
+        }
+        try {
+            composeRule.onNodeWithTag("playback_header").assertDoesNotExist()
+            composeRule.runOnIdle {
+                assertEquals(
+                    false,
+                    player.playWhenReady,
+                )
+            }
+            assertTrue(
+                "Paused title must remain bounded",
+                titleIsBounded(),
+            )
+            composeRule.runOnIdle {
+                player.update {
+                    setPlayWhenReady(
+                        true,
+                        Player.PLAY_WHEN_READY_CHANGE_REASON_USER_REQUEST,
+                    )
+                }
+            }
+            composeRule.mainClock.advanceTimeBy(600)
+            composeRule.runOnIdle { assertTrue(player.playWhenReady) }
+            assertEquals(
+                false,
+                titleIsBounded(),
+            )
+            composeRule.runOnIdle {
+                Settings.Global.putFloat(
+                    resolver,
+                    Settings.Global.ANIMATOR_DURATION_SCALE,
+                    0f,
+                )
+                resolver.notifyChange(
+                    Settings.Global.getUriFor(Settings.Global.ANIMATOR_DURATION_SCALE),
+                    null,
+                )
+            }
+            assertTrue(titleIsBounded())
+        } finally {
+            composeRule.runOnIdle {
+                Settings.Global.putString(
+                    resolver,
+                    Settings.Global.ANIMATOR_DURATION_SCALE,
+                    original,
+                )
+            }
+        }
+    }
+
+    @Test
+    @Config(qualifiers = "w640dp-h360dp-land")
+    fun lostConnectionDoesNotScrollARetainedPlayingTitle() {
+        composeRule.runOnIdle {
+            player.update {
+                setPlayWhenReady(
+                    true,
+                    Player.PLAY_WHEN_READY_CHANGE_REASON_USER_REQUEST,
+                )
+            }
+        }
+        expanded = true
+        show(PlaybackConnection.LOST)
+        val layouts = mutableListOf<TextLayoutResult>()
+        composeRule.onNodeWithTag("playback_media_title")
+            .performSemanticsAction(SemanticsActions.GetTextLayoutResult) { it(layouts) }
+        assertTrue(layouts.single().layoutInput.constraints.hasBoundedWidth)
+    }
+
     @Test fun portraitArtworkIsSquareAndTransportModesHaveSeparateRows() {
         expanded = true
         show()
@@ -406,6 +578,11 @@ class PlaybackOverlayTest {
         assertEquals(
             artwork.right - artwork.left,
             artwork.bottom - artwork.top,
+        )
+        val metadata = composeRule.onNodeWithTag("playback_metadata").getUnclippedBoundsInRoot()
+        assertEquals(
+            metadata.right - metadata.left,
+            artwork.right - artwork.left,
         )
         assertEquals(
             80.dp,

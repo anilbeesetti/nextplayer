@@ -3,7 +3,7 @@ package dev.anilbeesetti.nextplayer.feature.player
 import androidx.compose.animation.core.FastOutSlowInEasing
 import androidx.compose.animation.core.animateDpAsState
 import androidx.compose.animation.core.tween
-import androidx.compose.foundation.background
+import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.interaction.collectIsDraggedAsState
 import androidx.compose.foundation.interaction.collectIsPressedAsState
@@ -11,11 +11,11 @@ import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.ExperimentalMaterial3ExpressiveApi
 import androidx.compose.material3.LinearWavyProgressIndicator
@@ -29,14 +29,19 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.geometry.CornerRadius
+import androidx.compose.ui.geometry.Offset
+import androidx.compose.ui.geometry.Size
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.StrokeCap
 import androidx.compose.ui.graphics.drawscope.Stroke
 import androidx.compose.ui.platform.LocalDensity
+import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.semantics.clearAndSetSemantics
 import androidx.compose.ui.semantics.contentDescription
 import androidx.compose.ui.semantics.semantics
+import androidx.compose.ui.unit.LayoutDirection
 import androidx.compose.ui.unit.dp
 import androidx.media3.common.Player
 import dev.anilbeesetti.nextplayer.core.common.Utils
@@ -92,67 +97,92 @@ internal fun PlaybackSeekControl(
             alpha = .38f,
         )
     }
+    val value = (dragged ?: snapshot.progress).coerceIn(
+        0f,
+        1f,
+    )
     Column(Modifier.heightIn(min = 70.dp)) {
-        Slider(
-            value = (dragged ?: snapshot.progress).coerceIn(
-                0f,
-                1f,
-            ),
-            onValueChange = { dragged = it },
-            onValueChangeFinished = {
-                dragged?.let {
-                    if (enabled) {
-                        player.seekTo(
-                            (it * snapshot.duration).toLong().coerceIn(
-                                0,
-                                snapshot.duration,
-                            ),
-                        )
-                    }
-                }
-                dragged = null
-            },
-            enabled = enabled,
-            interactionSource = interaction,
-            thumb = {
-                Box(
-                    Modifier.size(
-                        thumbWidth,
-                        thumbHeight,
-                    ).background(
-                        color,
-                        CircleShape,
+        Box(
+            Modifier.fillMaxWidth(),
+            contentAlignment = Alignment.Center,
+        ) {
+            Box(
+                Modifier.fillMaxWidth().height(24.dp).testTag("playback_seek_track"),
+                contentAlignment = Alignment.Center,
+            ) {
+                LinearWavyProgressIndicator(
+                    progress = { value },
+                    modifier = Modifier.fillMaxWidth().clearAndSetSemantics {},
+                    color = color,
+                    trackColor = playbackInactiveTrackColor(
+                        MaterialTheme.colorScheme.onPrimaryContainer,
                     ),
+                    stroke = stroke,
+                    trackStroke = stroke,
+                    gapSize = when {
+                        seeking -> 8.4.dp
+                        waving -> 14.dp
+                        else -> 12.dp
+                    },
+                    stopSize = 3.dp,
+                    amplitude = { if (waving) 1f else 0f },
+                    wavelength = 40.dp,
+                    waveSpeed = if (waving) 20.dp else 0.dp,
                 )
-            },
-            track = { state ->
-                Box(
-                    Modifier.fillMaxWidth().height(24.dp),
-                    contentAlignment = Alignment.Center,
-                ) {
-                    LinearWavyProgressIndicator(
-                        progress = { state.value },
-                        modifier = Modifier.fillMaxWidth().clearAndSetSemantics {},
-                        color = color,
-                        trackColor = playbackInactiveTrackColor(
-                            MaterialTheme.colorScheme.onPrimaryContainer,
+                Canvas(Modifier.matchParentSize().clearAndSetSemantics {}) {
+                    val width = thumbWidth.toPx()
+                    val height = thumbHeight.toPx()
+                    val center = playbackThumbCenter(
+                        value,
+                        size.width,
+                        width,
+                        layoutDirection == LayoutDirection.Rtl,
+                    )
+                    drawRoundRect(
+                        color,
+                        topLeft = Offset(
+                            center - width / 2,
+                            (size.height - height) / 2,
                         ),
-                        stroke = stroke,
-                        trackStroke = stroke,
-                        gapSize = when {
-                            seeking -> 8.4.dp
-                            waving -> 14.dp
-                            else -> 12.dp
-                        },
-                        stopSize = 3.dp,
-                        amplitude = { if (waving) 1f else 0f },
-                        wavelength = 40.dp,
-                        waveSpeed = if (waving) 20.dp else 0.dp,
+                        size = Size(
+                            width,
+                            height,
+                        ),
+                        cornerRadius = CornerRadius(width / 2),
                     )
                 }
-            },
-            modifier = Modifier.fillMaxWidth().semantics { contentDescription = label },
-        )
+            }
+            Slider(
+                value = value,
+                onValueChange = { dragged = it },
+                onValueChangeFinished = {
+                    dragged?.let {
+                        if (enabled) {
+                            player.seekTo(
+                                (it * snapshot.duration).toLong().coerceIn(
+                                    0,
+                                    snapshot.duration,
+                                ),
+                            )
+                        }
+                    }
+                    dragged = null
+                },
+                enabled = enabled,
+                interactionSource = interaction,
+                thumb = {
+                    Spacer(
+                        Modifier.size(
+                            0.dp,
+                            24.dp,
+                        ),
+                    )
+                },
+                // Native thumb insets must not resize or move the decorative track.
+                track = { Spacer(Modifier.fillMaxWidth().height(24.dp)) },
+                modifier = Modifier.fillMaxWidth().semantics { contentDescription = label },
+            )
+        }
         Row(
             Modifier.fillMaxWidth(),
             horizontalArrangement = Arrangement.SpaceBetween,
@@ -161,6 +191,7 @@ internal fun PlaybackSeekControl(
                 ?: snapshot.position
             Text(
                 Utils.formatDurationMillis(position),
+                modifier = Modifier.testTag("playback_position"),
                 style = MaterialTheme.typography.labelMedium,
             )
             Text(
@@ -226,3 +257,17 @@ internal fun PlaybackVolumeControl(player: Player, snapshot: PlaybackSnapshot) {
 }
 
 internal fun playbackInactiveTrackColor(onContainer: Color): Color = onContainer.copy(alpha = .7f)
+
+internal fun playbackThumbCenter(
+    progress: Float,
+    trackWidth: Float,
+    thumbWidth: Float,
+    rtl: Boolean,
+): Float {
+    val inset = (thumbWidth / 2).coerceAtMost(trackWidth / 2)
+    val fraction = if (rtl) 1f - progress else progress
+    return (fraction * trackWidth).coerceIn(
+        inset,
+        trackWidth - inset,
+    )
+}
