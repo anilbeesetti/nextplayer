@@ -345,8 +345,8 @@
         <item quantity="other">%1$d video teisaldamine ei õnnestunud</item>
     </plurals>
     <plurals name="moved_videos_originals_remain">
-        <item quantity="one">1 video on teisaldatud, kuid algfaili kustutamine ei õnnestunud</item>
-        <item quantity="other">%1$d videot on teisaldatud, kuid algfaili kustutamine ei õnnestunud</item>
+        <item quantity="one">1 video on kopeeritud, kuid algfaili kustutamine ei õnnestunud</item>
+        <item quantity="other">%1$d videot on kopeeritud, kuid algfaili kustutamine ei õnnestunud</item>
     </plurals>
     <string name="cannot_move_to_same_folder">Samasse kausta teisaldamine pole võimalik</string>
     <string name="reset_pin_and_delete_all">Lähtesta PIN-kood ja kustuta kõik</string>
@@ -535,4 +535,21 @@
     <string name="add_to_home_screen">Lisa avalehele</string>
     <string name="playlist_shortcut_failed">Esitusloendi viite lisamine ei õnnestunud. Proovi uuesti.</string>
     <string name="github_sponsors">Sponsorid GitHubis</string>
+    <string name="settings_export">Ekspordi seadistused</string>
+    <string name="settings_export_description">Salvesta seadistused JSON-faili</string>
+    <string name="settings_import_description">Taasta seadistused JSON-failist</string>
+    <string name="settings_import">Impordi seadistused</string>
+    <string name="settings_export_confirmation">Ekspordi rakenduse ja pleieri seadistused JSON-faili.</string>
+    <string name="settings_export_include_credentials">Kaasa võrguühendused ja autentimistunnused</string>
+    <string name="export_action">Ekspordi</string>
+    <string name="import_action">Impordi</string>
+    <string name="settings_export_success">Seadistused on eksporditud</string>
+    <string name="settings_export_failed">Seadistuste ekspordimine ei õnnestunud</string>
+    <string name="settings_import_success">Seadistused on imporditud</string>
+    <string name="settings_import_failed">Seadistuste importimise lõpetamine ei õnnestunud. Palun proovi uuesti.</string>
+    <string name="reset_subtitle_position">Lähtesta subtiitrite asukoht</string>
+    <string name="settings_import_invalid">Selle faili lugemine ei õnnestunud või selles ei leidu õiges JSON-vormingus seadistusi</string>
+    <string name="reset_subtitle_position_desc">Subtiitrite liigutamiseks lohista neid esitamise ajal üles või alla</string>
+    <string name="settings_export_credentials_warning">See JSON-fail pole krüptitud. Selles võib leiduda salasõnu ja SSH privaatvõtmeid. Hoia faili turvaliselt.</string>
+    <string name="settings_import_confirmation">Selles failis leiduvad seadistused kirjutavad üle sinu praegused seadistused. Puuduvad, vananenud, tundmatud või vigased kirjed jäetakse tähelepanuta. Samuti imporditakse võrguühendused ja autentimisandmed, kui need on failis olemas.</string>
 </resources>
