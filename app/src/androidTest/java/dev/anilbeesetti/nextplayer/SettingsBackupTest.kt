@@ -465,6 +465,7 @@ class SettingsBackupTest {
             ),
         )
         createdDocuments.add(uri)
+        resolver.openOutputStream(uri)!!.close()
         return uri
     }
 

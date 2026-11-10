@@ -10,6 +10,7 @@ import android.database.Cursor
 import android.database.MatrixCursor
 import android.net.Uri
 import android.os.Build
+import android.os.Bundle
 import android.os.ParcelFileDescriptor
 import android.provider.MediaStore
 import androidx.test.core.app.ApplicationProvider
@@ -140,29 +141,37 @@ class VideoThumbnailDecoderTest {
                 null,
                 null,
             )
+            context.grantUriPermission(
+                context.packageName,
+                uri,
+                android.content.Intent.FLAG_GRANT_READ_URI_PERMISSION,
+            )
             // Transfer ownership so the test covers another app's trashed video.
             shell(
                 command = "content update --uri $uri " +
                     "--bind owner_package_name:s:com.android.shell --bind is_trashed:i:1",
             )
+            assertTrue(
+                shell(command = "content query --uri $uri --projection owner_package_name")
+                    .contains("owner_package_name=com.android.shell"),
+            )
             context.contentResolver.query(
                 uri,
                 arrayOf(
                     MediaStore.MediaColumns.IS_TRASHED,
-                    MediaStore.MediaColumns.OWNER_PACKAGE_NAME,
                 ),
-                null,
-                null,
+                Bundle().apply {
+                    putInt(
+                        MediaStore.QUERY_ARG_MATCH_TRASHED,
+                        MediaStore.MATCH_INCLUDE,
+                    )
+                },
                 null,
             )!!.use { cursor ->
                 assertTrue(cursor.moveToFirst())
                 assertEquals(
                     1,
                     cursor.getInt(0),
-                )
-                assertEquals(
-                    "com.android.shell",
-                    cursor.getString(1),
                 )
             }
 
@@ -171,6 +180,10 @@ class VideoThumbnailDecoderTest {
                 uri.toString(),
             )
         } finally {
+            context.revokeUriPermission(
+                uri,
+                android.content.Intent.FLAG_GRANT_READ_URI_PERMISSION,
+            )
             shell(command = "content delete --uri $uri")
             instrumentation.uiAutomation.dropShellPermissionIdentity()
         }
