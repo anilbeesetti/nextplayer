@@ -217,7 +217,7 @@ class MiniPlayerIntegrationTest {
         }
         await("paused seek") { player.currentPosition == 42_000L }
         expand()
-        composeRule.onNodeWithText(
+        composeRule.onNodeWithContentDescription(
             context.getString(R.string.stop_player_session),
         ).performScrollTo().performClick()
         await("cleared queue") { player.currentMediaItem == null }

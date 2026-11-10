@@ -1,21 +1,28 @@
 package dev.anilbeesetti.nextplayer.feature.player
 
+import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.outlined.CastConnected
+import androidx.compose.material.icons.rounded.Pause
+import androidx.compose.material.icons.rounded.PlayArrow
+import androidx.compose.material.icons.rounded.SkipNext
+import androidx.compose.material.icons.rounded.SkipPrevious
 import androidx.compose.material3.CircularProgressIndicator
+import androidx.compose.material3.FilledIconButton
 import androidx.compose.material3.Icon
-import androidx.compose.material3.IconButton
-import androidx.compose.material3.LinearProgressIndicator
+import androidx.compose.material3.IconButtonDefaults
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
@@ -31,8 +38,11 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.semantics.CustomAccessibilityAction
 import androidx.compose.ui.semantics.customActions
 import androidx.compose.ui.semantics.semantics
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
+import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
 import androidx.media3.common.Player
 import coil3.compose.AsyncImage
 import dev.anilbeesetti.nextplayer.core.ui.R
@@ -72,7 +82,7 @@ internal fun MiniPlayer(
             ?: stringResource(R.string.background_play)
     }
     val stopLabel = stringResource(R.string.stop_player_session)
-    val shape = RoundedCornerShape(20.dp)
+    val shape = RoundedCornerShape(24.dp)
     Surface(
         onClick = onOpenPlayer,
         modifier = modifier
@@ -87,30 +97,34 @@ internal fun MiniPlayer(
             }
             .tvFocusRing(shape),
         shape = shape,
-        color = MaterialTheme.colorScheme.surfaceContainerHigh,
-        tonalElevation = 3.dp,
-        shadowElevation = 3.dp,
+        color = MaterialTheme.colorScheme.primaryContainer,
+        contentColor = MaterialTheme.colorScheme.onPrimaryContainer,
     ) {
         Column {
             Row(
-                modifier = Modifier.fillMaxWidth().padding(
-                    start = 12.dp,
-                    end = 4.dp,
+                modifier = Modifier.fillMaxWidth().heightIn(min = 64.dp).padding(
+                    start = 10.dp,
+                    end = 6.dp,
                     top = 8.dp,
                     bottom = 8.dp,
                 ),
                 verticalAlignment = Alignment.CenterVertically,
-                horizontalArrangement = Arrangement.spacedBy(8.dp),
+
             ) {
                 PlaybackArtwork(
                     snapshot,
-                    Modifier.size(48.dp),
+                    Modifier.size(44.dp),
                     CircleShape,
                 )
+                Spacer(Modifier.width(12.dp))
                 Column(Modifier.weight(1f)) {
                     Text(
                         title,
-                        style = MaterialTheme.typography.titleSmall,
+                        style = MaterialTheme.typography.titleSmall.copy(
+                            fontSize = 15.sp,
+                            fontWeight = FontWeight.SemiBold,
+                            letterSpacing = (-0.2).sp,
+                        ),
                         maxLines = 1,
                         overflow = TextOverflow.Ellipsis,
                     )
@@ -132,48 +146,70 @@ internal fun MiniPlayer(
                         }
                         Text(
                             output,
-                            style = MaterialTheme.typography.bodySmall,
-                            color = MaterialTheme.colorScheme.onSurfaceVariant,
+                            style = MaterialTheme.typography.bodySmall.copy(fontSize = 13.sp),
+                            color = MaterialTheme.colorScheme.onPrimaryContainer.copy(alpha = 0.7f),
                             maxLines = 1,
                             overflow = TextOverflow.Ellipsis,
                         )
                     }
                 }
-                IconButton(
-                    onClick = player::seekToPrevious,
-                    enabled =
-                        controlsEnabled &&
-                            snapshot.commands.contains(Player.COMMAND_SEEK_TO_PREVIOUS),
-                    modifier = Modifier.tvFocusRing(),
+                Spacer(Modifier.width(4.dp))
+                Box(
+                    Modifier.size(48.dp),
+                    contentAlignment = Alignment.Center,
                 ) {
-                    Icon(
-                        painterResource(R.drawable.ic_skip_prev),
-                        stringResource(R.string.player_controls_previous),
+                    FilledIconButton(
+                        onClick = player::seekToPrevious,
+                        enabled =
+                            controlsEnabled &&
+                                snapshot.commands.contains(Player.COMMAND_SEEK_TO_PREVIOUS),
+                        modifier = Modifier.size(36.dp).tvFocusRing(CircleShape),
+                        colors = IconButtonDefaults.filledIconButtonColors(
+                            containerColor = MaterialTheme.colorScheme.onPrimary,
+                            contentColor = MaterialTheme.colorScheme.primary,
+                        ),
+                    ) {
+                        Icon(
+                            Icons.Rounded.SkipPrevious,
+                            stringResource(R.string.player_controls_previous),
+                            Modifier.size(22.dp),
+                        )
+                    }
+                }
+                Box(
+                    Modifier.size(48.dp),
+                    contentAlignment = Alignment.Center,
+                ) {
+                    PlaybackPlayPauseButton(
+                        player,
+                        snapshot,
+                        Modifier.size(36.dp),
+                        controlsEnabled,
                     )
                 }
-                MiniPlayPauseButton(
-                    player,
-                    snapshot,
-                    enabled = controlsEnabled,
-                )
-                IconButton(
-                    onClick = player::seekToNext,
-                    enabled =
-                        controlsEnabled && snapshot.commands.contains(Player.COMMAND_SEEK_TO_NEXT),
-                    modifier = Modifier.tvFocusRing(),
+                Box(
+                    Modifier.size(48.dp),
+                    contentAlignment = Alignment.Center,
                 ) {
-                    Icon(
-                        painterResource(R.drawable.ic_skip_next),
-                        stringResource(R.string.player_controls_next),
-                    )
+                    FilledIconButton(
+                        onClick = player::seekToNext,
+                        enabled =
+                            controlsEnabled &&
+                                snapshot.commands.contains(Player.COMMAND_SEEK_TO_NEXT),
+                        modifier = Modifier.size(36.dp).tvFocusRing(CircleShape),
+                        colors = IconButtonDefaults.filledIconButtonColors(
+                            containerColor = MaterialTheme.colorScheme.onPrimary,
+                            contentColor = MaterialTheme.colorScheme.primary,
+                        ),
+                    ) {
+                        Icon(
+                            Icons.Rounded.SkipNext,
+                            stringResource(R.string.player_controls_next),
+                            Modifier.size(22.dp),
+                        )
+                    }
                 }
             }
-            LinearProgressIndicator(
-                progress = { snapshot.progress },
-                modifier = Modifier.fillMaxWidth().height(2.dp),
-                gapSize = 0.dp,
-                drawStopIndicator = {},
-            )
         }
     }
 }
@@ -206,13 +242,16 @@ internal fun PlaybackArtwork(
 }
 
 @Composable
-internal fun MiniPlayPauseButton(
+internal fun PlaybackPlayPauseButton(
     player: Player,
     snapshot: PlaybackSnapshot,
     modifier: Modifier = Modifier,
     enabled: Boolean = true,
+    shape: Shape = CircleShape,
+    iconSize: Dp = 22.dp,
+    interactionSource: MutableInteractionSource? = null,
 ) {
-    IconButton(
+    FilledIconButton(
         onClick = {
             if (snapshot.playWhenReady) {
                 player.pause()
@@ -226,13 +265,14 @@ internal fun MiniPlayPauseButton(
             }
         },
         enabled = enabled && snapshot.commands.contains(Player.COMMAND_PLAY_PAUSE),
-        modifier = modifier.tvFocusRing(),
+        modifier = modifier.tvFocusRing(shape),
+        shape = shape,
+        interactionSource = interactionSource,
     ) {
         Icon(
-            painterResource(
-                if (snapshot.playWhenReady) R.drawable.ic_pause else R.drawable.ic_play,
-            ),
+            if (snapshot.playWhenReady) Icons.Rounded.Pause else Icons.Rounded.PlayArrow,
             stringResource(if (snapshot.playWhenReady) R.string.pause_playback else R.string.play),
+            Modifier.size(iconSize),
         )
     }
 }

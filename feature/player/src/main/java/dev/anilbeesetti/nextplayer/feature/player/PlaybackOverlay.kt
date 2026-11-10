@@ -3,13 +3,7 @@ package dev.anilbeesetti.nextplayer.feature.player
 import android.content.Intent
 import android.os.Bundle
 import androidx.activity.compose.BackHandler
-import androidx.compose.animation.AnimatedContent
 import androidx.compose.animation.core.Animatable
-import androidx.compose.animation.fadeIn
-import androidx.compose.animation.fadeOut
-import androidx.compose.animation.slideInHorizontally
-import androidx.compose.animation.slideOutHorizontally
-import androidx.compose.animation.togetherWith
 import androidx.compose.foundation.gestures.Orientation
 import androidx.compose.foundation.gestures.detectHorizontalDragGestures
 import androidx.compose.foundation.gestures.detectTapGestures
@@ -36,17 +30,7 @@ import androidx.compose.foundation.layout.widthIn
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.automirrored.outlined.QueueMusic
-import androidx.compose.material.icons.outlined.Cast
-import androidx.compose.material.icons.outlined.KeyboardArrowDown
-import androidx.compose.material.icons.outlined.Repeat
-import androidx.compose.material.icons.outlined.RepeatOne
-import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.ExperimentalMaterial3Api
-import androidx.compose.material3.Icon
-import androidx.compose.material3.IconButton
-import androidx.compose.material3.IconToggleButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.ModalBottomSheet
 import androidx.compose.material3.SnackbarDuration
@@ -55,7 +39,6 @@ import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.SnackbarResult
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
-import androidx.compose.material3.TextButton
 import androidx.compose.material3.rememberModalBottomSheetState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
@@ -76,14 +59,10 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.platform.LocalLayoutDirection
 import androidx.compose.ui.platform.testTag
-import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
-import androidx.compose.ui.semantics.paneTitle
 import androidx.compose.ui.semantics.semantics
-import androidx.compose.ui.semantics.stateDescription
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.IntOffset
-import androidx.compose.ui.unit.LayoutDirection
 import androidx.compose.ui.unit.dp
 import androidx.media3.common.Player
 import androidx.media3.common.util.UnstableApi
@@ -265,8 +244,8 @@ internal fun PlaybackOverlayContent(
 ) {
     val density = LocalDensity.current
     val compactHeight = maxOf(
-        66.dp,
-        (36 * density.fontScale + 18).dp,
+        64.dp,
+        (38 * density.fontScale + 20).dp,
     )
     LaunchedEffect(
         compactHeight,
@@ -398,8 +377,9 @@ internal fun PlaybackOverlayContent(
                     onDragStopped = dragStopped,
                 )
                 .pointerInput(Unit) { detectTapGestures {} },
-            shape = RoundedCornerShape(20.dp * (1f - progress)),
-            color = MaterialTheme.colorScheme.surfaceContainerHigh,
+            shape = RoundedCornerShape(24.dp * (1f - progress)),
+            color = MaterialTheme.colorScheme.primaryContainer,
+            contentColor = MaterialTheme.colorScheme.onPrimaryContainer,
             shadowElevation = 3.dp,
         ) {
             if (progress < .01f && !expanded && !dragging) {
@@ -437,7 +417,8 @@ internal fun PlaybackOverlayContent(
                     title,
                     secondary,
                     controlsEnabled,
-                    presentation.connection,
+                    landscape = maxWidth > maxHeight,
+                    connection = presentation.connection,
                     onCollapse = { onExpandedChanged(false) },
                     onQueue = { queue = true },
                     onOutput = { output = true },
@@ -486,299 +467,6 @@ internal fun PlaybackOverlayContent(
                 PlaybackVolumeControl(
                     player,
                     snapshot,
-                )
-            }
-        }
-    }
-}
-
-@Composable
-private fun ExpandedPlaybackControls(
-    player: Player,
-    snapshot: PlaybackSnapshot,
-    title: String,
-    secondary: String,
-    controlsEnabled: Boolean,
-    connection: PlaybackConnection,
-    onCollapse: () -> Unit,
-    onQueue: () -> Unit,
-    onOutput: () -> Unit,
-    onStop: () -> Unit,
-    onWatchVideo: () -> Unit,
-    onCommand: (CustomCommands) -> Unit,
-    dragModifier: Modifier,
-) {
-    val rtl = LocalLayoutDirection.current == LayoutDirection.Rtl
-    val collapseFocus = remember { FocusRequester() }
-    LaunchedEffect(Unit) { collapseFocus.requestFocus() }
-    val pane = stringResource(R.string.now_playing)
-    val repeatDescription = stringResource(
-        when (snapshot.repeatMode) {
-            Player.REPEAT_MODE_ONE -> R.string.loop_mode_one
-            Player.REPEAT_MODE_ALL -> R.string.loop_mode_all
-            else -> R.string.loop_mode_off
-        },
-    )
-    var carouselDirection by remember { mutableFloatStateOf(0f) }
-    var artworkDrag by remember { mutableFloatStateOf(0f) }
-    Column(
-        Modifier.fillMaxSize().testTag("expanded_player").semantics {
-            paneTitle = pane
-        }.safeDrawingPadding()
-            .verticalScroll(rememberScrollState()).padding(horizontal = 24.dp),
-        horizontalAlignment = Alignment.CenterHorizontally,
-        verticalArrangement = Arrangement.spacedBy(12.dp),
-    ) {
-        Row(
-            Modifier.fillMaxWidth().testTag("expanded_drag_handle").then(dragModifier),
-            verticalAlignment = Alignment.CenterVertically,
-        ) {
-            IconButton(
-                onClick = onCollapse,
-                modifier = Modifier.focusRequester(collapseFocus).tvFocusRing(),
-            ) {
-                Icon(
-                    Icons.Outlined.KeyboardArrowDown,
-                    stringResource(R.string.collapse_player),
-                )
-            }
-            Text(
-                stringResource(R.string.now_playing),
-                Modifier.weight(1f),
-                style = MaterialTheme.typography.titleMedium,
-            )
-            IconButton(
-                onClick = onOutput,
-                enabled = controlsEnabled,
-                modifier = Modifier.tvFocusRing(),
-            ) {
-                Icon(
-                    Icons.Outlined.Cast,
-                    stringResource(R.string.playback_output),
-                )
-            }
-        }
-        Box(
-            Modifier.widthIn(
-                max = 360.dp,
-            ).fillMaxWidth().height(220.dp).testTag("playback_artwork").then(dragModifier)
-                .testTag("playback_artwork").pointerInput(
-                    player,
-                    controlsEnabled,
-                    rtl,
-                ) {
-                    detectHorizontalDragGestures(
-                        onHorizontalDrag = { change, amount ->
-                            change.consume()
-                            artworkDrag +=
-                                amount
-                        },
-                        onDragCancel = { artworkDrag = 0f },
-                        onDragEnd = {
-                            if (controlsEnabled && abs(artworkDrag) > size.width * .2f) {
-                                val next = (artworkDrag < 0) != rtl
-                                carouselDirection = if (next) 1f else -1f
-                                val command = if (next) {
-                                    Player.COMMAND_SEEK_TO_NEXT_MEDIA_ITEM
-                                } else {
-                                    Player.COMMAND_SEEK_TO_PREVIOUS_MEDIA_ITEM
-                                }
-                                if (player.isCommandAvailable(command)) {
-                                    if (next) {
-                                        player.seekToNextMediaItem()
-                                    } else {
-                                        player.seekToPreviousMediaItem()
-                                    }
-                                }
-                            }
-                            artworkDrag = 0f
-                        },
-                    )
-                },
-        ) {
-            AnimatedContent(
-                targetState = snapshot.item,
-                transitionSpec = {
-                    (
-                        slideInHorizontally {
-                            (it * carouselDirection).toInt()
-                        } + fadeIn()
-                        ) togetherWith
-                        (slideOutHorizontally { (-it * carouselDirection).toInt() } + fadeOut())
-                },
-                label = "playback_artwork",
-            ) { item ->
-                PlaybackArtwork(
-                    snapshot.copy(
-                        item = item,
-                        metadata = item?.mediaMetadata ?: snapshot.metadata,
-                    ),
-                    Modifier.fillMaxSize().graphicsLayer {
-                        translationX =
-                            artworkDrag
-                    },
-                )
-            }
-        }
-        Text(
-            title,
-            style = MaterialTheme.typography.titleLarge,
-        )
-        Text(
-            secondary,
-            style = MaterialTheme.typography.bodyMedium,
-            color = MaterialTheme.colorScheme.onSurfaceVariant,
-        )
-        if (connection == PlaybackConnection.CONNECTING) {
-            CircularProgressIndicator(Modifier.size(32.dp))
-            TextButton(
-                onClick = {
-                    onCommand(CustomCommands.CANCEL_CAST)
-                },
-                modifier = Modifier.tvFocusRing(),
-            ) {
-                Text(stringResource(R.string.cancel))
-            }
-        }
-        if (connection == PlaybackConnection.LOST) {
-            Row {
-                TextButton(
-                    onClick = {
-                        onCommand(CustomCommands.RETRY_CAST)
-                    },
-                    modifier = Modifier.tvFocusRing(),
-                ) {
-                    Text(stringResource(R.string.retry))
-                }
-                TextButton(
-                    onClick = {
-                        onCommand(CustomCommands.PLAY_ON_PHONE)
-                    },
-                    modifier = Modifier.tvFocusRing(),
-                ) {
-                    Text(stringResource(R.string.play_on_phone))
-                }
-            }
-        }
-        PlaybackSeekControl(
-            player,
-            snapshot,
-            controlsEnabled,
-        )
-        Row(
-            verticalAlignment = Alignment.CenterVertically,
-            horizontalArrangement = Arrangement.spacedBy(8.dp),
-        ) {
-            IconToggleButton(
-                checked = snapshot.shuffle,
-                onCheckedChange = { player.shuffleModeEnabled = it },
-                enabled =
-                    controlsEnabled && snapshot.commands.contains(Player.COMMAND_SET_SHUFFLE_MODE),
-                modifier = Modifier.tvFocusRing(),
-            ) {
-                Icon(
-                    painterResource(
-                        if (snapshot.shuffle) R.drawable.ic_shuffle_on else R.drawable.ic_shuffle,
-                    ),
-                    stringResource(R.string.player_controls_shuffle),
-                )
-            }
-            IconButton(
-                onClick = player::seekToPrevious,
-                enabled =
-                    controlsEnabled && snapshot.commands.contains(Player.COMMAND_SEEK_TO_PREVIOUS),
-                modifier = Modifier.tvFocusRing(),
-            ) {
-                Icon(
-                    painterResource(R.drawable.ic_skip_prev),
-                    stringResource(R.string.player_controls_previous),
-                )
-            }
-            MiniPlayPauseButton(
-                player,
-                snapshot,
-                Modifier.size(64.dp),
-                controlsEnabled,
-            )
-            IconButton(
-                onClick = player::seekToNext,
-                enabled = controlsEnabled && snapshot.commands.contains(
-                    Player.COMMAND_SEEK_TO_NEXT,
-                ),
-                modifier = Modifier.tvFocusRing(),
-            ) {
-                Icon(
-                    painterResource(R.drawable.ic_skip_next),
-                    stringResource(R.string.player_controls_next),
-                )
-            }
-            IconButton(
-                onClick = { player.repeatMode = (player.repeatMode + 1) % 3 },
-                enabled =
-                    controlsEnabled && snapshot.commands.contains(Player.COMMAND_SET_REPEAT_MODE),
-                modifier = Modifier.semantics {
-                    stateDescription = repeatDescription
-                }.tvFocusRing(),
-            ) {
-                Icon(
-                    if (snapshot.repeatMode ==
-                        Player.REPEAT_MODE_ONE
-                    ) {
-                        Icons.Outlined.RepeatOne
-                    } else {
-                        Icons.Outlined.Repeat
-                    },
-                    stringResource(R.string.player_controls_repeat),
-                    tint = if (snapshot.repeatMode ==
-                        Player.REPEAT_MODE_OFF
-                    ) {
-                        MaterialTheme.colorScheme.onSurfaceVariant
-                    } else {
-                        MaterialTheme.colorScheme.primary
-                    },
-                )
-            }
-        }
-        Row(
-            Modifier.fillMaxWidth(),
-            horizontalArrangement = Arrangement.SpaceEvenly,
-        ) {
-            TextButton(
-                onClick = onQueue,
-                enabled =
-                    controlsEnabled && snapshot.commands.contains(Player.COMMAND_GET_TIMELINE),
-                modifier = Modifier.tvFocusRing(),
-            ) {
-                Icon(
-                    Icons.AutoMirrored.Outlined.QueueMusic,
-                    null,
-                )
-                Text(stringResource(R.string.now_playing))
-            }
-            TextButton(
-                onClick = onStop,
-                modifier = Modifier.tvFocusRing(),
-            ) {
-                Text(stringResource(R.string.stop_player_session))
-            }
-        }
-        if (connection == PlaybackConnection.LOCAL || connection == PlaybackConnection.CAST) {
-            TextButton(
-                onClick = {
-                    if (snapshot.isRemote) {
-                        onCommand(
-                            CustomCommands.PLAY_ON_PHONE,
-                        )
-                    } else {
-                        onWatchVideo()
-                    }
-                },
-                modifier = Modifier.tvFocusRing(),
-            ) {
-                Text(
-                    stringResource(
-                        if (snapshot.isRemote) R.string.play_on_phone else R.string.watch_video,
-                    ),
                 )
             }
         }

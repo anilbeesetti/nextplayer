@@ -13,6 +13,7 @@ import androidx.compose.ui.platform.LocalLayoutDirection
 import androidx.compose.ui.semantics.SemanticsActions
 import androidx.compose.ui.test.assertIsDisplayed
 import androidx.compose.ui.test.assertIsNotEnabled
+import androidx.compose.ui.test.getUnclippedBoundsInRoot
 import androidx.compose.ui.test.junit4.v2.createAndroidComposeRule
 import androidx.compose.ui.test.onNodeWithContentDescription
 import androidx.compose.ui.test.onNodeWithTag
@@ -158,7 +159,7 @@ class PlaybackOverlayTest {
         show(largeText = true)
         composeRule.onNodeWithContentDescription(text(R.string.collapse_player)).assertIsDisplayed()
         composeRule.onNodeWithText(text(R.string.watch_video)).performScrollTo().assertIsDisplayed()
-        composeRule.onNodeWithText(
+        composeRule.onNodeWithContentDescription(
             text(R.string.stop_player_session),
         ).performScrollTo().assertIsDisplayed()
     }
@@ -239,7 +240,7 @@ class PlaybackOverlayTest {
         }
         composeRule.onNodeWithContentDescription(
             text(R.string.playback_output),
-        ).performScrollTo().performClick()
+        ).assertIsDisplayed().performClick()
         composeRule.onNodeWithContentDescription(text(R.string.cast_volume))
             .performSemanticsAction(SemanticsActions.SetProgress) { it(75f) }
         composeRule.runOnIdle {
@@ -269,6 +270,51 @@ class PlaybackOverlayTest {
         composeRule.onNodeWithContentDescription(
             text(R.string.player_controls_progress),
         ).assertIsNotEnabled()
+    }
+
+    @Test fun artworkDownwardDragCrossesHalfwayWithoutChangingLayoutOrLosingGesture() {
+        expanded = true
+        show()
+        val sheet = composeRule.onNodeWithTag("playback_sheet")
+        val artwork = composeRule.onNodeWithTag("playback_artwork")
+        val height = sheet.fetchSemanticsNode().boundsInRoot.height
+        artwork.performTouchInput {
+            down(center)
+            moveBy(
+                Offset(
+                    0f,
+                    height * .6f,
+                ),
+                delayMillis = 700,
+            )
+        }
+        val during = sheet.fetchSemanticsNode().boundsInRoot.top
+        assertTrue(during > height * .45f)
+        artwork.performTouchInput { up() }
+        composeRule.onNodeWithTag("mini_player").assertIsDisplayed()
+        composeRule.runOnIdle {
+            assertEquals(
+                false,
+                expanded,
+            )
+        }
+    }
+
+    @Test fun portraitArtworkIsSquareAndTransportModesHaveSeparateRows() {
+        expanded = true
+        show()
+        val artwork = composeRule.onNodeWithTag("playback_artwork").getUnclippedBoundsInRoot()
+        val transport = composeRule.onNodeWithTag("playback_transport").getUnclippedBoundsInRoot()
+        val modes = composeRule.onNodeWithTag("playback_modes").getUnclippedBoundsInRoot()
+        assertEquals(
+            artwork.right - artwork.left,
+            artwork.bottom - artwork.top,
+        )
+        assertEquals(
+            80.dp,
+            transport.bottom - transport.top,
+        )
+        assertTrue(modes.top >= transport.bottom)
     }
 
     private fun show(
