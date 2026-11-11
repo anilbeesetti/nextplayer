@@ -690,35 +690,6 @@ class PlaybackOverlayTest {
     }
 
     @Test
-    @Config(qualifiers = "w411dp-h891dp")
-    fun transportButtonsTravelBetweenTheMiniAndExpandedPlayers() {
-        show()
-        composeRule.waitForIdle()
-        val compactPlay = composeRule.onNodeWithContentDescription(
-            text(R.string.play),
-        ).getUnclippedBoundsInRoot()
-        composeRule.mainClock.autoAdvance = false
-        composeRule.runOnIdle { expanded = true }
-        composeRule.mainClock.advanceTimeByFrame()
-        composeRule.waitForIdle()
-        composeRule.mainClock.advanceTimeBy(240)
-        composeRule.waitForIdle()
-        val moving = composeRule.onNodeWithTag(
-            "transition_PLAY_PAUSE",
-            useUnmergedTree = true,
-        ).getUnclippedBoundsInRoot()
-        assertTrue(moving.right - moving.left > compactPlay.right - compactPlay.left)
-        assertTrue(moving.top < compactPlay.top)
-        composeRule.mainClock.advanceTimeBy(900)
-        composeRule.waitForIdle()
-        composeRule.mainClock.autoAdvance = true
-        composeRule.onNodeWithTag(
-            "transition_PLAY_PAUSE",
-            useUnmergedTree = true,
-        ).assertDoesNotExist()
-    }
-
-    @Test
     fun expansionSpringsPastTheTopBeforeSettling() {
         show()
         composeRule.waitForIdle()

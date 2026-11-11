@@ -354,8 +354,6 @@ internal fun PlaybackOverlayContent(
     var expandedArtwork by remember { mutableStateOf(Rect.Zero) }
     var compactMetadata by remember { mutableStateOf(Rect.Zero) }
     var expandedMetadata by remember { mutableStateOf(Rect.Zero) }
-    val compactTransport = remember { mutableStateMapOf<PlaybackTransportSlot, Rect>() }
-    val expandedTransport = remember { mutableStateMapOf<PlaybackTransportSlot, Rect>() }
     BoxWithConstraints(
         Modifier.fillMaxSize().onGloballyPositioned {
             rootOrigin = it.positionInRoot()
@@ -474,8 +472,6 @@ internal fun PlaybackOverlayContent(
         val transitioning = !isCollapsed && !isFullyOpen
         val morphArtwork = transitioning && compactArtwork.width > 0 && expandedArtwork.width > 0
         val morphMetadata = transitioning && compactMetadata.width > 0 && expandedMetadata.width > 0
-        val morphTransport =
-            transitioning && compactTransport.size == 3 && expandedTransport.size == 3
         val artworkBounds: () -> Rect = {
             morphBounds(
                 compactArtwork,
@@ -585,13 +581,6 @@ internal fun PlaybackOverlayContent(
                         snapshot = snapshot,
                         artworkPainter = artworkPainter,
                         showContainer = isCollapsed,
-                        transportModifier = { slot ->
-                            Modifier.onGloballyPositioned {
-                                if (expansion.value >= 0f) {
-                                    compactTransport[slot] = it.unclippedBounds(rootOrigin)
-                                }
-                            }.graphicsLayer { alpha = if (morphTransport) 0f else 1f }
-                        },
                         artworkModifier = Modifier.onGloballyPositioned {
                             if (expansion.value >= 0f) {
                                 compactArtwork = it.boundsInRoot().translate(-rootOrigin)
@@ -643,11 +632,6 @@ internal fun PlaybackOverlayContent(
                 onCommand = onCommand,
                 dragModifier = verticalDrag,
                 interactive = interactive,
-                transportModifier = { slot ->
-                    Modifier.onGloballyPositioned {
-                        expandedTransport[slot] = it.unclippedBounds(rootOrigin)
-                    }.graphicsLayer { alpha = if (morphTransport) 0f else 1f }
-                },
                 transitionProgress = { expansion.value },
                 controlsTranslationY = {
                     if (morphMetadata) {
@@ -701,25 +685,6 @@ internal fun PlaybackOverlayContent(
                 modifier = Modifier.align(AbsoluteAlignment.TopLeft).followBounds(metadataBounds)
                     .clearAndSetSemantics { testTag = "transition_metadata" },
             )
-        }
-        if (morphTransport) {
-            PlaybackTransportSlot.entries.forEach { slot ->
-                PlaybackMorphingTransportButton(
-                    slot = slot,
-                    snapshot = snapshot,
-                    controlsEnabled = controlsEnabled,
-                    progress = { expansion.value },
-                    bounds = {
-                        morphBounds(
-                            compactTransport.getValue(slot),
-                            expandedTransport.getValue(slot),
-                            transportMotion(expansion.value),
-                            travel,
-                        )
-                    },
-                    modifier = Modifier.align(AbsoluteAlignment.TopLeft),
-                )
-            }
         }
     }
 
@@ -807,95 +772,6 @@ private fun Modifier.followBounds(bounds: () -> Rect): Modifier = this
             )
         }
     }
-
-/** The expanded buttons can sit below the scroll viewport, which clips boundsInRoot. */
-private fun LayoutCoordinates.unclippedBounds(rootOrigin: Offset): Rect = Rect(
-    positionInRoot() - rootOrigin,
-    size.toSize(),
-)
-
-/** Lets the title rise clear of the row first, then follows the spring through its overshoot. */
-private fun transportMotion(progress: Float): Float = if (progress < 0f || progress >= 1f) {
-    progress
-} else {
-    smoothStep(
-        .25f,
-        1f,
-        progress,
-    )
-}
-
-/** One button carried between the mini player's row and the expanded transport controls. */
-@Composable
-private fun PlaybackMorphingTransportButton(
-    slot: PlaybackTransportSlot,
-    snapshot: PlaybackSnapshot,
-    controlsEnabled: Boolean,
-    progress: () -> Float,
-    bounds: () -> Rect,
-    modifier: Modifier,
-) {
-    val command = when (slot) {
-        PlaybackTransportSlot.PREVIOUS -> Player.COMMAND_SEEK_TO_PREVIOUS
-        PlaybackTransportSlot.PLAY_PAUSE -> Player.COMMAND_PLAY_PAUSE
-        PlaybackTransportSlot.NEXT -> Player.COMMAND_SEEK_TO_NEXT
-    }
-    val enabled = controlsEnabled && snapshot.commands.contains(command)
-    val isPlayPause = slot == PlaybackTransportSlot.PLAY_PAUSE
-    val colors = if (isPlayPause) playbackPlayPauseColors() else playbackSkipColors()
-    val icon = when (slot) {
-        PlaybackTransportSlot.PREVIOUS -> Icons.Rounded.SkipPrevious
-
-        PlaybackTransportSlot.NEXT -> Icons.Rounded.SkipNext
-
-        PlaybackTransportSlot.PLAY_PAUSE ->
-            if (snapshot.playWhenReady) Icons.Rounded.Pause else Icons.Rounded.PlayArrow
-    }
-    val expandedCorner = if (snapshot.playWhenReady) 26.dp else 40.dp
-    val iconSize = if (isPlayPause) 36.dp else 32.dp
-    Box(
-        modifier.followBounds(bounds)
-            .graphicsLayer {
-                val motion = transportMotion(progress()).coerceIn(
-                    0f,
-                    1f,
-                )
-                shape = if (isPlayPause) {
-                    RoundedCornerShape(
-                        androidx.compose.ui.unit.lerp(
-                            18.dp,
-                            expandedCorner,
-                            motion,
-                        ),
-                    )
-                } else {
-                    CircleShape
-                }
-                clip = true
-            }
-            .background(if (enabled) colors.containerColor else colors.disabledContainerColor)
-            .clearAndSetSemantics { testTag = "transition_$slot" },
-        contentAlignment = Alignment.Center,
-    ) {
-        Icon(
-            icon,
-            contentDescription = null,
-            modifier = Modifier.size(iconSize).graphicsLayer {
-                val scale = androidx.compose.ui.util.lerp(
-                    22f / iconSize.value,
-                    1f,
-                    transportMotion(progress()).coerceIn(
-                        0f,
-                        1f,
-                    ),
-                )
-                scaleX = scale
-                scaleY = scale
-            },
-            tint = if (enabled) colors.contentColor else colors.disabledContentColor,
-        )
-    }
-}
 
 /** Reads progress itself so only this text recomposes while the player transitions. */
 @Composable

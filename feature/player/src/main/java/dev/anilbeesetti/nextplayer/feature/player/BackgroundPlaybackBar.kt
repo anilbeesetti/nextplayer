@@ -70,7 +70,6 @@ internal fun MiniPlayer(
     secondaryText: String? = null,
     connecting: Boolean = false,
     showContainer: Boolean = true,
-    transportModifier: (PlaybackTransportSlot) -> Modifier = { Modifier },
     artworkModifier: Modifier = Modifier,
     metadataModifier: Modifier = Modifier,
     artworkPainter: Painter = rememberPlaybackArtworkPainter(snapshot),
@@ -180,8 +179,7 @@ internal fun MiniPlayer(
                         enabled =
                             controlsEnabled &&
                                 snapshot.commands.contains(Player.COMMAND_SEEK_TO_PREVIOUS),
-                        modifier = Modifier.size(36.dp).tvFocusRing(CircleShape)
-                            .then(transportModifier(PlaybackTransportSlot.PREVIOUS)),
+                        modifier = Modifier.size(36.dp).tvFocusRing(CircleShape),
                         colors = playbackSkipColors(),
                     ) {
                         Icon(
@@ -200,7 +198,7 @@ internal fun MiniPlayer(
                         snapshot,
                         Modifier.size(
                             36.dp,
-                        ).then(transportModifier(PlaybackTransportSlot.PLAY_PAUSE)),
+                        ),
                         controlsEnabled,
                     )
                 }
@@ -213,8 +211,7 @@ internal fun MiniPlayer(
                         enabled =
                             controlsEnabled &&
                                 snapshot.commands.contains(Player.COMMAND_SEEK_TO_NEXT),
-                        modifier = Modifier.size(36.dp).tvFocusRing(CircleShape)
-                            .then(transportModifier(PlaybackTransportSlot.NEXT)),
+                        modifier = Modifier.size(36.dp).tvFocusRing(CircleShape),
                         colors = playbackSkipColors(),
                     ) {
                         Icon(
@@ -228,8 +225,6 @@ internal fun MiniPlayer(
         }
     }
 }
-
-internal enum class PlaybackTransportSlot { PREVIOUS, PLAY_PAUSE, NEXT }
 
 @Composable
 internal fun playbackSkipColors(): IconButtonColors = IconButtonDefaults.filledIconButtonColors(
