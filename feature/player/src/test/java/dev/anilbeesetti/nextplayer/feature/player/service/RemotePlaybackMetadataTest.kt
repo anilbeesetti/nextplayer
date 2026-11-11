@@ -3,13 +3,19 @@ package dev.anilbeesetti.nextplayer.feature.player.service
 import android.os.Looper
 import androidx.media3.common.DeviceInfo
 import androidx.media3.common.ForwardingPlayer
+import androidx.media3.common.ForwardingSimpleBasePlayer
 import androidx.media3.common.MediaItem
 import androidx.media3.common.Player
 import androidx.media3.exoplayer.ExoPlayer
+import androidx.media3.exoplayer.trackselection.DefaultTrackSelector
 import androidx.media3.session.MediaSession
 import dev.anilbeesetti.nextplayer.core.data.repository.MediaRepository
+import dev.anilbeesetti.nextplayer.core.data.repository.PreferencesRepository
 import dev.anilbeesetti.nextplayer.core.data.repository.fake.FakeMediaRepository
+import dev.anilbeesetti.nextplayer.core.data.repository.fake.FakePreferencesRepository
 import dev.anilbeesetti.nextplayer.feature.player.extensions.copy
+import io.github.anilbeesetti.nextlib.media3ext.ffdecoder.DecoderManager
+import io.github.anilbeesetti.nextlib.media3ext.ffdecoder.NextRenderersFactory
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertNull
 import org.junit.Test
@@ -133,6 +139,66 @@ class RemotePlaybackMetadataTest {
         } finally {
             session.release()
             exo.release()
+        }
+    }
+
+    @Test
+    fun resumePositionReachesThePhonePlayerBeforeTheSessionPlayerCanSeek() {
+        startKoin {
+            modules(
+                module {
+                    single<MediaRepository> { FakeMediaRepository() }
+                    single<PreferencesRepository> { FakePreferencesRepository() }
+                },
+            )
+        }
+        val context = RuntimeEnvironment.getApplication()
+        val decoders = DecoderManager()
+        val exo = ExoPlayer.Builder(
+            context,
+            NextRenderersFactory(context).setDecoderManager(decoderManager = decoders),
+        ).build()
+        // Like CastPlayer, a SimpleBasePlayer refuses seeks until the item is prepared.
+        val session = MediaSession.Builder(
+            context,
+            ForwardingSimpleBasePlayer(exo),
+        ).setId("resume").build()
+        try {
+            decoders.attach(player = exo)
+            val item = MediaItem.fromUri("content://media/42").copy(positionMs = 99_000)
+            exo.setMediaItem(item)
+            val service = PlayerService()
+            fun field(name: String) = PlayerService::class.java.getDeclaredField(name)
+                .apply { isAccessible = true }
+            field("mediaSession").set(
+                service,
+                session,
+            )
+            field("localPlayer").set(
+                service,
+                exo,
+            )
+            field("decoderManager").set(
+                service,
+                decoders,
+            )
+            field("trackSelector").set(
+                service,
+                DefaultTrackSelector(context),
+            )
+            val listener = field("playbackStateListener").get(service) as Player.Listener
+            listener.onMediaItemTransition(
+                item,
+                Player.MEDIA_ITEM_TRANSITION_REASON_PLAYLIST_CHANGED,
+            )
+            assertEquals(
+                99_000,
+                exo.currentPosition,
+            )
+        } finally {
+            session.release()
+            exo.release()
+            stopKoin()
         }
     }
 }

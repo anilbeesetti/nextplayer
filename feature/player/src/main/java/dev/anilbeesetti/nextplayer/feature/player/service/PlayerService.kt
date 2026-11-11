@@ -264,8 +264,15 @@ class PlayerService : MediaSessionService() {
                     !transferringSameItem && (
                         mediaItem.hasApiPosition || playerPreferences.resume == Resume.YES
                         )
-                }?.let {
-                    mediaSession?.player?.seekTo(it)
+                }?.let { position ->
+                    // The cast-aware session player refuses a seek until the item is prepared and
+                    // seekable; the phone's own player keeps it pending, as it did before casting.
+                    val local = localPlaybackPlayer
+                    if (!isRemotePlayback && local != null) {
+                        local.seekTo(position)
+                    } else {
+                        mediaSession?.player?.seekTo(position)
+                    }
                 }
             }
         }
