@@ -385,7 +385,33 @@ class PlaybackOutputTest {
         }
     }
 
-    @Test fun receiverThatDropsThePausedStartPositionIsPlacedBeforeCasting() {
+    @Test fun receiverIsLoadedPausedAtTheStartAndThenPlaced() {
+        local.setMediaItems(
+            items,
+            1,
+            30_000,
+        )
+        local.playWhenReady = true
+        listener.onSessionStarting(session)
+        output.transferState(
+            local,
+            remote,
+            remote,
+            callback,
+        )
+        // Loading at a position starts this receiver unreliably; seeking a loaded item does not.
+        assertEquals(
+            0,
+            remote.currentPosition,
+        )
+        assertFalse(remote.playWhenReady)
+        assertEquals(
+            30_000L,
+            field("sentPositionMs").get(output),
+        )
+    }
+
+    @Test fun loadedItemIsPlacedAndResumedBeforeCasting() {
         val fake = MiniPlayerTestPlayer()
         try {
             fake.remote(true)
@@ -406,6 +432,10 @@ class PlaybackOutputTest {
                 output,
                 PlaybackPresentation(PlaybackConnection.CONNECTING),
             )
+            field("outboundPlaying").set(
+                output,
+                true,
+            )
             field("sentPositionMs").set(
                 output,
                 42_000L,
@@ -418,6 +448,7 @@ class PlaybackOutputTest {
                 42_000,
                 fake.currentPosition,
             )
+            assertTrue(fake.playWhenReady)
             assertTrue(publications.none { it.connection == PlaybackConnection.CAST })
             listener.onSessionStarted(
                 session,

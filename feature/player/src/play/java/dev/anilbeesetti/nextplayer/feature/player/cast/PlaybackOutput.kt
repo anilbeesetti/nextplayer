@@ -26,7 +26,6 @@ import dev.anilbeesetti.nextplayer.core.common.Logger
 import dev.anilbeesetti.nextplayer.feature.player.service.PlaybackConnection
 import dev.anilbeesetti.nextplayer.feature.player.service.PlaybackPresentation
 import dev.anilbeesetti.nextplayer.feature.player.service.playbackTransferState
-import kotlin.math.abs
 
 @UnstableApi
 internal class PlaybackOutput(
@@ -59,6 +58,9 @@ internal class PlaybackOutput(
     private var rejectRemoteTransfers = false
     private var receiverAhead = false
     private var sentPositionMs: Long? = null
+    private var placement = Placement.LOADING
+
+    private enum class Placement { LOADING, STARTING, PLACING }
     private val handler = Handler(Looper.getMainLooper())
 
     // The receiver reports what it plays at once; Media3's queue positions can lag it by seconds.
@@ -206,23 +208,46 @@ internal class PlaybackOutput(
         ) {
             return
         }
-        // This receiver can drop the start position it was loaded with; place it once. Ask the
-        // receiver itself: right after connecting, Media3's position can still be stale or masked,
-        // and a seek while the receiver is still loading leaves it loading forever.
+        // This receiver can start a load anywhere but its requested position and applies that
+        // position when playback first starts, which undoes or hangs a seek sent earlier. So the
+        // item loads paused at 0; it then starts muted, and only a playing item is placed.
         val sent = sentPositionMs
         if (presentation.connection == PlaybackConnection.CONNECTING && sent != null) {
             val client = sessionManager?.currentCastSession?.remoteMediaClient
-            if (client != null && !client.isPlaying && !client.isPaused) return
-            sentPositionMs = null
-            val receiverPosition = client?.approximateStreamPosition ?: remote.currentPosition
-            if (abs(receiverPosition - sent) > START_POSITION_TOLERANCE_MS) {
-                if (client != null) {
-                    client.seek(MediaSeekOptions.Builder().setPosition(sent).build())
-                } else {
-                    remote.seekTo(sent)
-                }
+            if (client == null) {
+                sentPositionMs = null
+                remote.seekTo(sent)
+                remote.playWhenReady = outboundPlaying
                 return
             }
+            when (placement) {
+                Placement.LOADING -> if (client.isPaused) {
+                    client.setStreamMute(true)
+                    client.play()
+                    placement = Placement.STARTING
+                }
+
+                Placement.STARTING -> if (client.isPlaying) {
+                    client.seek(
+                        MediaSeekOptions.Builder().setPosition(sent).setResumeState(
+                            if (outboundPlaying) {
+                                MediaSeekOptions.RESUME_STATE_PLAY
+                            } else {
+                                MediaSeekOptions.RESUME_STATE_PAUSE
+                            },
+                        ).build(),
+                    )
+                    placement = Placement.PLACING
+                }
+
+                Placement.PLACING -> if ((client.isPlaying || client.isPaused) &&
+                    client.approximateStreamPosition >= sent - PLACED_TOLERANCE_MS
+                ) {
+                    client.setStreamMute(false)
+                    sentPositionMs = null
+                }
+            }
+            if (sentPositionMs != null) return
         }
         val behind = remote.currentMediaItem?.mediaId != playing
         val wasAhead = receiverAhead
@@ -324,11 +349,13 @@ internal class PlaybackOutput(
                             false,
                         )
                     }
-                    val intendedPlaying = outboundPlaying
                     sentPositionMs = source.currentPosition
+                    placement = Placement.LOADING
                     callback.transferState(
                         object : ForwardingPlayer(source) {
-                            override fun getPlayWhenReady() = intendedPlaying
+                            override fun getPlayWhenReady() = false
+                            override fun getCurrentPosition() = 0L
+                            override fun getContentPosition() = 0L
                         },
                         target,
                     )
@@ -634,7 +661,7 @@ internal class PlaybackOutput(
 }
 
 private const val RETRY_SCAN_MS = 10_000L
-private const val START_POSITION_TOLERANCE_MS = 1_500L
+private const val PLACED_TOLERANCE_MS = 1_500L
 private const val CANCEL_LAUNCH_WAIT_MS = 10_000L
 
 @UnstableApi
