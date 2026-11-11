@@ -1,6 +1,7 @@
 package dev.anilbeesetti.nextplayer.feature.player.cast
 
 import android.content.Context
+import android.net.Uri
 import android.os.Handler
 import android.os.Looper
 import androidx.media3.cast.CastPlayer
@@ -551,6 +552,13 @@ internal class PlaybackOutput(
             restoredOnPhone = true
         }
         publish(PlaybackConnection.LOCAL)
+    }
+
+    fun showCastArtwork(mediaId: String, uri: Uri) {
+        syncedPlayer?.showArtwork(
+            mediaId,
+            uri,
+        )
     }
 
     fun onNewQueue() {

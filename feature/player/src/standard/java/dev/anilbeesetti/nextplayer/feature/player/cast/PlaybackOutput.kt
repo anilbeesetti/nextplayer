@@ -1,6 +1,7 @@
 package dev.anilbeesetti.nextplayer.feature.player.cast
 
 import android.content.Context
+import android.net.Uri
 import androidx.media3.common.Player
 import androidx.media3.common.PlayerTransferState
 import androidx.media3.exoplayer.ExoPlayer
@@ -16,6 +17,7 @@ internal class PlaybackOutput(
 ) {
     val player: Player = localPlayer
     val hasPendingPlayback: Boolean get() = false
+    fun showCastArtwork(mediaId: String, uri: Uri) = Unit
     fun onNewQueue() = Unit
     fun onQueueReady(mediaId: String? = null, pendingState: PlayerTransferState? = null) =
         onPresentationChanged(PlaybackPresentation())

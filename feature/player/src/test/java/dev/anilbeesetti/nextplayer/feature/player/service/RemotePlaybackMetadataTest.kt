@@ -120,6 +120,8 @@ class RemotePlaybackMetadataTest {
                 MediaItem.EMPTY,
                 Player.MEDIA_ITEM_TRANSITION_REASON_PLAYLIST_CHANGED,
             )
+            assertNull(field("artworkLoadJob").get(service))
+            // The resolved item may load the phone's thumbnail for the cast notification.
             listener.onMediaItemTransition(
                 item,
                 Player.MEDIA_ITEM_TRANSITION_REASON_PLAYLIST_CHANGED,
@@ -128,7 +130,6 @@ class RemotePlaybackMetadataTest {
                 0,
                 seeks,
             )
-            assertNull(field("artworkLoadJob").get(service))
         } finally {
             session.release()
             exo.release()

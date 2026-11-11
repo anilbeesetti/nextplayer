@@ -1542,7 +1542,6 @@ class PlayerService : MediaSessionService() {
 
     private fun loadArtworkForCurrentMediaItem() {
         artworkLoadJob?.cancel()
-        if (isRemotePlayback) return
         artworkLoadJob = serviceScope.launch(Dispatchers.Main) {
             val player = mediaSession?.player ?: return@launch
             val currentMediaItem = player.currentMediaItem ?: return@launch
@@ -1551,6 +1550,14 @@ class PlayerService : MediaSessionService() {
 
             val artworkUri = loadArtworkForMediaItem(mediaItem = currentMediaItem)
                 ?: getDefaultArtworkUri()
+            if (isRemotePlayback) {
+                // Replacing a cast item would reload it on the receiver; only the phone shows it.
+                playbackOutput?.showCastArtwork(
+                    currentMediaItem.mediaId,
+                    artworkUri,
+                )
+                return@launch
+            }
 
             val updatedPlayer = mediaSession?.player ?: return@launch
             val updatedMediaItem = updatedPlayer.currentMediaItem ?: return@launch
@@ -1566,8 +1573,10 @@ class PlayerService : MediaSessionService() {
     private suspend fun loadArtworkForMediaItem(mediaItem: MediaItem): Uri? =
         withContext(Dispatchers.IO) {
             val defaultArtwork = getDefaultArtworkUri()
-            val uri = mediaItem.mediaMetadata.artworkUri
-                ?.takeUnless { it == defaultArtwork }
+            val existing = mediaItem.mediaMetadata.artworkUri?.takeUnless { it == defaultArtwork }
+            // A file is the thumbnail this method cached earlier; the cache is keyed by its source.
+            if (existing?.scheme == ContentResolver.SCHEME_FILE) return@withContext existing
+            val uri = existing
                 ?: if (mediaItem.isNetworkMediaItem()) {
                     return@withContext null
                 } else {
