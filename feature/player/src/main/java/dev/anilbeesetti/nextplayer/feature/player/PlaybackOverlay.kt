@@ -492,7 +492,7 @@ internal fun PlaybackOverlayContent(
                 travel,
             )
         }
-        // The header rides on the sheet's top edge and shows as the artwork leaves room for it.
+        // The header rides on the sheet's top edge and fades in over the last stretch of the way.
         val headerShift: () -> Float = {
             val collapse = 1f - expansion.value.coerceIn(
                 0f,
@@ -500,7 +500,6 @@ internal fun PlaybackOverlayContent(
             )
             sheetBounds().top - expandedHeader.top * collapse
         }
-        val headerRoom: () -> Float = { artworkBounds().top - expandedHeader.top - headerShift() }
         val scrim = MaterialTheme.colorScheme.scrim
         Spacer(
             Modifier.fillMaxSize().drawBehind {
@@ -658,10 +657,12 @@ internal fun PlaybackOverlayContent(
                 }.graphicsLayer {
                     if (morphArtwork && expandedHeader.height > 0f) {
                         translationY = headerShift()
-                        alpha = (headerRoom() / expandedHeader.height).coerceIn(
-                            0f,
-                            1f,
-                        )
+                        alpha =
+                            ((expansion.value - HEADER_REVEAL_START) / (1f - HEADER_REVEAL_START))
+                                .coerceIn(
+                                    0f,
+                                    1f,
+                                )
                     }
                 },
                 metadataModifier = Modifier.onGloballyPositioned {
@@ -749,6 +750,7 @@ internal fun PlaybackOverlayContent(
 }
 
 private const val EXPANSION_THRESHOLD = .0005f
+private const val HEADER_REVEAL_START = .8f
 private const val EXPANSION_SCRIM_ALPHA = .32f
 
 /** One Material expressive spring for tap and drag; it keeps the velocity of a release. */
