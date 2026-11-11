@@ -582,7 +582,6 @@ internal fun PlaybackOverlayContent(
                 } else {
                     0f
                 },
-                artworkPainter = artworkPainter,
                 artworkModifier = Modifier.onGloballyPositioned {
                     expandedArtwork = it.boundsInRoot().translate(-rootOrigin)
                 }.graphicsLayer { alpha = if (morphArtwork) 0f else 1f },

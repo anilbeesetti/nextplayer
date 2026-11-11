@@ -209,7 +209,6 @@ internal fun ExpandedPlaybackPreviewContent(case: PlaybackPreviewCase, landscape
                 onWatchVideo = {},
                 onCommand = {},
                 dragModifier = Modifier,
-                artworkPainter = painterResource(R.drawable.artwork_default),
             )
         }
     }

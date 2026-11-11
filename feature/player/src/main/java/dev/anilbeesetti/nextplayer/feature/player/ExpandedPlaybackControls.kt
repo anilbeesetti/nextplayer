@@ -19,6 +19,7 @@ import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.BoxWithConstraints
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.aspectRatio
@@ -33,6 +34,7 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.layout.widthIn
 import androidx.compose.foundation.pager.HorizontalPager
+import androidx.compose.foundation.pager.PageSize
 import androidx.compose.foundation.pager.rememberPagerState
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
@@ -87,7 +89,6 @@ import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.CompositingStrategy
 import androidx.compose.ui.graphics.graphicsLayer
-import androidx.compose.ui.graphics.painter.Painter
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalLayoutDirection
 import androidx.compose.ui.platform.testTag
@@ -99,6 +100,7 @@ import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.semantics.stateDescription
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
+import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.LayoutDirection
 import androidx.compose.ui.unit.dp
 import androidx.media3.common.Player
@@ -132,7 +134,6 @@ internal fun ExpandedPlaybackControls(
     controlsTranslationY: Float = 0f,
     artworkModifier: Modifier = Modifier,
     metadataModifier: Modifier = Modifier,
-    artworkPainter: Painter = rememberPlaybackArtworkPainter(snapshot),
 ) {
     var titleWidth by remember(title) { mutableIntStateOf(0) }
     val collapseFocus = remember { FocusRequester() }
@@ -285,28 +286,36 @@ internal fun ExpandedPlaybackControls(
         val viewportHeight = maxHeight
         if (landscape) {
             Row(
-                Modifier.fillMaxSize().padding(horizontal = 24.dp),
+                Modifier.fillMaxSize().padding(end = 24.dp),
                 verticalAlignment = Alignment.CenterVertically,
                 horizontalArrangement = Arrangement.spacedBy(9.dp),
             ) {
-                Box(
-                    Modifier.weight(1f).fillMaxHeight().padding(vertical = 8.dp),
-                    contentAlignment = Alignment.Center,
-                ) {
-                    BoxWithConstraints(
-                        Modifier.aspectRatio(
-                            1f,
-                            matchHeightConstraintsFirst = true,
-                        )
-                            .testTag("landscape_artwork_frame"),
+                BoxWithConstraints(Modifier.weight(1f).fillMaxHeight().padding(vertical = 8.dp)) {
+                    val startGutter = 24.dp
+                    val artworkSize = minOf(
+                        maxWidth - startGutter,
+                        maxHeight,
+                    )
+                    val endInset = (maxWidth - startGutter - artworkSize) / 2
+                    val startInset = startGutter + endInset
+                    PlaybackArtworkCarousel(
+                        player,
+                        snapshot,
+                        controlsEnabled,
+                        Modifier.fillMaxWidth().height(artworkSize).align(Alignment.CenterStart)
+                            .then(dragModifier),
+                        artworkSize,
+                        PaddingValues(
+                            start = startInset,
+                            end = endInset,
+                        ),
+                        pageSpacing = startInset,
+                        artworkModifier,
+                    )
+                    Box(
+                        Modifier.align(Alignment.CenterStart).padding(start = startInset)
+                            .size(artworkSize).testTag("landscape_artwork_frame"),
                     ) {
-                        PlaybackArtworkCarousel(
-                            player,
-                            snapshot,
-                            controlsEnabled,
-                            Modifier.fillMaxSize().then(dragModifier).then(artworkModifier),
-                            artworkPainter,
-                        )
                         PlaybackCollapseButton(
                             onCollapse,
                             Modifier.align(
@@ -371,9 +380,10 @@ internal fun ExpandedPlaybackControls(
                     actions()
                 }
                 BoxWithConstraints(Modifier.weight(1f).fillMaxWidth()) {
+                    val artworkSize = maxWidth - 48.dp
                     Column(
                         Modifier.fillMaxSize().verticalScroll(rememberScrollState())
-                            .heightIn(min = maxHeight).padding(horizontal = 24.dp),
+                            .heightIn(min = maxHeight),
                         horizontalAlignment = Alignment.CenterHorizontally,
                         verticalArrangement = Arrangement.SpaceAround,
                     ) {
@@ -382,12 +392,17 @@ internal fun ExpandedPlaybackControls(
                                 player,
                                 snapshot,
                                 controlsEnabled,
-                                Modifier.fillMaxWidth().aspectRatio(1f).then(dragModifier)
-                                    .then(artworkModifier),
-                                artworkPainter,
+                                Modifier.fillMaxWidth().height(artworkSize).then(dragModifier),
+                                artworkSize,
+                                PaddingValues(horizontal = 24.dp),
+                                pageSpacing = 24.dp,
+                                artworkModifier,
                             )
                         }
-                        Column(verticalArrangement = Arrangement.spacedBy(4.dp)) {
+                        Column(
+                            Modifier.padding(horizontal = 24.dp),
+                            verticalArrangement = Arrangement.spacedBy(4.dp),
+                        ) {
                             metadata()
                             PlaybackSeekControl(
                                 player,
@@ -404,7 +419,7 @@ internal fun ExpandedPlaybackControls(
                                 },
                             )
                         }
-                        controls()
+                        Box(Modifier.padding(horizontal = 24.dp)) { controls() }
                     }
                 }
             }
@@ -585,7 +600,10 @@ private fun PlaybackArtworkCarousel(
     snapshot: PlaybackSnapshot,
     controlsEnabled: Boolean,
     modifier: Modifier,
-    artworkPainter: Painter,
+    artworkSize: Dp,
+    contentPadding: PaddingValues,
+    pageSpacing: Dp,
+    artworkModifier: Modifier,
 ) {
     val queue = rememberPlaylistState(player)
     val count = queue.mediaItemCount.coerceAtLeast(1)
@@ -649,7 +667,10 @@ private fun PlaybackArtworkCarousel(
     }
     HorizontalPager(
         state = pager,
-        modifier = modifier.testTag("playback_artwork"),
+        modifier = modifier.testTag("playback_artwork_pager"),
+        contentPadding = contentPadding,
+        pageSize = PageSize.Fixed(artworkSize),
+        pageSpacing = pageSpacing,
         userScrollEnabled = canSelect && count > 1,
         beyondViewportPageCount = 1,
         key = { index ->
@@ -672,19 +693,14 @@ private fun PlaybackArtworkCarousel(
                     item?.mediaMetadata ?: snapshot.metadata
                 },
             ),
-            Modifier.fillMaxSize(),
+            Modifier.fillMaxSize().then(
+                if (index == current) {
+                    Modifier.testTag("playback_artwork").then(artworkModifier)
+                } else {
+                    Modifier
+                },
+            ),
             RoundedCornerShape(18.dp),
-            painter = if (index == current) {
-                artworkPainter
-            } else {
-                rememberPlaybackArtworkPainter(
-                    snapshot.copy(
-                        item = item,
-                        metadata =
-                            item?.mediaMetadata ?: snapshot.metadata,
-                    ),
-                )
-            },
         )
     }
 }

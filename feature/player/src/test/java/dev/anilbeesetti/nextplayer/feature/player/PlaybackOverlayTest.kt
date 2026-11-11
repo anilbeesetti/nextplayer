@@ -687,6 +687,43 @@ class PlaybackOverlayTest {
     }
 
     @Test
+    fun portraitArtworkPagerSpansTheScreenAroundAnInsetArtwork() {
+        expanded = true
+        show()
+        val root = composeRule.onNodeWithTag("expanded_player").getUnclippedBoundsInRoot()
+        val pager = composeRule.onNodeWithTag("playback_artwork_pager").getUnclippedBoundsInRoot()
+        val artwork = composeRule.onNodeWithTag("playback_artwork").getUnclippedBoundsInRoot()
+        assertEquals(
+            root.left,
+            pager.left,
+        )
+        assertEquals(
+            root.right,
+            pager.right,
+        )
+        assertEquals(
+            (root.left + 24.dp).value,
+            artwork.left.value,
+            .5f,
+        )
+    }
+
+    @Test
+    @Config(qualifiers = "w915dp-h412dp-land")
+    fun landscapeArtworkPagerReachesTheScreenEdge() {
+        expanded = true
+        show()
+        val root = composeRule.onNodeWithTag("expanded_player").getUnclippedBoundsInRoot()
+        val pager = composeRule.onNodeWithTag("playback_artwork_pager").getUnclippedBoundsInRoot()
+        val frame = composeRule.onNodeWithTag("landscape_artwork_frame").getUnclippedBoundsInRoot()
+        assertEquals(
+            root.left,
+            pager.left,
+        )
+        assertTrue(frame.left >= root.left + 24.dp)
+    }
+
+    @Test
     @Config(qualifiers = "w915dp-h412dp-land")
     fun landscapeCollapseIsInsetInsideTheArtworkFrame() {
         expanded = true

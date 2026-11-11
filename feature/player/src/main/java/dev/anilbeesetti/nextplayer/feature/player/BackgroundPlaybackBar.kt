@@ -259,22 +259,27 @@ internal fun playbackSecondaryText(
             ?: stringResource(R.string.background_play)
 }
 
+/**
+ * A local video always uses its own frame. Its artwork metadata changes while it plays (placeholder,
+ * then the service's cached thumbnail) and differs between the player and the queue item.
+ */
+internal fun playbackArtworkModel(snapshot: PlaybackSnapshot): Any? =
+    snapshot.item?.localConfiguration?.uri?.takeIf {
+        it.scheme in setOf(
+            "content",
+            "file",
+        )
+    } ?: snapshot.metadata.artworkData ?: snapshot.metadata.artworkUri
+
 @Composable
 internal fun rememberPlaybackArtworkPainter(snapshot: PlaybackSnapshot): Painter {
     val fallback = painterResource(
         dev.anilbeesetti.nextplayer.feature.player.R.drawable.artwork_default,
     )
-    val model = snapshot.metadata.artworkData ?: snapshot.metadata.artworkUri
-        ?.takeUnless { it.scheme == "android.resource" }
-        ?: snapshot.item?.localConfiguration?.uri?.takeIf {
-            it.scheme in setOf(
-                "content",
-                "file",
-            )
-        }
-        ?: snapshot.metadata.artworkUri
     return rememberAsyncImagePainter(
-        model = ImageRequest.Builder(LocalContext.current).data(model).size(512).build(),
+        model = ImageRequest.Builder(
+            LocalContext.current,
+        ).data(playbackArtworkModel(snapshot)).size(512).build(),
         placeholder = fallback,
         error = fallback,
         fallback = fallback,
