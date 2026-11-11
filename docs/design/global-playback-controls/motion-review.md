@@ -1,5 +1,7 @@
 # Playback motion follow-up
 
+The subsequent [queue and dismissal follow-up](queue-review.md) supersedes this round's queue presentation and nested-screen reservation. Results below describe this earlier milestone.
+
 This follow-up implements the user's six findings after the prior source-parity reviews. It stays in the third stack layer; parent PRs #2086 and #2087 remain unchanged. The updated requirements are in [the design](../global-playback-controls.md).
 
 | Before | After | Why |

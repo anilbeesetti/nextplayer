@@ -11,7 +11,7 @@ Run with JDK 17 launcher, the repository's JVM 21 daemon criteria, and `ANDROID_
   '-Dorg.gradle.jvmargs=-Xmx4096m -Dfile.encoding=UTF-8'
 ```
 
-Final XML totals after visual refinement: **877 tests in 155 suites, zero failures, errors or skips**. This includes 856 Android local tests and 21 JVM model/ktlint-rule tests. XML is inspected because local tests use `ignoreFailures=true`.
+Current XML totals: **903 tests in 157 suites, zero failures, errors or skips**. XML is inspected because local tests use `ignoreFailures=true`.
 
 Meaningful regressions cover:
 
@@ -25,15 +25,14 @@ Meaningful regressions cover:
 
 Latest device: the existing `Pixel_6a`, API 37, arm64 emulator. The initial implementation had also passed the same focused runs on `NextPlayer_Cast_QA_API35` (Android 15 / API 35); that AVD is now closed. Manual UI actions use the thread's Device panel and its returned `agent-device` CLI. The second parity round uses the project's AndroidX runner for acceptance and Compose screenshot artifacts. The UI session is closed before instrumentation to avoid concurrent UiAutomation ownership.
 
-Final applicable instrumentation runs:
+Current queue/dismissal follow-up acceptance:
 
 | Distribution | Tests | Result |
 | --- | ---: | --- |
-| Play full acceptance | 33 | Zero failures/errors/skips |
-| Play final UI rerun | 15 | Zero failures/errors/skips |
-| Standard final UI + external handoff | 16 | Zero failures/errors/skips |
+| Play full acceptance | 35 | Zero failures/errors/skips |
+| Standard UI + external handoff | 18 | Zero failures/errors/skips |
 
-The final metadata-staging adjustment was followed by the 15-case Play UI rerun and the 16-case standard run; the earlier full Play run also covers the unchanged API/completion behavior.
+Both runs include the 17-case mini-player UI group, including the new nested-edge and queue-gesture cases. The earlier motion-round runs (33 Play, 15 Play UI and 16 standard UI/external) remain documented in its historical report.
 
 Play full acceptance covers `MiniPlayerIntegrationTest`, `PlayerApiRequestRegressionTest`, `PlayerApiLaunchOptionsTest`, `BackgroundPlaybackCompletionTest` and `PlaylistCompletionTest`. Standard covers `MiniPlayerIntegrationTest` plus the external handoff/Undo/grants regression. These are focused acceptance runs, not the entire instrumentation suite.
 
@@ -43,9 +42,13 @@ The Cast dismissal snapshot correction and visual refinement were included in th
 
 The external-caller regression runs under a different UID and checks result code, URI and position, then dismisses/restores the paused queue, verifies URI access throughout Undo, plays another queued item, and confirms media/subtitle grant revocation after all service controllers are released.
 
-## Current motion follow-up
+## Current queue and dismissal follow-up
 
-The current UI is documented in [the motion follow-up](motion-review.md), with 13 fresh PNGs and 10 geometry JSON files. It adds generated 15/20-second video checks at 1× and 2×, real artwork paging including duplicate queue items, queue duration/reorder/removal, compact navigation continuity, and a partial-transition rail clipping fixture. The four light/dark × portrait/landscape artwork crops are pixel-identical between paused and playing states, confirming that play/pause no longer scales artwork.
+See [the queue follow-up](queue-review.md) for destructive swipe reveals, six-dot handles, larger artwork/duration badges, haptic/cancellation/replacement guards, continuous reorder checks and edge-to-edge nested screens. Device testing also fixed Media3 ending playback after removing the current final row despite earlier queued items. Latest root checks cover both distributions; the connected OPPO installation preserves data.
+
+## Playback motion follow-up
+
+The preceding motion round is documented in [the motion follow-up](motion-review.md), with 13 fresh PNGs and 10 geometry JSON files. It adds generated 15/20-second video checks at 1× and 2×, real artwork paging including duplicate queue items, queue duration/reorder/removal, compact navigation continuity, and a partial-transition rail clipping fixture. The four light/dark × portrait/landscape artwork crops are pixel-identical between paused and playing states, confirming that play/pause no longer scales artwork.
 
 The screenshots below and in the earlier parity review are historical; the user's square-artwork/no-pause-scaling follow-up supersedes those visual choices.
 
