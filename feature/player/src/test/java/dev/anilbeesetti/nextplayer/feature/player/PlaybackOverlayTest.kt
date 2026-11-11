@@ -297,6 +297,39 @@ class PlaybackOverlayTest {
         composeRule.onNodeWithTag("expanded_player").assertIsDisplayed()
     }
 
+    @Test fun queueSwipeDuringTheExpandSpringLeavesNoMorphingArtworkBehind() {
+        show()
+        val compact = composeRule.onNodeWithTag(
+            "compact_artwork",
+            useUnmergedTree = true,
+        ).fetchSemanticsNode()
+            .boundsInRoot.width
+        val clock = composeRule.mainClock
+        clock.autoAdvance = false
+        composeRule.onNodeWithTag("mini_player").performClick()
+        // Catch the spring in its last percent, where an upward swipe already goes to the queue.
+        var caught = false
+        for (frame in 0 until 240) {
+            clock.advanceTimeByFrame()
+            val morph = composeRule.onAllNodesWithTag("transition_artwork")
+                .fetchSemanticsNodes().firstOrNull() ?: continue
+            val open = composeRule.onAllNodesWithTag(
+                "playback_artwork",
+                useUnmergedTree = true,
+            ).fetchSemanticsNodes().first().boundsInRoot.width
+            if (open - morph.boundsInRoot.width < (open - compact) * .01f) {
+                caught = true
+                break
+            }
+        }
+        assertTrue(caught)
+        composeRule.onNodeWithTag("expanded_player").performTouchInput { swipeUp() }
+        clock.autoAdvance = true
+        composeRule.waitForIdle()
+        composeRule.onNodeWithTag("playback_queue").assertIsDisplayed()
+        composeRule.onNodeWithTag("transition_artwork").assertDoesNotExist()
+    }
+
     @Test fun connectingDisablesPlaybackAndOffersCancel() {
         expanded = true
         show(PlaybackConnection.CONNECTING)

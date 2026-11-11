@@ -416,6 +416,13 @@ internal fun PlaybackOverlayContent(
                     (queueSheet.engaged || delta < 0f)
                 ).also { queueGesture = it }
             if (toQueue) {
+                // A swipe can catch the expand spring just short of open; finish it, or the
+                // player stays mid-transition and its morphing artwork covers the queue banner.
+                if (expansion.value < 1f) {
+                    gestureScope.launch(start = CoroutineStart.UNDISPATCHED) {
+                        expansion.snapTo(1f)
+                    }
+                }
                 queueSheet.dragBy(delta)
                 return@rememberDraggableState
             }
