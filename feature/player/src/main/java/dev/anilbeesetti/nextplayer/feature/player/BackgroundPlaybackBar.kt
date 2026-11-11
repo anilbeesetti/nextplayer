@@ -302,6 +302,8 @@ internal fun rememberPlaybackArtworkPainter(snapshot: PlaybackSnapshot): Painter
         placeholder = fallback,
         error = fallback,
         fallback = fallback,
+        // The crossfade draws with the painter's scale, so it must match the Image's crop.
+        contentScale = ContentScale.Crop,
     )
 }
 
