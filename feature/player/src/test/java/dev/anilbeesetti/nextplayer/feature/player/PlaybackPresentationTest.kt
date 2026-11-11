@@ -69,4 +69,42 @@ class PlaybackPresentationTest {
             fake.release()
         }
     }
+
+    @Test fun connectingKeepsTheCastItemWhileTheReceiverReportsAnotherQueueEntry() {
+        val casting = MediaItem.Builder().setMediaId("selected").setUri("content://media/video/1")
+            .setMediaMetadata(MediaMetadata.Builder().setTitle("Selected video").build()).build()
+        val other = MediaItem.Builder().setMediaId("other").setUri("content://media/video/2")
+            .setMediaMetadata(MediaMetadata.Builder().setTitle("Other video").build()).build()
+        val fake = MiniPlayerTestPlayer()
+        try {
+            fake.update {
+                setPlaylist(
+                    listOf(
+                        androidx.media3.common.SimpleBasePlayer.MediaItemData.Builder("other")
+                            .setMediaItem(other).build(),
+                    ),
+                ).setCurrentMediaItemIndex(0).setPlaybackState(Player.STATE_BUFFERING)
+            }
+            val receiver = PlaybackSnapshot.from(fake)
+            val shown = receiver.retainedFor(
+                PlaybackPresentation(
+                    PlaybackConnection.CONNECTING,
+                    "TV",
+                    mediaItem = casting,
+                    position = 2_000,
+                ),
+                receiver,
+            )
+            assertEquals(
+                "selected",
+                shown.item?.mediaId,
+            )
+            assertEquals(
+                "Selected video",
+                shown.metadata.title,
+            )
+        } finally {
+            fake.release()
+        }
+    }
 }

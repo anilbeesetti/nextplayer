@@ -13,6 +13,7 @@ import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.animation.core.spring
 import androidx.compose.animation.core.tween
 import androidx.compose.foundation.MarqueeSpacing
+import androidx.compose.foundation.background
 import androidx.compose.foundation.basicMarquee
 import androidx.compose.foundation.gestures.awaitEachGesture
 import androidx.compose.foundation.interaction.DragInteraction
@@ -61,6 +62,7 @@ import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.ButtonGroup
 import androidx.compose.material3.ButtonGroupDefaults
 import androidx.compose.material3.CircularProgressIndicator
+import androidx.compose.material3.ContainedLoadingIndicator
 import androidx.compose.material3.ExperimentalMaterial3ExpressiveApi
 import androidx.compose.material3.FilledIconButton
 import androidx.compose.material3.FilledIconToggleButton
@@ -84,6 +86,7 @@ import androidx.compose.runtime.setValue
 import androidx.compose.runtime.snapshotFlow
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.drawWithContent
 import androidx.compose.ui.focus.FocusRequester
 import androidx.compose.ui.focus.focusRequester
@@ -116,6 +119,7 @@ import dev.anilbeesetti.nextplayer.feature.player.service.PlaybackConnection
 import dev.anilbeesetti.nextplayer.feature.player.state.PlaybackSnapshot
 import dev.anilbeesetti.nextplayer.feature.player.state.rememberPlaylistState
 
+@OptIn(ExperimentalMaterial3ExpressiveApi::class)
 @Composable
 internal fun ExpandedPlaybackControls(
     player: Player,
@@ -263,13 +267,35 @@ internal fun ExpandedPlaybackControls(
         }
     }
     // Rests on the artwork, so it fades in only once the artwork has landed.
-    val watchVideoAlpha by animateFloatAsState(
+    val artworkOverlayAlpha by animateFloatAsState(
         if (interactive) 1f else 0f,
         tween(200),
-        label = "watch_video_alpha",
+        label = "artwork_overlay_alpha",
     )
-    val watchVideo: @Composable BoxScope.() -> Unit = {
-        if (connection == PlaybackConnection.LOCAL || connection == PlaybackConnection.CAST) {
+    // Connecting sits on the artwork, so nothing below it moves once the cast connects.
+    val artworkOverlay: @Composable BoxScope.() -> Unit = {
+        if (connection == PlaybackConnection.CONNECTING) {
+            Box(
+                Modifier.matchParentSize().graphicsLayer { alpha = artworkOverlayAlpha }
+                    .clip(RoundedCornerShape(18.dp))
+                    .background(MaterialTheme.colorScheme.scrim.copy(alpha = .32f)),
+            )
+            Column(
+                Modifier.align(Alignment.Center).graphicsLayer { alpha = artworkOverlayAlpha },
+                horizontalAlignment = Alignment.CenterHorizontally,
+                verticalArrangement = Arrangement.spacedBy(12.dp),
+            ) {
+                ContainedLoadingIndicator(Modifier.testTag("cast_connecting"))
+                FilledTonalButton(
+                    onClick = { onCommand(CustomCommands.CANCEL_CAST) },
+                    modifier = Modifier.blockTouchesUntil(interactive).tvFocusRing(),
+                ) {
+                    Text(stringResource(R.string.cancel))
+                }
+            }
+        } else if (connection == PlaybackConnection.LOCAL ||
+            connection == PlaybackConnection.CAST
+        ) {
             FilledTonalButton(
                 onClick = {
                     if (snapshot.isRemote) {
@@ -281,7 +307,7 @@ internal fun ExpandedPlaybackControls(
                     }
                 },
                 modifier = Modifier.align(Alignment.BottomEnd).padding(12.dp)
-                    .graphicsLayer { alpha = watchVideoAlpha }
+                    .graphicsLayer { alpha = artworkOverlayAlpha }
                     .blockTouchesUntil(interactive).tvFocusRing(CircleShape),
                 shape = CircleShape,
                 colors = playbackChipColors(),
@@ -349,7 +375,7 @@ internal fun ExpandedPlaybackControls(
                                 .then(dragModifier).focusRequester(collapseFocus)
                                 .blockTouchesUntil(interactive),
                         )
-                        watchVideo()
+                        artworkOverlay()
                     }
                 }
                 Column(
@@ -426,7 +452,7 @@ internal fun ExpandedPlaybackControls(
                             pageSpacing = side * 2,
                             artworkModifier,
                         )
-                        Box(Modifier.size(artworkSize).align(Alignment.Center)) { watchVideo() }
+                        Box(Modifier.size(artworkSize).align(Alignment.Center)) { artworkOverlay() }
                     }
                     Column(
                         Modifier.padding(horizontal = 24.dp),
@@ -930,24 +956,7 @@ private fun ConnectionControls(
     connection: PlaybackConnection,
     onCommand: (CustomCommands) -> Unit,
 ) {
-    if (connection == PlaybackConnection.CONNECTING) {
-        Row(
-            Modifier.fillMaxWidth().padding(top = 12.dp),
-            verticalAlignment = Alignment.CenterVertically,
-            horizontalArrangement = Arrangement.spacedBy(12.dp),
-        ) {
-            CircularProgressIndicator(Modifier.size(32.dp))
-            FilledTonalButton(
-                colors = playbackChipColors(),
-                onClick = {
-                    onCommand(CustomCommands.CANCEL_CAST)
-                },
-                modifier = Modifier.tvFocusRing(),
-            ) {
-                Text(stringResource(R.string.cancel))
-            }
-        }
-    } else if (connection == PlaybackConnection.LOST) {
+    if (connection == PlaybackConnection.LOST) {
         Row(
             Modifier.fillMaxWidth().padding(top = 12.dp),
             horizontalArrangement = Arrangement.spacedBy(8.dp),

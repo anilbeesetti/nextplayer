@@ -24,6 +24,9 @@ internal class CastMediaItemConverter(
     private val delegate = DefaultMediaItemConverter()
     private val originals = mutableMapOf<String, MediaItem>()
 
+    // Media3 converts the whole queue on the main thread; look the address up once, not per item.
+    private var host: String? = null
+
     override fun toMediaItem(item: MediaQueueItem): MediaItem {
         val converted = delegate.toMediaItem(item)
         return originals[key(converted)] ?: converted
@@ -53,7 +56,7 @@ internal class CastMediaItemConverter(
                 server.register(
                     uri,
                     mimeType,
-                    localAddress(),
+                    host ?: localAddress().also { host = it },
                 )
             } catch (_: Exception) {
                 Toast.makeText(
@@ -77,7 +80,10 @@ internal class CastMediaItemConverter(
         return MediaQueueItem.Builder(info).build()
     }
 
-    fun clear() = originals.clear()
+    fun clear() {
+        originals.clear()
+        host = null
+    }
 
     private fun key(item: MediaItem): String = "${item.mediaId}:${item.localConfiguration?.uri}"
 

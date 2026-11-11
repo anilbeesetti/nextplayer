@@ -44,27 +44,41 @@ internal data class PlaybackSnapshot(
     fun retainedFor(
         presentation: PlaybackPresentation,
         previous: PlaybackSnapshot,
-    ): PlaybackSnapshot = when {
-        presentation.connection == PlaybackConnection.STOPPED -> copy(item = null)
+    ): PlaybackSnapshot {
+        val casting = presentation.mediaItem
+        return when {
+            presentation.connection == PlaybackConnection.STOPPED -> copy(item = null)
 
-        (!visible || item?.localConfiguration == null) && presentation.connection in setOf(
-            PlaybackConnection.CONNECTING,
-            PlaybackConnection.CAST,
-            PlaybackConnection.LOST,
-        ) -> if (previous.visible && previous.item?.localConfiguration != null) {
-            previous
-        } else {
-            copy(
-                item = presentation.mediaItem,
-                playbackState = Player.STATE_IDLE,
-                metadata = presentation.mediaItem?.mediaMetadata ?: metadata,
-                position = presentation.position,
-                duration = presentation.mediaItem?.mediaMetadata?.durationMs ?: 0,
-            )
+            // Until it confirms the cast, the receiver can report another entry of the queue.
+            presentation.connection == PlaybackConnection.CONNECTING && casting != null &&
+                item?.mediaId != casting.mediaId ->
+                if (previous.visible && previous.item?.mediaId == casting.mediaId) {
+                    previous
+                } else {
+                    retainedItem(presentation)
+                }
+
+            (!visible || item?.localConfiguration == null) && presentation.connection in setOf(
+                PlaybackConnection.CONNECTING,
+                PlaybackConnection.CAST,
+                PlaybackConnection.LOST,
+            ) -> if (previous.visible && previous.item?.localConfiguration != null) {
+                previous
+            } else {
+                retainedItem(presentation)
+            }
+
+            else -> this
         }
-
-        else -> this
     }
+
+    private fun retainedItem(presentation: PlaybackPresentation) = copy(
+        item = presentation.mediaItem,
+        playbackState = Player.STATE_IDLE,
+        metadata = presentation.mediaItem?.mediaMetadata ?: metadata,
+        position = presentation.position,
+        duration = presentation.mediaItem?.mediaMetadata?.durationMs ?: 0,
+    )
 
     companion object {
         fun from(player: Player) = PlaybackSnapshot(
