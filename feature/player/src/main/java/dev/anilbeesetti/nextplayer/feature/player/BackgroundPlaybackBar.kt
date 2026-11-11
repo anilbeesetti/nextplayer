@@ -33,6 +33,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.Shape
 import androidx.compose.ui.graphics.painter.Painter
 import androidx.compose.ui.layout.ContentScale
@@ -68,6 +69,7 @@ internal fun MiniPlayer(
     snapshot: PlaybackSnapshot = rememberPlaybackSnapshot(player),
     secondaryText: String? = null,
     connecting: Boolean = false,
+    showContainer: Boolean = true,
     artworkModifier: Modifier = Modifier,
     metadataModifier: Modifier = Modifier,
     artworkPainter: Painter = rememberPlaybackArtworkPainter(snapshot),
@@ -105,8 +107,12 @@ internal fun MiniPlayer(
             }
             .tvFocusRing(shape),
         shape = shape,
-        shadowElevation = 3.dp,
-        color = MaterialTheme.colorScheme.primaryContainer,
+        shadowElevation = if (showContainer) 3.dp else 0.dp,
+        color = if (showContainer) {
+            MaterialTheme.colorScheme.primaryContainer
+        } else {
+            Color.Transparent
+        },
         contentColor = MaterialTheme.colorScheme.onPrimaryContainer,
     ) {
         Column {

@@ -9,6 +9,7 @@ import androidx.compose.animation.core.Animatable
 import androidx.compose.animation.core.AnimationVector1D
 import androidx.compose.animation.core.FastOutSlowInEasing
 import androidx.compose.animation.core.Spring
+import androidx.compose.animation.core.SpringSpec
 import androidx.compose.animation.core.spring
 import androidx.compose.animation.core.tween
 import androidx.compose.animation.fadeIn
@@ -358,16 +359,25 @@ internal fun PlaybackOverlayContent(
             Animatable(
                 if (expanded) 1f else 0f,
                 visibilityThreshold = EXPANSION_THRESHOLD,
-            ).apply {
-                updateBounds(
-                    0f,
-                    1f,
-                )
-            }
+            )
+        }
+        val themeSpring =
+            MaterialTheme.motionScheme.defaultSpatialSpec<Float>() as SpringSpec<Float>
+        val expansionSpring = remember(themeSpring) {
+            spring(
+                themeSpring.dampingRatio,
+                themeSpring.stiffness,
+                EXPANSION_THRESHOLD,
+            )
         }
         val motion = remember { ExpansionMotion(expansion) }
         val gestureScope = rememberCoroutineScope()
-        LaunchedEffect(expanded) { motion.settle(expanded) }
+        LaunchedEffect(expanded) {
+            motion.settle(
+                expanded,
+                expansionSpring,
+            )
+        }
         val isCollapsed by remember { derivedStateOf { expansion.value == 0f } }
         val isFullyOpen by remember { derivedStateOf { expansion.value == 1f } }
         val interactive by remember { derivedStateOf { expansion.value >= .99f } }
@@ -407,7 +417,14 @@ internal fun PlaybackOverlayContent(
             }
             dragging = false
             motion.carryVelocity(-velocity / travel)
-            if (target == expanded) motion.settle(target) else onExpandedChanged(target)
+            if (target == expanded) {
+                motion.settle(
+                    target,
+                    expansionSpring,
+                )
+            } else {
+                onExpandedChanged(target)
+            }
         }
         val verticalDrag = Modifier.draggable(
             dragState,
@@ -427,14 +444,18 @@ internal fun PlaybackOverlayContent(
         val fullHeight = maxHeight
         val sheetBounds: () -> Rect = {
             val progress = expansion.value
-            val collapse = 1f - progress
-            val top = travel * collapse
+            val collapse = (1f - progress).coerceIn(
+                0f,
+                1f,
+            )
+            val top = travel * (1f - progress)
+            val growth = progress.coerceAtLeast(0f)
             with(density) {
                 Rect(
                     (leftInset * collapse).toPx(),
                     top,
                     (fullWidth - rightInset * collapse).toPx(),
-                    top + (compactHeight + (fullHeight - compactHeight) * progress).toPx(),
+                    top + (compactHeight + (fullHeight - compactHeight) * growth).toPx(),
                 )
             }
         }
@@ -442,46 +463,23 @@ internal fun PlaybackOverlayContent(
         val morphArtwork = transitioning && compactArtwork.width > 0 && expandedArtwork.width > 0
         val morphMetadata = transitioning && compactMetadata.width > 0 && expandedMetadata.width > 0
         val artworkBounds: () -> Rect = {
-            lerp(
+            morphBounds(
                 compactArtwork,
                 expandedArtwork,
                 expansion.value,
+                travel,
             )
         }
         val metadataBounds: () -> Rect = {
-            lerp(
+            routedMetadataBounds(
+                compactArtwork,
+                expandedArtwork,
                 compactMetadata,
                 expandedMetadata,
+                artworkBounds(),
                 expansion.value,
+                travel,
             )
-        }
-        val metadataVisibility: () -> Float = {
-            if (morphMetadata && morphArtwork) {
-                val fadeDistance = minOf(
-                    separationBetween(
-                        compactArtwork,
-                        compactMetadata,
-                    ),
-                    separationBetween(
-                        expandedArtwork,
-                        expandedMetadata,
-                    ),
-                )
-                (
-                    (
-                        separationBetween(
-                            artworkBounds(),
-                            metadataBounds(),
-                        ) - 1f
-                        ) /
-                        (fadeDistance - 1f).coerceAtLeast(1f)
-                    ).coerceIn(
-                    0f,
-                    1f,
-                )
-            } else {
-                1f
-            }
         }
         val scrim = MaterialTheme.colorScheme.scrim
         Spacer(
@@ -489,7 +487,7 @@ internal fun PlaybackOverlayContent(
                 if (expansion.value > 0f) {
                     drawRect(
                         scrim,
-                        alpha = expansion.value * EXPANSION_SCRIM_ALPHA,
+                        alpha = expansion.value.coerceAtMost(1f) * EXPANSION_SCRIM_ALPHA,
                     )
                 }
             },
@@ -517,7 +515,12 @@ internal fun PlaybackOverlayContent(
                         }
                     }
                     .graphicsLayer {
-                        shape = RoundedCornerShape(24.dp * (1f - expansion.value))
+                        shape = RoundedCornerShape(
+                            24.dp * (1f - expansion.value).coerceIn(
+                                0f,
+                                1f,
+                            ),
+                        )
                         clip = true
                         shadowElevation = 3.dp.toPx()
                     }
@@ -549,7 +552,7 @@ internal fun PlaybackOverlayContent(
                         .offset {
                             IntOffset(
                                 0,
-                                travel.roundToInt(),
+                                (travel * (1f - expansion.value.coerceAtMost(0f))).roundToInt(),
                             )
                         }
                         .padding(
@@ -567,11 +570,16 @@ internal fun PlaybackOverlayContent(
                         controlsEnabled = controlsEnabled,
                         snapshot = snapshot,
                         artworkPainter = artworkPainter,
+                        showContainer = isCollapsed,
                         artworkModifier = Modifier.onGloballyPositioned {
-                            compactArtwork = it.boundsInRoot().translate(-rootOrigin)
+                            if (expansion.value >= 0f) {
+                                compactArtwork = it.boundsInRoot().translate(-rootOrigin)
+                            }
                         }.graphicsLayer { alpha = if (morphArtwork) 0f else 1f },
                         metadataModifier = Modifier.onGloballyPositioned {
-                            compactMetadata = it.boundsInRoot().translate(-rootOrigin)
+                            if (expansion.value >= 0f) {
+                                compactMetadata = it.boundsInRoot().translate(-rootOrigin)
+                            }
                         }.graphicsLayer { alpha = if (morphMetadata) 0f else 1f },
                         secondaryText = secondary,
                         connecting = presentation.connection == PlaybackConnection.CONNECTING,
@@ -615,7 +623,6 @@ internal fun PlaybackOverlayContent(
                 dragModifier = verticalDrag,
                 interactive = interactive,
                 transitionProgress = { expansion.value },
-                metadataVisibility = metadataVisibility,
                 controlsTranslationY = {
                     if (morphMetadata) {
                         (compactMetadata.bottom - expandedMetadata.bottom) * (1f - expansion.value)
@@ -659,18 +666,13 @@ internal fun PlaybackOverlayContent(
                 artworkPainter,
             )
         }
-        val metadataShown by remember(
-            morphMetadata,
-            morphArtwork,
-        ) { derivedStateOf { metadataVisibility() > 0f } }
-        if (morphMetadata && metadataShown) {
+        if (morphMetadata) {
             PlaybackMorphingMetadata(
                 title = title,
                 secondary = secondary,
                 landscape = landscape,
                 progress = { expansion.value },
                 modifier = Modifier.align(AbsoluteAlignment.TopLeft).followBounds(metadataBounds)
-                    .graphicsLayer { alpha = metadataVisibility() }
                     .clearAndSetSemantics { testTag = "transition_metadata" },
             )
         }
@@ -718,7 +720,7 @@ internal fun PlaybackOverlayContent(
 private const val EXPANSION_THRESHOLD = .0005f
 private const val EXPANSION_SCRIM_ALPHA = .32f
 
-/** One spring for tap and drag; collapsing is slightly quicker than opening. */
+/** One Material expressive spring for tap and drag; it keeps the velocity of a release. */
 private class ExpansionMotion(private val expansion: Animatable<Float, AnimationVector1D>) {
     private var lastVelocity = 0f
 
@@ -726,14 +728,10 @@ private class ExpansionMotion(private val expansion: Animatable<Float, Animation
         lastVelocity = value
     }
 
-    suspend fun settle(open: Boolean) {
+    suspend fun settle(open: Boolean, animationSpec: SpringSpec<Float>) {
         expansion.animateTo(
             if (open) 1f else 0f,
-            spring(
-                dampingRatio = Spring.DampingRatioNoBouncy,
-                stiffness = if (open) 420f else 560f,
-                visibilityThreshold = EXPANSION_THRESHOLD,
-            ),
+            animationSpec,
             initialVelocity = lastVelocity,
         ) { lastVelocity = velocity }
         lastVelocity = 0f
@@ -774,7 +772,10 @@ private fun PlaybackMorphingMetadata(
     progress: () -> Float,
     modifier: Modifier,
 ) {
-    val value = progress()
+    val value = progress().coerceIn(
+        0f,
+        1f,
+    )
     Column(modifier) {
         Text(
             title,
@@ -805,17 +806,88 @@ private fun PlaybackMorphingMetadata(
     }
 }
 
-// Fade crossing metadata instead of letting it draw through the growing artwork.
-private fun separationBetween(first: Rect, second: Rect): Float = maxOf(
-    maxOf(
-        first.left - second.right,
-        second.left - first.right,
-    ),
-    maxOf(
-        first.top - second.bottom,
-        second.top - first.bottom,
-    ),
-)
+private fun smoothStep(start: Float, end: Float, value: Float): Float {
+    val position = ((value - start) / (end - start)).coerceIn(
+        0f,
+        1f,
+    )
+    return position * position * (3f - 2f * position)
+}
+
+/** Past the collapsed end of the spring, the compact player only moves down. */
+private fun morphBounds(compact: Rect, expanded: Rect, progress: Float, travel: Float): Rect =
+    if (progress < 0f) {
+        compact.translate(
+            0f,
+            -progress * travel,
+        )
+    } else {
+        lerp(
+            compact,
+            expanded,
+            progress,
+        )
+    }
+
+/** Carries the title beside the growing artwork and then below it, never through it. */
+private fun routedMetadataBounds(
+    compactArtwork: Rect,
+    expandedArtwork: Rect,
+    compactMetadata: Rect,
+    expandedMetadata: Rect,
+    artwork: Rect,
+    progress: Float,
+    travel: Float,
+): Rect {
+    if (progress < 0f || expandedMetadata.top < expandedArtwork.bottom) {
+        return morphBounds(
+            compactMetadata,
+            expandedMetadata,
+            progress,
+            travel,
+        )
+    }
+    val size = progress.coerceAtMost(1f)
+    val width = androidx.compose.ui.util.lerp(
+        compactMetadata.width,
+        expandedMetadata.width,
+        size,
+    )
+    val height = androidx.compose.ui.util.lerp(
+        compactMetadata.height,
+        expandedMetadata.height,
+        size,
+    )
+    val besideArtwork = if (compactMetadata.left >= compactArtwork.right) {
+        artwork.right + compactMetadata.left - compactArtwork.right
+    } else {
+        artwork.left - (compactArtwork.left - compactMetadata.right) - width
+    }
+    val left = androidx.compose.ui.util.lerp(
+        besideArtwork,
+        expandedMetadata.left,
+        smoothStep(
+            .3f,
+            .8f,
+            progress,
+        ),
+    )
+    val top = androidx.compose.ui.util.lerp(
+        compactMetadata.top,
+        artwork.bottom + expandedMetadata.top - expandedArtwork.bottom,
+        smoothStep(
+            0f,
+            .3f,
+            progress,
+        ),
+    )
+    return Rect(
+        left,
+        top,
+        left + width,
+        top + height,
+    )
+}
 
 private fun Player.playbackQueueIdentity(): Any? = when {
     isCommandAvailable(Player.COMMAND_GET_TIMELINE) && !currentTimeline.isEmpty ->

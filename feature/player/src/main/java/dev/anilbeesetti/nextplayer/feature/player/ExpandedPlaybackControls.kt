@@ -134,7 +134,6 @@ internal fun ExpandedPlaybackControls(
     modifier: Modifier = Modifier,
     interactive: Boolean = true,
     transitionProgress: () -> Float = { 1f },
-    metadataVisibility: () -> Float = { 1f },
     controlsTranslationY: () -> Float = { 0f },
     artworkModifier: Modifier = Modifier,
     metadataModifier: Modifier = Modifier,
@@ -234,7 +233,6 @@ internal fun ExpandedPlaybackControls(
                 Modifier.padding(vertical = 8.dp).expansionReveal(
                     .45f,
                     transitionProgress,
-                    metadataVisibility,
                     controlsTranslationY,
                 ),
             ) {
@@ -249,7 +247,6 @@ internal fun ExpandedPlaybackControls(
                 Modifier.expansionReveal(
                     .55f,
                     transitionProgress,
-                    metadataVisibility,
                     controlsTranslationY,
                 ),
             ) {
@@ -274,7 +271,6 @@ internal fun ExpandedPlaybackControls(
                     modifier = Modifier.expansionReveal(
                         .62f,
                         transitionProgress,
-                        metadataVisibility,
                         controlsTranslationY,
                     ).padding(top = 8.dp).tvFocusRing(CircleShape),
                     shape = CircleShape,
@@ -361,7 +357,6 @@ internal fun ExpandedPlaybackControls(
                         modifier = Modifier.blockTouchesUntil(interactive).expansionReveal(
                             .35f,
                             transitionProgress,
-                            metadataVisibility,
                             controlsTranslationY,
                         ),
                     )
@@ -433,7 +428,6 @@ internal fun ExpandedPlaybackControls(
                                 modifier = Modifier.blockTouchesUntil(interactive).expansionReveal(
                                     .35f,
                                     transitionProgress,
-                                    metadataVisibility,
                                     controlsTranslationY,
                                 ),
                             )
@@ -461,7 +455,6 @@ private fun Modifier.blockTouchesUntil(interactive: Boolean): Modifier = pointer
 private fun Modifier.expansionReveal(
     start: Float,
     progress: () -> Float,
-    visibility: () -> Float = { 1f },
     offset: () -> Float = { 0f },
     distance: Dp = 20.dp,
 ): Modifier = graphicsLayer {
@@ -469,7 +462,7 @@ private fun Modifier.expansionReveal(
         0f,
         1f,
     )
-    alpha = visibility() * reveal
+    alpha = reveal
     translationY = offset() + distance.toPx() * (1f - reveal)
 }
 

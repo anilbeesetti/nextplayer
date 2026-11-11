@@ -978,6 +978,7 @@ class MiniPlayerIntegrationTest {
                 clock.advanceTimeBy(64)
                 capturePlayback("motion-expand-$step")
             }
+            settlePlaybackUi()
             composeRule.waitUntil(10_000) { artworkIsBlue(false) }
             capturePlayback("motion-expanded-red")
         } finally {

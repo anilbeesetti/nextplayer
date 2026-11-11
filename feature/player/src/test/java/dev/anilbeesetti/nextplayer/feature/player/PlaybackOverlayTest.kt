@@ -690,6 +690,43 @@ class PlaybackOverlayTest {
     }
 
     @Test
+    fun expansionSpringsPastTheTopBeforeSettling() {
+        show()
+        composeRule.waitForIdle()
+        composeRule.mainClock.autoAdvance = false
+        composeRule.runOnIdle { expanded = true }
+        composeRule.mainClock.advanceTimeByFrame()
+        composeRule.waitForIdle()
+        composeRule.mainClock.advanceTimeByFrame()
+        composeRule.waitForIdle()
+        var highest = Float.MAX_VALUE
+        repeat(60) {
+            composeRule.mainClock.advanceTimeBy(16)
+            composeRule.waitForIdle()
+            highest = minOf(
+                highest,
+                composeRule.onNodeWithTag(
+                    "playback_sheet",
+                    useUnmergedTree = true,
+                ).getUnclippedBoundsInRoot().top.value,
+            )
+        }
+        composeRule.mainClock.autoAdvance = true
+        assertTrue(
+            "Sheet only reached $highest",
+            highest < -1f,
+        )
+        assertEquals(
+            0f,
+            composeRule.onNodeWithTag(
+                "playback_sheet",
+                useUnmergedTree = true,
+            ).getUnclippedBoundsInRoot().top.value,
+            .5f,
+        )
+    }
+
+    @Test
     fun portraitArtworkPagerSpansTheScreenAroundAnInsetArtwork() {
         expanded = true
         show()
