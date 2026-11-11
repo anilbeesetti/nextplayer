@@ -170,8 +170,12 @@ internal fun MiniPlayer(
                     }
                 }
                 Spacer(Modifier.width(4.dp))
+                val buttonSlot = Modifier.size(
+                    width = 42.dp,
+                    height = 48.dp,
+                )
                 Box(
-                    Modifier.size(48.dp),
+                    buttonSlot,
                     contentAlignment = Alignment.Center,
                 ) {
                     FilledIconButton(
@@ -190,7 +194,7 @@ internal fun MiniPlayer(
                     }
                 }
                 Box(
-                    Modifier.size(48.dp),
+                    buttonSlot,
                     contentAlignment = Alignment.Center,
                 ) {
                     PlaybackPlayPauseButton(
@@ -203,7 +207,7 @@ internal fun MiniPlayer(
                     )
                 }
                 Box(
-                    Modifier.size(48.dp),
+                    buttonSlot,
                     contentAlignment = Alignment.Center,
                 ) {
                     FilledIconButton(
