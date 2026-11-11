@@ -26,6 +26,7 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.aspectRatio
 import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
@@ -33,6 +34,7 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.safeDrawing
 import androidx.compose.foundation.layout.safeDrawingPadding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
@@ -78,6 +80,7 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.derivedStateOf
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
@@ -90,6 +93,8 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.drawWithContent
 import androidx.compose.ui.focus.FocusRequester
 import androidx.compose.ui.focus.focusRequester
+import androidx.compose.ui.geometry.Rect
+import androidx.compose.ui.geometry.lerp
 import androidx.compose.ui.graphics.BlendMode
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
@@ -97,7 +102,11 @@ import androidx.compose.ui.graphics.CompositingStrategy
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.input.pointer.PointerEventPass
 import androidx.compose.ui.input.pointer.pointerInput
+import androidx.compose.ui.layout.LayoutCoordinates
+import androidx.compose.ui.layout.onGloballyPositioned
+import androidx.compose.ui.layout.onPlaced
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.platform.LocalLayoutDirection
 import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.res.stringResource
@@ -144,6 +153,7 @@ internal fun ExpandedPlaybackControls(
     artworkModifier: Modifier = Modifier,
     metadataModifier: Modifier = Modifier,
     headerModifier: Modifier = Modifier,
+    queueSheet: PlaybackQueueSheet? = null,
 ) {
     var titleWidth by remember(title) { mutableIntStateOf(0) }
     val collapseFocus = remember { FocusRequester() }
@@ -225,13 +235,16 @@ internal fun ExpandedPlaybackControls(
             }
         }
     }
-    val controls: @Composable () -> Unit = {
+    val controls: @Composable (transportModifier: Modifier, modesModifier: Modifier) -> Unit = {
+            transportModifier,
+            modesModifier,
+        ->
         Column(
             Modifier.blockTouchesUntil(interactive),
             horizontalAlignment = Alignment.CenterHorizontally,
         ) {
             Box(
-                Modifier.padding(vertical = 8.dp).expansionReveal(
+                transportModifier.padding(vertical = 8.dp).expansionReveal(
                     .45f,
                     transitionProgress,
                     controlsTranslationY,
@@ -245,7 +258,7 @@ internal fun ExpandedPlaybackControls(
             }
             Spacer(Modifier.height(14.dp))
             Box(
-                Modifier.expansionReveal(
+                modesModifier.expansionReveal(
                     .55f,
                     transitionProgress,
                     controlsTranslationY,
@@ -404,83 +417,268 @@ internal fun ExpandedPlaybackControls(
                             controlsTranslationY,
                         ),
                     )
-                    controls()
+                    controls(
+                        Modifier,
+                        Modifier,
+                    )
                 }
             }
         } else {
-            Column(Modifier.fillMaxSize()) {
-                Row(
-                    Modifier.fillMaxWidth().heightIn(min = 64.dp).testTag("playback_header")
-                        .then(headerModifier).then(dragModifier).padding(horizontal = 14.dp),
-                    verticalAlignment = Alignment.CenterVertically,
-                ) {
-                    PlaybackCollapseButton(
-                        onCollapse,
-                        Modifier.focusRequester(collapseFocus).blockTouchesUntil(interactive),
-                    )
-                    Box(Modifier.weight(1f)) {
-                        if (!showDevice) {
-                            Text(
-                                pane,
-                                Modifier.padding(
-                                    horizontal = 18.dp,
-                                ).testTag("playback_header_title"),
-                                style = MaterialTheme.typography.labelLarge.copy(
-                                    fontWeight = FontWeight.SemiBold,
-                                ),
-                                maxLines = 1,
-                                overflow = TextOverflow.Ellipsis,
-                            )
-                        }
-                    }
-                    actions()
-                }
-                Column(
-                    Modifier.weight(1f).fillMaxWidth(),
-                    horizontalAlignment = Alignment.CenterHorizontally,
-                    verticalArrangement = Arrangement.SpaceAround,
-                ) {
-                    // Like a fixed full player, nothing scrolls: the artwork gives up height first.
-                    BoxWithConstraints(
-                        Modifier.weight(
-                            1f,
-                            fill = false,
-                        ).fillMaxWidth().padding(vertical = 8.dp),
-                    ) {
-                        val artworkSize = minOf(
-                            maxWidth - 48.dp,
-                            maxHeight,
-                        ).coerceAtLeast(0.dp)
-                        val side = (maxWidth - artworkSize) / 2
-                        PlaybackArtworkCarousel(
-                            player,
-                            snapshot,
-                            controlsEnabled && interactive,
-                            Modifier.fillMaxWidth().height(artworkSize).then(dragModifier),
-                            artworkSize,
-                            PaddingValues(horizontal = side),
-                            pageSpacing = side * 2,
-                            artworkModifier,
-                        )
-                        Box(Modifier.size(artworkSize).align(Alignment.Center)) { artworkOverlay() }
-                    }
-                    Column(
-                        Modifier.padding(horizontal = 24.dp),
-                        verticalArrangement = Arrangement.spacedBy(4.dp),
-                    ) {
-                        metadata()
-                        PlaybackSeekControl(
-                            player,
-                            snapshot,
-                            controlsEnabled,
-                            modifier = Modifier.blockTouchesUntil(interactive).expansionReveal(
-                                .35f,
-                                transitionProgress,
-                                controlsTranslationY,
+            val sheet = queueSheet
+            val queueProgress: () -> Float = {
+                sheet?.progress?.coerceIn(
+                    -.15f,
+                    2.15f,
+                ) ?: 0f
+            }
+            val queueShown by remember(sheet) { derivedStateOf { sheet?.engaged == true } }
+            var container by remember { mutableStateOf<LayoutCoordinates?>(null) }
+            var artworkBounds by remember { mutableStateOf(Rect.Zero) }
+            var metadataBounds by remember { mutableStateOf(Rect.Zero) }
+            var seekBounds by remember { mutableStateOf(Rect.Zero) }
+            var transportBounds by remember { mutableStateOf(Rect.Zero) }
+            val measured: (onBounds: (Rect) -> Unit) -> Modifier = { onBounds ->
+                Modifier.onGloballyPositioned { coordinates ->
+                    container?.takeIf { it.isAttached }?.let {
+                        onBounds(
+                            it.localBoundingBoxOf(
+                                coordinates,
+                                clipBounds = false,
                             ),
                         )
                     }
-                    Box(Modifier.padding(horizontal = 24.dp)) { controls() }
+                }
+            }
+            val density = LocalDensity.current
+            val topInset = WindowInsets.safeDrawing.getTop(density).toFloat()
+            val bottomInset = WindowInsets.safeDrawing.getBottom(density)
+            BoxWithConstraints(Modifier.fillMaxSize().onPlaced { container = it }) {
+                val stages = remember(
+                    constraints.maxWidth,
+                    constraints.maxHeight,
+                    topInset,
+                    seekBounds.top,
+                    transportBounds.bottom,
+                    density,
+                ) {
+                    QueueStageGeometry(
+                        constraints.maxWidth.toFloat(),
+                        constraints.maxHeight.toFloat(),
+                        topInset,
+                        blockHeight = (transportBounds.bottom - seekBounds.top).coerceAtLeast(0f),
+                        density,
+                    )
+                }
+                if (sheet != null) {
+                    LaunchedEffect(
+                        sheet,
+                        stages,
+                    ) {
+                        sheet.setAnchors(
+                            closed = constraints.maxHeight.toFloat(),
+                            half = stages.halfPanelTop,
+                            full = stages.queuePanelTop,
+                        )
+                    }
+                }
+                val artworkAt: (Float) -> Rect = { progress ->
+                    if (progress <= 1f) {
+                        lerp(
+                            artworkBounds,
+                            stages.halfArtwork,
+                            progress,
+                        )
+                    } else {
+                        lerp(
+                            stages.halfArtwork,
+                            stages.thumbnail,
+                            progress - 1f,
+                        )
+                    }
+                }
+                // Seek bar and transport ride under the artwork, then leave with it for the queue.
+                val blockShift: (Float) -> Float = { progress ->
+                    val half = stages.halfArtwork.bottom + stages.gap - seekBounds.top
+                    if (progress <= 1f) {
+                        half * progress
+                    } else {
+                        half + artworkAt(progress).bottom - stages.halfArtwork.bottom
+                    }
+                }
+                val metadataShift: (Float) -> Float = { progress ->
+                    val half = stages.halfArtwork.bottom - stages.gap * 2 - metadataBounds.bottom
+                    if (progress <= 1f) {
+                        half * progress
+                    } else {
+                        half + artworkAt(progress).bottom - stages.halfArtwork.bottom
+                    }
+                }
+                if (queueShown) {
+                    QueueArtworkBanner(
+                        snapshot,
+                        bounds = { artworkAt(queueProgress()) },
+                        progress = queueProgress,
+                        modifier = dragModifier,
+                    )
+                }
+                // A vertical swipe anywhere on the player moves it; the pager and slider keep theirs.
+                Column(Modifier.fillMaxSize().then(dragModifier)) {
+                    Row(
+                        Modifier.fillMaxWidth().heightIn(min = 64.dp).testTag("playback_header")
+                            .then(headerModifier).graphicsLayer {
+                                val progress = queueProgress()
+                                alpha = 1f - smoothStep(
+                                    1f,
+                                    1.35f,
+                                    progress,
+                                )
+                                translationY = -24.dp.toPx() * smoothStep(
+                                    1f,
+                                    1.6f,
+                                    progress,
+                                )
+                            }.padding(horizontal = 14.dp),
+                        verticalAlignment = Alignment.CenterVertically,
+                    ) {
+                        PlaybackCollapseButton(
+                            onCollapse,
+                            Modifier.focusRequester(collapseFocus).blockTouchesUntil(interactive),
+                        )
+                        Box(Modifier.weight(1f)) {
+                            if (!showDevice) {
+                                Text(
+                                    pane,
+                                    Modifier.padding(
+                                        horizontal = 18.dp,
+                                    ).testTag("playback_header_title").graphicsLayer {
+                                        alpha = 1f - smoothStep(
+                                            .15f,
+                                            .6f,
+                                            queueProgress(),
+                                        )
+                                    },
+                                    style = MaterialTheme.typography.labelLarge.copy(
+                                        fontWeight = FontWeight.SemiBold,
+                                    ),
+                                    maxLines = 1,
+                                    overflow = TextOverflow.Ellipsis,
+                                )
+                            }
+                        }
+                        actions()
+                    }
+                    Column(
+                        Modifier.weight(1f).fillMaxWidth(),
+                        horizontalAlignment = Alignment.CenterHorizontally,
+                        verticalArrangement = Arrangement.SpaceAround,
+                    ) {
+                        // Like a fixed full player, nothing scrolls: the artwork gives up height first.
+                        BoxWithConstraints(
+                            Modifier.weight(
+                                1f,
+                                fill = false,
+                            ).fillMaxWidth().padding(vertical = 8.dp),
+                        ) {
+                            val artworkSize = minOf(
+                                maxWidth - 48.dp,
+                                maxHeight,
+                            ).coerceAtLeast(0.dp)
+                            val side = (maxWidth - artworkSize) / 2
+                            PlaybackArtworkCarousel(
+                                player,
+                                snapshot,
+                                controlsEnabled && interactive && !queueShown,
+                                Modifier.fillMaxWidth().height(artworkSize)
+                                    .graphicsLayer { alpha = if (queueShown) 0f else 1f },
+                                artworkSize,
+                                PaddingValues(horizontal = side),
+                                pageSpacing = side * 2,
+                                measured { artworkBounds = it }.then(artworkModifier),
+                            )
+                            Box(
+                                Modifier.size(artworkSize).align(Alignment.Center).graphicsLayer {
+                                    alpha = 1f - smoothStep(
+                                        0f,
+                                        .3f,
+                                        queueProgress(),
+                                    )
+                                },
+                            ) { artworkOverlay() }
+                        }
+                        Column(
+                            Modifier.padding(horizontal = 24.dp),
+                            verticalArrangement = Arrangement.spacedBy(4.dp),
+                        ) {
+                            Box(
+                                measured { metadataBounds = it }.graphicsLayer {
+                                    val progress = queueProgress()
+                                    translationY = metadataShift(progress)
+                                    alpha = 1f - smoothStep(
+                                        1f,
+                                        1.4f,
+                                        progress,
+                                    )
+                                },
+                            ) { metadata() }
+                            PlaybackSeekControl(
+                                player,
+                                snapshot,
+                                controlsEnabled,
+                                modifier = measured { seekBounds = it }.graphicsLayer {
+                                    val progress = queueProgress()
+                                    translationY = blockShift(progress)
+                                    alpha = 1f - smoothStep(
+                                        1f,
+                                        1.3f,
+                                        progress,
+                                    )
+                                }.blockTouchesUntil(interactive).expansionReveal(
+                                    .35f,
+                                    transitionProgress,
+                                    controlsTranslationY,
+                                ),
+                            )
+                        }
+                        Box(Modifier.padding(horizontal = 24.dp)) {
+                            controls(
+                                measured { transportBounds = it }.graphicsLayer {
+                                    val progress = queueProgress()
+                                    translationY = blockShift(progress)
+                                    alpha = 1f - smoothStep(
+                                        1f,
+                                        1.3f,
+                                        progress,
+                                    )
+                                },
+                                Modifier.graphicsLayer {
+                                    val progress = queueProgress()
+                                    translationY = blockShift(progress)
+                                    alpha = 1f - smoothStep(
+                                        0f,
+                                        .4f,
+                                        progress,
+                                    )
+                                },
+                            )
+                        }
+                    }
+                }
+                if (sheet != null && queueShown) {
+                    QueueMiniRow(
+                        player,
+                        snapshot,
+                        title,
+                        secondary,
+                        controlsEnabled,
+                        progress = queueProgress,
+                        onClick = { sheet.animateTo(QueueStage.HALF) },
+                        modifier = Modifier.height(stages.rowHeightDp).then(dragModifier),
+                    )
+                    QueuePanel(
+                        player,
+                        sheet,
+                        bottomInset = with(density) { bottomInset.toDp() },
+                    )
                 }
             }
         }

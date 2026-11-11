@@ -170,61 +170,11 @@ internal fun MiniPlayer(
                     }
                 }
                 Spacer(Modifier.width(4.dp))
-                val buttonSlot = Modifier.size(
-                    width = 44.dp,
-                    height = 48.dp,
+                PlaybackCompactTransport(
+                    player,
+                    snapshot,
+                    controlsEnabled,
                 )
-                Box(
-                    buttonSlot,
-                    contentAlignment = Alignment.Center,
-                ) {
-                    FilledIconButton(
-                        onClick = player::seekToPrevious,
-                        enabled =
-                            controlsEnabled &&
-                                snapshot.commands.contains(Player.COMMAND_SEEK_TO_PREVIOUS),
-                        modifier = Modifier.size(36.dp).tvFocusRing(CircleShape),
-                        colors = playbackSkipColors(),
-                    ) {
-                        Icon(
-                            Icons.Rounded.SkipPrevious,
-                            stringResource(R.string.player_controls_previous),
-                            Modifier.size(22.dp),
-                        )
-                    }
-                }
-                Box(
-                    buttonSlot,
-                    contentAlignment = Alignment.Center,
-                ) {
-                    PlaybackPlayPauseButton(
-                        player,
-                        snapshot,
-                        Modifier.size(
-                            36.dp,
-                        ),
-                        controlsEnabled,
-                    )
-                }
-                Box(
-                    buttonSlot,
-                    contentAlignment = Alignment.Center,
-                ) {
-                    FilledIconButton(
-                        onClick = player::seekToNext,
-                        enabled =
-                            controlsEnabled &&
-                                snapshot.commands.contains(Player.COMMAND_SEEK_TO_NEXT),
-                        modifier = Modifier.size(36.dp).tvFocusRing(CircleShape),
-                        colors = playbackSkipColors(),
-                    ) {
-                        Icon(
-                            Icons.Rounded.SkipNext,
-                            stringResource(R.string.player_controls_next),
-                            Modifier.size(22.dp),
-                        )
-                    }
-                }
             }
         }
     }
@@ -324,6 +274,70 @@ internal fun PlaybackArtwork(
             contentScale = ContentScale.Crop,
             modifier = Modifier.fillMaxSize(),
         )
+    }
+}
+
+/** The mini player's previous, play or pause, and next buttons. */
+@Composable
+internal fun PlaybackCompactTransport(
+    player: Player,
+    snapshot: PlaybackSnapshot,
+    controlsEnabled: Boolean,
+) {
+    val buttonSlot = Modifier.size(
+        width = 44.dp,
+        height = 48.dp,
+    )
+    Box(
+        buttonSlot,
+        contentAlignment = Alignment.Center,
+    ) {
+        FilledIconButton(
+            onClick = player::seekToPrevious,
+            enabled =
+                controlsEnabled &&
+                    snapshot.commands.contains(Player.COMMAND_SEEK_TO_PREVIOUS),
+            modifier = Modifier.size(36.dp).tvFocusRing(CircleShape),
+            colors = playbackSkipColors(),
+        ) {
+            Icon(
+                Icons.Rounded.SkipPrevious,
+                stringResource(R.string.player_controls_previous),
+                Modifier.size(22.dp),
+            )
+        }
+    }
+    Box(
+        buttonSlot,
+        contentAlignment = Alignment.Center,
+    ) {
+        PlaybackPlayPauseButton(
+            player,
+            snapshot,
+            Modifier.size(
+                36.dp,
+            ),
+            controlsEnabled,
+        )
+    }
+    Box(
+        buttonSlot,
+        contentAlignment = Alignment.Center,
+    ) {
+        FilledIconButton(
+            onClick = player::seekToNext,
+            enabled =
+                controlsEnabled &&
+                    snapshot.commands.contains(Player.COMMAND_SEEK_TO_NEXT),
+            modifier = Modifier.size(36.dp).tvFocusRing(CircleShape),
+            colors = playbackSkipColors(),
+        ) {
+            Icon(
+                Icons.Rounded.SkipNext,
+                stringResource(R.string.player_controls_next),
+                Modifier.size(22.dp),
+            )
+        }
     }
 }
 

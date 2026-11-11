@@ -332,8 +332,14 @@ internal fun PlaybackOverlayContent(
     }
     var queue by rememberSaveable { mutableStateOf(false) }
     var output by rememberSaveable { mutableStateOf(false) }
+    val queueScope = rememberCoroutineScope()
+    val queueSheet = remember { PlaybackQueueSheet(queueScope) }
+    queueSheet.settleSpec =
+        MaterialTheme.motionScheme.defaultSpatialSpec<Float>() as SpringSpec<Float>
+    queueSheet.flingThreshold = with(density) { 400.dp.toPx() }
     BackHandler(expanded && !hidden && snapshot.visible) {
         when {
+            queueSheet.engaged -> queueSheet.stepBack()
             queue -> queue = false
             output -> output = false
             else -> onExpandedChanged(false)
@@ -393,8 +399,26 @@ internal fun PlaybackOverlayContent(
         val isFullyOpen by remember { derivedStateOf { expansion.value == 1f } }
         val interactive by remember { derivedStateOf { expansion.value >= .99f } }
         val currentlyExpanded by rememberUpdatedState(expanded)
+        // In portrait, pulling the open player up raises its queue; the gesture keeps that target.
+        var queueGesture by remember { mutableStateOf<Boolean?>(null) }
+        LaunchedEffect(
+            expanded,
+            landscape,
+        ) {
+            if (!expanded || landscape) queueSheet.snapTo(QueueStage.PLAYER)
+        }
         val dragState = rememberDraggableState { delta ->
-            if (controlsEnabled && currentlyExpanded && expansion.value >= .99f && delta < 0f) {
+            val toQueue = queueGesture ?: (
+                !landscape && currentlyExpanded && expansion.value >= .99f &&
+                    (queueSheet.engaged || delta < 0f)
+                ).also { queueGesture = it }
+            if (toQueue) {
+                queueSheet.dragBy(delta)
+                return@rememberDraggableState
+            }
+            if (landscape && controlsEnabled && currentlyExpanded && expansion.value >= .99f &&
+                delta < 0f
+            ) {
                 upwardPull -= delta
                 if (upwardPull > with(density) { 32.dp.toPx() }) queue = true
             } else if (delta > 0f) {
@@ -414,9 +438,19 @@ internal fun PlaybackOverlayContent(
         ) -> Unit = {
             expansion.stop()
             upwardPull = 0f
+            queueGesture = null
             dragging = true
         }
-        val dragStopped: suspend kotlinx.coroutines.CoroutineScope.(Float) -> Unit = { velocity ->
+        val dragStopped: suspend kotlinx.coroutines.CoroutineScope.(
+            Float,
+        ) -> Unit = stop@{ velocity ->
+            if (queueGesture == true) {
+                queueGesture = null
+                dragging = false
+                queueSheet.settle(velocity)
+                return@stop
+            }
+            queueGesture = null
             val threshold = minOf(
                 travel * .25f,
                 with(density) { 32.dp.toPx() },
@@ -634,13 +668,22 @@ internal fun PlaybackOverlayContent(
                 landscape = landscape,
                 connection = presentation.connection,
                 deviceName = presentation.deviceName,
-                onCollapse = { onExpandedChanged(false) },
-                onQueue = { queue = true },
+                onCollapse = {
+                    if (queueSheet.engaged) {
+                        queueSheet.animateTo(QueueStage.PLAYER) { onExpandedChanged(false) }
+                    } else {
+                        onExpandedChanged(false)
+                    }
+                },
+                onQueue = {
+                    if (landscape) queue = true else queueSheet.animateTo(QueueStage.QUEUE)
+                },
                 onOutput = { output = true },
                 onStop = onStop,
                 onWatchVideo = onWatchVideo,
                 onCommand = onCommand,
                 dragModifier = verticalDrag,
+                queueSheet = queueSheet.takeIf { !landscape },
                 interactive = interactive,
                 transitionProgress = { expansion.value },
                 controlsTranslationY = {
@@ -838,7 +881,7 @@ private fun PlaybackMorphingMetadata(
     }
 }
 
-private fun smoothStep(start: Float, end: Float, value: Float): Float {
+internal fun smoothStep(start: Float, end: Float, value: Float): Float {
     val position = ((value - start) / (end - start)).coerceIn(
         0f,
         1f,
