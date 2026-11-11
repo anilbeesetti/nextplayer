@@ -221,6 +221,7 @@ class MiniPlayerIntegrationTest {
             ActivityLifecycleMonitorRegistry.getInstance().getActivitiesInStage(Stage.RESUMED)
                 .any { it is PlayerActivity }
         }
+        lateinit var fullscreen: PlayerActivity
         onMain {
             assertEquals(
                 1,
@@ -235,11 +236,12 @@ class MiniPlayerIntegrationTest {
                 player.currentPosition,
             )
             assertFalse(player.playWhenReady)
-            ActivityLifecycleMonitorRegistry.getInstance().getActivitiesInStage(Stage.RESUMED)
-                .filterIsInstance<PlayerActivity>().forEach {
-                    it.onBackPressedDispatcher.onBackPressed()
-                }
+            fullscreen = ActivityLifecycleMonitorRegistry.getInstance()
+                .getActivitiesInStage(Stage.RESUMED).filterIsInstance<PlayerActivity>().single()
+            fullscreen.onBackPressedDispatcher.onBackPressed()
         }
+        await("fullscreen activity destroyed") { fullscreen.isDestroyed }
+        composeRule.waitForIdle()
         composeRule.onNodeWithTag("expanded_player").assertIsDisplayed()
         onMain {
             assertFalse(player.playWhenReady)
