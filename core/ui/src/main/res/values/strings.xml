@@ -583,6 +583,14 @@
     <string name="player_controls_repeat">Repeat</string>
     <string name="volume">Volume</string>
     <string name="queue_next_up">Next up</string>
+    <string name="play_on">Play on</string>
+    <string name="this_phone">This phone</string>
+    <string name="headphones">Headphones</string>
+    <string name="more_devices">More devices</string>
+    <string name="more_devices_summary">Pair or switch outputs with the system picker</string>
+    <string name="available">Available</string>
+    <string name="connected">Connected</string>
+    <string name="allow_nearby_devices">Allow access to find devices on your network</string>
     <string name="queue_move_up">Move earlier in queue</string>
     <string name="queue_move_down">Move later in queue</string>
     <plurals name="queue_videos_count">

@@ -35,6 +35,7 @@ enum class CustomCommands(val customAction: String) {
     SET_VIDEO_DECODER_MODE(customAction = "SET_VIDEO_DECODER_MODE"),
     SET_AUDIO_DECODER_MODE(customAction = "SET_AUDIO_DECODER_MODE"),
     TRY_DECODER_FALLBACK(customAction = "TRY_DECODER_FALLBACK"),
+    SET_AUDIO_OUTPUT(customAction = "SET_AUDIO_OUTPUT"),
     ;
 
     val sessionCommand = SessionCommand(
@@ -69,6 +70,10 @@ enum class CustomCommands(val customAction: String) {
         const val DECODER_RECOVERY_STATUS_KEY = "decoder_recovery_status"
         const val DECODER_RECOVERY_TRACK_TYPE_KEY = "decoder_recovery_track_type"
         const val UNSUPPORTED_DECODER_MODE_KEY = "unsupported_decoder_mode"
+
+        /** The id of the phone audio output playback prefers, or [SYSTEM_AUDIO_OUTPUT]. */
+        const val AUDIO_OUTPUT_KEY = "audio_output"
+        const val SYSTEM_AUDIO_OUTPUT = -1
     }
 }
 
@@ -288,4 +293,14 @@ internal fun Bundle.decoderMode(key: String): DecoderMode? {
 internal fun MediaController.playbackCommand(command: CustomCommands) = sendCustomCommand(
     command.sessionCommand,
     Bundle.EMPTY,
+)
+
+internal fun MediaController.setAudioOutput(deviceId: Int) = sendCustomCommand(
+    CustomCommands.SET_AUDIO_OUTPUT.sessionCommand,
+    Bundle().apply {
+        putInt(
+            CustomCommands.AUDIO_OUTPUT_KEY,
+            deviceId,
+        )
+    },
 )

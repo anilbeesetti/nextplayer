@@ -3,6 +3,7 @@ package dev.anilbeesetti.nextplayer.feature.player.service
 import android.app.PendingIntent
 import android.content.ContentResolver
 import android.content.Intent
+import android.media.AudioManager
 import android.media.audiofx.LoudnessEnhancer
 import android.net.Uri
 import android.os.Bundle
@@ -944,6 +945,25 @@ class PlayerService : MediaSessionService() {
 
                 CustomCommands.PLAY_ON_PHONE -> {
                     playbackOutput?.playOnPhone()
+                    return@future SessionResult(SessionResult.RESULT_SUCCESS)
+                }
+
+                CustomCommands.SET_AUDIO_OUTPUT -> {
+                    val id = args.getInt(
+                        CustomCommands.AUDIO_OUTPUT_KEY,
+                        CustomCommands.SYSTEM_AUDIO_OUTPUT,
+                    )
+                    val device = getSystemService(AudioManager::class.java)
+                        .getDevices(AudioManager.GET_DEVICES_OUTPUTS).find { it.id == id }
+                    localPlaybackPlayer?.setPreferredAudioDevice(device)
+                    // Choosing a phone output while casting brings playback back to the phone.
+                    if (isRemotePlayback) playbackOutput?.playOnPhone()
+                    session.sessionExtras = Bundle(session.sessionExtras).apply {
+                        putInt(
+                            CustomCommands.AUDIO_OUTPUT_KEY,
+                            device?.id ?: CustomCommands.SYSTEM_AUDIO_OUTPUT,
+                        )
+                    }
                     return@future SessionResult(SessionResult.RESULT_SUCCESS)
                 }
 

@@ -124,6 +124,7 @@ import dev.anilbeesetti.nextplayer.feature.player.service.EXTRA_WATCH_VIDEO
 import dev.anilbeesetti.nextplayer.feature.player.service.PlaybackConnection
 import dev.anilbeesetti.nextplayer.feature.player.service.PlaybackPresentation
 import dev.anilbeesetti.nextplayer.feature.player.service.playbackCommand
+import dev.anilbeesetti.nextplayer.feature.player.service.setAudioOutput
 import dev.anilbeesetti.nextplayer.feature.player.service.stopPlayerSession
 import dev.anilbeesetti.nextplayer.feature.player.state.PlaybackSnapshot
 import dev.anilbeesetti.nextplayer.feature.player.state.rememberMediaController
@@ -259,6 +260,11 @@ fun PlaybackOverlay(
             onCommand = { controller.playbackCommand(it) },
             onStop = controller::stopPlayerSession,
             compactModifier = compactModifier,
+            audioOutput = extras.getInt(
+                CustomCommands.AUDIO_OUTPUT_KEY,
+                CustomCommands.SYSTEM_AUDIO_OUTPUT,
+            ),
+            onAudioOutput = { controller.setAudioOutput(it) },
             onWatchVideo = {
                 context.startActivity(
                     Intent(
@@ -321,6 +327,8 @@ internal fun PlaybackOverlayContent(
     onStop: () -> Unit,
     onWatchVideo: () -> Unit,
     compactModifier: Modifier = Modifier,
+    audioOutput: Int = CustomCommands.SYSTEM_AUDIO_OUTPUT,
+    onAudioOutput: (Int) -> Unit = {},
 ) {
     val density = LocalDensity.current
     val compactHeight = compactPlaybackHeight(density.fontScale)
@@ -331,7 +339,6 @@ internal fun PlaybackOverlayContent(
     ) {
         onCompactHeightChanged(if (snapshot.visible && !hidden) compactHeight + 8.dp else 0.dp)
     }
-    var queue by rememberSaveable { mutableStateOf(false) }
     var output by rememberSaveable { mutableStateOf(false) }
     val queueScope = rememberCoroutineScope()
     val queueSheet = remember { PlaybackQueueSheet(queueScope) }
@@ -341,7 +348,6 @@ internal fun PlaybackOverlayContent(
     BackHandler(expanded && !hidden && snapshot.visible) {
         when {
             queueSheet.engaged -> queueSheet.stepBack()
-            queue -> queue = false
             output -> output = false
             else -> onExpandedChanged(false)
         }
@@ -372,7 +378,6 @@ internal fun PlaybackOverlayContent(
             (maxHeight - compactBottom - compactHeight - 8.dp).toPx()
         }.coerceAtLeast(1f)
         var dragging by remember { mutableStateOf(false) }
-        var upwardPull by remember { mutableFloatStateOf(0f) }
         val expansion = remember {
             Animatable(
                 if (expanded) 1f else 0f,
@@ -400,19 +405,17 @@ internal fun PlaybackOverlayContent(
         val isFullyOpen by remember { derivedStateOf { expansion.value == 1f } }
         val interactive by remember { derivedStateOf { expansion.value >= .99f } }
         val currentlyExpanded by rememberUpdatedState(expanded)
-        // In portrait, pulling the open player up raises its queue; the gesture keeps that target.
+        // Pulling the open player up raises its queue; the gesture keeps that target.
         var queueGesture by remember { mutableStateOf<Boolean?>(null) }
         // Collapsing flies the artwork straight from where the queue left it; the queue resets
         // only once the player has closed.
-        LaunchedEffect(
-            isCollapsed,
-            landscape,
-        ) {
-            if (isCollapsed || landscape) queueSheet.snapTo(QueueStage.PLAYER)
-        }
+        LaunchedEffect(isCollapsed) { if (isCollapsed) queueSheet.snapTo(QueueStage.PLAYER) }
+        // Landscape opens the queue in one stage; turning the phone starts from the player.
+        queueSheet.halfStage = !landscape
+        LaunchedEffect(landscape) { queueSheet.snapTo(QueueStage.PLAYER) }
         val dragState = rememberDraggableState { delta ->
             val toQueue = queueGesture ?: (
-                !landscape && currentlyExpanded && expansion.value >= .99f &&
+                currentlyExpanded && expansion.value >= .99f &&
                     (queueSheet.engaged || delta < 0f)
                 ).also { queueGesture = it }
             if (toQueue) {
@@ -425,14 +428,6 @@ internal fun PlaybackOverlayContent(
                 }
                 queueSheet.dragBy(delta)
                 return@rememberDraggableState
-            }
-            if (landscape && controlsEnabled && currentlyExpanded && expansion.value >= .99f &&
-                delta < 0f
-            ) {
-                upwardPull -= delta
-                if (upwardPull > with(density) { 32.dp.toPx() }) queue = true
-            } else if (delta > 0f) {
-                upwardPull = 0f
             }
             gestureScope.launch(start = CoroutineStart.UNDISPATCHED) {
                 expansion.snapTo(
@@ -447,7 +442,6 @@ internal fun PlaybackOverlayContent(
             androidx.compose.ui.geometry.Offset,
         ) -> Unit = {
             expansion.stop()
-            upwardPull = 0f
             queueGesture = null
             dragging = true
         }
@@ -687,14 +681,14 @@ internal fun PlaybackOverlayContent(
                 deviceName = presentation.deviceName,
                 onCollapse = { onExpandedChanged(false) },
                 onQueue = {
-                    if (landscape) queue = true else queueSheet.animateTo(QueueStage.QUEUE)
+                    queueSheet.animateTo(QueueStage.QUEUE)
                 },
                 onOutput = { output = true },
                 onStop = onStop,
                 onWatchVideo = onWatchVideo,
                 onCommand = onCommand,
                 dragModifier = verticalDrag,
-                queueSheet = queueSheet.takeIf { !landscape },
+                queueSheet = queueSheet,
                 interactive = interactive,
                 transitionProgress = { expansion.value },
                 controlsTranslationY = {
@@ -781,40 +775,18 @@ internal fun PlaybackOverlayContent(
 
     LaunchedEffect(controlsEnabled) {
         if (!controlsEnabled) {
-            queue = false
             output = false
         }
     }
-    if (queue && controlsEnabled) {
-        ModalBottomSheet(
-            onDismissRequest = { queue = false },
-            sheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true),
-        ) {
-            Box(Modifier.fillMaxWidth().fillMaxHeight(.9f).testTag("playback_queue")) {
-                PlaybackQueueContent(player)
-            }
-        }
-    }
     if (output && controlsEnabled) {
-        ModalBottomSheet(
-            onDismissRequest = { output = false },
-            sheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true),
-        ) {
-            Column(
-                Modifier.fillMaxWidth().padding(24.dp),
-                verticalArrangement = Arrangement.spacedBy(16.dp),
-            ) {
-                Text(
-                    secondary,
-                    style = MaterialTheme.typography.titleMedium,
-                )
-                CastButton(MaterialTheme.colorScheme.onSurface)
-                PlaybackVolumeControl(
-                    player,
-                    snapshot,
-                )
-            }
-        }
+        PlaybackOutputSheet(
+            player,
+            snapshot,
+            presentation,
+            audioOutput,
+            onAudioOutput,
+            onDismiss = { output = false },
+        )
     }
 }
 

@@ -131,6 +131,7 @@ internal fun QueueArtworkBanner(
     bounds: () -> Rect,
     progress: () -> Float,
     modifier: Modifier = Modifier,
+    scrims: Boolean = true,
 ) {
     val fade = MaterialTheme.colorScheme.primaryContainer
     val scrim = MaterialTheme.colorScheme.scrim
@@ -160,7 +161,7 @@ internal fun QueueArtworkBanner(
                         value,
                     )
                     )
-                if (strength <= 0f) return@drawBehind
+                if (!scrims || strength <= 0f) return@drawBehind
                 drawRect(
                     Brush.verticalGradient(
                         0f to scrim.copy(alpha = .4f),

@@ -360,68 +360,182 @@ internal fun ExpandedPlaybackControls(
             .semantics { paneTitle = pane }.safeDrawingPadding(),
     ) {
         if (landscape) {
-            Row(
-                Modifier.fillMaxSize().padding(end = 24.dp),
-                verticalAlignment = Alignment.CenterVertically,
-                horizontalArrangement = Arrangement.spacedBy(9.dp),
-            ) {
-                BoxWithConstraints(Modifier.weight(1f).fillMaxHeight().padding(vertical = 8.dp)) {
-                    val startGutter = 24.dp
-                    val artworkSize = minOf(
-                        maxWidth - startGutter,
-                        maxHeight,
+            // Landscape has one queue stage: the artwork shrinks into the mini row's thumbnail
+            // while the controls step aside and the queue rises to fill the screen.
+            val sheet = queueSheet
+            val queueProgress: () -> Float = {
+                sheet?.progress?.coerceIn(
+                    -.15f,
+                    2.15f,
+                ) ?: 0f
+            }
+            val queueShown by remember(sheet) { derivedStateOf { sheet?.engaged == true } }
+            val miniRowShown by remember(sheet) {
+                derivedStateOf { (sheet?.progress ?: 0f) > 1.35f }
+            }
+            var container by remember { mutableStateOf<LayoutCoordinates?>(null) }
+            var artworkBounds by remember { mutableStateOf(Rect.Zero) }
+            val density = LocalDensity.current
+            val bottomInset = WindowInsets.safeDrawing.getBottom(density)
+            BoxWithConstraints(Modifier.fillMaxSize().onPlaced { container = it }) {
+                val stages = remember(
+                    constraints.maxWidth,
+                    constraints.maxHeight,
+                    density,
+                ) {
+                    QueueStageGeometry(
+                        constraints.maxWidth.toFloat(),
+                        constraints.maxHeight.toFloat(),
+                        topInset = 0f,
+                        blockHeight = 0f,
+                        density,
                     )
-                    val endInset = (maxWidth - startGutter - artworkSize) / 2
-                    val startInset = startGutter + endInset
-                    PlaybackArtworkCarousel(
-                        player,
-                        snapshot,
-                        controlsEnabled && interactive,
-                        Modifier.fillMaxWidth().height(artworkSize).align(Alignment.CenterStart)
-                            .then(dragModifier),
-                        artworkSize,
-                        PaddingValues(
-                            start = startInset,
-                            end = endInset,
-                        ),
-                        pageSpacing = startInset * 2,
-                        artworkModifier,
-                    )
-                    Box(
-                        Modifier.align(Alignment.CenterStart).padding(start = startInset)
-                            .size(artworkSize).testTag("landscape_artwork_frame"),
+                }
+                if (sheet != null) {
+                    LaunchedEffect(
+                        sheet,
+                        stages,
                     ) {
-                        PlaybackCollapseButton(
-                            onCollapse,
-                            Modifier.align(
-                                Alignment.TopStart,
-                            ).padding(8.dp)
-                                .testTag("landscape_collapse")
-                                .then(dragModifier).focusRequester(collapseFocus)
-                                .blockTouchesUntil(interactive),
+                        val closed = constraints.maxHeight.toFloat()
+                        sheet.setAnchors(
+                            closed = closed,
+                            half = (closed + stages.queuePanelTop) / 2,
+                            full = stages.queuePanelTop,
                         )
-                        artworkOverlay()
                     }
                 }
-                Column(
-                    Modifier.weight(1f).fillMaxHeight(),
-                    horizontalAlignment = Alignment.CenterHorizontally,
-                    verticalArrangement = Arrangement.SpaceEvenly,
+                val artworkAt: (Float) -> Rect = { progress ->
+                    lerp(
+                        artworkBounds,
+                        stages.thumbnail,
+                        progress / 2f,
+                    )
+                }
+                Row(
+                    Modifier.fillMaxSize().then(dragModifier).padding(end = 24.dp),
+                    verticalAlignment = Alignment.CenterVertically,
+                    horizontalArrangement = Arrangement.spacedBy(9.dp),
                 ) {
-                    metadata()
-                    PlaybackSeekControl(
+                    BoxWithConstraints(
+                        Modifier.weight(1f).fillMaxHeight().padding(vertical = 8.dp),
+                    ) {
+                        val startGutter = 24.dp
+                        val artworkSize = minOf(
+                            maxWidth - startGutter,
+                            maxHeight,
+                        )
+                        val endInset = (maxWidth - startGutter - artworkSize) / 2
+                        val startInset = startGutter + endInset
+                        PlaybackArtworkCarousel(
+                            player,
+                            snapshot,
+                            controlsEnabled && interactive && !queueShown,
+                            Modifier.fillMaxWidth().height(artworkSize)
+                                .align(Alignment.CenterStart)
+                                .graphicsLayer { alpha = if (queueShown) 0f else 1f },
+                            artworkSize,
+                            PaddingValues(
+                                start = startInset,
+                                end = endInset,
+                            ),
+                            pageSpacing = startInset * 2,
+                            Modifier.onGloballyPositioned { coordinates ->
+                                container?.takeIf { it.isAttached }?.let {
+                                    artworkBounds = it.localBoundingBoxOf(
+                                        coordinates,
+                                        clipBounds = false,
+                                    )
+                                }
+                            }.then(if (queueShown) Modifier else artworkModifier),
+                        )
+                        Box(
+                            Modifier.align(Alignment.CenterStart).padding(start = startInset)
+                                .size(artworkSize).testTag("landscape_artwork_frame")
+                                .graphicsLayer {
+                                    alpha = 1f - smoothStep(
+                                        0f,
+                                        .4f,
+                                        queueProgress(),
+                                    )
+                                },
+                        ) {
+                            PlaybackCollapseButton(
+                                onCollapse,
+                                Modifier.align(
+                                    Alignment.TopStart,
+                                ).padding(8.dp)
+                                    .testTag("landscape_collapse")
+                                    .focusRequester(collapseFocus)
+                                    .blockTouchesUntil(interactive),
+                            )
+                            artworkOverlay()
+                        }
+                    }
+                    Column(
+                        Modifier.weight(1f).fillMaxHeight().graphicsLayer {
+                            val progress = queueProgress()
+                            alpha = 1f - smoothStep(
+                                0f,
+                                .9f,
+                                progress,
+                            )
+                            translationX = 48.dp.toPx() * smoothStep(
+                                0f,
+                                1.4f,
+                                progress,
+                            )
+                        },
+                        horizontalAlignment = Alignment.CenterHorizontally,
+                        verticalArrangement = Arrangement.SpaceEvenly,
+                    ) {
+                        metadata()
+                        PlaybackSeekControl(
+                            player,
+                            snapshot,
+                            controlsEnabled,
+                            modifier = Modifier.blockTouchesUntil(interactive).expansionReveal(
+                                .35f,
+                                transitionProgress,
+                                controlsTranslationY,
+                            ),
+                        )
+                        controls(
+                            Modifier,
+                            Modifier,
+                        )
+                    }
+                }
+                if (queueShown) {
+                    QueueArtworkBanner(
+                        snapshot,
+                        bounds = { artworkAt(queueProgress()) },
+                        progress = queueProgress,
+                        modifier = dragModifier.then(artworkModifier),
+                        scrims = false,
+                    )
+                }
+                if (sheet != null && miniRowShown) {
+                    QueueMiniRow(
                         player,
                         snapshot,
+                        title,
+                        secondary,
                         controlsEnabled,
-                        modifier = Modifier.blockTouchesUntil(interactive).expansionReveal(
-                            .35f,
-                            transitionProgress,
-                            controlsTranslationY,
-                        ),
+                        progress = queueProgress,
+                        onClick = { sheet.stepBack() },
+                        modifier = Modifier.height(stages.rowHeightDp).then(dragModifier),
                     )
-                    controls(
-                        Modifier,
-                        Modifier,
+                }
+                if (sheet != null && queueShown) {
+                    QueuePanel(
+                        player,
+                        sheet,
+                        bottomInset = with(density) { bottomInset.toDp() },
+                        modifier = Modifier.expansionReveal(
+                            .6f,
+                            transitionProgress,
+                            distance = 0.dp,
+                        ),
                     )
                 }
             }
@@ -723,7 +837,7 @@ internal fun ExpandedPlaybackControls(
                         secondary,
                         controlsEnabled,
                         progress = queueProgress,
-                        onClick = { sheet.animateTo(QueueStage.HALF) },
+                        onClick = { sheet.stepBack() },
                         modifier = Modifier.height(stages.rowHeightDp).then(dragModifier),
                     )
                 }

@@ -35,6 +35,9 @@ internal class PlaybackQueueSheet(private val scope: CoroutineScope) {
 
     var settleSpec: SpringSpec<Float> = spring()
 
+    /** Landscape has no half stage: the queue opens fully or not at all. */
+    var halfStage = true
+
     /** Speed in pixels per second above which a release moves on to the next stage. */
     var flingThreshold = 1_000f
 
@@ -96,9 +99,9 @@ internal class PlaybackQueueSheet(private val scope: CoroutineScope) {
 
     fun settle(velocity: Float) {
         val position = top.value
-        val anchors = listOf(
+        val anchors = listOfNotNull(
             full,
-            half,
+            half.takeIf { halfStage },
             closed,
         )
         val target = when {
@@ -130,7 +133,7 @@ internal class PlaybackQueueSheet(private val scope: CoroutineScope) {
 
     /** One stage towards the player, as Back does. */
     fun stepBack() = animateTo(
-        if (stage == QueueStage.QUEUE) QueueStage.HALF else QueueStage.PLAYER,
+        if (stage == QueueStage.QUEUE && halfStage) QueueStage.HALF else QueueStage.PLAYER,
     )
 
     fun snapTo(target: QueueStage) {

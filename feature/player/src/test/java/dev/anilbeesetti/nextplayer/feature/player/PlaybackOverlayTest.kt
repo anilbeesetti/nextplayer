@@ -1,5 +1,7 @@
 package dev.anilbeesetti.nextplayer.feature.player
 
+import android.media.AudioDeviceInfo
+import android.media.AudioManager
 import android.provider.Settings
 import androidx.activity.ComponentActivity
 import androidx.compose.runtime.CompositionLocalProvider
@@ -21,6 +23,7 @@ import androidx.compose.ui.test.assertIsNotEnabled
 import androidx.compose.ui.test.getUnclippedBoundsInRoot
 import androidx.compose.ui.test.junit4.v2.createAndroidComposeRule
 import androidx.compose.ui.test.onAllNodesWithTag
+import androidx.compose.ui.test.onAllNodesWithText
 import androidx.compose.ui.test.onNodeWithContentDescription
 import androidx.compose.ui.test.onNodeWithTag
 import androidx.compose.ui.test.onNodeWithText
@@ -50,7 +53,9 @@ import org.junit.Rule
 import org.junit.Test
 import org.junit.runner.RunWith
 import org.robolectric.RobolectricTestRunner
+import org.robolectric.Shadows.shadowOf
 import org.robolectric.annotation.Config
+import org.robolectric.shadows.AudioDeviceInfoBuilder
 
 @RunWith(RobolectricTestRunner::class)
 // A real phone height: the expanded player fits its screen instead of scrolling.
@@ -630,6 +635,48 @@ class PlaybackOverlayTest {
     }
 
     @Test
+    @Config(qualifiers = "w915dp-h412dp-land")
+    fun landscapeQueueOpensInOneStageAndBackReturnsToThePlayer() {
+        expanded = true
+        show()
+        composeRule.onNodeWithTag("expanded_player").performTouchInput { swipeUp() }
+        composeRule.onNodeWithTag("playback_queue").assertIsDisplayed()
+        // The mini row only shows once the queue is fully open.
+        composeRule.onNodeWithTag("queue_mini_row").assertIsDisplayed()
+        composeRule.runOnIdle { composeRule.activity.onBackPressedDispatcher.onBackPressed() }
+        composeRule.onNodeWithTag("playback_queue").assertDoesNotExist()
+        composeRule.onNodeWithTag("expanded_player").assertIsDisplayed()
+    }
+
+    @Test fun outputSheetListsPhoneOutputsAndChoosesThePhone() {
+        val audio = composeRule.activity.getSystemService(AudioManager::class.java)
+        shadowOf(audio).setOutputDevices(
+            listOf(
+                AudioDeviceInfoBuilder.newBuilder().setType(AudioDeviceInfo.TYPE_BUILTIN_SPEAKER)
+                    .build(),
+                AudioDeviceInfoBuilder.newBuilder()
+                    .setType(AudioDeviceInfo.TYPE_WIRED_HEADPHONES).build(),
+                AudioDeviceInfoBuilder.newBuilder().setType(AudioDeviceInfo.TYPE_BUILTIN_EARPIECE)
+                    .build(),
+            ),
+        )
+        expanded = true
+        show()
+        composeRule.onNodeWithContentDescription(text(R.string.playback_output)).performClick()
+        composeRule.onNodeWithText(text(R.string.play_on)).assertIsDisplayed()
+        // Robolectric names every fake device after itself; the earpiece must not add a second row.
+        composeRule.onAllNodesWithText("robolectric").assertCountEquals(1)
+        composeRule.onNodeWithText(text(R.string.this_phone)).assertIsDisplayed()
+        composeRule.onNodeWithText(text(R.string.this_phone)).performClick()
+        composeRule.runOnIdle {
+            assertEquals(
+                1,
+                audioOutputs.size,
+            )
+        }
+    }
+
+    @Test
     @Config(qualifiers = "w640dp-h360dp-land")
     fun narrowLandscapeRetainsMetadataWithALongCastReceiverName() {
         expanded = true
@@ -1082,10 +1129,12 @@ class PlaybackOverlayTest {
                         onCommand = { commands += it },
                         onStop = {},
                         onWatchVideo = { watched++ },
+                        onAudioOutput = { audioOutputs += it },
                     )
                 }
             }
         }
     }
+    private val audioOutputs = mutableListOf<Int>()
     private fun text(id: Int) = composeRule.activity.getString(id)
 }
