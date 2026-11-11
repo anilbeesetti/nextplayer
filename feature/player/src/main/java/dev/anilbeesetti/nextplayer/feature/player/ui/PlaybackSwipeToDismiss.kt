@@ -61,12 +61,7 @@ internal fun PlaybackSwipeToDismiss(
     content: @Composable () -> Unit,
 ) {
     val density = LocalDensity.current
-    val tension = with(density) { (if (bothDirections) 100.dp else 60.dp).toPx() }
-    val resistedTravel = with(density) { (if (bothDirections) 30.dp else 20.dp).toPx() }
-    var raw by remember { mutableFloatStateOf(0f) }
     var released by remember { mutableStateOf(false) }
-    var freeDrag by remember { mutableStateOf(false) }
-    var velocity by remember { mutableFloatStateOf(0f) }
     var offset by remember { mutableFloatStateOf(0f) }
     var height by remember { mutableIntStateOf(0) }
     var width by remember { mutableIntStateOf(0) }
@@ -77,16 +72,14 @@ internal fun PlaybackSwipeToDismiss(
     val direction = LocalLayoutDirection.current
     val haptics = LocalHapticFeedback.current
     val view = LocalView.current
-    val targeted = enabled && width > 0 && abs(raw) >= width * .4f
+    val targeted = enabled && width > 0 && abs(offset) >= width * .4f
     fun settle(remove: Boolean) {
         animation?.cancel()
         val committedDismiss = dismiss
         released = remove
-        velocity = 0f
         if (remove) haptics.performHapticFeedback(HapticFeedbackType.GestureEnd)
-        raw = if (remove) raw else 0f
         animation = scope.launch {
-            val target = if (remove) width * raw.sign else 0f
+            val target = if (remove) width * offset.sign else 0f
             animate(
                 initialValue = offset,
                 targetValue = target,
@@ -106,8 +99,6 @@ internal fun PlaybackSwipeToDismiss(
                 0f,
                 animationSpec = spring(),
             ) { value, _ -> offset = value }
-            raw = 0f
-            freeDrag = false
             released = false
         }
     }
@@ -133,17 +124,13 @@ internal fun PlaybackSwipeToDismiss(
             if (!enabled) return@pointerInput
             detectHorizontalDragGestures(
                 onDragStart = {
-                    if (!released) {
-                        animation?.cancel()
-                        raw = offset
-                        freeDrag = abs(raw) >= tension
-                    }
+                    if (!released) animation?.cancel()
                 },
                 onHorizontalDrag = { change, amount ->
                     if (released) return@detectHorizontalDragGestures
                     change.consume()
-                    val wasTargeted = width > 0 && abs(raw) >= width * .4f
-                    raw = (raw + amount).let {
+                    val wasTargeted = width > 0 && abs(offset) >= width * .4f
+                    offset = (offset + amount).let {
                         when {
                             bothDirections -> it.coerceIn(
                                 -width.toFloat(),
@@ -161,12 +148,7 @@ internal fun PlaybackSwipeToDismiss(
                             )
                         }
                     }
-                    val crossedResistance = !freeDrag && abs(raw) >= tension
-                    if (crossedResistance) {
-                        freeDrag = true
-                        haptics.performHapticFeedback(HapticFeedbackType.GestureThresholdActivate)
-                    }
-                    val nowTargeted = width > 0 && abs(raw) >= width * .4f
+                    val nowTargeted = width > 0 && abs(offset) >= width * .4f
                     if (nowTargeted != wasTargeted) {
                         if (nowTargeted) {
                             haptics.performHapticFeedback(
@@ -179,39 +161,10 @@ internal fun PlaybackSwipeToDismiss(
                             )
                         }
                     }
-                    animation?.cancel()
-                    if (!freeDrag) {
-                        offset = raw / tension * resistedTravel
-                    } else {
-                        animation = scope.launch {
-                            val damping = if (crossedResistance) {
-                                .8f
-                            } else {
-                                Spring.DampingRatioNoBouncy
-                            }
-                            val stiffness = if (crossedResistance) {
-                                Spring.StiffnessLow
-                            } else {
-                                Spring.StiffnessHigh
-                            }
-                            animate(
-                                initialValue = offset,
-                                targetValue = raw,
-                                initialVelocity = velocity,
-                                animationSpec = spring(
-                                    dampingRatio = damping,
-                                    stiffness = stiffness,
-                                ),
-                            ) { value, speed ->
-                                offset = value
-                                velocity = speed
-                            }
-                        }
-                    }
                 },
                 onDragCancel = { if (!released) settle(false) },
                 onDragEnd = {
-                    if (!released) settle(allowed && width > 0 && abs(raw) >= width * .4f)
+                    if (!released) settle(allowed && width > 0 && abs(offset) >= width * .4f)
                 },
             )
         },

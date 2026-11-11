@@ -369,6 +369,45 @@ class MiniPlayerIntegrationTest {
     }
 
     @Test
+    fun compactSwipeFollowsTheFingerWithoutStallOrJump() {
+        onMain { player.pause() }
+        waitForMiniPlayer()
+        val mini = composeRule.onNodeWithTag("mini_player")
+        val step = with(composeRule.density) { 8.dp.toPx() }
+        val tolerance = with(composeRule.density) { 1.dp.toPx() }
+        mini.performTouchInput {
+            down(center)
+            moveBy(
+                Offset(
+                    -viewConfiguration.touchSlop - step,
+                    0f,
+                ),
+                32,
+            )
+        }
+        repeat(30) { index ->
+            val before = mini.fetchSemanticsNode().positionInRoot.x
+            composeRule.onRoot().performTouchInput {
+                moveBy(
+                    Offset(
+                        -step,
+                        0f,
+                    ),
+                    32,
+                )
+            }
+            val moved = before - mini.fetchSemanticsNode().positionInRoot.x
+            assertTrue(
+                "Step $index moved $moved px instead of following the finger by $step px",
+                moved in (step - tolerance)..(step + tolerance),
+            )
+        }
+        composeRule.onRoot().performTouchInput { cancel() }
+        composeRule.waitForIdle()
+        await("cancelled swipe keeps playback") { player.mediaItemCount == 1 }
+    }
+
+    @Test
     fun dismissalUndoUsesCompactPillCountdownAndClose() {
         onMain { player.pause() }
         val clock = composeRule.mainClock

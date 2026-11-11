@@ -286,11 +286,12 @@ class PlaybackQueueContentTest {
         }
     }
 
-    @Test fun shortQueueSwipeResistsAndRevealsOnlyItsOwnWidth() {
+    @Test fun queueSwipeFollowsTheFingerWithoutStallOrJumpAndRevealsOnlyItsOwnWidth() {
         show()
         val row = rule.onNodeWithTag("queue_item_1")
-        val before = row.getUnclippedBoundsInRoot()
-        val travel = with(rule.density) { 40.dp.toPx() }
+        val initialLeft = row.getUnclippedBoundsInRoot().left
+        val step = 10.dp
+        val stepPx = with(rule.density) { step.toPx() }
         row.performTouchInput {
             down(
                 Offset(
@@ -298,28 +299,39 @@ class PlaybackQueueContentTest {
                     centerY,
                 ),
             )
-            repeat(10) {
+            moveBy(
+                Offset(
+                    -viewConfiguration.touchSlop - stepPx,
+                    0f,
+                ),
+                32,
+            )
+        }
+        repeat(12) { index ->
+            val before = row.getUnclippedBoundsInRoot().left
+            rule.onRoot().performTouchInput {
                 moveBy(
                     Offset(
-                        -travel / 10,
+                        -stepPx,
                         0f,
                     ),
                     32,
                 )
             }
+            val moved = before - row.getUnclippedBoundsInRoot().left
+            assertTrue(
+                "Step $index moved $moved instead of following the finger by $step",
+                (moved - step).value in -1f..1f,
+            )
         }
-        val after = row.getUnclippedBoundsInRoot()
+        val travelled = initialLeft - row.getUnclippedBoundsInRoot().left
         val reveal = rule.onNodeWithTag(
             "playback_dismiss_reveal",
             true,
         ).getUnclippedBoundsInRoot()
         assertTrue(
-            "Early drag should resist movement",
-            before.left - after.left <= 20.dp,
-        )
-        assertTrue(
             "Only the swiped strip should be drawn",
-            reveal.right - reveal.left <= 20.dp,
+            ((reveal.right - reveal.left) - travelled).value in -1f..1f,
         )
         rule.onRoot().performTouchInput { cancel() }
         rule.runOnIdle {
