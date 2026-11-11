@@ -77,29 +77,28 @@ internal class QueueStageGeometry(
     }
     val queuePanelTop = rowHeight + with(density) { 4.dp.toPx() }
 
-    /** Half way the artwork spans the full width, up behind the status bar. */
+    /** Half way the artwork is a full-width square, up behind the status bar. */
     val halfArtwork: Rect
     val halfPanelTop: Float
 
     init {
-        val panel = maxOf(
-            height * .4f,
-            with(density) { 240.dp.toPx() },
-        )
-        val bottom = (height - panel - blockHeight - gap * 2).coerceIn(
+        // Short screens shrink the square so the queue keeps room; it never stretches.
+        val room = height - with(density) { 240.dp.toPx() } - blockHeight - gap * 2 + topInset
+        val side = room.coerceIn(
             minOf(
                 rowHeight * 2,
-                width - topInset,
+                width,
             ),
-            width - topInset,
-        )
-        halfArtwork = Rect(
-            0f,
-            -topInset,
             width,
-            bottom,
         )
-        halfPanelTop = bottom + gap + blockHeight + gap
+        val left = (width - side) / 2
+        halfArtwork = Rect(
+            left,
+            -topInset,
+            left + side,
+            side - topInset,
+        )
+        halfPanelTop = halfArtwork.bottom + gap + blockHeight + gap
     }
 }
 

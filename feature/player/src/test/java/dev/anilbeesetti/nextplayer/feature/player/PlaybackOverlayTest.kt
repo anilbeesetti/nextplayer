@@ -282,7 +282,17 @@ class PlaybackOverlayTest {
         )
         composeRule.onNodeWithTag("playback_artwork").performTouchInput { swipeUp() }
         composeRule.onNodeWithTag("playback_queue").assertIsDisplayed()
-        composeRule.runOnIdle { composeRule.activity.onBackPressedDispatcher.onBackPressed() }
+        // Back lowers the queue one stage at a time before it ever collapses the player.
+        repeat(2) {
+            if (composeRule.onAllNodesWithTag(
+                    "playback_queue",
+                ).fetchSemanticsNodes().isNotEmpty()
+            ) {
+                composeRule.runOnIdle {
+                    composeRule.activity.onBackPressedDispatcher.onBackPressed()
+                }
+            }
+        }
         composeRule.onNodeWithTag("playback_queue").assertDoesNotExist()
         composeRule.onNodeWithTag("expanded_player").assertIsDisplayed()
     }
