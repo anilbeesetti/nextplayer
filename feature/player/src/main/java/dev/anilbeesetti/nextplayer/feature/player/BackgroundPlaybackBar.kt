@@ -53,6 +53,7 @@ import coil3.compose.rememberAsyncImagePainter
 import coil3.request.ImageRequest
 import dev.anilbeesetti.nextplayer.core.ui.R
 import dev.anilbeesetti.nextplayer.core.ui.components.tvFocusRing
+import dev.anilbeesetti.nextplayer.feature.player.service.PlaybackConnection
 import dev.anilbeesetti.nextplayer.feature.player.state.PlaybackSnapshot
 import dev.anilbeesetti.nextplayer.feature.player.state.rememberPlaybackSnapshot
 
@@ -72,9 +73,7 @@ internal fun MiniPlayer(
     artworkPainter: Painter = rememberPlaybackArtworkPainter(snapshot),
 ) {
     if (!snapshot.visible) return
-    val title = snapshot.metadata.title?.toString()?.takeIf { it.isNotBlank() }
-        ?: snapshot.item?.localConfiguration?.uri?.lastPathSegment
-        ?: stringResource(R.string.player_name)
+    val title = playbackTitle(snapshot)
     val output = secondaryText ?: if (snapshot.isRemote) {
         deviceName?.let {
             stringResource(
@@ -223,6 +222,41 @@ internal fun MiniPlayer(
             }
         }
     }
+}
+
+@Composable
+internal fun playbackTitle(snapshot: PlaybackSnapshot): String =
+    snapshot.metadata.title?.toString()?.takeIf { it.isNotBlank() }
+        ?: snapshot.item?.localConfiguration?.uri?.lastPathSegment
+        ?: stringResource(R.string.player_name)
+
+@Composable
+internal fun playbackSecondaryText(
+    snapshot: PlaybackSnapshot,
+    connection: PlaybackConnection,
+    deviceName: String?,
+): String = when (connection) {
+    PlaybackConnection.CONNECTING -> stringResource(
+        R.string.connecting_to_device,
+        deviceName.orEmpty(),
+    )
+
+    PlaybackConnection.LOST -> stringResource(
+        R.string.cast_connection_lost,
+        deviceName.orEmpty(),
+    )
+
+    PlaybackConnection.CAST -> stringResource(
+        R.string.casting_on_device,
+        deviceName.orEmpty(),
+    )
+
+    PlaybackConnection.STOPPED, PlaybackConnection.LOCAL ->
+        snapshot.metadata.subtitle?.toString()
+            ?: snapshot.item?.localConfiguration?.uri?.path?.substringBeforeLast(
+                '/',
+            )?.substringAfterLast('/')
+            ?: stringResource(R.string.background_play)
 }
 
 @Composable

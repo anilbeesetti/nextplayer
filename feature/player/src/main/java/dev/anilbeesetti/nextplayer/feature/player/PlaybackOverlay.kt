@@ -319,32 +319,12 @@ internal fun PlaybackOverlayContent(
     if (!snapshot.visible || hidden) return
     val controlsEnabled = presentation.connection != PlaybackConnection.CONNECTING &&
         presentation.connection != PlaybackConnection.LOST
-    val title = snapshot.metadata.title?.toString()?.takeIf { it.isNotBlank() }
-        ?: snapshot.item?.localConfiguration?.uri?.lastPathSegment
-        ?: stringResource(R.string.player_name)
-    val secondary = when (presentation.connection) {
-        PlaybackConnection.CONNECTING -> stringResource(
-            R.string.connecting_to_device,
-            presentation.deviceName.orEmpty(),
-        )
-
-        PlaybackConnection.LOST -> stringResource(
-            R.string.cast_connection_lost,
-            presentation.deviceName.orEmpty(),
-        )
-
-        PlaybackConnection.CAST -> stringResource(
-            R.string.casting_on_device,
-            presentation.deviceName.orEmpty(),
-        )
-
-        PlaybackConnection.STOPPED, PlaybackConnection.LOCAL ->
-            snapshot.metadata.subtitle?.toString()
-                ?: snapshot.item?.localConfiguration?.uri?.path?.substringBeforeLast(
-                    '/',
-                )?.substringAfterLast('/')
-                ?: stringResource(R.string.background_play)
-    }
+    val title = playbackTitle(snapshot)
+    val secondary = playbackSecondaryText(
+        snapshot,
+        presentation.connection,
+        presentation.deviceName,
+    )
     val artworkPainter = rememberPlaybackArtworkPainter(snapshot)
     var rootOrigin by remember { mutableStateOf(Offset.Zero) }
     var compactArtwork by remember { mutableStateOf(Rect.Zero) }
