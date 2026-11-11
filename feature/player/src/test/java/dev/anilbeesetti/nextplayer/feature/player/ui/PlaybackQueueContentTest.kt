@@ -18,6 +18,7 @@ import androidx.compose.ui.test.assertTextEquals
 import androidx.compose.ui.test.getUnclippedBoundsInRoot
 import androidx.compose.ui.test.junit4.v2.createAndroidComposeRule
 import androidx.compose.ui.test.onAllNodesWithContentDescription
+import androidx.compose.ui.test.onAllNodesWithTag
 import androidx.compose.ui.test.onNodeWithTag
 import androidx.compose.ui.test.onNodeWithText
 import androidx.compose.ui.test.onRoot
@@ -311,12 +312,11 @@ class PlaybackQueueContentTest {
         }
     }
 
-    @Test fun queueSwipeFollowsTheFingerWithoutStallOrJumpAndRevealsOnlyItsOwnWidth() {
+    @Test fun shortQueueSwipeResistsAndRevealsOnlyItsOwnWidth() {
         show()
         val row = rule.onNodeWithTag("queue_item_1")
-        val initialLeft = row.getUnclippedBoundsInRoot().left
-        val step = 10.dp
-        val stepPx = with(rule.density) { step.toPx() }
+        val before = row.getUnclippedBoundsInRoot()
+        val travel = with(rule.density) { 40.dp.toPx() }
         row.performTouchInput {
             down(
                 Offset(
@@ -324,39 +324,28 @@ class PlaybackQueueContentTest {
                     centerY,
                 ),
             )
-            moveBy(
-                Offset(
-                    -viewConfiguration.touchSlop - stepPx,
-                    0f,
-                ),
-                32,
-            )
-        }
-        repeat(12) { index ->
-            val before = row.getUnclippedBoundsInRoot().left
-            rule.onRoot().performTouchInput {
+            repeat(10) {
                 moveBy(
                     Offset(
-                        -stepPx,
+                        -travel / 10,
                         0f,
                     ),
                     32,
                 )
             }
-            val moved = before - row.getUnclippedBoundsInRoot().left
-            assertTrue(
-                "Step $index moved $moved instead of following the finger by $step",
-                (moved - step).value in -1f..1f,
-            )
         }
-        val travelled = initialLeft - row.getUnclippedBoundsInRoot().left
+        val after = row.getUnclippedBoundsInRoot()
         val reveal = rule.onNodeWithTag(
             "playback_dismiss_reveal",
             true,
         ).getUnclippedBoundsInRoot()
         assertTrue(
+            "Early drag should resist movement",
+            before.left - after.left <= 20.dp,
+        )
+        assertTrue(
             "Only the swiped strip should be drawn",
-            ((reveal.right - reveal.left) - travelled).value in -1f..1f,
+            reveal.right - reveal.left <= 20.dp,
         )
         rule.onRoot().performTouchInput { cancel() }
         rule.runOnIdle {
@@ -365,6 +354,97 @@ class PlaybackQueueContentTest {
                 player.mediaItemCount,
             )
         }
+    }
+
+    @Test fun rowCatchesUpWhileTheFingerKeepsMovingPastTheResistance() {
+        show()
+        val row = rule.onNodeWithTag("queue_item_1")
+        val start = row.getUnclippedBoundsInRoot().left
+        val step = 6.dp
+        val stepPx = with(rule.density) { step.toPx() }
+        rule.mainClock.autoAdvance = false
+        row.performTouchInput {
+            down(
+                Offset(
+                    width * .9f,
+                    centerY,
+                ),
+            )
+            moveBy(
+                Offset(
+                    -viewConfiguration.touchSlop - stepPx,
+                    0f,
+                ),
+                16,
+            )
+        }
+        rule.mainClock.advanceTimeByFrame()
+        repeat(30) {
+            rule.onRoot().performTouchInput {
+                moveBy(
+                    Offset(
+                        -stepPx,
+                        0f,
+                    ),
+                    16,
+                )
+            }
+            rule.mainClock.advanceTimeByFrame()
+        }
+        val finger = step * 31
+        val moved = start - row.getUnclippedBoundsInRoot().left
+        assertTrue(
+            "Row moved $moved while the finger moved $finger",
+            moved >= finger * .7f,
+        )
+        rule.onRoot().performTouchInput { cancel() }
+        rule.mainClock.autoAdvance = true
+    }
+
+    @Test fun returnBounceNeverShowsTheRemovalAreaOnTheOppositeSide() {
+        show()
+        val row = rule.onNodeWithTag("queue_item_1")
+        val rest = row.getUnclippedBoundsInRoot()
+        val center = (rest.left + rest.right) / 2
+        row.performTouchInput {
+            down(
+                Offset(
+                    width * .9f,
+                    centerY,
+                ),
+            )
+            repeat(10) {
+                moveBy(
+                    Offset(
+                        -width * .03f,
+                        0f,
+                    ),
+                    32,
+                )
+            }
+        }
+        rule.mainClock.autoAdvance = false
+        rule.onRoot().performTouchInput { up() }
+        var overshot = false
+        repeat(90) {
+            rule.mainClock.advanceTimeByFrame()
+            overshot = overshot || row.getUnclippedBoundsInRoot().left > rest.left
+            rule.onAllNodesWithTag(
+                "playback_dismiss_reveal",
+                true,
+            ).fetchSemanticsNodes().forEach { reveal ->
+                val rowCenter = with(rule.density) { center.toPx() }
+                assertTrue(
+                    "Removal area ${reveal.boundsInRoot} is left of the row center $rowCenter",
+                    reveal.boundsInRoot.isEmpty || reveal.boundsInRoot.left >= rowCenter,
+                )
+            }
+        }
+        rule.mainClock.autoAdvance = true
+        assertTrue(
+            "The return spring should overshoot for this check to mean anything",
+            overshot,
+        )
     }
 
     @Test fun removeButtonIsShownForKeyboardFocusInsteadOfDuplicatingSwipeIcon() {

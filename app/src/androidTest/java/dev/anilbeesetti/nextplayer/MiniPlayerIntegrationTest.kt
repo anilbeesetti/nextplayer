@@ -369,12 +369,15 @@ class MiniPlayerIntegrationTest {
     }
 
     @Test
-    fun compactSwipeFollowsTheFingerWithoutStallOrJump() {
+    fun compactSwipeResistsThenCatchesTheFinger() {
         onMain { player.pause() }
         waitForMiniPlayer()
         val mini = composeRule.onNodeWithTag("mini_player")
+        val start = mini.fetchSemanticsNode().positionInRoot.x
         val step = with(composeRule.density) { 8.dp.toPx() }
-        val tolerance = with(composeRule.density) { 1.dp.toPx() }
+        val resistedDistance = with(composeRule.density) { 100.dp.toPx() }
+        val resistedTravel = with(composeRule.density) { 31.dp.toPx() }
+        val tolerance = with(composeRule.density) { 2.dp.toPx() }
         mini.performTouchInput {
             down(center)
             moveBy(
@@ -385,8 +388,8 @@ class MiniPlayerIntegrationTest {
                 32,
             )
         }
-        repeat(30) { index ->
-            val before = mini.fetchSemanticsNode().positionInRoot.x
+        var finger = step
+        repeat(30) {
             composeRule.onRoot().performTouchInput {
                 moveBy(
                     Offset(
@@ -396,12 +399,21 @@ class MiniPlayerIntegrationTest {
                     32,
                 )
             }
-            val moved = before - mini.fetchSemanticsNode().positionInRoot.x
-            assertTrue(
-                "Step $index moved $moved px instead of following the finger by $step px",
-                moved in (step - tolerance)..(step + tolerance),
-            )
+            finger += step
+            if (finger < resistedDistance) {
+                val moved = start - mini.fetchSemanticsNode().positionInRoot.x
+                assertTrue(
+                    "Resisted drag moved $moved px for $finger px",
+                    moved <= resistedTravel,
+                )
+            }
         }
+        composeRule.waitForIdle()
+        val moved = start - mini.fetchSemanticsNode().positionInRoot.x
+        assertTrue(
+            "Free drag moved $moved px for $finger px",
+            moved in (finger - tolerance)..(finger + tolerance),
+        )
         composeRule.onRoot().performTouchInput { cancel() }
         composeRule.waitForIdle()
         await("cancelled swipe keeps playback") { player.mediaItemCount == 1 }
