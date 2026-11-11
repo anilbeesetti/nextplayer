@@ -83,7 +83,8 @@ internal class QueueStageGeometry(
 
     init {
         // Phones get the full width; only very short windows shrink the square to keep the queue.
-        val room = height - with(density) { 160.dp.toPx() } - blockHeight - gap * 2 + topInset
+        // The title rests two gaps above the artwork's bottom; the block runs on to the transport.
+        val room = height - with(density) { 160.dp.toPx() } - blockHeight + gap + topInset
         val side = room.coerceIn(
             minOf(
                 rowHeight * 2,
@@ -98,7 +99,7 @@ internal class QueueStageGeometry(
             left + side,
             side - topInset,
         )
-        halfPanelTop = halfArtwork.bottom + gap + blockHeight + gap
+        halfPanelTop = halfArtwork.bottom - gap * 2 + blockHeight + gap
     }
 }
 

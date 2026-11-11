@@ -432,10 +432,13 @@ internal fun ExpandedPlaybackControls(
                 ) ?: 0f
             }
             val queueShown by remember(sheet) { derivedStateOf { sheet?.engaged == true } }
+            // The mini row only exists once it shows, so it never takes the header's taps.
+            val miniRowShown by remember(sheet) {
+                derivedStateOf { (sheet?.progress ?: 0f) > 1.35f }
+            }
             var container by remember { mutableStateOf<LayoutCoordinates?>(null) }
             var artworkBounds by remember { mutableStateOf(Rect.Zero) }
             var metadataBounds by remember { mutableStateOf(Rect.Zero) }
-            var seekBounds by remember { mutableStateOf(Rect.Zero) }
             var transportBounds by remember { mutableStateOf(Rect.Zero) }
             val measured: (onBounds: (Rect) -> Unit) -> Modifier = { onBounds ->
                 Modifier.onGloballyPositioned { coordinates ->
@@ -457,7 +460,7 @@ internal fun ExpandedPlaybackControls(
                     constraints.maxWidth,
                     constraints.maxHeight,
                     topInset,
-                    seekBounds.top,
+                    metadataBounds.bottom,
                     transportBounds.bottom,
                     density,
                 ) {
@@ -465,7 +468,11 @@ internal fun ExpandedPlaybackControls(
                         constraints.maxWidth.toFloat(),
                         constraints.maxHeight.toFloat(),
                         topInset,
-                        blockHeight = (transportBounds.bottom - seekBounds.top).coerceAtLeast(0f),
+                        // From the title's bottom to the transport's, the block that rides up.
+                        blockHeight = maxOf(
+                            transportBounds.bottom - metadataBounds.bottom,
+                            0f,
+                        ),
                         density,
                     )
                 }
@@ -496,15 +503,6 @@ internal fun ExpandedPlaybackControls(
                         )
                     }
                 }
-                // Seek bar and transport ride under the artwork, then leave with it for the queue.
-                val blockShift: (Float) -> Float = { progress ->
-                    val half = stages.halfArtwork.bottom + stages.gap - seekBounds.top
-                    if (progress <= 1f) {
-                        half * progress
-                    } else {
-                        half + artworkAt(progress).bottom - stages.halfArtwork.bottom
-                    }
-                }
                 val metadataShift: (Float) -> Float = { progress ->
                     val half = stages.halfArtwork.bottom - stages.gap * 2 - metadataBounds.bottom
                     if (progress <= 1f) {
@@ -513,6 +511,8 @@ internal fun ExpandedPlaybackControls(
                         half + artworkAt(progress).bottom - stages.halfArtwork.bottom
                     }
                 }
+                // Seek bar and transport keep their spacing under the title as it rides up.
+                val blockShift = metadataShift
                 if (queueShown) {
                     QueueArtworkBanner(
                         snapshot,
@@ -624,7 +624,7 @@ internal fun ExpandedPlaybackControls(
                                 player,
                                 snapshot,
                                 controlsEnabled,
-                                modifier = measured { seekBounds = it }.graphicsLayer {
+                                modifier = Modifier.graphicsLayer {
                                     val progress = queueProgress()
                                     translationY = blockShift(progress)
                                     alpha = 1f - smoothStep(
@@ -663,7 +663,7 @@ internal fun ExpandedPlaybackControls(
                         }
                     }
                 }
-                if (sheet != null && queueShown) {
+                if (sheet != null && miniRowShown) {
                     QueueMiniRow(
                         player,
                         snapshot,
@@ -674,6 +674,8 @@ internal fun ExpandedPlaybackControls(
                         onClick = { sheet.animateTo(QueueStage.HALF) },
                         modifier = Modifier.height(stages.rowHeightDp).then(dragModifier),
                     )
+                }
+                if (sheet != null && queueShown) {
                     QueuePanel(
                         player,
                         sheet,
