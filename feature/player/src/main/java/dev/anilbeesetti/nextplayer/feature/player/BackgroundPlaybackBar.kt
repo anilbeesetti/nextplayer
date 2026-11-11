@@ -70,6 +70,7 @@ internal fun MiniPlayer(
     secondaryText: String? = null,
     connecting: Boolean = false,
     showContainer: Boolean = true,
+    transportModifier: (PlaybackTransportSlot) -> Modifier = { Modifier },
     artworkModifier: Modifier = Modifier,
     metadataModifier: Modifier = Modifier,
     artworkPainter: Painter = rememberPlaybackArtworkPainter(snapshot),
@@ -179,11 +180,9 @@ internal fun MiniPlayer(
                         enabled =
                             controlsEnabled &&
                                 snapshot.commands.contains(Player.COMMAND_SEEK_TO_PREVIOUS),
-                        modifier = Modifier.size(36.dp).tvFocusRing(CircleShape),
-                        colors = IconButtonDefaults.filledIconButtonColors(
-                            containerColor = MaterialTheme.colorScheme.onPrimary,
-                            contentColor = MaterialTheme.colorScheme.primary,
-                        ),
+                        modifier = Modifier.size(36.dp).tvFocusRing(CircleShape)
+                            .then(transportModifier(PlaybackTransportSlot.PREVIOUS)),
+                        colors = playbackSkipColors(),
                     ) {
                         Icon(
                             Icons.Rounded.SkipPrevious,
@@ -199,7 +198,9 @@ internal fun MiniPlayer(
                     PlaybackPlayPauseButton(
                         player,
                         snapshot,
-                        Modifier.size(36.dp),
+                        Modifier.size(
+                            36.dp,
+                        ).then(transportModifier(PlaybackTransportSlot.PLAY_PAUSE)),
                         controlsEnabled,
                     )
                 }
@@ -212,11 +213,9 @@ internal fun MiniPlayer(
                         enabled =
                             controlsEnabled &&
                                 snapshot.commands.contains(Player.COMMAND_SEEK_TO_NEXT),
-                        modifier = Modifier.size(36.dp).tvFocusRing(CircleShape),
-                        colors = IconButtonDefaults.filledIconButtonColors(
-                            containerColor = MaterialTheme.colorScheme.onPrimary,
-                            contentColor = MaterialTheme.colorScheme.primary,
-                        ),
+                        modifier = Modifier.size(36.dp).tvFocusRing(CircleShape)
+                            .then(transportModifier(PlaybackTransportSlot.NEXT)),
+                        colors = playbackSkipColors(),
                     ) {
                         Icon(
                             Icons.Rounded.SkipNext,
@@ -229,6 +228,21 @@ internal fun MiniPlayer(
         }
     }
 }
+
+internal enum class PlaybackTransportSlot { PREVIOUS, PLAY_PAUSE, NEXT }
+
+@Composable
+internal fun playbackSkipColors(): IconButtonColors = IconButtonDefaults.filledIconButtonColors(
+    containerColor = MaterialTheme.colorScheme.primary,
+    contentColor = MaterialTheme.colorScheme.onPrimary,
+)
+
+@Composable
+internal fun playbackPlayPauseColors(): IconButtonColors =
+    IconButtonDefaults.filledIconButtonColors(
+        containerColor = MaterialTheme.colorScheme.tertiaryFixedDim,
+        contentColor = MaterialTheme.colorScheme.onTertiaryFixed,
+    )
 
 @Composable
 internal fun playbackTitle(snapshot: PlaybackSnapshot): String =
@@ -306,7 +320,7 @@ internal fun PlaybackArtwork(
         Image(
             painter,
             contentDescription = null,
-            contentScale = ContentScale.Crop,
+            contentScale = ContentScale.Fit,
             modifier = Modifier.fillMaxSize(),
         )
     }
@@ -321,7 +335,7 @@ internal fun PlaybackPlayPauseButton(
     shape: Shape = CircleShape,
     iconSize: Dp = 22.dp,
     interactionSource: MutableInteractionSource? = null,
-    colors: IconButtonColors = IconButtonDefaults.filledIconButtonColors(),
+    colors: IconButtonColors = playbackPlayPauseColors(),
 ) {
     FilledIconButton(
         onClick = {

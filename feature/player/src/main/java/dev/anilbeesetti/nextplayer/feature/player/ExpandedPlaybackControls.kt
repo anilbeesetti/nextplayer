@@ -133,6 +133,7 @@ internal fun ExpandedPlaybackControls(
     dragModifier: Modifier,
     modifier: Modifier = Modifier,
     interactive: Boolean = true,
+    transportModifier: (PlaybackTransportSlot) -> Modifier = { Modifier },
     transitionProgress: () -> Float = { 1f },
     controlsTranslationY: () -> Float = { 0f },
     artworkModifier: Modifier = Modifier,
@@ -229,17 +230,12 @@ internal fun ExpandedPlaybackControls(
             Modifier.blockTouchesUntil(interactive),
             horizontalAlignment = Alignment.CenterHorizontally,
         ) {
-            Box(
-                Modifier.padding(vertical = 8.dp).expansionReveal(
-                    .45f,
-                    transitionProgress,
-                    controlsTranslationY,
-                ),
-            ) {
+            Box(Modifier.padding(vertical = 8.dp)) {
                 PlaybackTransportControls(
                     player,
                     snapshot,
                     controlsEnabled,
+                    transportModifier,
                 )
             }
             Spacer(Modifier.height(14.dp))
@@ -741,6 +737,7 @@ private fun PlaybackTransportControls(
     player: Player,
     snapshot: PlaybackSnapshot,
     enabled: Boolean,
+    transportModifier: (PlaybackTransportSlot) -> Modifier,
 ) {
     val previous = remember { MutableInteractionSource() }
     val play = remember { MutableInteractionSource() }
@@ -750,10 +747,7 @@ private fun PlaybackTransportControls(
         animationSpec = MaterialTheme.motionScheme.fastSpatialSpec(),
         label = "playback_play_shape",
     )
-    val skipColors = IconButtonDefaults.filledIconButtonColors(
-        containerColor = MaterialTheme.colorScheme.primary,
-        contentColor = MaterialTheme.colorScheme.onPrimary,
-    )
+    val skipColors = playbackSkipColors()
     ButtonGroup(
         overflowIndicator = {},
         modifier = Modifier.fillMaxWidth().height(
@@ -770,7 +764,8 @@ private fun PlaybackTransportControls(
                         snapshot.commands.contains(Player.COMMAND_SEEK_TO_PREVIOUS),
                     modifier = Modifier.weight(
                         1f,
-                    ).fillMaxHeight().animateWidth(previous).tvFocusRing(CircleShape),
+                    ).fillMaxHeight().animateWidth(previous).tvFocusRing(CircleShape)
+                        .then(transportModifier(PlaybackTransportSlot.PREVIOUS)),
                     shape = CircleShape,
                     colors = skipColors,
                     interactionSource = previous,
@@ -789,15 +784,12 @@ private fun PlaybackTransportControls(
                 PlaybackPlayPauseButton(
                     player,
                     snapshot,
-                    Modifier.weight(1f).fillMaxHeight().animateWidth(play),
+                    Modifier.weight(1f).fillMaxHeight().animateWidth(play)
+                        .then(transportModifier(PlaybackTransportSlot.PLAY_PAUSE)),
                     enabled,
                     RoundedCornerShape(playCorner),
                     36.dp,
                     play,
-                    IconButtonDefaults.filledIconButtonColors(
-                        containerColor = MaterialTheme.colorScheme.tertiaryFixedDim,
-                        contentColor = MaterialTheme.colorScheme.onTertiaryFixed,
-                    ),
                 )
             },
             menuContent = {},
@@ -809,7 +801,8 @@ private fun PlaybackTransportControls(
                     enabled = enabled && snapshot.commands.contains(Player.COMMAND_SEEK_TO_NEXT),
                     modifier = Modifier.weight(
                         1f,
-                    ).fillMaxHeight().animateWidth(next).tvFocusRing(CircleShape),
+                    ).fillMaxHeight().animateWidth(next).tvFocusRing(CircleShape)
+                        .then(transportModifier(PlaybackTransportSlot.NEXT)),
                     shape = CircleShape,
                     colors = skipColors,
                     interactionSource = next,
