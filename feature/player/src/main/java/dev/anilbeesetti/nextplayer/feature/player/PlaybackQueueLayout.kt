@@ -82,8 +82,8 @@ internal class QueueStageGeometry(
     val halfPanelTop: Float
 
     init {
-        // Short screens shrink the square so the queue keeps room; it never stretches.
-        val room = height - with(density) { 240.dp.toPx() } - blockHeight - gap * 2 + topInset
+        // Phones get the full width; only very short windows shrink the square to keep the queue.
+        val room = height - with(density) { 160.dp.toPx() } - blockHeight - gap * 2 + topInset
         val side = room.coerceIn(
             minOf(
                 rowHeight * 2,
