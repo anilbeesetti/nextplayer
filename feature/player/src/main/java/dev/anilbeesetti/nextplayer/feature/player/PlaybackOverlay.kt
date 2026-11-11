@@ -905,7 +905,7 @@ private fun morphBounds(compact: Rect, expanded: Rect, progress: Float, travel: 
     }
 
 /** Carries the title beside the growing artwork and then below it, never through it. */
-private fun routedMetadataBounds(
+internal fun routedMetadataBounds(
     compactArtwork: Rect,
     expandedArtwork: Rect,
     compactMetadata: Rect,
@@ -956,10 +956,23 @@ private fun routedMetadataBounds(
             progress,
         ),
     )
+    // Beside the artwork the title narrows instead of running past the sheet's edge.
     return Rect(
-        left,
+        maxOf(
+            left,
+            minOf(
+                compactMetadata.left,
+                expandedMetadata.left,
+            ),
+        ),
         top,
-        left + width,
+        minOf(
+            left + width,
+            maxOf(
+                compactMetadata.right,
+                expandedMetadata.right,
+            ),
+        ),
         top + height,
     )
 }
