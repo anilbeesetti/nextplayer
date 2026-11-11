@@ -17,6 +17,7 @@ import androidx.media3.datasource.DefaultDataSource
 import androidx.media3.exoplayer.ExoPlayer
 import androidx.mediarouter.media.MediaRouter
 import com.google.android.gms.cast.CastDevice
+import com.google.android.gms.cast.MediaSeekOptions
 import com.google.android.gms.cast.framework.CastContext
 import com.google.android.gms.cast.framework.CastSession
 import com.google.android.gms.cast.framework.SessionManager
@@ -205,12 +206,21 @@ internal class PlaybackOutput(
         ) {
             return
         }
-        // This receiver drops the start position of an item loaded paused; place it once.
+        // This receiver can drop the start position it was loaded with; place it once. Ask the
+        // receiver itself: right after connecting, Media3's position can still be stale or masked,
+        // and a seek while the receiver is still loading leaves it loading forever.
         val sent = sentPositionMs
         if (presentation.connection == PlaybackConnection.CONNECTING && sent != null) {
+            val client = sessionManager?.currentCastSession?.remoteMediaClient
+            if (client != null && !client.isPlaying && !client.isPaused) return
             sentPositionMs = null
-            if (abs(remote.currentPosition - sent) > START_POSITION_TOLERANCE_MS) {
-                remote.seekTo(sent)
+            val receiverPosition = client?.approximateStreamPosition ?: remote.currentPosition
+            if (abs(receiverPosition - sent) > START_POSITION_TOLERANCE_MS) {
+                if (client != null) {
+                    client.seek(MediaSeekOptions.Builder().setPosition(sent).build())
+                } else {
+                    remote.seekTo(sent)
+                }
                 return
             }
         }
