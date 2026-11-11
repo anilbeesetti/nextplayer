@@ -102,7 +102,7 @@ class PlaybackQueueContentTest {
         }
     }
 
-    @Test fun crossingRemoveThresholdVibratesBeforeReleaseAndCancellingKeepsTheQueue() {
+    @Test fun swipeGivesOneLongPressWhenItBreaksFreeAndCancellingKeepsTheQueue() {
         show()
         val row = rule.onNodeWithTag("queue_item_1")
         row.performTouchInput {
@@ -127,13 +127,20 @@ class PlaybackQueueContentTest {
                 3,
                 player.mediaItemCount,
             )
-            assertTrue(feedback.contains(HapticFeedbackType.GestureThresholdActivate))
+            assertEquals(
+                listOf(HapticFeedbackType.LongPress),
+                feedback,
+            )
         }
         row.performTouchInput { cancel() }
         rule.runOnIdle {
             assertEquals(
                 3,
                 player.mediaItemCount,
+            )
+            assertEquals(
+                listOf(HapticFeedbackType.LongPress),
+                feedback,
             )
         }
     }

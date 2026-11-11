@@ -38,14 +38,11 @@ import androidx.compose.ui.layout.onSizeChanged
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.platform.LocalHapticFeedback
 import androidx.compose.ui.platform.LocalLayoutDirection
-import androidx.compose.ui.platform.LocalView
 import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.semantics.hideFromAccessibility
 import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.unit.LayoutDirection
 import androidx.compose.ui.unit.dp
-import androidx.core.view.HapticFeedbackConstantsCompat
-import androidx.core.view.ViewCompat
 import kotlin.math.abs
 import kotlin.math.sign
 import kotlinx.coroutines.CoroutineStart
@@ -72,8 +69,8 @@ internal fun PlaybackSwipeToDismiss(
     content: @Composable () -> Unit,
 ) {
     val density = LocalDensity.current
-    val resistedDistance = with(density) { (if (bothDirections) 100.dp else 60.dp).toPx() }
-    val resistedTravel = with(density) { (if (bothDirections) 30.dp else 20.dp).toPx() }
+    val resistedDistance = with(density) { 100.dp.toPx() }
+    val resistedTravel = with(density) { 30.dp.toPx() }
     val offset = remember { Animatable(0f) }
     var dragged by remember { mutableFloatStateOf(0f) }
     var phase by remember { mutableStateOf(SwipePhase.RESISTED) }
@@ -86,7 +83,6 @@ internal fun PlaybackSwipeToDismiss(
     val allowed by rememberUpdatedState(enabled)
     val direction = LocalLayoutDirection.current
     val haptics = LocalHapticFeedback.current
-    val view = LocalView.current
     val targeted = enabled && width > 0 && abs(dragged) >= width * DISMISS_THRESHOLD
 
     fun animate(block: suspend () -> Unit) {
@@ -97,7 +93,6 @@ internal fun PlaybackSwipeToDismiss(
     fun settle(remove: Boolean) {
         val committedDismiss = dismiss
         released = remove
-        if (remove && !bothDirections) haptics.performHapticFeedback(HapticFeedbackType.GestureEnd)
         val exit = width * dragged.sign
         if (!remove) dragged = 0f
         animate {
@@ -105,7 +100,7 @@ internal fun PlaybackSwipeToDismiss(
                 offset.animateTo(
                     exit,
                     tween(
-                        if (bothDirections) 200 else 180,
+                        200,
                         easing = FastOutSlowInEasing,
                     ),
                 )
@@ -156,7 +151,6 @@ internal fun PlaybackSwipeToDismiss(
                 onHorizontalDrag = { change, amount ->
                     if (released) return@detectHorizontalDragGestures
                     change.consume()
-                    val wasTargeted = width > 0 && abs(dragged) >= width * DISMISS_THRESHOLD
                     dragged = (dragged + amount).let {
                         when {
                             bothDirections -> it.coerceIn(
@@ -175,19 +169,6 @@ internal fun PlaybackSwipeToDismiss(
                             )
                         }
                     }
-                    val nowTargeted = width > 0 && abs(dragged) >= width * DISMISS_THRESHOLD
-                    if (!bothDirections && nowTargeted != wasTargeted) {
-                        if (nowTargeted) {
-                            haptics.performHapticFeedback(
-                                HapticFeedbackType.GestureThresholdActivate,
-                            )
-                        } else {
-                            ViewCompat.performHapticFeedback(
-                                view,
-                                HapticFeedbackConstantsCompat.GESTURE_THRESHOLD_DEACTIVATE,
-                            )
-                        }
-                    }
                     when (phase) {
                         SwipePhase.RESISTED -> if (abs(dragged) < resistedDistance) {
                             val target = dragged / resistedDistance * resistedTravel
@@ -197,13 +178,7 @@ internal fun PlaybackSwipeToDismiss(
                         }
 
                         SwipePhase.SNAPPING -> {
-                            haptics.performHapticFeedback(
-                                if (bothDirections) {
-                                    HapticFeedbackType.LongPress
-                                } else {
-                                    HapticFeedbackType.GestureThresholdActivate
-                                },
-                            )
+                            haptics.performHapticFeedback(HapticFeedbackType.LongPress)
                             val target = dragged
                             animate {
                                 offset.animateTo(
