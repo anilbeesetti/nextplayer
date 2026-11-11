@@ -37,6 +37,7 @@ import dev.anilbeesetti.nextplayer.core.ui.R
 import dev.anilbeesetti.nextplayer.core.ui.base.DataState
 import dev.anilbeesetti.nextplayer.core.ui.components.NextDialog
 import dev.anilbeesetti.nextplayer.core.ui.components.NextTopAppBar
+import dev.anilbeesetti.nextplayer.core.ui.components.playbackScreenInsets
 import dev.anilbeesetti.nextplayer.core.ui.components.tvFocusRing
 import dev.anilbeesetti.nextplayer.core.ui.designsystem.NextIcons
 import dev.anilbeesetti.nextplayer.core.ui.extensions.copy
@@ -60,6 +61,7 @@ internal fun TrashScreenContent(state: TrashUiState, onAction: (TrashAction) -> 
     var showDeleteConfirmation by remember { mutableStateOf(value = false) }
 
     Scaffold(
+        contentWindowInsets = playbackScreenInsets(),
         topBar = {
             NextTopAppBar(
                 title = if (selectionManager.isInSelectionMode) {
@@ -140,7 +142,12 @@ internal fun TrashScreenContent(state: TrashUiState, onAction: (TrashAction) -> 
                     TrashEmptyState()
                 } else {
                     LazyColumn(
-                        contentPadding = PaddingValues(8.dp),
+                        contentPadding = PaddingValues(
+                            start = 8.dp,
+                            top = 8.dp,
+                            end = 8.dp,
+                            bottom = scaffoldPadding.calculateBottomPadding() + 8.dp,
+                        ),
                         verticalArrangement = Arrangement.spacedBy(2.dp),
                     ) {
                         itemsIndexed(

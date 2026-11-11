@@ -106,6 +106,7 @@ internal fun MiniPlayer(
             }
             .tvFocusRing(shape),
         shape = shape,
+        shadowElevation = 3.dp,
         color = MaterialTheme.colorScheme.primaryContainer,
         contentColor = MaterialTheme.colorScheme.onPrimaryContainer,
     ) {

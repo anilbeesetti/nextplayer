@@ -1,5 +1,6 @@
 package dev.anilbeesetti.nextplayer.feature.player.state
 
+import androidx.media3.common.ForwardingPlayer
 import androidx.media3.common.MediaItem
 import androidx.media3.common.Player
 import androidx.media3.exoplayer.ExoPlayer
@@ -50,6 +51,69 @@ class PlaylistStateTest {
                 player.mediaIds(),
             )
         }
+    }
+
+    @Test
+    fun removingCurrentFinalRowSelectsPreviousItemAndPreservesPlayingIntent() = withPlaylist(
+        "first",
+        "middle",
+        "last",
+    ) { state, player ->
+        for (playing in listOf(
+            false,
+            true,
+        )) {
+            player.setMediaItems(
+                listOf(
+                    "first",
+                    "middle",
+                    "last",
+                ).map {
+                    MediaItem.Builder().setMediaId(it).setUri("file:///$it.mp4").build()
+                },
+            )
+            player.seekToDefaultPosition(2)
+            player.playWhenReady = playing
+            state.removeItem(2)
+            assertEquals(
+                listOf(
+                    "first",
+                    "middle",
+                ),
+                player.mediaIds(),
+            )
+            assertEquals(
+                "middle",
+                player.currentMediaItem?.mediaId,
+            )
+            assertEquals(
+                playing,
+                player.playWhenReady,
+            )
+        }
+    }
+
+    @Test
+    fun cannotRemoveCurrentFinalRowWithoutTheCommandToKeepPlaybackActive() = withPlaylist(
+        "first",
+        "last",
+    ) { _, player ->
+        player.seekToDefaultPosition(1)
+        val limited = object : ForwardingPlayer(player) {
+            override fun isCommandAvailable(command: Int): Boolean =
+                command != Player.COMMAND_SEEK_TO_MEDIA_ITEM && super.isCommandAvailable(command)
+        }
+        val state = PlaylistState(limited)
+        org.junit.Assert.assertFalse(state.canRemoveItem(1))
+        org.junit.Assert.assertTrue(state.canRemoveItem(0))
+        state.removeItem(1)
+        assertEquals(
+            listOf(
+                "first",
+                "last",
+            ),
+            player.mediaIds(),
+        )
     }
 
     @Test

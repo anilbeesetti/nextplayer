@@ -19,8 +19,10 @@ import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.asPaddingValues
 import androidx.compose.foundation.layout.calculateStartPadding
 import androidx.compose.foundation.layout.displayCutout
+import androidx.compose.foundation.layout.exclude
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.navigationBars
 import androidx.compose.foundation.layout.navigationBarsPadding
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
@@ -80,6 +82,7 @@ import dev.anilbeesetti.nextplayer.core.ui.components.CancelButton
 import dev.anilbeesetti.nextplayer.core.ui.components.MediaQuickSettingsDialog
 import dev.anilbeesetti.nextplayer.core.ui.components.NextDialog
 import dev.anilbeesetti.nextplayer.core.ui.components.NextTopAppBar
+import dev.anilbeesetti.nextplayer.core.ui.components.playbackScreenInsets
 import dev.anilbeesetti.nextplayer.core.ui.components.rememberRestorableFocusState
 import dev.anilbeesetti.nextplayer.core.ui.components.restorableFocusGroup
 import dev.anilbeesetti.nextplayer.core.ui.components.restorableFocusItem
@@ -201,6 +204,7 @@ private fun VaultPinContent(
     onBiometricAuthenticated: (() -> Unit)? = null,
 ) {
     Scaffold(
+        contentWindowInsets = playbackScreenInsets(),
         topBar = {
             NextTopAppBar(
                 title = "",
@@ -409,6 +413,7 @@ private fun VaultGalleryContent(state: VaultUiState, onAction: (VaultAction) -> 
     }
 
     Scaffold(
+        contentWindowInsets = playbackScreenInsets(),
         topBar = {
             NextTopAppBar(
                 title = {
@@ -784,7 +789,12 @@ private fun VaultSelectionActionsSheet(
             bottomStart = ZeroCornerSize,
             bottomEnd = ZeroCornerSize,
         )
-        Column(modifier = Modifier.fillMaxWidth()) {
+        Column(
+            modifier = Modifier.fillMaxWidth().padding(
+                bottom = playbackScreenInsets().exclude(WindowInsets.navigationBars)
+                    .asPaddingValues().calculateBottomPadding(),
+            ),
+        ) {
             Row(
                 modifier = Modifier
                     .align(Alignment.CenterHorizontally)

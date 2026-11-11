@@ -32,6 +32,7 @@ import dev.anilbeesetti.nextplayer.core.ui.components.NextTopAppBar
 import dev.anilbeesetti.nextplayer.core.ui.components.PreferenceSlider
 import dev.anilbeesetti.nextplayer.core.ui.components.PreferenceSwitch
 import dev.anilbeesetti.nextplayer.core.ui.components.WatchHistoryConfirmationDialog
+import dev.anilbeesetti.nextplayer.core.ui.components.playbackScreenInsets
 import dev.anilbeesetti.nextplayer.core.ui.components.rememberRestorableFocusState
 import dev.anilbeesetti.nextplayer.core.ui.components.restorableFocusGroup
 import dev.anilbeesetti.nextplayer.core.ui.components.restorableFocusItem
@@ -65,6 +66,7 @@ private fun MediaLibraryPreferencesScreenContent(
     val focusState = rememberRestorableFocusState()
 
     Scaffold(
+        contentWindowInsets = playbackScreenInsets(),
         topBar = {
             NextTopAppBar(
                 title = stringResource(id = R.string.media_library),

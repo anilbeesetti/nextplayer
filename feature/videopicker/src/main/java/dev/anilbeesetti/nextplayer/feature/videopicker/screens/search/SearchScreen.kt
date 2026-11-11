@@ -67,6 +67,7 @@ import dev.anilbeesetti.nextplayer.core.ui.components.ListSectionTitle
 import dev.anilbeesetti.nextplayer.core.ui.components.NextOutlinedTextField
 import dev.anilbeesetti.nextplayer.core.ui.components.NextSegmentedListItem
 import dev.anilbeesetti.nextplayer.core.ui.components.NextTopAppBar
+import dev.anilbeesetti.nextplayer.core.ui.components.playbackScreenInsets
 import dev.anilbeesetti.nextplayer.core.ui.components.rememberRestorableFocusState
 import dev.anilbeesetti.nextplayer.core.ui.components.tvFocusRing
 import dev.anilbeesetti.nextplayer.core.ui.designsystem.NextIcons
@@ -98,6 +99,7 @@ internal fun SearchScreenContent(state: SearchUiState, onAction: (SearchUiEvent)
     LaunchedEffect(key1 = Unit) { focusRequester.requestFocus() }
 
     Scaffold(
+        contentWindowInsets = playbackScreenInsets(),
         topBar = {
             NextTopAppBar(
                 title = {

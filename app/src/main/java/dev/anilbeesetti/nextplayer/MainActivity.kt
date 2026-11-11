@@ -60,6 +60,7 @@ import androidx.compose.ui.focus.FocusDirection
 import androidx.compose.ui.focus.FocusRequester
 import androidx.compose.ui.focus.focusProperties
 import androidx.compose.ui.focus.focusRequester
+import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.layout.onSizeChanged
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalDensity
@@ -243,14 +244,7 @@ class MainActivity : FragmentActivity() {
                         val railPadding = layoutPaddingValues.calculateStartPadding(
                             LocalLayoutDirection.current,
                         )
-                        val systemBottomPadding = WindowInsets.navigationBars
-                            .asPaddingValues().calculateBottomPadding()
-                        val nestedBottomPadding = (
-                            layoutPaddingValues.calculateBottomPadding() -
-                                systemBottomPadding
-                            ).coerceAtLeast(0.dp)
                         val currentRailPadding = rememberUpdatedState(railPadding)
-                        val currentNestedBottomPadding = rememberUpdatedState(nestedBottomPadding)
                         val navigationInsetsDecorator = remember(navState) {
                             NavEntryDecorator<NavKey> { entry ->
                                 val topLevel = navState.topLevelContentKeys.contains(
@@ -267,19 +261,9 @@ class MainActivity : FragmentActivity() {
                                                     WindowInsetsSides.Start,
                                                 ),
                                             )
-                                    }.thenIf(
-                                        !topLevel,
-                                    ) {
-                                        padding(bottom = currentNestedBottomPadding.value)
                                     },
                                 ) {
-                                    CompositionLocalProvider(
-                                        LocalNavigationBottomPadding provides if (topLevel) {
-                                            LocalNavigationBottomPadding.current
-                                        } else {
-                                            0.dp
-                                        },
-                                    ) { entry.Content() }
+                                    entry.Content()
                                 }
                             }
                         }
@@ -398,7 +382,17 @@ fun NavigationLayout(
             bottomBar = {
                 Column(horizontalAlignment = Alignment.CenterHorizontally) {
                     Spacer(Modifier.height(compactHeight))
-                    Box(Modifier.height(navigationExtent).clipToBounds()) {
+                    Box(
+                        Modifier.height(navigationExtent).clipToBounds().graphicsLayer {
+                            alpha = (
+                                (navigationExtent - systemBottom) /
+                                    (navigationHeight - systemBottom).coerceAtLeast(1.dp)
+                                ).coerceIn(
+                                0f,
+                                1f,
+                            )
+                        },
+                    ) {
                         Box(
                             Modifier.wrapContentHeight(
                                 Alignment.Bottom,

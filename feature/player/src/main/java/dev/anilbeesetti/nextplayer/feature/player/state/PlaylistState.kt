@@ -8,6 +8,7 @@ import androidx.compose.runtime.mutableLongStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
+import androidx.compose.runtime.snapshotFlow
 import androidx.media3.common.C
 import androidx.media3.common.MediaItem
 import androidx.media3.common.MediaMetadata
@@ -16,7 +17,9 @@ import androidx.media3.common.Timeline
 import androidx.media3.common.util.UnstableApi
 import androidx.media3.ui.compose.state.observeState
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.withContext
+import kotlinx.coroutines.withTimeoutOrNull
 
 @UnstableApi
 @Composable
@@ -88,12 +91,46 @@ class PlaylistState(private val player: Player?) {
         )
     }
 
-    fun removeItem(index: Int) {
-        if (player?.isCommandAvailable(Player.COMMAND_CHANGE_MEDIA_ITEMS) != true) return
-        if (index !in 0 until timeline.windowCount) return
-        if (timeline.windowCount <= 1) return // Don't remove the last item
+    fun indexOfKey(key: String): Int =
+        (0 until mediaItemCount).firstOrNull { getKeyAt(it) == key } ?: C.INDEX_UNSET
 
-        player?.removeMediaItem(index)
+    suspend fun moveItemAndAwait(fromKey: String, toKey: String) {
+        val from = indexOfKey(fromKey)
+        val to = indexOfKey(toKey)
+        if (from == C.INDEX_UNSET || to == C.INDEX_UNSET ||
+            player?.isCommandAvailable(Player.COMMAND_CHANGE_MEDIA_ITEMS) != true
+        ) {
+            return
+        }
+        moveItem(
+            from,
+            to,
+        )
+        // Reorderable must see the updated order before accepting the next drag move.
+        withTimeoutOrNull(1_000) {
+            snapshotFlow { indexOfKey(fromKey) }.first { it == to || it == C.INDEX_UNSET }
+        }
+    }
+
+    fun canRemoveItem(index: Int): Boolean {
+        val playback = player ?: return false
+        val count = playback.mediaItemCount
+        return playback.isCommandAvailable(Player.COMMAND_CHANGE_MEDIA_ITEMS) &&
+            count > 1 && index in 0 until count &&
+            (
+                index != count - 1 || playback.currentMediaItemIndex != index ||
+                    playback.isCommandAvailable(Player.COMMAND_SEEK_TO_MEDIA_ITEM)
+                )
+    }
+
+    fun removeItem(index: Int) {
+        val playback = player ?: return
+        if (!canRemoveItem(index)) return
+        if (index == playback.currentMediaItemIndex && index == playback.mediaItemCount - 1) {
+            // Removing the current final window otherwise ends playback with earlier items left.
+            playback.seekToDefaultPosition(index - 1)
+        }
+        playback.removeMediaItem(index)
     }
 
     fun seekToItem(index: Int) {

@@ -33,6 +33,7 @@ import androidx.compose.ui.test.onAllNodesWithTag
 import androidx.compose.ui.test.onNodeWithContentDescription
 import androidx.compose.ui.test.onNodeWithTag
 import androidx.compose.ui.test.onNodeWithText
+import androidx.compose.ui.test.onRoot
 import androidx.compose.ui.test.performClick
 import androidx.compose.ui.test.performScrollTo
 import androidx.compose.ui.test.performSemanticsAction
@@ -303,6 +304,8 @@ class MiniPlayerIntegrationTest {
             await("set playing intent") { player.playWhenReady == playing }
             waitForMiniPlayer()
             composeRule.onNodeWithTag("mini_player").performTouchInput { swipeLeft() }
+            composeRule.mainClock.advanceTimeBy(400)
+            composeRule.waitForIdle()
             await("dismissed queue") { player.currentMediaItem == null }
             composeRule.onNodeWithText(context.getString(R.string.undo)).performClick()
             await("restored queue") {
@@ -310,6 +313,51 @@ class MiniPlayerIntegrationTest {
             }
             onMain { assertTrue(player.currentPosition in 24_000..26_000) }
         }
+    }
+
+    @Test
+    fun nestedSettingsReachWindowEdgeAndLastPreferenceClearsMiniPlayer() {
+        onMain { player.pause() }
+        composeRule.onNodeWithContentDescription(
+            context.getString(R.string.settings),
+        ).performClick()
+        composeRule.mainClock.advanceTimeBy(500)
+        composeRule.waitForIdle()
+        val screen = composeRule.onNodeWithTag("settings_screen").fetchSemanticsNode().boundsInRoot
+        val window = composeRule.onRoot().fetchSemanticsNode().boundsInRoot
+        assertEquals(
+            window.bottom,
+            screen.bottom,
+            1f,
+        )
+        composeRule.onNodeWithText(context.getString(R.string.about_name)).performScrollTo()
+        val last = composeRule.onNodeWithText(
+            context.getString(R.string.about_name),
+        ).fetchSemanticsNode().boundsInRoot
+        val mini = composeRule.onNodeWithTag("mini_player").fetchSemanticsNode().boundsInRoot
+        assertTrue(
+            "Last preference must scroll above playback",
+            last.bottom < mini.top,
+        )
+        val image = composeRule.onNodeWithTag("settings_screen").captureToImage().asAndroidBitmap()
+        val background = image.getPixel(
+            4,
+            image.height / 2,
+        )
+        val bottom = image.getPixel(
+            4,
+            image.height - 4,
+        )
+        assertTrue(
+            "Hidden navigation must not leave its gradient at the screen edge",
+            kotlin.math.abs(Color.red(background) - Color.red(bottom)) <= 2 &&
+                kotlin.math.abs(Color.green(background) - Color.green(bottom)) <= 2 &&
+                kotlin.math.abs(Color.blue(background) - Color.blue(bottom)) <= 2,
+        )
+        captureNode(
+            "settings_screen",
+            "queue-settings-edge-to-edge",
+        )
     }
 
     @Test
@@ -808,6 +856,224 @@ class MiniPlayerIntegrationTest {
         composeRule.onAllNodesWithContentDescription(
             context.getString(R.string.remove),
         ).assertCountEquals(0)
+    }
+
+    @Test
+    fun queueDragAndSwipeKeepStableOccurrencesAndCancellationNeverRemoves() {
+        val red = testVideo("playback-red-15s.mp4")
+        val blue = testVideo("playback-blue-20s.mp4")
+        onMain {
+            player.pause()
+            player.setMediaItems(
+                listOf(
+                    red,
+                    blue,
+                    red,
+                ).mapIndexed { i, file ->
+                    MediaItem.Builder().setMediaId(
+                        Uri.fromFile(file).toString(),
+                    ).setUri(Uri.fromFile(file))
+                        .setMediaMetadata(
+                            MediaMetadata.Builder().setTitle("Queue video ${i + 1}")
+                                .setDurationMs(if (i == 1) 20_000 else 15_000).build(),
+                        ).build()
+                },
+            )
+            player.prepare()
+        }
+        await("queue videos ready") { player.playbackState == Player.STATE_READY }
+        waitForMiniPlayer()
+        val mini = composeRule.onNodeWithTag("mini_player")
+        val miniWidth = mini.fetchSemanticsNode().boundsInRoot.width
+        mini.performTouchInput {
+            down(
+                Offset(
+                    width * .9f,
+                    centerY,
+                ),
+            )
+        }
+        repeat(12) {
+            composeRule.onNodeWithTag("compact_swipe").performTouchInput {
+                moveBy(
+                    Offset(
+                        -miniWidth * .06f,
+                        0f,
+                    ),
+                    32,
+                )
+            }
+            composeRule.mainClock.advanceTimeByFrame()
+            composeRule.waitForIdle()
+        }
+        captureNode(
+            "compact_swipe",
+            "queue-mini-dismiss-reveal",
+        )
+        composeRule.onNodeWithTag("compact_swipe").performTouchInput { cancel() }
+        composeRule.mainClock.advanceTimeBy(600)
+        composeRule.waitForIdle()
+        onMain {
+            assertEquals(
+                3,
+                player.mediaItemCount,
+            )
+        }
+        expand()
+        composeRule.onNodeWithTag("playback_queue_action").performClick()
+        composeRule.waitForIdle()
+        captureNode(
+            "playback_queue",
+            "queue-artwork-duration",
+        )
+        val third = composeRule.onNodeWithTag("queue_item_2").fetchSemanticsNode().boundsInRoot
+        val travel = (third.height + with(composeRule.density) { 8.dp.toPx() }) * 2
+        val handleStart = composeRule.onNodeWithTag(
+            "queue_drag_2",
+            true,
+        ).fetchSemanticsNode().boundsInRoot.center.y
+        composeRule.onNodeWithTag(
+            "queue_drag_2",
+            true,
+        ).performTouchInput { down(center) }
+        val dragGeometry = JSONArray()
+        repeat(20) { step ->
+            composeRule.onNodeWithTag("playback_queue").performTouchInput {
+                moveBy(
+                    Offset(
+                        0f,
+                        -travel / 20,
+                    ),
+                    32,
+                )
+            }
+            composeRule.mainClock.advanceTimeByFrame()
+            composeRule.waitForIdle()
+            var index = -1
+            onMain {
+                index = (0 until player.mediaItemCount).first {
+                    player.getMediaItemAt(it).mediaMetadata.title.toString() == "Queue video 3"
+                }
+            }
+            val actual = composeRule.onNodeWithTag(
+                "queue_drag_$index",
+                true,
+            )
+                .fetchSemanticsNode().boundsInRoot.center.y
+            val expected = handleStart - travel * (step + 1) / 20
+            assertEquals(
+                "Dragged row follows the finger at step $step",
+                expected,
+                actual,
+                with(composeRule.density) { 16.dp.toPx() },
+            )
+            dragGeometry.put(
+                JSONObject().put(
+                    "step",
+                    step + 1,
+                ).put(
+                    "expectedY",
+                    expected,
+                )
+                    .put(
+                        "actualY",
+                        actual,
+                    ).put(
+                        "queueIndex",
+                        index,
+                    ),
+            )
+        }
+        onMain {
+            assertEquals(
+                3,
+                player.mediaItemCount,
+            )
+            assertEquals(
+                "Queue video 3",
+                player.getMediaItemAt(0).mediaMetadata.title.toString(),
+            )
+        }
+        val handleEnd = composeRule.onNodeWithTag(
+            "queue_drag_0",
+            true,
+        ).fetchSemanticsNode().boundsInRoot.center.y
+        assertEquals(
+            "The reordered row must stay under the finger",
+            handleStart - travel,
+            handleEnd,
+            with(composeRule.density) { 16.dp.toPx() },
+        )
+        if (InstrumentationRegistry.getArguments().getString("playbackScreenshots") == "true") {
+            File(
+                context.getExternalFilesDir(null),
+                "playback-motion/queue-reorder-geometry.json",
+            )
+                .writeText(dragGeometry.toString())
+        }
+        captureNode(
+            "playback_queue",
+            "queue-reordering",
+        )
+        composeRule.onNodeWithTag("playback_queue").performTouchInput { up() }
+        composeRule.mainClock.advanceTimeBy(400)
+        composeRule.waitForIdle()
+        val row = composeRule.onNodeWithTag("queue_item_1")
+        val rowWidth = row.fetchSemanticsNode().boundsInRoot.width
+        row.performTouchInput {
+            down(
+                Offset(
+                    width * .9f,
+                    centerY,
+                ),
+            )
+        }
+        repeat(12) {
+            composeRule.onNodeWithTag("playback_queue").performTouchInput {
+                moveBy(
+                    Offset(
+                        -rowWidth * .06f,
+                        0f,
+                    ),
+                    32,
+                )
+            }
+            composeRule.mainClock.advanceTimeByFrame()
+            composeRule.waitForIdle()
+        }
+        captureNode(
+            "playback_queue",
+            "queue-remove-reveal",
+        )
+        composeRule.onNodeWithTag("playback_queue").performTouchInput { up() }
+        composeRule.mainClock.advanceTimeBy(400)
+        composeRule.waitForIdle()
+        await("swipe removed queued occurrence") { player.mediaItemCount == 2 }
+        onMain {
+            assertEquals(
+                "Queue video 3",
+                player.getMediaItemAt(0).mediaMetadata.title.toString(),
+            )
+        }
+        composeRule.onNodeWithTag("queue_item_1").performTouchInput { swipeLeft() }
+        composeRule.mainClock.advanceTimeBy(400)
+        composeRule.waitForIdle()
+        await("queue keeps one video") { player.mediaItemCount == 1 }
+        onMain {
+            assertTrue(
+                "Removing the current final row must keep the remaining queue active; state=${player.playbackState}",
+                player.playbackState != Player.STATE_ENDED,
+            )
+        }
+        composeRule.onNodeWithTag("queue_item_0").performTouchInput { swipeLeft() }
+        composeRule.mainClock.advanceTimeBy(400)
+        composeRule.waitForIdle()
+        onMain {
+            assertEquals(
+                1,
+                player.mediaItemCount,
+            )
+        }
     }
 
     @Test

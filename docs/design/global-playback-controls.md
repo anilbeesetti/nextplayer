@@ -91,3 +91,11 @@ The user requested these refinements after using the installed build. They super
 - Keep compact playback mounted through browsing changes. Animate navigation/rail space and its anchor together without recreating browsing entry decorators on every frame.
 - Use a single queue sheet with a Next up header, compact artwork rows, durations, selection, reorder and removal. Keep command gating and the final-item removal guard; no clear/save/music actions are added.
 - Do not scale artwork when playing or pausing.
+
+## Queue and dismissal follow-up (2026-11-11)
+
+- Compact horizontal dismissal shows a rounded removal reveal, follows the finger, and settles offscreen; cancellation returns it without stopping playback. Retain both directions and four-second Undo. A replacement queue must survive an older dismissal animation.
+- Expanded queue rows use the six-dot drag indicator, larger square artwork and a high-contrast duration badge on the image. Unknown durations keep the existing marker.
+- End-to-start swipes remove queue occurrences, with haptic feedback when the removal threshold is crossed. RTL reverses the gesture. Keep accessible button alternatives, command gating and the final-item guard; the drag handle must not start removal.
+- Keep reorder feedback synchronized with the observed media queue before accepting another move. Removing the current final row selects the previous video first so earlier items remain active, preserving playing/paused intent; require the necessary seek command.
+- Nested browsing/settings/form backgrounds remain full-height and scroll behind the compact overlay. Apply its reservation to scroll content and bottom actions, counting system bars once; hide the collapsed tab bar's gradient with its drawing, without changing the persistent overlay's mounting.

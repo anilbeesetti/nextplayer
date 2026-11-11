@@ -183,6 +183,37 @@ class PlaybackOverlayTest {
         }
     }
 
+    @Test fun replacingQueueDuringDismissalDoesNotStopTheReplacement() {
+        show()
+        composeRule.mainClock.autoAdvance = false
+        try {
+            composeRule.onNodeWithTag("mini_player").performTouchInput { swipeLeft() }
+            composeRule.mainClock.advanceTimeByFrame()
+            composeRule.waitForIdle()
+            composeRule.mainClock.advanceTimeBy(64)
+            composeRule.runOnIdle {
+                player.update {
+                    setPlaylist(
+                        listOf(
+                            player.item(3),
+                            player.item(4),
+                        ),
+                    )
+                }
+            }
+            composeRule.mainClock.advanceTimeBy(400)
+            composeRule.onNodeWithTag("mini_player").assertIsDisplayed()
+            composeRule.runOnIdle {
+                assertEquals(
+                    0,
+                    dismissed,
+                )
+            }
+        } finally {
+            composeRule.mainClock.autoAdvance = true
+        }
+    }
+
     @Test fun compactHorizontalSwipesDismissInBothDirections() {
         show()
         composeRule.onNodeWithTag("mini_player").performTouchInput { swipeLeft() }
@@ -274,8 +305,9 @@ class PlaybackOverlayTest {
 
     @Test fun slowPartialExpansionFollowsFingerAndReversesWithoutDisposal() {
         show()
+        composeRule.onNodeWithTag("playback_sheet").assertDoesNotExist()
         val before = composeRule.onNodeWithTag(
-            "playback_sheet",
+            "mini_player",
         ).fetchSemanticsNode().boundsInRoot.top
         composeRule.onNodeWithTag("mini_player").performTouchInput {
             down(

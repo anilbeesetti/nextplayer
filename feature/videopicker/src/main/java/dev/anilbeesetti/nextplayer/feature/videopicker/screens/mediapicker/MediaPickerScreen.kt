@@ -18,11 +18,14 @@ import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.WindowInsetsSides
+import androidx.compose.foundation.layout.asPaddingValues
 import androidx.compose.foundation.layout.displayCutout
+import androidx.compose.foundation.layout.exclude
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.heightIn
+import androidx.compose.foundation.layout.navigationBars
 import androidx.compose.foundation.layout.navigationBarsPadding
 import androidx.compose.foundation.layout.only
 import androidx.compose.foundation.layout.padding
@@ -108,6 +111,7 @@ import dev.anilbeesetti.nextplayer.core.ui.components.NextTopAppBar
 import dev.anilbeesetti.nextplayer.core.ui.components.PlaylistCreationForm
 import dev.anilbeesetti.nextplayer.core.ui.components.TextIconToggleButton
 import dev.anilbeesetti.nextplayer.core.ui.components.TopLevelFabKey
+import dev.anilbeesetti.nextplayer.core.ui.components.playbackScreenInsets
 import dev.anilbeesetti.nextplayer.core.ui.components.rememberRestorableFocusState
 import dev.anilbeesetti.nextplayer.core.ui.components.thenIf
 import dev.anilbeesetti.nextplayer.core.ui.components.tvFocusRing
@@ -228,6 +232,7 @@ internal fun MediaPickerScreenContent(
         (state.mediaDataState as? DataState.Success)?.value?.run { folders.size + videos.size } ?: 0
 
     Scaffold(
+        contentWindowInsets = playbackScreenInsets(),
         topBar = {
             NextTopAppBar(
                 title = {
@@ -448,7 +453,10 @@ internal fun MediaPickerScreenContent(
                             top = 0.dp,
                             start = 0.dp,
                             bottom =
-                                scaffoldPadding.calculateBottomPadding() + navigationBottomPadding,
+                                maxOf(
+                                    scaffoldPadding.calculateBottomPadding(),
+                                    navigationBottomPadding,
+                                ),
                         )
                         val mediaHolder = state.mediaDataState.value
                         if (mediaHolder == null ||
@@ -1177,7 +1185,12 @@ private fun SelectionActionsSheet(
             bottomStart = ZeroCornerSize,
             bottomEnd = ZeroCornerSize,
         )
-        Column(modifier = Modifier.fillMaxWidth()) {
+        Column(
+            modifier = Modifier.fillMaxWidth().padding(
+                bottom = playbackScreenInsets().exclude(WindowInsets.navigationBars)
+                    .asPaddingValues().calculateBottomPadding(),
+            ),
+        ) {
             Row(
                 modifier = Modifier
                     .align(Alignment.CenterHorizontally)
