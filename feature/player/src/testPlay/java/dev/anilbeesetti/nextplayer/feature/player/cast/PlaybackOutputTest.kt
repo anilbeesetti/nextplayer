@@ -385,6 +385,53 @@ class PlaybackOutputTest {
         }
     }
 
+    @Test fun receiverThatDropsThePausedStartPositionIsPlacedBeforeCasting() {
+        val fake = MiniPlayerTestPlayer()
+        try {
+            fake.remote(true)
+            fake.update { setContentPositionMs(0) }
+            field("remotePlayer").set(
+                output,
+                fake,
+            )
+            field("transfer").set(
+                output,
+                CastTransferCallback(fake) { true },
+            )
+            field("expectedMediaId").set(
+                output,
+                "0",
+            )
+            field("presentation").set(
+                output,
+                PlaybackPresentation(PlaybackConnection.CONNECTING),
+            )
+            field("sentPositionMs").set(
+                output,
+                42_000L,
+            )
+            listener.onSessionStarted(
+                session,
+                "connected",
+            )
+            assertEquals(
+                42_000,
+                fake.currentPosition,
+            )
+            assertTrue(publications.none { it.connection == PlaybackConnection.CAST })
+            listener.onSessionStarted(
+                session,
+                "connected",
+            )
+            assertEquals(
+                PlaybackConnection.CAST,
+                publications.last().connection,
+            )
+        } finally {
+            fake.release()
+        }
+    }
+
     @Test fun secondExplicitSelectionAfterCancelCanBecomeReady() {
         local.setMediaItems(
             items,

@@ -7,6 +7,7 @@ import android.net.LinkProperties
 import android.net.NetworkCapabilities
 import android.net.Uri
 import android.os.Bundle
+import android.webkit.MimeTypeMap
 import androidx.media3.common.MediaItem
 import androidx.media3.common.MediaMetadata
 import androidx.media3.datasource.ByteArrayDataSource
@@ -138,6 +139,25 @@ class CastMediaItemConverterTest {
         assertEquals(
             item.mediaId,
             converter.toMediaQueueItem(item).media?.contentId,
+        )
+    }
+
+    @Test
+    fun contentUriTypeComesFromItsFileNameTitleWithoutQueryingTheProvider() {
+        shadowOf(MimeTypeMap.getSingleton()).addExtensionMimeTypeMapping(
+            "mkv",
+            "video/x-matroska",
+        )
+        shadowOf(
+            context.getSystemService(Context.CONNECTIVITY_SERVICE) as ConnectivityManager,
+        ).clearAllNetworks()
+        val uri = "content://media/external/video/media/7"
+        val item = MediaItem.Builder().setMediaId(uri).setUri(Uri.parse(uri))
+            .setMediaMetadata(MediaMetadata.Builder().setTitle("Movie (2026).mkv").build())
+            .build()
+        assertEquals(
+            "video/x-matroska",
+            converter.toMediaQueueItem(item).media?.contentType,
         )
     }
 

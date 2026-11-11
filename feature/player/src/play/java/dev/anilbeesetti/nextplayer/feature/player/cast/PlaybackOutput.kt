@@ -15,6 +15,7 @@ import androidx.media3.common.util.UnstableApi
 import androidx.media3.datasource.DefaultDataSource
 import androidx.media3.exoplayer.ExoPlayer
 import androidx.mediarouter.media.MediaRouter
+import com.google.android.gms.cast.CastDevice
 import com.google.android.gms.cast.framework.CastContext
 import com.google.android.gms.cast.framework.CastSession
 import com.google.android.gms.cast.framework.SessionManager
@@ -23,6 +24,7 @@ import dev.anilbeesetti.nextplayer.core.common.Logger
 import dev.anilbeesetti.nextplayer.feature.player.service.PlaybackConnection
 import dev.anilbeesetti.nextplayer.feature.player.service.PlaybackPresentation
 import dev.anilbeesetti.nextplayer.feature.player.service.playbackTransferState
+import kotlin.math.abs
 
 @UnstableApi
 internal class PlaybackOutput(
@@ -54,6 +56,7 @@ internal class PlaybackOutput(
     private var returningToPhone = false
     private var rejectRemoteTransfers = false
     private var receiverAhead = false
+    private var sentPositionMs: Long? = null
     private val handler = Handler(Looper.getMainLooper())
 
     // The receiver reports what it plays at once; Media3's queue positions can lag it by seconds.
@@ -118,14 +121,19 @@ internal class PlaybackOutput(
         }
         if (presentation.connection != PlaybackConnection.CONNECTING) {
             localBeforeConnection = playbackTransferState(localPlayer)
-            outboundPlaying = if (!explicit && presentation.connection == PlaybackConnection.LOST) {
+            // Reconnecting after a loss resumes what the receiver was doing, not the paused phone.
+            outboundPlaying = if (presentation.connection == PlaybackConnection.LOST) {
                 lastRemote?.playWhenReady ?: false
             } else {
                 localBeforeConnection?.playWhenReady ?: false
             }
             expectedMediaId = localPlayer.currentMediaItem?.mediaId
+            sentPositionMs = null
         }
-        routeId = MediaRouter.getInstance(context).selectedRoute.id
+        val selected = MediaRouter.getInstance(context).selectedRoute
+        routeId = selected.id
+        (session?.castDevice ?: CastDevice.getFromBundle(selected.extras))?.deviceId
+            ?.let { castDeviceId = it }
         returningToPhone = false
         receiverAhead = false
         localPlayer.pause()
@@ -195,6 +203,15 @@ internal class PlaybackOutput(
             )
         ) {
             return
+        }
+        // This receiver drops the start position of an item loaded paused; place it once.
+        val sent = sentPositionMs
+        if (presentation.connection == PlaybackConnection.CONNECTING && sent != null) {
+            sentPositionMs = null
+            if (abs(remote.currentPosition - sent) > START_POSITION_TOLERANCE_MS) {
+                remote.seekTo(sent)
+                return
+            }
         }
         val behind = remote.currentMediaItem?.mediaId != playing
         val wasAhead = receiverAhead
@@ -297,6 +314,7 @@ internal class PlaybackOutput(
                         )
                     }
                     val intendedPlaying = outboundPlaying
+                    sentPositionMs = source.currentPosition
                     callback.transferState(
                         object : ForwardingPlayer(source) {
                             override fun getPlayWhenReady() = intendedPlaying
@@ -312,6 +330,11 @@ internal class PlaybackOutput(
                             restore.setToPlayer(target)
                             target.prepare()
                             restoredOnPhone = true
+                        }
+                        if (cancelWaiting) {
+                            handler.removeCallbacks(finishCancel)
+                            cancelWaiting = false
+                            publish(PlaybackConnection.LOCAL)
                         }
                     }
 
@@ -338,6 +361,9 @@ internal class PlaybackOutput(
                         }
                         target.playWhenReady = returningToPhone &&
                             (lastRemote?.playWhenReady ?: source.playWhenReady)
+                        // Media3 prepares only after a busy receiver; one that ended on its own is
+                        // idle, which would leave the phone without the item's duration or frame.
+                        target.prepare()
                         if (!returningToPhone) connectionLost()
                     }
                 }
@@ -366,14 +392,32 @@ internal class PlaybackOutput(
 
     fun cancelConnection() {
         if (presentation.connection != PlaybackConnection.CONNECTING) return
+        stopRetryScan()
         handler.removeCallbacks(timeout)
         restoreAfterDisconnect = localBeforeConnection
         restoredOnPhone = false
         rejectRemoteTransfers = true
         returningToPhone = true
+        // Ending a session that is still launching leaves its receiver app open on the TV. Let the
+        // launch finish: the rejected transfer then ends the session and restores the phone.
+        if (!cancelWaiting && sessionManager?.currentCastSession?.isConnecting == true) {
+            cancelWaiting = true
+            handler.postDelayed(
+                finishCancel,
+                CANCEL_LAUNCH_WAIT_MS,
+            )
+            return
+        }
+        finishCancel.run()
+    }
+
+    private var cancelWaiting = false
+    private val finishCancel = Runnable {
+        cancelWaiting = false
+        handler.removeCallbacks(timeout)
         publish(PlaybackConnection.LOCAL)
         sessionManager?.endCurrentSession(true)
-        if (player.deviceInfo.playbackType == DeviceInfo.PLAYBACK_TYPE_LOCAL) {
+        if (player.deviceInfo.playbackType == DeviceInfo.PLAYBACK_TYPE_LOCAL && !restoredOnPhone) {
             restoreAfterDisconnect?.setToPlayer(localPlayer)
             localPlayer.prepare()
             restoredOnPhone = true
@@ -381,16 +425,88 @@ internal class PlaybackOutput(
     }
 
     fun retry() {
-        val route = MediaRouter.getInstance(context).routes.find {
-            it.id == routeId && it.isEnabled
+        val router = MediaRouter.getInstance(context)
+        val id = routeId
+        val route = router.routes.find { it.isRetryTarget() }
+        if (route != null) {
+            reconnect(route)
+            return
         }
-        if (route == null) {
+        // Nothing scans while the connection is lost, so the receiver can be missing until found.
+        val selector = try {
+            CastContext.getSharedInstance(context).mergedSelector
+        } catch (_: RuntimeException) {
+            null
+        }
+        if ((id == null && castDeviceId == null) || selector == null) {
             publish(
                 PlaybackConnection.LOST,
                 expand = true,
             )
             return
         }
+        stopRetryScan()
+        beginConnection(
+            null,
+            true,
+        )
+        val scan = object : MediaRouter.Callback() {
+            override fun onRouteAdded(router: MediaRouter, route: MediaRouter.RouteInfo) =
+                found(route)
+
+            override fun onRouteChanged(router: MediaRouter, route: MediaRouter.RouteInfo) =
+                found(route)
+
+            private fun found(route: MediaRouter.RouteInfo) {
+                if (!route.isRetryTarget()) return
+                stopRetryScan()
+                reconnect(route)
+            }
+        }
+        retryScan = scan
+        router.addCallback(
+            selector,
+            scan,
+            MediaRouter.CALLBACK_FLAG_PERFORM_ACTIVE_SCAN,
+        )
+        handler.postDelayed(
+            retryGiveUp,
+            RETRY_SCAN_MS,
+        )
+    }
+
+    private var retryScan: MediaRouter.Callback? = null
+
+    // A connected session selects a group route around the receiver; retry needs the receiver.
+    private var castDeviceId: String? = null
+
+    private fun MediaRouter.RouteInfo.isRetryTarget(): Boolean {
+        if (!isEnabled || isDefault) return false
+        val deviceId = CastDevice.getFromBundle(extras)?.deviceId
+        return if (deviceId != null &&
+            castDeviceId != null
+        ) {
+            deviceId == castDeviceId
+        } else {
+            id == routeId
+        }
+    }
+    private val retryGiveUp = Runnable {
+        stopRetryScan()
+        handler.removeCallbacks(timeout)
+        publish(
+            PlaybackConnection.LOST,
+            expand = true,
+        )
+    }
+
+    private fun stopRetryScan() {
+        handler.removeCallbacks(retryGiveUp)
+        retryScan?.let { MediaRouter.getInstance(context).removeCallback(it) }
+        retryScan = null
+    }
+
+    private fun reconnect(route: MediaRouter.RouteInfo) {
         stopping = false
         returningToPhone = false
         val router = MediaRouter.getInstance(context)
@@ -408,6 +524,7 @@ internal class PlaybackOutput(
     }
 
     fun playOnPhone() {
+        stopRetryScan()
         rejectRemoteTransfers = true
         handler.removeCallbacks(timeout)
         returningToPhone = true
@@ -467,6 +584,7 @@ internal class PlaybackOutput(
     }
 
     fun onStop() {
+        stopRetryScan()
         rejectRemoteTransfers = true
         stopping = true
         returningToPhone = false
@@ -496,6 +614,10 @@ internal class PlaybackOutput(
         player.release()
     }
 }
+
+private const val RETRY_SCAN_MS = 10_000L
+private const val START_POSITION_TOLERANCE_MS = 1_500L
+private const val CANCEL_LAUNCH_WAIT_MS = 10_000L
 
 @UnstableApi
 internal fun isAcknowledgedCastMedia(

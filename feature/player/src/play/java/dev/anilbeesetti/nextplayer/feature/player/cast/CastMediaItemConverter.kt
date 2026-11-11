@@ -35,7 +35,10 @@ internal class CastMediaItemConverter(
     override fun toMediaQueueItem(item: MediaItem): MediaQueueItem {
         val configuration = checkNotNull(item.localConfiguration)
         val uri = configuration.uri
-        val mimeType = configuration.mimeType ?: mimeType(uri)
+        val mimeType = configuration.mimeType ?: mimeType(
+            uri,
+            item.mediaMetadata.title,
+        )
         val original = item.buildUpon().setMimeType(mimeType).build()
         val defaultInfo = checkNotNull(delegate.toMediaQueueItem(original).media)
         originals[key(item)] = item
@@ -104,14 +107,24 @@ internal class CastMediaItemConverter(
             ?.hostAddress ?: error("No local network address")
     }
 
-    private fun mimeType(uri: Uri): String = MimeTypeMap.getSingleton().getMimeTypeFromExtension(
-        uri.lastPathSegment?.substringAfterLast(
-            '.',
-            "",
-        )?.lowercase(),
-    ) ?: if (uri.scheme == "content") {
-        runCatching { context.contentResolver.getType(uri) }.getOrNull() ?: "video/mp4"
-    } else {
-        "video/mp4"
-    }
+    // A content URI has no extension, but its title is the file name; querying the provider
+    // instead costs a binder call per queue item on the main thread.
+    private fun mimeType(uri: Uri, title: CharSequence?): String = sequenceOf(
+        uri.lastPathSegment,
+        title?.toString(),
+    )
+        .mapNotNull { name ->
+            MimeTypeMap.getSingleton().getMimeTypeFromExtension(
+                name?.substringAfterLast(
+                    '.',
+                    "",
+                )?.lowercase(),
+            )
+        }
+        .firstOrNull()
+        ?: if (uri.scheme == "content") {
+            runCatching { context.contentResolver.getType(uri) }.getOrNull() ?: "video/mp4"
+        } else {
+            "video/mp4"
+        }
 }

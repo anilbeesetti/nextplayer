@@ -223,12 +223,6 @@ internal fun ExpandedPlaybackControls(
                     actions()
                 }
             }
-            Box(Modifier.blockTouchesUntil(interactive)) {
-                ConnectionControls(
-                    connection,
-                    onCommand,
-                )
-            }
         }
     }
     val controls: @Composable () -> Unit = {
@@ -272,9 +266,9 @@ internal fun ExpandedPlaybackControls(
         tween(200),
         label = "artwork_overlay_alpha",
     )
-    // Connecting sits on the artwork, so nothing below it moves once the cast connects.
+    // Connection states sit on the artwork, so nothing below moves as the connection changes.
     val artworkOverlay: @Composable BoxScope.() -> Unit = {
-        if (connection == PlaybackConnection.CONNECTING) {
+        if (connection == PlaybackConnection.CONNECTING || connection == PlaybackConnection.LOST) {
             Box(
                 Modifier.matchParentSize().graphicsLayer { alpha = artworkOverlayAlpha }
                     .clip(RoundedCornerShape(18.dp))
@@ -285,12 +279,28 @@ internal fun ExpandedPlaybackControls(
                 horizontalAlignment = Alignment.CenterHorizontally,
                 verticalArrangement = Arrangement.spacedBy(12.dp),
             ) {
-                ContainedLoadingIndicator(Modifier.testTag("cast_connecting"))
-                FilledTonalButton(
-                    onClick = { onCommand(CustomCommands.CANCEL_CAST) },
-                    modifier = Modifier.blockTouchesUntil(interactive).tvFocusRing(),
-                ) {
-                    Text(stringResource(R.string.cancel))
+                val buttons = Modifier.blockTouchesUntil(interactive).tvFocusRing()
+                if (connection == PlaybackConnection.CONNECTING) {
+                    ContainedLoadingIndicator(Modifier.testTag("cast_connecting"))
+                    FilledTonalButton(
+                        onClick = { onCommand(CustomCommands.CANCEL_CAST) },
+                        modifier = buttons,
+                    ) {
+                        Text(stringResource(R.string.cancel))
+                    }
+                } else {
+                    FilledTonalButton(
+                        onClick = { onCommand(CustomCommands.RETRY_CAST) },
+                        modifier = buttons,
+                    ) {
+                        Text(stringResource(R.string.retry))
+                    }
+                    FilledTonalButton(
+                        onClick = { onCommand(CustomCommands.PLAY_ON_PHONE) },
+                        modifier = buttons,
+                    ) {
+                        Text(stringResource(R.string.play_on_phone))
+                    }
                 }
             }
         } else if (connection == PlaybackConnection.LOCAL ||
@@ -951,38 +961,6 @@ private fun PlaybackModeControls(
                     Icons.Rounded.Stop,
                     stringResource(R.string.stop_player_session),
                 )
-            }
-        }
-    }
-}
-
-@Composable
-private fun ConnectionControls(
-    connection: PlaybackConnection,
-    onCommand: (CustomCommands) -> Unit,
-) {
-    if (connection == PlaybackConnection.LOST) {
-        Row(
-            Modifier.fillMaxWidth().padding(top = 12.dp),
-            horizontalArrangement = Arrangement.spacedBy(8.dp),
-        ) {
-            FilledTonalButton(
-                colors = playbackChipColors(),
-                onClick = {
-                    onCommand(CustomCommands.RETRY_CAST)
-                },
-                modifier = Modifier.tvFocusRing(),
-            ) {
-                Text(stringResource(R.string.retry))
-            }
-            FilledTonalButton(
-                colors = playbackChipColors(),
-                onClick = {
-                    onCommand(CustomCommands.PLAY_ON_PHONE)
-                },
-                modifier = Modifier.tvFocusRing(),
-            ) {
-                Text(stringResource(R.string.play_on_phone))
             }
         }
     }

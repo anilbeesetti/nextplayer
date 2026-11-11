@@ -50,6 +50,7 @@ fun ControlsTopView(
     onAudioClick: () -> Unit = {},
     onSubtitleClick: () -> Unit = {},
     onPlaylistClick: () -> Unit = {},
+    onCastPickerVisibleChange: (Boolean) -> Unit = {},
 ) {
     val firstControlFocusRequester = remember { FocusRequester() }
     val systemBarsPadding = WindowInsets.systemBars.union(
@@ -100,7 +101,7 @@ fun ControlsTopView(
                     maxLines = 1,
                 )
             }
-            CastButton()
+            CastButton(onPickerVisibleChange = onCastPickerVisibleChange)
             PlayerButton(onClick = onPlaylistClick) {
                 Icon(
                     painter = painterResource(R.drawable.ic_playlist),

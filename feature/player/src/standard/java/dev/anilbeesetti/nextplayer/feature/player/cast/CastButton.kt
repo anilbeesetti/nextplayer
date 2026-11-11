@@ -4,4 +4,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.graphics.Color
 
 @Composable
-internal fun CastButton(contentColor: Color = Color.White) = Unit
+internal fun CastButton(
+    contentColor: Color = Color.White,
+    onPickerVisibleChange: (Boolean) -> Unit = {},
+) = Unit
