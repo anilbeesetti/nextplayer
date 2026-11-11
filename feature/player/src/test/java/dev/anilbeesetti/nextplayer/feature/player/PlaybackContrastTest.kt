@@ -64,9 +64,19 @@ class PlaybackContrastTest {
                             colors.onTertiaryContainer to colors.tertiaryContainer,
                             colors.onSurface to colors.surfaceContainerHigh,
                             colors.onSecondaryContainer to colors.secondaryContainer,
+                            colors.onPrimary to colors.primary,
+                            colors.onTertiaryFixed to colors.tertiaryFixedDim,
+                            colors.primary to colors.onPrimary.copy(alpha = .8f)
+                                .compositeOver(colors.primaryContainer),
+                            colors.primary to colors.onPrimary.copy(alpha = .7f)
+                                .compositeOver(colors.primaryContainer),
+                            colors.onSurface to colors.onSurface.copy(alpha = .07f).compositeOver(
+                                colors.surfaceContainerLowest.copy(alpha = .7f)
+                                    .compositeOver(colors.primaryContainer),
+                            ),
                         )) {
                             assertTrue(
-                                "Text/icon contrast: $theme",
+                                "Text/icon contrast $foreground on $background: $theme",
                                 contrast(
                                     foreground,
                                     background,

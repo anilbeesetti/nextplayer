@@ -51,6 +51,7 @@ import androidx.compose.material.icons.rounded.SkipNext
 import androidx.compose.material.icons.rounded.SkipPrevious
 import androidx.compose.material.icons.rounded.SmartDisplay
 import androidx.compose.material.icons.rounded.Stop
+import androidx.compose.material3.ButtonColors
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.ButtonGroup
 import androidx.compose.material3.CircularProgressIndicator
@@ -252,10 +253,7 @@ internal fun ExpandedPlaybackControls(
                     },
                     modifier = Modifier.padding(top = 8.dp).tvFocusRing(CircleShape),
                     shape = CircleShape,
-                    colors = ButtonDefaults.filledTonalButtonColors(
-                        containerColor = MaterialTheme.colorScheme.secondaryContainer,
-                        contentColor = MaterialTheme.colorScheme.onSecondaryContainer,
-                    ),
+                    colors = playbackChipColors(),
                 ) {
                     Icon(
                         if (snapshot.isRemote) {
@@ -411,6 +409,12 @@ internal fun ExpandedPlaybackControls(
 }
 
 @Composable
+private fun playbackChipColors(): ButtonColors = ButtonDefaults.filledTonalButtonColors(
+    containerColor = MaterialTheme.colorScheme.onPrimary.copy(alpha = .8f),
+    contentColor = MaterialTheme.colorScheme.primary,
+)
+
+@Composable
 private fun PlaybackCollapseButton(
     onCollapse: () -> Unit,
     modifier: Modifier,
@@ -486,7 +490,11 @@ private fun PlaybackHeaderActions(
                 onClick = onOutput,
                 enabled = enabled,
                 shape = outputShape,
-                color = if (enabled) colors.containerColor else colors.disabledContainerColor,
+                color = if (enabled) {
+                    colors.containerColor.copy(alpha = .7f)
+                } else {
+                    colors.disabledContainerColor
+                },
                 contentColor = if (enabled) colors.contentColor else colors.disabledContentColor,
                 modifier = Modifier.animateContentSize(
                     animationSpec = spring(
@@ -728,8 +736,8 @@ private fun PlaybackTransportControls(
             36.dp,
             play,
             IconButtonDefaults.filledIconButtonColors(
-                containerColor = MaterialTheme.colorScheme.tertiaryContainer,
-                contentColor = MaterialTheme.colorScheme.onTertiaryContainer,
+                containerColor = MaterialTheme.colorScheme.tertiaryFixedDim,
+                contentColor = MaterialTheme.colorScheme.onTertiaryFixed,
             ),
         )
         FilledIconButton(
@@ -767,7 +775,7 @@ private fun PlaybackModeControls(
         },
     )
     val colors = IconButtonDefaults.filledIconToggleButtonColors(
-        containerColor = MaterialTheme.colorScheme.surfaceContainerHigh,
+        containerColor = MaterialTheme.colorScheme.onSurface.copy(alpha = .07f),
         contentColor = MaterialTheme.colorScheme.onSurface,
         checkedContainerColor = MaterialTheme.colorScheme.primary,
         checkedContentColor = MaterialTheme.colorScheme.onPrimary,
@@ -775,7 +783,7 @@ private fun PlaybackModeControls(
     Surface(
         Modifier.padding(horizontal = 26.dp).padding(bottom = 6.dp).testTag("playback_modes"),
         shape = CircleShape,
-        color = MaterialTheme.colorScheme.surfaceContainerLowest,
+        color = MaterialTheme.colorScheme.surfaceContainerLowest.copy(alpha = .7f),
     ) {
         Row(
             Modifier.fillMaxWidth().padding(6.dp),
@@ -834,7 +842,7 @@ private fun PlaybackModeControls(
                 modifier = Modifier.weight(1f).height(48.dp).tvFocusRing(last),
                 shape = last,
                 colors = IconButtonDefaults.filledIconButtonColors(
-                    containerColor = MaterialTheme.colorScheme.surfaceContainerHigh,
+                    containerColor = MaterialTheme.colorScheme.onSurface.copy(alpha = .07f),
                     contentColor = MaterialTheme.colorScheme.onSurface,
                 ),
             ) {
@@ -862,6 +870,7 @@ private fun ConnectionControls(
             CircularProgressIndicator(Modifier.size(32.dp))
             FilledTonalButton(
                 enabled = enabled,
+                colors = playbackChipColors(),
                 onClick = {
                     onCommand(CustomCommands.CANCEL_CAST)
                 },
@@ -877,6 +886,7 @@ private fun ConnectionControls(
         ) {
             FilledTonalButton(
                 enabled = enabled,
+                colors = playbackChipColors(),
                 onClick = {
                     onCommand(CustomCommands.RETRY_CAST)
                 },
@@ -886,6 +896,7 @@ private fun ConnectionControls(
             }
             FilledTonalButton(
                 enabled = enabled,
+                colors = playbackChipColors(),
                 onClick = {
                     onCommand(CustomCommands.PLAY_ON_PHONE)
                 },
