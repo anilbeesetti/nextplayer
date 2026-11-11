@@ -11,13 +11,18 @@ import androidx.compose.ui.hapticfeedback.HapticFeedbackType
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.platform.LocalHapticFeedback
 import androidx.compose.ui.platform.LocalLayoutDirection
+import androidx.compose.ui.semantics.SemanticsActions
 import androidx.compose.ui.test.assertCountEquals
+import androidx.compose.ui.test.assertIsDisplayed
 import androidx.compose.ui.test.assertTextEquals
 import androidx.compose.ui.test.getUnclippedBoundsInRoot
 import androidx.compose.ui.test.junit4.v2.createAndroidComposeRule
 import androidx.compose.ui.test.onAllNodesWithContentDescription
 import androidx.compose.ui.test.onNodeWithTag
+import androidx.compose.ui.test.onNodeWithText
 import androidx.compose.ui.test.onRoot
+import androidx.compose.ui.test.performClick
+import androidx.compose.ui.test.performSemanticsAction
 import androidx.compose.ui.test.performTouchInput
 import androidx.compose.ui.test.swipeLeft
 import androidx.compose.ui.test.swipeRight
@@ -278,6 +283,84 @@ class PlaybackQueueContentTest {
                 2,
                 player.mediaItemCount,
             )
+        }
+    }
+
+    @Test fun shortQueueSwipeResistsAndRevealsOnlyItsOwnWidth() {
+        show()
+        val row = rule.onNodeWithTag("queue_item_1")
+        val before = row.getUnclippedBoundsInRoot()
+        val travel = with(rule.density) { 40.dp.toPx() }
+        row.performTouchInput {
+            down(
+                Offset(
+                    width * .8f,
+                    centerY,
+                ),
+            )
+            repeat(10) {
+                moveBy(
+                    Offset(
+                        -travel / 10,
+                        0f,
+                    ),
+                    32,
+                )
+            }
+        }
+        val after = row.getUnclippedBoundsInRoot()
+        val reveal = rule.onNodeWithTag(
+            "playback_dismiss_reveal",
+            true,
+        ).getUnclippedBoundsInRoot()
+        assertTrue(
+            "Early drag should resist movement",
+            before.left - after.left <= 20.dp,
+        )
+        assertTrue(
+            "Only the swiped strip should be drawn",
+            reveal.right - reveal.left <= 20.dp,
+        )
+        rule.onRoot().performTouchInput { cancel() }
+        rule.runOnIdle {
+            assertEquals(
+                3,
+                player.mediaItemCount,
+            )
+        }
+    }
+
+    @Test fun removeButtonIsShownForKeyboardFocusInsteadOfDuplicatingSwipeIcon() {
+        show()
+        val label = rule.activity.getString(R.string.remove)
+        rule.onAllNodesWithContentDescription(label).assertCountEquals(0)
+        val row = rule.onNodeWithTag("queue_item_1")
+        row.performSemanticsAction(SemanticsActions.RequestFocus) { assertTrue(it()) }
+        rule.onAllNodesWithContentDescription(label).assertCountEquals(1)
+    }
+
+    @Test fun queueRemovalShowsTitleAndUndoWithoutChangingPlayback() {
+        show()
+        rule.onNodeWithTag("queue_item_1").performTouchInput { swipeLeft() }
+        rule.onNodeWithTag("queue_removal_undo").assertIsDisplayed()
+        rule.onNodeWithText(
+            rule.activity.getString(R.string.queue_video_removed),
+        ).assertIsDisplayed()
+        rule.onNodeWithText(rule.activity.getString(R.string.undo)).performClick()
+        rule.runOnIdle {
+            assertEquals(
+                3,
+                player.mediaItemCount,
+            )
+            assertEquals(
+                "same",
+                player.getMediaItemAt(1).mediaId,
+            )
+            assertEquals(
+                0,
+                player.currentMediaItemIndex,
+            )
+            assertTrue(!player.playWhenReady)
         }
     }
 

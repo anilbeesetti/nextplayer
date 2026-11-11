@@ -293,25 +293,143 @@ class MiniPlayerIntegrationTest {
 
     @Test
     fun swipeDismissalUndoRestoresPlayingAndPausedSessions() {
-        listOf(
-            false,
-            true,
-        ).forEach { playing ->
-            onMain {
-                player.seekTo(24_000)
-                player.playWhenReady = playing
+        val clock = composeRule.mainClock
+        val automatic = clock.autoAdvance
+        clock.autoAdvance = false
+        val timing = JSONArray()
+        try {
+            listOf(
+                false,
+                true,
+            ).forEach { playing ->
+                onMain {
+                    player.seekTo(24_000)
+                    player.playWhenReady = playing
+                }
+                await("set playing intent") { player.playWhenReady == playing }
+                waitForMiniPlayer()
+                val dismissedAt = SystemClock.elapsedRealtime()
+                val clockAtDismissal = clock.currentTime
+                composeRule.onNodeWithTag("mini_player").performTouchInput { swipeLeft() }
+                clock.advanceTimeByFrame()
+                composeRule.waitForIdle()
+                clock.advanceTimeBy(400)
+                composeRule.waitForIdle()
+                await("dismissed queue") { player.currentMediaItem == null }
+                composeRule.waitUntil(5_000) {
+                    clock.advanceTimeByFrame()
+                    composeRule.onAllNodesWithTag(
+                        "playback_undo_pill",
+                    ).fetchSemanticsNodes().isNotEmpty()
+                }
+                clock.advanceTimeBy(400)
+                composeRule.waitForIdle()
+                val elapsed = SystemClock.elapsedRealtime() - dismissedAt
+                assertTrue(
+                    "Undo remains inside the original four-second wall window",
+                    elapsed < 4_000,
+                )
+                timing.put(
+                    JSONObject().put(
+                        "playing",
+                        playing,
+                    )
+                        .put(
+                            "composeAdvanceMs",
+                            clock.currentTime - clockAtDismissal,
+                        )
+                        .put(
+                            "wallElapsedBeforeUndoMs",
+                            elapsed,
+                        ),
+                )
+                composeRule.onNodeWithText(context.getString(R.string.undo)).performClick()
+                await("restored queue") {
+                    player.mediaItemCount == 1 && player.playWhenReady == playing
+                }
+                onMain { assertTrue(player.currentPosition in 24_000..26_000) }
+                clock.advanceTimeByFrame()
+                composeRule.waitForIdle()
+                clock.advanceTimeBy(400)
+                composeRule.waitForIdle()
             }
-            await("set playing intent") { player.playWhenReady == playing }
-            waitForMiniPlayer()
+        } finally {
+            if (InstrumentationRegistry.getArguments().getString("playbackScreenshots") == "true") {
+                val file = File(
+                    context.getExternalFilesDir(null),
+                    "playback-motion/reference-undo-clock.json",
+                )
+                file.parentFile!!.mkdirs()
+                file.writeText(timing.toString())
+            }
+            clock.autoAdvance = automatic
+        }
+    }
+
+    @Test
+    fun dismissalUndoUsesCompactPillCountdownAndClose() {
+        onMain { player.pause() }
+        val clock = composeRule.mainClock
+        val automatic = clock.autoAdvance
+        clock.autoAdvance = false
+        try {
+            val mini = composeRule.onNodeWithTag("mini_player").fetchSemanticsNode().boundsInRoot
             composeRule.onNodeWithTag("mini_player").performTouchInput { swipeLeft() }
-            composeRule.mainClock.advanceTimeBy(400)
+            clock.advanceTimeByFrame()
             composeRule.waitForIdle()
-            await("dismissed queue") { player.currentMediaItem == null }
-            composeRule.onNodeWithText(context.getString(R.string.undo)).performClick()
-            await("restored queue") {
-                player.mediaItemCount == 1 && player.playWhenReady == playing
+            clock.advanceTimeBy(300)
+            composeRule.waitForIdle()
+            await("queue dismissed for pill") { player.mediaItemCount == 0 }
+            composeRule.waitUntil(5_000) {
+                clock.advanceTimeByFrame()
+                composeRule.onAllNodesWithTag(
+                    "playback_undo_pill",
+                ).fetchSemanticsNodes().isNotEmpty()
             }
-            onMain { assertTrue(player.currentPosition in 24_000..26_000) }
+            clock.advanceTimeBy(400)
+            composeRule.waitForIdle()
+            val undo = composeRule.onNodeWithTag(
+                "playback_undo_pill",
+            ).fetchSemanticsNode().boundsInRoot
+            assertEquals(
+                mini.left,
+                undo.left,
+                1f,
+            )
+            assertEquals(
+                mini.right,
+                undo.right,
+                1f,
+            )
+            assertEquals(
+                mini.bottom,
+                undo.bottom,
+                1f,
+            )
+            captureNode(
+                "playback_undo_pill",
+                "reference-mini-undo-start",
+            )
+            clock.advanceTimeBy(1_000)
+            composeRule.waitForIdle()
+            captureNode(
+                "playback_undo_pill",
+                "reference-mini-undo-countdown",
+            )
+            composeRule.onNodeWithContentDescription(
+                context.getString(R.string.close),
+            ).performClick()
+            clock.advanceTimeBy(400)
+            composeRule.waitForIdle()
+            composeRule.onNodeWithTag("playback_undo_pill").assertDoesNotExist()
+            onMain {
+                assertEquals(
+                    0,
+                    player.mediaItemCount,
+                )
+            }
+        } finally {
+            clock.autoAdvance = automatic
         }
     }
 
@@ -847,6 +965,11 @@ class MiniPlayerIntegrationTest {
         composeRule.runOnIdle { assertTrue(move.action()) }
         await("queue reorder") { player.getMediaItemAt(0).mediaId == Uri.fromFile(blue).toString() }
         repeat(2) {
+            composeRule.onNodeWithTag(
+                "queue_item_0",
+            ).performSemanticsAction(SemanticsActions.RequestFocus) {
+                assertTrue(it())
+            }
             composeRule.onAllNodesWithContentDescription(
                 context.getString(R.string.remove),
             )[0].performClick()
@@ -1049,6 +1172,18 @@ class MiniPlayerIntegrationTest {
         composeRule.mainClock.advanceTimeBy(400)
         composeRule.waitForIdle()
         await("swipe removed queued occurrence") { player.mediaItemCount == 2 }
+        captureNode(
+            "playback_queue",
+            "reference-queue-removal-undo",
+        )
+        composeRule.onNodeWithText(context.getString(R.string.undo)).performClick()
+        composeRule.mainClock.advanceTimeBy(400)
+        composeRule.waitForIdle()
+        await("queue Undo inserts removed occurrence") { player.mediaItemCount == 3 }
+        composeRule.onNodeWithTag("queue_item_1").performTouchInput { swipeLeft() }
+        composeRule.mainClock.advanceTimeBy(400)
+        composeRule.waitForIdle()
+        await("restored occurrence removed again") { player.mediaItemCount == 2 }
         onMain {
             assertEquals(
                 "Queue video 3",
@@ -1068,6 +1203,21 @@ class MiniPlayerIntegrationTest {
         composeRule.onNodeWithTag("queue_item_0").performTouchInput { swipeLeft() }
         composeRule.mainClock.advanceTimeBy(400)
         composeRule.waitForIdle()
+        onMain {
+            assertEquals(
+                1,
+                player.mediaItemCount,
+            )
+        }
+        composeRule.onNodeWithTag("queue_removal_undo").assertIsDisplayed()
+        onMain {
+            player.setMediaItem(player.currentMediaItem!!)
+            player.prepare()
+        }
+        await("same-video replacement ready") { player.playbackState == Player.STATE_READY }
+        composeRule.waitUntil(1_500) {
+            composeRule.onAllNodesWithTag("queue_removal_undo").fetchSemanticsNodes().isEmpty()
+        }
         onMain {
             assertEquals(
                 1,

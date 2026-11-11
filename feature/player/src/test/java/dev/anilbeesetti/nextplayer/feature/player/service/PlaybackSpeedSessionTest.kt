@@ -105,6 +105,82 @@ class PlaybackSpeedSessionTest {
         stopKoin()
     }
 
+    @Test fun delayedUndoAdditionCannotSurviveStop() = withSession { service, player ->
+        player.setMediaItem(MediaItem.fromUri("https://example.com/current.mp4"))
+        metadataGate = CompletableDeferred()
+        metadataStarted = CompletableDeferred()
+        delayedMediaId = "https://example.com/restored.mp4"
+        val pending = serviceCallback(service).onAddMediaItems(
+            serviceSession(service),
+            controllerInfo(),
+            mutableListOf(
+                MediaItem.Builder().setMediaId(delayedMediaId!!)
+                    .setUri(delayedMediaId!!).build(),
+            ),
+        )
+        shadowOf(Looper.getMainLooper()).idle()
+        awaitMetadataStarted()
+        val stopped = command(
+            service,
+            CustomCommands.STOP_PLAYER_SESSION,
+            Bundle.EMPTY,
+        )
+        awaitResult(stopped)
+        metadataGate!!.complete(Unit)
+        awaitAddedItems(pending)
+        assertTrue(pending.get().isEmpty())
+        assertEquals(
+            0,
+            player.mediaItemCount,
+        )
+    }
+
+    @Test fun delayedUndoAdditionCannotSurviveReplacementQueue() = withSession { service, player ->
+        player.setMediaItem(MediaItem.fromUri("https://example.com/current.mp4"))
+        metadataGate = CompletableDeferred()
+        metadataStarted = CompletableDeferred()
+        delayedMediaId = "https://example.com/restored.mp4"
+        val pending = serviceCallback(service).onAddMediaItems(
+            serviceSession(service),
+            controllerInfo(),
+            mutableListOf(
+                MediaItem.Builder().setMediaId(delayedMediaId!!)
+                    .setUri(delayedMediaId!!).build(),
+            ),
+        )
+        shadowOf(Looper.getMainLooper()).idle()
+        awaitMetadataStarted()
+        val next = MediaItem.fromUri("https://example.com/new.mp4")
+        serviceCallback(service).onSetMediaItems(
+            serviceSession(service),
+            controllerInfo(),
+            mutableListOf(next),
+            0,
+            0,
+        )
+        player.setMediaItem(next)
+        metadataGate!!.complete(Unit)
+        awaitAddedItems(pending)
+        assertTrue(pending.get().isEmpty())
+        assertEquals(
+            1,
+            player.mediaItemCount,
+        )
+        assertEquals(
+            next.localConfiguration?.uri,
+            player.currentMediaItem?.localConfiguration?.uri,
+        )
+    }
+
+    private fun awaitAddedItems(result: ListenableFuture<MutableList<MediaItem>>) {
+        val deadline = System.nanoTime() + 5_000_000_000L
+        while (!result.isDone && System.nanoTime() < deadline) {
+            shadowOf(Looper.getMainLooper()).idle()
+            Thread.sleep(5)
+        }
+        assertTrue(result.isDone)
+    }
+
     @Test
     fun sessionStartsAtPreferenceAndIgnoresLegacyVideoSpeed() = withSession { _, player ->
         assertEquals(

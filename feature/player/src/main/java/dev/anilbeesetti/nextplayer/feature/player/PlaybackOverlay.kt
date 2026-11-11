@@ -2,10 +2,17 @@ package dev.anilbeesetti.nextplayer.feature.player
 
 import android.content.Intent
 import android.os.Bundle
+import android.os.SystemClock
 import androidx.activity.compose.BackHandler
+import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.core.Animatable
 import androidx.compose.animation.core.FastOutSlowInEasing
 import androidx.compose.animation.core.tween
+import androidx.compose.animation.fadeIn
+import androidx.compose.animation.fadeOut
+import androidx.compose.animation.slideInVertically
+import androidx.compose.animation.slideOutVertically
+import androidx.compose.foundation.focusGroup
 import androidx.compose.foundation.gestures.Orientation
 import androidx.compose.foundation.gestures.detectTapGestures
 import androidx.compose.foundation.gestures.draggable
@@ -25,6 +32,7 @@ import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.safeDrawingPadding
@@ -36,10 +44,6 @@ import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.ModalBottomSheet
-import androidx.compose.material3.SnackbarDuration
-import androidx.compose.material3.SnackbarHost
-import androidx.compose.material3.SnackbarHostState
-import androidx.compose.material3.SnackbarResult
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.material3.rememberModalBottomSheetState
@@ -48,6 +52,7 @@ import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.key
 import androidx.compose.runtime.mutableFloatStateOf
+import androidx.compose.runtime.mutableLongStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
@@ -99,6 +104,7 @@ import dev.anilbeesetti.nextplayer.feature.player.service.stopPlayerSession
 import dev.anilbeesetti.nextplayer.feature.player.state.PlaybackSnapshot
 import dev.anilbeesetti.nextplayer.feature.player.state.rememberMediaController
 import dev.anilbeesetti.nextplayer.feature.player.state.rememberPlaybackSnapshot
+import dev.anilbeesetti.nextplayer.feature.player.ui.PlaybackDismissUndoBar
 import dev.anilbeesetti.nextplayer.feature.player.ui.PlaybackQueueContent
 import dev.anilbeesetti.nextplayer.feature.player.ui.PlaybackSwipeToDismiss
 import kotlin.math.abs
@@ -164,44 +170,52 @@ fun PlaybackOverlay(
         }
     }
     LaunchedEffect(snapshot.visible) { if (!snapshot.visible) expanded = false }
+    var undoDeadline by rememberSaveable { mutableLongStateOf(0L) }
+    var showUndo by rememberSaveable { mutableStateOf(false) }
+    var contentHeight by remember { mutableStateOf(0.dp) }
+    val undoVisible = showUndo && !snapshot.visible
+    val undoHeight = compactPlaybackHeight(LocalDensity.current.fontScale)
+    LaunchedEffect(undoDeadline) {
+        if (undoDeadline > 0) {
+            delay((undoDeadline - SystemClock.elapsedRealtime()).coerceAtLeast(0))
+            showUndo = false
+        }
+    }
+    LaunchedEffect(snapshot.visible) { if (snapshot.visible) showUndo = false }
     LaunchedEffect(
         snapshot.visible,
         hidden,
         expanded,
+        undoVisible,
     ) {
-        onVisibilityChanged(snapshot.visible && !hidden && !expanded)
+        onVisibilityChanged(!hidden && (undoVisible || (snapshot.visible && !expanded)))
         onExpandedChanged(snapshot.visible && !hidden && expanded)
+    }
+    LaunchedEffect(
+        contentHeight,
+        undoVisible,
+        hidden,
+        undoHeight,
+    ) {
+        onCompactHeightChanged(
+            if (hidden) {
+                0.dp
+            } else if (undoVisible) {
+                undoHeight + 8.dp
+            } else {
+                contentHeight
+            },
+        )
     }
     val context = LocalContext.current
     val scope = rememberCoroutineScope()
-    val snackbar = remember { SnackbarHostState() }
-    val stopped = stringResource(R.string.playback_dismissed)
-    val undo = stringResource(R.string.undo)
     fun dismiss() {
         expanded = false
         scope.launch {
             val result = controller.playbackCommand(CustomCommands.DISMISS_PLAYBACK).await()
-            if (result.resultCode !=
-                androidx.media3.session.SessionResult.RESULT_SUCCESS
-            ) {
-                return@launch
-            }
-            val expiry = launch {
-                delay(4_000)
-                snackbar.currentSnackbarData?.dismiss()
-            }
-            try {
-                if (snackbar.showSnackbar(
-                        stopped,
-                        undo,
-                        duration = SnackbarDuration.Indefinite,
-                    ) ==
-                    SnackbarResult.ActionPerformed
-                ) {
-                    controller.playbackCommand(CustomCommands.UNDO_DISMISSAL)
-                }
-            } finally {
-                expiry.cancel()
+            if (result.resultCode == androidx.media3.session.SessionResult.RESULT_SUCCESS) {
+                undoDeadline = result.extras.getLong(CustomCommands.DISMISSAL_DEADLINE_KEY)
+                showUndo = undoDeadline > SystemClock.elapsedRealtime()
             }
         }
     }
@@ -216,7 +230,7 @@ fun PlaybackOverlay(
             compactStart = compactStart,
             hidden = hidden,
             focusRequester = focusRequester,
-            onCompactHeightChanged = onCompactHeightChanged,
+            onCompactHeightChanged = { contentHeight = it },
             onDismissPlayback = ::dismiss,
             onCommand = { controller.playbackCommand(it) },
             onStop = controller::stopPlayerSession,
@@ -234,11 +248,31 @@ fun PlaybackOverlay(
                 )
             },
         )
-        if (!hidden) {
-            SnackbarHost(
-                snackbar,
-                Modifier.align(Alignment.BottomCenter)
-                    .padding(bottom = compactBottom).padding(16.dp),
+        val direction = LocalLayoutDirection.current
+        val cutout = WindowInsets.displayCutout.asPaddingValues()
+        AnimatedVisibility(
+            visible = undoVisible && !hidden,
+            modifier = Modifier.align(Alignment.BottomCenter)
+                .padding(
+                    start = compactStart + cutout.calculateStartPadding(direction) + 16.dp,
+                    end = cutout.calculateEndPadding(direction) + 16.dp,
+                    bottom = compactBottom + 8.dp,
+                ),
+            enter = slideInVertically { it } + fadeIn(),
+            exit = slideOutVertically { -it } + fadeOut(),
+        ) {
+            PlaybackDismissUndoBar(
+                deadline = undoDeadline,
+                onUndo = {
+                    if (showUndo && !snapshot.visible) {
+                        showUndo = false
+                        controller.playbackCommand(CustomCommands.UNDO_DISMISSAL)
+                    }
+                },
+                onClose = { showUndo = false },
+                enabled = undoVisible && !hidden,
+                modifier = Modifier.heightIn(min = undoHeight).focusRequester(focusRequester)
+                    .then(compactModifier).focusGroup(),
             )
         }
     }
@@ -265,10 +299,7 @@ internal fun PlaybackOverlayContent(
     compactModifier: Modifier = Modifier,
 ) {
     val density = LocalDensity.current
-    val compactHeight = maxOf(
-        64.dp,
-        (38 * density.fontScale + 20).dp,
-    )
+    val compactHeight = compactPlaybackHeight(density.fontScale)
     LaunchedEffect(
         compactHeight,
         hidden,
@@ -494,7 +525,6 @@ internal fun PlaybackOverlayContent(
                     onDismiss = {
                         if (player.playbackQueueIdentity() == compactIdentity) onDismissPlayback()
                     },
-                    shape = RoundedCornerShape(24.dp),
                     enabled = progress == 0f,
                     bothDirections = true,
                     modifier = Modifier
@@ -734,3 +764,8 @@ private fun Player.playbackQueueIdentity(): Any? = when {
 
     else -> null
 }
+
+private fun compactPlaybackHeight(fontScale: Float): Dp = maxOf(
+    64.dp,
+    (38 * fontScale + 20).dp,
+)

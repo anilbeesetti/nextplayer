@@ -21,6 +21,7 @@ import dev.anilbeesetti.nextplayer.feature.player.PlayerActivity
 import dev.anilbeesetti.nextplayer.feature.player.service.CustomCommands
 import dev.anilbeesetti.nextplayer.feature.player.service.PlayerService
 import dev.anilbeesetti.nextplayer.feature.player.service.stopPlayerSession
+import dev.anilbeesetti.nextplayer.feature.player.state.PlaylistState
 import java.util.UUID
 import java.util.concurrent.FutureTask
 import java.util.concurrent.TimeUnit
@@ -187,6 +188,34 @@ class PlayerApiRequestRegressionTest {
                 player.mediaItemCount == 3 && !player.playWhenReady &&
                     player.currentPosition == 12_000L
             }
+        }
+        val removed = main { player.getMediaItemAt(1) }
+        val queue = main { PlaylistState(player).also { it.removeItem(1) } }
+        await("external item removed") { main { player.mediaItemCount == 2 } }
+        assertTrue(
+            "Removed URI remains readable during queue Undo",
+            canRead(removed.localConfiguration!!.uri),
+        )
+        val undone = main {
+            queue.javaClass.declaredMethods.first { it.name.startsWith("undoRemoval") }
+                .invoke(queue) as Boolean
+        }
+        assertTrue(undone)
+        await("external queue item restored") {
+            main {
+                player.mediaItemCount == 3 && player.getMediaItemAt(1).mediaId == removed.mediaId
+            }
+        }
+        main {
+            assertFalse(player.playWhenReady)
+            assertEquals(
+                12_000L,
+                player.currentPosition,
+            )
+            assertEquals(
+                removed.localConfiguration,
+                player.getMediaItemAt(1).localConfiguration,
+            )
         }
         // Release the browsing controller before asserting service-owned grant revocation.
         main {

@@ -48,6 +48,7 @@ enum class CustomCommands(val customAction: String) {
 
         fun asSessionCommands(): List<SessionCommand> = entries.map { it.sessionCommand }
 
+        const val DISMISSAL_DEADLINE_KEY = "dismissal_deadline"
         const val BACKGROUND_MEDIA_ITEMS_KEY = "background_media_items"
         const val BACKGROUND_START_INDEX_KEY = "background_start_index"
         const val BACKGROUND_START_POSITION_KEY = "background_start_position_ms"

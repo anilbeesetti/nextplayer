@@ -214,9 +214,45 @@ class PlaybackOverlayTest {
         }
     }
 
+    @Test fun fastSwipeExitFollowsTheRawFingerDirection() {
+        show()
+        val mini = composeRule.onNodeWithTag("mini_player")
+        val before = mini.getUnclippedBoundsInRoot()
+        composeRule.mainClock.autoAdvance = false
+        try {
+            mini.performTouchInput {
+                down(
+                    Offset(
+                        width * .9f,
+                        centerY,
+                    ),
+                )
+                moveTo(
+                    Offset(
+                        width * .1f,
+                        centerY,
+                    ),
+                    16,
+                )
+                up()
+            }
+            composeRule.mainClock.advanceTimeByFrame()
+            composeRule.waitForIdle()
+            composeRule.mainClock.advanceTimeBy(64)
+            composeRule.waitForIdle()
+            assertTrue(mini.getUnclippedBoundsInRoot().left < before.left)
+        } finally {
+            composeRule.mainClock.autoAdvance = true
+        }
+    }
+
     @Test fun compactHorizontalSwipesDismissInBothDirections() {
         show()
         composeRule.onNodeWithTag("mini_player").performTouchInput { swipeLeft() }
+        composeRule.runOnIdle { hidden = true }
+        composeRule.waitForIdle()
+        composeRule.runOnIdle { hidden = false }
+        composeRule.waitForIdle()
         composeRule.onNodeWithTag("mini_player").performTouchInput { swipeRight() }
         composeRule.runOnIdle {
             assertEquals(

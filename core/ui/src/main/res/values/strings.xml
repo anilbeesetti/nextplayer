@@ -22,6 +22,8 @@
     <string name="appearance_name">Appearance</string>
     <string name="ascending">Ascending</string>
     <string name="cancel">Cancel</string>
+    <string name="close">Close</string>
+    <string name="queue_video_removed">removed</string>
     <string name="descending">Descending</string>
     <string name="disable">Disable</string>
     <string name="done">Done</string>

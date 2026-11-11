@@ -613,9 +613,20 @@ class PlayerService : MediaSessionService() {
             mediaSession: MediaSession,
             controller: MediaSession.ControllerInfo,
             mediaItems: MutableList<MediaItem>,
-        ): ListenableFuture<MutableList<MediaItem>> = serviceScope.future(Dispatchers.Default) {
-            val updatedMediaItems = updatedMediaItemsWithMetadata(mediaItems = mediaItems)
-            return@future updatedMediaItems.toMutableList()
+        ): ListenableFuture<MutableList<MediaItem>> {
+            val generation = playbackRequestGeneration
+            return serviceScope.future {
+                val updated = withContext(Dispatchers.Default) {
+                    updatedMediaItemsWithMetadata(mediaItems = mediaItems)
+                }
+                if (generation != playbackRequestGeneration ||
+                    this@PlayerService.mediaSession !== mediaSession
+                ) {
+                    mutableListOf()
+                } else {
+                    updated.toMutableList()
+                }
+            }
         }
 
         override fun onCustomCommand(
@@ -887,7 +898,15 @@ class PlayerService : MediaSessionService() {
 
                 CustomCommands.DISMISS_PLAYBACK -> {
                     dismissPlayback(session)
-                    return@future SessionResult(SessionResult.RESULT_SUCCESS)
+                    return@future SessionResult(
+                        SessionResult.RESULT_SUCCESS,
+                        Bundle().apply {
+                            putLong(
+                                CustomCommands.DISMISSAL_DEADLINE_KEY,
+                                dismissalDeadline,
+                            )
+                        },
+                    )
                 }
 
                 CustomCommands.UNDO_DISMISSAL -> {

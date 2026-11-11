@@ -1,5 +1,6 @@
 package dev.anilbeesetti.nextplayer.feature.player.state
 
+import android.os.SystemClock
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
@@ -45,6 +46,50 @@ class PlaylistState(private val player: Player?) {
     val mediaItemCount: Int
         get() = if (canGetTimeline) timeline.windowCount else 0
 
+    private var pendingRemoval by mutableStateOf<QueueRemovalUndo?>(null)
+
+    internal val removalUndo: QueueRemovalUndo?
+        get() = pendingRemoval?.takeIf { saved ->
+            SystemClock.elapsedRealtime() < saved.deadline &&
+                player?.isCommandAvailable(Player.COMMAND_GET_TIMELINE) == true &&
+                liveKeys(player).any { it in saved.remainingKeys }
+        }
+
+    internal fun clearRemovalUndo() {
+        pendingRemoval = null
+    }
+
+    internal fun undoRemoval(): Boolean {
+        val playback = player ?: return false
+        val saved = removalUndo
+        pendingRemoval = null
+        if (saved == null ||
+            !playback.isCommandAvailable(Player.COMMAND_CHANGE_MEDIA_ITEMS)
+        ) {
+            return false
+        }
+        val keys = liveKeys(playback)
+        val following = keys.indexOf(saved.nextKey)
+        val previous = keys.indexOf(saved.previousKey)
+        val insertion = when {
+            following >= 0 -> following
+            previous >= 0 -> previous + 1
+            else -> saved.index.coerceAtMost(keys.size)
+        }
+        playback.addMediaItem(
+            insertion,
+            saved.item,
+        )
+        return true
+    }
+
+    private fun liveKeys(playback: Player): List<String> = (0 until playback.mediaItemCount).map {
+        playback.currentTimeline.getWindow(
+            it,
+            Timeline.Window(),
+        ).uid.toString()
+    }
+
     private var currentDuration by mutableLongStateOf(C.TIME_UNSET)
 
     var playlistMetadata: MediaMetadata by mutableStateOf(MediaMetadata.EMPTY)
@@ -70,6 +115,7 @@ class PlaylistState(private val player: Player?) {
         timeline = if (canGetTimeline) player.currentTimeline else Timeline.EMPTY
         currentMediaItemIndex =
             if (canGetTimeline) player.currentMediaItemIndex else C.INDEX_UNSET
+        if (pendingRemoval != null && removalUndo == null) pendingRemoval = null
     }
 
     suspend fun observe() {
@@ -126,11 +172,21 @@ class PlaylistState(private val player: Player?) {
     fun removeItem(index: Int) {
         val playback = player ?: return
         if (!canRemoveItem(index)) return
+        val keys = liveKeys(playback)
+        val saved = QueueRemovalUndo(
+            playback.getMediaItemAt(index),
+            index,
+            keys.getOrNull(index - 1),
+            keys.getOrNull(index + 1),
+            keys.filterIndexed { i, _ -> i != index }.toSet(),
+            SystemClock.elapsedRealtime() + 4_000,
+        )
         if (index == playback.currentMediaItemIndex && index == playback.mediaItemCount - 1) {
             // Removing the current final window otherwise ends playback with earlier items left.
             playback.seekToDefaultPosition(index - 1)
         }
         playback.removeMediaItem(index)
+        pendingRemoval = saved
     }
 
     fun seekToItem(index: Int) {
@@ -166,3 +222,12 @@ class PlaylistState(private val player: Player?) {
         ).mediaItem
     }
 }
+
+internal data class QueueRemovalUndo(
+    val item: MediaItem,
+    val index: Int,
+    val previousKey: String?,
+    val nextKey: String?,
+    val remainingKeys: Set<String>,
+    val deadline: Long,
+)
