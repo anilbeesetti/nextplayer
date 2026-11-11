@@ -702,7 +702,6 @@ internal fun PlaybackOverlayContent(
             PlaybackMorphingMetadata(
                 title = title,
                 secondary = secondary,
-                landscape = landscape,
                 progress = { expansion.value },
                 modifier = Modifier.align(AbsoluteAlignment.TopLeft).followBounds(metadataBounds)
                     .clearAndSetSemantics { testTag = "transition_metadata" },
@@ -801,7 +800,6 @@ private fun Modifier.followBounds(bounds: () -> Rect): Modifier = this
 private fun PlaybackMorphingMetadata(
     title: String,
     secondary: String,
-    landscape: Boolean,
     progress: () -> Float,
     modifier: Modifier,
 ) {
@@ -812,7 +810,7 @@ private fun PlaybackMorphingMetadata(
     Column(modifier) {
         Text(
             title,
-            maxLines = if (landscape || value < .8f) 1 else 2,
+            maxLines = 1,
             overflow = TextOverflow.Ellipsis,
             style = androidx.compose.ui.text.lerp(
                 MaterialTheme.typography.titleSmall.copy(

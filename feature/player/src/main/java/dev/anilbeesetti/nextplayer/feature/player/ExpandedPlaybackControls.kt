@@ -201,7 +201,7 @@ internal fun ExpandedPlaybackControls(
                         style = MaterialTheme.typography.headlineSmall.copy(
                             fontWeight = FontWeight.Bold,
                         ),
-                        maxLines = if (landscape) 1 else 2,
+                        maxLines = 1,
                         overflow = TextOverflow.Ellipsis,
                     )
                     Text(
