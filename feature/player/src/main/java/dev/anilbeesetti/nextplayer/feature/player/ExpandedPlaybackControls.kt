@@ -520,7 +520,8 @@ internal fun ExpandedPlaybackControls(
                         snapshot,
                         bounds = { artworkAt(queueProgress()) },
                         progress = queueProgress,
-                        modifier = dragModifier,
+                        // While the queue shows, collapsing starts from the banner.
+                        modifier = dragModifier.then(artworkModifier),
                     )
                 }
                 // A vertical swipe anywhere on the player moves it; the pager and slider keep theirs.
@@ -595,7 +596,9 @@ internal fun ExpandedPlaybackControls(
                                 artworkSize,
                                 PaddingValues(horizontal = side),
                                 pageSpacing = side * 2,
-                                measured { artworkBounds = it }.then(artworkModifier),
+                                measured { artworkBounds = it }.then(
+                                    if (queueShown) Modifier else artworkModifier,
+                                ),
                             )
                             Box(
                                 Modifier.size(artworkSize).align(Alignment.Center).graphicsLayer {
@@ -729,6 +732,12 @@ internal fun ExpandedPlaybackControls(
                         player,
                         sheet,
                         bottomInset = with(density) { bottomInset.toDp() },
+                        // Collapsing the player fades the queue out early, like the controls.
+                        modifier = Modifier.expansionReveal(
+                            .6f,
+                            transitionProgress,
+                            distance = 0.dp,
+                        ),
                     )
                 }
             }

@@ -110,6 +110,7 @@ import androidx.compose.ui.unit.Constraints
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.IntOffset
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.lerp
 import androidx.compose.ui.unit.sp
 import androidx.compose.ui.unit.toSize
 import androidx.media3.common.Player
@@ -401,11 +402,13 @@ internal fun PlaybackOverlayContent(
         val currentlyExpanded by rememberUpdatedState(expanded)
         // In portrait, pulling the open player up raises its queue; the gesture keeps that target.
         var queueGesture by remember { mutableStateOf<Boolean?>(null) }
+        // Collapsing flies the artwork straight from where the queue left it; the queue resets
+        // only once the player has closed.
         LaunchedEffect(
-            expanded,
+            isCollapsed,
             landscape,
         ) {
-            if (!expanded || landscape) queueSheet.snapTo(QueueStage.PLAYER)
+            if (isCollapsed || landscape) queueSheet.snapTo(QueueStage.PLAYER)
         }
         val dragState = rememberDraggableState { delta ->
             val toQueue = queueGesture ?: (
@@ -505,8 +508,15 @@ internal fun PlaybackOverlayContent(
             }
         }
         val transitioning = !isCollapsed && !isFullyOpen
-        val morphArtwork = transitioning && compactArtwork.width > 0 && expandedArtwork.width > 0
-        val morphMetadata = transitioning && compactMetadata.width > 0 && expandedMetadata.width > 0
+        // The expanded rects move every frame while the queue moves; only their presence recomposes.
+        val artworkMeasured by remember {
+            derivedStateOf { compactArtwork.width > 0 && expandedArtwork.width > 0 }
+        }
+        val metadataMeasured by remember {
+            derivedStateOf { compactMetadata.width > 0 && expandedMetadata.width > 0 }
+        }
+        val morphArtwork = transitioning && artworkMeasured
+        val morphMetadata = transitioning && metadataMeasured
         val artworkBounds: () -> Rect = {
             morphBounds(
                 compactArtwork,
@@ -668,13 +678,7 @@ internal fun PlaybackOverlayContent(
                 landscape = landscape,
                 connection = presentation.connection,
                 deviceName = presentation.deviceName,
-                onCollapse = {
-                    if (queueSheet.engaged) {
-                        queueSheet.animateTo(QueueStage.PLAYER) { onExpandedChanged(false) }
-                    } else {
-                        onExpandedChanged(false)
-                    }
-                },
+                onCollapse = { onExpandedChanged(false) },
                 onQueue = {
                     if (landscape) queue = true else queueSheet.animateTo(QueueStage.QUEUE)
                 },
@@ -734,7 +738,22 @@ internal fun PlaybackOverlayContent(
                 snapshot,
                 Modifier.align(AbsoluteAlignment.TopLeft).followBounds(artworkBounds)
                     .graphicsLayer {
-                        shape = RoundedCornerShape(8.dp + 10.dp * expansion.value)
+                        // Starts from the queue banner's corners when the queue was open.
+                        val open = if (queueSheet.engaged) {
+                            queueArtworkCorner(queueSheet.progress)
+                        } else {
+                            18.dp
+                        }
+                        shape = RoundedCornerShape(
+                            lerp(
+                                8.dp,
+                                open,
+                                expansion.value.coerceIn(
+                                    0f,
+                                    1f,
+                                ),
+                            ),
+                        )
                         clip = true
                     }
                     .clearAndSetSemantics { testTag = "transition_artwork" },

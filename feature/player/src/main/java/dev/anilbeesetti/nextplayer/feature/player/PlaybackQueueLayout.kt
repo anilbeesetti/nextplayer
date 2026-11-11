@@ -46,6 +46,7 @@ import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.IntOffset
 import androidx.compose.ui.unit.Velocity
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.lerp
 import androidx.compose.ui.util.lerp
 import androidx.media3.common.Player
 import dev.anilbeesetti.nextplayer.core.ui.R
@@ -135,21 +136,7 @@ internal fun QueueArtworkBanner(
     val scrim = MaterialTheme.colorScheme.scrim
     Box(
         Modifier.followBounds(bounds).graphicsLayer {
-            val value = progress()
-            val corner = if (value <= 1f) {
-                lerp(
-                    18.dp.toPx(),
-                    0f,
-                    value.coerceAtLeast(0f),
-                )
-            } else {
-                lerp(
-                    0f,
-                    12.dp.toPx(),
-                    (value - 1f).coerceAtMost(1f),
-                )
-            }
-            shape = RoundedCornerShape(corner.coerceAtLeast(0f))
+            shape = RoundedCornerShape(queueArtworkCorner(progress()))
             clip = true
         }.then(modifier).testTag("queue_artwork"),
     ) {
@@ -191,6 +178,24 @@ internal fun QueueArtworkBanner(
             },
         )
     }
+}
+
+/** Rounded in the player, square as the banner, and a rounded thumbnail in the queue. */
+internal fun queueArtworkCorner(progress: Float): Dp = if (progress <= 1f) {
+    lerp(
+        18.dp,
+        0.dp,
+        progress.coerceIn(
+            0f,
+            1f,
+        ),
+    )
+} else {
+    lerp(
+        0.dp,
+        12.dp,
+        (progress - 1f).coerceAtMost(1f),
+    )
 }
 
 /** The player folded into one row above the queue; the banner supplies its thumbnail. */
