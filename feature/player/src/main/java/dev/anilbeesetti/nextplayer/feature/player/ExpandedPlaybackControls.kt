@@ -137,6 +137,7 @@ internal fun ExpandedPlaybackControls(
     controlsTranslationY: () -> Float = { 0f },
     artworkModifier: Modifier = Modifier,
     metadataModifier: Modifier = Modifier,
+    headerModifier: Modifier = Modifier,
 ) {
     var titleWidth by remember(title) { mutableIntStateOf(0) }
     val collapseFocus = remember { FocusRequester() }
@@ -367,12 +368,7 @@ internal fun ExpandedPlaybackControls(
             Column(Modifier.fillMaxSize()) {
                 Row(
                     Modifier.fillMaxWidth().heightIn(min = 64.dp).testTag("playback_header")
-                        .expansionReveal(
-                            .5f,
-                            transitionProgress,
-                            distance = 0.dp,
-                        )
-                        .then(dragModifier).padding(horizontal = 14.dp),
+                        .then(headerModifier).then(dragModifier).padding(horizontal = 14.dp),
                     verticalAlignment = Alignment.CenterVertically,
                 ) {
                     PlaybackCollapseButton(

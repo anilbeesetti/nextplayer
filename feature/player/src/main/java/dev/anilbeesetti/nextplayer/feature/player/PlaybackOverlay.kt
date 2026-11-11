@@ -352,6 +352,7 @@ internal fun PlaybackOverlayContent(
     var rootOrigin by remember { mutableStateOf(Offset.Zero) }
     var compactArtwork by remember { mutableStateOf(Rect.Zero) }
     var expandedArtwork by remember { mutableStateOf(Rect.Zero) }
+    var expandedHeader by remember { mutableStateOf(Rect.Zero) }
     var compactMetadata by remember { mutableStateOf(Rect.Zero) }
     var expandedMetadata by remember { mutableStateOf(Rect.Zero) }
     BoxWithConstraints(
@@ -491,6 +492,15 @@ internal fun PlaybackOverlayContent(
                 travel,
             )
         }
+        // The header rides on the sheet's top edge and shows as the artwork leaves room for it.
+        val headerShift: () -> Float = {
+            val collapse = 1f - expansion.value.coerceIn(
+                0f,
+                1f,
+            )
+            sheetBounds().top - expandedHeader.top * collapse
+        }
+        val headerRoom: () -> Float = { artworkBounds().top - expandedHeader.top - headerShift() }
         val scrim = MaterialTheme.colorScheme.scrim
         Spacer(
             Modifier.fillMaxSize().drawBehind {
@@ -643,6 +653,17 @@ internal fun PlaybackOverlayContent(
                 artworkModifier = Modifier.onGloballyPositioned {
                     expandedArtwork = it.boundsInRoot().translate(-rootOrigin)
                 }.graphicsLayer { alpha = if (morphArtwork) 0f else 1f },
+                headerModifier = Modifier.onGloballyPositioned {
+                    expandedHeader = it.boundsInRoot().translate(-rootOrigin)
+                }.graphicsLayer {
+                    if (morphArtwork && expandedHeader.height > 0f) {
+                        translationY = headerShift()
+                        alpha = (headerRoom() / expandedHeader.height).coerceIn(
+                            0f,
+                            1f,
+                        )
+                    }
+                },
                 metadataModifier = Modifier.onGloballyPositioned {
                     expandedMetadata = it.boundsInRoot().translate(-rootOrigin)
                 }.graphicsLayer { alpha = if (morphMetadata) 0f else 1f },
