@@ -58,18 +58,6 @@ internal data class PlaybackSnapshot(
                     retainedItem(presentation)
                 }
 
-            // Casting, the receiver's playback is live but Media3 can still name another entry.
-            presentation.connection == PlaybackConnection.CAST && presentation.receiverAhead &&
-                visible && casting != null && item?.mediaId != casting.mediaId -> {
-                val known = previous.item?.mediaId == casting.mediaId
-                copy(
-                    item = casting,
-                    metadata = if (known) previous.metadata else casting.mediaMetadata,
-                    duration = casting.mediaMetadata.durationMs
-                        ?: if (known) previous.duration else duration,
-                )
-            }
-
             (!visible || item?.localConfiguration == null) && presentation.connection in setOf(
                 PlaybackConnection.CONNECTING,
                 PlaybackConnection.CAST,

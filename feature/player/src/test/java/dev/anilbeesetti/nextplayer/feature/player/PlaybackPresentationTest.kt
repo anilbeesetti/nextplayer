@@ -107,41 +107,4 @@ class PlaybackPresentationTest {
             fake.release()
         }
     }
-
-    @Test fun castingShowsTheReceiverItemOnlyWhileMedia3QueueIsBehind() {
-        val casting = MediaItem.Builder().setMediaId("selected").setUri("content://media/video/1")
-            .setMediaMetadata(MediaMetadata.Builder().setTitle("Selected video").build()).build()
-        val fake = MiniPlayerTestPlayer()
-        try {
-            fake.update { setContentPositionMs(8_000) }
-            val receiver = PlaybackSnapshot.from(fake)
-            val presentation = PlaybackPresentation(
-                PlaybackConnection.CAST,
-                "TV",
-                mediaItem = casting,
-                receiverAhead = true,
-            )
-            val behind = receiver.retainedFor(
-                presentation,
-                receiver,
-            )
-            assertEquals(
-                "selected",
-                behind.item?.mediaId,
-            )
-            assertEquals(
-                8_000,
-                behind.position,
-            )
-            assertEquals(
-                "0",
-                receiver.retainedFor(
-                    presentation.copy(receiverAhead = false),
-                    receiver,
-                ).item?.mediaId,
-            )
-        } finally {
-            fake.release()
-        }
-    }
 }

@@ -17,8 +17,6 @@ internal data class PlaybackPresentation(
     val expansionRequest: Long = 0,
     val mediaItem: MediaItem? = null,
     val position: Long = 0,
-    /** Casting has started, but Media3's queue does not yet name the item the receiver plays. */
-    val receiverAhead: Boolean = false,
 ) {
     fun writeTo(bundle: Bundle) {
         bundle.putBundle(
@@ -41,10 +39,6 @@ internal data class PlaybackPresentation(
             EXPANSION_REQUEST,
             expansionRequest,
         )
-        bundle.putBoolean(
-            RECEIVER_AHEAD,
-            receiverAhead,
-        )
     }
 
     companion object {
@@ -53,7 +47,6 @@ internal data class PlaybackPresentation(
         private const val CONNECTION = "playback_connection"
         private const val DEVICE_NAME = "playback_device_name"
         private const val EXPANSION_REQUEST = "playback_expansion_request"
-        private const val RECEIVER_AHEAD = "playback_receiver_ahead"
         fun from(bundle: Bundle) = PlaybackPresentation(
             connection = PlaybackConnection.entries.find { it.name == bundle.getString(CONNECTION) }
                 ?: PlaybackConnection.LOCAL,
@@ -61,7 +54,6 @@ internal data class PlaybackPresentation(
             expansionRequest = bundle.getLong(EXPANSION_REQUEST),
             mediaItem = bundle.getBundle(MEDIA_ITEM)?.let(MediaItem::fromBundle),
             position = bundle.getLong(POSITION),
-            receiverAhead = bundle.getBoolean(RECEIVER_AHEAD),
         )
     }
 }

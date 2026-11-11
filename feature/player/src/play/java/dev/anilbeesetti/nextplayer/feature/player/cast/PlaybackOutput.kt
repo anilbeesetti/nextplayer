@@ -5,6 +5,7 @@ import android.os.Handler
 import android.os.Looper
 import androidx.media3.cast.CastPlayer
 import androidx.media3.cast.RemoteCastPlayer
+import androidx.media3.common.C
 import androidx.media3.common.DeviceInfo
 import androidx.media3.common.ForwardingPlayer
 import androidx.media3.common.Player
@@ -59,6 +60,11 @@ internal class PlaybackOutput(
     private var receiverMediaId: () -> String? = {
         sessionManager?.currentCastSession?.remoteMediaClient?.mediaInfo?.contentId
     }
+    private val receiverDurationMs: () -> Long = {
+        sessionManager?.currentCastSession?.remoteMediaClient?.mediaInfo?.streamDuration
+            ?: C.TIME_UNSET
+    }
+    private var syncedPlayer: ReceiverSyncedPlayer? = null
     private val timeout = Runnable { cancelConnection() }
     private val snapshotTick = object : Runnable {
         override fun run() {
@@ -90,7 +96,12 @@ internal class PlaybackOutput(
             connection = connection,
             deviceName = name ?: presentation.deviceName,
             expansionRequest = presentation.expansionRequest + if (expand) 1 else 0,
-            receiverAhead = connection == PlaybackConnection.CAST && receiverAhead,
+        )
+        val synced = lastRemote.takeIf { connection == PlaybackConnection.CAST && receiverAhead }
+        syncedPlayer?.showReceiver(
+            synced?.mediaItems.orEmpty(),
+            synced?.currentMediaItemIndex ?: C.INDEX_UNSET,
+            receiverDurationMs(),
         )
         onPresentationChanged(presentation)
     }
@@ -186,6 +197,7 @@ internal class PlaybackOutput(
             return
         }
         val behind = remote.currentMediaItem?.mediaId != playing
+        val wasAhead = receiverAhead
         // Only right after connecting: later, Media3 runs ahead of the receiver on a skip.
         receiverAhead = behind && (
             presentation.connection == PlaybackConnection.CONNECTING || receiverAhead
@@ -198,7 +210,7 @@ internal class PlaybackOutput(
         val shown = lastRemote?.let { it.mediaItems.getOrNull(it.currentMediaItemIndex)?.mediaId }
         if (presentation.connection != PlaybackConnection.CAST ||
             presentation.mediaItem?.mediaId != shown ||
-            presentation.receiverAhead != receiverAhead
+            wasAhead != receiverAhead
         ) {
             publish(PlaybackConnection.CAST)
         }
@@ -256,6 +268,7 @@ internal class PlaybackOutput(
                     },
                 )
             }
+            .let { output -> ReceiverSyncedPlayer(output).also { syncedPlayer = it } }
     } catch (error: RuntimeException) {
         Logger.logError(
             "Cast",

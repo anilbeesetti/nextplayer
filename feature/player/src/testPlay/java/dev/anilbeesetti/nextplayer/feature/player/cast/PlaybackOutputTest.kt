@@ -371,13 +371,11 @@ class PlaybackOutputTest {
                 "1",
                 connected.mediaItem?.mediaId,
             )
-            assertTrue(connected.receiverAhead)
             fake.update { setCurrentMediaItemIndex(1) }
             listener.onSessionStarted(
                 session,
                 "connected",
             )
-            assertFalse(publications.last().receiverAhead)
             assertEquals(
                 "1",
                 publications.last().mediaItem?.mediaId,
