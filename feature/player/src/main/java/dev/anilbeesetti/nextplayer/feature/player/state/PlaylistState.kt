@@ -3,6 +3,7 @@ package dev.anilbeesetti.nextplayer.feature.player.state
 import android.os.SystemClock
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.derivedStateOf
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableLongStateOf
@@ -21,6 +22,20 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.withContext
 import kotlinx.coroutines.withTimeoutOrNull
+
+/** Window uids are not unique: a MediaController masks each unconfirmed window with uid 0. */
+private fun Timeline.queueKeys(): List<String> {
+    val occurrences = mutableMapOf<String, Int>()
+    return List(windowCount) { index ->
+        val uid = getWindow(
+            index,
+            Timeline.Window(),
+        ).uid.toString()
+        val occurrence = occurrences[uid] ?: 0
+        occurrences[uid] = occurrence + 1
+        if (occurrence == 0) uid else "$uid#$occurrence"
+    }
+}
 
 @UnstableApi
 @Composable
@@ -42,6 +57,8 @@ class PlaylistState(private val player: Player?) {
 
     var currentMediaItemIndex by mutableIntStateOf(C.INDEX_UNSET)
         private set
+
+    private val keys by derivedStateOf { timeline.queueKeys() }
 
     val mediaItemCount: Int
         get() = if (canGetTimeline) timeline.windowCount else 0
@@ -83,12 +100,7 @@ class PlaylistState(private val player: Player?) {
         return true
     }
 
-    private fun liveKeys(playback: Player): List<String> = (0 until playback.mediaItemCount).map {
-        playback.currentTimeline.getWindow(
-            it,
-            Timeline.Window(),
-        ).uid.toString()
-    }
+    private fun liveKeys(playback: Player): List<String> = playback.currentTimeline.queueKeys()
 
     private var currentDuration by mutableLongStateOf(C.TIME_UNSET)
 
@@ -137,8 +149,7 @@ class PlaylistState(private val player: Player?) {
         )
     }
 
-    fun indexOfKey(key: String): Int =
-        (0 until mediaItemCount).firstOrNull { getKeyAt(it) == key } ?: C.INDEX_UNSET
+    fun indexOfKey(key: String): Int = keys.indexOf(key)
 
     suspend fun moveItemAndAwait(fromKey: String, toKey: String) {
         val from = indexOfKey(fromKey)
@@ -196,10 +207,7 @@ class PlaylistState(private val player: Player?) {
         player?.seekToDefaultPosition(index)
     }
 
-    fun getKeyAt(index: Int): String = timeline.getWindow(
-        index,
-        Timeline.Window(),
-    ).uid.toString()
+    fun getKeyAt(index: Int): String = keys[index]
 
     fun getDurationAt(index: Int): Long? {
         val window = timeline.getWindow(

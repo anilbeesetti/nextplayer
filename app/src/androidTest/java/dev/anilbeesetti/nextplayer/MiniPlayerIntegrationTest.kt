@@ -1035,6 +1035,58 @@ class MiniPlayerIntegrationTest {
     }
 
     @Test
+    fun undoingAQueueRemovalRestoresTheVideoInPlace() {
+        val red = testVideo("playback-red-15s.mp4")
+        val blue = testVideo("playback-blue-20s.mp4")
+        val titles = listOf(
+            "Queue video 1",
+            "Queue video 2",
+            "Queue video 3",
+        )
+        onMain {
+            player.pause()
+            player.setMediaItems(
+                listOf(
+                    red,
+                    blue,
+                    red,
+                ).mapIndexed { i, file ->
+                    MediaItem.Builder().setMediaId(
+                        Uri.fromFile(file).toString(),
+                    ).setUri(Uri.fromFile(file))
+                        .setMediaMetadata(
+                            MediaMetadata.Builder().setTitle(titles[i])
+                                .setDurationMs(15_000).build(),
+                        ).build()
+                },
+            )
+            player.prepare()
+        }
+        await("queue videos ready") { player.playbackState == Player.STATE_READY }
+        waitForMiniPlayer()
+        expand()
+        composeRule.onNodeWithTag("playback_queue_action").performClick()
+        composeRule.waitForIdle()
+        composeRule.onNodeWithTag("queue_item_1").performTouchInput { swipeLeft() }
+        composeRule.waitForIdle()
+        await("queue item removed") { player.mediaItemCount == 2 }
+        composeRule.waitForIdle()
+        composeRule.onNodeWithText(context.getString(R.string.undo)).performClick()
+        await("queue item restored") { player.mediaItemCount == 3 }
+        composeRule.waitForIdle()
+        var restored = emptyList<String>()
+        onMain {
+            restored = (0 until player.mediaItemCount).map {
+                player.getMediaItemAt(it).mediaMetadata.title.toString()
+            }
+        }
+        assertEquals(
+            titles,
+            restored,
+        )
+    }
+
+    @Test
     fun queueDragAndSwipeKeepStableOccurrencesAndCancellationNeverRemoves() {
         val red = testVideo("playback-red-15s.mp4")
         val blue = testVideo("playback-blue-20s.mp4")

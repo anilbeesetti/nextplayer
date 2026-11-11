@@ -35,7 +35,9 @@ import androidx.media3.common.ForwardingPlayer
 import androidx.media3.common.MediaItem
 import androidx.media3.common.MediaMetadata
 import androidx.media3.common.Player
+import androidx.media3.common.Timeline
 import androidx.media3.exoplayer.ExoPlayer
+import androidx.media3.exoplayer.source.ForwardingTimeline
 import dev.anilbeesetti.nextplayer.core.ui.R
 import dev.anilbeesetti.nextplayer.core.ui.theme.NextPlayerTheme
 import org.junit.After
@@ -295,6 +297,11 @@ class PlaybackQueueContentTest {
         }
     }
 
+    @Test fun rowsRenderWhileMaskedWindowsShareTheSameUid() {
+        show(maskedUids = true)
+        rule.onNodeWithTag("queue_item_2").assertExists()
+    }
+
     @Test fun shortFastFlickBelowTheThresholdKeepsTheItem() {
         show()
         rule.onNodeWithTag("queue_item_1").performTouchInput {
@@ -493,6 +500,7 @@ class PlaybackQueueContentTest {
         fontScale: Float = 1f,
         editable: Boolean = true,
         fullscreen: Boolean = false,
+        maskedUids: Boolean = false,
     ) {
         rule.runOnUiThread {
             player = ExoPlayer.Builder(rule.activity).build()
@@ -512,7 +520,22 @@ class PlaybackQueueContentTest {
                 },
             )
         }
-        val display = if (editable) {
+        val display = if (maskedUids) {
+            object : ForwardingPlayer(player) {
+                override fun getCurrentTimeline(): Timeline =
+                    object : ForwardingTimeline(super.getCurrentTimeline()) {
+                        override fun getWindow(
+                            windowIndex: Int,
+                            window: Timeline.Window,
+                            defaultPositionProjectionUs: Long,
+                        ): Timeline.Window = super.getWindow(
+                            windowIndex,
+                            window,
+                            defaultPositionProjectionUs,
+                        ).apply { uid = 0 }
+                    }
+            }
+        } else if (editable) {
             player
         } else {
             object : ForwardingPlayer(player) {
