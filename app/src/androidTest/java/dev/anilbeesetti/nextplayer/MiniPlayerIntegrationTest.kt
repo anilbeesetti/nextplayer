@@ -1441,12 +1441,18 @@ class MiniPlayerIntegrationTest {
                 "Sheet=$sheet track=$track root=$rootBounds sample=$x,$y",
                 x < sheet.left - rootBounds.left - 8,
             )
+            // The background is only dimmed here; a leaked seek track would change the hue.
+            val pixel = bitmap.getPixel(
+                x,
+                y,
+            )
             assertEquals(
-                Color.MAGENTA,
-                bitmap.getPixel(
-                    x,
-                    y,
-                ),
+                Color.red(pixel),
+                Color.blue(pixel),
+            )
+            assertEquals(
+                0,
+                Color.green(pixel),
             )
             captureNode(
                 "rail_motion_root",
@@ -1578,7 +1584,7 @@ class MiniPlayerIntegrationTest {
         if (!composeRule.mainClock.autoAdvance) {
             composeRule.mainClock.advanceTimeByFrame()
             composeRule.waitForIdle()
-            composeRule.mainClock.advanceTimeBy(400)
+            composeRule.mainClock.advanceTimeBy(700)
             composeRule.waitForIdle()
         }
     }

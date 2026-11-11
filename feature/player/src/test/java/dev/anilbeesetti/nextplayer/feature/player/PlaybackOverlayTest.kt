@@ -109,10 +109,13 @@ class PlaybackOverlayTest {
             ).getUnclippedBoundsInRoot()
             assertTrue(mid.right - mid.left > compact.right - compact.left)
             assertTrue(mid.top < compact.top)
-            composeRule.onNodeWithContentDescription(
-                text(R.string.stop_player_session),
-            ).assertIsNotEnabled()
-            composeRule.onNodeWithText(text(R.string.watch_video)).assertIsNotEnabled()
+            composeRule.onNodeWithText(text(R.string.watch_video)).performClick()
+            composeRule.runOnIdle {
+                assertEquals(
+                    0,
+                    watched,
+                )
+            }
             composeRule.runOnIdle { composeRule.activity.onBackPressedDispatcher.onBackPressed() }
             composeRule.mainClock.advanceTimeBy(100)
             val reversed = composeRule.onNodeWithTag(
@@ -120,7 +123,7 @@ class PlaybackOverlayTest {
                 useUnmergedTree = true,
             ).getUnclippedBoundsInRoot()
             assertTrue(reversed.right - reversed.left < mid.right - mid.left)
-            composeRule.mainClock.advanceTimeBy(400)
+            composeRule.mainClock.advanceTimeBy(700)
             composeRule.onNodeWithTag(
                 "transition_artwork",
                 useUnmergedTree = true,
@@ -178,7 +181,7 @@ class PlaybackOverlayTest {
             )
             assertTrue(mid.right <= composeRule.onRoot().getUnclippedBoundsInRoot().right)
         } finally {
-            composeRule.mainClock.advanceTimeBy(400)
+            composeRule.mainClock.advanceTimeBy(700)
             composeRule.mainClock.autoAdvance = true
         }
     }
@@ -201,7 +204,7 @@ class PlaybackOverlayTest {
                     )
                 }
             }
-            composeRule.mainClock.advanceTimeBy(400)
+            composeRule.mainClock.advanceTimeBy(700)
             composeRule.onNodeWithTag("mini_player").assertIsDisplayed()
             composeRule.runOnIdle {
                 assertEquals(

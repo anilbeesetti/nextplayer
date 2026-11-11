@@ -13,6 +13,7 @@ import androidx.compose.animation.core.spring
 import androidx.compose.animation.core.tween
 import androidx.compose.foundation.MarqueeSpacing
 import androidx.compose.foundation.basicMarquee
+import androidx.compose.foundation.gestures.awaitEachGesture
 import androidx.compose.foundation.interaction.DragInteraction
 import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.Arrangement
@@ -89,6 +90,8 @@ import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.CompositingStrategy
 import androidx.compose.ui.graphics.graphicsLayer
+import androidx.compose.ui.input.pointer.PointerEventPass
+import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalLayoutDirection
 import androidx.compose.ui.platform.testTag
@@ -129,16 +132,17 @@ internal fun ExpandedPlaybackControls(
     onCommand: (CustomCommands) -> Unit,
     dragModifier: Modifier,
     modifier: Modifier = Modifier,
-    transitionProgress: Float = 1f,
-    metadataVisibility: Float = 1f,
-    controlsTranslationY: Float = 0f,
+    interactive: Boolean = true,
+    transitionProgress: () -> Float = { 1f },
+    metadataVisibility: () -> Float = { 1f },
+    controlsTranslationY: () -> Float = { 0f },
     artworkModifier: Modifier = Modifier,
     metadataModifier: Modifier = Modifier,
 ) {
     var titleWidth by remember(title) { mutableIntStateOf(0) }
     val collapseFocus = remember { FocusRequester() }
-    LaunchedEffect(transitionProgress >= .99f) {
-        if (transitionProgress >= .99f) collapseFocus.requestFocus()
+    LaunchedEffect(interactive) {
+        if (interactive) collapseFocus.requestFocus()
     }
     val pane = stringResource(R.string.now_playing)
     val showDevice = connection == PlaybackConnection.CONNECTING || snapshot.isRemote
@@ -147,15 +151,17 @@ internal fun ExpandedPlaybackControls(
     val scrollTitle = landscape && controlsEnabled && snapshot.playWhenReady &&
         snapshot.playbackState == Player.STATE_READY && motionEnabled
     val actions: @Composable () -> Unit = {
-        PlaybackHeaderActions(
-            snapshot,
-            connection,
-            deviceName,
-            controlsEnabled,
-            onOutput,
-            onQueue,
-            showDeviceLabel = !landscape,
-        )
+        Box(Modifier.blockTouchesUntil(interactive)) {
+            PlaybackHeaderActions(
+                snapshot,
+                connection,
+                deviceName,
+                controlsEnabled,
+                onOutput,
+                onQueue,
+                showDeviceLabel = !landscape,
+            )
+        }
     }
     val metadata: @Composable () -> Unit = {
         Column(Modifier.fillMaxWidth().testTag("playback_metadata")) {
@@ -211,25 +217,27 @@ internal fun ExpandedPlaybackControls(
                     actions()
                 }
             }
-            ConnectionControls(
-                connection,
-                onCommand,
-                enabled = transitionProgress >= .99f,
-            )
+            Box(Modifier.blockTouchesUntil(interactive)) {
+                ConnectionControls(
+                    connection,
+                    onCommand,
+                )
+            }
         }
     }
     val controls: @Composable () -> Unit = {
         Column(
-            modifier = Modifier.graphicsLayer {
-                alpha = metadataVisibility * ((transitionProgress - .35f) / .65f).coerceIn(
-                    0f,
-                    1f,
-                )
-                translationY = controlsTranslationY + 24.dp.toPx() * (1f - transitionProgress)
-            },
+            Modifier.blockTouchesUntil(interactive),
             horizontalAlignment = Alignment.CenterHorizontally,
         ) {
-            Box(Modifier.padding(vertical = 8.dp)) {
+            Box(
+                Modifier.padding(vertical = 8.dp).expansionReveal(
+                    .45f,
+                    transitionProgress,
+                    metadataVisibility,
+                    controlsTranslationY,
+                ),
+            ) {
                 PlaybackTransportControls(
                     player,
                     snapshot,
@@ -237,16 +245,23 @@ internal fun ExpandedPlaybackControls(
                 )
             }
             Spacer(Modifier.height(14.dp))
-            PlaybackModeControls(
-                player,
-                snapshot,
-                controlsEnabled,
-                onStop,
-                stopEnabled = transitionProgress >= .99f,
-            )
+            Box(
+                Modifier.expansionReveal(
+                    .55f,
+                    transitionProgress,
+                    metadataVisibility,
+                    controlsTranslationY,
+                ),
+            ) {
+                PlaybackModeControls(
+                    player,
+                    snapshot,
+                    controlsEnabled,
+                    onStop,
+                )
+            }
             if (connection == PlaybackConnection.LOCAL || connection == PlaybackConnection.CAST) {
                 FilledTonalButton(
-                    enabled = transitionProgress >= .99f,
                     onClick = {
                         if (snapshot.isRemote) {
                             onCommand(
@@ -256,7 +271,12 @@ internal fun ExpandedPlaybackControls(
                             onWatchVideo()
                         }
                     },
-                    modifier = Modifier.padding(top = 8.dp).tvFocusRing(CircleShape),
+                    modifier = Modifier.expansionReveal(
+                        .62f,
+                        transitionProgress,
+                        metadataVisibility,
+                        controlsTranslationY,
+                    ).padding(top = 8.dp).tvFocusRing(CircleShape),
                     shape = CircleShape,
                     colors = playbackChipColors(),
                 ) {
@@ -301,7 +321,7 @@ internal fun ExpandedPlaybackControls(
                     PlaybackArtworkCarousel(
                         player,
                         snapshot,
-                        controlsEnabled,
+                        controlsEnabled && interactive,
                         Modifier.fillMaxWidth().height(artworkSize).align(Alignment.CenterStart)
                             .then(dragModifier),
                         artworkSize,
@@ -322,8 +342,8 @@ internal fun ExpandedPlaybackControls(
                                 Alignment.TopStart,
                             ).padding(8.dp)
                                 .testTag("landscape_collapse")
-                                .then(dragModifier).focusRequester(collapseFocus),
-                            enabled = transitionProgress >= .99f,
+                                .then(dragModifier).focusRequester(collapseFocus)
+                                .blockTouchesUntil(interactive),
                         )
                     }
                 }
@@ -338,14 +358,12 @@ internal fun ExpandedPlaybackControls(
                         player,
                         snapshot,
                         controlsEnabled,
-                        modifier = Modifier.graphicsLayer {
-                            alpha =
-                                metadataVisibility * ((transitionProgress - .35f) / .65f).coerceIn(
-                                    0f,
-                                    1f,
-                                )
-                            translationY = controlsTranslationY
-                        },
+                        modifier = Modifier.blockTouchesUntil(interactive).expansionReveal(
+                            .35f,
+                            transitionProgress,
+                            metadataVisibility,
+                            controlsTranslationY,
+                        ),
                     )
                     controls()
                 }
@@ -354,13 +372,17 @@ internal fun ExpandedPlaybackControls(
             Column(Modifier.fillMaxSize()) {
                 Row(
                     Modifier.fillMaxWidth().heightIn(min = 64.dp).testTag("playback_header")
+                        .expansionReveal(
+                            .5f,
+                            transitionProgress,
+                            distance = 0.dp,
+                        )
                         .then(dragModifier).padding(horizontal = 14.dp),
                     verticalAlignment = Alignment.CenterVertically,
                 ) {
                     PlaybackCollapseButton(
                         onCollapse,
-                        Modifier.focusRequester(collapseFocus),
-                        enabled = transitionProgress >= .99f,
+                        Modifier.focusRequester(collapseFocus).blockTouchesUntil(interactive),
                     )
                     Box(Modifier.weight(1f)) {
                         if (!showDevice) {
@@ -391,7 +413,7 @@ internal fun ExpandedPlaybackControls(
                             PlaybackArtworkCarousel(
                                 player,
                                 snapshot,
-                                controlsEnabled,
+                                controlsEnabled && interactive,
                                 Modifier.fillMaxWidth().height(artworkSize).then(dragModifier),
                                 artworkSize,
                                 PaddingValues(horizontal = 24.dp),
@@ -408,15 +430,12 @@ internal fun ExpandedPlaybackControls(
                                 player,
                                 snapshot,
                                 controlsEnabled,
-                                modifier = Modifier.graphicsLayer {
-                                    alpha =
-                                        metadataVisibility *
-                                        ((transitionProgress - .35f) / .65f).coerceIn(
-                                            0f,
-                                            1f,
-                                        )
-                                    translationY = controlsTranslationY
-                                },
+                                modifier = Modifier.blockTouchesUntil(interactive).expansionReveal(
+                                    .35f,
+                                    transitionProgress,
+                                    metadataVisibility,
+                                    controlsTranslationY,
+                                ),
                             )
                         }
                         Box(Modifier.padding(horizontal = 24.dp)) { controls() }
@@ -427,6 +446,33 @@ internal fun ExpandedPlaybackControls(
     }
 }
 
+/** Keeps a control looking normal while the player moves, but ignores touches until it settles. */
+private fun Modifier.blockTouchesUntil(interactive: Boolean): Modifier = pointerInput(interactive) {
+    if (interactive) return@pointerInput
+    awaitEachGesture {
+        do {
+            val event = awaitPointerEvent(PointerEventPass.Initial)
+            event.changes.forEach { it.consume() }
+        } while (event.changes.any { it.pressed })
+    }
+}
+
+/** Fades a control in behind the artwork, starting at [start] of the transition. */
+private fun Modifier.expansionReveal(
+    start: Float,
+    progress: () -> Float,
+    visibility: () -> Float = { 1f },
+    offset: () -> Float = { 0f },
+    distance: Dp = 20.dp,
+): Modifier = graphicsLayer {
+    val reveal = ((progress() - start) / (1f - start)).coerceIn(
+        0f,
+        1f,
+    )
+    alpha = visibility() * reveal
+    translationY = offset() + distance.toPx() * (1f - reveal)
+}
+
 @Composable
 private fun playbackChipColors(): ButtonColors = ButtonDefaults.filledTonalButtonColors(
     containerColor = MaterialTheme.colorScheme.onPrimary.copy(alpha = .8f),
@@ -434,18 +480,13 @@ private fun playbackChipColors(): ButtonColors = ButtonDefaults.filledTonalButto
 )
 
 @Composable
-private fun PlaybackCollapseButton(
-    onCollapse: () -> Unit,
-    modifier: Modifier,
-    enabled: Boolean = true,
-) {
+private fun PlaybackCollapseButton(onCollapse: () -> Unit, modifier: Modifier) {
     Box(
         modifier.size(48.dp),
         contentAlignment = Alignment.Center,
     ) {
         FilledIconButton(
             onClick = onCollapse,
-            enabled = enabled,
             modifier = Modifier.size(42.dp).tvFocusRing(CircleShape),
             colors = IconButtonDefaults.filledIconButtonColors(
                 containerColor = MaterialTheme.colorScheme.onPrimary,
@@ -509,11 +550,7 @@ private fun PlaybackHeaderActions(
                 onClick = onOutput,
                 enabled = enabled,
                 shape = outputShape,
-                color = if (enabled) {
-                    colors.containerColor.copy(alpha = .7f)
-                } else {
-                    colors.disabledContainerColor
-                },
+                color = if (enabled) colors.containerColor else colors.disabledContainerColor,
                 contentColor = if (enabled) colors.contentColor else colors.disabledContentColor,
                 modifier = Modifier.animateContentSize(
                     animationSpec = spring(
@@ -802,7 +839,6 @@ private fun PlaybackModeControls(
     snapshot: PlaybackSnapshot,
     enabled: Boolean,
     onStop: () -> Unit,
-    stopEnabled: Boolean = true,
 ) {
     val repeatDescription = stringResource(
         when (snapshot.repeatMode) {
@@ -873,7 +909,6 @@ private fun PlaybackModeControls(
             val last = ButtonGroupDefaults.connectedTrailingButtonShape
             FilledIconButton(
                 onClick = onStop,
-                enabled = stopEnabled,
                 modifier = Modifier.weight(1f).height(48.dp).tvFocusRing(last),
                 shapes = IconButtonShapes(
                     shape = last,
@@ -897,7 +932,6 @@ private fun PlaybackModeControls(
 private fun ConnectionControls(
     connection: PlaybackConnection,
     onCommand: (CustomCommands) -> Unit,
-    enabled: Boolean = true,
 ) {
     if (connection == PlaybackConnection.CONNECTING) {
         Row(
@@ -907,7 +941,6 @@ private fun ConnectionControls(
         ) {
             CircularProgressIndicator(Modifier.size(32.dp))
             FilledTonalButton(
-                enabled = enabled,
                 colors = playbackChipColors(),
                 onClick = {
                     onCommand(CustomCommands.CANCEL_CAST)
@@ -923,7 +956,6 @@ private fun ConnectionControls(
             horizontalArrangement = Arrangement.spacedBy(8.dp),
         ) {
             FilledTonalButton(
-                enabled = enabled,
                 colors = playbackChipColors(),
                 onClick = {
                     onCommand(CustomCommands.RETRY_CAST)
@@ -933,7 +965,6 @@ private fun ConnectionControls(
                 Text(stringResource(R.string.retry))
             }
             FilledTonalButton(
-                enabled = enabled,
                 colors = playbackChipColors(),
                 onClick = {
                     onCommand(CustomCommands.PLAY_ON_PHONE)

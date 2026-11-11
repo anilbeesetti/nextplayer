@@ -6,12 +6,16 @@ import android.os.SystemClock
 import androidx.activity.compose.BackHandler
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.core.Animatable
+import androidx.compose.animation.core.AnimationVector1D
 import androidx.compose.animation.core.FastOutSlowInEasing
+import androidx.compose.animation.core.Spring
+import androidx.compose.animation.core.spring
 import androidx.compose.animation.core.tween
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
 import androidx.compose.animation.slideInVertically
 import androidx.compose.animation.slideOutVertically
+import androidx.compose.foundation.background
 import androidx.compose.foundation.focusGroup
 import androidx.compose.foundation.gestures.Orientation
 import androidx.compose.foundation.gestures.detectTapGestures
@@ -22,6 +26,7 @@ import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.BoxWithConstraints
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.absoluteOffset
 import androidx.compose.foundation.layout.asPaddingValues
@@ -49,6 +54,7 @@ import androidx.compose.material3.Text
 import androidx.compose.material3.rememberModalBottomSheetState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.derivedStateOf
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.key
 import androidx.compose.runtime.mutableFloatStateOf
@@ -56,11 +62,13 @@ import androidx.compose.runtime.mutableLongStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
+import androidx.compose.runtime.rememberUpdatedState
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.AbsoluteAlignment
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.drawBehind
 import androidx.compose.ui.draw.drawWithContent
 import androidx.compose.ui.focus.FocusRequester
 import androidx.compose.ui.focus.focusProperties
@@ -68,10 +76,12 @@ import androidx.compose.ui.focus.focusRequester
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.geometry.Rect
 import androidx.compose.ui.geometry.lerp
+import androidx.compose.ui.graphics.RectangleShape
 import androidx.compose.ui.graphics.drawscope.clipRect
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.layout.boundsInRoot
+import androidx.compose.ui.layout.layout
 import androidx.compose.ui.layout.onGloballyPositioned
 import androidx.compose.ui.layout.positionInRoot
 import androidx.compose.ui.platform.LocalContext
@@ -84,7 +94,9 @@ import androidx.compose.ui.semantics.hideFromAccessibility
 import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.semantics.testTag
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextMotion
 import androidx.compose.ui.text.style.TextOverflow
+import androidx.compose.ui.unit.Constraints
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.IntOffset
 import androidx.compose.ui.unit.dp
@@ -342,20 +354,26 @@ internal fun PlaybackOverlayContent(
         }.coerceAtLeast(1f)
         var dragging by remember { mutableStateOf(false) }
         var upwardPull by remember { mutableFloatStateOf(0f) }
-        val expansion = remember { Animatable(if (expanded) 1f else 0f) }
-        val gestureScope = rememberCoroutineScope()
-        LaunchedEffect(expanded) {
-            expansion.animateTo(
+        val expansion = remember {
+            Animatable(
                 if (expanded) 1f else 0f,
-                tween(
-                    280,
-                    easing = FastOutSlowInEasing,
-                ),
-            )
+                visibilityThreshold = EXPANSION_THRESHOLD,
+            ).apply {
+                updateBounds(
+                    0f,
+                    1f,
+                )
+            }
         }
-        val progress = expansion.value
+        val motion = remember { ExpansionMotion(expansion) }
+        val gestureScope = rememberCoroutineScope()
+        LaunchedEffect(expanded) { motion.settle(expanded) }
+        val isCollapsed by remember { derivedStateOf { expansion.value == 0f } }
+        val isFullyOpen by remember { derivedStateOf { expansion.value == 1f } }
+        val interactive by remember { derivedStateOf { expansion.value >= .99f } }
+        val currentlyExpanded by rememberUpdatedState(expanded)
         val dragState = rememberDraggableState { delta ->
-            if (controlsEnabled && expanded && progress >= .99f && delta < 0f) {
+            if (controlsEnabled && currentlyExpanded && expansion.value >= .99f && delta < 0f) {
                 upwardPull -= delta
                 if (upwardPull > with(density) { 32.dp.toPx() }) queue = true
             } else if (delta > 0f) {
@@ -388,17 +406,8 @@ internal fun PlaybackOverlayContent(
                 else -> expansion.value * travel > threshold
             }
             dragging = false
-            if (target == expanded) {
-                expansion.animateTo(
-                    if (target) 1f else 0f,
-                    tween(
-                        280,
-                        easing = FastOutSlowInEasing,
-                    ),
-                )
-            } else {
-                onExpandedChanged(target)
-            }
+            motion.carryVelocity(-velocity / travel)
+            if (target == expanded) motion.settle(target) else onExpandedChanged(target)
         }
         val verticalDrag = Modifier.draggable(
             dragState,
@@ -409,77 +418,110 @@ internal fun PlaybackOverlayContent(
         )
         val direction = LocalLayoutDirection.current
         val cutout = WindowInsets.displayCutout.asPaddingValues()
-        val start = (compactStart + cutout.calculateStartPadding(direction)) * (1f - progress)
-        val end = cutout.calculateEndPadding(direction) * (1f - progress)
-        val horizontalPadding = 16.dp * (1f - progress)
         val rtl = direction == androidx.compose.ui.unit.LayoutDirection.Rtl
-        val leftInset = if (rtl) end else start
-        val rightInset = if (rtl) start else end
-        val sheetTop = travel * (1f - progress)
-        val sheetHeight = compactHeight + (maxHeight - compactHeight) * progress
-        val sheetBounds = with(density) {
-            Rect(
-                (leftInset + horizontalPadding).toPx(),
-                sheetTop,
-                maxWidth.toPx() - (rightInset + horizontalPadding).toPx(),
-                sheetTop + sheetHeight.toPx(),
-            )
+        val compactStartInset = compactStart + cutout.calculateStartPadding(direction) + 16.dp
+        val compactEndInset = cutout.calculateEndPadding(direction) + 16.dp
+        val leftInset = if (rtl) compactEndInset else compactStartInset
+        val rightInset = if (rtl) compactStartInset else compactEndInset
+        val fullWidth = maxWidth
+        val fullHeight = maxHeight
+        val sheetBounds: () -> Rect = {
+            val progress = expansion.value
+            val collapse = 1f - progress
+            val top = travel * collapse
+            with(density) {
+                Rect(
+                    (leftInset * collapse).toPx(),
+                    top,
+                    (fullWidth - rightInset * collapse).toPx(),
+                    top + (compactHeight + (fullHeight - compactHeight) * progress).toPx(),
+                )
+            }
         }
-        val transitioning = progress > 0f && progress < 1f
+        val transitioning = !isCollapsed && !isFullyOpen
         val morphArtwork = transitioning && compactArtwork.width > 0 && expandedArtwork.width > 0
         val morphMetadata = transitioning && compactMetadata.width > 0 && expandedMetadata.width > 0
-        val artworkBounds = lerp(
-            compactArtwork,
-            expandedArtwork,
-            progress,
-        )
-        val metadataBounds = lerp(
-            compactMetadata,
-            expandedMetadata,
-            progress,
-        )
-        val metadataVisibility = if (morphMetadata && morphArtwork) {
-            val fadeDistance = minOf(
-                separationBetween(
-                    compactArtwork,
-                    compactMetadata,
-                ),
-                separationBetween(
-                    expandedArtwork,
-                    expandedMetadata,
-                ),
+        val artworkBounds: () -> Rect = {
+            lerp(
+                compactArtwork,
+                expandedArtwork,
+                expansion.value,
             )
-            (
-                (
-                    separationBetween(
-                        artworkBounds,
-                        metadataBounds,
-                    ) - 1f
-                    ) /
-                    (fadeDistance - 1f).coerceAtLeast(1f)
-                ).coerceIn(
-                0f,
-                1f,
-            )
-        } else {
-            1f
         }
-        if (progress > 0f || expanded || dragging) {
-            Surface(
-                modifier = Modifier
-                    .offset {
-                        IntOffset(
-                            0,
-                            (travel * (1f - progress)).roundToInt(),
-                        )
-                    }
-                    .padding(
-                        start = start,
-                        end = end,
+        val metadataBounds: () -> Rect = {
+            lerp(
+                compactMetadata,
+                expandedMetadata,
+                expansion.value,
+            )
+        }
+        val metadataVisibility: () -> Float = {
+            if (morphMetadata && morphArtwork) {
+                val fadeDistance = minOf(
+                    separationBetween(
+                        compactArtwork,
+                        compactMetadata,
+                    ),
+                    separationBetween(
+                        expandedArtwork,
+                        expandedMetadata,
+                    ),
+                )
+                (
+                    (
+                        separationBetween(
+                            artworkBounds(),
+                            metadataBounds(),
+                        ) - 1f
+                        ) /
+                        (fadeDistance - 1f).coerceAtLeast(1f)
+                    ).coerceIn(
+                    0f,
+                    1f,
+                )
+            } else {
+                1f
+            }
+        }
+        val scrim = MaterialTheme.colorScheme.scrim
+        Spacer(
+            Modifier.fillMaxSize().drawBehind {
+                if (expansion.value > 0f) {
+                    drawRect(
+                        scrim,
+                        alpha = expansion.value * EXPANSION_SCRIM_ALPHA,
                     )
-                    .padding(horizontal = 16.dp * (1f - progress))
-                    .fillMaxWidth()
-                    .height(compactHeight + (maxHeight - compactHeight) * progress)
+                }
+            },
+        )
+        if (!isCollapsed || expanded || dragging) {
+            val sheetColor = MaterialTheme.colorScheme.primaryContainer
+            Box(
+                Modifier
+                    .layout { measurable, constraints ->
+                        val bounds = sheetBounds()
+                        val placeable = measurable.measure(
+                            Constraints.fixed(
+                                bounds.width.roundToInt().coerceAtLeast(0),
+                                bounds.height.roundToInt().coerceAtLeast(0),
+                            ),
+                        )
+                        layout(
+                            constraints.maxWidth,
+                            constraints.maxHeight,
+                        ) {
+                            placeable.place(
+                                bounds.left.roundToInt(),
+                                bounds.top.roundToInt(),
+                            )
+                        }
+                    }
+                    .graphicsLayer {
+                        shape = RoundedCornerShape(24.dp * (1f - expansion.value))
+                        clip = true
+                        shadowElevation = 3.dp.toPx()
+                    }
+                    .background(sheetColor)
                     .testTag("playback_sheet")
                     .draggable(
                         dragState,
@@ -489,13 +531,9 @@ internal fun PlaybackOverlayContent(
                         onDragStopped = dragStopped,
                     )
                     .pointerInput(Unit) { detectTapGestures {} },
-                shape = RoundedCornerShape(24.dp * (1f - progress)),
-                color = MaterialTheme.colorScheme.primaryContainer,
-                contentColor = MaterialTheme.colorScheme.onPrimaryContainer,
-                shadowElevation = 3.dp,
-            ) {}
+            )
         }
-        if (progress < 1f) {
+        if (!isFullyOpen) {
             val compactIdentity = player.playbackQueueIdentity()
             key(
                 player,
@@ -505,7 +543,7 @@ internal fun PlaybackOverlayContent(
                     onDismiss = {
                         if (player.playbackQueueIdentity() == compactIdentity) onDismissPlayback()
                     },
-                    enabled = progress == 0f,
+                    enabled = isCollapsed,
                     bothDirections = true,
                     modifier = Modifier
                         .offset {
@@ -523,10 +561,10 @@ internal fun PlaybackOverlayContent(
                 ) {
                     MiniPlayer(
                         player = player,
-                        onOpenPlayer = { if (progress == 0f) onExpandedChanged(true) },
+                        onOpenPlayer = { if (isCollapsed) onExpandedChanged(true) },
                         onStop = onDismissPlayback,
                         deviceName = presentation.deviceName,
-                        controlsEnabled = controlsEnabled && progress == 0f,
+                        controlsEnabled = controlsEnabled,
                         snapshot = snapshot,
                         artworkPainter = artworkPainter,
                         artworkModifier = Modifier.onGloballyPositioned {
@@ -546,10 +584,10 @@ internal fun PlaybackOverlayContent(
                                 onDragStopped = dragStopped,
                             )
                             .focusRequester(focusRequester).then(compactModifier)
-                            .semantics { if (progress > 0f) hideFromAccessibility() }
-                            .focusProperties { canFocus = progress == 0f }
+                            .semantics { if (!isCollapsed) hideFromAccessibility() }
+                            .focusProperties { canFocus = isCollapsed }
                             .graphicsLayer {
-                                alpha = (1f - progress * 2f).coerceIn(
+                                alpha = (1f - expansion.value * 3f).coerceIn(
                                     0f,
                                     1f,
                                 )
@@ -558,13 +596,13 @@ internal fun PlaybackOverlayContent(
                 }
             }
         }
-        if (progress > 0f || expanded || dragging) {
+        if (!isCollapsed || expanded || dragging) {
             ExpandedPlaybackControls(
                 player,
                 snapshot,
                 title,
                 secondary,
-                controlsEnabled && progress >= .99f,
+                controlsEnabled,
                 landscape = landscape,
                 connection = presentation.connection,
                 deviceName = presentation.deviceName,
@@ -575,12 +613,15 @@ internal fun PlaybackOverlayContent(
                 onWatchVideo = onWatchVideo,
                 onCommand = onCommand,
                 dragModifier = verticalDrag,
-                transitionProgress = progress,
+                interactive = interactive,
+                transitionProgress = { expansion.value },
                 metadataVisibility = metadataVisibility,
-                controlsTranslationY = if (morphMetadata) {
-                    (compactMetadata.bottom - expandedMetadata.bottom) * (1f - progress)
-                } else {
-                    0f
+                controlsTranslationY = {
+                    if (morphMetadata) {
+                        (compactMetadata.bottom - expandedMetadata.bottom) * (1f - expansion.value)
+                    } else {
+                        0f
+                    }
                 },
                 artworkModifier = Modifier.onGloballyPositioned {
                     expandedArtwork = it.boundsInRoot().translate(-rootOrigin)
@@ -589,15 +630,16 @@ internal fun PlaybackOverlayContent(
                     expandedMetadata = it.boundsInRoot().translate(-rootOrigin)
                 }.graphicsLayer { alpha = if (morphMetadata) 0f else 1f },
                 modifier = Modifier.semantics {
-                    if (progress < .99f) hideFromAccessibility()
+                    if (!interactive) hideFromAccessibility()
                 }.focusProperties {
-                    if (progress < .99f) onEnter = { cancelFocusChange() }
+                    if (!interactive) onEnter = { cancelFocusChange() }
                 }.drawWithContent {
+                    val clip = sheetBounds()
                     clipRect(
-                        left = sheetBounds.left,
-                        top = sheetBounds.top,
-                        right = sheetBounds.right,
-                        bottom = sheetBounds.bottom,
+                        left = clip.left,
+                        top = clip.top,
+                        right = clip.right,
+                        bottom = clip.bottom,
                     ) {
                         this@drawWithContent.drawContent()
                     }
@@ -605,79 +647,32 @@ internal fun PlaybackOverlayContent(
             )
         }
         if (morphArtwork) {
-            val bounds = artworkBounds
             PlaybackArtwork(
                 snapshot,
-                Modifier.align(AbsoluteAlignment.TopLeft).absoluteOffset {
-                    IntOffset(
-                        bounds.left.roundToInt(),
-                        bounds.top.roundToInt(),
-                    )
-                }
-                    .size(
-                        with(density) {
-                            bounds.width.toDp()
-                        },
-                        with(density) { bounds.height.toDp() },
-                    )
+                Modifier.align(AbsoluteAlignment.TopLeft).followBounds(artworkBounds)
+                    .graphicsLayer {
+                        shape = RoundedCornerShape(8.dp + 10.dp * expansion.value)
+                        clip = true
+                    }
                     .clearAndSetSemantics { testTag = "transition_artwork" },
-                RoundedCornerShape(8.dp + 10.dp * progress),
+                RectangleShape,
                 artworkPainter,
             )
         }
-        if (morphMetadata && metadataVisibility > 0f) {
-            val bounds = metadataBounds
-            val titleStyle = androidx.compose.ui.text.lerp(
-                MaterialTheme.typography.titleSmall.copy(
-                    fontSize = 15.sp,
-                    fontWeight = FontWeight.SemiBold,
-                    letterSpacing = (-.2).sp,
-                ),
-                MaterialTheme.typography.headlineSmall.copy(fontWeight = FontWeight.Bold),
-                progress,
-            )
-            val secondaryStyle = androidx.compose.ui.text.lerp(
-                MaterialTheme.typography.bodySmall.copy(fontSize = 13.sp),
-                MaterialTheme.typography.titleMedium,
-                progress,
-            )
-            Column(
-                Modifier.align(AbsoluteAlignment.TopLeft).absoluteOffset {
-                    IntOffset(
-                        bounds.left.roundToInt(),
-                        bounds.top.roundToInt(),
-                    )
-                }
-                    .size(
-                        with(density) {
-                            bounds.width.toDp()
-                        },
-                        with(density) { bounds.height.toDp() },
-                    )
-                    .graphicsLayer { alpha = metadataVisibility }
+        val metadataShown by remember(
+            morphMetadata,
+            morphArtwork,
+        ) { derivedStateOf { metadataVisibility() > 0f } }
+        if (morphMetadata && metadataShown) {
+            PlaybackMorphingMetadata(
+                title = title,
+                secondary = secondary,
+                landscape = landscape,
+                progress = { expansion.value },
+                modifier = Modifier.align(AbsoluteAlignment.TopLeft).followBounds(metadataBounds)
+                    .graphicsLayer { alpha = metadataVisibility() }
                     .clearAndSetSemantics { testTag = "transition_metadata" },
-            ) {
-                Text(
-                    title,
-                    maxLines = if (landscape ||
-                        progress < .8f
-                    ) {
-                        1
-                    } else {
-                        2
-                    },
-                    overflow = TextOverflow.Ellipsis,
-                    style = titleStyle,
-                    color = MaterialTheme.colorScheme.onPrimaryContainer,
-                )
-                Text(
-                    secondary,
-                    maxLines = 1,
-                    overflow = TextOverflow.Ellipsis,
-                    style = secondaryStyle,
-                    color = MaterialTheme.colorScheme.onPrimaryContainer,
-                )
-            }
+            )
         }
     }
 
@@ -717,6 +712,96 @@ internal fun PlaybackOverlayContent(
                 )
             }
         }
+    }
+}
+
+private const val EXPANSION_THRESHOLD = .0005f
+private const val EXPANSION_SCRIM_ALPHA = .32f
+
+/** One spring for tap and drag; collapsing is slightly quicker than opening. */
+private class ExpansionMotion(private val expansion: Animatable<Float, AnimationVector1D>) {
+    private var lastVelocity = 0f
+
+    fun carryVelocity(value: Float) {
+        lastVelocity = value
+    }
+
+    suspend fun settle(open: Boolean) {
+        expansion.animateTo(
+            if (open) 1f else 0f,
+            spring(
+                dampingRatio = Spring.DampingRatioNoBouncy,
+                stiffness = if (open) 420f else 560f,
+                visibilityThreshold = EXPANSION_THRESHOLD,
+            ),
+            initialVelocity = lastVelocity,
+        ) { lastVelocity = velocity }
+        lastVelocity = 0f
+    }
+}
+
+private fun Modifier.followBounds(bounds: () -> Rect): Modifier = this
+    .absoluteOffset {
+        IntOffset(
+            bounds().left.roundToInt(),
+            bounds().top.roundToInt(),
+        )
+    }
+    .layout { measurable, _ ->
+        val placeable = measurable.measure(
+            Constraints.fixed(
+                bounds().width.roundToInt().coerceAtLeast(0),
+                bounds().height.roundToInt().coerceAtLeast(0),
+            ),
+        )
+        layout(
+            placeable.width,
+            placeable.height,
+        ) {
+            placeable.place(
+                0,
+                0,
+            )
+        }
+    }
+
+/** Reads progress itself so only this text recomposes while the player transitions. */
+@Composable
+private fun PlaybackMorphingMetadata(
+    title: String,
+    secondary: String,
+    landscape: Boolean,
+    progress: () -> Float,
+    modifier: Modifier,
+) {
+    val value = progress()
+    Column(modifier) {
+        Text(
+            title,
+            maxLines = if (landscape || value < .8f) 1 else 2,
+            overflow = TextOverflow.Ellipsis,
+            style = androidx.compose.ui.text.lerp(
+                MaterialTheme.typography.titleSmall.copy(
+                    fontSize = 15.sp,
+                    fontWeight = FontWeight.SemiBold,
+                    letterSpacing = (-.2).sp,
+                ),
+                MaterialTheme.typography.headlineSmall.copy(fontWeight = FontWeight.Bold),
+                value,
+            ).copy(textMotion = TextMotion.Animated),
+            color = MaterialTheme.colorScheme.onPrimaryContainer,
+        )
+        Text(
+            secondary,
+            maxLines = 1,
+            overflow = TextOverflow.Ellipsis,
+            style = androidx.compose.ui.text.lerp(
+                MaterialTheme.typography.bodySmall.copy(fontSize = 13.sp),
+                MaterialTheme.typography.titleMedium,
+                value,
+            ).copy(textMotion = TextMotion.Animated),
+            color = MaterialTheme.colorScheme.onPrimaryContainer,
+        )
     }
 }
 
