@@ -418,7 +418,7 @@ class MiniPlayerIntegrationTest {
             composeRule.onNodeWithTag("mini_player").performTouchInput { swipeLeft() }
             clock.advanceTimeByFrame()
             composeRule.waitForIdle()
-            clock.advanceTimeBy(600)
+            clock.advanceTimeBy(300)
             composeRule.waitForIdle()
             await("queue dismissed for pill") { player.mediaItemCount == 0 }
             composeRule.waitUntil(5_000) {

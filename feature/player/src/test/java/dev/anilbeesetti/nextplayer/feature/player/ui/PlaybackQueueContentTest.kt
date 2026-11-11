@@ -24,6 +24,7 @@ import androidx.compose.ui.test.onRoot
 import androidx.compose.ui.test.performClick
 import androidx.compose.ui.test.performSemanticsAction
 import androidx.compose.ui.test.performTouchInput
+import androidx.compose.ui.test.swipe
 import androidx.compose.ui.test.swipeLeft
 import androidx.compose.ui.test.swipeRight
 import androidx.compose.ui.unit.Density
@@ -281,6 +282,30 @@ class PlaybackQueueContentTest {
         rule.runOnIdle {
             assertEquals(
                 2,
+                player.mediaItemCount,
+            )
+        }
+    }
+
+    @Test fun shortFastFlickBelowTheThresholdKeepsTheItem() {
+        show()
+        rule.onNodeWithTag("queue_item_1").performTouchInput {
+            swipe(
+                start = Offset(
+                    width * .8f,
+                    centerY,
+                ),
+                end = Offset(
+                    width * .55f,
+                    centerY,
+                ),
+                durationMillis = 60,
+            )
+        }
+        rule.mainClock.advanceTimeBy(1_000)
+        rule.runOnIdle {
+            assertEquals(
+                3,
                 player.mediaItemCount,
             )
         }
