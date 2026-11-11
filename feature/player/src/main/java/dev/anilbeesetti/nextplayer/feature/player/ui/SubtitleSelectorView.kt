@@ -19,7 +19,9 @@ import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.FilledTonalButton
 import androidx.compose.material3.FilledTonalIconButton
 import androidx.compose.material3.Icon
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
@@ -34,6 +36,7 @@ import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.input.KeyboardType
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.media3.common.C
 import androidx.media3.common.Player
@@ -56,6 +59,9 @@ fun BoxScope.SubtitleSelectorView(
     show: Boolean,
     player: Player,
     onSelectSubtitleClick: () -> Unit,
+    secondarySubtitleName: String? = null,
+    onSelectSecondarySubtitleClick: () -> Unit = {},
+    onRemoveSecondarySubtitleClick: () -> Unit = {},
     onEvent: (SubtitleOptionsEvent) -> Unit = {},
     onDismiss: () -> Unit,
 ) {
@@ -109,6 +115,34 @@ fun BoxScope.SubtitleSelectorView(
                     onDismiss()
                 },
             ) { Text(text = stringResource(R.string.open_subtitle)) }
+            Spacer(modifier = Modifier.size(8.dp))
+            FilledTonalButton(
+                modifier = Modifier.fillMaxWidth(),
+                onClick = {
+                    onSelectSecondarySubtitleClick()
+                    onDismiss()
+                },
+            ) { Text(text = stringResource(R.string.open_secondary_subtitle)) }
+            Text(
+                text = stringResource(R.string.secondary_subtitle_desc),
+                style = MaterialTheme.typography.bodySmall,
+            )
+            if (secondarySubtitleName != null) {
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    verticalAlignment = Alignment.CenterVertically,
+                ) {
+                    Text(
+                        text = secondarySubtitleName,
+                        modifier = Modifier.weight(weight = 1f),
+                        maxLines = 1,
+                        overflow = TextOverflow.Ellipsis,
+                    )
+                    TextButton(onClick = onRemoveSecondarySubtitleClick) {
+                        Text(text = stringResource(R.string.remove))
+                    }
+                }
+            }
             Spacer(modifier = Modifier.size(16.dp))
             DelayInput(
                 value = subtitleOptionsState.delayMilliseconds,
