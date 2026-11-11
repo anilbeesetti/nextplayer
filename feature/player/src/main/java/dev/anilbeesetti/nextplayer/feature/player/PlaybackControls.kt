@@ -50,6 +50,7 @@ import androidx.media3.common.util.UnstableApi
 import androidx.media3.ui.compose.state.ProgressStateWithTickInterval
 import dev.anilbeesetti.nextplayer.core.common.Utils
 import dev.anilbeesetti.nextplayer.core.ui.R
+import dev.anilbeesetti.nextplayer.feature.player.ui.controls.rememberSliderValueState
 import dev.anilbeesetti.nextplayer.feature.player.state.PlaybackSnapshot
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
@@ -175,7 +176,7 @@ internal fun PlaybackSeekControl(
                 }
             }
             Slider(
-                value = value,
+                state = rememberSliderValueState(value),
                 onValueChange = { dragged = it },
                 onValueChangeFinished = {
                     dragged?.let {

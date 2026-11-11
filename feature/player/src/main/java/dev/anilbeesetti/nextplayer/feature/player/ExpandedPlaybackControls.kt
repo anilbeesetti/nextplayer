@@ -705,57 +705,74 @@ private fun PlaybackTransportControls(
         contentColor = MaterialTheme.colorScheme.onPrimary,
     )
     ButtonGroup(
+        overflowIndicator = {},
         modifier = Modifier.fillMaxWidth().height(
             80.dp,
         ).testTag("playback_transport").padding(horizontal = 12.dp),
         horizontalArrangement = Arrangement.spacedBy(6.dp),
         expandedRatio = .375f,
     ) {
-        FilledIconButton(
-            onClick = player::seekToPrevious,
-            enabled = enabled && snapshot.commands.contains(Player.COMMAND_SEEK_TO_PREVIOUS),
-            modifier = Modifier.weight(
-                1f,
-            ).fillMaxHeight().animateWidth(previous).tvFocusRing(CircleShape),
-            shape = CircleShape,
-            colors = skipColors,
-            interactionSource = previous,
-        ) {
-            Icon(
-                Icons.Rounded.SkipPrevious,
-                stringResource(R.string.player_controls_previous),
-                Modifier.size(32.dp),
-            )
-        }
-        PlaybackPlayPauseButton(
-            player,
-            snapshot,
-            Modifier.weight(1f).fillMaxHeight().animateWidth(play),
-            enabled,
-            RoundedCornerShape(playCorner),
-            36.dp,
-            play,
-            IconButtonDefaults.filledIconButtonColors(
-                containerColor = MaterialTheme.colorScheme.tertiaryFixedDim,
-                contentColor = MaterialTheme.colorScheme.onTertiaryFixed,
-            ),
+        customItem(
+            buttonGroupContent = {
+                FilledIconButton(
+                    onClick = player::seekToPrevious,
+                    enabled = enabled &&
+                        snapshot.commands.contains(Player.COMMAND_SEEK_TO_PREVIOUS),
+                    modifier = Modifier.weight(
+                        1f,
+                    ).fillMaxHeight().animateWidth(previous).tvFocusRing(CircleShape),
+                    shape = CircleShape,
+                    colors = skipColors,
+                    interactionSource = previous,
+                ) {
+                    Icon(
+                        Icons.Rounded.SkipPrevious,
+                        stringResource(R.string.player_controls_previous),
+                        Modifier.size(32.dp),
+                    )
+                }
+            },
+            menuContent = {},
         )
-        FilledIconButton(
-            onClick = player::seekToNext,
-            enabled = enabled && snapshot.commands.contains(Player.COMMAND_SEEK_TO_NEXT),
-            modifier = Modifier.weight(
-                1f,
-            ).fillMaxHeight().animateWidth(next).tvFocusRing(CircleShape),
-            shape = CircleShape,
-            colors = skipColors,
-            interactionSource = next,
-        ) {
-            Icon(
-                Icons.Rounded.SkipNext,
-                stringResource(R.string.player_controls_next),
-                Modifier.size(32.dp),
-            )
-        }
+        customItem(
+            buttonGroupContent = {
+                PlaybackPlayPauseButton(
+                    player,
+                    snapshot,
+                    Modifier.weight(1f).fillMaxHeight().animateWidth(play),
+                    enabled,
+                    RoundedCornerShape(playCorner),
+                    36.dp,
+                    play,
+                    IconButtonDefaults.filledIconButtonColors(
+                        containerColor = MaterialTheme.colorScheme.tertiaryFixedDim,
+                        contentColor = MaterialTheme.colorScheme.onTertiaryFixed,
+                    ),
+                )
+            },
+            menuContent = {},
+        )
+        customItem(
+            buttonGroupContent = {
+                FilledIconButton(
+                    onClick = player::seekToNext,
+                    enabled = enabled && snapshot.commands.contains(Player.COMMAND_SEEK_TO_NEXT),
+                    modifier = Modifier.weight(
+                        1f,
+                    ).fillMaxHeight().animateWidth(next).tvFocusRing(CircleShape),
+                    shape = CircleShape,
+                    colors = skipColors,
+                    interactionSource = next,
+                ) {
+                    Icon(
+                        Icons.Rounded.SkipNext,
+                        stringResource(R.string.player_controls_next),
+                        Modifier.size(32.dp),
+                    )
+                }
+            },
+            menuContent = {},
+        )
     }
 }
 
