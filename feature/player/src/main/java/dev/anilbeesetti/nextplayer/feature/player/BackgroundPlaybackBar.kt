@@ -319,7 +319,7 @@ internal fun PlaybackArtwork(
         Image(
             painter,
             contentDescription = null,
-            contentScale = ContentScale.Fit,
+            contentScale = ContentScale.Crop,
             modifier = Modifier.fillMaxSize(),
         )
     }

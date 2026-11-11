@@ -20,7 +20,6 @@ import dev.anilbeesetti.nextplayer.core.ui.theme.NextPlayerTheme
 import dev.anilbeesetti.nextplayer.feature.player.PlaybackArtwork
 import dev.anilbeesetti.nextplayer.feature.player.state.PlaybackSnapshot
 import org.junit.Assert.assertEquals
-import org.junit.Assert.assertNotEquals
 import org.junit.Rule
 import org.junit.Test
 import org.junit.runner.RunWith
@@ -31,10 +30,10 @@ import org.robolectric.annotation.GraphicsMode
 @RunWith(RobolectricTestRunner::class)
 @GraphicsMode(GraphicsMode.Mode.NATIVE)
 @Config(sdk = [36])
-class PlaybackArtworkFitTest {
+class PlaybackArtworkCropTest {
     @get:Rule val rule = createAndroidComposeRule<ComponentActivity>()
 
-    @Test fun wideArtworkKeepsItsAspectRatioInsideTheSquare() {
+    @Test fun wideArtworkIsCroppedToFillTheSquare() {
         rule.setContent {
             NextPlayerTheme {
                 PlaybackArtwork(
@@ -50,7 +49,7 @@ class PlaybackArtworkFitTest {
             Color.Red,
             pixels[center, pixels.height / 2],
         )
-        assertNotEquals(
+        assertEquals(
             Color.Red,
             pixels[center, pixels.height / 8],
         )
