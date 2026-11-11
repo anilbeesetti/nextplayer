@@ -11,7 +11,7 @@ Run with JDK 17 launcher, the repository's JVM 21 daemon criteria, and `ANDROID_
   '-Dorg.gradle.jvmargs=-Xmx4096m -Dfile.encoding=UTF-8'
 ```
 
-Current XML totals: **903 tests in 157 suites, zero failures, errors or skips**. XML is inspected because local tests use `ignoreFailures=true`.
+Current XML totals: **927 tests in 159 suites, zero failures, errors or skips**. XML is inspected because local tests use `ignoreFailures=true`.
 
 Meaningful regressions cover:
 
@@ -25,14 +25,14 @@ Meaningful regressions cover:
 
 Latest device: the existing `Pixel_6a`, API 37, arm64 emulator. The initial implementation had also passed the same focused runs on `NextPlayer_Cast_QA_API35` (Android 15 / API 35); that AVD is now closed. Manual UI actions use the thread's Device panel and its returned `agent-device` CLI. The second parity round uses the project's AndroidX runner for acceptance and Compose screenshot artifacts. The UI session is closed before instrumentation to avoid concurrent UiAutomation ownership.
 
-Current queue/dismissal follow-up acceptance:
+Current dismissal-reference follow-up acceptance:
 
 | Distribution | Tests | Result |
 | --- | ---: | --- |
-| Play full acceptance | 35 | Zero failures/errors/skips |
-| Standard UI + external handoff | 18 | Zero failures/errors/skips |
+| Play full acceptance | 36 | Zero failures/errors/skips |
+| Standard UI + external handoff | 19 | Zero failures/errors/skips |
 
-Both runs include the 17-case mini-player UI group, including the new nested-edge and queue-gesture cases. The earlier motion-round runs (33 Play, 15 Play UI and 16 standard UI/external) remain documented in its historical report.
+Both runs include the 18-case mini-player UI group, including compact Undo placement/countdown/Close, playing/paused restoration, queue-removal Undo and same-URI replacement invalidation. The fullscreen-return case waits for the separate Activity to be destroyed before the Main assertions; this removes the listener-cancellation teardown race seen in the initial combined run. The earlier motion-round runs (33 Play, 15 Play UI and 16 standard UI/external) remain documented in its historical report.
 
 Play full acceptance covers `MiniPlayerIntegrationTest`, `PlayerApiRequestRegressionTest`, `PlayerApiLaunchOptionsTest`, `BackgroundPlaybackCompletionTest` and `PlaylistCompletionTest`. Standard covers `MiniPlayerIntegrationTest` plus the external handoff/Undo/grants regression. These are focused acceptance runs, not the entire instrumentation suite.
 
@@ -40,9 +40,11 @@ Flows include root tabs and recreation, nested settings, compact/expanded entry,
 
 The Cast dismissal snapshot correction and visual refinement were included in the full root checks and the latest Pixel_6a device runs. The Play APK is restored after standard verification.
 
-The external-caller regression runs under a different UID and checks result code, URI and position, then dismisses/restores the paused queue, verifies URI access throughout Undo, plays another queued item, and confirms media/subtitle grant revocation after all service controllers are released.
+The external-caller regression runs under a different UID and checks result code, URI and position, then dismisses/restores the paused queue, removes/restores an externally granted item through queue Undo, verifies URI/subtitle access throughout both Undo flows, plays another queued item, and confirms media/subtitle grant revocation after all service controllers are released.
 
 ## Current queue and dismissal follow-up
+
+The latest [dismissal reference correction](dismissal-review.md) adds a compact-height countdown Undo pill, resisted translated-width queue capsule, focus/accessibility removal actions and occurrence-aware queue Undo. It also rejects delayed additions after Stop or replacement and verifies retained external video/subtitle grants across queue removal and restoration.
 
 See [the queue follow-up](queue-review.md) for destructive swipe reveals, six-dot handles, larger artwork/duration badges, haptic/cancellation/replacement guards, continuous reorder checks and edge-to-edge nested screens. Device testing also fixed Media3 ending playback after removing the current final row despite earlier queued items. Latest root checks cover both distributions; the connected OPPO installation preserves data.
 

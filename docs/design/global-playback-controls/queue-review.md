@@ -1,5 +1,7 @@
 # Queue and compact dismissal polish
 
+Historical report: the later [dismissal reference correction](dismissal-review.md) supersedes the compact reveal, Undo surface and normal-row Remove-button details below.
+
 The user's five follow-up findings are addressed on the third stack layer. PixelPlayer remains a behavior/style reference; this implementation uses Compose Foundation, the installed reorder library and Next Player color roles. No reference source/assets or dependencies were added.
 
 | Before | After |
