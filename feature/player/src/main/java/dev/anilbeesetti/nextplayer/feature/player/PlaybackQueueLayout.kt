@@ -81,6 +81,11 @@ internal class QueueStageGeometry(
     val halfArtwork: Rect
     val halfPanelTop: Float
 
+    /** On shorter screens the half stage tightens the controls to give the queue more room. */
+    val seekLift: Float
+    val transportLift: Float
+    val transportCut: Float
+
     init {
         // Phones get the full width; only very short windows shrink the square to keep the queue.
         // The title rests two gaps above the artwork's bottom; the block runs on to the transport.
@@ -99,7 +104,22 @@ internal class QueueStageGeometry(
             left + side,
             side - topInset,
         )
-        halfPanelTop = halfArtwork.bottom - gap * 2 + blockHeight + gap
+        val loose = halfArtwork.bottom - gap * 2 + blockHeight + gap
+        val most = with(density) {
+            floatArrayOf(
+                12.dp.toPx(),
+                12.dp.toPx(),
+                16.dp.toPx(),
+            )
+        }
+        val squeeze = ((loose - height * .6f) / most.sum()).coerceIn(
+            0f,
+            1f,
+        )
+        seekLift = most[0] * squeeze
+        transportLift = seekLift + most[1] * squeeze
+        transportCut = most[2] * squeeze
+        halfPanelTop = loose - transportLift - transportCut
     }
 }
 
@@ -309,14 +329,14 @@ internal fun QueuePanel(
     }
 }
 
-/** Scrolling up first raises the panel; pulling down past the top of the list lowers it. */
+/** The list scrolls in place; pulling down past its top lowers the panel, and scrolling back undoes that. */
 private class QueueScrollConnection(private val sheet: PlaybackQueueSheet) :
     NestedScrollConnection {
     override fun onPreScroll(available: Offset, source: NestedScrollSource): Offset =
         if (available.y < 0f && source == NestedScrollSource.UserInput) {
             Offset(
                 0f,
-                sheet.dragBy(available.y),
+                sheet.raiseBy(available.y),
             )
         } else {
             Offset.Zero

@@ -80,6 +80,20 @@ internal class PlaybackQueueSheet(private val scope: CoroutineScope) {
         return to - from
     }
 
+    /** Moves the panel up, but never past the stage it rests at; only the handle opens further. */
+    fun raiseBy(delta: Float): Float {
+        val from = top.value
+        val to = (from + delta).coerceIn(
+            minOf(
+                anchor(stage),
+                from,
+            ),
+            closed,
+        )
+        if (to != from) launch { top.snapTo(to) }
+        return to - from
+    }
+
     fun settle(velocity: Float) {
         val position = top.value
         val anchors = listOf(

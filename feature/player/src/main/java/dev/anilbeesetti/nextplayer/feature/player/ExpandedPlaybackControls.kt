@@ -103,6 +103,7 @@ import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.input.pointer.PointerEventPass
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.layout.LayoutCoordinates
+import androidx.compose.ui.layout.layout
 import androidx.compose.ui.layout.onGloballyPositioned
 import androidx.compose.ui.layout.onPlaced
 import androidx.compose.ui.platform.LocalContext
@@ -127,6 +128,7 @@ import dev.anilbeesetti.nextplayer.feature.player.service.CustomCommands
 import dev.anilbeesetti.nextplayer.feature.player.service.PlaybackConnection
 import dev.anilbeesetti.nextplayer.feature.player.state.PlaybackSnapshot
 import dev.anilbeesetti.nextplayer.feature.player.state.rememberPlaylistState
+import kotlin.math.roundToInt
 
 @OptIn(ExperimentalMaterial3ExpressiveApi::class)
 @Composable
@@ -626,7 +628,11 @@ internal fun ExpandedPlaybackControls(
                                 controlsEnabled,
                                 modifier = Modifier.graphicsLayer {
                                     val progress = queueProgress()
-                                    translationY = blockShift(progress)
+                                    translationY = blockShift(progress) -
+                                        stages.seekLift * progress.coerceIn(
+                                            0f,
+                                            1f,
+                                        )
                                     alpha = 1f - smoothStep(
                                         1f,
                                         1.3f,
@@ -643,16 +649,59 @@ internal fun ExpandedPlaybackControls(
                             controls(
                                 measured { transportBounds = it }.graphicsLayer {
                                     val progress = queueProgress()
-                                    translationY = blockShift(progress)
+                                    translationY = blockShift(progress) -
+                                        stages.transportLift * progress.coerceIn(
+                                            0f,
+                                            1f,
+                                        )
                                     alpha = 1f - smoothStep(
                                         1f,
                                         1.3f,
                                         progress,
                                     )
+                                }.layout { measurable, constraints ->
+                                    // Shorter buttons, still reporting their full height so the
+                                    // stage geometry measured from them stays put.
+                                    val cut = (
+                                        stages.transportCut * queueProgress().coerceIn(
+                                            0f,
+                                            1f,
+                                        )
+                                        ).roundToInt()
+                                    val placeable = measurable.measure(
+                                        if (cut > 0 && transportBounds.height > 0f) {
+                                            constraints.copy(
+                                                minHeight = 0,
+                                                maxHeight =
+                                                    transportBounds.height.roundToInt() - cut,
+                                            )
+                                        } else {
+                                            constraints
+                                        },
+                                    )
+                                    val reported = if (cut > 0 && transportBounds.height > 0f) {
+                                        transportBounds.height.roundToInt()
+                                    } else {
+                                        placeable.height
+                                    }
+                                    layout(
+                                        placeable.width,
+                                        reported,
+                                    ) {
+                                        placeable.place(
+                                            0,
+                                            0,
+                                        )
+                                    }
                                 },
                                 Modifier.graphicsLayer {
                                     val progress = queueProgress()
-                                    translationY = blockShift(progress)
+                                    translationY = blockShift(progress) - (
+                                        stages.transportLift + stages.transportCut
+                                        ) * progress.coerceIn(
+                                        0f,
+                                        1f,
+                                    )
                                     alpha = 1f - smoothStep(
                                         0f,
                                         .4f,
