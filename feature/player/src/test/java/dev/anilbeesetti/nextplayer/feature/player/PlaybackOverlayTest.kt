@@ -392,6 +392,49 @@ class PlaybackOverlayTest {
         }
     }
 
+    @Test fun slowDragToTheTopExpandsAndTheCollapseButtonWorks() {
+        show()
+        composeRule.onNodeWithTag("mini_player").performTouchInput {
+            down(
+                Offset(
+                    50f,
+                    centerY,
+                ),
+            )
+            moveBy(
+                Offset(
+                    0f,
+                    -3_000f,
+                ),
+                delayMillis = 1_000,
+            )
+        }
+        composeRule.onRoot().performTouchInput {
+            moveBy(
+                Offset(
+                    0f,
+                    -10f,
+                ),
+                delayMillis = 500,
+            )
+            up()
+        }
+        composeRule.runOnIdle {
+            assertEquals(
+                true,
+                expanded,
+            )
+        }
+        composeRule.mainClock.advanceTimeBy(1_000)
+        composeRule.onNodeWithContentDescription(text(R.string.collapse_player)).performClick()
+        composeRule.runOnIdle {
+            assertEquals(
+                false,
+                expanded,
+            )
+        }
+    }
+
     @Test fun artworkMetadataEnrichmentAndDuplicateItemsDoNotSeekOrResetThePage() {
         expanded = true
         composeRule.runOnIdle {

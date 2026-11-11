@@ -555,7 +555,8 @@ internal fun PlaybackOverlayContent(
                     .pointerInput(Unit) { detectTapGestures {} },
             )
         }
-        if (!isFullyOpen) {
+        // The mini player owns an expanding drag; removing it mid-gesture would drop the release.
+        if (!isFullyOpen || dragging) {
             val compactIdentity = player.playbackQueueIdentity()
             key(
                 player,
