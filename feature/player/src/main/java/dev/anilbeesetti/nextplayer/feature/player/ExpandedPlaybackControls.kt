@@ -750,7 +750,12 @@ private fun PlaybackArtworkCarousel(
             }}"
         },
     ) { index ->
-        val item = if (queue.mediaItemCount > index) queue.getMediaItemAt(index) else snapshot.item
+        // The current page shows what plays: a receiver's queue position can lag its playback.
+        val item = if (index == current || queue.mediaItemCount <= index) {
+            snapshot.item
+        } else {
+            queue.getMediaItemAt(index)
+        }
         PlaybackArtwork(
             snapshot.copy(
                 item = item,

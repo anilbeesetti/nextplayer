@@ -52,7 +52,13 @@ internal class PlaybackOutput(
     private var stopping = false
     private var returningToPhone = false
     private var rejectRemoteTransfers = false
+    private var receiverAhead = false
     private val handler = Handler(Looper.getMainLooper())
+
+    // The receiver reports what it plays at once; Media3's queue positions can lag it by seconds.
+    private var receiverMediaId: () -> String? = {
+        sessionManager?.currentCastSession?.remoteMediaClient?.mediaInfo?.contentId
+    }
     private val timeout = Runnable { cancelConnection() }
     private val snapshotTick = object : Runnable {
         override fun run() {
@@ -84,6 +90,7 @@ internal class PlaybackOutput(
             connection = connection,
             deviceName = name ?: presentation.deviceName,
             expansionRequest = presentation.expansionRequest + if (expand) 1 else 0,
+            receiverAhead = connection == PlaybackConnection.CAST && receiverAhead,
         )
         onPresentationChanged(presentation)
     }
@@ -109,6 +116,7 @@ internal class PlaybackOutput(
         }
         routeId = MediaRouter.getInstance(context).selectedRoute.id
         returningToPhone = false
+        receiverAhead = false
         localPlayer.pause()
         publish(
             PlaybackConnection.CONNECTING,
@@ -162,21 +170,51 @@ internal class PlaybackOutput(
         ) {
             return
         }
+        val playing = receiverMediaId() ?: remote.currentMediaItem
+            ?.takeIf { it.localConfiguration != null }?.mediaId
         val mediaId = if (presentation.connection == PlaybackConnection.CAST) {
-            remote.currentMediaItem?.mediaId
+            playing
         } else {
             expectedMediaId
         }
         if (!isAcknowledgedCastMedia(
                 remote,
                 mediaId,
+                playing,
             )
         ) {
             return
         }
-        lastRemote = transfer?.snapshotForPhone(remote)
+        val behind = remote.currentMediaItem?.mediaId != playing
+        // Only right after connecting: later, Media3 runs ahead of the receiver on a skip.
+        receiverAhead = behind && (
+            presentation.connection == PlaybackConnection.CONNECTING || receiverAhead
+            )
+        lastRemote = receiverState(
+            remote,
+            playing.takeIf { receiverAhead },
+        )
         handler.removeCallbacks(timeout)
-        if (presentation.connection != PlaybackConnection.CAST) publish(PlaybackConnection.CAST)
+        val shown = lastRemote?.let { it.mediaItems.getOrNull(it.currentMediaItemIndex)?.mediaId }
+        if (presentation.connection != PlaybackConnection.CAST ||
+            presentation.mediaItem?.mediaId != shown ||
+            presentation.receiverAhead != receiverAhead
+        ) {
+            publish(PlaybackConnection.CAST)
+        }
+    }
+
+    /** Places the queue on the item the receiver plays when Media3's queue has not caught up. */
+    private fun receiverState(remote: Player, mediaId: String?): PlayerTransferState? {
+        val state = transfer?.snapshotForPhone(remote) ?: return null
+        val current = state.mediaItems.getOrNull(state.currentMediaItemIndex)
+        if (mediaId == null || current?.mediaId == mediaId) return state
+        val queue = state.mediaItems.takeIf { items -> items.any { it.mediaId == mediaId } }
+            ?: localBeforeConnection?.mediaItems
+            ?: return state
+        val index = queue.indexOfFirst { it.mediaId == mediaId }
+        if (index < 0) return state
+        return state.buildUpon().setMediaItems(queue).setCurrentMediaItemIndex(index).build()
     }
 
     val player: Player = try {
@@ -447,12 +485,15 @@ internal class PlaybackOutput(
 }
 
 @UnstableApi
-internal fun isAcknowledgedCastMedia(player: Player, expectedMediaId: String?): Boolean =
-    expectedMediaId != null && player.currentMediaItem?.mediaId == expectedMediaId &&
-        player.currentMediaItem?.localConfiguration != null &&
-        player.playbackState == Player.STATE_READY &&
-        player.isCommandAvailable(Player.COMMAND_PLAY_PAUSE) &&
-        player.isCommandAvailable(Player.COMMAND_GET_CURRENT_MEDIA_ITEM)
+internal fun isAcknowledgedCastMedia(
+    player: Player,
+    expectedMediaId: String?,
+    receiverMediaId: String? = player.currentMediaItem
+        ?.takeIf { it.localConfiguration != null }?.mediaId,
+): Boolean = expectedMediaId != null && receiverMediaId == expectedMediaId &&
+    player.playbackState == Player.STATE_READY &&
+    player.isCommandAvailable(Player.COMMAND_PLAY_PAUSE) &&
+    player.isCommandAvailable(Player.COMMAND_GET_CURRENT_MEDIA_ITEM)
 
 @UnstableApi
 internal class CastResourceCleanup(private val player: Player, private val clear: () -> Unit) :

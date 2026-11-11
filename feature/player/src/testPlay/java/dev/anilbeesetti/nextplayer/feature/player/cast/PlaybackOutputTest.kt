@@ -332,6 +332,61 @@ class PlaybackOutputTest {
         }
     }
 
+    @Test fun connectsOnTheReceiverItemBeforeMedia3QueueCatchesUp() {
+        val fake = MiniPlayerTestPlayer()
+        try {
+            fake.remote(true)
+            field("remotePlayer").set(
+                output,
+                fake,
+            )
+            field("transfer").set(
+                output,
+                CastTransferCallback(fake) { true },
+            )
+            field("expectedMediaId").set(
+                output,
+                "1",
+            )
+            field("presentation").set(
+                output,
+                PlaybackPresentation(PlaybackConnection.CONNECTING),
+            )
+            val receiverPlays: () -> String? = { "1" }
+            field("receiverMediaId").set(
+                output,
+                receiverPlays,
+            )
+            // Media3 still names entry 0 while the receiver already plays entry 1.
+            listener.onSessionStarted(
+                session,
+                "connected",
+            )
+            val connected = publications.last()
+            assertEquals(
+                PlaybackConnection.CAST,
+                connected.connection,
+            )
+            assertEquals(
+                "1",
+                connected.mediaItem?.mediaId,
+            )
+            assertTrue(connected.receiverAhead)
+            fake.update { setCurrentMediaItemIndex(1) }
+            listener.onSessionStarted(
+                session,
+                "connected",
+            )
+            assertFalse(publications.last().receiverAhead)
+            assertEquals(
+                "1",
+                publications.last().mediaItem?.mediaId,
+            )
+        } finally {
+            fake.release()
+        }
+    }
+
     @Test fun secondExplicitSelectionAfterCancelCanBecomeReady() {
         local.setMediaItems(
             items,
