@@ -33,6 +33,7 @@ import dev.anilbeesetti.nextplayer.feature.player.state.rememberControlsVisibili
 import dev.anilbeesetti.nextplayer.feature.player.state.rememberCuesState
 import dev.anilbeesetti.nextplayer.feature.player.state.rememberErrorState
 import dev.anilbeesetti.nextplayer.feature.player.state.rememberPictureInPictureState
+import dev.anilbeesetti.nextplayer.feature.player.state.rememberSecondaryCues
 import dev.anilbeesetti.nextplayer.feature.player.state.rememberSeekGestureState
 import dev.anilbeesetti.nextplayer.feature.player.state.rememberSubtitlePositionState
 import dev.anilbeesetti.nextplayer.feature.player.state.rememberTapGestureState
@@ -140,6 +141,11 @@ internal fun MediaPlayerContent(
     }
     val errorState = rememberErrorState(player = player)
     val cuesState = rememberCuesState(player = player)
+    val secondaryCues = rememberSecondaryCues(
+        player = player,
+        subtitle = state.secondarySubtitle,
+        subtitleEncoding = playerPreferences.subtitleTextEncoding,
+    )
     val subtitlePositionState = rememberSubtitlePositionState(
         savedOffsetY = playerPreferences.subtitleOffsetY,
         onPositionSaved = { onAction(PlayerAction.UpdateSubtitleOffset(it)) },
@@ -199,6 +205,7 @@ internal fun MediaPlayerContent(
                     controlsVisible = controlsVisibilityState.controlsVisible &&
                         !controlsVisibilityState.controlsLocked,
                 ),
+                secondaryCues = secondaryCues,
             )
             if (volumeAndBrightnessGestureState != null) {
                 PlayerGestures(

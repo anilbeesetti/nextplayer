@@ -16,6 +16,7 @@ import androidx.compose.ui.layout.boundsInWindow
 import androidx.compose.ui.layout.onGloballyPositioned
 import androidx.compose.ui.platform.LocalDensity
 import androidx.media3.common.Player
+import androidx.media3.common.text.Cue
 import androidx.media3.common.util.UnstableApi
 import androidx.media3.ui.compose.PlayerSurface
 import androidx.media3.ui.compose.SURFACE_TYPE_SURFACE_VIEW
@@ -26,6 +27,7 @@ import dev.anilbeesetti.nextplayer.feature.player.state.CuesState
 import dev.anilbeesetti.nextplayer.feature.player.state.PictureInPictureState
 import dev.anilbeesetti.nextplayer.feature.player.state.SubtitlePositionState
 import dev.anilbeesetti.nextplayer.feature.player.state.VideoZoomAndContentScaleState
+import dev.anilbeesetti.nextplayer.feature.player.ui.SecondarySubtitleView
 import dev.anilbeesetti.nextplayer.feature.player.ui.ShutterView
 import dev.anilbeesetti.nextplayer.feature.player.ui.SubtitleConfiguration
 import dev.anilbeesetti.nextplayer.feature.player.ui.SubtitleView
@@ -42,6 +44,7 @@ fun PlayerContentFrame(
     subtitlePositionState: SubtitlePositionState,
     videoVisible: Boolean = true,
     displayAspectRatio: Float? = null,
+    secondaryCues: List<Cue> = emptyList(),
 ) {
     val presentationState = rememberPresentationState(player = player)
     val videoModifier = Modifier
@@ -105,6 +108,12 @@ fun PlayerContentFrame(
             isInPictureInPictureMode = pictureInPictureState.isInPictureInPictureMode,
             configuration = subtitleConfiguration,
         )
+        if (!pictureInPictureState.isInPictureInPictureMode) {
+            SecondarySubtitleView(
+                cues = secondaryCues,
+                configuration = subtitleConfiguration,
+            )
+        }
 
         if (videoVisible && presentationState.coverSurface) {
             ShutterView()

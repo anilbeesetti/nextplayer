@@ -204,6 +204,15 @@ internal fun MediaPlayerControls(
                     onAction(PlayerAction.SetAudioDecoderMode(mode = it))
                 },
                 onSelectSubtitleClick = { onAction(PlayerAction.SelectSubtitle) },
+                secondarySubtitleName = state.secondarySubtitle
+                    ?.takeIf { it.mediaId == metadataState.mediaId }
+                    ?.name,
+                onSelectSecondarySubtitleClick = {
+                    onAction(PlayerAction.SelectSecondarySubtitle)
+                },
+                onRemoveSecondarySubtitleClick = {
+                    onAction(PlayerAction.SetSecondarySubtitle(subtitle = null))
+                },
                 onSelectAudioClick = { onAction(PlayerAction.SelectAudio) },
                 onSubtitleOptionEvent = {
                     onAction(PlayerAction.OnSubtitleOptionEvent(event = it))
