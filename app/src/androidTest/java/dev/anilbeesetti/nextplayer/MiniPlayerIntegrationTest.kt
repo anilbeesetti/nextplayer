@@ -216,7 +216,7 @@ class MiniPlayerIntegrationTest {
         expand()
         composeRule.onNodeWithTag("expanded_player").assertIsDisplayed()
         composeRule.onNodeWithText(context.getString(R.string.watch_video))
-            .performScrollTo().performClick()
+            .performClick()
         await("player activity") {
             ActivityLifecycleMonitorRegistry.getInstance().getActivitiesInStage(Stage.RESUMED)
                 .any { it is PlayerActivity }
@@ -266,7 +266,7 @@ class MiniPlayerIntegrationTest {
         expand()
         composeRule.onNodeWithContentDescription(
             context.getString(R.string.stop_player_session),
-        ).performScrollTo().performClick()
+        ).performClick()
         await("cleared queue") { player.currentMediaItem == null }
         composeRule.waitUntil(10_000) {
             composeRule.onAllNodesWithTag("mini_player").fetchSemanticsNodes().isEmpty()

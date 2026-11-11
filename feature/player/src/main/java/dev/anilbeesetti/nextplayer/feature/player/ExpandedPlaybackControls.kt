@@ -9,6 +9,7 @@ import androidx.compose.animation.animateContentSize
 import androidx.compose.animation.core.FastOutSlowInEasing
 import androidx.compose.animation.core.Spring
 import androidx.compose.animation.core.animateDpAsState
+import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.animation.core.spring
 import androidx.compose.animation.core.tween
 import androidx.compose.foundation.MarqueeSpacing
@@ -18,6 +19,7 @@ import androidx.compose.foundation.interaction.DragInteraction
 import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.BoxScope
 import androidx.compose.foundation.layout.BoxWithConstraints
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
@@ -258,41 +260,47 @@ internal fun ExpandedPlaybackControls(
                     onStop,
                 )
             }
-            if (connection == PlaybackConnection.LOCAL || connection == PlaybackConnection.CAST) {
-                FilledTonalButton(
-                    onClick = {
-                        if (snapshot.isRemote) {
-                            onCommand(
-                                CustomCommands.PLAY_ON_PHONE,
-                            )
-                        } else {
-                            onWatchVideo()
-                        }
+        }
+    }
+    // Rests on the artwork, so it fades in only once the artwork has landed.
+    val watchVideoAlpha by animateFloatAsState(
+        if (interactive) 1f else 0f,
+        tween(200),
+        label = "watch_video_alpha",
+    )
+    val watchVideo: @Composable BoxScope.() -> Unit = {
+        if (connection == PlaybackConnection.LOCAL || connection == PlaybackConnection.CAST) {
+            FilledTonalButton(
+                onClick = {
+                    if (snapshot.isRemote) {
+                        onCommand(
+                            CustomCommands.PLAY_ON_PHONE,
+                        )
+                    } else {
+                        onWatchVideo()
+                    }
+                },
+                modifier = Modifier.align(Alignment.BottomEnd).padding(12.dp)
+                    .graphicsLayer { alpha = watchVideoAlpha }
+                    .blockTouchesUntil(interactive).tvFocusRing(CircleShape),
+                shape = CircleShape,
+                colors = playbackChipColors(),
+            ) {
+                Icon(
+                    if (snapshot.isRemote) {
+                        Icons.Rounded.PhoneAndroid
+                    } else {
+                        Icons.Rounded.SmartDisplay
                     },
-                    modifier = Modifier.expansionReveal(
-                        .62f,
-                        transitionProgress,
-                        controlsTranslationY,
-                    ).padding(top = 8.dp).tvFocusRing(CircleShape),
-                    shape = CircleShape,
-                    colors = playbackChipColors(),
-                ) {
-                    Icon(
-                        if (snapshot.isRemote) {
-                            Icons.Rounded.PhoneAndroid
-                        } else {
-                            Icons.Rounded.SmartDisplay
-                        },
-                        contentDescription = null,
-                        modifier = Modifier.size(20.dp),
-                    )
-                    Text(
-                        stringResource(
-                            if (snapshot.isRemote) R.string.play_on_phone else R.string.watch_video,
-                        ),
-                        Modifier.padding(start = 8.dp),
-                    )
-                }
+                    contentDescription = null,
+                    modifier = Modifier.size(20.dp),
+                )
+                Text(
+                    stringResource(
+                        if (snapshot.isRemote) R.string.play_on_phone else R.string.watch_video,
+                    ),
+                    Modifier.padding(start = 8.dp),
+                )
             }
         }
     }
@@ -300,7 +308,6 @@ internal fun ExpandedPlaybackControls(
         modifier.fillMaxSize().testTag("expanded_player")
             .semantics { paneTitle = pane }.safeDrawingPadding(),
     ) {
-        val viewportHeight = maxHeight
         if (landscape) {
             Row(
                 Modifier.fillMaxSize().padding(end = 24.dp),
@@ -342,11 +349,11 @@ internal fun ExpandedPlaybackControls(
                                 .then(dragModifier).focusRequester(collapseFocus)
                                 .blockTouchesUntil(interactive),
                         )
+                        watchVideo()
                     }
                 }
                 Column(
-                    Modifier.weight(1f).fillMaxHeight().verticalScroll(rememberScrollState())
-                        .heightIn(min = viewportHeight),
+                    Modifier.weight(1f).fillMaxHeight(),
                     horizontalAlignment = Alignment.CenterHorizontally,
                     verticalArrangement = Arrangement.SpaceEvenly,
                 ) {
@@ -392,44 +399,52 @@ internal fun ExpandedPlaybackControls(
                     }
                     actions()
                 }
-                BoxWithConstraints(Modifier.weight(1f).fillMaxWidth()) {
-                    val artworkSize = maxWidth - 48.dp
-                    Column(
-                        Modifier.fillMaxSize().verticalScroll(rememberScrollState())
-                            .heightIn(min = maxHeight),
-                        horizontalAlignment = Alignment.CenterHorizontally,
-                        verticalArrangement = Arrangement.SpaceAround,
+                Column(
+                    Modifier.weight(1f).fillMaxWidth(),
+                    horizontalAlignment = Alignment.CenterHorizontally,
+                    verticalArrangement = Arrangement.SpaceAround,
+                ) {
+                    // Like a fixed full player, nothing scrolls: the artwork gives up height first.
+                    BoxWithConstraints(
+                        Modifier.weight(
+                            1f,
+                            fill = false,
+                        ).fillMaxWidth().padding(vertical = 8.dp),
                     ) {
-                        Box(Modifier.padding(vertical = 8.dp)) {
-                            PlaybackArtworkCarousel(
-                                player,
-                                snapshot,
-                                controlsEnabled && interactive,
-                                Modifier.fillMaxWidth().height(artworkSize).then(dragModifier),
-                                artworkSize,
-                                PaddingValues(horizontal = 24.dp),
-                                pageSpacing = 48.dp,
-                                artworkModifier,
-                            )
-                        }
-                        Column(
-                            Modifier.padding(horizontal = 24.dp),
-                            verticalArrangement = Arrangement.spacedBy(4.dp),
-                        ) {
-                            metadata()
-                            PlaybackSeekControl(
-                                player,
-                                snapshot,
-                                controlsEnabled,
-                                modifier = Modifier.blockTouchesUntil(interactive).expansionReveal(
-                                    .35f,
-                                    transitionProgress,
-                                    controlsTranslationY,
-                                ),
-                            )
-                        }
-                        Box(Modifier.padding(horizontal = 24.dp)) { controls() }
+                        val artworkSize = minOf(
+                            maxWidth - 48.dp,
+                            maxHeight,
+                        ).coerceAtLeast(0.dp)
+                        val side = (maxWidth - artworkSize) / 2
+                        PlaybackArtworkCarousel(
+                            player,
+                            snapshot,
+                            controlsEnabled && interactive,
+                            Modifier.fillMaxWidth().height(artworkSize).then(dragModifier),
+                            artworkSize,
+                            PaddingValues(horizontal = side),
+                            pageSpacing = side * 2,
+                            artworkModifier,
+                        )
+                        Box(Modifier.size(artworkSize).align(Alignment.Center)) { watchVideo() }
                     }
+                    Column(
+                        Modifier.padding(horizontal = 24.dp),
+                        verticalArrangement = Arrangement.spacedBy(4.dp),
+                    ) {
+                        metadata()
+                        PlaybackSeekControl(
+                            player,
+                            snapshot,
+                            controlsEnabled,
+                            modifier = Modifier.blockTouchesUntil(interactive).expansionReveal(
+                                .35f,
+                                transitionProgress,
+                                controlsTranslationY,
+                            ),
+                        )
+                    }
+                    Box(Modifier.padding(horizontal = 24.dp)) { controls() }
                 }
             }
         }

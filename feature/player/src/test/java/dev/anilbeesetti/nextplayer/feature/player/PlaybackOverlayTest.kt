@@ -26,7 +26,6 @@ import androidx.compose.ui.test.onNodeWithTag
 import androidx.compose.ui.test.onNodeWithText
 import androidx.compose.ui.test.onRoot
 import androidx.compose.ui.test.performClick
-import androidx.compose.ui.test.performScrollTo
 import androidx.compose.ui.test.performSemanticsAction
 import androidx.compose.ui.test.performTouchInput
 import androidx.compose.ui.test.swipeLeft
@@ -54,7 +53,11 @@ import org.robolectric.RobolectricTestRunner
 import org.robolectric.annotation.Config
 
 @RunWith(RobolectricTestRunner::class)
-@Config(sdk = [36])
+// A real phone height: the expanded player fits its screen instead of scrolling.
+@Config(
+    sdk = [36],
+    qualifiers = "w320dp-h720dp",
+)
 class PlaybackOverlayTest {
     @get:Rule val composeRule = createAndroidComposeRule<ComponentActivity>()
     private val player = MiniPlayerTestPlayer()
@@ -72,7 +75,7 @@ class PlaybackOverlayTest {
             it()
         }
         composeRule.onNodeWithTag("expanded_player").assertIsDisplayed()
-        composeRule.onNodeWithText(text(R.string.watch_video)).performScrollTo().performClick()
+        composeRule.onNodeWithText(text(R.string.watch_video)).performClick()
         composeRule.runOnIdle {
             assertEquals(
                 1,
@@ -289,11 +292,11 @@ class PlaybackOverlayTest {
         show(PlaybackConnection.CONNECTING)
         composeRule.onNodeWithContentDescription(
             text(R.string.play),
-        ).performScrollTo().assertIsNotEnabled()
+        ).assertIsNotEnabled()
         composeRule.onNodeWithContentDescription(
             text(R.string.player_controls_progress),
         ).assertIsNotEnabled()
-        composeRule.onNodeWithText(text(R.string.cancel)).performScrollTo().performClick()
+        composeRule.onNodeWithText(text(R.string.cancel)).performClick()
         composeRule.runOnIdle {
             assertEquals(
                 listOf(CustomCommands.CANCEL_CAST),
@@ -305,8 +308,8 @@ class PlaybackOverlayTest {
     @Test fun lostConnectionOffersExplicitRecoveryWithoutPlaying() {
         expanded = true
         show(PlaybackConnection.LOST)
-        composeRule.onNodeWithText(text(R.string.retry)).performScrollTo().performClick()
-        composeRule.onNodeWithText(text(R.string.play_on_phone)).performScrollTo().performClick()
+        composeRule.onNodeWithText(text(R.string.retry)).performClick()
+        composeRule.onNodeWithText(text(R.string.play_on_phone)).performClick()
         composeRule.runOnIdle {
             assertEquals(
                 listOf(
@@ -336,10 +339,10 @@ class PlaybackOverlayTest {
         expanded = true
         show(largeText = true)
         composeRule.onNodeWithContentDescription(text(R.string.collapse_player)).assertIsDisplayed()
-        composeRule.onNodeWithText(text(R.string.watch_video)).performScrollTo().assertIsDisplayed()
+        composeRule.onNodeWithText(text(R.string.watch_video)).assertIsDisplayed()
         composeRule.onNodeWithContentDescription(
             text(R.string.stop_player_session),
-        ).performScrollTo().assertIsDisplayed()
+        ).assertIsDisplayed()
     }
 
     @Test fun slowPartialExpansionFollowsFingerAndReversesWithoutDisposal() {
@@ -450,7 +453,7 @@ class PlaybackOverlayTest {
         composeRule.runOnIdle { player.remote(true) }
         show(PlaybackConnection.CAST)
         composeRule.onNodeWithContentDescription(text(R.string.player_controls_progress))
-            .performScrollTo().performSemanticsAction(SemanticsActions.SetProgress) { it(.5f) }
+            .performSemanticsAction(SemanticsActions.SetProgress) { it(.5f) }
         composeRule.runOnIdle {
             assertEquals(
                 30_000,
@@ -485,7 +488,7 @@ class PlaybackOverlayTest {
         show()
         composeRule.onNodeWithContentDescription(
             text(R.string.play),
-        ).performScrollTo().assertIsNotEnabled()
+        ).assertIsNotEnabled()
         composeRule.onNodeWithContentDescription(
             text(R.string.player_controls_progress),
         ).assertIsNotEnabled()
@@ -559,7 +562,7 @@ class PlaybackOverlayTest {
         composeRule.onNodeWithContentDescription(text(R.string.playback_output)).assertIsDisplayed()
         composeRule.onNodeWithText(
             text(R.string.play_on_phone),
-        ).performScrollTo().assertIsDisplayed()
+        ).assertIsDisplayed()
     }
 
     @Test fun portraitHeaderUsesWideSeparatedOutputAndQueueChips() {
@@ -597,7 +600,7 @@ class PlaybackOverlayTest {
             .assertCountEquals(1)
         val initial = player.currentPosition
         composeRule.onNodeWithContentDescription(text(R.string.player_controls_progress))
-            .performScrollTo().performTouchInput {
+            .performTouchInput {
                 down(center)
                 moveBy(
                     Offset(
@@ -618,7 +621,7 @@ class PlaybackOverlayTest {
         val progress = composeRule.onNodeWithContentDescription(
             text(R.string.player_controls_progress),
         )
-        progress.performScrollTo()
+        progress
         val track = composeRule.onNodeWithTag(
             "playback_seek_track",
             useUnmergedTree = true,
