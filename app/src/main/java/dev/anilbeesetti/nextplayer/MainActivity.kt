@@ -55,11 +55,16 @@ import androidx.compose.runtime.setValue
 import androidx.compose.runtime.snapshots.SnapshotStateMap
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.clipToBounds
 import androidx.compose.ui.focus.FocusDirection
 import androidx.compose.ui.focus.FocusRequester
 import androidx.compose.ui.focus.focusProperties
 import androidx.compose.ui.focus.focusRequester
+import androidx.compose.ui.geometry.Rect
+import androidx.compose.ui.geometry.Size
+import androidx.compose.ui.graphics.Outline
+import androidx.compose.ui.graphics.Shape
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.layout.onSizeChanged
 import androidx.compose.ui.platform.LocalContext
@@ -67,6 +72,9 @@ import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.platform.LocalLayoutDirection
 import androidx.compose.ui.semantics.hideFromAccessibility
 import androidx.compose.ui.semantics.semantics
+import androidx.compose.ui.unit.Density
+import androidx.compose.ui.unit.Dp
+import androidx.compose.ui.unit.LayoutDirection
 import androidx.compose.ui.unit.dp
 import androidx.core.splashscreen.SplashScreen.Companion.installSplashScreen
 import androidx.core.view.WindowCompat
@@ -372,6 +380,13 @@ fun NavigationLayout(
         tween(220),
         label = "playback_rail_extent",
     )
+    val navigationVisibility = (
+        (navigationExtent - systemBottom) /
+            (navigationHeight - systemBottom).coerceAtLeast(1.dp)
+        ).coerceIn(
+        0f,
+        1f,
+    )
     Box(modifier = Modifier.fillMaxSize()) {
         Scaffold(
             modifier = modifier.thenIf(playerExpanded) {
@@ -383,15 +398,9 @@ fun NavigationLayout(
                 Column(horizontalAlignment = Alignment.CenterHorizontally) {
                     Spacer(Modifier.height(compactHeight))
                     Box(
-                        Modifier.height(navigationExtent).clipToBounds().graphicsLayer {
-                            alpha = (
-                                (navigationExtent - systemBottom) /
-                                    (navigationHeight - systemBottom).coerceAtLeast(1.dp)
-                                ).coerceIn(
-                                0f,
-                                1f,
-                            )
-                        },
+                        Modifier.height(navigationExtent)
+                            .clip(TopOverflowShape(NavigationShadowHeadroom * navigationVisibility))
+                            .graphicsLayer { alpha = navigationVisibility },
                     ) {
                         Box(
                             Modifier.wrapContentHeight(
@@ -534,4 +543,22 @@ fun shouldUseHighContrastDarkTheme(state: MainActivityUiState): Boolean = when (
 fun shouldUseDynamicTheming(state: MainActivityUiState): Boolean = when (state) {
     MainActivityUiState.Loading -> false
     is MainActivityUiState.Success -> state.preferences.useDynamicColors
+}
+
+private val NavigationShadowHeadroom = 16.dp
+
+/** Clips like a rectangle but leaves [overflow] above it, so a child's shadow is not cut off. */
+private class TopOverflowShape(private val overflow: Dp) : Shape {
+    override fun createOutline(
+        size: Size,
+        layoutDirection: LayoutDirection,
+        density: Density,
+    ): Outline = Outline.Rectangle(
+        Rect(
+            0f,
+            -with(density) { overflow.toPx() },
+            size.width,
+            size.height,
+        ),
+    )
 }

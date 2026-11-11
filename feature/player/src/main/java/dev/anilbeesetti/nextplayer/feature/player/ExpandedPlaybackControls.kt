@@ -309,7 +309,7 @@ internal fun ExpandedPlaybackControls(
                             start = startInset,
                             end = endInset,
                         ),
-                        pageSpacing = startInset,
+                        pageSpacing = startInset * 2,
                         artworkModifier,
                     )
                     Box(
@@ -395,7 +395,7 @@ internal fun ExpandedPlaybackControls(
                                 Modifier.fillMaxWidth().height(artworkSize).then(dragModifier),
                                 artworkSize,
                                 PaddingValues(horizontal = 24.dp),
-                                pageSpacing = 24.dp,
+                                pageSpacing = 48.dp,
                                 artworkModifier,
                             )
                         }
