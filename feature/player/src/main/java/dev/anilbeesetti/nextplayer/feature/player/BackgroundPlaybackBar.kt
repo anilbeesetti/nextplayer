@@ -171,7 +171,7 @@ internal fun MiniPlayer(
                 }
                 Spacer(Modifier.width(4.dp))
                 val buttonSlot = Modifier.size(
-                    width = 42.dp,
+                    width = 44.dp,
                     height = 48.dp,
                 )
                 Box(
