@@ -45,7 +45,10 @@ fun SecondarySubtitleView(
         modifier = modifier
             .fillMaxSize()
             .safeDrawingPadding()
-            .padding(horizontal = 16.dp, vertical = 8.dp),
+            .padding(
+                horizontal = 16.dp,
+                vertical = 8.dp,
+            ),
         contentAlignment = Alignment.TopCenter,
     ) {
         Text(
@@ -65,7 +68,10 @@ fun SecondarySubtitleView(
             style = TextStyle(
                 shadow = Shadow(
                     color = Color.Black,
-                    offset = Offset(x = 2f, y = 2f),
+                    offset = Offset(
+                        x = 2f,
+                        y = 2f,
+                    ),
                     blurRadius = 4f,
                 ),
             ),

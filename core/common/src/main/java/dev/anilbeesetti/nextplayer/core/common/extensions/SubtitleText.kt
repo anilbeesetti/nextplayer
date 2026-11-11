@@ -18,21 +18,27 @@ private const val CHARSET_DETECTION_MAX_BYTES = 100 * 1024
  * Unlike [convertToUTF8] nothing is written to the subtitle cache, so reading an additional
  * subtitle can never overwrite the cached copy of another one that has the same file name.
  */
-suspend fun Context.readSubtitleAsUtf8(uri: Uri, charset: Charset? = null): ByteArray? =
-    withContext(Dispatchers.IO) {
+suspend fun Context.readSubtitleAsUtf8(uri: Uri, charset: Charset? = null): ByteArray? {
+    return withContext(Dispatchers.IO) {
         val bytes = contentResolver.openInputStream(uri)?.use { it.readBytes() }
             ?: return@withContext null
         val sourceCharset = charset ?: detectSubtitleCharset(bytes)
         if (sourceCharset == StandardCharsets.UTF_8) {
             bytes
         } else {
-            String(bytes, sourceCharset).toByteArray(StandardCharsets.UTF_8)
+            bytes.toString(sourceCharset).toByteArray()
         }
     }
+}
 
 private fun detectSubtitleCharset(bytes: ByteArray): Charset {
     val detector = UniversalDetector(null)
-    detector.handleData(bytes, 0, minOf(bytes.size, CHARSET_DETECTION_MAX_BYTES))
+    val sampleSize = bytes.size.coerceAtMost(CHARSET_DETECTION_MAX_BYTES)
+    detector.handleData(
+        bytes,
+        0,
+        sampleSize,
+    )
     detector.dataEnd()
     val name = detector.detectedCharset
     return if (name != null && Charset.isSupported(name)) {

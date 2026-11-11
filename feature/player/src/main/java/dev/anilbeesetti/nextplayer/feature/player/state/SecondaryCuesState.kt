@@ -56,12 +56,19 @@ fun rememberSecondaryCues(
     ) {
         value = emptyList()
         value = subtitle?.let {
-            context.parseSubtitle(uri = it.uri, encoding = subtitleEncoding)
+            context.parseSubtitle(
+                uri = it.uri,
+                encoding = subtitleEncoding,
+            )
         }.orEmpty()
     }
     var activeCues by remember { mutableStateOf(emptyList<Cue>()) }
 
-    LaunchedEffect(player, subtitle, timedCues) {
+    LaunchedEffect(
+        player,
+        subtitle,
+        timedCues,
+    ) {
         if (player == null || subtitle == null || timedCues.isEmpty()) {
             activeCues = emptyList()
             return@LaunchedEffect
@@ -79,30 +86,43 @@ fun rememberSecondaryCues(
 }
 
 @OptIn(UnstableApi::class)
-internal fun List<CuesWithTiming>.activeCuesAt(positionUs: Long): List<Cue> = filter {
-    it.startTimeUs <= positionUs &&
-        (it.durationUs == C.TIME_UNSET || positionUs < it.startTimeUs + it.durationUs)
-}.flatMap { it.cues }
+internal fun List<CuesWithTiming>.activeCuesAt(positionUs: Long): List<Cue> {
+    val activeItems = filter {
+        it.startTimeUs <= positionUs &&
+            (it.durationUs == C.TIME_UNSET || positionUs < it.startTimeUs + it.durationUs)
+    }
+    return activeItems.flatMap { it.cues }
+}
 
 @OptIn(UnstableApi::class)
-private suspend fun Context.parseSubtitle(uri: Uri, encoding: String): List<CuesWithTiming> =
-    withContext(Dispatchers.Default) {
+private suspend fun Context.parseSubtitle(uri: Uri, encoding: String): List<CuesWithTiming> {
+    return withContext(Dispatchers.Default) {
         try {
             val charset = encoding.takeIf { it.isNotEmpty() && Charset.isSupported(it) }
                 ?.let { Charset.forName(it) }
-            val bytes = readSubtitleAsUtf8(uri = uri, charset = charset)
-                ?: return@withContext emptyList()
+            val bytes = readSubtitleAsUtf8(
+                uri = uri,
+                charset = charset,
+            ) ?: return@withContext emptyList()
             val format = Format.Builder()
                 .setSampleMimeType(Uri.parse(getFilenameFromUri(uri)).getSubtitleMime())
                 .build()
             val parser = DefaultSubtitleParserFactory().create(format)
             buildList {
-                parser.parse(bytes, SubtitleParser.OutputOptions.allCues()) { add(it) }
+                parser.parse(
+                    bytes,
+                    SubtitleParser.OutputOptions.allCues(),
+                ) { add(it) }
             }
         } catch (exception: CancellationException) {
             throw exception
         } catch (exception: Exception) {
-            Log.w("SecondaryCues", "Unable to read the secondary subtitle", exception)
+            Log.w(
+                "SecondaryCues",
+                "Unable to read the secondary subtitle",
+                exception,
+            )
             emptyList()
         }
     }
+}
