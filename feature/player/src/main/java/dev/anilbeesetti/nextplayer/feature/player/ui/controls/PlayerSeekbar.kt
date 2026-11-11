@@ -148,7 +148,10 @@ private fun MaterialYouSlider(
     )
 
     Slider(
-        state = rememberSliderValueState(value, valueRange),
+        state = rememberSliderValueState(
+            value,
+            valueRange,
+        ),
         onValueChange = onValueChange,
         onValueChangeFinished = onValueChangeFinished,
         interactionSource = interactionSource,
@@ -316,7 +319,10 @@ private fun SimpleSlider(
         label = "thumbSize",
     )
     Slider(
-        state = rememberSliderValueState(value, valueRange),
+        state = rememberSliderValueState(
+            value,
+            valueRange,
+        ),
         onValueChange = onValueChange,
         onValueChangeFinished = onValueChangeFinished,
         modifier = modifier.height(24.dp),

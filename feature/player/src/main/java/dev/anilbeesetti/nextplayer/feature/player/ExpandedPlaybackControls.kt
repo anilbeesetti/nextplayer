@@ -54,6 +54,7 @@ import androidx.compose.material.icons.rounded.Stop
 import androidx.compose.material3.ButtonColors
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.ButtonGroup
+import androidx.compose.material3.ButtonGroupDefaults
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.ExperimentalMaterial3ExpressiveApi
 import androidx.compose.material3.FilledIconButton
@@ -61,7 +62,10 @@ import androidx.compose.material3.FilledIconToggleButton
 import androidx.compose.material3.FilledTonalButton
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButtonDefaults
+import androidx.compose.material3.IconButtonShapes
+import androidx.compose.material3.IconToggleButtonShapes
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.ShapeDefaults
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -806,12 +810,7 @@ private fun PlaybackModeControls(
             Modifier.fillMaxWidth().padding(6.dp),
             horizontalArrangement = Arrangement.spacedBy(6.dp),
         ) {
-            val first = RoundedCornerShape(
-                topStart = 30.dp,
-                bottomStart = 30.dp,
-                topEnd = 8.dp,
-                bottomEnd = 8.dp,
-            )
+            val first = ButtonGroupDefaults.connectedLeadingButtonShape
             FilledIconToggleButton(
                 checked = snapshot.shuffle,
                 onCheckedChange = {
@@ -819,7 +818,11 @@ private fun PlaybackModeControls(
                 },
                 enabled = enabled && snapshot.commands.contains(Player.COMMAND_SET_SHUFFLE_MODE),
                 modifier = Modifier.weight(1f).height(48.dp).tvFocusRing(first),
-                shape = first,
+                shapes = IconToggleButtonShapes(
+                    shape = first,
+                    pressedShape = ButtonGroupDefaults.connectedLeadingButtonPressShape,
+                    checkedShape = ButtonGroupDefaults.connectedButtonCheckedShape,
+                ),
                 colors = colors,
             ) {
                 Icon(
@@ -827,7 +830,7 @@ private fun PlaybackModeControls(
                     stringResource(R.string.player_controls_shuffle),
                 )
             }
-            val middle = RoundedCornerShape(8.dp)
+            val middle = ShapeDefaults.Small
             FilledIconToggleButton(
                 checked = snapshot.repeatMode != Player.REPEAT_MODE_OFF,
                 onCheckedChange = { player.repeatMode = (player.repeatMode + 1) % 3 },
@@ -835,7 +838,11 @@ private fun PlaybackModeControls(
                 modifier = Modifier.weight(1f).height(48.dp).semantics {
                     stateDescription = repeatDescription
                 }.tvFocusRing(middle),
-                shape = middle,
+                shapes = IconToggleButtonShapes(
+                    shape = middle,
+                    pressedShape = ButtonGroupDefaults.connectedMiddleButtonPressShape,
+                    checkedShape = ButtonGroupDefaults.connectedButtonCheckedShape,
+                ),
                 colors = colors,
             ) {
                 Icon(
@@ -847,17 +854,15 @@ private fun PlaybackModeControls(
                     stringResource(R.string.player_controls_repeat),
                 )
             }
-            val last = RoundedCornerShape(
-                topStart = 8.dp,
-                bottomStart = 8.dp,
-                topEnd = 30.dp,
-                bottomEnd = 30.dp,
-            )
+            val last = ButtonGroupDefaults.connectedTrailingButtonShape
             FilledIconButton(
                 onClick = onStop,
                 enabled = stopEnabled,
                 modifier = Modifier.weight(1f).height(48.dp).tvFocusRing(last),
-                shape = last,
+                shapes = IconButtonShapes(
+                    shape = last,
+                    pressedShape = ButtonGroupDefaults.connectedTrailingButtonPressShape,
+                ),
                 colors = IconButtonDefaults.filledIconButtonColors(
                     containerColor = MaterialTheme.colorScheme.onSurface.copy(alpha = .07f),
                     contentColor = MaterialTheme.colorScheme.onSurface,

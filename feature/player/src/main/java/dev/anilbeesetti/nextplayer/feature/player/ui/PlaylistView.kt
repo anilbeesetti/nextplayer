@@ -31,10 +31,14 @@ import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.rounded.DragIndicator
+import androidx.compose.material3.ExperimentalMaterial3ExpressiveApi
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
+import androidx.compose.material3.ListItem
+import androidx.compose.material3.ListItemDefaults
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.Surface
+import androidx.compose.material3.Snackbar
+import androidx.compose.material3.SnackbarDefaults
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
@@ -96,6 +100,7 @@ fun BoxScope.PlaylistView(
 }
 
 @OptIn(UnstableApi::class)
+@kotlin.OptIn(ExperimentalMaterial3ExpressiveApi::class)
 @Composable
 internal fun PlaybackQueueContent(
     player: Player,
@@ -202,12 +207,19 @@ internal fun PlaybackQueueContent(
                                 onDismiss = remove,
                                 enabled = removable && !reorder.isAnyItemDragging,
                             ) {
-                                Surface(
+                                ListItem(
                                     onClick = { queue.seekToItem(queue.indexOfKey(key)) },
                                     enabled = selectable,
-                                    shape = shape,
-                                    color = MaterialTheme.colorScheme.surfaceContainerLowest,
-                                    tonalElevation = if (isDragging) 4.dp else 1.dp,
+                                    verticalAlignment = Alignment.CenterVertically,
+                                    shapes = ListItemDefaults.shapes(shape = shape),
+                                    colors = ListItemDefaults.colors(
+                                        containerColor =
+                                            MaterialTheme.colorScheme.surfaceContainerLowest,
+                                    ),
+                                    contentPadding = PaddingValues(
+                                        horizontal = 4.dp,
+                                        vertical = 12.dp,
+                                    ),
                                     modifier = Modifier.fillMaxWidth().testTag(
                                         "queue_item_$index",
                                     ).onFocusChanged { rowFocused = it.hasFocus }.tvFocusRing(shape)
@@ -248,120 +260,94 @@ internal fun PlaybackQueueContent(
                                                 }
                                             }
                                         },
-                                ) {
-                                    Row(
-                                        Modifier.fillMaxWidth().padding(
-                                            horizontal = 4.dp,
-                                            vertical = 12.dp,
-                                        ),
-                                        verticalAlignment = Alignment.CenterVertically,
-                                    ) {
-                                        if (editable) {
-                                            val interaction =
-                                                remember { MutableInteractionSource() }
-                                            IconButton(
-                                                onClick = {},
-                                                modifier = Modifier.size(
-                                                    48.dp,
-                                                ).testTag("queue_drag_$index").draggableHandle(
+                                    leadingContent = {
+                                        Row(verticalAlignment = Alignment.CenterVertically) {
+                                            if (editable) {
+                                                val interaction =
+                                                    remember { MutableInteractionSource() }
+                                                IconButton(
+                                                    onClick = {},
+                                                    modifier = Modifier.size(
+                                                        48.dp,
+                                                    ).testTag("queue_drag_$index").draggableHandle(
+                                                        interactionSource = interaction,
+                                                        onDragStarted = {
+                                                            haptics.performHapticFeedback(
+                                                                dragStartFeedback,
+                                                            )
+                                                        },
+                                                        onDragStopped = {
+                                                            haptics.performHapticFeedback(
+                                                                HapticFeedbackType.GestureEnd,
+                                                            )
+                                                        },
+                                                    ),
                                                     interactionSource = interaction,
-                                                    onDragStarted = {
-                                                        haptics.performHapticFeedback(
-                                                            dragStartFeedback,
-                                                        )
-                                                    },
-                                                    onDragStopped = {
-                                                        haptics.performHapticFeedback(
-                                                            HapticFeedbackType.GestureEnd,
-                                                        )
-                                                    },
-                                                ),
-                                                interactionSource = interaction,
+                                                ) {
+                                                    Icon(
+                                                        Icons.Rounded.DragIndicator,
+                                                        stringResource(R.string.reorder),
+                                                    )
+                                                }
+                                            } else {
+                                                Spacer(Modifier.width(12.dp))
+                                            }
+                                            Box(
+                                                Modifier.size(
+                                                    artworkSize,
+                                                ).testTag("queue_artwork_$index"),
                                             ) {
-                                                Icon(
-                                                    Icons.Rounded.DragIndicator,
-                                                    stringResource(R.string.reorder),
+                                                PlaybackArtwork(
+                                                    snapshot.copy(
+                                                        item = item,
+                                                        metadata = if (current) {
+                                                            snapshot.metadata
+                                                        } else {
+                                                            item.mediaMetadata
+                                                        },
+                                                    ),
+                                                    Modifier.fillMaxSize(),
+                                                    RoundedCornerShape(8.dp),
+                                                )
+                                                Text(
+                                                    queue.getDurationAt(index)?.let {
+                                                        Utils.formatDurationMillis(it)
+                                                    }
+                                                        ?: "—",
+                                                    style = MaterialTheme.typography.labelSmall,
+                                                    maxLines = 1,
+                                                    color = Color.White,
+                                                    modifier = Modifier.align(
+                                                        Alignment.BottomEnd,
+                                                    ).padding(3.dp)
+                                                        .background(
+                                                            Color.Black.copy(alpha = .8f),
+                                                            RoundedCornerShape(4.dp),
+                                                        )
+                                                        .padding(
+                                                            horizontal = 3.dp,
+                                                            vertical = 1.dp,
+                                                        )
+                                                        .testTag("queue_duration_$index"),
                                                 )
                                             }
-                                        } else {
-                                            Spacer(Modifier.width(12.dp))
                                         }
-                                        Box(
-                                            Modifier.size(
-                                                artworkSize,
-                                            ).testTag("queue_artwork_$index"),
-                                        ) {
-                                            PlaybackArtwork(
-                                                snapshot.copy(
-                                                    item = item,
-                                                    metadata = if (current) {
-                                                        snapshot.metadata
-                                                    } else {
-                                                        item.mediaMetadata
-                                                    },
-                                                ),
-                                                Modifier.fillMaxSize(),
-                                                RoundedCornerShape(8.dp),
-                                            )
-                                            Text(
-                                                queue.getDurationAt(index)?.let {
-                                                    Utils.formatDurationMillis(it)
-                                                }
-                                                    ?: "—",
-                                                style = MaterialTheme.typography.labelSmall,
-                                                maxLines = 1,
-                                                color = Color.White,
-                                                modifier = Modifier.align(
-                                                    Alignment.BottomEnd,
-                                                ).padding(3.dp)
-                                                    .background(
-                                                        Color.Black.copy(alpha = .8f),
-                                                        RoundedCornerShape(4.dp),
-                                                    )
-                                                    .padding(
-                                                        horizontal = 3.dp,
-                                                        vertical = 1.dp,
-                                                    )
-                                                    .testTag("queue_duration_$index"),
-                                            )
-                                        }
-                                        Column(
-                                            Modifier.weight(1f).padding(
-                                                start = 16.dp,
-                                                end = 8.dp,
-                                            ),
-                                        ) {
-                                            Text(
-                                                item.mediaMetadata.title?.toString()
-                                                    ?: item.localConfiguration?.uri?.lastPathSegment
-                                                    ?: stringResource(R.string.unknown),
-                                                maxLines = 1,
-                                                overflow = TextOverflow.Ellipsis,
-                                                fontWeight = if (current) {
-                                                    FontWeight.Bold
-                                                } else {
-                                                    FontWeight.Normal
-                                                },
-                                                color = if (current) {
-                                                    MaterialTheme.colorScheme.primary
-                                                } else {
-                                                    MaterialTheme.colorScheme.onSurface
-                                                },
-                                                style = MaterialTheme.typography.bodyLarge,
-                                            )
-                                            Text(
-                                                item.mediaMetadata.subtitle?.toString()
-                                                    ?: item.localConfiguration?.uri?.path
-                                                        ?.substringBeforeLast(
-                                                            '/',
-                                                        )?.substringAfterLast('/')
-                                                    ?: stringResource(R.string.background_play),
-                                                maxLines = 1,
-                                                overflow = TextOverflow.Ellipsis,
-                                                style = MaterialTheme.typography.bodyMedium,
-                                                color = MaterialTheme.colorScheme.onSurfaceVariant,
-                                            )
-                                        }
+                                    },
+                                    supportingContent = {
+                                        Text(
+                                            item.mediaMetadata.subtitle?.toString()
+                                                ?: item.localConfiguration?.uri?.path
+                                                    ?.substringBeforeLast(
+                                                        '/',
+                                                    )?.substringAfterLast('/')
+                                                ?: stringResource(R.string.background_play),
+                                            maxLines = 1,
+                                            overflow = TextOverflow.Ellipsis,
+                                            style = MaterialTheme.typography.bodyMedium,
+                                            color = MaterialTheme.colorScheme.onSurfaceVariant,
+                                        )
+                                    },
+                                    trailingContent = {
                                         if (removable && rowFocused) {
                                             IconButton(onClick = remove) {
                                                 Icon(
@@ -372,7 +358,26 @@ internal fun PlaybackQueueContent(
                                         } else {
                                             Spacer(Modifier.width(12.dp))
                                         }
-                                    }
+                                    },
+                                ) {
+                                    Text(
+                                        item.mediaMetadata.title?.toString()
+                                            ?: item.localConfiguration?.uri?.lastPathSegment
+                                            ?: stringResource(R.string.unknown),
+                                        maxLines = 1,
+                                        overflow = TextOverflow.Ellipsis,
+                                        fontWeight = if (current) {
+                                            FontWeight.Bold
+                                        } else {
+                                            FontWeight.Normal
+                                        },
+                                        color = if (current) {
+                                            MaterialTheme.colorScheme.primary
+                                        } else {
+                                            MaterialTheme.colorScheme.onSurface
+                                        },
+                                        style = MaterialTheme.typography.bodyLarge,
+                                    )
                                 }
                             }
                         }
@@ -391,24 +396,24 @@ internal fun PlaybackQueueContent(
             enter = fadeIn() + slideInVertically { it },
             exit = fadeOut() + slideOutVertically { it },
         ) {
-            Surface(
-                shape = RoundedCornerShape(16.dp),
-                color = MaterialTheme.colorScheme.inverseSurface,
-                contentColor = MaterialTheme.colorScheme.inverseOnSurface,
-                tonalElevation = 6.dp,
-                shadowElevation = 6.dp,
+            Snackbar(
                 modifier = Modifier.widthIn(max = 480.dp).testTag("queue_removal_undo"),
+                shape = RoundedCornerShape(16.dp),
+                action = {
+                    TextButton(
+                        onClick = { queue.undoRemoval() },
+                        enabled = editable,
+                        modifier = Modifier.tvFocusRing(CircleShape),
+                    ) {
+                        Text(
+                            stringResource(R.string.undo),
+                            color = SnackbarDefaults.actionColor,
+                            fontWeight = FontWeight.Bold,
+                        )
+                    }
+                },
             ) {
-                Row(
-                    Modifier.padding(
-                        start = 16.dp,
-                        end = 4.dp,
-                        top = 4.dp,
-                        bottom = 4.dp,
-                    ),
-                    verticalAlignment = Alignment.CenterVertically,
-                    horizontalArrangement = Arrangement.spacedBy(4.dp),
-                ) {
+                Row(horizontalArrangement = Arrangement.spacedBy(4.dp)) {
                     Text(
                         removal?.item?.mediaMetadata?.title?.toString()
                             ?: removal?.item?.localConfiguration?.uri?.lastPathSegment.orEmpty(),
@@ -418,24 +423,11 @@ internal fun PlaybackQueueContent(
                         ),
                         maxLines = 1,
                         overflow = TextOverflow.Ellipsis,
-                        style = MaterialTheme.typography.bodyMedium,
                     )
                     Text(
                         stringResource(R.string.queue_video_removed),
-                        color = MaterialTheme.colorScheme.inverseOnSurface.copy(alpha = .7f),
-                        style = MaterialTheme.typography.bodyMedium,
+                        color = SnackbarDefaults.contentColor.copy(alpha = .7f),
                     )
-                    TextButton(
-                        onClick = { queue.undoRemoval() },
-                        enabled = editable,
-                        modifier = Modifier.tvFocusRing(CircleShape),
-                    ) {
-                        Text(
-                            stringResource(R.string.undo),
-                            color = MaterialTheme.colorScheme.inversePrimary,
-                            fontWeight = FontWeight.Bold,
-                        )
-                    }
                 }
             }
         }
