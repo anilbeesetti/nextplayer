@@ -10,9 +10,11 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.input.key.Key
 import androidx.compose.ui.semantics.SemanticsProperties
 import androidx.compose.ui.test.SemanticsMatcher
+import androidx.compose.ui.test.assertIsDisplayed
 import androidx.compose.ui.test.assertIsFocused
 import androidx.compose.ui.test.click
 import androidx.compose.ui.test.junit4.v2.createAndroidComposeRule
+import androidx.compose.ui.test.onNodeWithContentDescription
 import androidx.compose.ui.test.onNodeWithText
 import androidx.compose.ui.test.performKeyInput
 import androidx.compose.ui.test.performTouchInput
@@ -32,6 +34,7 @@ import androidx.media3.ui.compose.state.rememberProgressStateWithTickInterval
 import com.google.common.util.concurrent.Futures
 import com.google.common.util.concurrent.ListenableFuture
 import dev.anilbeesetti.nextplayer.core.model.VideoContentScale
+import dev.anilbeesetti.nextplayer.core.ui.R
 import dev.anilbeesetti.nextplayer.core.ui.theme.NextPlayerTheme
 import dev.anilbeesetti.nextplayer.feature.player.state.rememberChaptersState
 import org.junit.Assert.assertEquals
@@ -41,6 +44,7 @@ import org.junit.Test
 import org.junit.runner.RunWith
 import org.robolectric.RobolectricTestRunner
 import org.robolectric.annotation.Config
+import org.robolectric.annotation.GraphicsMode
 
 @RunWith(RobolectricTestRunner::class)
 @Config(sdk = [36])
@@ -137,6 +141,26 @@ class ControlsBottomViewTest {
         }
     }
 
+    @Test
+    @Config(qualifiers = "w360dp-h800dp-port")
+    @GraphicsMode(GraphicsMode.Mode.NATIVE)
+    fun longChapterTitleKeepsSpeedAndRotateButtonsVisibleInPortrait() {
+        val longTitle = "[SponsorBlock]: Cinematic - Rooftop cigars and a very long chapter title"
+        val player = composeRule.runOnIdle { TestPlayer(firstChapterTitle = longTitle) }
+        try {
+            showControls(player = player)
+            composeRule.onNodeWithText(text = longTitle).assertIsDisplayed()
+            composeRule.onNodeWithContentDescription(
+                composeRule.activity.getString(R.string.select_playback_speed),
+            ).assertIsDisplayed()
+            composeRule.onNodeWithContentDescription(
+                composeRule.activity.getString(R.string.screen_rotation),
+            ).assertIsDisplayed()
+        } finally {
+            composeRule.runOnIdle { player.release() }
+        }
+    }
+
     private fun showControls(player: Player) {
         composeRule.setContent {
             NextPlayerTheme {
@@ -168,9 +192,10 @@ class ControlsBottomViewTest {
         }
     }
 
-    private class TestPlayer : SimpleBasePlayer(Looper.getMainLooper()) {
+    private class TestPlayer(firstChapterTitle: String = "Opening") :
+        SimpleBasePlayer(Looper.getMainLooper()) {
         private val chapters = listOf(
-            0L to "Opening",
+            0L to firstChapterTitle,
             1_500L to "Second",
             1_750L to "Third",
         ).map { (start, title) ->
