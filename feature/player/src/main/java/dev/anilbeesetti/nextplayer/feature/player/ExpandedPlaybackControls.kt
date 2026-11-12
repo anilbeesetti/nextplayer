@@ -16,6 +16,7 @@ import androidx.compose.foundation.MarqueeSpacing
 import androidx.compose.foundation.background
 import androidx.compose.foundation.basicMarquee
 import androidx.compose.foundation.gestures.awaitEachGesture
+import androidx.compose.foundation.gestures.awaitFirstDown
 import androidx.compose.foundation.interaction.DragInteraction
 import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.Arrangement
@@ -859,10 +860,17 @@ internal fun ExpandedPlaybackControls(
     }
 }
 
-/** Keeps a control looking normal while the player moves, but ignores touches until it settles. */
+/**
+ * Keeps a control looking normal while the player moves, but ignores touches until it settles.
+ * Only touches that start while it moves are blocked; the drag that moves it keeps going.
+ */
 private fun Modifier.blockTouchesUntil(interactive: Boolean): Modifier = pointerInput(interactive) {
     if (interactive) return@pointerInput
     awaitEachGesture {
+        awaitFirstDown(
+            requireUnconsumed = false,
+            pass = PointerEventPass.Initial,
+        ).consume()
         do {
             val event = awaitPointerEvent(PointerEventPass.Initial)
             event.changes.forEach { it.consume() }

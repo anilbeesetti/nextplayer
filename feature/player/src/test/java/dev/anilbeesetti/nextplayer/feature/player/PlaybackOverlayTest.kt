@@ -648,6 +648,33 @@ class PlaybackOverlayTest {
         composeRule.onNodeWithTag("expanded_player").assertIsDisplayed()
     }
 
+    @Test
+    @Config(qualifiers = "w915dp-h412dp-land")
+    fun slowSwipeDownOnTheLandscapeControlsCollapsesThePlayer() {
+        expanded = true
+        show()
+        // The controls stop taking touches once the player moves; that must not end this drag.
+        composeRule.onNodeWithTag("playback_seek_track").performTouchInput {
+            down(center)
+            repeat(30) {
+                moveBy(
+                    Offset(
+                        0f,
+                        20f,
+                    ),
+                    delayMillis = 32,
+                )
+            }
+            up()
+        }
+        composeRule.runOnIdle {
+            assertEquals(
+                false,
+                expanded,
+            )
+        }
+    }
+
     @Test fun outputSheetListsPhoneOutputsAndChoosesThePhone() {
         val audio = composeRule.activity.getSystemService(AudioManager::class.java)
         shadowOf(audio).setOutputDevices(

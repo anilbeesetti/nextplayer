@@ -722,6 +722,9 @@ internal fun PlaybackOverlayContent(
                 }.focusProperties {
                     if (!interactive) onEnter = { cancelFocusChange() }
                 }.drawWithContent {
+                    // Closed under a held finger, the sheet is the mini player; landscape's
+                    // centred artwork would otherwise show through it.
+                    if (expansion.value == 0f) return@drawWithContent
                     val clip = sheetBounds()
                     clipRect(
                         left = clip.left,
