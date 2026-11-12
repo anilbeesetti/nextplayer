@@ -101,7 +101,9 @@ jobs:
           target: google_atd
           arch: x86_64
           profile: pixel_6a
-          script: ./gradlew connectedDebugAndroidTest --no-parallel --max-workers=2 --stacktrace
+          script: |
+            nohup sh -c 'sleep 1200; { echo "== ps"; adb shell ps -A -o PID,STAT,WCHAN,TIME,NAME; echo "== activity"; adb shell dumpsys activity processes | head -80; echo "== instrumentation"; adb shell dumpsys activity instrumentation | head -40; echo "== logcat"; adb logcat -d -t 1500; echo "== jps"; jps -lv; for p in $(jps -q); do echo "== jstack $p"; jstack $p; done; } > instrumentation-watchdog.txt 2>&1' >/dev/null 2>&1 &
+            ./gradlew connectedDebugAndroidTest --no-parallel --max-workers=2 --stacktrace
 
       - name: Resource usage after instrumented tests
         if: always()
@@ -117,3 +119,4 @@ jobs:
           path: |
             **/build/reports/androidTests
             **/build/outputs/androidTest-results
+            instrumentation-watchdog.txt
