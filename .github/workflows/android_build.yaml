@@ -101,7 +101,7 @@ jobs:
           target: google_atd
           arch: x86_64
           profile: pixel_6a
-          script: ./gradlew connectedDebugAndroidTest --no-parallel --max-workers=2
+          script: ./gradlew connectedDebugAndroidTest --no-parallel --max-workers=2 --stacktrace
 
       - name: Upload instrumentation reports
         if: always()
