@@ -571,6 +571,7 @@ class PlayerService : MediaSessionService() {
             startPositionMs: Long,
         ): ListenableFuture<MediaSession.MediaItemsWithStartPosition> {
             invalidateDismissal()
+            setSessionReleaseBlocked(false)
             cancelPendingMediaItems()
             playbackOutput?.onNewQueue()
             playbackRequestGeneration++
@@ -926,9 +927,13 @@ class PlayerService : MediaSessionService() {
                     }
                     invalidateDismissal()
                     playbackRequestGeneration++
-                    playbackOutput?.restoreOnPhone(saved) ?: run {
-                        saved.setToPlayer(session.player)
-                        session.player.prepare()
+                    try {
+                        playbackOutput?.restoreOnPhone(saved) ?: run {
+                            saved.setToPlayer(session.player)
+                            session.player.prepare()
+                        }
+                    } finally {
+                        setSessionReleaseBlocked(false)
                     }
                     return@future SessionResult(SessionResult.RESULT_SUCCESS)
                 }
@@ -1015,6 +1020,7 @@ class PlayerService : MediaSessionService() {
             return SessionResult(SessionError.ERROR_INVALID_STATE)
         }
         invalidateDismissal()
+        setSessionReleaseBlocked(false)
         cancelPendingMediaItems()
         val generation = ++playbackRequestGeneration
         playbackOutput?.onNewQueue()
@@ -1228,6 +1234,18 @@ class PlayerService : MediaSessionService() {
         )
         .build()
 
+    // Undo and position persistence must finish before the last background client unbinds.
+    private fun setSessionReleaseBlocked(blocked: Boolean) {
+        mediaSession?.let { session ->
+            session.sessionExtras = Bundle(session.sessionExtras).apply {
+                putBoolean(
+                    CustomCommands.SESSION_RELEASE_BLOCKED_KEY,
+                    blocked,
+                )
+            }
+        }
+    }
+
     private fun invalidateDismissal() {
         dismissalExpiry?.cancel()
         dismissalExpiry = null
@@ -1239,28 +1257,36 @@ class PlayerService : MediaSessionService() {
         cancelPendingMediaItems()
         playbackRequestGeneration++
         val saved = playbackOutput?.snapshotForPhone() ?: playbackTransferState(session.player)
-        if (saved.mediaItems.isEmpty()) return
+        if (saved.mediaItems.isEmpty()) {
+            setSessionReleaseBlocked(false)
+            return
+        }
         dismissedPlayback = saved.buildUpon()
             .setPlayWhenReady(saved.playWhenReady && !isRemotePlayback).build()
         dismissalDeadline = android.os.SystemClock.elapsedRealtime() + 4_000
+        setSessionReleaseBlocked(true)
         session.player.pause()
         session.player.clearMediaItems()
         session.player.stop()
         playbackOutput?.onStop()
         val generation = playbackRequestGeneration
         dismissalExpiry = serviceScope.launch {
-            delay(4_000)
-            dismissedPlayback = null
-            mediaRepository.updateMediumPosition(
-                uri = saved.mediaItems[saved.currentMediaItemIndex].mediaId,
-                position = saved.currentPosition,
-            )
-            if (generation == playbackRequestGeneration &&
-                session.player.mediaItemCount == 0
-            ) {
-                stopSelf()
+            try {
+                delay(4_000)
+                dismissedPlayback = null
+                mediaRepository.updateMediumPosition(
+                    uri = saved.mediaItems[saved.currentMediaItemIndex].mediaId,
+                    position = saved.currentPosition,
+                )
+                if (generation == playbackRequestGeneration && session.player.mediaItemCount == 0) {
+                    stopSelf()
+                }
+            } finally {
+                if (generation == playbackRequestGeneration) {
+                    setSessionReleaseBlocked(false)
+                    dismissalExpiry = null
+                }
             }
-            dismissalExpiry = null
         }
     }
 
@@ -1268,18 +1294,23 @@ class PlayerService : MediaSessionService() {
         invalidateDismissal()
         cancelPendingMediaItems()
         val generation = ++playbackRequestGeneration
-        mediaSession?.run {
-            val mediaItem = player.currentMediaItem?.takeIf { it.localConfiguration != null }
-            val position = player.currentPosition
-            player.clearMediaItems()
-            player.stop()
-            playbackOutput?.onStop()
-            mediaItem?.let {
-                mediaRepository.updateMediumPosition(
-                    uri = mediaItem.mediaId,
-                    position = position,
-                )
+        setSessionReleaseBlocked(true)
+        try {
+            mediaSession?.run {
+                val mediaItem = player.currentMediaItem?.takeIf { it.localConfiguration != null }
+                val position = player.currentPosition
+                player.clearMediaItems()
+                player.stop()
+                playbackOutput?.onStop()
+                mediaItem?.let {
+                    mediaRepository.updateMediumPosition(
+                        uri = mediaItem.mediaId,
+                        position = position,
+                    )
+                }
             }
+        } finally {
+            if (generation == playbackRequestGeneration) setSessionReleaseBlocked(false)
         }
         if (generation == playbackRequestGeneration) stopSelf()
     }

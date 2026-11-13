@@ -119,6 +119,7 @@ class StopPlayerSessionTest {
             shadowOf(Looper.getMainLooper()).idle()
 
             assertTrue(saveStarted.isCompleted)
+            assertTrue(session.sessionExtras.getBoolean(CustomCommands.SESSION_RELEASE_BLOCKED_KEY))
             assertFalse(result.isDone)
             assertFalse(shadowOf(service).isStoppedBySelf)
             assertEquals(
@@ -143,6 +144,9 @@ class StopPlayerSessionTest {
                 result.get().resultCode,
             )
             assertTrue(shadowOf(service).isStoppedBySelf)
+            assertFalse(
+                session.sessionExtras.getBoolean(CustomCommands.SESSION_RELEASE_BLOCKED_KEY),
+            )
         }
     }
 
@@ -330,6 +334,39 @@ class StopPlayerSessionTest {
             assertEquals(
                 0,
                 player.mediaItemCount,
+            )
+            assertTrue(shadowOf(service).isStoppedBySelf)
+        }
+    }
+
+    @Test
+    fun dismissalRetainsItsBindingUntilExpiryPositionIsPersisted() {
+        val finishSave = CompletableDeferred<Unit>()
+        val saved = mutableListOf<Pair<String, Long>>()
+        withSession(savePosition = { uri, position ->
+            finishSave.await()
+            saved += uri to position
+        }) { player, session, callback, service ->
+            player.setMediaItem(MediaItem.Builder().setMediaId(VIDEO_URI).setUri(VIDEO_URI).build())
+            player.seekTo(42_000)
+            callback.onCustomCommand(
+                session,
+                controllerInfo(),
+                CustomCommands.DISMISS_PLAYBACK.sessionCommand,
+                Bundle.EMPTY,
+            )
+            shadowOf(Looper.getMainLooper()).idleFor(java.time.Duration.ofSeconds(4))
+            assertTrue(session.sessionExtras.getBoolean(CustomCommands.SESSION_RELEASE_BLOCKED_KEY))
+            assertFalse(shadowOf(service).isStoppedBySelf)
+            assertTrue(saved.isEmpty())
+            finishSave.complete(Unit)
+            shadowOf(Looper.getMainLooper()).idle()
+            assertEquals(
+                listOf(VIDEO_URI to 42_000L),
+                saved,
+            )
+            assertFalse(
+                session.sessionExtras.getBoolean(CustomCommands.SESSION_RELEASE_BLOCKED_KEY),
             )
             assertTrue(shadowOf(service).isStoppedBySelf)
         }

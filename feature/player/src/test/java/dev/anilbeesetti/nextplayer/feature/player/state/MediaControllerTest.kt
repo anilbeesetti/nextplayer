@@ -10,11 +10,18 @@ import androidx.activity.ComponentActivity
 import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.SideEffect
 import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.ui.focus.FocusRequester
+import androidx.compose.ui.test.assertIsDisplayed
 import androidx.compose.ui.test.junit4.v2.createAndroidComposeRule
+import androidx.compose.ui.test.onNodeWithTag
+import androidx.compose.ui.unit.dp
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.LifecycleOwner
 import androidx.lifecycle.LifecycleRegistry
 import androidx.lifecycle.compose.LocalLifecycleOwner
+import androidx.media3.common.MediaItem
+import androidx.media3.common.Player
 import androidx.media3.common.util.Size
 import androidx.media3.exoplayer.ExoPlayer
 import androidx.media3.session.MediaController
@@ -24,13 +31,19 @@ import androidx.media3.session.SessionCommand
 import androidx.media3.session.SessionResult
 import com.google.common.util.concurrent.Futures
 import com.google.common.util.concurrent.ListenableFuture
+import dev.anilbeesetti.nextplayer.core.ui.theme.NextPlayerTheme
+import dev.anilbeesetti.nextplayer.feature.player.MiniPlayerTestPlayer
+import dev.anilbeesetti.nextplayer.feature.player.PlaybackOverlay
 import dev.anilbeesetti.nextplayer.feature.player.extensions.setIsScrubbingModeEnabled
 import dev.anilbeesetti.nextplayer.feature.player.service.CustomCommands
+import dev.anilbeesetti.nextplayer.feature.player.service.PlaybackConnection
+import dev.anilbeesetti.nextplayer.feature.player.service.PlaybackPresentation
 import dev.anilbeesetti.nextplayer.feature.player.service.PlayerService
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertFalse
 import org.junit.Assert.assertNotSame
 import org.junit.Assert.assertNull
+import org.junit.Assert.assertSame
 import org.junit.Assert.assertTrue
 import org.junit.Rule
 import org.junit.Test
@@ -110,6 +123,194 @@ class MediaControllerTest {
         } finally {
             composeRule.runOnIdle {
                 owner.registry.currentState = Lifecycle.State.DESTROYED
+                service.destroy()
+                session.release()
+                player.release()
+            }
+        }
+    }
+
+    @Test
+    fun expandedOverlayDoesNotRevealBrowsingDuringBackgroundAndForeground() {
+        val player = composeRule.runOnIdle {
+            ExoPlayer.Builder(composeRule.activity).build().apply {
+                setMediaItem(MediaItem.fromUri("file:///foreground-test.mp4"))
+            }
+        }
+        val session = composeRule.runOnIdle { scrubbingSession(player) }
+        val service = composeRule.runOnIdle { bindSessionService(session) }
+        val owner = TestLifecycleOwner()
+        val expandedReports = mutableListOf<Boolean>()
+        val visible = mutableStateOf(true)
+        try {
+            composeRule.setContent {
+                CompositionLocalProvider(LocalLifecycleOwner provides owner) {
+                    NextPlayerTheme {
+                        if (visible.value) {
+                            PlaybackOverlay(
+                                compactBottom = 0.dp,
+                                compactStart = 0.dp,
+                                hidden = false,
+                                expansionRequest = 1L,
+                                focusRequester = remember { FocusRequester() },
+                                onCompactHeightChanged = {},
+                                onVisibilityChanged = {},
+                                onExpandedChanged = { expandedReports += it },
+                            )
+                        }
+                    }
+                }
+            }
+            composeRule.onNodeWithTag("playback_reconnecting").assertIsDisplayed()
+            composeRule.runOnIdle { owner.registry.currentState = Lifecycle.State.STARTED }
+            composeRule.onNodeWithTag("expanded_player").assertIsDisplayed()
+            composeRule.runOnIdle {
+                expandedReports.clear()
+                owner.registry.currentState = Lifecycle.State.CREATED
+            }
+            composeRule.onNodeWithTag("expanded_player").assertIsDisplayed()
+            composeRule.runOnIdle { owner.registry.currentState = Lifecycle.State.STARTED }
+            composeRule.onNodeWithTag("expanded_player").assertIsDisplayed()
+            composeRule.runOnIdle {
+                assertFalse(
+                    "Reconnecting must not expose browsing",
+                    expandedReports.contains(false),
+                )
+                visible.value = false
+            }
+        } finally {
+            composeRule.runOnIdle {
+                visible.value = false
+                owner.registry.currentState = Lifecycle.State.DESTROYED
+            }
+            composeRule.runOnIdle {
+                service.destroy()
+                session.release()
+                player.release()
+            }
+        }
+    }
+
+    @Test
+    fun retainedControllerReleasesIdlePlaybackAndDisposalWithoutWaitingForForeground() {
+        val player = composeRule.runOnIdle { MiniPlayerTestPlayer() }
+        val session = composeRule.runOnIdle {
+            MediaSession.Builder(
+                composeRule.activity,
+                player,
+            ).build()
+        }
+        val service = composeRule.runOnIdle { bindSessionService(session) }
+        val owner = TestLifecycleOwner()
+        val visible = mutableStateOf(true)
+        var controller: MediaController? = null
+        try {
+            composeRule.setContent {
+                CompositionLocalProvider(LocalLifecycleOwner provides owner) {
+                    if (visible.value) {
+                        val connected = rememberMediaController(
+                            ownsVideoSurface = false,
+                            keepConnectedInBackground = true,
+                        )
+                        SideEffect { controller = connected }
+                    } else {
+                        SideEffect { controller = null }
+                    }
+                }
+            }
+            composeRule.runOnIdle { owner.registry.currentState = Lifecycle.State.STARTED }
+            composeRule.waitForIdle()
+            composeRule.waitUntil { controller != null }
+            val first = composeRule.runOnIdle { requireNotNull(controller) }
+            composeRule.runOnIdle { owner.registry.currentState = Lifecycle.State.CREATED }
+            composeRule.runOnIdle {
+                assertSame(
+                    first,
+                    controller,
+                )
+            }
+            for (output in listOf(
+                PlaybackConnection.CONNECTING,
+                PlaybackConnection.CAST,
+                PlaybackConnection.LOST,
+            )) {
+                composeRule.runOnIdle {
+                    session.sessionExtras =
+                        Bundle().apply { PlaybackPresentation(output).writeTo(this) }
+                }
+                composeRule.runOnIdle {
+                    player.update {
+                        setPlaylist(emptyList())
+                        setPlaybackState(Player.STATE_IDLE)
+                    }
+                }
+                composeRule.runOnIdle {
+                    assertSame(
+                        first,
+                        controller,
+                    )
+                }
+            }
+            composeRule.runOnIdle {
+                session.sessionExtras = Bundle().apply {
+                    putBoolean(
+                        CustomCommands.SESSION_RELEASE_BLOCKED_KEY,
+                        true,
+                    )
+                }
+            }
+            composeRule.runOnIdle {
+                assertSame(
+                    first,
+                    controller,
+                )
+            }
+            composeRule.runOnIdle { session.sessionExtras = Bundle.EMPTY }
+            composeRule.waitForIdle()
+            composeRule.waitUntil { controller == null }
+            composeRule.runOnIdle { assertFalse(first.isConnected) }
+
+            composeRule.runOnIdle {
+                owner.registry.currentState = Lifecycle.State.STARTED
+                player.update {
+                    setPlaylist(listOf(player.item(0)))
+                    setPlaybackState(Player.STATE_READY)
+                }
+            }
+            composeRule.waitForIdle()
+            composeRule.waitUntil { controller != null }
+            val second = composeRule.runOnIdle { requireNotNull(controller) }
+            composeRule.runOnIdle { owner.registry.currentState = Lifecycle.State.CREATED }
+            composeRule.runOnIdle {
+                assertSame(
+                    second,
+                    controller,
+                )
+            }
+            composeRule.runOnIdle { player.update { setPlaybackState(Player.STATE_ENDED) } }
+            composeRule.waitForIdle()
+            composeRule.waitUntil { controller == null }
+            composeRule.runOnIdle { assertFalse(second.isConnected) }
+
+            composeRule.runOnIdle {
+                owner.registry.currentState = Lifecycle.State.STARTED
+                player.update { setPlaybackState(Player.STATE_READY) }
+            }
+            composeRule.waitForIdle()
+            composeRule.waitUntil { controller != null }
+            val third = composeRule.runOnIdle { requireNotNull(controller) }
+            composeRule.runOnIdle { owner.registry.currentState = Lifecycle.State.CREATED }
+            composeRule.runOnIdle { visible.value = false }
+            composeRule.runOnIdle {
+                assertNull(controller)
+                assertFalse(third.isConnected)
+            }
+        } finally {
+            composeRule.runOnIdle {
+                visible.value = false
+                owner.registry.currentState = Lifecycle.State.DESTROYED
+            }
+            composeRule.runOnIdle {
                 service.destroy()
                 session.release()
                 player.release()

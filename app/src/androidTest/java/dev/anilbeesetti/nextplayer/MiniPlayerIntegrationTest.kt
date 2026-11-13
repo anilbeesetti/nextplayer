@@ -1089,6 +1089,9 @@ class MiniPlayerIntegrationTest {
         }
         composeRule.runOnIdle { assertTrue(move.action()) }
         await("queue reorder") { player.getMediaItemAt(0).mediaId == Uri.fromFile(blue).toString() }
+        // Paging uses touch mode; the focused Remove action needs keyboard mode.
+        onMain { composeRule.activity.window.decorView.requestFocusFromTouch() }
+        composeRule.waitForIdle()
         repeat(2) {
             composeRule.onNodeWithTag(
                 "queue_item_0",

@@ -7,9 +7,12 @@ import android.net.Uri
 import android.os.Bundle
 import android.os.Process
 import android.os.SystemClock
+import android.view.accessibility.AccessibilityNodeInfo
+import androidx.lifecycle.Lifecycle
 import androidx.media3.common.Player
 import androidx.media3.session.MediaController
 import androidx.media3.session.SessionToken
+import androidx.test.core.app.ActivityScenario
 import androidx.test.ext.junit.runners.AndroidJUnit4
 import androidx.test.platform.app.InstrumentationRegistry
 import androidx.test.runner.lifecycle.ActivityLifecycleMonitorRegistry
@@ -17,9 +20,11 @@ import androidx.test.runner.lifecycle.Stage
 import dev.anilbeesetti.nextplayer.core.data.repository.PreferencesRepository
 import dev.anilbeesetti.nextplayer.core.model.LoopMode
 import dev.anilbeesetti.nextplayer.core.model.PlayerPreferences
+import dev.anilbeesetti.nextplayer.core.ui.R as UiR
 import dev.anilbeesetti.nextplayer.feature.player.PlayerActivity
 import dev.anilbeesetti.nextplayer.feature.player.service.CustomCommands
 import dev.anilbeesetti.nextplayer.feature.player.service.PlayerService
+import dev.anilbeesetti.nextplayer.feature.player.service.expandedPlaybackIntent
 import dev.anilbeesetti.nextplayer.feature.player.service.stopPlayerSession
 import dev.anilbeesetti.nextplayer.feature.player.state.PlaylistState
 import java.util.UUID
@@ -101,6 +106,77 @@ class PlayerApiRequestRegressionTest {
             main { activities().isEmpty() && player.isPlaying && player.mediaItemCount == 3 }
         }
         assertQueueGrantsSurviveActivity(player)
+    }
+
+    @Test
+    fun backgroundStopReleasesExternalGrantsWithoutDestroyingMain() =
+        checkBackgroundGrantRelease(dismiss = false)
+
+    @Test
+    fun expiredDismissalReleasesExternalGrantsWithoutDestroyingMain() =
+        checkBackgroundGrantRelease(dismiss = true)
+
+    private fun checkBackgroundGrantRelease(dismiss: Boolean) {
+        launch("--ez background true --ez queue true")
+        val player = connect()
+        await("background queue ready") {
+            main { player.mediaItemCount == 3 && player.playbackState == Player.STATE_READY }
+        }
+        val media = main { player.getMediaItemAt(2).localConfiguration!!.uri }
+        val subtitle = main {
+            player.getMediaItemAt(0).localConfiguration!!.subtitleConfigurations.single().uri
+        }
+        main {
+            player.pause()
+            player.seekTo(12_000)
+        }
+        ActivityScenario.launch<MainActivity>(context.expandedPlaybackIntent()).use { scenario ->
+            await("expanded controls ready") {
+                val root = instrumentation.uiAutomation.rootInActiveWindow
+                root?.packageName?.toString() == context.packageName && hasWatchVideoControl(root)
+            }
+            scenario.moveToState(Lifecycle.State.CREATED)
+            val command = if (dismiss) {
+                CustomCommands.DISMISS_PLAYBACK
+            } else {
+                CustomCommands.STOP_PLAYER_SESSION
+            }
+            val result = main {
+                player.sendCustomCommand(
+                    command.sessionCommand,
+                    Bundle.EMPTY,
+                )
+            }
+            assertEquals(
+                0,
+                result.get(
+                    10,
+                    TimeUnit.SECONDS,
+                ).resultCode,
+            )
+            if (dismiss) {
+                assertTrue(
+                    "Undo retains queued URI",
+                    canRead(media),
+                )
+                assertTrue(
+                    "Undo retains subtitle URI",
+                    canRead(subtitle),
+                )
+            }
+            main {
+                player.release()
+                controller = null
+            }
+            await("background session releases media and subtitle grants") {
+                !canRead(media) && !canRead(subtitle)
+            }
+            assertEquals(
+                "Main must remain backgrounded",
+                Lifecycle.State.CREATED,
+                scenario.state,
+            )
+        }
     }
 
     @Test
@@ -278,6 +354,18 @@ class PlayerApiRequestRegressionTest {
         }
         await("released service revokes media and subtitle grants") {
             !canRead(media) && !canRead(subtitle)
+        }
+    }
+
+    private fun hasWatchVideoControl(node: AccessibilityNodeInfo): Boolean {
+        val label = context.getString(UiR.string.watch_video)
+        if (node.isVisibleToUser &&
+            (node.text?.contains(label) == true || node.contentDescription?.contains(label) == true)
+        ) {
+            return true
+        }
+        return (0 until node.childCount).any {
+            node.getChild(it)?.let(::hasWatchVideoControl) == true
         }
     }
 

@@ -53,6 +53,7 @@ import androidx.compose.material.icons.rounded.Pause
 import androidx.compose.material.icons.rounded.PlayArrow
 import androidx.compose.material.icons.rounded.SkipNext
 import androidx.compose.material.icons.rounded.SkipPrevious
+import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
@@ -161,14 +162,27 @@ fun PlaybackOverlay(
     var extras by remember { mutableStateOf(Bundle.EMPTY) }
     val controller = rememberMediaController(
         ownsVideoSurface = false,
+        keepConnectedInBackground = true,
         onExtrasChanged = { extras = it },
     )
     LaunchedEffect(controller) { extras = controller?.sessionExtras ?: Bundle.EMPTY }
+    val intentExpansionPending = expansionRequest > lastIntentExpansion
     if (controller == null) {
-        LaunchedEffect(Unit) {
+        val coverBrowsing = !hidden && (expanded || intentExpansionPending)
+        LaunchedEffect(coverBrowsing) {
             onVisibilityChanged(false)
-            onExpandedChanged(false)
+            onExpandedChanged(coverBrowsing)
             onCompactHeightChanged(0.dp)
+        }
+        if (coverBrowsing) {
+            Box(
+                modifier.fillMaxSize().background(MaterialTheme.colorScheme.primaryContainer)
+                    .pointerInput(Unit) { detectTapGestures {} }
+                    .testTag("playback_reconnecting"),
+                contentAlignment = Alignment.Center,
+            ) {
+                CircularProgressIndicator(color = MaterialTheme.colorScheme.onPrimaryContainer)
+            }
         }
         return
     }
@@ -180,6 +194,8 @@ fun PlaybackOverlay(
         }
     }
     val presentation = PlaybackPresentation.from(extras)
+    val showExpanded = expanded || intentExpansionPending ||
+        presentation.expansionRequest > lastExpansion
     val snapshot = currentSnapshot.retainedFor(
         presentation,
         lastSnapshot,
@@ -212,11 +228,11 @@ fun PlaybackOverlay(
     LaunchedEffect(
         snapshot.visible,
         hidden,
-        expanded,
+        showExpanded,
         undoVisible,
     ) {
-        onVisibilityChanged(!hidden && (undoVisible || (snapshot.visible && !expanded)))
-        onExpandedChanged(snapshot.visible && !hidden && expanded)
+        onVisibilityChanged(!hidden && (undoVisible || (snapshot.visible && !showExpanded)))
+        onExpandedChanged(snapshot.visible && !hidden && showExpanded)
     }
     LaunchedEffect(
         contentHeight,
@@ -252,7 +268,7 @@ fun PlaybackOverlay(
             queueSheet = queueSheet,
             snapshot = snapshot,
             presentation = presentation,
-            expanded = expanded,
+            expanded = showExpanded,
             onExpandedChanged = { expanded = it },
             compactBottom = compactBottom,
             compactStart = compactStart,
