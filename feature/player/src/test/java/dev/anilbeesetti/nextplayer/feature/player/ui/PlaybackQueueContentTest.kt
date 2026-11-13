@@ -28,6 +28,7 @@ import androidx.compose.ui.test.performTouchInput
 import androidx.compose.ui.test.swipe
 import androidx.compose.ui.test.swipeLeft
 import androidx.compose.ui.test.swipeRight
+import androidx.compose.ui.text.TextLayoutResult
 import androidx.compose.ui.unit.Density
 import androidx.compose.ui.unit.LayoutDirection
 import androidx.compose.ui.unit.dp
@@ -42,6 +43,7 @@ import dev.anilbeesetti.nextplayer.core.ui.R
 import dev.anilbeesetti.nextplayer.core.ui.theme.NextPlayerTheme
 import org.junit.After
 import org.junit.Assert.assertEquals
+import org.junit.Assert.assertFalse
 import org.junit.Assert.assertTrue
 import org.junit.Rule
 import org.junit.Test
@@ -58,7 +60,7 @@ class PlaybackQueueContentTest {
 
     @After fun tearDown() = rule.runOnIdle { if (::player.isInitialized) player.release() }
 
-    @Test fun durationIsOnTheLargerArtwork() {
+    @Test fun durationIsBelowTheTitleAndBesideTheArtwork() {
         show()
         val artwork = rule.onNodeWithTag(
             "queue_artwork_0",
@@ -71,8 +73,16 @@ class PlaybackQueueContentTest {
         duration.assertTextEquals("00:15")
         val bounds = duration.getUnclippedBoundsInRoot()
         assertTrue(artwork.right - artwork.left >= 56.dp)
-        assertTrue(bounds.left >= artwork.left && bounds.right <= artwork.right)
-        assertTrue(bounds.top >= artwork.top && bounds.bottom <= artwork.bottom)
+        val title = rule.onNodeWithTag(
+            "queue_title_0",
+            true,
+        ).getUnclippedBoundsInRoot()
+        assertTrue(bounds.left >= artwork.right)
+        assertEquals(
+            title.left,
+            bounds.left,
+        )
+        assertTrue(bounds.top >= title.bottom)
     }
 
     @Test fun swipeRemovesOnlyTheRequestedOccurrenceAndKeepsTheLastItem() {
@@ -265,21 +275,54 @@ class PlaybackQueueContentTest {
         }
     }
 
-    @Test fun largeTextDurationStaysInsideArtworkInRtl() {
+    @Test fun longDurationFitsTheSubtitleWithLargeTextInRtl() {
         show(
             LayoutDirection.Rtl,
             fontScale = 2f,
+            firstDurationMs = 360_000_000L,
         )
         val art = rule.onNodeWithTag(
             "queue_artwork_0",
             true,
         ).getUnclippedBoundsInRoot()
-        val text = rule.onNodeWithTag(
+        val duration = rule.onNodeWithTag(
             "queue_duration_0",
             true,
+        )
+        duration.assertTextEquals("100:00:00")
+        val bounds = duration.getUnclippedBoundsInRoot()
+        val title = rule.onNodeWithTag(
+            "queue_title_0",
+            true,
         ).getUnclippedBoundsInRoot()
-        assertTrue(text.left >= art.left && text.right <= art.right)
-        assertTrue(text.top >= art.top && text.bottom <= art.bottom)
+        assertTrue(bounds.right <= art.left)
+        assertTrue(bounds.top >= title.bottom)
+        val layouts = mutableListOf<TextLayoutResult>()
+        duration.performSemanticsAction(SemanticsActions.GetTextLayoutResult) { it(layouts) }
+        val layout = layouts.single()
+        assertEquals(
+            layout.layoutInput.text.length,
+            layout.getLineEnd(
+                layout.lineCount - 1,
+                true,
+            ),
+        )
+        repeat(layout.lineCount) { line ->
+            assertFalse(layout.isLineEllipsized(line))
+            assertTrue(
+                layout.getLineRight(line) - layout.getLineLeft(line) <= layout.size.width + 1f,
+            )
+        }
+        assertTrue(layout.getLineBottom(layout.lineCount - 1) <= layout.size.height + 1f)
+        val row = rule.onNodeWithTag(
+            "queue_item_0",
+            true,
+        ).getUnclippedBoundsInRoot()
+        assertTrue(bounds.bottom <= row.bottom)
+        assertEquals(
+            60.dp,
+            art.right - art.left,
+        )
     }
 
     @Test fun fullscreenVideoQueueUsesTheSameRemovalAndDurationControls() {
@@ -501,6 +544,7 @@ class PlaybackQueueContentTest {
         editable: Boolean = true,
         fullscreen: Boolean = false,
         maskedUids: Boolean = false,
+        firstDurationMs: Long = 15_000L,
     ) {
         rule.runOnUiThread {
             player = ExoPlayer.Builder(rule.activity).build()
@@ -514,7 +558,7 @@ class PlaybackQueueContentTest {
                         .setMediaMetadata(
                             MediaMetadata.Builder().setTitle(
                                 id,
-                            ).setDurationMs(15_000L + i * 5_000).build(),
+                            ).setDurationMs(firstDurationMs + i * 5_000).build(),
                         )
                         .build()
                 },

@@ -21,6 +21,10 @@ Meaningful regressions cover:
 - Persistent compact/expanded controls, denied commands, seek/output volume, artwork selection versus compact dismissal, slow expansion reversal, queue/Back hierarchy, PIN exclusion, RTL and 2× text.
 - Existing local surface ownership, external launch/API compatibility, playback completion, subtitles and root D-pad traversal in both distributions.
 
+## Queue duration subtitle follow-up
+
+The latest [duration subtitle update](duration-subtitles.md) moves each timestamp below the video title and removes artwork badges. Normal queue interactions and 200% RTL rendering pass in two cases per distribution on Pixel_6a API 37. A synthetic 100-hour duration renders in full. Root tests remain 987/170 suites with no failures/errors/skips.
+
 ## Foreground continuity follow-up
 
 The [foreground-continuity repair](foreground-continuity.md) keeps active controls mounted while backgrounded and covers cold expanded entry until connection completes. Final Pixel_6a API 37 results: 43 Play acceptance cases and nine standard checks, all passing. The new grant checks keep Main alive/backgrounded through Stop and Undo expiry and confirm release without requiring Main to finish. The current root XML totals above include this repair; older acceptance groups below are historical.

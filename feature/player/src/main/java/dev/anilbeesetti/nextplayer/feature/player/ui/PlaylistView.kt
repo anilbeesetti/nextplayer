@@ -7,7 +7,6 @@ import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
 import androidx.compose.animation.slideInVertically
 import androidx.compose.animation.slideOutVertically
-import androidx.compose.foundation.background
 import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -50,9 +49,7 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.focus.onFocusChanged
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.hapticfeedback.HapticFeedbackType
-import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.platform.LocalHapticFeedback
 import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.res.painterResource
@@ -111,10 +108,6 @@ internal fun PlaybackQueueContent(
     val list = rememberLazyListState()
     val haptics = LocalHapticFeedback.current
     val dragStartFeedback = HapticFeedbackType.GestureThresholdActivate
-    val artworkSize = maxOf(
-        60.dp,
-        (48 * LocalDensity.current.fontScale).dp,
-    )
     val reorder = rememberReorderableLazyListState(list) { from, to ->
         queue.moveItemAndAwait(
             from.key as String,
@@ -292,57 +285,28 @@ internal fun PlaybackQueueContent(
                                             } else {
                                                 Spacer(Modifier.width(12.dp))
                                             }
-                                            Box(
+                                            PlaybackArtwork(
+                                                snapshot.copy(
+                                                    item = item,
+                                                    metadata = if (current) {
+                                                        snapshot.metadata
+                                                    } else {
+                                                        item.mediaMetadata
+                                                    },
+                                                ),
                                                 Modifier.size(
-                                                    artworkSize,
+                                                    60.dp,
                                                 ).testTag("queue_artwork_$index"),
-                                            ) {
-                                                PlaybackArtwork(
-                                                    snapshot.copy(
-                                                        item = item,
-                                                        metadata = if (current) {
-                                                            snapshot.metadata
-                                                        } else {
-                                                            item.mediaMetadata
-                                                        },
-                                                    ),
-                                                    Modifier.fillMaxSize(),
-                                                    RoundedCornerShape(8.dp),
-                                                )
-                                                Text(
-                                                    queue.getDurationAt(index)?.let {
-                                                        Utils.formatDurationMillis(it)
-                                                    }
-                                                        ?: "—",
-                                                    style = MaterialTheme.typography.labelSmall,
-                                                    maxLines = 1,
-                                                    color = Color.White,
-                                                    modifier = Modifier.align(
-                                                        Alignment.BottomEnd,
-                                                    ).padding(3.dp)
-                                                        .background(
-                                                            Color.Black.copy(alpha = .8f),
-                                                            RoundedCornerShape(4.dp),
-                                                        )
-                                                        .padding(
-                                                            horizontal = 3.dp,
-                                                            vertical = 1.dp,
-                                                        )
-                                                        .testTag("queue_duration_$index"),
-                                                )
-                                            }
+                                                RoundedCornerShape(8.dp),
+                                            )
                                         }
                                     },
                                     supportingContent = {
                                         Text(
-                                            item.mediaMetadata.subtitle?.toString()
-                                                ?: item.localConfiguration?.uri?.path
-                                                    ?.substringBeforeLast(
-                                                        '/',
-                                                    )?.substringAfterLast('/')
-                                                ?: stringResource(R.string.background_play),
-                                            maxLines = 1,
-                                            overflow = TextOverflow.Ellipsis,
+                                            queue.getDurationAt(index)?.let {
+                                                Utils.formatDurationMillis(it)
+                                            } ?: "—",
+                                            Modifier.testTag("queue_duration_$index"),
                                             style = MaterialTheme.typography.bodyMedium,
                                             color = MaterialTheme.colorScheme.onSurfaceVariant,
                                         )
@@ -364,6 +328,7 @@ internal fun PlaybackQueueContent(
                                         item.mediaMetadata.title?.toString()
                                             ?: item.localConfiguration?.uri?.lastPathSegment
                                             ?: stringResource(R.string.unknown),
+                                        modifier = Modifier.testTag("queue_title_$index"),
                                         maxLines = 1,
                                         overflow = TextOverflow.Ellipsis,
                                         fontWeight = if (current) {

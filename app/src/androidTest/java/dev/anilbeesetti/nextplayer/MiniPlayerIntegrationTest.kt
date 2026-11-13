@@ -14,12 +14,15 @@ import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.width
+import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.focus.FocusRequester
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Color as ComposeColor
 import androidx.compose.ui.graphics.asAndroidBitmap
+import androidx.compose.ui.platform.LocalDensity
+import androidx.compose.ui.platform.LocalLayoutDirection
 import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.semantics.SemanticsActions
 import androidx.compose.ui.semantics.SemanticsProperties
@@ -41,6 +44,8 @@ import androidx.compose.ui.test.performTextInput
 import androidx.compose.ui.test.performTouchInput
 import androidx.compose.ui.test.swipeLeft
 import androidx.compose.ui.test.swipeRight
+import androidx.compose.ui.unit.Density
+import androidx.compose.ui.unit.LayoutDirection
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.Lifecycle
 import androidx.media3.common.MediaItem
@@ -1158,6 +1163,97 @@ class MiniPlayerIntegrationTest {
         assertEquals(
             titles,
             restored,
+        )
+    }
+
+    @Test
+    fun queueDurationSubtitleFitsLargeRtlText() {
+        onMain {
+            player.pause()
+            player.setMediaItems(
+                listOf(
+                    "Short video",
+                    "Long video",
+                ).mapIndexed { index, title ->
+                    MediaItem.Builder().setMediaId(Uri.fromFile(media).toString())
+                        .setUri(Uri.fromFile(media)).setMediaMetadata(
+                            MediaMetadata.Builder().setTitle(title)
+                                .setDurationMs(if (index == 0) 120_000 else 360_000_000).build(),
+                        ).build()
+                },
+            )
+            player.prepare()
+        }
+        await("subtitle queue ready") { player.playbackState == Player.STATE_READY }
+        onMain {
+            composeRule.activity.setContent {
+                val density = LocalDensity.current
+                CompositionLocalProvider(
+                    LocalDensity provides Density(
+                        density.density,
+                        2f,
+                    ),
+                    LocalLayoutDirection provides LayoutDirection.Rtl,
+                ) {
+                    NextPlayerTheme {
+                        PlaybackOverlay(
+                            compactBottom = 24.dp,
+                            compactStart = 0.dp,
+                            hidden = false,
+                            expansionRequest = 1,
+                            focusRequester = remember { FocusRequester() },
+                            onCompactHeightChanged = {},
+                            onVisibilityChanged = {},
+                            onExpandedChanged = {},
+                        )
+                    }
+                }
+            }
+        }
+        composeRule.waitUntil(10_000) {
+            composeRule.onAllNodesWithTag(
+                "playback_queue_action",
+            ).fetchSemanticsNodes().isNotEmpty()
+        }
+        composeRule.onNodeWithTag("playback_queue_action").performClick()
+        val duration = composeRule.onNodeWithTag(
+            "queue_duration_1",
+            useUnmergedTree = true,
+        )
+        duration.assertTextEquals("100:00:00").assertIsDisplayed()
+        val text = duration.fetchSemanticsNode().boundsInRoot
+        val art = composeRule.onNodeWithTag(
+            "queue_artwork_1",
+            useUnmergedTree = true,
+        )
+            .fetchSemanticsNode().boundsInRoot
+        val title = composeRule.onNodeWithTag(
+            "queue_title_1",
+            useUnmergedTree = true,
+        )
+            .fetchSemanticsNode().boundsInRoot
+        val row = composeRule.onNodeWithTag("queue_item_1").fetchSemanticsNode().boundsInRoot
+        assertTrue(text.right <= art.left && text.top >= title.bottom && text.bottom <= row.bottom)
+        val layouts = mutableListOf<androidx.compose.ui.text.TextLayoutResult>()
+        duration.performSemanticsAction(SemanticsActions.GetTextLayoutResult) { it(layouts) }
+        val layout = layouts.single()
+        assertEquals(
+            layout.layoutInput.text.length,
+            layout.getLineEnd(
+                layout.lineCount - 1,
+                true,
+            ),
+        )
+        repeat(layout.lineCount) { line ->
+            assertFalse(layout.isLineEllipsized(line))
+            assertTrue(
+                layout.getLineRight(line) - layout.getLineLeft(line) <= layout.size.width + 1f,
+            )
+        }
+        assertTrue(layout.getLineBottom(layout.lineCount - 1) <= layout.size.height + 1f)
+        captureNode(
+            "playback_queue",
+            "queue-duration-subtitles-large-rtl",
         )
     }
 
