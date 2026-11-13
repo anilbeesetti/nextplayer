@@ -11,7 +11,7 @@ Run with JDK 17 launcher, the repository's JVM 21 daemon criteria, and `ANDROID_
   '-Dorg.gradle.jvmargs=-Xmx4096m -Dfile.encoding=UTF-8'
 ```
 
-Current XML totals: **981 tests in 170 suites, zero failures, errors or skips**. XML is inspected because local tests use `ignoreFailures=true`.
+Current XML totals: **987 tests in 170 suites, zero failures, errors or skips**. XML is inspected because local tests use `ignoreFailures=true`.
 
 Meaningful regressions cover:
 
@@ -20,6 +20,10 @@ Meaningful regressions cover:
 - Consumed resume hints on the current Cast item: restoring a dismissed queue after advancement retains live position and preserves other items' resume metadata.
 - Persistent compact/expanded controls, denied commands, seek/output volume, artwork selection versus compact dismissal, slow expansion reversal, queue/Back hierarchy, PIN exclusion, RTL and 2× text.
 - Existing local surface ownership, external launch/API compatibility, playback completion, subtitles and root D-pad traversal in both distributions.
+
+## Foreground continuity follow-up
+
+The [foreground-continuity repair](foreground-continuity.md) keeps active controls mounted while backgrounded and covers cold expanded entry until connection completes. Final Pixel_6a API 37 results: 43 Play acceptance cases and nine standard checks, all passing. The new grant checks keep Main alive/backgrounded through Stop and Undo expiry and confirm release without requiring Main to finish. The current root XML totals above include this repair; older acceptance groups below are historical.
 
 ## Queue lifecycle follow-up
 

@@ -1,0 +1,26 @@
+{
+  "device": "Pixel_6a",
+  "api": 37,
+  "abi": "arm64-v8a",
+  "local": {
+    "suites": 170,
+    "tests": 987,
+    "failures": 0,
+    "errors": 0,
+    "skipped": 0
+  },
+  "acceptance": {
+    "play": {
+      "tests": 43,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0
+    },
+    "standard": {
+      "tests": 9,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0
+    }
+  }
+}

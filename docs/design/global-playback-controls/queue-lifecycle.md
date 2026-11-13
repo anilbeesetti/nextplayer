@@ -2,7 +2,7 @@
 
 The expanded player's portrait half-open/full-open queue and landscape full-open queue retain their stage after background/foreground and same-orientation Activity recreation.
 
-The Activity's MediaController is intentionally released on stop. Its nullable composition branch removed PlaybackOverlayContent, discarding the queue's remembered state. The fix hoists that UI state above the connection boundary. A small Compose Saver stores only the logical stage and layout mode; a fresh coroutine scope and new window anchors restore its geometry. The orientation effect now resets the queue only when the actual layout mode changes. Playback/controller ownership, queue actions and Back/collapse behavior stay unchanged.
+This stage-retention repair originally released the Activity controller on stop. The later [foreground-continuity repair](foreground-continuity.md) retains active background connections to prevent a browsing-screen flash; saved stage/layout restoration remains in use. Its nullable composition branch removed PlaybackOverlayContent, discarding the queue's remembered state. The fix hoists that UI state above the connection boundary. A small Compose Saver stores only the logical stage and layout mode; a fresh coroutine scope and new window anchors restore its geometry. The orientation effect now resets the queue only when the actual layout mode changes. Playback/controller ownership, queue actions and Back/collapse behavior stay unchanged.
 
 ## Regression evidence
 
