@@ -3,10 +3,14 @@ package dev.anilbeesetti.nextplayer.feature.player
 import androidx.compose.animation.core.Animatable
 import androidx.compose.animation.core.SpringSpec
 import androidx.compose.animation.core.spring
+import androidx.compose.runtime.Composable
 import androidx.compose.runtime.Stable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableFloatStateOf
 import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.rememberCoroutineScope
+import androidx.compose.runtime.saveable.listSaver
+import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import kotlin.math.abs
 import kotlinx.coroutines.CoroutineScope
@@ -17,20 +21,46 @@ import kotlinx.coroutines.launch
 /** Where the portrait player stands: the full player, half queue under a banner, or the queue. */
 internal enum class QueueStage { PLAYER, HALF, QUEUE }
 
+@Composable
+internal fun rememberPlaybackQueueSheet(): PlaybackQueueSheet {
+    val scope = rememberCoroutineScope()
+    return rememberSaveable(
+        saver = listSaver(
+            save = {
+                listOf(
+                    it.stage.name,
+                    it.halfStage,
+                )
+            },
+            restore = {
+                PlaybackQueueSheet(
+                    scope,
+                    QueueStage.valueOf(it[0] as String),
+                ).apply {
+                    halfStage = it[1] as Boolean
+                }
+            },
+        ),
+    ) { PlaybackQueueSheet(scope) }
+}
+
 /**
  * The top edge of the portrait queue panel, in pixels from the top of the player. It follows the
  * finger and settles on the nearest stage with a spring, keeping the release velocity. Readers
  * take [progress] in the layout and draw phases, so moving it never recomposes the player.
  */
 @Stable
-internal class PlaybackQueueSheet(private val scope: CoroutineScope) {
+internal class PlaybackQueueSheet(
+    private val scope: CoroutineScope,
+    initialStage: QueueStage = QueueStage.PLAYER,
+) {
     private val top = Animatable(Float.MAX_VALUE)
     private var closed by mutableFloatStateOf(Float.MAX_VALUE)
     private var half by mutableFloatStateOf(Float.MAX_VALUE)
     private var full by mutableFloatStateOf(Float.MAX_VALUE)
     private var animation: Job? = null
 
-    var stage by mutableStateOf(QueueStage.PLAYER)
+    var stage by mutableStateOf(initialStage)
         private set
 
     var settleSpec: SpringSpec<Float> = spring()

@@ -156,6 +156,8 @@ fun PlaybackOverlay(
     var expanded by rememberSaveable { mutableStateOf(false) }
     var lastExpansion by rememberSaveable { mutableStateOf(0L) }
     var lastIntentExpansion by rememberSaveable { mutableStateOf(0L) }
+    // Queue position is UI state and survives the controller reconnecting on foreground.
+    val queueSheet = rememberPlaybackQueueSheet()
     var extras by remember { mutableStateOf(Bundle.EMPTY) }
     val controller = rememberMediaController(
         ownsVideoSurface = false,
@@ -247,6 +249,7 @@ fun PlaybackOverlay(
     Box(modifier.fillMaxSize()) {
         PlaybackOverlayContent(
             player = controller,
+            queueSheet = queueSheet,
             snapshot = snapshot,
             presentation = presentation,
             expanded = expanded,
@@ -329,6 +332,7 @@ internal fun PlaybackOverlayContent(
     compactModifier: Modifier = Modifier,
     audioOutput: Int = CustomCommands.SYSTEM_AUDIO_OUTPUT,
     onAudioOutput: (Int) -> Unit = {},
+    queueSheet: PlaybackQueueSheet = rememberPlaybackQueueSheet(),
 ) {
     val density = LocalDensity.current
     val compactHeight = compactPlaybackHeight(density.fontScale)
@@ -340,8 +344,6 @@ internal fun PlaybackOverlayContent(
         onCompactHeightChanged(if (snapshot.visible && !hidden) compactHeight + 8.dp else 0.dp)
     }
     var output by rememberSaveable { mutableStateOf(false) }
-    val queueScope = rememberCoroutineScope()
-    val queueSheet = remember { PlaybackQueueSheet(queueScope) }
     queueSheet.settleSpec =
         MaterialTheme.motionScheme.defaultSpatialSpec<Float>() as SpringSpec<Float>
     queueSheet.flingThreshold = with(density) { 400.dp.toPx() }
@@ -411,8 +413,12 @@ internal fun PlaybackOverlayContent(
         // only once the player has closed.
         LaunchedEffect(isCollapsed) { if (isCollapsed) queueSheet.snapTo(QueueStage.PLAYER) }
         // Landscape opens the queue in one stage; turning the phone starts from the player.
-        queueSheet.halfStage = !landscape
-        LaunchedEffect(landscape) { queueSheet.snapTo(QueueStage.PLAYER) }
+        LaunchedEffect(landscape) {
+            if (queueSheet.halfStage != !landscape) {
+                queueSheet.halfStage = !landscape
+                queueSheet.snapTo(QueueStage.PLAYER)
+            }
+        }
         val dragState = rememberDraggableState { delta ->
             val toQueue = queueGesture ?: (
                 currentlyExpanded && expansion.value >= .99f &&

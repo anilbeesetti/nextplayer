@@ -11,7 +11,7 @@ Run with JDK 17 launcher, the repository's JVM 21 daemon criteria, and `ANDROID_
   '-Dorg.gradle.jvmargs=-Xmx4096m -Dfile.encoding=UTF-8'
 ```
 
-Current XML totals: **927 tests in 159 suites, zero failures, errors or skips**. XML is inspected because local tests use `ignoreFailures=true`.
+Current XML totals: **981 tests in 170 suites, zero failures, errors or skips**. XML is inspected because local tests use `ignoreFailures=true`.
 
 Meaningful regressions cover:
 
@@ -21,11 +21,15 @@ Meaningful regressions cover:
 - Persistent compact/expanded controls, denied commands, seek/output volume, artwork selection versus compact dismissal, slow expansion reversal, queue/Back hierarchy, PIN exclusion, RTL and 2× text.
 - Existing local surface ownership, external launch/API compatibility, playback completion, subtitles and root D-pad traversal in both distributions.
 
+## Queue lifecycle follow-up
+
+The November 13 [queue lifecycle repair](queue-lifecycle.md) retains portrait half/full queue and landscape full queue across background/foreground and same-orientation Activity recreation. Three targeted cases pass in each distribution on Pixel_6a API 37; panel geometry and paused intent are preserved. The broader acceptance runs below belong to preceding rounds.
+
 ## Device acceptance
 
 Latest device: the existing `Pixel_6a`, API 37, arm64 emulator. The initial implementation had also passed the same focused runs on `NextPlayer_Cast_QA_API35` (Android 15 / API 35); that AVD is now closed. Manual UI actions use the thread's Device panel and its returned `agent-device` CLI. The second parity round uses the project's AndroidX runner for acceptance and Compose screenshot artifacts. The UI session is closed before instrumentation to avoid concurrent UiAutomation ownership.
 
-Current dismissal-reference follow-up acceptance:
+Prior dismissal-reference follow-up acceptance:
 
 | Distribution | Tests | Result |
 | --- | ---: | --- |

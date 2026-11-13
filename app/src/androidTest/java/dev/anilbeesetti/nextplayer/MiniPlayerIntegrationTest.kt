@@ -42,6 +42,7 @@ import androidx.compose.ui.test.performTouchInput
 import androidx.compose.ui.test.swipeLeft
 import androidx.compose.ui.test.swipeRight
 import androidx.compose.ui.unit.dp
+import androidx.lifecycle.Lifecycle
 import androidx.media3.common.MediaItem
 import androidx.media3.common.MediaMetadata
 import androidx.media3.common.Player
@@ -254,6 +255,76 @@ class MiniPlayerIntegrationTest {
             context.getString(R.string.collapse_player),
         ).performClick()
         waitForMiniPlayer()
+    }
+
+    @Test
+    fun halfOpenQueueSurvivesBackgroundAndForeground() = checkQueueAfterBackground(full = false)
+
+    @Test
+    fun fullyOpenQueueSurvivesBackgroundAndForeground() = checkQueueAfterBackground(full = true)
+
+    @Test
+    fun landscapeQueueSurvivesBackgroundAndForeground() = checkQueueAfterBackground(
+        full = true,
+        landscape = true,
+    )
+
+    private fun checkQueueAfterBackground(full: Boolean, landscape: Boolean = false) {
+        onMain {
+            player.pause()
+            composeRule.activity.requestedOrientation = if (landscape) {
+                ActivityInfo.SCREEN_ORIENTATION_LANDSCAPE
+            } else {
+                ActivityInfo.SCREEN_ORIENTATION_PORTRAIT
+            }
+        }
+        await("queue orientation") {
+            (context.resources.configuration.orientation == Configuration.ORIENTATION_LANDSCAPE) ==
+                landscape
+        }
+        expand()
+        composeRule.onNodeWithTag("playback_queue_action").performClick()
+        composeRule.onNodeWithTag("playback_queue").assertIsDisplayed()
+        val fullTop = composeRule.onNodeWithTag(
+            "playback_queue",
+        ).fetchSemanticsNode().boundsInRoot.top
+        if (!full) {
+            onMain { composeRule.activity.onBackPressedDispatcher.onBackPressed() }
+        }
+        val before = composeRule.onNodeWithTag("playback_queue").fetchSemanticsNode().boundsInRoot
+        if (!full) {
+            assertTrue(
+                "Half queue must be below the full queue",
+                before.top > fullTop + 1f,
+            )
+        }
+        composeRule.activityRule.scenario.moveToState(Lifecycle.State.CREATED)
+        composeRule.waitForIdle()
+        composeRule.activityRule.scenario.moveToState(Lifecycle.State.RESUMED)
+        composeRule.waitUntil(10_000) {
+            composeRule.onAllNodesWithTag("expanded_player").fetchSemanticsNodes().isNotEmpty()
+        }
+        composeRule.onNodeWithTag("playback_queue").assertIsDisplayed()
+        val after = composeRule.onNodeWithTag("playback_queue").fetchSemanticsNode().boundsInRoot
+        assertEquals(
+            "Queue must keep its stage",
+            before.top,
+            after.top,
+            1f,
+        )
+        composeRule.activityRule.scenario.recreate()
+        composeRule.waitUntil(10_000) {
+            composeRule.onAllNodesWithTag("expanded_player").fetchSemanticsNodes().isNotEmpty()
+        }
+        composeRule.onNodeWithTag("playback_queue").assertIsDisplayed()
+        val restored = composeRule.onNodeWithTag("playback_queue").fetchSemanticsNode().boundsInRoot
+        assertEquals(
+            "Recreated queue must keep its stage",
+            before.top,
+            restored.top,
+            1f,
+        )
+        onMain { assertFalse(player.playWhenReady) }
     }
 
     @Test
