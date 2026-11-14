@@ -29,6 +29,11 @@ fun Sort.Order.name(sortBy: Sort.By): String {
             Sort.Order.ASCENDING -> R.string.oldest
             Sort.Order.DESCENDING -> R.string.newest
         }
+
+        Sort.By.WATCHED -> when (this) {
+            Sort.Order.ASCENDING -> R.string.unwatched
+            Sort.Order.DESCENDING -> R.string.watched
+        }
     }
 
     return stringResource(id = stringRes)

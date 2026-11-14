@@ -92,6 +92,7 @@ import androidx.compose.material.icons.rounded.TouchApp
 import androidx.compose.material.icons.rounded.Translate
 import androidx.compose.material.icons.rounded.Tune
 import androidx.compose.material.icons.rounded.Update
+import androidx.compose.material.icons.rounded.Visibility
 
 object NextIcons {
     val Add = Icons.Rounded.Add
@@ -186,4 +187,6 @@ object NextIcons {
     val Fingerprint = Icons.Rounded.Fingerprint
     val DragHandle = Icons.Rounded.DragHandle
     val Reorder = Icons.Rounded.SwapVert
+
+    val Watched = Icons.Rounded.Visibility
 }
