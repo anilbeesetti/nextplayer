@@ -1,8 +1,8 @@
 package dev.anilbeesetti.nextplayer.feature.player.cast
 
-import android.media.MediaExtractor
 import android.media.MediaFormat
 import androidx.core.net.toUri
+import androidx.media3.inspector.MediaExtractorCompat
 import androidx.test.ext.junit.runners.AndroidJUnit4
 import androidx.test.platform.app.InstrumentationRegistry
 import java.io.File
@@ -12,6 +12,7 @@ import kotlinx.coroutines.runBlocking
 import org.junit.Assert.assertArrayEquals
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertFalse
+import org.junit.Assert.assertNull
 import org.junit.Test
 import org.junit.runner.RunWith
 
@@ -21,19 +22,27 @@ class LocalCastAudioTest {
     fun japaneseRemuxPreservesCompressedVideoAndAudioAndOriginalFile() = runBlocking {
         val instrumentation = InstrumentationRegistry.getInstrumentation()
         val context = instrumentation.targetContext
-        val input = File.createTempFile(
-            "cast-audio-test-",
-            ".mkv",
-            context.cacheDir,
-        )
-        instrumentation.context.assets.open("cast-multi-audio.mkv").use { source ->
-            input.outputStream().use(source::copyTo)
+        // Allows checking a reported file without shipping copyrighted media in the test assets.
+        val supplied = InstrumentationRegistry.getArguments().getString("castAudioSource")
+        val input = supplied?.let {
+            File(
+                context.cacheDir,
+                it,
+            )
+        }
+            ?: File.createTempFile(
+                "cast-audio-test-",
+                ".mkv",
+                context.cacheDir,
+            )
+        if (supplied == null) {
+            instrumentation.context.assets.open("cast-multi-audio.mkv").use { source ->
+                input.outputStream().use(source::copyTo)
+            }
         }
         val audio = LocalCastAudio(context)
         try {
-            val originalHash = input.readBytes().let {
-                MessageDigest.getInstance("SHA-256").digest(it)
-            }
+            val originalHash = fileHash(input)
             val tracks = audio.inspect(input.toUri())
             assertEquals(
                 listOf(
@@ -75,9 +84,7 @@ class LocalCastAudioTest {
             )
             assertArrayEquals(
                 originalHash,
-                input.readBytes().let {
-                    MessageDigest.getInstance("SHA-256").digest(it)
-                },
+                fileHash(input),
             )
             audio.select(
                 input.toUri(),
@@ -90,6 +97,23 @@ class LocalCastAudioTest {
             )
             assertEquals(
                 1,
+                audio.selectedIndex(
+                    input.toUri(),
+                    tracks,
+                ),
+            )
+            assertEquals(
+                listOf(output),
+                output.parentFile?.listFiles()?.toList(),
+            )
+            audio.select(
+                input.toUri(),
+                0,
+                null,
+            )
+            assertNull(audio.sourceFor(input.toUri()))
+            assertEquals(
+                0,
                 audio.selectedIndex(
                     input.toUri(),
                     tracks,
@@ -137,8 +161,26 @@ class LocalCastAudioTest {
         }
     }
 
+    private fun fileHash(file: File): ByteArray {
+        val hash = MessageDigest.getInstance("SHA-256")
+        file.inputStream().use { input ->
+            val buffer = ByteArray(64 * 1024)
+            while (true) {
+                val count = input.read(buffer)
+                if (count < 0) break
+                hash.update(
+                    buffer,
+                    0,
+                    count,
+                )
+            }
+        }
+        return hash.digest()
+    }
+
     private fun samples(file: File, type: String, index: Int = 0): ByteArray {
-        val extractor = MediaExtractor()
+        val extractor =
+            MediaExtractorCompat(InstrumentationRegistry.getInstrumentation().targetContext)
         try {
             extractor.setDataSource(file.path)
             val track = (0 until extractor.trackCount).filter {

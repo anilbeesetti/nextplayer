@@ -1,15 +1,18 @@
 package dev.anilbeesetti.nextplayer.feature.player.cast
 
 import android.content.Context
-import android.media.MediaCodec
 import android.media.MediaExtractor
 import android.media.MediaFormat
-import android.media.MediaMuxer
 import android.net.Uri
-import android.os.Build
 import androidx.core.net.toUri
 import androidx.media3.common.Format
+import androidx.media3.common.util.MediaFormatUtil
 import androidx.media3.common.util.UnstableApi
+import androidx.media3.container.Mp4OrientationData
+import androidx.media3.inspector.MediaExtractorCompat
+import androidx.media3.muxer.BufferInfo
+import androidx.media3.muxer.Mp4Muxer
+import androidx.media3.muxer.SeekableMuxerOutput
 import java.io.File
 import java.nio.ByteBuffer
 import kotlinx.coroutines.currentCoroutineContext
@@ -30,9 +33,13 @@ internal class LocalCastAudio(private val context: Context) {
     fun selectedIndex(uri: Uri, tracks: List<Track>): Int = selections[uri]
         ?: tracks.indexOfFirst { it.isDefault }.takeIf { it >= 0 } ?: 0
 
-    fun select(uri: Uri, index: Int, file: File) {
-        copies[uri to index] = file
-        selections[uri] = index
+    fun select(uri: Uri, index: Int, file: File?) {
+        if (file == null) {
+            selections.remove(uri)
+        } else {
+            copies[uri to index] = file
+            selections[uri] = index
+        }
     }
 
     fun cached(uri: Uri, index: Int): File? = copies[uri to index]?.takeIf { it.isFile }
@@ -56,6 +63,7 @@ internal class LocalCastAudio(private val context: Context) {
     }
 
     /** Copy compressed packets, not decoded frames: no quality loss or video encoding load. */
+    // shortcut: MP4-compatible codecs only, add transcoding if other codecs need Cast support.
     suspend fun remux(uri: Uri, audioTrack: Track): File {
         check(directory.isDirectory || directory.mkdirs())
         val output = File.createTempFile(
@@ -63,18 +71,40 @@ internal class LocalCastAudio(private val context: Context) {
             ".mp4",
             directory,
         )
+        var inputFile: File? = null
         try {
-            withExtractor(uri) { extractor ->
+            // Shared-storage FUSE reads are costly per packet; stage the input with larger reads.
+            inputFile = File.createTempFile(
+                "source-",
+                ".media",
+                directory,
+            )
+            checkNotNull(context.contentResolver.openInputStream(uri)).use { input ->
+                inputFile.outputStream().use { copy ->
+                    val buffer = ByteArray(256 * 1024)
+                    while (true) {
+                        currentCoroutineContext().ensureActive()
+                        val count = input.read(buffer)
+                        if (count < 0) break
+                        copy.write(
+                            buffer,
+                            0,
+                            count,
+                        )
+                    }
+                }
+            }
+            withExtractor(inputFile.toUri()) { extractor ->
                 val videoIndex = (0 until extractor.trackCount).firstOrNull {
                     extractor.getTrackFormat(
                         it,
                     ).getString(MediaFormat.KEY_MIME)?.startsWith("video/") ==
                         true
                 } ?: error("No video track")
-                val muxer = MediaMuxer(
-                    output.path,
-                    MediaMuxer.OutputFormat.MUXER_OUTPUT_MPEG_4,
-                )
+                val muxer = Mp4Muxer.Builder(SeekableMuxerOutput.of(output.path))
+                    .setSampleBatchingEnabled(true)
+                    .setSampleCopyingEnabled(true)
+                    .build()
                 try {
                     val sources = listOf(
                         videoIndex,
@@ -82,20 +112,18 @@ internal class LocalCastAudio(private val context: Context) {
                     )
                     val tracks = sources.associateWith { source ->
                         extractor.selectTrack(source)
-                        val format = extractor.getTrackFormat(source)
-                        if (source == videoIndex && format.containsKey(MediaFormat.KEY_ROTATION)) {
-                            muxer.setOrientationHint(format.getInteger(MediaFormat.KEY_ROTATION))
+                        val format = MediaFormatUtil.createFormatFromMediaFormat(
+                            extractor.getTrackFormat(source),
+                        )
+                        if (source == videoIndex) {
+                            muxer.addMetadataEntry(Mp4OrientationData(format.rotationDegrees))
                         }
                         muxer.addTrack(format)
                     }
                     var buffer = ByteBuffer.allocateDirect(DEFAULT_BUFFER_SIZE)
-                    val info = MediaCodec.BufferInfo()
-                    muxer.start()
                     while (extractor.sampleTrackIndex >= 0) {
                         currentCoroutineContext().ensureActive()
-                        if (Build.VERSION.SDK_INT >= 28 &&
-                            extractor.sampleSize > buffer.capacity()
-                        ) {
+                        if (extractor.sampleSize > buffer.capacity()) {
                             require(extractor.sampleSize <= MAX_SAMPLE_SIZE) {
                                 "Oversized media sample"
                             }
@@ -112,28 +140,29 @@ internal class LocalCastAudio(private val context: Context) {
                             0,
                         )
                         if (size < 0) break
-                        info.set(
-                            0,
-                            size,
-                            extractor.sampleTime,
-                            extractor.sampleFlags and MediaExtractor.SAMPLE_FLAG_SYNC,
-                        )
+                        buffer.position(0)
+                        buffer.limit(size)
                         muxer.writeSampleData(
                             checkNotNull(tracks[extractor.sampleTrackIndex]),
                             buffer,
-                            info,
+                            BufferInfo(
+                                extractor.sampleTime,
+                                size,
+                                extractor.sampleFlags and MediaExtractor.SAMPLE_FLAG_SYNC,
+                            ),
                         )
                         extractor.advance()
                     }
-                    muxer.stop()
                 } finally {
-                    muxer.release()
+                    muxer.close()
                 }
             }
             return output
         } catch (error: Throwable) {
             output.delete()
             throw error
+        } finally {
+            inputFile?.delete()
         }
     }
 
@@ -143,8 +172,8 @@ internal class LocalCastAudio(private val context: Context) {
         directory.deleteRecursively()
     }
 
-    private inline fun <T> withExtractor(uri: Uri, block: (MediaExtractor) -> T): T {
-        val extractor = MediaExtractor()
+    private inline fun <T> withExtractor(uri: Uri, block: (MediaExtractorCompat) -> T): T {
+        val extractor = MediaExtractorCompat(context)
         try {
             extractor.setDataSource(
                 context,

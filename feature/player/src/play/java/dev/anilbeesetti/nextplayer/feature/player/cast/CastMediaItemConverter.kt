@@ -25,6 +25,7 @@ import java.net.Inet4Address
 internal class CastMediaItemConverter(
     private val context: Context,
     private val server: LocalCastServer,
+    private val audioSource: (Uri) -> Uri? = { null },
 ) : MediaItemConverter {
     private val delegate = DefaultMediaItemConverter()
     private val originals = mutableMapOf<String, MediaItem>()
@@ -40,15 +41,22 @@ internal class CastMediaItemConverter(
     override fun toMediaQueueItem(item: MediaItem): MediaQueueItem {
         val configuration = checkNotNull(item.localConfiguration)
         val uri = configuration.uri
-        val mimeType = configuration.mimeType ?: mimeType(
-            uri,
-            item.mediaMetadata.title,
-        )
+        val preparedAudio = audioSource(uri)
+        val mimeType = if (preparedAudio !=
+            null
+        ) {
+            "video/mp4"
+        } else {
+            configuration.mimeType ?: mimeType(
+                uri,
+                item.mediaMetadata.title,
+            )
+        }
         val original = item.buildUpon().setMimeType(mimeType).build()
         val defaultInfo = checkNotNull(delegate.toMediaQueueItem(original).media)
         originals[key(item)] = item
         val url = receiverUrl(
-            uri,
+            preparedAudio ?: uri,
             mimeType,
         )
         val subtitles = configuration.subtitleConfigurations

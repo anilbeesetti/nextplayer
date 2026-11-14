@@ -71,6 +71,8 @@ dependencies {
     implementation(libs.reorderable)
 
     "playImplementation"(libs.androidx.media3.cast)
+    "playImplementation"(libs.androidx.media3.inspector)
+    "playImplementation"(libs.androidx.media3.muxer)
     "playImplementation"(libs.nanohttpd)
 
     // Media3

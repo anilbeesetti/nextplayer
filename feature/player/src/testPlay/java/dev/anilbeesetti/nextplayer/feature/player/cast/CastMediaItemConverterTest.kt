@@ -119,6 +119,26 @@ class CastMediaItemConverterTest {
             item,
             converter.toMediaItem(queueItem),
         )
+        val originalMkv = item.buildUpon().setUri(
+            "file:///movie.mkv",
+        ).setMimeType("video/x-matroska").build()
+        val preparedConverter = CastMediaItemConverter(
+            context,
+            server,
+        ) { Uri.parse("file:///cache/japanese.mp4") }
+        val prepared = preparedConverter.toMediaQueueItem(originalMkv)
+        assertEquals(
+            "video/mp4",
+            prepared.media?.contentType,
+        )
+        assertNotEquals(
+            info.contentUrl,
+            prepared.media?.contentUrl,
+        )
+        assertSame(
+            originalMkv,
+            preparedConverter.toMediaItem(prepared),
+        )
         converter.clear()
         assertEquals(
             item.localConfiguration?.uri,

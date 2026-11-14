@@ -38,9 +38,12 @@ internal class PlaybackOutput(
         context,
         DefaultDataSource.Factory(context),
     )
+    private val localAudio = LocalCastAudio(context)
+    private var localAudioPlayer: LocalCastAudioPlayer? = null
     private val converter = CastMediaItemConverter(
         context,
         server,
+        localAudio::sourceFor,
     )
     private var transfer: CastTransferCallback? = null
     private var sessionManager: SessionManager? = null
@@ -327,12 +330,23 @@ internal class PlaybackOutput(
                 })
                 output.addListener(
                     CastResourceCleanup(output) {
+                        localAudioPlayer?.clear()
                         server.stop()
                         converter.clear()
                     },
                 )
             }
             .let { output -> ReceiverSyncedPlayer(output).also { syncedPlayer = it } }
+            .let { output ->
+                LocalCastAudioPlayer(
+                    context,
+                    output,
+                    localAudio,
+                ).also {
+                    localAudioPlayer =
+                        it
+                }
+            }
     } catch (error: RuntimeException) {
         Logger.logError(
             "Cast",
@@ -631,6 +645,7 @@ internal class PlaybackOutput(
     }
 
     fun onStop() {
+        localAudioPlayer?.clear()
         stopRetryScan()
         rejectRemoteTransfers = true
         stopping = true
