@@ -9,11 +9,15 @@ import android.widget.Toast
 import androidx.core.content.getSystemService
 import androidx.media3.cast.DefaultMediaItemConverter
 import androidx.media3.cast.MediaItemConverter
+import androidx.media3.common.C
 import androidx.media3.common.MediaItem
+import androidx.media3.common.MimeTypes
 import androidx.media3.common.util.UnstableApi
 import com.google.android.gms.cast.MediaInfo
 import com.google.android.gms.cast.MediaQueueItem
+import com.google.android.gms.cast.MediaTrack
 import dev.anilbeesetti.nextplayer.core.ui.R
+import dev.anilbeesetti.nextplayer.feature.player.extensions.getSubtitleMime
 import java.net.Inet4Address
 
 @UnstableApi
@@ -42,7 +46,53 @@ internal class CastMediaItemConverter(
         val original = item.buildUpon().setMimeType(mimeType).build()
         val defaultInfo = checkNotNull(delegate.toMediaQueueItem(original).media)
         originals[key(item)] = item
-        val url = if (uri.scheme in setOf(
+        val url = receiverUrl(
+            uri,
+            mimeType,
+        )
+        val subtitles = configuration.subtitleConfigurations
+        val tracks = subtitles.mapIndexed { index, subtitle ->
+            val type = subtitle.mimeType ?: subtitle.uri.getSubtitleMime()
+            val convert = type != MimeTypes.TEXT_VTT && type != MimeTypes.APPLICATION_TTML
+            MediaTrack.Builder(
+                index.toLong() + 1,
+                MediaTrack.TYPE_TEXT,
+            )
+                .setSubtype(MediaTrack.SUBTYPE_SUBTITLES)
+                .setContentId(
+                    receiverUrl(
+                        subtitle.uri,
+                        if (convert) MimeTypes.TEXT_VTT else type,
+                        type.takeIf {
+                            convert
+                        },
+                    ),
+                )
+                .setContentType(if (convert) MimeTypes.TEXT_VTT else type)
+                .setName(subtitle.label)
+                .setLanguage(subtitle.language)
+                .build()
+        }
+        // Keep the original URI in customData, so transfer back never opens our HTTP URL.
+        val info = MediaInfo.Builder(defaultInfo.contentId)
+            .setContentUrl(url)
+            .setContentType(mimeType)
+            .setStreamType(defaultInfo.streamType)
+            .setMetadata(defaultInfo.metadata)
+            .setCustomData(defaultInfo.customData)
+            .setMediaTracks(tracks)
+            .apply { item.mediaMetadata.durationMs?.let { setStreamDuration(it) } }
+            .build()
+        val selected = subtitles.indexOfFirst {
+            it.selectionFlags and C.SELECTION_FLAG_DEFAULT != 0
+        }
+        return MediaQueueItem.Builder(info)
+            .apply { if (selected >= 0) setActiveTrackIds(longArrayOf(tracks[selected].id)) }
+            .build()
+    }
+
+    private fun receiverUrl(uri: Uri, mimeType: String, subtitleMimeType: String? = null): String =
+        if (subtitleMimeType == null && uri.scheme in setOf(
                 "http",
                 "https",
             )
@@ -54,12 +104,15 @@ internal class CastMediaItemConverter(
                     uri.scheme in setOf(
                         "content",
                         "file",
+                        "http",
+                        "https",
                     ),
                 )
                 server.register(
                     uri,
                     mimeType,
                     host ?: localAddress().also { host = it },
+                    subtitleMimeType,
                 )
             } catch (_: Exception) {
                 Toast.makeText(
@@ -71,17 +124,6 @@ internal class CastMediaItemConverter(
                 uri.toString()
             }
         }
-        // Keep the original URI in customData, so transfer back never opens our HTTP URL.
-        val info = MediaInfo.Builder(defaultInfo.contentId)
-            .setContentUrl(url)
-            .setContentType(mimeType)
-            .setStreamType(defaultInfo.streamType)
-            .setMetadata(defaultInfo.metadata)
-            .setCustomData(defaultInfo.customData)
-            .apply { item.mediaMetadata.durationMs?.let { setStreamDuration(it) } }
-            .build()
-        return MediaQueueItem.Builder(info).build()
-    }
 
     fun clear() {
         originals.clear()

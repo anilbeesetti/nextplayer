@@ -291,7 +291,10 @@ internal class PlaybackOutput(
     }
 
     val player: Player = try {
-        val remote = RemoteCastPlayer.Builder(context).setMediaItemConverter(converter).build()
+        val remote = RemoteCastPlayer.Builder(context)
+            .setMediaItemConverter(converter)
+            .setTrackSelector(ReceiverTrackSelector())
+            .build()
         remotePlayer = remote
         val callback = CastTransferCallback(
             remote,

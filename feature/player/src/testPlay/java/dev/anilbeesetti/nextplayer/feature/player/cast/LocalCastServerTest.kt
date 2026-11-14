@@ -3,6 +3,7 @@ package dev.anilbeesetti.nextplayer.feature.player.cast
 import android.content.Context
 import android.net.Uri
 import android.net.wifi.WifiManager
+import androidx.media3.common.MimeTypes
 import androidx.media3.datasource.ByteArrayDataSource
 import androidx.media3.datasource.DataSource
 import java.net.HttpURLConnection
@@ -36,6 +37,44 @@ class LocalCastServerTest {
 
     @After
     fun tearDown() = server.stop()
+
+    @Test
+    fun subtitlesAreConvertedOffThePlaybackThreadAndServedWithCors() {
+        val subtitles = LocalCastServer(
+            RuntimeEnvironment.getApplication(),
+            DataSource.Factory {
+                ByteArrayDataSource("1\n00:00:01,000 --> 00:00:02,000\nHello\n".toByteArray())
+            },
+        )
+        try {
+            val url = subtitles.register(
+                uri,
+                MimeTypes.TEXT_VTT,
+                "127.0.0.1",
+                MimeTypes.APPLICATION_SUBRIP,
+            )
+            (URL(url).openConnection() as HttpURLConnection).useResponse {
+                assertEquals(
+                    200,
+                    responseCode,
+                )
+                assertEquals(
+                    MimeTypes.TEXT_VTT,
+                    contentType,
+                )
+                assertEquals(
+                    "*",
+                    getHeaderField("Access-Control-Allow-Origin"),
+                )
+                assertEquals(
+                    "WEBVTT\n\n00:00:01.000 --> 00:00:02.000\nHello\n\n",
+                    inputStream.bufferedReader().readText(),
+                )
+            }
+        } finally {
+            subtitles.stop()
+        }
+    }
 
     @Test
     fun getStreamsCompleteVideoWithMimeAndLength() {
