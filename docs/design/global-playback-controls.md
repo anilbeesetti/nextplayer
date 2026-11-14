@@ -99,3 +99,21 @@ The user requested these refinements after using the installed build. They super
 - End-to-start swipes remove queue occurrences, with the compact player's resistance, spring and single long-press haptic when the swipe breaks free. RTL reverses the gesture. Keep accessible button alternatives, command gating and the final-item guard; the drag handle must not start removal.
 - Keep reorder feedback synchronized with the observed media queue before accepting another move. Removing the current final row selects the previous video first so earlier items remain active, preserving playing/paused intent; require the necessary seek command.
 - Nested browsing/settings/form backgrounds remain full-height and scroll behind the compact overlay. Apply its reservation to scroll content and bottom actions, counting system bars once; hide the collapsed tab bar's gradient with its drawing, without changing the persistent overlay's mounting.
+
+## Artwork aspect ratio follow-up
+
+- Use 16:10 artwork in the mini player, expanded controls (portrait and landscape), queue banner/header and queue list items. This supersedes the square-artwork sizing above; keep the compact and queue row heights unchanged.
+- Verified on a disposable Pixel 6a profile, API 35: mini player, expanded portrait/landscape controls, queue header and rows. [Square sizing versus 16:10 screenshots](player-artwork-16-10.png).
+
+## Debug artwork preferences
+
+- Debug builds expose Developer settings with two independent, inline choices: Controls artwork style and Queue artwork style. Each offers Audio style (square) and Video style (16:10), defaulting to video.
+- Controls style covers the mini player, expanded portrait/landscape controls and their queue-header/banner animation. Queue style covers list-item artwork, including the full-screen video queue. Audio restores the original square dimensions without changing row heights.
+- Choices persist across restarts. Release builds hide the developer entry, do not register its destination and ignore artwork overrides, retaining 16:10 artwork.
+- Verified mixed styles and persistence on a disposable Pixel 6a profile, API 35, and confirmed the developer entry is absent in a minified release build. [Debug choices and release settings](developer-artwork-settings.png).
+
+## Video-style queue rows
+
+- Only Video style queue artwork uses two-line titles and a bottom-end duration badge over the thumbnail. The badge keeps the full duration readable against the image and fits long durations at large text sizes.
+- Audio style retains its original one-line title and supporting duration underneath. Selection, reorder, removal and unknown-duration markers are unchanged in both queue presentations.
+- Verified both styles on a disposable Pixel 6a profile, API 35, with long titles and large RTL duration coverage in both distributions. [Audio and video queue rows](queue-artwork-styles.png).

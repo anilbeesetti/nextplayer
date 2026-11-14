@@ -1,5 +1,11 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
+    <string name="developer_settings">Developer settings</string>
+    <string name="developer_settings_description">Experimental playback appearance</string>
+    <string name="controls_artwork_style">Controls artwork style</string>
+    <string name="queue_artwork_style">Queue artwork style</string>
+    <string name="artwork_audio_style">Audio style (square)</string>
+    <string name="artwork_video_style">Video style (16:10)</string>
     <string name="settings_export">Export settings</string>
     <string name="settings_export_description">Save settings to a JSON file</string>
     <string name="settings_import">Import settings</string>

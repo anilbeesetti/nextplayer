@@ -3,6 +3,7 @@ package dev.anilbeesetti.nextplayer.feature.player
 import androidx.activity.ComponentActivity
 import androidx.compose.ui.semantics.SemanticsActions
 import androidx.compose.ui.test.assertIsDisplayed
+import androidx.compose.ui.test.getUnclippedBoundsInRoot
 import androidx.compose.ui.test.junit4.v2.createAndroidComposeRule
 import androidx.compose.ui.test.onNodeWithContentDescription
 import androidx.compose.ui.test.onNodeWithTag
@@ -43,6 +44,20 @@ class MiniPlayerTest {
         composeRule.runOnIdle { assertTrue(player.playWhenReady) }
         composeRule.onNodeWithContentDescription(text(R.string.pause_playback)).performClick()
         composeRule.runOnIdle { assertFalse(player.playWhenReady) }
+    }
+
+    @Test
+    fun artworkIsSixteenByTen() {
+        showPlayer()
+        val artwork = composeRule.onNodeWithTag(
+            "compact_artwork",
+            useUnmergedTree = true,
+        ).getUnclippedBoundsInRoot()
+        assertEquals(
+            16f / 10f,
+            (artwork.right - artwork.left) / (artwork.bottom - artwork.top),
+            .01f,
+        )
     }
 
     @Test

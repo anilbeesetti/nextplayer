@@ -13,6 +13,10 @@ android {
         minSdk = libs.versions.android.minSdk.get().toInt()
     }
 
+    buildFeatures {
+        buildConfig = true
+    }
+
     compileOptions {
         sourceCompatibility = JavaVersion.toVersion(libs.versions.android.jvm.get().toInt())
         targetCompatibility = JavaVersion.toVersion(libs.versions.android.jvm.get().toInt())

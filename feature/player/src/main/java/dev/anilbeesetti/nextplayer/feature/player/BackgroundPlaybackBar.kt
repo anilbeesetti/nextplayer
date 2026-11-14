@@ -58,6 +58,8 @@ import dev.anilbeesetti.nextplayer.feature.player.service.PlaybackConnection
 import dev.anilbeesetti.nextplayer.feature.player.state.PlaybackSnapshot
 import dev.anilbeesetti.nextplayer.feature.player.state.rememberPlaybackSnapshot
 
+internal const val PlaybackArtworkAspectRatio = 16f / 10f
+
 @Composable
 internal fun MiniPlayer(
     player: Player,
@@ -128,7 +130,11 @@ internal fun MiniPlayer(
             ) {
                 PlaybackArtwork(
                     snapshot,
-                    Modifier.size(44.dp).testTag("compact_artwork").then(artworkModifier),
+                    Modifier.size(
+                        width = 44.dp * LocalControlsArtworkAspectRatio.current,
+                        height = 44.dp,
+                    )
+                        .testTag("compact_artwork").then(artworkModifier),
                     RoundedCornerShape(8.dp),
                     artworkPainter,
                 )

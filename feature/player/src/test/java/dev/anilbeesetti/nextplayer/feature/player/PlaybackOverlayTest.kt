@@ -81,6 +81,75 @@ class PlaybackOverlayTest {
 
     @After fun tearDown() = composeRule.runOnIdle { player.release() }
 
+    @Test fun squareControlsRestoreOriginalSizingWithoutChangingVideoQueueRows() {
+        show(controlsArtworkRatio = 1f)
+        val compact = composeRule.onNodeWithTag(
+            "compact_artwork",
+            true,
+        ).getUnclippedBoundsInRoot()
+        assertEquals(
+            44.dp,
+            compact.right - compact.left,
+        )
+        assertEquals(
+            44.dp,
+            compact.bottom - compact.top,
+        )
+        composeRule.onNodeWithTag("mini_player").performSemanticsAction(SemanticsActions.OnClick) {
+            it()
+        }
+        val expanded = composeRule.onNodeWithTag("playback_artwork").getUnclippedBoundsInRoot()
+        assertEquals(
+            expanded.right - expanded.left,
+            expanded.bottom - expanded.top,
+        )
+        composeRule.onNodeWithTag("playback_queue_action").performClick()
+        val row = composeRule.onNodeWithTag(
+            "queue_artwork_0",
+            true,
+        ).getUnclippedBoundsInRoot()
+        assertEquals(
+            96.dp,
+            row.right - row.left,
+        )
+        assertEquals(
+            60.dp,
+            row.bottom - row.top,
+        )
+        val header = composeRule.onNodeWithTag(
+            "queue_artwork",
+            true,
+        ).getUnclippedBoundsInRoot()
+        assertEquals(
+            header.right - header.left,
+            header.bottom - header.top,
+        )
+    }
+
+    @Test fun squareQueueRowsDoNotChangeVideoControls() {
+        expanded = true
+        show(queueArtworkRatio = 1f)
+        val artwork = composeRule.onNodeWithTag("playback_artwork").getUnclippedBoundsInRoot()
+        assertEquals(
+            16f / 10f,
+            (artwork.right - artwork.left) / (artwork.bottom - artwork.top),
+            .01f,
+        )
+        composeRule.onNodeWithTag("playback_queue_action").performClick()
+        val row = composeRule.onNodeWithTag(
+            "queue_artwork_0",
+            true,
+        ).getUnclippedBoundsInRoot()
+        assertEquals(
+            60.dp,
+            row.right - row.left,
+        )
+        assertEquals(
+            60.dp,
+            row.bottom - row.top,
+        )
+    }
+
     @Test fun tapAndBackExpandAndCollapseTheSameSession() {
         show()
         composeRule.onNodeWithTag("mini_player").performSemanticsAction(SemanticsActions.OnClick) {
@@ -638,6 +707,11 @@ class PlaybackOverlayTest {
             "playback_output_actions",
         ).getUnclippedBoundsInRoot()
         assertTrue(artwork.right < metadata.left)
+        assertEquals(
+            16f / 10f,
+            (artwork.right - artwork.left) / (artwork.bottom - artwork.top),
+            .01f,
+        )
         assertTrue(actions.top >= metadata.top && actions.bottom <= metadata.bottom)
     }
 
@@ -1061,15 +1135,16 @@ class PlaybackOverlayTest {
         assertTrue(layouts.single().layoutInput.constraints.hasBoundedWidth)
     }
 
-    @Test fun portraitArtworkIsSquareAndTransportModesHaveSeparateRows() {
+    @Test fun portraitArtworkIsSixteenByTenAndTransportModesHaveSeparateRows() {
         expanded = true
         show()
         val artwork = composeRule.onNodeWithTag("playback_artwork").getUnclippedBoundsInRoot()
         val transport = composeRule.onNodeWithTag("playback_transport").getUnclippedBoundsInRoot()
         val modes = composeRule.onNodeWithTag("playback_modes").getUnclippedBoundsInRoot()
         assertEquals(
-            artwork.right - artwork.left,
-            artwork.bottom - artwork.top,
+            16f / 10f,
+            (artwork.right - artwork.left) / (artwork.bottom - artwork.top),
+            .01f,
         )
         val metadata = composeRule.onNodeWithTag("playback_metadata").getUnclippedBoundsInRoot()
         assertEquals(
@@ -1105,10 +1180,14 @@ class PlaybackOverlayTest {
         connection: PlaybackConnection = PlaybackConnection.LOCAL,
         largeText: Boolean = false,
         deviceName: String = "TV",
+        controlsArtworkRatio: Float = 16f / 10f,
+        queueArtworkRatio: Float = 16f / 10f,
     ) {
         composeRule.setContent {
             val density = LocalDensity.current
             CompositionLocalProvider(
+                LocalControlsArtworkAspectRatio provides controlsArtworkRatio,
+                LocalQueueArtworkAspectRatio provides queueArtworkRatio,
                 LocalDensity provides Density(
                     density.density,
                     if (largeText) 2f else 1f,
