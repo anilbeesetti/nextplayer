@@ -231,13 +231,6 @@ fun ControlsBottomView(
                     alignment = controlsAlignment,
                 ),
             ) {
-                if (useCompactControls) {
-                    PlaybackSpeedButton(
-                        player = player,
-                        onClick = onPlaybackSpeedClick,
-                    )
-                    RotateButton()
-                }
                 PlayerButton(onClick = onLockControlsClick) {
                     Icon(
                         painter = painterResource(R.drawable.ic_lock_open),
@@ -269,6 +262,13 @@ fun ControlsBottomView(
                 }
                 LoopButton(player = player)
                 ShuffleButton(player = player)
+                if (useCompactControls) {
+                    PlaybackSpeedButton(
+                        player = player,
+                        onClick = onPlaybackSpeedClick,
+                    )
+                    RotateButton()
+                }
             }
         }
     }

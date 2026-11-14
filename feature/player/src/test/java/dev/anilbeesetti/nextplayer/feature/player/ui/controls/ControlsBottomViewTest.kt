@@ -21,6 +21,7 @@ import androidx.compose.ui.test.onAllNodesWithContentDescription
 import androidx.compose.ui.test.onNodeWithContentDescription
 import androidx.compose.ui.test.onNodeWithText
 import androidx.compose.ui.test.performKeyInput
+import androidx.compose.ui.test.performScrollTo
 import androidx.compose.ui.test.performTouchInput
 import androidx.compose.ui.test.pressKey
 import androidx.compose.ui.test.requestFocus
@@ -191,6 +192,22 @@ class ControlsBottomViewTest {
             val seekbarBounds = composeRule.onNode(
                 SemanticsMatcher.keyIsDefined(SemanticsProperties.ProgressBarRangeInfo),
             ).fetchSemanticsNode().boundsInRoot
+            if (compact) {
+                composeRule.onNodeWithContentDescription(
+                    composeRule.activity.getString(R.string.screen_rotation),
+                ).performScrollTo()
+                val shuffle = composeRule.onNodeWithContentDescription(
+                    composeRule.activity.getString(R.string.shuffle_off),
+                ).fetchSemanticsNode().boundsInRoot
+                val speed = composeRule.onNodeWithContentDescription(
+                    composeRule.activity.getString(R.string.select_playback_speed),
+                ).fetchSemanticsNode().boundsInRoot
+                val rotation = composeRule.onNodeWithContentDescription(
+                    composeRule.activity.getString(R.string.screen_rotation),
+                ).fetchSemanticsNode().boundsInRoot
+                assertTrue(speed.left >= shuffle.right)
+                assertTrue(rotation.left >= speed.right)
+            }
             listOf(
                 R.string.select_playback_speed,
                 R.string.screen_rotation,
