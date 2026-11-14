@@ -131,7 +131,7 @@ internal fun MiniPlayer(
                 PlaybackArtwork(
                     snapshot,
                     Modifier.size(
-                        width = 44.dp * PlaybackArtworkAspectRatio,
+                        width = 44.dp * LocalControlsArtworkAspectRatio.current,
                         height = 44.dp,
                     )
                         .testTag("compact_artwork").then(artworkModifier),

@@ -104,3 +104,10 @@ The user requested these refinements after using the installed build. They super
 
 - Use 16:10 artwork in the mini player, expanded controls (portrait and landscape), queue banner/header and queue list items. This supersedes the square-artwork sizing above; keep the compact and queue row heights unchanged.
 - Verified on a disposable Pixel 6a profile, API 35: mini player, expanded portrait/landscape controls, queue header and rows. [Square sizing versus 16:10 screenshots](player-artwork-16-10.png).
+
+## Debug artwork preferences
+
+- Debug builds expose Developer settings with two independent, inline choices: Controls artwork style and Queue artwork style. Each offers Audio style (square) and Video style (16:10), defaulting to video.
+- Controls style covers the mini player, expanded portrait/landscape controls and their queue-header/banner animation. Queue style covers list-item artwork, including the full-screen video queue. Audio restores the original square dimensions without changing row heights.
+- Choices persist across restarts. Release builds hide the developer entry, do not register its destination and ignore artwork overrides, retaining 16:10 artwork.
+- Verified mixed styles and persistence on a disposable Pixel 6a profile, API 35, and confirmed the developer entry is absent in a minified release build. [Debug choices and release settings](developer-artwork-settings.png).

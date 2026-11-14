@@ -146,6 +146,7 @@ internal fun ExpandedPlaybackControls(
     headerModifier: Modifier = Modifier,
     queueSheet: PlaybackQueueSheet = rememberPlaybackQueueSheet(),
 ) {
+    val artworkAspectRatio = LocalControlsArtworkAspectRatio.current
     var titleWidth by remember(title) { mutableIntStateOf(0) }
     val collapseFocus = remember { FocusRequester() }
     LaunchedEffect(interactive) {
@@ -369,6 +370,7 @@ internal fun ExpandedPlaybackControls(
                     constraints.maxWidth,
                     constraints.maxHeight,
                     density,
+                    artworkAspectRatio,
                 ) {
                     QueueStageGeometry(
                         constraints.maxWidth.toFloat(),
@@ -376,6 +378,7 @@ internal fun ExpandedPlaybackControls(
                         topInset = 0f,
                         blockHeight = 0f,
                         density,
+                        artworkAspectRatio,
                     )
                 }
                 LaunchedEffect(
@@ -407,9 +410,9 @@ internal fun ExpandedPlaybackControls(
                         val startGutter = 24.dp
                         val artworkWidth = minOf(
                             maxWidth - startGutter,
-                            maxHeight * PlaybackArtworkAspectRatio,
+                            maxHeight * artworkAspectRatio,
                         )
-                        val artworkHeight = artworkWidth / PlaybackArtworkAspectRatio
+                        val artworkHeight = artworkWidth / artworkAspectRatio
                         val endInset = (maxWidth - startGutter - artworkWidth) / 2
                         val startInset = startGutter + endInset
                         PlaybackArtworkCarousel(
@@ -557,6 +560,7 @@ internal fun ExpandedPlaybackControls(
                     metadataBounds.bottom,
                     transportBounds.bottom,
                     density,
+                    artworkAspectRatio,
                 ) {
                     QueueStageGeometry(
                         constraints.maxWidth.toFloat(),
@@ -568,6 +572,7 @@ internal fun ExpandedPlaybackControls(
                             0f,
                         ),
                         density,
+                        artworkAspectRatio,
                     )
                 }
                 LaunchedEffect(
@@ -674,9 +679,9 @@ internal fun ExpandedPlaybackControls(
                         ) {
                             val artworkWidth = minOf(
                                 maxWidth - 48.dp,
-                                maxHeight * PlaybackArtworkAspectRatio,
+                                maxHeight * artworkAspectRatio,
                             ).coerceAtLeast(0.dp)
-                            val artworkHeight = artworkWidth / PlaybackArtworkAspectRatio
+                            val artworkHeight = artworkWidth / artworkAspectRatio
                             val side = (maxWidth - artworkWidth) / 2
                             PlaybackArtworkCarousel(
                                 player,

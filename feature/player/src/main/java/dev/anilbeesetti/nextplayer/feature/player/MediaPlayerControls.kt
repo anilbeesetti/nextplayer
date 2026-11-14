@@ -114,6 +114,8 @@ internal fun MediaPlayerControls(
     CompositionLocalProvider(
         LocalControlsVisibilityState provides controlsVisibilityState,
         LocalUseMaterialYouControls provides playerPreferences.useMaterialYouControls,
+        LocalQueueArtworkAspectRatio provides
+            artworkAspectRatio(playerPreferences.queueArtworkStyle),
     ) {
         Box(
             modifier = modifier

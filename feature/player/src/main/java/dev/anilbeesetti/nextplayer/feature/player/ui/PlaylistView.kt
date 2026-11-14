@@ -67,8 +67,8 @@ import androidx.media3.common.util.UnstableApi
 import dev.anilbeesetti.nextplayer.core.common.Utils
 import dev.anilbeesetti.nextplayer.core.ui.R
 import dev.anilbeesetti.nextplayer.core.ui.components.tvFocusRing
+import dev.anilbeesetti.nextplayer.feature.player.LocalQueueArtworkAspectRatio
 import dev.anilbeesetti.nextplayer.feature.player.PlaybackArtwork
-import dev.anilbeesetti.nextplayer.feature.player.PlaybackArtworkAspectRatio
 import dev.anilbeesetti.nextplayer.feature.player.state.PlaybackSnapshot
 import dev.anilbeesetti.nextplayer.feature.player.state.rememberPlaylistState
 import kotlinx.coroutines.delay
@@ -104,6 +104,7 @@ internal fun PlaybackQueueContent(
     modifier: Modifier = Modifier,
     showHeader: Boolean = true,
 ) {
+    val artworkAspectRatio = LocalQueueArtworkAspectRatio.current
     val queue = rememberPlaylistState(player)
     val list = rememberLazyListState()
     val haptics = LocalHapticFeedback.current
@@ -295,7 +296,8 @@ internal fun PlaybackQueueContent(
                                                     },
                                                 ),
                                                 Modifier.size(
-                                                    width = 60.dp * PlaybackArtworkAspectRatio,
+                                                    width =
+                                                        60.dp * artworkAspectRatio,
                                                     height = 60.dp,
                                                 ).testTag("queue_artwork_$index"),
                                                 RoundedCornerShape(8.dp),

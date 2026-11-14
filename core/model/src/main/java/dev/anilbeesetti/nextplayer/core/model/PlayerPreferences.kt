@@ -44,6 +44,10 @@ data class PlayerPreferences(
     val useMaterialYouControls: Boolean = false,
     val showRemainingTime: Boolean = false,
 
+    // Debug-only presentation overrides; release builds always use video artwork.
+    val controlsArtworkStyle: ArtworkStyle = ArtworkStyle.VIDEO,
+    val queueArtworkStyle: ArtworkStyle = ArtworkStyle.VIDEO,
+
     // Audio Preferences
     val preferredAudioLanguage: String = "",
     val pauseOnHeadsetDisconnect: Boolean = true,

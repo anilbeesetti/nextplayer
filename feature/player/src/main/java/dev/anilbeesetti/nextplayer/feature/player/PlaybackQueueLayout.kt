@@ -62,6 +62,7 @@ internal class QueueStageGeometry(
     topInset: Float,
     blockHeight: Float,
     density: Density,
+    artworkAspectRatio: Float = PlaybackArtworkAspectRatio,
 ) {
     val gap = with(density) { 8.dp.toPx() }
     val rowHeightDp = 72.dp
@@ -72,7 +73,7 @@ internal class QueueStageGeometry(
         Rect(
             16.dp.toPx(),
             12.dp.toPx(),
-            (16.dp + 48.dp * PlaybackArtworkAspectRatio).toPx(),
+            (16.dp + 48.dp * artworkAspectRatio).toPx(),
             60.dp.toPx(),
         )
     }
@@ -94,11 +95,11 @@ internal class QueueStageGeometry(
         val artworkHeight = room.coerceIn(
             minOf(
                 rowHeight * 2,
-                width / PlaybackArtworkAspectRatio,
+                width / artworkAspectRatio,
             ),
-            width / PlaybackArtworkAspectRatio,
+            width / artworkAspectRatio,
         )
-        val artworkWidth = artworkHeight * PlaybackArtworkAspectRatio
+        val artworkWidth = artworkHeight * artworkAspectRatio
         val left = (width - artworkWidth) / 2
         halfArtwork = Rect(
             left,
@@ -230,7 +231,7 @@ internal fun QueueMiniRow(
         }.clickable(onClick = onClick).padding(end = 8.dp).testTag("queue_mini_row"),
         verticalAlignment = Alignment.CenterVertically,
     ) {
-        Spacer(Modifier.width(16.dp + 48.dp * PlaybackArtworkAspectRatio + 12.dp))
+        Spacer(Modifier.width(16.dp + 48.dp * LocalControlsArtworkAspectRatio.current + 12.dp))
         Column(Modifier.weight(1f)) {
             Text(
                 title,

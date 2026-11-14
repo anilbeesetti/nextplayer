@@ -46,6 +46,38 @@ class QueueStageGeometryTest {
     }
 
     @Test
+    fun audioStyleRestoresSquareBannerAndOriginalThumbnailSize() {
+        for (height in listOf(
+            2400f,
+            1400f,
+        )) {
+            val stages = QueueStageGeometry(
+                width = 1080f,
+                height = height,
+                topInset = 120f,
+                blockHeight = 520f,
+                density = Density(1f),
+                artworkAspectRatio = 1f,
+            )
+            assertEquals(
+                stages.halfArtwork.width,
+                stages.halfArtwork.height,
+                .01f,
+            )
+            assertEquals(
+                48f,
+                stages.thumbnail.width,
+                .01f,
+            )
+            assertEquals(
+                48f,
+                stages.thumbnail.height,
+                .01f,
+            )
+        }
+    }
+
+    @Test
     fun scrollingTheListNeverRaisesThePanelPastItsStage() {
         val sheet = PlaybackQueueSheet(CoroutineScope(Dispatchers.Unconfined))
         sheet.setAnchors(
