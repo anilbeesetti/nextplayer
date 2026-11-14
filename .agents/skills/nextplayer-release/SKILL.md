@@ -18,6 +18,7 @@ A request to run this complete process authorizes its PR, merge, draft, and inte
 - Fetch remote refs and inspect worktree status. Do not discard, stash, commit, or publish unrelated user changes. Use the harness's supported isolated checkout or ask if the checkout is not safe to use.
 - Discover the default branch rather than assuming it. Inspect existing release branches, open/merged release PRs, tags, draft/published releases, Actions runs, and Play versions before creating anything. Resume matching work instead of duplicating it. Stop if the requested version is already publicly released or its existing artifacts disagree with the intended commit.
 - Read `app/build.gradle.kts`, `.github/workflows/{android_build,bump-version,publish}.yaml`, `fastlane/{Fastfile,Appfile}`, and recent Fastlane changelogs. These files, not this document's examples, are the current source of truth.
+- Compare store listing/image files under `fastlane/metadata` with the previous published tag, excluding release changelogs. A full-release request includes the established publisher's sync of unchanged checked-in metadata; disclose that behavior without asking again. If unrelated listing/image changes would be uploaded, obtain explicit approval before publishing. Do not modify the Fastlane lane or workflow merely to avoid that approval.
 - Read available `file-pr` and `babysit-pr` skills for PR operations, and Google Play skills if using `gplay`. Discover exact CLI flags with `--help`. Use the harness secret-entry tool for missing credentials; never ask for secrets in chat or print them.
 
 ## 2. Research and curate both sets of notes
@@ -58,7 +59,7 @@ Follow the recent releases' actual style. At the time this skill was written it 
 Create or resume `release-X.Y.Z` from the fresh default branch. This is the **PR branch**, deliberately different from the publisher trigger branch.
 
 - Update `versionName` and `versionCode` in `app/build.gradle.kts`. Normally increment the current code once, but ensure it is greater than every code already uploaded to Play, including drafts/testing tracks and concurrent releases. Reuse the allocated code on resume unless a new binary upload requires a new one. If Play state cannot be checked, disclose the uncertainty and resolve it before uploading rather than assuming the local code is free.
-- Commit only the version change and its new Fastlane changelog, plus a narrowly necessary publishing fix if required. Do not use `bump/vX.Y.Z`: the existing bump workflow increments separately and can duplicate the bump/PR.
+- Commit only the version change and its new Fastlane changelog. Handle necessary publishing fixes in a separate reviewed PR before releasing, not as incidental release-PR changes. Do not use `bump/vX.Y.Z`: the existing bump workflow increments separately and can duplicate the bump/PR.
 - Inspect the complete diff and validate the changelog filename, contents, length, version values, and comparison range. Run the repository-required `./gradlew assembleDebug`, `./gradlew test`, and `./gradlew ktlintCheck` with JDK 17; record failures honestly and resolve them or obtain the equivalent successful CI evidence before merging.
 - Follow the repo's emulator validation policy: smoke-test the release's important affected flows on a disposable emulator, recording device/API, flows, and results in the PR. State any unavailable coverage; do not claim a test ran when it did not.
 - Push `release-X.Y.Z` and create a non-draft PR against the default branch, or update the existing one. Include version/code, concise rationale, curated GitHub notes, Play highlights, and verification evidence. Do not open a second PR for the same version.
@@ -78,12 +79,14 @@ Own the PR through completion, not just until it is opened. Follow `babysit-pr`:
 
 As written, `.github/workflows/publish.yaml` runs on a push to **`release/vX.Y.Z`**. It builds signed APKs/AAB via `bundle exec fastlane publish`, uploads to Play with `TRACK=internal`, then creates a GitHub draft with APK assets and generated notes. Re-read the workflow before executing: pushing that ref is a real deployment, not PR preparation.
 
-After the PR is confirmed merged, verify the merged commit contains the expected version/code and changelog. Check that the publisher's configured Play track is `internal` and the GitHub release is `draft: true`. The current Fastlane lane can also sync listings/images; inspect those side effects. Do not overwrite unrelated store metadata without approval: obtain approval or narrow the upload in the reviewed release PR before triggering it.
+After the PR is confirmed merged, verify the merged commit contains the expected version/code and changelog. Check that the publisher's configured Play track is `internal` and the GitHub release is `draft: true`. The current Fastlane lane also syncs listings/images. Recheck the metadata comparison and approval from step 1 against the exact merged commit; stop if unapproved unrelated listing/image changes would be uploaded.
 
 If the workflow still uses its branch trigger and no matching deployment already exists, publish **the exact merged commit**:
 
 ```bash
-# Set these only from the verified version and merged PR response.
+# Set these only from the verified version, default branch, and merged PR response.
+git fetch origin "$DEFAULT_BRANCH"
+git cat-file -e "${MERGED_SHA}^{commit}"
 git push origin "${MERGED_SHA}:refs/heads/release/v${VERSION}"
 ```
 
@@ -109,7 +112,7 @@ Verify `isDraft`, title/tag, body, target, and the expected nonempty APK assets.
 
 Verify package `dev.anilbeesetti.nextplayer`, track `internal`, expected version name/code, and tester availability/processing status through available authenticated Play APIs/CLI/Console. Use Google Play CLI help and its skill for read operations; do not create/commit an unnecessary edit just to inspect. Never promote to alpha, beta, or production. Successful CI upload logs are evidence of upload, not automatically proof the build is available to testers; report processing or unavailable independent verification accurately.
 
-A failed workflow may have **already uploaded to Play** before failing to create the GitHub draft. Inspect step logs and remote state before any retry. If the expected code is already uploaded, do not rebuild/re-upload or rerun the entire publish job. Recover the missing draft/assets using signed artifacts from the same verified commit, or report the missing artifacts/credentials as a blocker. Do not substitute debug-signed binaries. If another upload is genuinely needed, allocate a new code and repeat the reviewed bump/CI/merge process; never silently reuse a consumed code.
+A failed workflow may have **already uploaded to Play** before failing to create the GitHub draft. Inspect step logs and remote state before any retry. If the expected code is already uploaded, do not rebuild/re-upload or rerun the entire publish job. Recover the missing draft/assets only if signed artifacts from the same verified commit are available. The current publisher does not preserve them with `upload-artifact`, so a failed runner may leave no recoverable APKs: report missing artifacts/credentials as a blocker rather than assuming recovery is possible. Do not substitute debug-signed binaries. If another upload is genuinely needed, allocate a new code and repeat the reviewed bump/CI/merge process; never silently reuse a consumed code.
 
 ## 6. Report the outcome
 
