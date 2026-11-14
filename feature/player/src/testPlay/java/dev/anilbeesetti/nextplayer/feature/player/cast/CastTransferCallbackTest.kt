@@ -6,12 +6,14 @@ import androidx.media3.common.DeviceInfo
 import androidx.media3.common.ForwardingPlayer
 import androidx.media3.common.MediaItem
 import androidx.media3.common.Player
+import androidx.media3.common.SimpleBasePlayer
 import androidx.media3.common.util.Size
 import androidx.media3.exoplayer.ExoPlayer
 import androidx.media3.session.MediaSession
 import dev.anilbeesetti.nextplayer.core.data.repository.PreferencesRepository
 import dev.anilbeesetti.nextplayer.core.data.repository.fake.FakePreferencesRepository
 import dev.anilbeesetti.nextplayer.core.model.Resume
+import dev.anilbeesetti.nextplayer.feature.player.MiniPlayerTestPlayer
 import dev.anilbeesetti.nextplayer.feature.player.extensions.copy
 import dev.anilbeesetti.nextplayer.feature.player.extensions.positionMs
 import dev.anilbeesetti.nextplayer.feature.player.extensions.videoDecoderMode
@@ -328,6 +330,7 @@ class CastTransferCallbackTest {
             remote.currentPosition,
         )
         remote.seekTo(45_000)
+        val saved = callback.snapshotForPhone(remote)
         callback.transferState(
             remote,
             local,
@@ -345,9 +348,66 @@ class CastTransferCallbackTest {
             local.currentPosition,
         )
         assertEquals(
+            saved.mediaItems,
+            List(
+                local.mediaItemCount,
+                local::getMediaItemAt,
+            ),
+        )
+        assertEquals(
+            saved.currentMediaItemIndex,
+            local.currentMediaItemIndex,
+        )
+        assertEquals(
+            saved.playWhenReady,
+            local.playWhenReady,
+        )
+        assertEquals(
             true,
             local.playWhenReady,
         )
+    }
+
+    @Test
+    fun returnToPhoneKeepsMedia3PlaceholderFilteringAndLivePosition() {
+        val receiver = MiniPlayerTestPlayer()
+        try {
+            receiver.update {
+                setPlaylist(
+                    listOf(
+                        receiver.item(0),
+                        SimpleBasePlayer.MediaItemData.Builder("placeholder")
+                            .setMediaItem(MediaItem.Builder().setMediaId("placeholder").build())
+                            .build(),
+                        receiver.item(2),
+                    ),
+                )
+                setCurrentMediaItemIndex(2)
+                setContentPositionMs(35_000)
+            }
+            CastTransferCallback(receiver) { true }.transferState(
+                receiver,
+                local,
+            )
+            assertEquals(
+                2,
+                local.mediaItemCount,
+            )
+            assertEquals(
+                1,
+                local.currentMediaItemIndex,
+            )
+            assertEquals(
+                "2",
+                local.currentMediaItem?.mediaId,
+            )
+            assertEquals(
+                35_000L,
+                local.currentPosition,
+            )
+        } finally {
+            receiver.release()
+        }
     }
 
     @Test

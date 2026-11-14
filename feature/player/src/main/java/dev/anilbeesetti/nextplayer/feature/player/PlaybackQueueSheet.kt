@@ -149,7 +149,7 @@ internal class PlaybackQueueSheet(
         )
     }
 
-    fun animateTo(target: QueueStage, velocity: Float = 0f, then: () -> Unit = {}) {
+    fun animateTo(target: QueueStage, velocity: Float = 0f) {
         stage = target
         launch {
             top.animateTo(
@@ -157,7 +157,6 @@ internal class PlaybackQueueSheet(
                 settleSpec,
                 initialVelocity = velocity,
             )
-            then()
         }
     }
 

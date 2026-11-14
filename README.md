@@ -78,9 +78,10 @@ Casting continues when leaving the player. Disconnecting returns playback to the
 the live position. With folder autoplay off, only the selected video is cast; explicit
 playlists still play in full.
 
-Background sessions appear in a mini player above home navigation in both distributions.
-Tap it to reopen the player, or while casting, to open a sheet with playback, seek, queue,
-volume and return-to-phone controls. Paused sessions remain available; stopped and completed
+Active sessions appear in a mini player while browsing the app in both distributions.
+Tap it to expand playback, seek, queue and output controls. Watch video opens local full-screen
+playback; Play on phone returns a Cast session to the phone. Swiping the mini player dismisses
+playback with a four-second Undo. Paused sessions remain available; stopped and completed
 sessions disappear.
 
 ## Supported formats

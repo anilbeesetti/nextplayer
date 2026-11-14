@@ -68,6 +68,7 @@ fun Context.expandedPlaybackIntent(): Intent = Intent(ACTION_EXPAND_PLAYBACK)
     )
     .addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP or Intent.FLAG_ACTIVITY_SINGLE_TOP)
 
+/** Carries live position without reapplying the current item's consumed resume hint. */
 @UnstableApi
 internal fun playbackTransferState(player: Player): PlayerTransferState =
     PlayerTransferState.fromPlayer(player).let { state ->

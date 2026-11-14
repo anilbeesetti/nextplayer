@@ -1,12 +1,6 @@
 package dev.anilbeesetti.nextplayer.feature.player
 
-import android.content.ContentResolver
-import android.database.ContentObserver
-import android.os.Handler
-import android.os.Looper
-import android.provider.Settings
 import androidx.compose.animation.animateContentSize
-import androidx.compose.animation.core.FastOutSlowInEasing
 import androidx.compose.animation.core.Spring
 import androidx.compose.animation.core.animateDpAsState
 import androidx.compose.animation.core.animateFloatAsState
@@ -28,7 +22,6 @@ import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.WindowInsets
-import androidx.compose.foundation.layout.aspectRatio
 import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -43,10 +36,8 @@ import androidx.compose.foundation.layout.widthIn
 import androidx.compose.foundation.pager.HorizontalPager
 import androidx.compose.foundation.pager.PageSize
 import androidx.compose.foundation.pager.rememberPagerState
-import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.rounded.QueueMusic
 import androidx.compose.material.icons.rounded.Cast
@@ -64,7 +55,6 @@ import androidx.compose.material3.ButtonColors
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.ButtonGroup
 import androidx.compose.material3.ButtonGroupDefaults
-import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.ContainedLoadingIndicator
 import androidx.compose.material3.ExperimentalMaterial3ExpressiveApi
 import androidx.compose.material3.FilledIconButton
@@ -79,17 +69,18 @@ import androidx.compose.material3.ShapeDefaults
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.derivedStateOf
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.runtime.snapshotFlow
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.MotionDurationScale
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.drawWithContent
 import androidx.compose.ui.focus.FocusRequester
@@ -107,9 +98,7 @@ import androidx.compose.ui.layout.LayoutCoordinates
 import androidx.compose.ui.layout.layout
 import androidx.compose.ui.layout.onGloballyPositioned
 import androidx.compose.ui.layout.onPlaced
-import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalDensity
-import androidx.compose.ui.platform.LocalLayoutDirection
 import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.semantics.Role
@@ -120,7 +109,6 @@ import androidx.compose.ui.semantics.stateDescription
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.Dp
-import androidx.compose.ui.unit.LayoutDirection
 import androidx.compose.ui.unit.dp
 import androidx.media3.common.Player
 import dev.anilbeesetti.nextplayer.core.ui.R
@@ -156,7 +144,7 @@ internal fun ExpandedPlaybackControls(
     artworkModifier: Modifier = Modifier,
     metadataModifier: Modifier = Modifier,
     headerModifier: Modifier = Modifier,
-    queueSheet: PlaybackQueueSheet? = null,
+    queueSheet: PlaybackQueueSheet = rememberPlaybackQueueSheet(),
 ) {
     var titleWidth by remember(title) { mutableIntStateOf(0) }
     val collapseFocus = remember { FocusRequester() }
@@ -166,7 +154,7 @@ internal fun ExpandedPlaybackControls(
     val pane = stringResource(R.string.now_playing)
     val showDevice = connection == PlaybackConnection.CONNECTING || snapshot.isRemote
     // Basic marquee deliberately ignores the platform animation duration scale.
-    val motionEnabled = rememberPlaybackMotionEnabled(LocalContext.current.contentResolver)
+    val motionEnabled = playbackAnimationsEnabled()
     val scrollTitle = landscape && controlsEnabled && snapshot.playWhenReady &&
         snapshot.playbackState == Player.STATE_READY && motionEnabled
     val actions: @Composable () -> Unit = {
@@ -356,6 +344,15 @@ internal fun ExpandedPlaybackControls(
             }
         }
     }
+    val queueProgress: () -> Float = {
+        queueSheet.progress.coerceIn(
+            -.15f,
+            2.15f,
+        )
+    }
+    val queueShown by remember(queueSheet) { derivedStateOf { queueSheet.engaged } }
+    // The mini row only exists once it shows, so it never takes the header's taps.
+    val miniRowShown by remember(queueSheet) { derivedStateOf { queueSheet.progress > 1.35f } }
     BoxWithConstraints(
         modifier.fillMaxSize().testTag("expanded_player")
             .semantics { paneTitle = pane }.safeDrawingPadding(),
@@ -363,17 +360,6 @@ internal fun ExpandedPlaybackControls(
         if (landscape) {
             // Landscape has one queue stage: the artwork shrinks into the mini row's thumbnail
             // while the controls step aside and the queue rises to fill the screen.
-            val sheet = queueSheet
-            val queueProgress: () -> Float = {
-                sheet?.progress?.coerceIn(
-                    -.15f,
-                    2.15f,
-                ) ?: 0f
-            }
-            val queueShown by remember(sheet) { derivedStateOf { sheet?.engaged == true } }
-            val miniRowShown by remember(sheet) {
-                derivedStateOf { (sheet?.progress ?: 0f) > 1.35f }
-            }
             var container by remember { mutableStateOf<LayoutCoordinates?>(null) }
             var artworkBounds by remember { mutableStateOf(Rect.Zero) }
             val density = LocalDensity.current
@@ -392,18 +378,16 @@ internal fun ExpandedPlaybackControls(
                         density,
                     )
                 }
-                if (sheet != null) {
-                    LaunchedEffect(
-                        sheet,
-                        stages,
-                    ) {
-                        val closed = constraints.maxHeight.toFloat()
-                        sheet.setAnchors(
-                            closed = closed,
-                            half = (closed + stages.queuePanelTop) / 2,
-                            full = stages.queuePanelTop,
-                        )
-                    }
+                LaunchedEffect(
+                    queueSheet,
+                    stages,
+                ) {
+                    val closed = constraints.maxHeight.toFloat()
+                    queueSheet.setAnchors(
+                        closed = closed,
+                        half = (closed + stages.queuePanelTop) / 2,
+                        full = stages.queuePanelTop,
+                    )
                 }
                 val artworkAt: (Float) -> Rect = { progress ->
                     lerp(
@@ -515,7 +499,7 @@ internal fun ExpandedPlaybackControls(
                         scrims = false,
                     )
                 }
-                if (sheet != null && miniRowShown) {
+                if (miniRowShown) {
                     QueueMiniRow(
                         player,
                         snapshot,
@@ -523,14 +507,14 @@ internal fun ExpandedPlaybackControls(
                         secondary,
                         controlsEnabled,
                         progress = queueProgress,
-                        onClick = { sheet.stepBack() },
+                        onClick = { queueSheet.stepBack() },
                         modifier = Modifier.height(stages.rowHeightDp).then(dragModifier),
                     )
                 }
-                if (sheet != null && queueShown) {
+                if (queueShown) {
                     QueuePanel(
                         player,
-                        sheet,
+                        queueSheet,
                         bottomInset = with(density) { bottomInset.toDp() },
                         modifier = Modifier.expansionReveal(
                             .6f,
@@ -541,18 +525,6 @@ internal fun ExpandedPlaybackControls(
                 }
             }
         } else {
-            val sheet = queueSheet
-            val queueProgress: () -> Float = {
-                sheet?.progress?.coerceIn(
-                    -.15f,
-                    2.15f,
-                ) ?: 0f
-            }
-            val queueShown by remember(sheet) { derivedStateOf { sheet?.engaged == true } }
-            // The mini row only exists once it shows, so it never takes the header's taps.
-            val miniRowShown by remember(sheet) {
-                derivedStateOf { (sheet?.progress ?: 0f) > 1.35f }
-            }
             var container by remember { mutableStateOf<LayoutCoordinates?>(null) }
             var artworkBounds by remember { mutableStateOf(Rect.Zero) }
             var metadataBounds by remember { mutableStateOf(Rect.Zero) }
@@ -593,17 +565,15 @@ internal fun ExpandedPlaybackControls(
                         density,
                     )
                 }
-                if (sheet != null) {
-                    LaunchedEffect(
-                        sheet,
-                        stages,
-                    ) {
-                        sheet.setAnchors(
-                            closed = constraints.maxHeight.toFloat(),
-                            half = stages.halfPanelTop,
-                            full = stages.queuePanelTop,
-                        )
-                    }
+                LaunchedEffect(
+                    queueSheet,
+                    stages,
+                ) {
+                    queueSheet.setAnchors(
+                        closed = constraints.maxHeight.toFloat(),
+                        half = stages.halfPanelTop,
+                        full = stages.queuePanelTop,
+                    )
                 }
                 val artworkAt: (Float) -> Rect = { progress ->
                     if (progress <= 1f) {
@@ -830,7 +800,7 @@ internal fun ExpandedPlaybackControls(
                         }
                     }
                 }
-                if (sheet != null && miniRowShown) {
+                if (miniRowShown) {
                     QueueMiniRow(
                         player,
                         snapshot,
@@ -838,14 +808,14 @@ internal fun ExpandedPlaybackControls(
                         secondary,
                         controlsEnabled,
                         progress = queueProgress,
-                        onClick = { sheet.stepBack() },
+                        onClick = { queueSheet.stepBack() },
                         modifier = Modifier.height(stages.rowHeightDp).then(dragModifier),
                     )
                 }
-                if (sheet != null && queueShown) {
+                if (queueShown) {
                     QueuePanel(
                         player,
-                        sheet,
+                        queueSheet,
                         bottomInset = with(density) { bottomInset.toDp() },
                         // Collapsing the player fades the queue out early, like the controls.
                         modifier = Modifier.expansionReveal(
@@ -1346,29 +1316,6 @@ private fun PlaybackModeControls(
     }
 }
 
-internal fun playbackAnimationsEnabled(resolver: ContentResolver): Boolean =
-    Settings.Global.getFloat(
-        resolver,
-        Settings.Global.ANIMATOR_DURATION_SCALE,
-        1f,
-    ) > 0f
-
 @Composable
-private fun rememberPlaybackMotionEnabled(resolver: ContentResolver): Boolean {
-    var enabled by remember(resolver) { mutableStateOf(playbackAnimationsEnabled(resolver)) }
-    DisposableEffect(resolver) {
-        val observer = object : ContentObserver(Handler(Looper.getMainLooper())) {
-            override fun onChange(selfChange: Boolean) {
-                enabled = playbackAnimationsEnabled(resolver)
-            }
-        }
-        resolver.registerContentObserver(
-            Settings.Global.getUriFor(Settings.Global.ANIMATOR_DURATION_SCALE),
-            false,
-            observer,
-        )
-        enabled = playbackAnimationsEnabled(resolver)
-        onDispose { resolver.unregisterContentObserver(observer) }
-    }
-    return enabled
-}
+internal fun playbackAnimationsEnabled(): Boolean =
+    (rememberCoroutineScope().coroutineContext[MotionDurationScale]?.scaleFactor ?: 1f) > 0f
