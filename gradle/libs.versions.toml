@@ -42,7 +42,7 @@ bouncyCastle = "1.80.2"
 robolectric = "4.16.1"
 nextlib = "1.11.1-0.18.0"
 universalChardet = "2.5.2"
-smbj = "0.14.0"
+smbj = "0.15.0"
 smbjRpc = "0.12.13"
 mockito = "5.24.0"
 # MockWebServer must match the app's OkHttp runtime (Coil and Sardine use 4.x).
