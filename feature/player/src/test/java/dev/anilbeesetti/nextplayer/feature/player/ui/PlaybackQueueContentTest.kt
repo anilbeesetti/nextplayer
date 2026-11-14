@@ -73,6 +73,11 @@ class PlaybackQueueContentTest {
         duration.assertTextEquals("00:15")
         val bounds = duration.getUnclippedBoundsInRoot()
         assertTrue(artwork.right - artwork.left >= 56.dp)
+        assertEquals(
+            16f / 10f,
+            (artwork.right - artwork.left) / (artwork.bottom - artwork.top),
+            .01f,
+        )
         val title = rule.onNodeWithTag(
             "queue_title_0",
             true,
@@ -320,7 +325,7 @@ class PlaybackQueueContentTest {
         ).getUnclippedBoundsInRoot()
         assertTrue(bounds.bottom <= row.bottom)
         assertEquals(
-            60.dp,
+            96.dp,
             art.right - art.left,
         )
     }

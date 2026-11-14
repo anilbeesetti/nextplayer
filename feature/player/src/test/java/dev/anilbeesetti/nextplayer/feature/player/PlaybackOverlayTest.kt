@@ -638,6 +638,11 @@ class PlaybackOverlayTest {
             "playback_output_actions",
         ).getUnclippedBoundsInRoot()
         assertTrue(artwork.right < metadata.left)
+        assertEquals(
+            16f / 10f,
+            (artwork.right - artwork.left) / (artwork.bottom - artwork.top),
+            .01f,
+        )
         assertTrue(actions.top >= metadata.top && actions.bottom <= metadata.bottom)
     }
 
@@ -1061,15 +1066,16 @@ class PlaybackOverlayTest {
         assertTrue(layouts.single().layoutInput.constraints.hasBoundedWidth)
     }
 
-    @Test fun portraitArtworkIsSquareAndTransportModesHaveSeparateRows() {
+    @Test fun portraitArtworkIsSixteenByTenAndTransportModesHaveSeparateRows() {
         expanded = true
         show()
         val artwork = composeRule.onNodeWithTag("playback_artwork").getUnclippedBoundsInRoot()
         val transport = composeRule.onNodeWithTag("playback_transport").getUnclippedBoundsInRoot()
         val modes = composeRule.onNodeWithTag("playback_modes").getUnclippedBoundsInRoot()
         assertEquals(
-            artwork.right - artwork.left,
-            artwork.bottom - artwork.top,
+            16f / 10f,
+            (artwork.right - artwork.left) / (artwork.bottom - artwork.top),
+            .01f,
         )
         val metadata = composeRule.onNodeWithTag("playback_metadata").getUnclippedBoundsInRoot()
         assertEquals(

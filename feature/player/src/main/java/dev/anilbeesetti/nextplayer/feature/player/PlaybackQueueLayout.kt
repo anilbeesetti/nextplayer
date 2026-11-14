@@ -72,13 +72,13 @@ internal class QueueStageGeometry(
         Rect(
             16.dp.toPx(),
             12.dp.toPx(),
-            64.dp.toPx(),
+            (16.dp + 48.dp * PlaybackArtworkAspectRatio).toPx(),
             60.dp.toPx(),
         )
     }
     val queuePanelTop = rowHeight + with(density) { 4.dp.toPx() }
 
-    /** Half way the artwork is a full-width square, up behind the status bar. */
+    /** Half way the artwork is a full-width banner, up behind the status bar. */
     val halfArtwork: Rect
     val halfPanelTop: Float
 
@@ -88,22 +88,23 @@ internal class QueueStageGeometry(
     val transportCut: Float
 
     init {
-        // Phones get the full width; only very short windows shrink the square to keep the queue.
+        // Phones get the full width; only very short windows shrink the banner to keep the queue.
         // The title rests two gaps above the artwork's bottom; the block runs on to the transport.
         val room = height - with(density) { 160.dp.toPx() } - blockHeight + gap + topInset
-        val side = room.coerceIn(
+        val artworkHeight = room.coerceIn(
             minOf(
                 rowHeight * 2,
-                width,
+                width / PlaybackArtworkAspectRatio,
             ),
-            width,
+            width / PlaybackArtworkAspectRatio,
         )
-        val left = (width - side) / 2
+        val artworkWidth = artworkHeight * PlaybackArtworkAspectRatio
+        val left = (width - artworkWidth) / 2
         halfArtwork = Rect(
             left,
             -topInset,
-            left + side,
-            side - topInset,
+            left + artworkWidth,
+            artworkHeight - topInset,
         )
         val loose = halfArtwork.bottom - gap * 2 + blockHeight + gap
         val most = with(density) {
@@ -229,7 +230,7 @@ internal fun QueueMiniRow(
         }.clickable(onClick = onClick).padding(end = 8.dp).testTag("queue_mini_row"),
         verticalAlignment = Alignment.CenterVertically,
     ) {
-        Spacer(Modifier.width(76.dp))
+        Spacer(Modifier.width(16.dp + 48.dp * PlaybackArtworkAspectRatio + 12.dp))
         Column(Modifier.weight(1f)) {
             Text(
                 title,

@@ -405,20 +405,21 @@ internal fun ExpandedPlaybackControls(
                         Modifier.weight(1f).fillMaxHeight().padding(vertical = 8.dp),
                     ) {
                         val startGutter = 24.dp
-                        val artworkSize = minOf(
+                        val artworkWidth = minOf(
                             maxWidth - startGutter,
-                            maxHeight,
+                            maxHeight * PlaybackArtworkAspectRatio,
                         )
-                        val endInset = (maxWidth - startGutter - artworkSize) / 2
+                        val artworkHeight = artworkWidth / PlaybackArtworkAspectRatio
+                        val endInset = (maxWidth - startGutter - artworkWidth) / 2
                         val startInset = startGutter + endInset
                         PlaybackArtworkCarousel(
                             player,
                             snapshot,
                             controlsEnabled && interactive && !queueShown,
-                            Modifier.fillMaxWidth().height(artworkSize)
+                            Modifier.fillMaxWidth().height(artworkHeight)
                                 .align(Alignment.CenterStart)
                                 .graphicsLayer { alpha = if (queueShown) 0f else 1f },
-                            artworkSize,
+                            artworkWidth,
                             PaddingValues(
                                 start = startInset,
                                 end = endInset,
@@ -435,7 +436,11 @@ internal fun ExpandedPlaybackControls(
                         )
                         Box(
                             Modifier.align(Alignment.CenterStart).padding(start = startInset)
-                                .size(artworkSize).testTag("landscape_artwork_frame")
+                                .size(
+                                    width = artworkWidth,
+                                    height = artworkHeight,
+                                )
+                                .testTag("landscape_artwork_frame")
                                 .graphicsLayer {
                                     alpha = 1f - smoothStep(
                                         0f,
@@ -667,18 +672,19 @@ internal fun ExpandedPlaybackControls(
                                 fill = false,
                             ).fillMaxWidth().padding(vertical = 8.dp),
                         ) {
-                            val artworkSize = minOf(
+                            val artworkWidth = minOf(
                                 maxWidth - 48.dp,
-                                maxHeight,
+                                maxHeight * PlaybackArtworkAspectRatio,
                             ).coerceAtLeast(0.dp)
-                            val side = (maxWidth - artworkSize) / 2
+                            val artworkHeight = artworkWidth / PlaybackArtworkAspectRatio
+                            val side = (maxWidth - artworkWidth) / 2
                             PlaybackArtworkCarousel(
                                 player,
                                 snapshot,
                                 controlsEnabled && interactive && !queueShown,
-                                Modifier.fillMaxWidth().height(artworkSize)
+                                Modifier.fillMaxWidth().height(artworkHeight)
                                     .graphicsLayer { alpha = if (queueShown) 0f else 1f },
-                                artworkSize,
+                                artworkWidth,
                                 PaddingValues(horizontal = side),
                                 pageSpacing = side * 2,
                                 measured { artworkBounds = it }.then(
@@ -686,13 +692,17 @@ internal fun ExpandedPlaybackControls(
                                 ),
                             )
                             Box(
-                                Modifier.size(artworkSize).align(Alignment.Center).graphicsLayer {
-                                    alpha = 1f - smoothStep(
-                                        0f,
-                                        .3f,
-                                        queueProgress(),
-                                    )
-                                },
+                                Modifier.size(
+                                    width = artworkWidth,
+                                    height = artworkHeight,
+                                )
+                                    .align(Alignment.Center).graphicsLayer {
+                                        alpha = 1f - smoothStep(
+                                            0f,
+                                            .3f,
+                                            queueProgress(),
+                                        )
+                                    },
                             ) { artworkOverlay() }
                         }
                         Column(
@@ -1027,7 +1037,7 @@ private fun PlaybackArtworkCarousel(
     snapshot: PlaybackSnapshot,
     controlsEnabled: Boolean,
     modifier: Modifier,
-    artworkSize: Dp,
+    artworkWidth: Dp,
     contentPadding: PaddingValues,
     pageSpacing: Dp,
     artworkModifier: Modifier,
@@ -1096,7 +1106,7 @@ private fun PlaybackArtworkCarousel(
         state = pager,
         modifier = modifier.testTag("playback_artwork_pager"),
         contentPadding = contentPadding,
-        pageSize = PageSize.Fixed(artworkSize),
+        pageSize = PageSize.Fixed(artworkWidth),
         pageSpacing = pageSpacing,
         userScrollEnabled = canSelect && count > 1,
         beyondViewportPageCount = 1,

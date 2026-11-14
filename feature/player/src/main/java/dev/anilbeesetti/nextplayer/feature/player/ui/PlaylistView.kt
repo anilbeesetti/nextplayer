@@ -68,6 +68,7 @@ import dev.anilbeesetti.nextplayer.core.common.Utils
 import dev.anilbeesetti.nextplayer.core.ui.R
 import dev.anilbeesetti.nextplayer.core.ui.components.tvFocusRing
 import dev.anilbeesetti.nextplayer.feature.player.PlaybackArtwork
+import dev.anilbeesetti.nextplayer.feature.player.PlaybackArtworkAspectRatio
 import dev.anilbeesetti.nextplayer.feature.player.state.PlaybackSnapshot
 import dev.anilbeesetti.nextplayer.feature.player.state.rememberPlaylistState
 import kotlinx.coroutines.delay
@@ -294,7 +295,8 @@ internal fun PlaybackQueueContent(
                                                     },
                                                 ),
                                                 Modifier.size(
-                                                    60.dp,
+                                                    width = 60.dp * PlaybackArtworkAspectRatio,
+                                                    height = 60.dp,
                                                 ).testTag("queue_artwork_$index"),
                                                 RoundedCornerShape(8.dp),
                                             )
