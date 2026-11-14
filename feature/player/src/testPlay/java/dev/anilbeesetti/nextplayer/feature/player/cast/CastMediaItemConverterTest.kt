@@ -125,10 +125,15 @@ class CastMediaItemConverterTest {
         val preparedConverter = CastMediaItemConverter(
             context,
             server,
-        ) { Uri.parse("file:///cache/japanese.mp4") }
+        ) {
+            MatroskaTrackPatch(
+                0,
+                byteArrayOf(1),
+            )
+        }
         val prepared = preparedConverter.toMediaQueueItem(originalMkv)
         assertEquals(
-            "video/mp4",
+            "video/x-matroska",
             prepared.media?.contentType,
         )
         assertNotEquals(

@@ -126,7 +126,7 @@ class LocalCastAudioPlayerTest {
     }
 
     @Test
-    fun changingVideoCancelsTheOldAudioPreparation() {
+    fun changingVideoCancelsTheOldHeaderPreparation() {
         withPlayer { media3, player, _ ->
             val pending = SettableFuture.create<Void>()
             ReflectionHelpers.setField(
@@ -141,7 +141,7 @@ class LocalCastAudioPlayerTest {
     }
 
     @Test
-    fun requestedAudioIsShownWhileTheCopyIsPreparing() {
+    fun requestedAudioIsShownWhileTheHeaderIsRead() {
         withPlayer { _, player, _ ->
             val state = ReflectionHelpers.callInstanceMethod<SimpleBasePlayer.State>(
                 player,
@@ -188,12 +188,12 @@ class LocalCastAudioPlayerTest {
             val native = tracks.map { track ->
                 Tracks.Group(
                     TrackGroup(
-                        "receiver:${track.sourceIndex}",
+                        "receiver:${track.number}",
                         track.format,
                     ),
                     false,
                     intArrayOf(C.FORMAT_HANDLED),
-                    booleanArrayOf(track.sourceIndex == 1),
+                    booleanArrayOf(track.number == 1L),
                 )
             }
             media3.update {
@@ -229,11 +229,10 @@ class LocalCastAudioPlayerTest {
             "eng",
         ).mapIndexed { index, language ->
             LocalCastAudio.Track(
-                index + 1,
+                index.toLong() + 1,
                 Format.Builder().setId(
                     "cast-local-audio:$index",
                 ).setSampleMimeType(MimeTypes.AUDIO_AAC).setLanguage(language).build(),
-                index == 0,
             )
         }
         try {

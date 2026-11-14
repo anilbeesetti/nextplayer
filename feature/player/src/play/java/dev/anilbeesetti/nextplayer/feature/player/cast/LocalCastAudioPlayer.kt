@@ -100,7 +100,7 @@ internal class LocalCastAudioPlayer(
                 ?: return emptyList()
         if (loaded?.first != uri) return emptyList()
         val tracks = loaded?.second.orEmpty()
-        if (audio.sourceFor(uri) == null &&
+        if (audio.patchFor(uri) == null &&
             state.currentTracks.groups.count { it.type == C.TRACK_TYPE_AUDIO } >= tracks.size
         ) {
             return emptyList()
@@ -205,32 +205,17 @@ internal class LocalCastAudioPlayer(
         if (index == previousIndex) {
             return super.handleSetTrackSelectionParameters(forwarded)
         }
-        val previousFile = audio.sourceFor(uri)?.let {
-            audio.cached(
-                uri,
-                previousIndex,
-            )
-        }
+        val previousPatch = audio.patchFor(uri)
         switching?.cancel(true)
         return scope.future {
             var selected = false
             try {
-                Toast.makeText(
-                    context,
-                    R.string.cast_preparing_audio,
-                    Toast.LENGTH_SHORT,
-                ).show()
-                val file =
-                    audio.cached(
+                val patch = withContext(Dispatchers.IO) {
+                    audio.prepare(
                         uri,
-                        index,
+                        tracks[index],
                     )
-                        ?: withContext(Dispatchers.IO) {
-                            audio.remux(
-                                uri,
-                                tracks[index],
-                            )
-                        }
+                }
                 if (player.currentMediaItem?.localConfiguration?.uri != uri ||
                     player.deviceInfo.playbackType != DeviceInfo.PLAYBACK_TYPE_REMOTE ||
                     !player.isCommandAvailable(Player.COMMAND_CHANGE_MEDIA_ITEMS)
@@ -266,7 +251,7 @@ internal class LocalCastAudioPlayer(
                 audio.select(
                     uri,
                     index,
-                    file,
+                    patch,
                 )
                 selected = true
                 pendingText =
@@ -290,7 +275,7 @@ internal class LocalCastAudioPlayer(
                     audio.select(
                         uri,
                         previousIndex,
-                        previousFile,
+                        previousPatch,
                     )
                     pendingText = null
                     invalidateState()

@@ -25,7 +25,7 @@ import java.net.Inet4Address
 internal class CastMediaItemConverter(
     private val context: Context,
     private val server: LocalCastServer,
-    private val audioSource: (Uri) -> Uri? = { null },
+    private val audioPatch: (Uri) -> MatroskaTrackPatch? = { null },
 ) : MediaItemConverter {
     private val delegate = DefaultMediaItemConverter()
     private val originals = mutableMapOf<String, MediaItem>()
@@ -41,23 +41,17 @@ internal class CastMediaItemConverter(
     override fun toMediaQueueItem(item: MediaItem): MediaQueueItem {
         val configuration = checkNotNull(item.localConfiguration)
         val uri = configuration.uri
-        val preparedAudio = audioSource(uri)
-        val mimeType = if (preparedAudio !=
-            null
-        ) {
-            "video/mp4"
-        } else {
-            configuration.mimeType ?: mimeType(
-                uri,
-                item.mediaMetadata.title,
-            )
-        }
+        val mimeType = configuration.mimeType ?: mimeType(
+            uri,
+            item.mediaMetadata.title,
+        )
         val original = item.buildUpon().setMimeType(mimeType).build()
         val defaultInfo = checkNotNull(delegate.toMediaQueueItem(original).media)
         originals[key(item)] = item
         val url = receiverUrl(
-            preparedAudio ?: uri,
+            uri,
             mimeType,
+            headerPatch = audioPatch(uri),
         )
         val subtitles = configuration.subtitleConfigurations
         val tracks = subtitles.mapIndexed { index, subtitle ->
@@ -100,39 +94,44 @@ internal class CastMediaItemConverter(
             .build()
     }
 
-    private fun receiverUrl(uri: Uri, mimeType: String, subtitleMimeType: String? = null): String =
-        if (subtitleMimeType == null && uri.scheme in setOf(
-                "http",
-                "https",
+    private fun receiverUrl(
+        uri: Uri,
+        mimeType: String,
+        subtitleMimeType: String? = null,
+        headerPatch: MatroskaTrackPatch? = null,
+    ): String = if (subtitleMimeType == null && headerPatch == null && uri.scheme in setOf(
+            "http",
+            "https",
+        )
+    ) {
+        uri.toString()
+    } else {
+        try {
+            require(
+                uri.scheme in setOf(
+                    "content",
+                    "file",
+                    "http",
+                    "https",
+                ),
             )
-        ) {
+            server.register(
+                uri,
+                mimeType,
+                host ?: localAddress().also { host = it },
+                subtitleMimeType,
+                headerPatch,
+            )
+        } catch (_: Exception) {
+            Toast.makeText(
+                context,
+                R.string.cast_transfer_failed,
+                Toast.LENGTH_LONG,
+            ).show()
+            // An unreadable URI becomes a receiver playback error, never a sender crash.
             uri.toString()
-        } else {
-            try {
-                require(
-                    uri.scheme in setOf(
-                        "content",
-                        "file",
-                        "http",
-                        "https",
-                    ),
-                )
-                server.register(
-                    uri,
-                    mimeType,
-                    host ?: localAddress().also { host = it },
-                    subtitleMimeType,
-                )
-            } catch (_: Exception) {
-                Toast.makeText(
-                    context,
-                    R.string.cast_transfer_failed,
-                    Toast.LENGTH_LONG,
-                ).show()
-                // An unreadable URI becomes a receiver playback error, never a sender crash.
-                uri.toString()
-            }
         }
+    }
 
     fun clear() {
         originals.clear()

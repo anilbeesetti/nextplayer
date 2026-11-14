@@ -229,7 +229,6 @@
     <string name="volume_boost_desc">Boost audio volume up to 200%</string>
     <string name="open_audio">Open local audio</string>
     <string name="error_opening_audio">Can’t open this audio file</string>
-    <string name="cast_preparing_audio">Preparing audio for casting…</string>
     <string name="open_subtitle">Open local subtitle</string>
     <string name="error_opening_subtitle">Can’t open this subtitle file</string>
     <string name="no_subtitle_tracks_found">Subtitle tracks for this video are either unavailable or not supported.</string>

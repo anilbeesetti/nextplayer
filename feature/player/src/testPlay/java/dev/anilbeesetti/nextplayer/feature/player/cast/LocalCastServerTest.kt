@@ -77,6 +77,107 @@ class LocalCastServerTest {
     }
 
     @Test
+    fun headerOverlayPreservesRangesLengthAndPreviouslyRegisteredUrls() {
+        val original = server.register(
+            uri,
+            "video/x-matroska",
+            "127.0.0.1",
+        )
+        val replacement = byteArrayOf(
+            11,
+            22,
+            33,
+            44,
+        )
+        val patch = MatroskaTrackPatch(
+            123,
+            replacement,
+        )
+        val patched = server.register(
+            uri,
+            "video/x-matroska",
+            "127.0.0.1",
+            headerPatch = patch,
+        )
+        assertNotEquals(
+            original,
+            patched,
+        )
+        assertEquals(
+            patched,
+            server.register(
+                uri,
+                "video/x-matroska",
+                "127.0.0.1",
+                headerPatch = patch,
+            ),
+        )
+        val expected = bytes.copyOf().apply {
+            replacement.copyInto(
+                this,
+                123,
+            )
+        }
+        (URL(patched).openConnection() as HttpURLConnection).useResponse {
+            assertEquals(
+                bytes.size.toLong(),
+                contentLengthLong,
+            )
+            assertEquals(
+                "video/x-matroska",
+                contentType,
+            )
+            assertArrayEquals(
+                expected,
+                inputStream.readBytes(),
+            )
+        }
+        for (range in listOf(
+            100..150,
+            124..125,
+            0..10,
+            254000..254020,
+        )) {
+            (URL(patched).openConnection() as HttpURLConnection).apply {
+                setRequestProperty(
+                    "Range",
+                    "bytes=${range.first}-${range.last}",
+                )
+            }.useResponse {
+                assertEquals(
+                    206,
+                    responseCode,
+                )
+                assertArrayEquals(
+                    expected.copyOfRange(
+                        range.first,
+                        range.last + 1,
+                    ),
+                    inputStream.readBytes(),
+                )
+            }
+        }
+        (URL(patched).openConnection() as HttpURLConnection).apply {
+            requestMethod = "HEAD"
+        }.useResponse {
+            assertEquals(
+                bytes.size.toLong(),
+                contentLengthLong,
+            )
+            assertEquals(
+                0,
+                inputStream.readBytes().size,
+            )
+        }
+        (URL(original).openConnection() as HttpURLConnection).useResponse {
+            assertArrayEquals(
+                bytes,
+                inputStream.readBytes(),
+            )
+        }
+    }
+
+    @Test
     fun getStreamsCompleteVideoWithMimeAndLength() {
         request().useResponse {
             assertEquals(

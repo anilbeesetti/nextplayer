@@ -43,7 +43,7 @@ internal class PlaybackOutput(
     private val converter = CastMediaItemConverter(
         context,
         server,
-        localAudio::sourceFor,
+        localAudio::patchFor,
     )
     private var transfer: CastTransferCallback? = null
     private var sessionManager: SessionManager? = null

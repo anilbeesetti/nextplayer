@@ -1,17 +1,15 @@
 package dev.anilbeesetti.nextplayer.feature.player.cast
 
+import android.media.MediaExtractor
 import android.media.MediaFormat
 import androidx.core.net.toUri
-import androidx.media3.inspector.MediaExtractorCompat
 import androidx.test.ext.junit.runners.AndroidJUnit4
 import androidx.test.platform.app.InstrumentationRegistry
 import java.io.File
 import java.nio.ByteBuffer
 import java.security.MessageDigest
-import kotlinx.coroutines.runBlocking
 import org.junit.Assert.assertArrayEquals
 import org.junit.Assert.assertEquals
-import org.junit.Assert.assertFalse
 import org.junit.Assert.assertNull
 import org.junit.Test
 import org.junit.runner.RunWith
@@ -19,10 +17,10 @@ import org.junit.runner.RunWith
 @RunWith(AndroidJUnit4::class)
 class LocalCastAudioTest {
     @Test
-    fun japaneseRemuxPreservesCompressedVideoAndAudioAndOriginalFile() = runBlocking {
+    fun japaneseHeaderPreservesMediaBytesAndCreatesNoCachedMovie() {
         val instrumentation = InstrumentationRegistry.getInstrumentation()
         val context = instrumentation.targetContext
-        // Allows checking a reported file without shipping copyrighted media in the test assets.
+        // Check reported files without shipping copyrighted media in the test assets.
         val supplied = InstrumentationRegistry.getArguments().getString("castAudioSource")
         val input = supplied?.let {
             File(
@@ -41,8 +39,10 @@ class LocalCastAudioTest {
             }
         }
         val audio = LocalCastAudio(context)
+        var output: File? = null
         try {
             val originalHash = fileHash(input)
+            val existingFiles = context.cacheDir.listFiles().orEmpty().map { it.name }.toSet()
             val tracks = audio.inspect(input.toUri())
             assertEquals(
                 listOf(
@@ -52,14 +52,64 @@ class LocalCastAudioTest {
                 ),
                 tracks.map { it.format.language },
             )
-            val japanese = tracks[1]
-            val output = audio.remux(
+            val patch = audio.prepare(
                 input.toUri(),
-                japanese,
+                tracks[1],
+            )
+            audio.select(
+                input.toUri(),
+                1,
+                patch,
             )
             assertEquals(
-                listOf("ja"),
-                audio.inspect(output.toUri()).map { it.format.language },
+                patch,
+                audio.patchFor(input.toUri()),
+            )
+            assertEquals(
+                1,
+                audio.selectedIndex(
+                    input.toUri(),
+                    tracks,
+                ),
+            )
+            assertEquals(
+                existingFiles,
+                context.cacheDir.listFiles().orEmpty().map {
+                    it.name
+                }.toSet(),
+            )
+            // Only this test materializes the virtual stream, for Android demuxer validation.
+            output = File.createTempFile(
+                "cast-header-test-",
+                ".mkv",
+                context.cacheDir,
+            )
+            patch.wrap(input.inputStream()).use { stream ->
+                output.outputStream().use(stream::copyTo)
+            }
+            assertEquals(
+                input.length(),
+                output.length(),
+            )
+            assertEquals(
+                listOf(
+                    "ja",
+                    "en",
+                    "en",
+                ),
+                audio.inspect(output.toUri()).map {
+                    it.format.language
+                },
+            )
+            assertArrayEquals(
+                fileHash(
+                    input,
+                    patch,
+                ),
+                fileHash(
+                    output,
+                    patch,
+                ),
             )
             assertArrayEquals(
                 samples(
@@ -75,122 +125,117 @@ class LocalCastAudioTest {
                 samples(
                     input,
                     "audio/",
-                    1,
+                    japanese = true,
                 ),
                 samples(
                     output,
                     "audio/",
+                    japanese = true,
                 ),
             )
             assertArrayEquals(
                 originalHash,
                 fileHash(input),
             )
-            audio.select(
-                input.toUri(),
-                1,
-                output,
-            )
-            assertEquals(
-                output.toUri(),
-                audio.sourceFor(input.toUri()),
-            )
-            assertEquals(
-                1,
-                audio.selectedIndex(
-                    input.toUri(),
-                    tracks,
-                ),
-            )
-            assertEquals(
-                listOf(output),
-                output.parentFile?.listFiles()?.toList(),
-            )
-            audio.select(
-                input.toUri(),
-                0,
-                null,
-            )
-            assertNull(audio.sourceFor(input.toUri()))
-            assertEquals(
-                0,
-                audio.selectedIndex(
-                    input.toUri(),
-                    tracks,
-                ),
-            )
             audio.clear()
-            assertFalse(output.exists())
+            assertNull(audio.patchFor(input.toUri()))
         } finally {
             audio.clear()
+            output?.delete()
             input.delete()
         }
     }
 
     @Test
-    fun invalidInputDoesNotLeavePartialCopies() = runBlocking {
+    fun nonMatroskaInputDoesNotAdvertiseFallbackTracksOrCreateFiles() {
         val context = InstrumentationRegistry.getInstrumentation().targetContext
         val audio = LocalCastAudio(context)
         val input = File.createTempFile(
             "invalid-cast-audio-",
-            ".mkv",
+            ".mp4",
             context.cacheDir,
         )
         try {
-            input.writeText("not a media file")
-            val track = LocalCastAudio.Track(
-                0,
-                androidx.media3.common.Format.Builder().build(),
-                true,
+            input.writeText("not a Matroska file")
+            val existingFiles = context.cacheDir.listFiles().orEmpty().map { it.name }.toSet()
+            assertEquals(
+                emptyList<LocalCastAudio.Track>(),
+                audio.inspect(input.toUri()),
             )
-            try {
-                audio.remux(
-                    input.toUri(),
-                    track,
-                )
-                org.junit.Assert.fail("Invalid input must fail")
-            } catch (_: Exception) {
-                assertEquals(
-                    "not a media file",
-                    input.readText(),
-                )
-            }
+            assertEquals(
+                existingFiles,
+                context.cacheDir.listFiles().orEmpty().map {
+                    it.name
+                }.toSet(),
+            )
+            assertEquals(
+                "not a Matroska file",
+                input.readText(),
+            )
         } finally {
             audio.clear()
             input.delete()
         }
     }
 
-    private fun fileHash(file: File): ByteArray {
+    private fun fileHash(file: File, excluded: MatroskaTrackPatch? = null): ByteArray {
         val hash = MessageDigest.getInstance("SHA-256")
         file.inputStream().use { input ->
             val buffer = ByteArray(64 * 1024)
+            var position = 0L
             while (true) {
                 val count = input.read(buffer)
                 if (count < 0) break
-                hash.update(
-                    buffer,
-                    0,
-                    count,
-                )
+                if (excluded == null) {
+                    hash.update(
+                        buffer,
+                        0,
+                        count,
+                    )
+                } else {
+                    val prefix = (excluded.offset - position).coerceIn(
+                        0,
+                        count.toLong(),
+                    ).toInt()
+                    hash.update(
+                        buffer,
+                        0,
+                        prefix,
+                    )
+                    val suffix = (excluded.offset + excluded.length - position).coerceIn(
+                        0,
+                        count.toLong(),
+                    ).toInt()
+                    hash.update(
+                        buffer,
+                        suffix,
+                        count - suffix,
+                    )
+                }
+                position += count
             }
         }
         return hash.digest()
     }
 
-    private fun samples(file: File, type: String, index: Int = 0): ByteArray {
-        val extractor =
-            MediaExtractorCompat(InstrumentationRegistry.getInstrumentation().targetContext)
+    private fun samples(file: File, type: String, japanese: Boolean = false): ByteArray {
+        val extractor = MediaExtractor()
         try {
             extractor.setDataSource(file.path)
-            val track = (0 until extractor.trackCount).filter {
-                extractor.getTrackFormat(it).getString(MediaFormat.KEY_MIME)?.startsWith(type) ==
-                    true
-            }[index]
+            val track = (0 until extractor.trackCount).first {
+                val format = extractor.getTrackFormat(it)
+                format.getString(MediaFormat.KEY_MIME)?.startsWith(type) == true &&
+                    (
+                        !japanese || format.getString(MediaFormat.KEY_LANGUAGE) in listOf(
+                            "jpn",
+                            "ja",
+                        )
+                        )
+            }
             extractor.selectTrack(track)
             val hash = MessageDigest.getInstance("SHA-256")
             val buffer = ByteBuffer.allocate(1024 * 1024)
-            while (true) {
+            while (extractor.sampleTime in 0 until 2_000_000L) {
                 buffer.clear()
                 val size = extractor.readSampleData(
                     buffer,

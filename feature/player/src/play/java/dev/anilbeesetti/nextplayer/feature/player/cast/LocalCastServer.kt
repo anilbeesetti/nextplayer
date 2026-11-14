@@ -36,7 +36,12 @@ internal class LocalCastServer(
             "NextPlayer:LocalCast",
         )
         ?.apply { setReferenceCounted(false) }
-    private data class Resource(val uri: Uri, val mimeType: String, val subtitleMimeType: String?)
+    private data class Resource(
+        val uri: Uri,
+        val mimeType: String,
+        val subtitleMimeType: String?,
+        val headerPatch: MatroskaTrackPatch?,
+    )
     private val resources = ConcurrentHashMap<String, Resource>()
 
     init {
@@ -53,7 +58,9 @@ internal class LocalCastServer(
         mimeType: String,
         host: String,
         subtitleMimeType: String? = null,
+        headerPatch: MatroskaTrackPatch? = null,
     ): String {
+        require(subtitleMimeType == null || headerPatch == null)
         if (!isAlive) {
             try {
                 start(
@@ -71,6 +78,7 @@ internal class LocalCastServer(
             uri,
             mimeType,
             subtitleMimeType,
+            headerPatch,
         )
         val path = resources.entries.firstOrNull { it.value == resource }?.key
             ?: "/${UUID.randomUUID()}".also { resources[it] = resource }
@@ -173,17 +181,21 @@ internal class LocalCastServer(
                     it.open()
                 }
             }
+            val body = resource.headerPatch?.wrap(
+                stream,
+                start,
+            ) ?: stream
             val response = if (length == C.LENGTH_UNSET.toLong()) {
                 newChunkedResponse(
                     status,
                     resource.mimeType,
-                    stream,
+                    body,
                 )
             } else {
                 newFixedLengthResponse(
                     status,
                     resource.mimeType,
-                    stream,
+                    body,
                     length,
                 )
             }
