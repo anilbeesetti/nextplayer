@@ -50,7 +50,7 @@
     <string name="screen_rotation">Rotation de l\'écran</string>
     <string name="pip_settings">Picture-in-picture</string>
     <string name="pip_settings_description">Continuer le visionnage sur un lecteur réduit lorsque l\'application est quittée</string>
-    <string name="select_subtitle_track">Sous-titres</string>
+    <string name="select_subtitle_track">Sélectionner la piste de sous-titres</string>
     <string name="settings">Paramètres</string>
     <string name="size">Taille</string>
     <string name="unknown_error">Une erreur inconnue s\'est produite</string>
@@ -85,7 +85,7 @@
     <string name="resume_description">Reprendre la lecture d\'une vidéo où elle s\'est arrêtée</string>
     <string name="seek_gesture">Glissement horizontal</string>
     <string name="remember_selections">Mémoriser la sélection</string>
-    <string name="select_audio_track">Piste audio</string>
+    <string name="select_audio_track">Sélectionner la piste audio</string>
     <string name="seek_gesture_description">Glisser horizontalement pour avancer ou reculer dans la vidéo</string>
     <string name="sort">Trier</string>
     <string name="title_activity_player">Activité de Next Player</string>
@@ -487,9 +487,9 @@
         <item quantity="other">Impossible de déplacer %1$d vidéos</item>
     </plurals>
     <plurals name="moved_videos_originals_remain">
-        <item quantity="one">%1$d vidéo déplacée, mais impossible de supprimer l\'original</item>
-        <item quantity="many">%1$d vidéos déplacées, mais impossible de supprimer les originales</item>
-        <item quantity="other">%1$d vidéos déplacées, mais impossible de supprimer les originales</item>
+        <item quantity="one">%1$d vidéo copiée, mais impossible de supprimer l\'original</item>
+        <item quantity="many">%1$d vidéos copiées, mais impossible de supprimer les originales</item>
+        <item quantity="other">%1$d vidéos copiées, mais impossible de supprimer les originales</item>
     </plurals>
     <string name="cannot_move_to_same_folder">Impossible de déplacer vers le même dossier</string>
     <string name="playlists">Playlists</string>
@@ -535,4 +535,24 @@
     <string name="no_matching_videos">Aucune vidéo correspondante</string>
     <string name="network_watch_history">Historique de lecture réseau</string>
     <string name="network_watch_history_desc">Inclure les vidéos lues sur le réseau dans l’historique de visionnage.</string>
+    <string name="github_sponsors">Sponsors GitHub</string>
+    <string name="settings_export">Exporter les paramètres</string>
+    <string name="settings_export_description">Enregistrer les paramètres dans un fichier JSON</string>
+    <string name="settings_import">Importer les paramètres</string>
+    <string name="settings_import_description">Restaurer les paramètres à partir d\'un fichier JSON</string>
+    <string name="settings_export_confirmation">Exporter les paramètres de l\'application et du lecteur dans un fichier JSON.</string>
+    <string name="settings_export_include_credentials">Inclure les connexions réseau et les identifiants</string>
+    <string name="settings_export_credentials_warning">Le fichier JSON n\'est pas chiffré. Il peut contenir des mots de passe et des clés privées SSH. Gardez-le en sécurité.</string>
+    <string name="settings_import_confirmation">Les paramètres dans ce fichier remplaceront vos paramètres actuels. Les éléments manquants, obsolètes, inconnus ou invalides seront ignorés. Les connexions réseau et les informations d\'identification seront également importées si elles sont incluses.</string>
+    <string name="export_action">Exporter</string>
+    <string name="import_action">Importer</string>
+    <string name="settings_export_success">Paramètres exportés</string>
+    <string name="settings_export_failed">Impossible d\'exporter les paramètres</string>
+    <string name="settings_import_success">Paramètres importés</string>
+    <string name="settings_import_failed">Impossible de terminer l\'importation des paramètres. Veuillez réessayer.</string>
+    <string name="settings_import_invalid">Impossible de lire ce fichier, ou il ne contient aucun paramètre JSON pris en charge</string>
+    <string name="reset_subtitle_position">Réinitialiser la position des sous-titres</string>
+    <string name="reset_subtitle_position_desc">Faites glisser les sous-titres vers le haut ou vers le bas pendant la lecture pour les déplacer</string>
+    <string name="add_to_home_screen">Ajouter à l\'écran d\'accueil</string>
+    <string name="playlist_shortcut_failed">Impossible d\'ajouter le raccourci de la playlist. Réessaie.</string>
 </resources>

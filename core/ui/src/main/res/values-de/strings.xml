@@ -455,8 +455,8 @@
         <item quantity="other">Verschieben von %1$d Videos fehlgeschlagen</item>
     </plurals>
     <plurals name="moved_videos_originals_remain">
-        <item quantity="one">1 Video verschoben, aber das Original konnten nicht entfernt werden</item>
-        <item quantity="other">%1$d Videos verschoben, aber die Originale konnten nicht entfernt werden</item>
+        <item quantity="one">1 Video kopiert, aber das Original konnten nicht entfernt werden</item>
+        <item quantity="other">%1$d Videos kopiert, aber die Originale konnten nicht entfernt werden</item>
     </plurals>
     <string name="cannot_move_to_same_folder">Verschieben in denselben Ordner nicht möglich</string>
     <string name="playlists">Playlists</string>
@@ -534,4 +534,22 @@
     <string name="home">Home</string>
     <string name="add_to_home_screen">Zum Startbildschirm hinzufügen</string>
     <string name="playlist_shortcut_failed">Playlist Verknüpfung konnte nicht erstellt werden. Bitte erneut versuchen.</string>
+    <string name="settings_export">Einstellungen exportieren</string>
+    <string name="settings_export_description">Einstellungen in JSON-Datei speichern</string>
+    <string name="settings_import">Einstellungen importieren</string>
+    <string name="settings_import_description">Einstellungen aus JSON-Datei wiederherstellen</string>
+    <string name="settings_export_confirmation">Anwendungs- und Player-Einstellungen in JSON-Datei exportieren</string>
+    <string name="settings_export_include_credentials">Netzwerkverbindungen und Anmeldedaten einbeziehen</string>
+    <string name="settings_export_credentials_warning">Die JSON-Datei ist nicht verschlüsselt. Sie kann Passwörter und private SSH-Schlüssel enthalten. Bewahre sie sicher auf.</string>
+    <string name="settings_import_confirmation">Die Einstellungen in dieser Datei überschreiben Ihre aktuellen Einstellungen. Fehlende, veraltete, unbekannte oder ungültige Einträge werden ignoriert. Sofern enthalten, werden auch Netzwerkverbindungen und Zugangsdaten importiert.</string>
+    <string name="export_action">Exportieren</string>
+    <string name="import_action">Importieren</string>
+    <string name="settings_export_success">Einstellungen exportiert</string>
+    <string name="settings_export_failed">Einstellungen konnten nicht exportiert werden</string>
+    <string name="settings_import_success">Einstellungen importiert</string>
+    <string name="settings_import_failed">Import der Einstellungen konnte nicht abgeschlossen werden. Bitte versuchen Sie es erneut.</string>
+    <string name="settings_import_invalid">Diese Datei konnte nicht gelesen werden oder enthält keine unterstützten JSON-Einstellungen</string>
+    <string name="reset_subtitle_position">Untertitelposition zurücksetzen</string>
+    <string name="reset_subtitle_position_desc">Ziehe die Untertitel während der Wiedergabe nach oben oder unten, um sie zu verschieben.</string>
+    <string name="github_sponsors">GitHub Sponsors</string>
 </resources>
