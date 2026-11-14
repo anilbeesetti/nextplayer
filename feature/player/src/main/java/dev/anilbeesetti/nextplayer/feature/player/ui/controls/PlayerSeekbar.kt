@@ -15,6 +15,7 @@ import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Slider
+import androidx.compose.material3.SliderState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.DisposableEffect
@@ -147,8 +148,10 @@ private fun MaterialYouSlider(
     )
 
     Slider(
-        value = value,
-        valueRange = valueRange,
+        state = rememberSliderValueState(
+            value,
+            valueRange,
+        ),
         onValueChange = onValueChange,
         onValueChangeFinished = onValueChangeFinished,
         interactionSource = interactionSource,
@@ -165,8 +168,8 @@ private fun MaterialYouSlider(
                         valueRange.endInclusive,
                     ),
             ) {
-                val min = sliderState.valueRange.start
-                val max = sliderState.valueRange.endInclusive
+                val min = sliderState.trackRange.start
+                val max = sliderState.trackRange.endInclusive
                 val range = (max - min).takeIf { it > 0f } ?: 1f
                 val playedFraction = ((sliderState.value - min) / range).coerceIn(
                     minimumValue = 0f,
@@ -316,8 +319,10 @@ private fun SimpleSlider(
         label = "thumbSize",
     )
     Slider(
-        value = value,
-        valueRange = valueRange,
+        state = rememberSliderValueState(
+            value,
+            valueRange,
+        ),
         onValueChange = onValueChange,
         onValueChangeFinished = onValueChangeFinished,
         modifier = modifier.height(24.dp),
@@ -395,3 +400,19 @@ private fun Modifier.chapterGaps(chapters: List<Chapter>, duration: Float): Modi
             ) { this@onDrawWithContent.drawContent() }
         }
     }
+
+/** Slider state driven by an externally owned value, for sliders with a custom thumb or track. */
+@Composable
+internal fun rememberSliderValueState(
+    value: Float,
+    valueRange: ClosedFloatingPointRange<Float> = 0f..1f,
+): SliderState {
+    val state = remember(valueRange) {
+        SliderState(
+            value = value,
+            trackRange = valueRange,
+        )
+    }
+    state.value = value
+    return state
+}

@@ -119,6 +119,7 @@ class StopPlayerSessionTest {
             shadowOf(Looper.getMainLooper()).idle()
 
             assertTrue(saveStarted.isCompleted)
+            assertTrue(session.sessionExtras.getBoolean(CustomCommands.SESSION_RELEASE_BLOCKED_KEY))
             assertFalse(result.isDone)
             assertFalse(shadowOf(service).isStoppedBySelf)
             assertEquals(
@@ -143,6 +144,9 @@ class StopPlayerSessionTest {
                 result.get().resultCode,
             )
             assertTrue(shadowOf(service).isStoppedBySelf)
+            assertFalse(
+                session.sessionExtras.getBoolean(CustomCommands.SESSION_RELEASE_BLOCKED_KEY),
+            )
         }
     }
 
@@ -238,6 +242,162 @@ class StopPlayerSessionTest {
                 saved,
             )
             assertTrue(shadowOf(service).isStoppedBySelf)
+        }
+    }
+
+    @Test
+    fun dismissalUndoRestoresQueuePositionAndPlayingIntent() {
+        withSession(savePosition = { _, _ -> }) { player, session, callback, service ->
+            listOf(
+                false,
+                true,
+            ).forEach { playing ->
+                player.setMediaItems(
+                    listOf(
+                        MediaItem.fromUri(VIDEO_URI),
+                        MediaItem.fromUri("file:///second.mp4"),
+                    ),
+                    1,
+                    42_000,
+                )
+                player.playWhenReady = playing
+                player.repeatMode = androidx.media3.common.Player.REPEAT_MODE_ALL
+                player.shuffleModeEnabled = true
+                player.setPlaybackSpeed(1.5f)
+                callback.onCustomCommand(
+                    session,
+                    controllerInfo(),
+                    CustomCommands.DISMISS_PLAYBACK.sessionCommand,
+                    Bundle.EMPTY,
+                )
+                shadowOf(Looper.getMainLooper()).idle()
+                assertEquals(
+                    0,
+                    player.mediaItemCount,
+                )
+                assertFalse(shadowOf(service).isStoppedBySelf)
+                val undo = callback.onCustomCommand(
+                    session,
+                    controllerInfo(),
+                    CustomCommands.UNDO_DISMISSAL.sessionCommand,
+                    Bundle.EMPTY,
+                )
+                shadowOf(Looper.getMainLooper()).idle()
+                assertEquals(
+                    SessionResult.RESULT_SUCCESS,
+                    undo.get().resultCode,
+                )
+                assertEquals(
+                    2,
+                    player.mediaItemCount,
+                )
+                assertEquals(
+                    1,
+                    player.currentMediaItemIndex,
+                )
+                assertEquals(
+                    42_000,
+                    player.currentPosition,
+                )
+                assertEquals(
+                    playing,
+                    player.playWhenReady,
+                )
+                assertTrue(player.shuffleModeEnabled)
+                assertEquals(
+                    1.5f,
+                    player.playbackParameters.speed,
+                )
+            }
+        }
+    }
+
+    @Test
+    fun dismissalExpiresAfterFourSecondsAndRejectsLateUndo() {
+        withSession(savePosition = { _, _ -> }) { player, session, callback, service ->
+            player.setMediaItem(MediaItem.fromUri(VIDEO_URI))
+            callback.onCustomCommand(
+                session,
+                controllerInfo(),
+                CustomCommands.DISMISS_PLAYBACK.sessionCommand,
+                Bundle.EMPTY,
+            )
+            shadowOf(Looper.getMainLooper()).idleFor(java.time.Duration.ofSeconds(4))
+            val undo = callback.onCustomCommand(
+                session,
+                controllerInfo(),
+                CustomCommands.UNDO_DISMISSAL.sessionCommand,
+                Bundle.EMPTY,
+            )
+            shadowOf(Looper.getMainLooper()).idle()
+            assertTrue(undo.get().resultCode != SessionResult.RESULT_SUCCESS)
+            assertEquals(
+                0,
+                player.mediaItemCount,
+            )
+            assertTrue(shadowOf(service).isStoppedBySelf)
+        }
+    }
+
+    @Test
+    fun dismissalRetainsItsBindingUntilExpiryPositionIsPersisted() {
+        val finishSave = CompletableDeferred<Unit>()
+        val saved = mutableListOf<Pair<String, Long>>()
+        withSession(savePosition = { uri, position ->
+            finishSave.await()
+            saved += uri to position
+        }) { player, session, callback, service ->
+            player.setMediaItem(MediaItem.Builder().setMediaId(VIDEO_URI).setUri(VIDEO_URI).build())
+            player.seekTo(42_000)
+            callback.onCustomCommand(
+                session,
+                controllerInfo(),
+                CustomCommands.DISMISS_PLAYBACK.sessionCommand,
+                Bundle.EMPTY,
+            )
+            shadowOf(Looper.getMainLooper()).idleFor(java.time.Duration.ofSeconds(4))
+            assertTrue(session.sessionExtras.getBoolean(CustomCommands.SESSION_RELEASE_BLOCKED_KEY))
+            assertFalse(shadowOf(service).isStoppedBySelf)
+            assertTrue(saved.isEmpty())
+            finishSave.complete(Unit)
+            shadowOf(Looper.getMainLooper()).idle()
+            assertEquals(
+                listOf(VIDEO_URI to 42_000L),
+                saved,
+            )
+            assertFalse(
+                session.sessionExtras.getBoolean(CustomCommands.SESSION_RELEASE_BLOCKED_KEY),
+            )
+            assertTrue(shadowOf(service).isStoppedBySelf)
+        }
+    }
+
+    @Test
+    fun acceptingANewQueueInvalidatesDismissalUndo() {
+        withSession(savePosition = { _, _ -> }) { player, session, callback, _ ->
+            player.setMediaItem(MediaItem.fromUri(VIDEO_URI))
+            callback.onCustomCommand(
+                session,
+                controllerInfo(),
+                CustomCommands.DISMISS_PLAYBACK.sessionCommand,
+                Bundle.EMPTY,
+            )
+            shadowOf(Looper.getMainLooper()).idle()
+            callback.onSetMediaItems(
+                session,
+                controllerInfo(),
+                emptyList(),
+                0,
+                0,
+            )
+            val undo = callback.onCustomCommand(
+                session,
+                controllerInfo(),
+                CustomCommands.UNDO_DISMISSAL.sessionCommand,
+                Bundle.EMPTY,
+            )
+            shadowOf(Looper.getMainLooper()).idle()
+            assertTrue(undo.get().resultCode != SessionResult.RESULT_SUCCESS)
         }
     }
 

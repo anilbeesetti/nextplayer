@@ -20,6 +20,12 @@ android {
         targetCompatibility = JavaVersion.toVersion(libs.versions.android.jvm.get().toInt())
     }
 
+    flavorDimensions += "distribution"
+    productFlavors {
+        create("standard") { dimension = "distribution" }
+        create("play") { dimension = "distribution" }
+    }
+
     buildFeatures {
         viewBinding = true
         compose = true
@@ -63,6 +69,9 @@ dependencies {
 
     // Reorderable list for drag-and-drop
     implementation(libs.reorderable)
+
+    "playImplementation"(libs.androidx.media3.cast)
+    "playImplementation"(libs.nanohttpd)
 
     // Media3
     implementation(libs.androidx.media3.common)

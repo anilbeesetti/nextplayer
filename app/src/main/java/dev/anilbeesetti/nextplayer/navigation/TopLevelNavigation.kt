@@ -402,6 +402,7 @@ fun NextNavigationBar(
     contentFocusRequester: FocusRequester,
     fabFocusRequester: FocusRequester,
     showFabOnly: Boolean = false,
+    miniPlayerFocusRequester: FocusRequester? = null,
 ) {
     val isTv = LocalContext.current.isTelevision
     Box(
@@ -448,7 +449,11 @@ fun NextNavigationBar(
                         .focusProperties {
                             if (isTv) {
                                 up =
-                                    fab.upFocusRequester.takeUnless { it == FocusRequester.Default }
+                                    miniPlayerFocusRequester
+                                        ?: fab.upFocusRequester.takeUnless {
+                                            it ==
+                                                FocusRequester.Default
+                                        }
                                         ?: contentFocusRequester
                             }
                         },

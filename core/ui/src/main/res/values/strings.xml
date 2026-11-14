@@ -22,6 +22,8 @@
     <string name="appearance_name">Appearance</string>
     <string name="ascending">Ascending</string>
     <string name="cancel">Cancel</string>
+    <string name="close">Close</string>
+    <string name="queue_video_removed">removed</string>
     <string name="descending">Descending</string>
     <string name="disable">Disable</string>
     <string name="done">Done</string>
@@ -562,5 +564,37 @@
     <plurals name="days_count">
         <item quantity="one">%1$d day</item>
         <item quantity="other">%1$d days</item>
+    </plurals>
+    <string name="cast_to_device">Cast to device</string>
+    <string name="cast_transfer_failed">Could not cast this video. Check your local network and the device’s supported formats.</string>
+    <string name="pause_playback">Pause</string>
+    <string name="casting_on_device">Casting to %1$s</string>
+    <string name="casting_video">Casting video</string>
+    <string name="cast_volume">Device volume</string>
+    <string name="play_on_phone">Play on phone</string>
+    <string name="collapse_player">Collapse player</string>
+    <string name="watch_video">Watch video</string>
+    <string name="playback_output">Playback output and volume</string>
+    <string name="playback_dismissed">Playback dismissed</string>
+    <string name="undo">Undo</string>
+    <string name="connecting_to_device">Connecting to %1$s</string>
+    <string name="cast_connection_lost">Connection to %1$s lost</string>
+    <string name="player_controls_shuffle">Shuffle</string>
+    <string name="player_controls_repeat">Repeat</string>
+    <string name="volume">Volume</string>
+    <string name="queue_next_up">Next up</string>
+    <string name="play_on">Play on</string>
+    <string name="this_phone">This phone</string>
+    <string name="headphones">Headphones</string>
+    <string name="more_devices">More devices</string>
+    <string name="more_devices_summary">Pair or switch outputs with the system picker</string>
+    <string name="available">Available</string>
+    <string name="connected">Connected</string>
+    <string name="allow_nearby_devices">Allow access to find devices on your network</string>
+    <string name="queue_move_up">Move earlier in queue</string>
+    <string name="queue_move_down">Move later in queue</string>
+    <plurals name="queue_videos_count">
+        <item quantity="one">%d video lined up</item>
+        <item quantity="other">%d videos lined up</item>
     </plurals>
 </resources>

@@ -3,6 +3,7 @@ package dev.anilbeesetti.nextplayer.feature.player.service
 import android.app.PendingIntent
 import android.content.ContentResolver
 import android.content.Intent
+import android.media.AudioManager
 import android.media.audiofx.LoudnessEnhancer
 import android.net.Uri
 import android.os.Bundle
@@ -11,6 +12,7 @@ import androidx.core.net.toUri
 import androidx.media3.common.AudioAttributes
 import androidx.media3.common.BundleListRetriever
 import androidx.media3.common.C
+import androidx.media3.common.DeviceInfo
 import androidx.media3.common.MediaItem
 import androidx.media3.common.MediaMetadata
 import androidx.media3.common.MimeTypes
@@ -19,6 +21,7 @@ import androidx.media3.common.Player
 import androidx.media3.common.Player.DISCONTINUITY_REASON_AUTO_TRANSITION
 import androidx.media3.common.Player.DISCONTINUITY_REASON_REMOVE
 import androidx.media3.common.Player.DISCONTINUITY_REASON_SEEK
+import androidx.media3.common.PlayerTransferState
 import androidx.media3.common.Timeline
 import androidx.media3.common.TrackSelectionParameters
 import androidx.media3.common.Tracks
@@ -54,8 +57,8 @@ import dev.anilbeesetti.nextplayer.core.model.LoopMode
 import dev.anilbeesetti.nextplayer.core.model.PlayerPreferences
 import dev.anilbeesetti.nextplayer.core.model.Resume
 import dev.anilbeesetti.nextplayer.core.ui.R as coreUiR
-import dev.anilbeesetti.nextplayer.feature.player.PlayerActivity
 import dev.anilbeesetti.nextplayer.feature.player.R
+import dev.anilbeesetti.nextplayer.feature.player.cast.PlaybackOutput
 import dev.anilbeesetti.nextplayer.feature.player.extensions.addAdditionalSubtitleConfiguration
 import dev.anilbeesetti.nextplayer.feature.player.extensions.audioDecoderMode
 import dev.anilbeesetti.nextplayer.feature.player.extensions.audioTrackIndex
@@ -93,6 +96,7 @@ import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.async
 import kotlinx.coroutines.awaitAll
 import kotlinx.coroutines.cancel
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.guava.future
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.supervisorScope
@@ -109,6 +113,14 @@ class PlayerService : MediaSessionService() {
     )
     private val applicationScope: CoroutineScope by inject(named(DiQualifiers.APPLICATION_SCOPE))
     private var mediaSession: MediaSession? = null
+    private var playbackOutput: PlaybackOutput? = null
+    private var dismissedPlayback: PlayerTransferState? = null
+    private var dismissalExpiry: Job? = null
+    private var dismissalDeadline = 0L
+    private var localPlayer: ExoPlayer? = null
+    private val localPlaybackPlayer: ExoPlayer?
+        get() = localPlayer ?: (mediaSession?.player as? ExoPlayer)
+
     private var artworkLoadJob: Job? = null
 
     private val preferencesRepository: PreferencesRepository by inject()
@@ -125,6 +137,10 @@ class PlayerService : MediaSessionService() {
     private val customCommands = CustomCommands.asSessionCommands()
 
     private var isMediaItemReady = false
+    private var lastPlaybackMediaId: String? = null
+    private var lastPlaybackType = DeviceInfo.PLAYBACK_TYPE_LOCAL
+    private val isRemotePlayback: Boolean
+        get() = mediaSession?.player?.deviceInfo?.playbackType == DeviceInfo.PLAYBACK_TYPE_REMOTE
     private var playbackRequestGeneration = 0L
     private var pendingMediaItemsRequest:
         ListenableFuture<MediaSession.MediaItemsWithStartPosition>? = null
@@ -210,8 +226,15 @@ class PlayerService : MediaSessionService() {
     }
 
     private val playbackStateListener = object : Player.Listener {
+        override fun onDeviceInfoChanged(deviceInfo: DeviceInfo) {
+            if (deviceInfo.playbackType == DeviceInfo.PLAYBACK_TYPE_LOCAL) {
+                isMediaItemReady = false
+                restoreDecoderChoices(mediaSession?.player?.currentMediaItem)
+            }
+        }
+
         override fun onTimelineChanged(timeline: Timeline, reason: Int) {
-            val player = mediaSession?.player as? ExoPlayer ?: return
+            val player = localPlaybackPlayer ?: return
             // Autoplay controls the implicit folder queue; explicitly chosen playlists play in full.
             player.pauseAtEndOfMediaItems = !playerPreferences.autoplay &&
                 player.currentMediaItem?.isExplicitPlaylistItem != true
@@ -223,21 +246,36 @@ class PlayerService : MediaSessionService() {
                 reason,
             )
             if (reason == Player.MEDIA_ITEM_TRANSITION_REASON_REPEAT) return
-            restoreDecoderChoices(mediaItem = mediaItem)
+            if (isRemotePlayback && mediaItem?.localConfiguration == null) return
+            val playbackType = mediaSession?.player?.deviceInfo?.playbackType
+                ?: DeviceInfo.PLAYBACK_TYPE_LOCAL
+            val transferringSameItem = mediaItem?.mediaId == lastPlaybackMediaId &&
+                playbackType != lastPlaybackType
+            lastPlaybackMediaId = mediaItem?.mediaId
+            lastPlaybackType = playbackType
+            if (!isRemotePlayback) restoreDecoderChoices(mediaItem = mediaItem)
             isMediaItemReady = false
             loadArtworkForCurrentMediaItem()
             mediaItem?.mediaMetadata?.let { metadata ->
-                mediaSession?.player?.run {
-                    playerSpecificSubtitleDelayMilliseconds =
+                localPlaybackPlayer?.run {
+                    subtitleDelayMilliseconds =
                         metadata.subtitleDelayMilliseconds ?: 0L
-                    playerSpecificSubtitleSpeed = metadata.subtitleSpeed ?: 1f
+                    subtitleSpeed = metadata.subtitleSpeed ?: 1f
                 }
 
                 metadata.positionMs?.takeIf {
-                    mediaItem.hasApiPosition ||
-                        playerPreferences.resume == Resume.YES
-                }?.let {
-                    mediaSession?.player?.seekTo(it)
+                    !transferringSameItem && (
+                        mediaItem.hasApiPosition || playerPreferences.resume == Resume.YES
+                        )
+                }?.let { position ->
+                    // The cast-aware session player refuses a seek until the item is prepared and
+                    // seekable; the phone's own player keeps it pending, as it did before casting.
+                    val local = localPlaybackPlayer
+                    if (!isRemotePlayback && local != null) {
+                        local.seekTo(position)
+                    } else {
+                        mediaSession?.player?.seekTo(position)
+                    }
                 }
             }
         }
@@ -265,10 +303,13 @@ class PlayerService : MediaSessionService() {
                     val updatedPosition =
                         oldPosition.positionMs.takeIf { reason == DISCONTINUITY_REASON_SEEK }
                             ?: C.TIME_UNSET
-                    mediaSession?.player?.replaceMediaItem(
-                        oldPosition.mediaItemIndex,
-                        oldMediaItem.copy(positionMs = updatedPosition),
-                    )
+                    if (oldMediaItem.localConfiguration == null) return
+                    if (!isRemotePlayback) {
+                        mediaSession?.player?.replaceMediaItem(
+                            oldPosition.mediaItemIndex,
+                            oldMediaItem.copy(positionMs = updatedPosition),
+                        )
+                    }
                     serviceScope.launch {
                         mediaRepository.updateMediumPosition(
                             uri = oldMediaItem.mediaId,
@@ -278,6 +319,7 @@ class PlayerService : MediaSessionService() {
                 }
 
                 DISCONTINUITY_REASON_REMOVE -> {
+                    if (oldMediaItem.localConfiguration == null) return
                     serviceScope.launch {
                         val durationMs = oldMediaItem.mediaMetadata.durationMs
                         val isAtEnd =
@@ -295,6 +337,7 @@ class PlayerService : MediaSessionService() {
 
         override fun onTracksChanged(tracks: Tracks) {
             super.onTracksChanged(tracks)
+            if (isRemotePlayback) return
             serviceScope.launch {
                 mediaSession?.player?.currentTracks?.let(block = ::handleUnsupportedTracks)
             }
@@ -338,6 +381,7 @@ class PlayerService : MediaSessionService() {
 
         override fun onTrackSelectionParametersChanged(parameters: TrackSelectionParameters) {
             super.onTrackSelectionParametersChanged(parameters)
+            if (isRemotePlayback) return
             val player = mediaSession?.player ?: return
             val currentMediaItem = player.currentMediaItem ?: return
 
@@ -414,6 +458,7 @@ class PlayerService : MediaSessionService() {
                     player.clearMediaItems()
                     player.stop()
                 }
+                playbackOutput?.onStop()
                 stopSelf()
             }
         }
@@ -429,12 +474,15 @@ class PlayerService : MediaSessionService() {
                 return
             }
             val currentMediaItem = player.currentMediaItem ?: return
+            if (currentMediaItem.localConfiguration == null) return
             val duration = player.duration.validDurationOrNull()
             // Update the media metadata duration so that it will be used later in position discontinuity handling
-            player.replaceMediaItem(
-                player.currentMediaItemIndex,
-                currentMediaItem.copy(durationMs = duration ?: 0),
-            )
+            if (player.deviceInfo.playbackType == DeviceInfo.PLAYBACK_TYPE_LOCAL) {
+                player.replaceMediaItem(
+                    player.currentMediaItemIndex,
+                    currentMediaItem.copy(durationMs = duration ?: 0),
+                )
+            }
 
             serviceScope.launch {
                 mediaRepository.updateMediumLastPlayedTime(
@@ -447,13 +495,14 @@ class PlayerService : MediaSessionService() {
 
         override fun onIsPlayingChanged(isPlaying: Boolean) {
             super.onIsPlayingChanged(isPlaying)
-            mediaSession?.run {
-                serviceScope.launch {
-                    mediaRepository.updateMediumPosition(
-                        uri = player.currentMediaItem?.mediaId ?: return@launch,
-                        position = player.currentPosition,
-                    )
-                }
+            val player = mediaSession?.player ?: return
+            val item = player.currentMediaItem?.takeIf { it.localConfiguration != null } ?: return
+            val position = player.currentPosition
+            serviceScope.launch {
+                mediaRepository.updateMediumPosition(
+                    uri = item.mediaId,
+                    position = position,
+                )
             }
         }
 
@@ -523,17 +572,43 @@ class PlayerService : MediaSessionService() {
             startIndex: Int,
             startPositionMs: Long,
         ): ListenableFuture<MediaSession.MediaItemsWithStartPosition> {
+            invalidateDismissal()
+            setSessionReleaseBlocked(false)
             cancelPendingMediaItems()
+            playbackOutput?.onNewQueue()
             playbackRequestGeneration++
             val request = serviceScope.future {
                 val updatedMediaItems = withContext(Dispatchers.Default) {
                     updatedMediaItemsWithMetadata(mediaItems = mediaItems)
                 }
+                val queue = if (isRemotePlayback) {
+                    mediaItemsForCast(
+                        updatedMediaItems,
+                        startIndex,
+                        playerPreferences.autoplay,
+                    )
+                } else {
+                    updatedMediaItems
+                }
                 MediaSession.MediaItemsWithStartPosition(
-                    updatedMediaItems,
-                    startIndex,
+                    queue,
+                    if (queue.size == updatedMediaItems.size) startIndex else 0,
                     startPositionMs,
-                )
+                ).also {
+                    playbackOutput?.onQueueReady(
+                        updatedMediaItems.getOrNull(startIndex.coerceAtLeast(0))?.mediaId,
+                        if (isRemotePlayback) {
+                            queueTransferState(
+                                mediaSession.player,
+                                updatedMediaItems,
+                                startIndex,
+                                startPositionMs,
+                            )
+                        } else {
+                            null
+                        },
+                    )
+                }
             }
             pendingMediaItemsRequest = request
             request.addListener(
@@ -549,9 +624,20 @@ class PlayerService : MediaSessionService() {
             mediaSession: MediaSession,
             controller: MediaSession.ControllerInfo,
             mediaItems: MutableList<MediaItem>,
-        ): ListenableFuture<MutableList<MediaItem>> = serviceScope.future(Dispatchers.Default) {
-            val updatedMediaItems = updatedMediaItemsWithMetadata(mediaItems = mediaItems)
-            return@future updatedMediaItems.toMutableList()
+        ): ListenableFuture<MutableList<MediaItem>> {
+            val generation = playbackRequestGeneration
+            return serviceScope.future {
+                val updated = withContext(Dispatchers.Default) {
+                    updatedMediaItemsWithMetadata(mediaItems = mediaItems)
+                }
+                if (generation != playbackRequestGeneration ||
+                    this@PlayerService.mediaSession !== mediaSession
+                ) {
+                    mutableListOf()
+                } else {
+                    updated.toMutableList()
+                }
+            }
         }
 
         override fun onCustomCommand(
@@ -562,6 +648,9 @@ class PlayerService : MediaSessionService() {
         ): ListenableFuture<SessionResult> = serviceScope.future {
             val command = CustomCommands.fromSessionCommand(sessionCommand = customCommand)
                 ?: return@future SessionResult(SessionError.ERROR_BAD_VALUE)
+            if (isRemotePlayback && command in LOCAL_PLAYER_COMMANDS) {
+                return@future SessionResult(SessionError.ERROR_NOT_SUPPORTED)
+            }
 
             when (command) {
                 CustomCommands.ADD_SUBTITLE_TRACK -> {
@@ -654,7 +743,7 @@ class PlayerService : MediaSessionService() {
 
                 CustomCommands.SET_SKIP_SILENCE_ENABLED -> {
                     val enabled = args.getBoolean(CustomCommands.SKIP_SILENCE_ENABLED_KEY)
-                    mediaSession?.player?.playerSpecificSkipSilenceEnabled = enabled
+                    localPlaybackPlayer?.skipSilenceEnabled = enabled
                     mediaSession?.sessionExtras =
                         Bundle(mediaSession?.sessionExtras ?: Bundle.EMPTY).apply {
                             putBoolean(
@@ -666,7 +755,7 @@ class PlayerService : MediaSessionService() {
                 }
 
                 CustomCommands.GET_SKIP_SILENCE_ENABLED -> {
-                    val enabled = mediaSession?.player?.playerSpecificSkipSilenceEnabled ?: false
+                    val enabled = localPlaybackPlayer?.skipSilenceEnabled ?: false
                     return@future SessionResult(
                         SessionResult.RESULT_SUCCESS,
                         Bundle().apply {
@@ -721,7 +810,7 @@ class PlayerService : MediaSessionService() {
                 CustomCommands.SET_VIDEO_DECODER_MODE -> {
                     val mode = args.decoderMode(CustomCommands.VIDEO_DECODER_MODE_KEY)
                         ?: return@future SessionResult(SessionResult.RESULT_ERROR_BAD_VALUE)
-                    val player = mediaSession?.player as? ExoPlayer
+                    val player = localPlaybackPlayer
                         ?: return@future SessionResult(SessionResult.RESULT_ERROR_INVALID_STATE)
                     decoderRecoveryManager.onUserSelection(
                         DecoderTrackType.VIDEO,
@@ -743,7 +832,7 @@ class PlayerService : MediaSessionService() {
                 CustomCommands.SET_AUDIO_DECODER_MODE -> {
                     val mode = args.decoderMode(CustomCommands.AUDIO_DECODER_MODE_KEY)
                         ?: return@future SessionResult(SessionResult.RESULT_ERROR_BAD_VALUE)
-                    val player = mediaSession?.player as? ExoPlayer
+                    val player = localPlaybackPlayer
                         ?: return@future SessionResult(SessionResult.RESULT_ERROR_INVALID_STATE)
                     decoderRecoveryManager.onUserSelection(
                         DecoderTrackType.AUDIO,
@@ -774,7 +863,7 @@ class PlayerService : MediaSessionService() {
 
                 CustomCommands.GET_SUBTITLE_DELAY -> {
                     val subtitleDelay =
-                        mediaSession?.player?.playerSpecificSubtitleDelayMilliseconds ?: 0
+                        localPlaybackPlayer?.subtitleDelayMilliseconds ?: 0
                     return@future SessionResult(
                         SessionResult.RESULT_SUCCESS,
                         Bundle().apply {
@@ -788,12 +877,12 @@ class PlayerService : MediaSessionService() {
 
                 CustomCommands.SET_SUBTITLE_DELAY -> {
                     val subtitleDelay = args.getLong(CustomCommands.SUBTITLE_DELAY_KEY)
-                    mediaSession?.player?.playerSpecificSubtitleDelayMilliseconds = subtitleDelay
+                    localPlaybackPlayer?.subtitleDelayMilliseconds = subtitleDelay
                     return@future SessionResult(SessionResult.RESULT_SUCCESS)
                 }
 
                 CustomCommands.GET_SUBTITLE_SPEED -> {
-                    val subtitleSpeed = mediaSession?.player?.playerSpecificSubtitleSpeed ?: 0f
+                    val subtitleSpeed = localPlaybackPlayer?.subtitleSpeed ?: 0f
                     return@future SessionResult(
                         SessionResult.RESULT_SUCCESS,
                         Bundle().apply {
@@ -807,7 +896,7 @@ class PlayerService : MediaSessionService() {
 
                 CustomCommands.SET_SUBTITLE_SPEED -> {
                     val subtitleSpeed = args.getFloat(CustomCommands.SUBTITLE_SPEED_KEY)
-                    mediaSession?.player?.playerSpecificSubtitleSpeed = subtitleSpeed
+                    localPlaybackPlayer?.subtitleSpeed = subtitleSpeed
                     return@future SessionResult(SessionResult.RESULT_SUCCESS)
                 }
 
@@ -816,6 +905,73 @@ class PlayerService : MediaSessionService() {
                         session,
                         args,
                     )
+                }
+
+                CustomCommands.DISMISS_PLAYBACK -> {
+                    dismissPlayback(session)
+                    return@future SessionResult(
+                        SessionResult.RESULT_SUCCESS,
+                        Bundle().apply {
+                            putLong(
+                                CustomCommands.DISMISSAL_DEADLINE_KEY,
+                                dismissalDeadline,
+                            )
+                        },
+                    )
+                }
+
+                CustomCommands.UNDO_DISMISSAL -> {
+                    val saved = dismissedPlayback
+                    if (saved == null ||
+                        android.os.SystemClock.elapsedRealtime() >= dismissalDeadline
+                    ) {
+                        return@future SessionResult(SessionError.ERROR_INVALID_STATE)
+                    }
+                    invalidateDismissal()
+                    playbackRequestGeneration++
+                    try {
+                        playbackOutput?.restoreOnPhone(saved) ?: run {
+                            saved.setToPlayer(session.player)
+                            session.player.prepare()
+                        }
+                    } finally {
+                        setSessionReleaseBlocked(false)
+                    }
+                    return@future SessionResult(SessionResult.RESULT_SUCCESS)
+                }
+
+                CustomCommands.CANCEL_CAST -> {
+                    playbackOutput?.cancelConnection()
+                    return@future SessionResult(SessionResult.RESULT_SUCCESS)
+                }
+
+                CustomCommands.RETRY_CAST -> {
+                    playbackOutput?.retry()
+                    return@future SessionResult(SessionResult.RESULT_SUCCESS)
+                }
+
+                CustomCommands.PLAY_ON_PHONE -> {
+                    playbackOutput?.playOnPhone()
+                    return@future SessionResult(SessionResult.RESULT_SUCCESS)
+                }
+
+                CustomCommands.SET_AUDIO_OUTPUT -> {
+                    val id = args.getInt(
+                        CustomCommands.AUDIO_OUTPUT_KEY,
+                        CustomCommands.SYSTEM_AUDIO_OUTPUT,
+                    )
+                    val device = getSystemService(AudioManager::class.java)
+                        .getDevices(AudioManager.GET_DEVICES_OUTPUTS).find { it.id == id }
+                    localPlaybackPlayer?.setPreferredAudioDevice(device)
+                    // Choosing a phone output while casting brings playback back to the phone.
+                    if (isRemotePlayback) playbackOutput?.playOnPhone()
+                    session.sessionExtras = Bundle(session.sessionExtras).apply {
+                        putInt(
+                            CustomCommands.AUDIO_OUTPUT_KEY,
+                            device?.id ?: CustomCommands.SYSTEM_AUDIO_OUTPUT,
+                        )
+                    }
+                    return@future SessionResult(SessionResult.RESULT_SUCCESS)
                 }
 
                 CustomCommands.STOP_PLAYER_SESSION -> {
@@ -865,19 +1021,44 @@ class PlayerService : MediaSessionService() {
         if (requestGeneration != playbackRequestGeneration || mediaSession !== session) {
             return SessionResult(SessionError.ERROR_INVALID_STATE)
         }
+        invalidateDismissal()
+        setSessionReleaseBlocked(false)
         cancelPendingMediaItems()
         val generation = ++playbackRequestGeneration
+        playbackOutput?.onNewQueue()
         val updatedItems = withContext(Dispatchers.Default) {
             updatedMediaItemsWithMetadata(items)
         }
         if (generation != playbackRequestGeneration || mediaSession !== session) {
             return SessionResult(SessionError.ERROR_INVALID_STATE)
         }
-        return session.player.run {
-            setMediaItems(
+        val queue = if (isRemotePlayback) {
+            mediaItemsForCast(
                 updatedItems,
                 index,
+                playerPreferences.autoplay,
+            )
+        } else {
+            updatedItems
+        }
+        return session.player.run {
+            setMediaItems(
+                queue,
+                if (queue.size == updatedItems.size) index else 0,
                 position,
+            )
+            playbackOutput?.onQueueReady(
+                updatedItems.getOrNull(index)?.mediaId,
+                if (isRemotePlayback) {
+                    queueTransferState(
+                        this,
+                        updatedItems,
+                        index,
+                        position,
+                    )
+                } else {
+                    null
+                },
             )
             speed?.let(::setPlaybackSpeed)
             prepare()
@@ -908,7 +1089,11 @@ class PlayerService : MediaSessionService() {
     override fun onStartCommand(intent: Intent?, flags: Int, startId: Int): Int {
         if (intent?.action == ACTION_RETAIN_PLAYBACK_GRANTS) {
             // A stop may arrive between the handoff acknowledgement and grant delivery.
-            if (mediaSession?.player?.currentMediaItem == null) stopSelf(startId)
+            if (mediaSession?.player?.currentMediaItem == null &&
+                dismissedPlayback == null && playbackOutput?.hasPendingPlayback != true
+            ) {
+                stopSelf(startId)
+            }
             // Keep the grant-bearing start record until stop so Android can revoke its grants.
             return START_REDELIVER_INTENT
         }
@@ -957,7 +1142,6 @@ class PlayerService : MediaSessionService() {
             .build()
             .also {
                 it.setPlaybackSpeed(playerPreferences.defaultPlaybackSpeed)
-                it.addListener(playbackStateListener)
                 it.pauseAtEndOfMediaItems = !playerPreferences.autoplay
                 it.repeatMode = when (playerPreferences.loopMode) {
                     LoopMode.OFF -> Player.REPEAT_MODE_OFF
@@ -966,13 +1150,28 @@ class PlayerService : MediaSessionService() {
                 }
             }
 
+        localPlayer = player
+        playbackOutput = PlaybackOutput(
+            this,
+            player,
+            autoplay = { playerPreferences.autoplay },
+            onPresentationChanged = { presentation ->
+                mediaSession?.let { session ->
+                    session.sessionExtras = Bundle(session.sessionExtras).apply {
+                        presentation.writeTo(this)
+                    }
+                }
+            },
+        )
+        val sessionPlayer = checkNotNull(playbackOutput).player
+        sessionPlayer.addListener(playbackStateListener)
         decoderManager.attach(player = player)
         player.addAnalyticsListener(decoderAnalyticsListener)
 
         try {
             mediaSession = MediaSession.Builder(
                 this,
-                player,
+                sessionPlayer,
             ).apply {
                 // Some Android 15 ROMs recycle shared artwork when resizing it above 500px.
                 setBitmapLoader(
@@ -988,10 +1187,7 @@ class PlayerService : MediaSessionService() {
                     PendingIntent.getActivity(
                         this@PlayerService,
                         0,
-                        Intent(
-                            this@PlayerService,
-                            PlayerActivity::class.java,
-                        ),
+                        expandedPlaybackIntent(),
                         PendingIntent.FLAG_IMMUTABLE,
                     ),
                 )
@@ -1013,6 +1209,7 @@ class PlayerService : MediaSessionService() {
     }
 
     override fun onTaskRemoved(rootIntent: Intent?) {
+        if (dismissedPlayback != null) return
         val player = mediaSession?.player ?: return
         if (!player.playWhenReady || player.mediaItemCount == 0 ||
             player.playbackState == Player.STATE_ENDED
@@ -1021,20 +1218,111 @@ class PlayerService : MediaSessionService() {
         }
     }
 
-    private suspend fun savePositionAndStopSession() {
-        cancelPendingMediaItems()
-        val generation = ++playbackRequestGeneration
-        mediaSession?.run {
-            val mediaItem = player.currentMediaItem
-            val position = player.currentPosition
-            player.clearMediaItems()
-            player.stop()
-            mediaItem?.let {
-                mediaRepository.updateMediumPosition(
-                    uri = mediaItem.mediaId,
-                    position = position,
+    private fun queueTransferState(
+        player: Player,
+        items: List<MediaItem>,
+        index: Int,
+        position: Long,
+    ): PlayerTransferState = PlayerTransferState.builderFromPlayer(player)
+        .setMediaItems(items)
+        .setCurrentMediaItemIndex(
+            if (items.isEmpty()) {
+                C.INDEX_UNSET
+            } else {
+                index.coerceIn(
+                    0,
+                    items.lastIndex,
+                )
+            },
+        )
+        .setCurrentPosition(
+            if (position >=
+                0
+            ) {
+                position
+            } else {
+                items.getOrNull(index)?.mediaMetadata?.positionMs ?: 0
+            },
+        )
+        .build()
+
+    // Undo and position persistence must finish before the last background client unbinds.
+    private fun setSessionReleaseBlocked(blocked: Boolean) {
+        mediaSession?.let { session ->
+            session.sessionExtras = Bundle(session.sessionExtras).apply {
+                putBoolean(
+                    CustomCommands.SESSION_RELEASE_BLOCKED_KEY,
+                    blocked,
                 )
             }
+        }
+    }
+
+    private fun invalidateDismissal() {
+        dismissalExpiry?.cancel()
+        dismissalExpiry = null
+        dismissedPlayback = null
+    }
+
+    private fun dismissPlayback(session: MediaSession) {
+        invalidateDismissal()
+        cancelPendingMediaItems()
+        playbackRequestGeneration++
+        val saved = playbackOutput?.snapshotForPhone() ?: playbackTransferState(session.player)
+        if (saved.mediaItems.isEmpty()) {
+            setSessionReleaseBlocked(false)
+            return
+        }
+        dismissedPlayback = saved.buildUpon()
+            .setPlayWhenReady(saved.playWhenReady && !isRemotePlayback).build()
+        dismissalDeadline = android.os.SystemClock.elapsedRealtime() + 4_000
+        setSessionReleaseBlocked(true)
+        session.player.pause()
+        session.player.clearMediaItems()
+        session.player.stop()
+        playbackOutput?.onStop()
+        val generation = playbackRequestGeneration
+        dismissalExpiry = serviceScope.launch {
+            try {
+                delay(4_000)
+                dismissedPlayback = null
+                mediaRepository.updateMediumPosition(
+                    uri = saved.mediaItems[saved.currentMediaItemIndex].mediaId,
+                    position = saved.currentPosition,
+                )
+                if (generation == playbackRequestGeneration && session.player.mediaItemCount == 0) {
+                    stopSelf()
+                }
+            } finally {
+                if (generation == playbackRequestGeneration) {
+                    setSessionReleaseBlocked(false)
+                    dismissalExpiry = null
+                }
+            }
+        }
+    }
+
+    private suspend fun savePositionAndStopSession() {
+        invalidateDismissal()
+        cancelPendingMediaItems()
+        val generation = ++playbackRequestGeneration
+        setSessionReleaseBlocked(true)
+        try {
+            mediaSession?.run {
+                val mediaItem = player.currentMediaItem?.takeIf { it.localConfiguration != null }
+                val position = player.currentPosition
+                player.clearMediaItems()
+                player.stop()
+                playbackOutput?.onStop()
+                mediaItem?.let {
+                    mediaRepository.updateMediumPosition(
+                        uri = mediaItem.mediaId,
+                        position = position,
+                    )
+                }
+            }
+        } finally {
+            if (generation == playbackRequestGeneration) setSessionReleaseBlocked(false)
         }
         if (generation == playbackRequestGeneration) stopSelf()
     }
@@ -1049,6 +1337,7 @@ class PlayerService : MediaSessionService() {
     }
 
     override fun onDestroy() {
+        invalidateDismissal()
         cancelPendingMediaItems()
         super.onDestroy()
         artworkLoadJob?.cancel()
@@ -1059,7 +1348,9 @@ class PlayerService : MediaSessionService() {
             player.stop()
             player.removeListener(playbackStateListener)
             decoderManager.detach()
-            player.release()
+            playbackOutput?.release() ?: player.release()
+            playbackOutput = null
+            localPlayer = null
             release()
             mediaSession = null
         }
@@ -1146,7 +1437,11 @@ class PlayerService : MediaSessionService() {
                 mediaItem.buildUpon().apply {
                     setSubtitleConfigurations(existingSubConfigurations + subConfigurations)
                     setMediaMetadata(
-                        MediaMetadata.Builder().apply {
+                        mediaItem.mediaMetadata.buildUpon().apply {
+                            setDurationMs(
+                                mediaItem.mediaMetadata.durationMs?.takeIf { it > 0 }
+                                    ?: video?.duration?.takeIf { it > 0 },
+                            )
                             setTitle(title)
                             setArtworkUri(artworkUri)
                             setExtras(
@@ -1196,7 +1491,7 @@ class PlayerService : MediaSessionService() {
     }
 
     private fun retryDecoderWith(retry: DecoderRetry): Boolean {
-        val player = mediaSession?.player as? ExoPlayer ?: return false
+        val player = localPlaybackPlayer ?: return false
         val shouldPrepare = player.playerError != null
         selectDecoder(
             retry.trackType,
@@ -1320,13 +1615,23 @@ class PlayerService : MediaSessionService() {
         artworkLoadJob = serviceScope.launch(Dispatchers.Main) {
             val player = mediaSession?.player ?: return@launch
             val currentMediaItem = player.currentMediaItem ?: return@launch
+            if (currentMediaItem.localConfiguration == null) return@launch
             if (currentMediaItem.mediaMetadata.artworkData != null) return@launch
 
             val artworkUri = loadArtworkForMediaItem(mediaItem = currentMediaItem)
                 ?: getDefaultArtworkUri()
+            if (isRemotePlayback) {
+                // Replacing a cast item would reload it on the receiver; only the phone shows it.
+                playbackOutput?.showCastArtwork(
+                    currentMediaItem.mediaId,
+                    artworkUri,
+                )
+                return@launch
+            }
 
             val updatedPlayer = mediaSession?.player ?: return@launch
             val updatedMediaItem = updatedPlayer.currentMediaItem ?: return@launch
+            if (isRemotePlayback || updatedMediaItem.localConfiguration == null) return@launch
             if (updatedMediaItem.mediaId != currentMediaItem.mediaId) return@launch
 
             updatedPlayer.replaceMediaItem(
@@ -1338,8 +1643,10 @@ class PlayerService : MediaSessionService() {
     private suspend fun loadArtworkForMediaItem(mediaItem: MediaItem): Uri? =
         withContext(Dispatchers.IO) {
             val defaultArtwork = getDefaultArtworkUri()
-            val uri = mediaItem.mediaMetadata.artworkUri
-                ?.takeUnless { it == defaultArtwork }
+            val existing = mediaItem.mediaMetadata.artworkUri?.takeUnless { it == defaultArtwork }
+            // A file is the thumbnail this method cached earlier; the cache is keyed by its source.
+            if (existing?.scheme == ContentResolver.SCHEME_FILE) return@withContext existing
+            val uri = existing
                 ?: if (mediaItem.isNetworkMediaItem()) {
                     return@withContext null
                 } else {
@@ -1401,51 +1708,22 @@ private val DecoderTrackType.mediaTrackType: Int
 private const val DECODER_LOG_TAG = "Decoder"
 private const val MAX_SESSION_ARTWORK_SIZE = 500
 
-@get:UnstableApi
-@set:UnstableApi
-private var Player.playerSpecificSkipSilenceEnabled: Boolean
-    @OptIn(UnstableApi::class)
-    get() = when (this) {
-        is ExoPlayer -> this.skipSilenceEnabled
-        else -> false
-    }
-    set(value) {
-        when (this) {
-            is ExoPlayer -> this.skipSilenceEnabled = value
-        }
-    }
-
-@get:UnstableApi
-@set:UnstableApi
-private var Player.playerSpecificSubtitleDelayMilliseconds: Long
-    @OptIn(UnstableApi::class)
-    get() = when (this) {
-        is ExoPlayer -> this.subtitleDelayMilliseconds
-        else -> 0L
-    }
-    set(value) {
-        when (this) {
-            is ExoPlayer -> this.subtitleDelayMilliseconds = value
-        }
-    }
-
-@get:UnstableApi
-@set:UnstableApi
-private var Player.playerSpecificSubtitleSpeed: Float
-    @OptIn(UnstableApi::class)
-    get() = when (this) {
-        is ExoPlayer -> this.subtitleSpeed
-        else -> 0f
-    }
-    set(value) {
-        when (this) {
-            is ExoPlayer -> this.subtitleSpeed = value
-        }
-    }
-
 /** Schemes Media3 streams over the network itself, as opposed to reading from local storage. */
 private val REMOTE_SCHEMES = setOf(
     "http",
     "https",
     "rtsp",
+)
+
+private val LOCAL_PLAYER_COMMANDS = setOf(
+    CustomCommands.ADD_SUBTITLE_TRACK,
+    CustomCommands.ADD_AUDIO_TRACK,
+    CustomCommands.SET_SKIP_SILENCE_ENABLED,
+    CustomCommands.SET_IS_SCRUBBING_MODE_ENABLED,
+    CustomCommands.SET_LOUDNESS_GAIN,
+    CustomCommands.SET_VIDEO_DECODER_MODE,
+    CustomCommands.SET_AUDIO_DECODER_MODE,
+    CustomCommands.TRY_DECODER_FALLBACK,
+    CustomCommands.SET_SUBTITLE_DELAY,
+    CustomCommands.SET_SUBTITLE_SPEED,
 )

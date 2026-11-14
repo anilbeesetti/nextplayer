@@ -21,6 +21,12 @@ android {
         testInstrumentationRunnerArguments["clearPackageData"] = "true"
     }
 
+    flavorDimensions += "distribution"
+    productFlavors {
+        create("standard") { dimension = "distribution" }
+        create("play") { dimension = "distribution" }
+    }
+
     buildFeatures {
         compose = true
         buildConfig = true
@@ -156,6 +162,9 @@ dependencies {
     testImplementation(libs.junit4)
     testImplementation(libs.kotlinx.coroutines.test)
     testImplementation(libs.robolectric)
+    testImplementation(libs.androidx.compose.ui.test)
+    testImplementation(libs.androidx.media3.exoplayer)
+    testImplementation(libs.androidx.media3.session)
     androidTestImplementation(project(":core:domain"))
     androidTestImplementation(libs.androidx.datastore.core)
     androidTestImplementation(libs.androidx.media3.session)

@@ -1,0 +1,298 @@
+{
+  "device": "Pixel_6a",
+  "api": 37,
+  "abi": "arm64-v8a",
+  "distributions": {
+    "play": {
+      "tests": 36,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0,
+      "cases": [
+        {
+          "class": "dev.anilbeesetti.nextplayer.MiniPlayerIntegrationTest",
+          "test": "expandedLayoutsKeepEveryActionVisibleAcrossRotationAndThemes",
+          "result": "passed"
+        },
+        {
+          "class": "dev.anilbeesetti.nextplayer.MiniPlayerIntegrationTest",
+          "test": "nestedSettingsReachWindowEdgeAndLastPreferenceClearsMiniPlayer",
+          "result": "passed"
+        },
+        {
+          "class": "dev.anilbeesetti.nextplayer.MiniPlayerIntegrationTest",
+          "test": "tappingBarOpensCurrentQueueWithoutResettingPausedPosition",
+          "result": "passed"
+        },
+        {
+          "class": "dev.anilbeesetti.nextplayer.MiniPlayerIntegrationTest",
+          "test": "vaultPinExcludesPlaybackWithoutStoppingIt",
+          "result": "passed"
+        },
+        {
+          "class": "dev.anilbeesetti.nextplayer.MiniPlayerIntegrationTest",
+          "test": "shortVideosUpdateProgressBetweenSnapshotTicksIncludingDoubleSpeed",
+          "result": "passed"
+        },
+        {
+          "class": "dev.anilbeesetti.nextplayer.MiniPlayerIntegrationTest",
+          "test": "queueDragAndSwipeKeepStableOccurrencesAndCancellationNeverRemoves",
+          "result": "passed"
+        },
+        {
+          "class": "dev.anilbeesetti.nextplayer.MiniPlayerIntegrationTest",
+          "test": "portraitRailTransitionClipsControlsInsideTheMovingSheet",
+          "result": "passed"
+        },
+        {
+          "class": "dev.anilbeesetti.nextplayer.MiniPlayerIntegrationTest",
+          "test": "artworkMorphAndPagingKeepRealThumbnailsAndQueueDurations",
+          "result": "passed"
+        },
+        {
+          "class": "dev.anilbeesetti.nextplayer.MiniPlayerIntegrationTest",
+          "test": "closingBarClearsQueueAndSavesPosition",
+          "result": "passed"
+        },
+        {
+          "class": "dev.anilbeesetti.nextplayer.MiniPlayerIntegrationTest",
+          "test": "overflowingLandscapeTitleActuallyMovesWhilePlayingAndEllipsizesWhenPaused",
+          "result": "passed"
+        },
+        {
+          "class": "dev.anilbeesetti.nextplayer.MiniPlayerIntegrationTest",
+          "test": "compactNavigationKeepsItsNodeAndMovesWithoutAJump",
+          "result": "passed"
+        },
+        {
+          "class": "dev.anilbeesetti.nextplayer.MiniPlayerIntegrationTest",
+          "test": "swipeDismissalUndoRestoresPlayingAndPausedSessions",
+          "result": "passed"
+        },
+        {
+          "class": "dev.anilbeesetti.nextplayer.MiniPlayerIntegrationTest",
+          "test": "backgroundBarSurvivesEveryHomeTabAndRecreation",
+          "result": "passed"
+        },
+        {
+          "class": "dev.anilbeesetti.nextplayer.MiniPlayerIntegrationTest",
+          "test": "playlistCreationCoversNavigationAndKeepsPlayingWithKeyboard",
+          "result": "passed"
+        },
+        {
+          "class": "dev.anilbeesetti.nextplayer.MiniPlayerIntegrationTest",
+          "test": "notificationFromDirectFullscreenKeepsPlayingWithBackgroundPreferenceOff",
+          "result": "passed"
+        },
+        {
+          "class": "dev.anilbeesetti.nextplayer.MiniPlayerIntegrationTest",
+          "test": "dismissalUndoUsesCompactPillCountdownAndClose",
+          "result": "passed"
+        },
+        {
+          "class": "dev.anilbeesetti.nextplayer.MiniPlayerIntegrationTest",
+          "test": "nestedSettingsAndNotificationReentryKeepTheSession",
+          "result": "passed"
+        },
+        {
+          "class": "dev.anilbeesetti.nextplayer.MiniPlayerIntegrationTest",
+          "test": "completedPlaybackRemovesBar",
+          "result": "passed"
+        },
+        {
+          "class": "dev.anilbeesetti.nextplayer.PlayerApiRequestRegressionTest",
+          "test": "backgroundQueueWinsAfterCancelledForegroundMetadataReturns",
+          "result": "passed"
+        },
+        {
+          "class": "dev.anilbeesetti.nextplayer.PlayerApiRequestRegressionTest",
+          "test": "backgroundQueueRetainsReadGrantsUntilTheServiceIsReleased",
+          "result": "passed"
+        },
+        {
+          "class": "dev.anilbeesetti.nextplayer.PlayerApiRequestRegressionTest",
+          "test": "externalQueueHandoffReturnsResultAndRetainsGrantsForExpandedControls",
+          "result": "passed"
+        },
+        {
+          "class": "dev.anilbeesetti.nextplayer.PlayerApiRequestRegressionTest",
+          "test": "foregroundQueueRetainsReadGrantsAfterActivityCloses",
+          "result": "passed"
+        },
+        {
+          "class": "dev.anilbeesetti.nextplayer.PlayerApiRequestRegressionTest",
+          "test": "backDuringForegroundMetadataKeepsTheSessionStopped",
+          "result": "passed"
+        },
+        {
+          "class": "dev.anilbeesetti.nextplayer.PlayerApiLaunchOptionsTest",
+          "test": "phoneDpadVolumeChangesDoNotChangeTheQueue",
+          "result": "passed"
+        },
+        {
+          "class": "dev.anilbeesetti.nextplayer.PlayerApiLaunchOptionsTest",
+          "test": "foregroundLaunchSetsSpeedOnceAndKeepsThePlayerScreen",
+          "result": "passed"
+        },
+        {
+          "class": "dev.anilbeesetti.nextplayer.PlayerApiLaunchOptionsTest",
+          "test": "backgroundLaunchResumesAPausedSessionWithoutResettingItsSpeed",
+          "result": "passed"
+        },
+        {
+          "class": "dev.anilbeesetti.nextplayer.PlayerApiLaunchOptionsTest",
+          "test": "directBackgroundLaunchReturnsToCallerAndKeepsPlayingAtRequestedSpeed",
+          "result": "passed"
+        },
+        {
+          "class": "dev.anilbeesetti.nextplayer.PlayerApiLaunchOptionsTest",
+          "test": "internalSelectedVideosContinueWhenAutoplayIsDisabled",
+          "result": "passed"
+        },
+        {
+          "class": "dev.anilbeesetti.nextplayer.PlayerApiLaunchOptionsTest",
+          "test": "phoneDpadNavigationOnlyActsWithHiddenControlsAndBackStillExits",
+          "result": "passed"
+        },
+        {
+          "class": "dev.anilbeesetti.nextplayer.PlayerApiLaunchOptionsTest",
+          "test": "omittingDpadOptionRestoresPhoneKeyHandling",
+          "result": "passed"
+        },
+        {
+          "class": "dev.anilbeesetti.nextplayer.BackgroundPlaybackCompletionTest",
+          "test": "wakingAfterBackgroundCompletionDoesNotReplayClearedQueue",
+          "result": "passed"
+        },
+        {
+          "class": "dev.anilbeesetti.nextplayer.BackgroundPlaybackCompletionTest",
+          "test": "wakingAfterBackgroundCompletionClosesEndedQueue",
+          "result": "passed"
+        },
+        {
+          "class": "dev.anilbeesetti.nextplayer.PlaylistCompletionTest",
+          "test": "replacingExplicitPlaylistWithAutomaticQueueRestoresAutoplayOff",
+          "result": "passed"
+        },
+        {
+          "class": "dev.anilbeesetti.nextplayer.PlaylistCompletionTest",
+          "test": "repeatOneStillRepeatsCurrentExplicitPlaylistItemWithAutoplayOff",
+          "result": "passed"
+        },
+        {
+          "class": "dev.anilbeesetti.nextplayer.PlaylistCompletionTest",
+          "test": "repeatOffClosesOnlyAfterLastExplicitPlaylistItemWithAutoplayOff",
+          "result": "passed"
+        },
+        {
+          "class": "dev.anilbeesetti.nextplayer.PlaylistCompletionTest",
+          "test": "repeatAllAdvancesAndWrapsExplicitPlaylistWithAutoplayOff",
+          "result": "passed"
+        }
+      ]
+    },
+    "standard": {
+      "tests": 19,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0,
+      "cases": [
+        {
+          "class": "dev.anilbeesetti.nextplayer.MiniPlayerIntegrationTest",
+          "test": "expandedLayoutsKeepEveryActionVisibleAcrossRotationAndThemes",
+          "result": "passed"
+        },
+        {
+          "class": "dev.anilbeesetti.nextplayer.MiniPlayerIntegrationTest",
+          "test": "nestedSettingsReachWindowEdgeAndLastPreferenceClearsMiniPlayer",
+          "result": "passed"
+        },
+        {
+          "class": "dev.anilbeesetti.nextplayer.MiniPlayerIntegrationTest",
+          "test": "tappingBarOpensCurrentQueueWithoutResettingPausedPosition",
+          "result": "passed"
+        },
+        {
+          "class": "dev.anilbeesetti.nextplayer.MiniPlayerIntegrationTest",
+          "test": "vaultPinExcludesPlaybackWithoutStoppingIt",
+          "result": "passed"
+        },
+        {
+          "class": "dev.anilbeesetti.nextplayer.MiniPlayerIntegrationTest",
+          "test": "shortVideosUpdateProgressBetweenSnapshotTicksIncludingDoubleSpeed",
+          "result": "passed"
+        },
+        {
+          "class": "dev.anilbeesetti.nextplayer.MiniPlayerIntegrationTest",
+          "test": "queueDragAndSwipeKeepStableOccurrencesAndCancellationNeverRemoves",
+          "result": "passed"
+        },
+        {
+          "class": "dev.anilbeesetti.nextplayer.MiniPlayerIntegrationTest",
+          "test": "portraitRailTransitionClipsControlsInsideTheMovingSheet",
+          "result": "passed"
+        },
+        {
+          "class": "dev.anilbeesetti.nextplayer.MiniPlayerIntegrationTest",
+          "test": "artworkMorphAndPagingKeepRealThumbnailsAndQueueDurations",
+          "result": "passed"
+        },
+        {
+          "class": "dev.anilbeesetti.nextplayer.MiniPlayerIntegrationTest",
+          "test": "closingBarClearsQueueAndSavesPosition",
+          "result": "passed"
+        },
+        {
+          "class": "dev.anilbeesetti.nextplayer.MiniPlayerIntegrationTest",
+          "test": "overflowingLandscapeTitleActuallyMovesWhilePlayingAndEllipsizesWhenPaused",
+          "result": "passed"
+        },
+        {
+          "class": "dev.anilbeesetti.nextplayer.MiniPlayerIntegrationTest",
+          "test": "compactNavigationKeepsItsNodeAndMovesWithoutAJump",
+          "result": "passed"
+        },
+        {
+          "class": "dev.anilbeesetti.nextplayer.MiniPlayerIntegrationTest",
+          "test": "swipeDismissalUndoRestoresPlayingAndPausedSessions",
+          "result": "passed"
+        },
+        {
+          "class": "dev.anilbeesetti.nextplayer.MiniPlayerIntegrationTest",
+          "test": "backgroundBarSurvivesEveryHomeTabAndRecreation",
+          "result": "passed"
+        },
+        {
+          "class": "dev.anilbeesetti.nextplayer.MiniPlayerIntegrationTest",
+          "test": "playlistCreationCoversNavigationAndKeepsPlayingWithKeyboard",
+          "result": "passed"
+        },
+        {
+          "class": "dev.anilbeesetti.nextplayer.MiniPlayerIntegrationTest",
+          "test": "notificationFromDirectFullscreenKeepsPlayingWithBackgroundPreferenceOff",
+          "result": "passed"
+        },
+        {
+          "class": "dev.anilbeesetti.nextplayer.MiniPlayerIntegrationTest",
+          "test": "dismissalUndoUsesCompactPillCountdownAndClose",
+          "result": "passed"
+        },
+        {
+          "class": "dev.anilbeesetti.nextplayer.MiniPlayerIntegrationTest",
+          "test": "nestedSettingsAndNotificationReentryKeepTheSession",
+          "result": "passed"
+        },
+        {
+          "class": "dev.anilbeesetti.nextplayer.MiniPlayerIntegrationTest",
+          "test": "completedPlaybackRemovesBar",
+          "result": "passed"
+        },
+        {
+          "class": "dev.anilbeesetti.nextplayer.PlayerApiRequestRegressionTest",
+          "test": "externalQueueHandoffReturnsResultAndRetainsGrantsForExpandedControls",
+          "result": "passed"
+        }
+      ]
+    }
+  }
+}

@@ -22,6 +22,11 @@ enum class CustomCommands(val customAction: String) {
     SET_SUBTITLE_DELAY(customAction = "SET_SUBTITLE_DELAY"),
     GET_SUBTITLE_SPEED(customAction = "GET_SUBTITLE_SPEED"),
     SET_SUBTITLE_SPEED(customAction = "SET_SUBTITLE_SPEED"),
+    DISMISS_PLAYBACK(customAction = "DISMISS_PLAYBACK"),
+    UNDO_DISMISSAL(customAction = "UNDO_DISMISSAL"),
+    CANCEL_CAST(customAction = "CANCEL_CAST"),
+    RETRY_CAST(customAction = "RETRY_CAST"),
+    PLAY_ON_PHONE(customAction = "PLAY_ON_PHONE"),
     STOP_PLAYER_SESSION(customAction = "STOP_PLAYER_SESSION"),
     START_BACKGROUND_PLAYBACK(customAction = "START_BACKGROUND_PLAYBACK"),
     IS_LOUDNESS_GAIN_SUPPORTED(customAction = "IS_LOUDNESS_GAIN_SUPPORTED"),
@@ -30,6 +35,7 @@ enum class CustomCommands(val customAction: String) {
     SET_VIDEO_DECODER_MODE(customAction = "SET_VIDEO_DECODER_MODE"),
     SET_AUDIO_DECODER_MODE(customAction = "SET_AUDIO_DECODER_MODE"),
     TRY_DECODER_FALLBACK(customAction = "TRY_DECODER_FALLBACK"),
+    SET_AUDIO_OUTPUT(customAction = "SET_AUDIO_OUTPUT"),
     ;
 
     val sessionCommand = SessionCommand(
@@ -43,6 +49,8 @@ enum class CustomCommands(val customAction: String) {
 
         fun asSessionCommands(): List<SessionCommand> = entries.map { it.sessionCommand }
 
+        const val SESSION_RELEASE_BLOCKED_KEY = "session_release_blocked"
+        const val DISMISSAL_DEADLINE_KEY = "dismissal_deadline"
         const val BACKGROUND_MEDIA_ITEMS_KEY = "background_media_items"
         const val BACKGROUND_START_INDEX_KEY = "background_start_index"
         const val BACKGROUND_START_POSITION_KEY = "background_start_position_ms"
@@ -63,6 +71,10 @@ enum class CustomCommands(val customAction: String) {
         const val DECODER_RECOVERY_STATUS_KEY = "decoder_recovery_status"
         const val DECODER_RECOVERY_TRACK_TYPE_KEY = "decoder_recovery_track_type"
         const val UNSUPPORTED_DECODER_MODE_KEY = "unsupported_decoder_mode"
+
+        /** The id of the phone audio output playback prefers, or [SYSTEM_AUDIO_OUTPUT]. */
+        const val AUDIO_OUTPUT_KEY = "audio_output"
+        const val SYSTEM_AUDIO_OUTPUT = -1
     }
 }
 
@@ -278,3 +290,18 @@ internal fun Bundle.decoderMode(key: String): DecoderMode? {
     val value = getString(key) ?: return null
     return DecoderMode.entries.find { it.name == value }
 }
+
+internal fun MediaController.playbackCommand(command: CustomCommands) = sendCustomCommand(
+    command.sessionCommand,
+    Bundle.EMPTY,
+)
+
+internal fun MediaController.setAudioOutput(deviceId: Int) = sendCustomCommand(
+    CustomCommands.SET_AUDIO_OUTPUT.sessionCommand,
+    Bundle().apply {
+        putInt(
+            CustomCommands.AUDIO_OUTPUT_KEY,
+            deviceId,
+        )
+    },
+)

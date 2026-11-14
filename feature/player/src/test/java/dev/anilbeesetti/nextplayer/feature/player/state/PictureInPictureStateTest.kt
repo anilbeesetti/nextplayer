@@ -9,6 +9,7 @@ import android.os.Looper
 import androidx.activity.ComponentActivity
 import androidx.compose.runtime.DisposableEffectResult
 import androidx.compose.runtime.DisposableEffectScope
+import androidx.media3.common.DeviceInfo
 import androidx.media3.common.Player
 import androidx.media3.common.SimpleBasePlayer
 import com.google.common.util.concurrent.Futures
@@ -70,6 +71,16 @@ class PictureInPictureStateTest {
         listeners.dispose()
         player.release()
         controller.pause().stop().destroy()
+    }
+
+    @Test
+    fun castingDisablesPipAndDisconnectRestoresIt() {
+        assertTrue(state.isPipSupported)
+        player.setRemote(true)
+        assertFalse(state.isPipSupported)
+        assertFalse(state.enterPictureInPictureMode())
+        player.setRemote(false)
+        assertTrue(state.isPipSupported)
     }
 
     @Test
@@ -283,6 +294,15 @@ class PictureInPictureStateTest {
                 Player.PLAY_WHEN_READY_CHANGE_REASON_USER_REQUEST,
             )
             .build()
+
+        fun setRemote(remote: Boolean) {
+            state = state.buildUpon().setDeviceInfo(
+                DeviceInfo.Builder(
+                    if (remote) DeviceInfo.PLAYBACK_TYPE_REMOTE else DeviceInfo.PLAYBACK_TYPE_LOCAL,
+                ).build(),
+            ).build()
+            invalidateState()
+        }
 
         override fun getState(): State = state
 

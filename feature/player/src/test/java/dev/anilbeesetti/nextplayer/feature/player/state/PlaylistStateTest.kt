@@ -1,5 +1,6 @@
 package dev.anilbeesetti.nextplayer.feature.player.state
 
+import androidx.media3.common.ForwardingPlayer
 import androidx.media3.common.MediaItem
 import androidx.media3.common.Player
 import androidx.media3.exoplayer.ExoPlayer
@@ -53,6 +54,69 @@ class PlaylistStateTest {
     }
 
     @Test
+    fun removingCurrentFinalRowSelectsPreviousItemAndPreservesPlayingIntent() = withPlaylist(
+        "first",
+        "middle",
+        "last",
+    ) { state, player ->
+        for (playing in listOf(
+            false,
+            true,
+        )) {
+            player.setMediaItems(
+                listOf(
+                    "first",
+                    "middle",
+                    "last",
+                ).map {
+                    MediaItem.Builder().setMediaId(it).setUri("file:///$it.mp4").build()
+                },
+            )
+            player.seekToDefaultPosition(2)
+            player.playWhenReady = playing
+            state.removeItem(2)
+            assertEquals(
+                listOf(
+                    "first",
+                    "middle",
+                ),
+                player.mediaIds(),
+            )
+            assertEquals(
+                "middle",
+                player.currentMediaItem?.mediaId,
+            )
+            assertEquals(
+                playing,
+                player.playWhenReady,
+            )
+        }
+    }
+
+    @Test
+    fun cannotRemoveCurrentFinalRowWithoutTheCommandToKeepPlaybackActive() = withPlaylist(
+        "first",
+        "last",
+    ) { _, player ->
+        player.seekToDefaultPosition(1)
+        val limited = object : ForwardingPlayer(player) {
+            override fun isCommandAvailable(command: Int): Boolean =
+                command != Player.COMMAND_SEEK_TO_MEDIA_ITEM && super.isCommandAvailable(command)
+        }
+        val state = PlaylistState(limited)
+        org.junit.Assert.assertFalse(state.canRemoveItem(1))
+        org.junit.Assert.assertTrue(state.canRemoveItem(0))
+        state.removeItem(1)
+        assertEquals(
+            listOf(
+                "first",
+                "last",
+            ),
+            player.mediaIds(),
+        )
+    }
+
+    @Test
     fun preservesLastItem() = withPlaylist("only") { state, player ->
         state.removeItem(index = 0)
 
@@ -60,6 +124,133 @@ class PlaylistStateTest {
             listOf(element = "only"),
             player.mediaIds(),
         )
+    }
+
+    @Test
+    fun duplicateUrisHaveDistinctStableKeysAndKnownDurations() = withPlaylist(
+        "same",
+        "same",
+    ) {
+            state,
+            player,
+        ->
+        val firstKey = state.getKeyAt(0)
+        org.junit.Assert.assertNotEquals(
+            firstKey,
+            state.getKeyAt(1),
+        )
+        val item = player.getMediaItemAt(1).buildUpon().setMediaMetadata(
+            androidx.media3.common.MediaMetadata.Builder().setDurationMs(20_000).build(),
+        ).build()
+        player.replaceMediaItem(
+            1,
+            item,
+        )
+        assertEquals(
+            firstKey,
+            state.getKeyAt(0),
+        )
+        assertEquals(
+            20_000L,
+            PlaylistState(player).getDurationAt(1),
+        )
+        assertEquals(
+            null,
+            state.getDurationAt(0),
+        )
+    }
+
+    @Test fun undoRemovalKeepsDuplicateOccurrencesAndCurrentPosition() = withPlaylist(
+        "same",
+        "same",
+        "last",
+    ) { state, player ->
+        val original = player.getMediaItemAt(1).buildUpon()
+            .setSubtitleConfigurations(
+                listOf(
+                    MediaItem.SubtitleConfiguration.Builder(
+                        android.net.Uri.parse("file:///captions.srt"),
+                    ).setMimeType("application/x-subrip").build(),
+                ),
+            )
+            .setMediaMetadata(
+                androidx.media3.common.MediaMetadata.Builder().setTitle("Second occurrence")
+                    .setDurationMs(20_000).build(),
+            ).build()
+        player.replaceMediaItem(
+            1,
+            original,
+        )
+        player.seekTo(
+            2,
+            42_000,
+        )
+        player.playWhenReady = true
+        val current = player.currentMediaItem
+        state.removeItem(1)
+        org.junit.Assert.assertTrue(state.undoRemoval())
+        assertEquals(
+            listOf(
+                "same",
+                "same",
+                "last",
+            ),
+            player.mediaIds(),
+        )
+        assertEquals(
+            current,
+            player.currentMediaItem,
+        )
+        assertEquals(
+            42_000L,
+            player.currentPosition,
+        )
+        org.junit.Assert.assertTrue(player.playWhenReady)
+        org.junit.Assert.assertFalse(state.undoRemoval())
+    }
+
+    @Test fun undoRemovalFollowsSurvivingNeighborAfterReorder() = withPlaylist(
+        "first",
+        "removed",
+        "next",
+    ) { state, player ->
+        state.removeItem(1)
+        player.moveMediaItem(
+            1,
+            0,
+        )
+        org.junit.Assert.assertTrue(state.undoRemoval())
+        assertEquals(
+            listOf(
+                "removed",
+                "next",
+                "first",
+            ),
+            player.mediaIds(),
+        )
+        assertEquals(
+            "first",
+            player.currentMediaItem?.mediaId,
+        )
+    }
+
+    @Test fun queueUndoExpiresAndCannotInsertIntoReplacementOrStoppedPlayback() = withPlaylist(
+        "first",
+        "removed",
+        "last",
+    ) { state, player ->
+        state.removeItem(1)
+        org.robolectric.shadows.ShadowSystemClock.advanceBy(java.time.Duration.ofSeconds(4))
+        org.junit.Assert.assertFalse(state.undoRemoval())
+        state.removeItem(0)
+        player.setMediaItem(
+            MediaItem.Builder().setMediaId("last").setUri("file:///last.mp4").build(),
+        )
+        org.junit.Assert.assertFalse(state.undoRemoval())
+        player.addMediaItem(MediaItem.fromUri("file:///other.mp4"))
+        state.removeItem(1)
+        player.clearMediaItems()
+        org.junit.Assert.assertFalse(state.undoRemoval())
     }
 
     private fun withPlaylist(vararg ids: String, assertion: (PlaylistState, Player) -> Unit) {
