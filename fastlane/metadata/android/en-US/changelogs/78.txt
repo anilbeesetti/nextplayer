@@ -1,0 +1,6 @@
+- Export and import settings, optionally including saved network connections
+- Drag ordinary text subtitles to reposition them
+- FFmpeg subtitles with authored ASS styling and bitmap placement
+- Clearer chapters and controls on narrow players
+- Preserve media dates when moving files on the same storage volume
+- Fixed seeking after background playback, pinch zoom, landscape navigation, dynamic colors, and artwork crashes
