@@ -111,3 +111,9 @@ The user requested these refinements after using the installed build. They super
 - Controls style covers the mini player, expanded portrait/landscape controls and their queue-header/banner animation. Queue style covers list-item artwork, including the full-screen video queue. Audio restores the original square dimensions without changing row heights.
 - Choices persist across restarts. Release builds hide the developer entry, do not register its destination and ignore artwork overrides, retaining 16:10 artwork.
 - Verified mixed styles and persistence on a disposable Pixel 6a profile, API 35, and confirmed the developer entry is absent in a minified release build. [Debug choices and release settings](developer-artwork-settings.png).
+
+## Video-style queue rows
+
+- Only Video style queue artwork uses two-line titles and a bottom-end duration badge over the thumbnail. The badge keeps the full duration readable against the image and fits long durations at large text sizes.
+- Audio style retains its original one-line title and supporting duration underneath. Selection, reorder, removal and unknown-duration markers are unchanged in both queue presentations.
+- Verified both styles on a disposable Pixel 6a profile, API 35, with long titles and large RTL duration coverage in both distributions. [Audio and video queue rows](queue-artwork-styles.png).

@@ -41,6 +41,7 @@ import androidx.media3.exoplayer.ExoPlayer
 import androidx.media3.exoplayer.source.ForwardingTimeline
 import dev.anilbeesetti.nextplayer.core.ui.R
 import dev.anilbeesetti.nextplayer.core.ui.theme.NextPlayerTheme
+import dev.anilbeesetti.nextplayer.feature.player.LocalQueueArtworkAspectRatio
 import org.junit.After
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertFalse
@@ -50,6 +51,7 @@ import org.junit.Test
 import org.junit.runner.RunWith
 import org.robolectric.RobolectricTestRunner
 import org.robolectric.annotation.Config
+import org.robolectric.annotation.GraphicsMode
 
 @RunWith(RobolectricTestRunner::class)
 @Config(sdk = [36])
@@ -60,7 +62,7 @@ class PlaybackQueueContentTest {
 
     @After fun tearDown() = rule.runOnIdle { if (::player.isInitialized) player.release() }
 
-    @Test fun durationIsBelowTheTitleAndBesideTheArtwork() {
+    @Test fun durationIsOverlaidOnTheThumbnailBesideTheTitle() {
         show()
         val artwork = rule.onNodeWithTag(
             "queue_artwork_0",
@@ -82,12 +84,9 @@ class PlaybackQueueContentTest {
             "queue_title_0",
             true,
         ).getUnclippedBoundsInRoot()
-        assertTrue(bounds.left >= artwork.right)
-        assertEquals(
-            title.left,
-            bounds.left,
-        )
-        assertTrue(bounds.top >= title.bottom)
+        assertTrue(bounds.left >= artwork.left && bounds.right <= artwork.right)
+        assertTrue(bounds.top >= artwork.top && bounds.bottom <= artwork.bottom)
+        assertTrue(title.left >= artwork.right)
     }
 
     @Test fun swipeRemovesOnlyTheRequestedOccurrenceAndKeepsTheLastItem() {
@@ -280,11 +279,59 @@ class PlaybackQueueContentTest {
         }
     }
 
-    @Test fun longDurationFitsTheSubtitleWithLargeTextInRtl() {
+    @Test
+    @GraphicsMode(GraphicsMode.Mode.NATIVE)
+    fun videoQueueTitleWrapsToTwoLines() = checkTitleLayout(
+        16f / 10f,
+        lines = 2,
+    )
+
+    @Test
+    @GraphicsMode(GraphicsMode.Mode.NATIVE)
+    fun audioQueueTitleStaysOnOneLine() = checkTitleLayout(
+        1f,
+        lines = 1,
+    )
+
+    private fun checkTitleLayout(artworkAspectRatio: Float, lines: Int) {
+        show(
+            firstTitle = "A video title long enough to wrap onto a second line ".repeat(3),
+            artworkAspectRatio = artworkAspectRatio,
+        )
+        val title = rule.onNodeWithTag(
+            "queue_title_0",
+            true,
+        )
+        val layouts = mutableListOf<TextLayoutResult>()
+        title.performSemanticsAction(SemanticsActions.GetTextLayoutResult) { it(layouts) }
+        assertEquals(
+            lines,
+            layouts.single().layoutInput.maxLines,
+        )
+        assertEquals(
+            "${layouts.single().layoutInput.text}: ${layouts.single().layoutInput.constraints}",
+            lines,
+            layouts.single().lineCount,
+        )
+    }
+
+    @Test
+    @GraphicsMode(GraphicsMode.Mode.NATIVE)
+    fun longDurationBadgeFitsVideoArtworkWithLargeTextInRtl() = checkLongDurationBadge(
+        16f / 10f,
+    )
+
+    @Test
+    @GraphicsMode(GraphicsMode.Mode.NATIVE)
+    fun longDurationStaysBelowTheTitleWithSquareArtworkAndLargeRtlText() =
+        checkLongDurationBadge(1f)
+
+    private fun checkLongDurationBadge(artworkAspectRatio: Float) {
         show(
             LayoutDirection.Rtl,
             fontScale = 2f,
             firstDurationMs = 360_000_000L,
+            artworkAspectRatio = artworkAspectRatio,
         )
         val art = rule.onNodeWithTag(
             "queue_artwork_0",
@@ -296,12 +343,17 @@ class PlaybackQueueContentTest {
         )
         duration.assertTextEquals("100:00:00")
         val bounds = duration.getUnclippedBoundsInRoot()
-        val title = rule.onNodeWithTag(
-            "queue_title_0",
-            true,
-        ).getUnclippedBoundsInRoot()
-        assertTrue(bounds.right <= art.left)
-        assertTrue(bounds.top >= title.bottom)
+        if (artworkAspectRatio > 1f) {
+            assertTrue(bounds.left >= art.left && bounds.right <= art.right)
+            assertTrue(bounds.top >= art.top && bounds.bottom <= art.bottom)
+        } else {
+            val title = rule.onNodeWithTag(
+                "queue_title_0",
+                true,
+            ).getUnclippedBoundsInRoot()
+            assertTrue(bounds.right <= art.left)
+            assertTrue(bounds.top >= title.bottom)
+        }
         val layouts = mutableListOf<TextLayoutResult>()
         duration.performSemanticsAction(SemanticsActions.GetTextLayoutResult) { it(layouts) }
         val layout = layouts.single()
@@ -325,7 +377,7 @@ class PlaybackQueueContentTest {
         ).getUnclippedBoundsInRoot()
         assertTrue(bounds.bottom <= row.bottom)
         assertEquals(
-            96.dp,
+            60.dp * artworkAspectRatio,
             art.right - art.left,
         )
     }
@@ -550,6 +602,8 @@ class PlaybackQueueContentTest {
         fullscreen: Boolean = false,
         maskedUids: Boolean = false,
         firstDurationMs: Long = 15_000L,
+        firstTitle: String? = null,
+        artworkAspectRatio: Float = 16f / 10f,
     ) {
         rule.runOnUiThread {
             player = ExoPlayer.Builder(rule.activity).build()
@@ -562,7 +616,7 @@ class PlaybackQueueContentTest {
                     MediaItem.Builder().setMediaId(id).setUri("file:///$id.mp4")
                         .setMediaMetadata(
                             MediaMetadata.Builder().setTitle(
-                                id,
+                                if (i == 0) firstTitle ?: id else id,
                             ).setDurationMs(firstDurationMs + i * 5_000).build(),
                         )
                         .build()
@@ -598,6 +652,7 @@ class PlaybackQueueContentTest {
         rule.setContent {
             val density = LocalDensity.current
             CompositionLocalProvider(
+                LocalQueueArtworkAspectRatio provides artworkAspectRatio,
                 LocalDensity provides Density(
                     density.density,
                     fontScale,

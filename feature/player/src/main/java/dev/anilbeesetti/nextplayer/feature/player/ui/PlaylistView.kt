@@ -7,6 +7,7 @@ import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
 import androidx.compose.animation.slideInVertically
 import androidx.compose.animation.slideOutVertically
+import androidx.compose.foundation.background
 import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -28,6 +29,8 @@ import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.text.BasicText
+import androidx.compose.foundation.text.TextAutoSize
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.rounded.DragIndicator
 import androidx.compose.material3.ExperimentalMaterial3ExpressiveApi
@@ -48,7 +51,9 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
 import androidx.compose.ui.focus.onFocusChanged
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.hapticfeedback.HapticFeedbackType
 import androidx.compose.ui.platform.LocalHapticFeedback
 import androidx.compose.ui.platform.testTag
@@ -62,6 +67,7 @@ import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
 import androidx.media3.common.Player
 import androidx.media3.common.util.UnstableApi
 import dev.anilbeesetti.nextplayer.core.common.Utils
@@ -105,6 +111,7 @@ internal fun PlaybackQueueContent(
     showHeader: Boolean = true,
 ) {
     val artworkAspectRatio = LocalQueueArtworkAspectRatio.current
+    val videoArtwork = artworkAspectRatio > 1f
     val queue = rememberPlaylistState(player)
     val list = rememberLazyListState()
     val haptics = LocalHapticFeedback.current
@@ -187,6 +194,9 @@ internal fun PlaybackQueueContent(
                         val key = queue.getKeyAt(index)
                         val item = queue.getMediaItemAt(index)
                         val current = index == queue.currentMediaItemIndex
+                        val duration = queue.getDurationAt(index)?.let {
+                            Utils.formatDurationMillis(it)
+                        } ?: "—"
                         val canMoveEarlier = editable && index > 0
                         val canMoveLater = editable && index < queue.mediaItemCount - 1
                         val shape = RoundedCornerShape(if (current) 60.dp else 22.dp)
@@ -286,33 +296,47 @@ internal fun PlaybackQueueContent(
                                             } else {
                                                 Spacer(Modifier.width(12.dp))
                                             }
-                                            PlaybackArtwork(
-                                                snapshot.copy(
-                                                    item = item,
-                                                    metadata = if (current) {
-                                                        snapshot.metadata
-                                                    } else {
-                                                        item.mediaMetadata
-                                                    },
-                                                ),
+                                            Box(
                                                 Modifier.size(
-                                                    width =
-                                                        60.dp * artworkAspectRatio,
+                                                    width = 60.dp * artworkAspectRatio,
                                                     height = 60.dp,
                                                 ).testTag("queue_artwork_$index"),
-                                                RoundedCornerShape(8.dp),
-                                            )
+                                            ) {
+                                                PlaybackArtwork(
+                                                    snapshot.copy(
+                                                        item = item,
+                                                        metadata = if (current) {
+                                                            snapshot.metadata
+                                                        } else {
+                                                            item.mediaMetadata
+                                                        },
+                                                    ),
+                                                    Modifier.fillMaxSize(),
+                                                    RoundedCornerShape(8.dp),
+                                                )
+                                                if (videoArtwork) {
+                                                    QueueDurationBadge(
+                                                        duration,
+                                                        Modifier.align(Alignment.BottomEnd)
+                                                            .padding(3.dp).testTag(
+                                                                "queue_duration_$index",
+                                                            ),
+                                                    )
+                                                }
+                                            }
                                         }
                                     },
-                                    supportingContent = {
-                                        Text(
-                                            queue.getDurationAt(index)?.let {
-                                                Utils.formatDurationMillis(it)
-                                            } ?: "—",
-                                            Modifier.testTag("queue_duration_$index"),
-                                            style = MaterialTheme.typography.bodyMedium,
-                                            color = MaterialTheme.colorScheme.onSurfaceVariant,
-                                        )
+                                    supportingContent = if (videoArtwork) {
+                                        null
+                                    } else {
+                                        {
+                                            Text(
+                                                duration,
+                                                Modifier.testTag("queue_duration_$index"),
+                                                style = MaterialTheme.typography.bodyMedium,
+                                                color = MaterialTheme.colorScheme.onSurfaceVariant,
+                                            )
+                                        }
                                     },
                                     trailingContent = {
                                         if (removable && rowFocused) {
@@ -332,7 +356,7 @@ internal fun PlaybackQueueContent(
                                             ?: item.localConfiguration?.uri?.lastPathSegment
                                             ?: stringResource(R.string.unknown),
                                         modifier = Modifier.testTag("queue_title_$index"),
-                                        maxLines = 1,
+                                        maxLines = if (videoArtwork) 2 else 1,
                                         overflow = TextOverflow.Ellipsis,
                                         fontWeight = if (current) {
                                             FontWeight.Bold
@@ -400,4 +424,24 @@ internal fun PlaybackQueueContent(
             }
         }
     }
+}
+
+@Composable
+private fun QueueDurationBadge(duration: String, modifier: Modifier = Modifier) {
+    val style = MaterialTheme.typography.labelSmall.copy(color = Color.White)
+    BasicText(
+        text = duration,
+        modifier = modifier.clip(RoundedCornerShape(3.dp))
+            .background(Color.Black.copy(alpha = .6f))
+            .padding(
+                horizontal = 3.dp,
+                vertical = 1.dp,
+            ),
+        style = style,
+        maxLines = 1,
+        autoSize = TextAutoSize.StepBased(
+            minFontSize = 8.sp,
+            maxFontSize = style.fontSize,
+        ),
+    )
 }

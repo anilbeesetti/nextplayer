@@ -63,6 +63,7 @@ import dev.anilbeesetti.nextplayer.core.common.storagePermission
 import dev.anilbeesetti.nextplayer.core.data.repository.MediaRepository
 import dev.anilbeesetti.nextplayer.core.data.repository.PreferencesRepository
 import dev.anilbeesetti.nextplayer.core.model.ApplicationPreferences
+import dev.anilbeesetti.nextplayer.core.model.ArtworkStyle
 import dev.anilbeesetti.nextplayer.core.model.LoopMode
 import dev.anilbeesetti.nextplayer.core.model.PlayerPreferences
 import dev.anilbeesetti.nextplayer.core.model.ThemeConfig
@@ -1167,7 +1168,13 @@ class MiniPlayerIntegrationTest {
     }
 
     @Test
-    fun queueDurationSubtitleFitsLargeRtlText() {
+    fun videoQueueDurationBadgeFitsLargeRtlText() = checkQueueDurationLayout(ArtworkStyle.VIDEO)
+
+    @Test
+    fun audioQueueKeepsDurationBelowTheTitleWithLargeRtlText() =
+        checkQueueDurationLayout(ArtworkStyle.AUDIO)
+
+    private fun checkQueueDurationLayout(artworkStyle: ArtworkStyle) {
         onMain {
             player.pause()
             player.setMediaItems(
@@ -1184,7 +1191,7 @@ class MiniPlayerIntegrationTest {
             )
             player.prepare()
         }
-        await("subtitle queue ready") { player.playbackState == Player.STATE_READY }
+        await("duration badge queue ready") { player.playbackState == Player.STATE_READY }
         onMain {
             composeRule.activity.setContent {
                 val density = LocalDensity.current
@@ -1201,6 +1208,7 @@ class MiniPlayerIntegrationTest {
                             compactStart = 0.dp,
                             hidden = false,
                             expansionRequest = 1,
+                            playerPreferences = PlayerPreferences(queueArtworkStyle = artworkStyle),
                             focusRequester = remember { FocusRequester() },
                             onCompactHeightChanged = {},
                             onVisibilityChanged = {},
@@ -1233,7 +1241,13 @@ class MiniPlayerIntegrationTest {
         )
             .fetchSemanticsNode().boundsInRoot
         val row = composeRule.onNodeWithTag("queue_item_1").fetchSemanticsNode().boundsInRoot
-        assertTrue(text.right <= art.left && text.top >= title.bottom && text.bottom <= row.bottom)
+        if (artworkStyle == ArtworkStyle.VIDEO) {
+            assertTrue(text.left >= art.left && text.right <= art.right)
+            assertTrue(text.top >= art.top && text.bottom <= art.bottom)
+        } else {
+            assertTrue(text.right <= art.left && text.top >= title.bottom)
+        }
+        assertTrue(title.right <= art.left && text.bottom <= row.bottom)
         val layouts = mutableListOf<androidx.compose.ui.text.TextLayoutResult>()
         duration.performSemanticsAction(SemanticsActions.GetTextLayoutResult) { it(layouts) }
         val layout = layouts.single()
@@ -1253,7 +1267,7 @@ class MiniPlayerIntegrationTest {
         assertTrue(layout.getLineBottom(layout.lineCount - 1) <= layout.size.height + 1f)
         captureNode(
             "playback_queue",
-            "queue-duration-subtitles-large-rtl",
+            "queue-duration-${artworkStyle.name.lowercase()}-large-rtl",
         )
     }
 
