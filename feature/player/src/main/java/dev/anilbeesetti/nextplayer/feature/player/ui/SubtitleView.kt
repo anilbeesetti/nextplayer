@@ -36,6 +36,7 @@ import androidx.media3.ui.CaptionStyleCompat
 import androidx.media3.ui.SubtitleView
 import dev.anilbeesetti.nextplayer.core.model.Font
 import dev.anilbeesetti.nextplayer.feature.player.buttons.PlayerButtonBlackAlpha
+import dev.anilbeesetti.nextplayer.feature.player.extensions.stackUnpositionedCues
 import dev.anilbeesetti.nextplayer.feature.player.extensions.toTypeface
 import dev.anilbeesetti.nextplayer.feature.player.state.CuesState
 import dev.anilbeesetti.nextplayer.feature.player.state.SubtitlePositionState
@@ -141,7 +142,7 @@ fun SubtitleView(
                 ),
             )
             subtitleView.setApplyEmbeddedStyles(configuration.applyEmbeddedStyles)
-            subtitleView.setCues(displayedCues)
+            subtitleView.setCues(displayedCues?.stackUnpositionedCues())
             if (isInPictureInPictureMode) {
                 subtitleView.setFractionalTextSize(SubtitleView.DEFAULT_TEXT_SIZE_FRACTION)
             } else {
