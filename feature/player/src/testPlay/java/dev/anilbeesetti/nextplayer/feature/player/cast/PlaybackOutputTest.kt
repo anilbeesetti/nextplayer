@@ -184,6 +184,29 @@ class PlaybackOutputTest {
         )
     }
 
+    @Test fun lateReturnAfterCancelDoesNotRewindRestoredPhone() {
+        local.setMediaItems(
+            items,
+            1,
+            30_000,
+        )
+        local.playWhenReady = true
+        listener.onSessionStarting(session)
+        output.cancelConnection()
+        local.seekTo(45_000)
+        output.transferState(
+            remote,
+            local,
+            remote,
+            callback,
+        )
+        assertEquals(
+            45_000L,
+            local.currentPosition,
+        )
+        assertTrue(local.playWhenReady)
+    }
+
     @Test fun stoppedReceiverCannotReviveQueueAfterLocalPausedUndo() {
         local.setMediaItems(
             items,

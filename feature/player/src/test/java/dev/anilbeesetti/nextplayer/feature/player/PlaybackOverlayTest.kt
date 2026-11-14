@@ -2,13 +2,14 @@ package dev.anilbeesetti.nextplayer.feature.player
 
 import android.media.AudioDeviceInfo
 import android.media.AudioManager
-import android.provider.Settings
 import androidx.activity.ComponentActivity
 import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableFloatStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
+import androidx.compose.ui.MotionDurationScale
 import androidx.compose.ui.focus.FocusRequester
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.platform.LocalDensity
@@ -64,7 +65,13 @@ import org.robolectric.shadows.AudioDeviceInfoBuilder
     qualifiers = "w320dp-h720dp",
 )
 class PlaybackOverlayTest {
-    @get:Rule val composeRule = createAndroidComposeRule<ComponentActivity>()
+    private val motionDurationScale = object : MotionDurationScale {
+        override var scaleFactor by mutableFloatStateOf(1f)
+    }
+
+    @get:Rule val composeRule = createAndroidComposeRule<ComponentActivity>(
+        effectContext = motionDurationScale,
+    )
     private val player = MiniPlayerTestPlayer()
     private var expanded by mutableStateOf(false)
     private var hidden by mutableStateOf(false)
@@ -977,19 +984,9 @@ class PlaybackOverlayTest {
 
     @Test
     @Config(qualifiers = "w640dp-h360dp-land")
-    fun longLandscapeTitleScrollsOnlyDuringPlaybackWithSystemMotionEnabled() {
-        val resolver = composeRule.activity.contentResolver
-        val original = Settings.Global.getString(
-            resolver,
-            Settings.Global.ANIMATOR_DURATION_SCALE,
-        )
+    fun longLandscapeTitleScrollsOnlyDuringPlaybackWithMotionEnabled() {
         val title = "Very long video filename with a distinguishing episode number.mp4"
         composeRule.runOnIdle {
-            Settings.Global.putFloat(
-                resolver,
-                Settings.Global.ANIMATOR_DURATION_SCALE,
-                1f,
-            )
             player.update {
                 setPlaylist(
                     listOf(
@@ -1038,26 +1035,10 @@ class PlaybackOverlayTest {
                 false,
                 titleIsBounded(),
             )
-            composeRule.runOnIdle {
-                Settings.Global.putFloat(
-                    resolver,
-                    Settings.Global.ANIMATOR_DURATION_SCALE,
-                    0f,
-                )
-                resolver.notifyChange(
-                    Settings.Global.getUriFor(Settings.Global.ANIMATOR_DURATION_SCALE),
-                    null,
-                )
-            }
+            composeRule.runOnIdle { motionDurationScale.scaleFactor = 0f }
             assertTrue(titleIsBounded())
         } finally {
-            composeRule.runOnIdle {
-                Settings.Global.putString(
-                    resolver,
-                    Settings.Global.ANIMATOR_DURATION_SCALE,
-                    original,
-                )
-            }
+            composeRule.runOnIdle { motionDurationScale.scaleFactor = 1f }
         }
     }
 

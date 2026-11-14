@@ -57,13 +57,7 @@ internal class CastTransferCallback(
             target.stop()
             return
         }
-        // The transfer carries live position; a late receiver event must not restore an old hint.
-        val transferSource = object : ForwardingPlayer(source) {
-            override fun getMediaItemAt(index: Int): MediaItem = source.getMediaItemAt(index).let {
-                if (index == source.currentMediaItemIndex) it.withoutResumePosition() else it
-            }
-        }
-        val state = PlayerTransferState.fromPlayer(transferSource)
+        val state = playbackTransferState(source)
         val items = state.mediaItems
         if (target === remote) {
             stopping = false
@@ -91,14 +85,13 @@ internal class CastTransferCallback(
                 it.mediaId == source.currentMediaItem?.mediaId
             }
             if (index >= 0 && items.size == 1) {
-                val queue = folderQueue.mapIndexed { itemIndex, item ->
-                    if (itemIndex == index) item.withoutResumePosition() else item
-                }
-                state.buildUpon().setMediaItems(queue)
-                    .setCurrentMediaItemIndex(index).build().setToPlayer(target)
+                snapshotForPhone(source).setToPlayer(target)
             } else {
+                // Keep Media3's filtering of receiver placeholders without a playback URI.
                 CastPlayer.TransferCallback.DEFAULT.transferState(
-                    transferSource,
+                    object : ForwardingPlayer(source) {
+                        override fun getMediaItemAt(index: Int): MediaItem = state.mediaItems[index]
+                    },
                     target,
                 )
             }

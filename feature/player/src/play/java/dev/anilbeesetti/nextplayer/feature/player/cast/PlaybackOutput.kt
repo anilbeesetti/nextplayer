@@ -141,10 +141,17 @@ internal class PlaybackOutput(
         returningToPhone = false
         receiverAhead = false
         localPlayer.pause()
-        publish(
-            PlaybackConnection.CONNECTING,
+        waitForReceiver(
             explicit,
             session?.castDevice?.friendlyName,
+        )
+    }
+
+    private fun waitForReceiver(expand: Boolean, name: String? = null) {
+        publish(
+            PlaybackConnection.CONNECTING,
+            expand,
+            name,
         )
         handler.removeCallbacks(timeout)
         handler.postDelayed(
@@ -208,47 +215,7 @@ internal class PlaybackOutput(
         ) {
             return
         }
-        // This receiver can start a load anywhere but its requested position and applies that
-        // position when playback first starts, which undoes or hangs a seek sent earlier. So the
-        // item loads paused at 0; it then starts muted, and only a playing item is placed.
-        val sent = sentPositionMs
-        if (presentation.connection == PlaybackConnection.CONNECTING && sent != null) {
-            val client = sessionManager?.currentCastSession?.remoteMediaClient
-            if (client == null) {
-                sentPositionMs = null
-                remote.seekTo(sent)
-                remote.playWhenReady = outboundPlaying
-                return
-            }
-            when (placement) {
-                Placement.LOADING -> if (client.isPaused) {
-                    client.setStreamMute(true)
-                    client.play()
-                    placement = Placement.STARTING
-                }
-
-                Placement.STARTING -> if (client.isPlaying) {
-                    client.seek(
-                        MediaSeekOptions.Builder().setPosition(sent).setResumeState(
-                            if (outboundPlaying) {
-                                MediaSeekOptions.RESUME_STATE_PLAY
-                            } else {
-                                MediaSeekOptions.RESUME_STATE_PAUSE
-                            },
-                        ).build(),
-                    )
-                    placement = Placement.PLACING
-                }
-
-                Placement.PLACING -> if ((client.isPlaying || client.isPaused) &&
-                    client.approximateStreamPosition >= sent - PLACED_TOLERANCE_MS
-                ) {
-                    client.setStreamMute(false)
-                    sentPositionMs = null
-                }
-            }
-            if (sentPositionMs != null) return
-        }
+        if (presentation.connection == PlaybackConnection.CONNECTING && !placeRemote(remote)) return
         val behind = remote.currentMediaItem?.mediaId != playing
         val wasAhead = receiverAhead
         // Only right after connecting: later, Media3 runs ahead of the receiver on a skip.
@@ -267,6 +234,47 @@ internal class PlaybackOutput(
         ) {
             publish(PlaybackConnection.CAST)
         }
+    }
+
+    // This receiver applies its load position when playback first starts, undoing an earlier seek.
+    // Load paused at 0, start muted, then place the playing item before enabling Cast controls.
+    private fun placeRemote(remote: Player): Boolean {
+        val sent = sentPositionMs ?: return true
+        val client = sessionManager?.currentCastSession?.remoteMediaClient
+        if (client == null) {
+            sentPositionMs = null
+            remote.seekTo(sent)
+            remote.playWhenReady = outboundPlaying
+            return false
+        }
+        when (placement) {
+            Placement.LOADING -> if (client.isPaused) {
+                client.setStreamMute(true)
+                client.play()
+                placement = Placement.STARTING
+            }
+
+            Placement.STARTING -> if (client.isPlaying) {
+                client.seek(
+                    MediaSeekOptions.Builder().setPosition(sent).setResumeState(
+                        if (outboundPlaying) {
+                            MediaSeekOptions.RESUME_STATE_PLAY
+                        } else {
+                            MediaSeekOptions.RESUME_STATE_PAUSE
+                        },
+                    ).build(),
+                )
+                placement = Placement.PLACING
+            }
+
+            Placement.PLACING -> if ((client.isPlaying || client.isPaused) &&
+                client.approximateStreamPosition >= sent - PLACED_TOLERANCE_MS
+            ) {
+                client.setStreamMute(false)
+                sentPositionMs = null
+            }
+        }
+        return sentPositionMs == null
     }
 
     /** Places the queue on the item the receiver plays when Media3's queue has not caught up. */
@@ -364,11 +372,7 @@ internal class PlaybackOutput(
                 val restore = restoreAfterDisconnect
                 when {
                     restore != null -> {
-                        if (!restoredOnPhone) {
-                            restore.setToPlayer(target)
-                            target.prepare()
-                            restoredOnPhone = true
-                        }
+                        restoreLocalOnce(target)
                         if (cancelWaiting) {
                             handler.removeCallbacks(finishCancel)
                             cancelWaiting = false
@@ -455,11 +459,16 @@ internal class PlaybackOutput(
         handler.removeCallbacks(timeout)
         publish(PlaybackConnection.LOCAL)
         sessionManager?.endCurrentSession(true)
-        if (player.deviceInfo.playbackType == DeviceInfo.PLAYBACK_TYPE_LOCAL && !restoredOnPhone) {
-            restoreAfterDisconnect?.setToPlayer(localPlayer)
-            localPlayer.prepare()
-            restoredOnPhone = true
+        if (player.deviceInfo.playbackType == DeviceInfo.PLAYBACK_TYPE_LOCAL) {
+            restoreLocalOnce(localPlayer)
         }
+    }
+
+    private fun restoreLocalOnce(target: Player) {
+        if (restoredOnPhone) return
+        restoreAfterDisconnect?.setToPlayer(target)
+        target.prepare()
+        restoredOnPhone = true
     }
 
     fun retry() {
@@ -584,9 +593,7 @@ internal class PlaybackOutput(
         stopping = false
         sessionManager?.endCurrentSession(true)
         if (player.deviceInfo.playbackType == DeviceInfo.PLAYBACK_TYPE_LOCAL) {
-            state.setToPlayer(localPlayer)
-            localPlayer.prepare()
-            restoredOnPhone = true
+            restoreLocalOnce(localPlayer)
         }
         publish(PlaybackConnection.LOCAL)
     }
@@ -614,15 +621,7 @@ internal class PlaybackOutput(
         if (player.deviceInfo.playbackType == DeviceInfo.PLAYBACK_TYPE_REMOTE) {
             localBeforeConnection = pendingState ?: localBeforeConnection
             pendingState?.let { transfer?.retainFolderQueue(it.mediaItems) }
-            publish(
-                PlaybackConnection.CONNECTING,
-                expand = true,
-            )
-            handler.removeCallbacks(timeout)
-            handler.postDelayed(
-                timeout,
-                20_000,
-            )
+            waitForReceiver(expand = true)
         } else {
             publish(PlaybackConnection.LOCAL)
         }
