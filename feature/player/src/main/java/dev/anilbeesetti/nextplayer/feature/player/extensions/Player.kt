@@ -2,6 +2,7 @@ package dev.anilbeesetti.nextplayer.feature.player.extensions
 
 import androidx.annotation.OptIn
 import androidx.media3.common.C
+import androidx.media3.common.DeviceInfo
 import androidx.media3.common.MediaItem
 import androidx.media3.common.Player
 import androidx.media3.common.TrackSelectionOverride
@@ -95,16 +96,42 @@ fun Player.addAdditionalSubtitleConfiguration(subtitle: MediaItem.SubtitleConfig
     val textTracks = currentTracks.groups.filter { it.type == C.TRACK_TYPE_TEXT && it.isSupported }
     val position = currentPosition
 
+    val remote = deviceInfo.playbackType == DeviceInfo.PLAYBACK_TYPE_REMOTE
+    val subtitles = if (remote) {
+        existingSubConfigurations.map {
+            it.buildUpon().setSelectionFlags(
+                it.selectionFlags and C.SELECTION_FLAG_DEFAULT.inv(),
+            ).build()
+        } + subtitle.buildUpon().setSelectionFlags(C.SELECTION_FLAG_DEFAULT).build()
+    } else {
+        existingSubConfigurations + subtitle
+    }
     val updateMediaItem = currentMediaItemLocal
         .buildUpon()
-        .setSubtitleConfigurations(existingSubConfigurations + listOf(element = subtitle))
+        .setSubtitleConfigurations(subtitles)
         .build()
         .copy(
             positionMs = position,
-            subtitleTrackIndex = textTracks.size,
+            subtitleTrackIndex = if (remote) {
+                currentMediaItemLocal.mediaMetadata.subtitleTrackIndex
+            } else {
+                textTracks.size
+            },
         )
 
     val index = currentMediaItemIndex
+    if (remote) {
+        // Reload in one request: Cast queue insert/seek/remove operations complete asynchronously.
+        val items = (0 until mediaItemCount).map {
+            if (it == index) updateMediaItem else getMediaItemAt(it)
+        }
+        setMediaItems(
+            items,
+            index,
+            position,
+        )
+        return
+    }
     val exoPlayer = this as? ExoPlayer
     val shuffleOrder = exoPlayer?.shuffleOrder
     // Create a new source so Media3 loads the added subtitle; metadata carries decoder choices.

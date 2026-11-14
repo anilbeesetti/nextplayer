@@ -61,6 +61,7 @@ import dev.anilbeesetti.nextplayer.feature.player.cast.PlaybackOutput
 import dev.anilbeesetti.nextplayer.feature.player.extensions.addAdditionalSubtitleConfiguration
 import dev.anilbeesetti.nextplayer.feature.player.extensions.audioDecoderMode
 import dev.anilbeesetti.nextplayer.feature.player.extensions.audioTrackIndex
+import dev.anilbeesetti.nextplayer.feature.player.extensions.castSubtitleIndex
 import dev.anilbeesetti.nextplayer.feature.player.extensions.copy
 import dev.anilbeesetti.nextplayer.feature.player.extensions.externalAudio
 import dev.anilbeesetti.nextplayer.feature.player.extensions.externalAudioIndex
@@ -144,6 +145,7 @@ class PlayerService : MediaSessionService() {
     private var pendingMediaItemsRequest:
         ListenableFuture<MediaSession.MediaItemsWithStartPosition>? = null
     private var pendingAudioSelection: Pair<String, Uri>? = null
+    private var pendingCastSubtitleSelection: PendingCastSubtitleSelection? = null
 
     private var loudnessEnhancer: LoudnessEnhancer? = null
     private var currentVolumeGain: Int = 0
@@ -336,7 +338,35 @@ class PlayerService : MediaSessionService() {
 
         override fun onTracksChanged(tracks: Tracks) {
             super.onTracksChanged(tracks)
-            if (isRemotePlayback) return
+            if (isRemotePlayback) {
+                val pending = pendingCastSubtitleSelection ?: return
+                val player = mediaSession?.player ?: return
+                val item = player.currentMediaItem ?: return
+                if (item.mediaId != pending.mediaId) {
+                    pendingCastSubtitleSelection = null
+                    return
+                }
+                val subtitleIndex = item.localConfiguration?.subtitleConfigurations
+                    ?.indexOfFirst { it.id == pending.subtitleId } ?: return
+                val trackIndex = tracks.groups.filter { it.type == C.TRACK_TYPE_TEXT }
+                    .indexOfFirst { it.mediaTrackGroup.castSubtitleIndex == subtitleIndex }
+                val audioCount = tracks.groups.count { it.type == C.TRACK_TYPE_AUDIO }
+                if (trackIndex >= 0 && pending.audioTrackIndex < audioCount) {
+                    pendingCastSubtitleSelection = null
+                    if (pending.audioTrackIndex >= 0) {
+                        player.switchTrack(
+                            C.TRACK_TYPE_AUDIO,
+                            pending.audioTrackIndex,
+                        )
+                    }
+                    player.switchTrack(
+                        C.TRACK_TYPE_TEXT,
+                        trackIndex,
+                    )
+                }
+                return
+            }
+            pendingCastSubtitleSelection = null
             serviceScope.launch {
                 mediaSession?.player?.currentTracks?.let(block = ::handleUnsupportedTracks)
             }
@@ -656,10 +686,48 @@ class PlayerService : MediaSessionService() {
                     val subtitleUri = args.getString(CustomCommands.SUBTITLE_TRACK_URI_KEY)?.toUri()
                         ?: return@future SessionResult(SessionError.ERROR_BAD_VALUE)
 
-                    val newSubConfiguration = uriToSubtitleConfiguration(
-                        uri = subtitleUri,
-                        subtitleEncoding = playerPreferences.subtitleTextEncoding,
-                    )
+                    if (subtitleUri.scheme !in setOf(
+                            "content",
+                            "file",
+                            "http",
+                            "https",
+                        )
+                    ) {
+                        return@future SessionResult(SessionError.ERROR_BAD_VALUE)
+                    }
+                    val target = session.player.currentMediaItem
+                        ?: return@future SessionResult(SessionError.ERROR_INVALID_STATE)
+                    val expectedMediaId = args.getString(CustomCommands.SUBTITLE_MEDIA_ID_KEY)
+                    if ((expectedMediaId != null && expectedMediaId != target.mediaId) ||
+                        !session.player.isCommandAvailable(Player.COMMAND_CHANGE_MEDIA_ITEMS)
+                    ) {
+                        return@future SessionResult(SessionError.ERROR_INVALID_STATE)
+                    }
+                    val newSubConfiguration = try {
+                        if (subtitleUri.scheme in setOf(
+                                "content",
+                                "file",
+                            )
+                        ) {
+                            val readable = withContext(Dispatchers.IO) {
+                                contentResolver.openInputStream(subtitleUri)?.use { true } ?: false
+                            }
+                            if (!readable) return@future SessionResult(SessionError.ERROR_BAD_VALUE)
+                        }
+                        uriToSubtitleConfiguration(
+                            uri = subtitleUri,
+                            subtitleEncoding = playerPreferences.subtitleTextEncoding,
+                        )
+                    } catch (_: java.io.IOException) {
+                        return@future SessionResult(SessionError.ERROR_IO)
+                    } catch (_: SecurityException) {
+                        return@future SessionResult(SessionError.ERROR_PERMISSION_DENIED)
+                    }
+                    if (session.player.currentMediaItem?.mediaId != target.mediaId ||
+                        !session.player.isCommandAvailable(Player.COMMAND_CHANGE_MEDIA_ITEMS)
+                    ) {
+                        return@future SessionResult(SessionError.ERROR_INVALID_STATE)
+                    }
                     mediaSession?.player?.let { player ->
                         val currentMediaItem = player.currentMediaItem ?: return@let
                         val textTracks = player.currentTracks.groups.filter {
@@ -670,14 +738,38 @@ class PlayerService : MediaSessionService() {
                             uri = currentMediaItem.mediaId,
                             position = player.currentPosition,
                         )
-                        mediaRepository.updateMediumSubtitleTrack(
-                            uri = currentMediaItem.mediaId,
-                            subtitleTrackIndex = textTracks.size,
-                        )
+                        // Receiver track indices do not match the phone's embedded track indices.
+                        if (!isRemotePlayback) {
+                            mediaRepository.updateMediumSubtitleTrack(
+                                uri = currentMediaItem.mediaId,
+                                subtitleTrackIndex = textTracks.size,
+                            )
+                        }
                         mediaRepository.addExternalSubtitleToMedium(
                             uri = currentMediaItem.mediaId,
                             subtitleUri = subtitleUri,
                         )
+                        if (player.currentMediaItem?.mediaId != target.mediaId ||
+                            !player.isCommandAvailable(Player.COMMAND_CHANGE_MEDIA_ITEMS)
+                        ) {
+                            return@future SessionResult(SessionError.ERROR_INVALID_STATE)
+                        }
+                        if (isRemotePlayback &&
+                            player.currentMediaItem?.localConfiguration
+                                ?.subtitleConfigurations?.none {
+                                    it.id == newSubConfiguration.id
+                                } ==
+                            true
+                        ) {
+                            pendingCastSubtitleSelection = PendingCastSubtitleSelection(
+                                mediaId = target.mediaId,
+                                subtitleId = newSubConfiguration.id,
+                                audioTrackIndex = player.currentTracks.groups
+                                    .filter {
+                                        it.type == C.TRACK_TYPE_AUDIO
+                                    }.indexOfFirst { it.isSelected },
+                            )
+                        }
                         player.addAdditionalSubtitleConfiguration(subtitle = newSubConfiguration)
                     }
                     return@future SessionResult(SessionResult.RESULT_SUCCESS)
@@ -1704,6 +1796,12 @@ private val DecoderTrackType.mediaTrackType: Int
         DecoderTrackType.AUDIO -> C.TRACK_TYPE_AUDIO
     }
 
+internal data class PendingCastSubtitleSelection(
+    val mediaId: String,
+    val subtitleId: String?,
+    val audioTrackIndex: Int,
+)
+
 private const val DECODER_LOG_TAG = "Decoder"
 private const val MAX_SESSION_ARTWORK_SIZE = 500
 
@@ -1715,7 +1813,6 @@ private val REMOTE_SCHEMES = setOf(
 )
 
 private val LOCAL_PLAYER_COMMANDS = setOf(
-    CustomCommands.ADD_SUBTITLE_TRACK,
     CustomCommands.ADD_AUDIO_TRACK,
     CustomCommands.SET_SKIP_SILENCE_ENABLED,
     CustomCommands.SET_IS_SCRUBBING_MODE_ENABLED,

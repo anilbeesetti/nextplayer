@@ -36,6 +36,70 @@ class StopPlayerSessionTest {
     }
 
     @Test
+    fun externalSubtitleRejectsUnsupportedSchemesWithoutChangingQueue() {
+        withSession(savePosition = { _, _ -> }) { player, session, callback, _ ->
+            player.setMediaItem(MediaItem.fromUri(VIDEO_URI))
+            val result = callback.onCustomCommand(
+                session,
+                controllerInfo(),
+                CustomCommands.ADD_SUBTITLE_TRACK.sessionCommand,
+                Bundle().apply {
+                    putString(
+                        CustomCommands.SUBTITLE_TRACK_URI_KEY,
+                        "javascript:alert(1)",
+                    )
+                },
+            )
+            shadowOf(Looper.getMainLooper()).idle()
+            assertEquals(
+                androidx.media3.session.SessionError.ERROR_BAD_VALUE,
+                result.get().resultCode,
+            )
+            assertEquals(
+                1,
+                player.mediaItemCount,
+            )
+            assertTrue(
+                checkNotNull(
+                    player.currentMediaItem?.localConfiguration,
+                ).subtitleConfigurations.isEmpty(),
+            )
+        }
+    }
+
+    @Test
+    fun externalSubtitleRejectsAResultForADifferentVideo() {
+        withSession(savePosition = { _, _ -> }) { player, session, callback, _ ->
+            player.setMediaItem(MediaItem.Builder().setMediaId("current").setUri(VIDEO_URI).build())
+            val result = callback.onCustomCommand(
+                session,
+                controllerInfo(),
+                CustomCommands.ADD_SUBTITLE_TRACK.sessionCommand,
+                Bundle().apply {
+                    putString(
+                        CustomCommands.SUBTITLE_TRACK_URI_KEY,
+                        "https://example.com/subtitles.vtt",
+                    )
+                    putString(
+                        CustomCommands.SUBTITLE_MEDIA_ID_KEY,
+                        "previous",
+                    )
+                },
+            )
+            shadowOf(Looper.getMainLooper()).idle()
+            assertEquals(
+                androidx.media3.session.SessionError.ERROR_INVALID_STATE,
+                result.get().resultCode,
+            )
+            assertTrue(
+                checkNotNull(
+                    player.currentMediaItem?.localConfiguration,
+                ).subtitleConfigurations.isEmpty(),
+            )
+        }
+    }
+
+    @Test
     fun grantDeliveryAfterStopDoesNotKeepAnIdleServiceStarted() {
         withSession(savePosition = { _, _ -> }) { _, _, _, service ->
             val result = service.onStartCommand(

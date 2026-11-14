@@ -39,8 +39,15 @@ import androidx.compose.ui.text.TextLayoutResult
 import androidx.compose.ui.unit.Density
 import androidx.compose.ui.unit.LayoutDirection
 import androidx.compose.ui.unit.dp
+import androidx.media3.common.C
+import androidx.media3.common.Format
+import androidx.media3.common.MediaItem
 import androidx.media3.common.MediaMetadata
+import androidx.media3.common.MimeTypes
 import androidx.media3.common.Player
+import androidx.media3.common.TrackGroup
+import androidx.media3.common.Tracks
+import com.google.common.collect.ImmutableList
 import dev.anilbeesetti.nextplayer.core.ui.R
 import dev.anilbeesetti.nextplayer.core.ui.theme.NextPlayerTheme
 import dev.anilbeesetti.nextplayer.feature.player.service.CustomCommands
@@ -77,9 +84,100 @@ class PlaybackOverlayTest {
     private var hidden by mutableStateOf(false)
     private var dismissed = 0
     private var watched = 0
+    private var subtitlePickers = 0
     private val commands = mutableListOf<CustomCommands>()
 
     @After fun tearDown() = composeRule.runOnIdle { player.release() }
+
+    @Test fun castControlsSwitchAudioAndDisableSubtitles() {
+        show(connection = PlaybackConnection.CAST)
+        composeRule.runOnIdle {
+            player.remote(true)
+            val audio = TrackGroup(
+                "french",
+                Format.Builder().setSampleMimeType(
+                    MimeTypes.AUDIO_AAC,
+                ).setLabel("French").build(),
+            )
+            val subtitles = TrackGroup(
+                "0:item=1,track=1000000000",
+                Format.Builder().setSampleMimeType(MimeTypes.TEXT_VTT).build(),
+            )
+            player.update {
+                setAvailableCommands(Player.Commands.Builder().addAllCommands().build())
+                setPlaylist(
+                    listOf(
+                        player.item(0).buildUpon().setMediaItem(
+                            MediaItem.Builder().setMediaId(
+                                "0",
+                            ).setUri("file:///0.mp4")
+                                .setSubtitleConfigurations(
+                                    listOf(
+                                        MediaItem.SubtitleConfiguration.Builder(
+                                            android.net.Uri.parse("file:///captions.srt"),
+                                        )
+                                            .setLabel("English captions").build(),
+                                    ),
+                                ).build(),
+                        ).setTracks(
+                            Tracks(
+                                ImmutableList.of(
+                                    Tracks.Group(
+                                        audio,
+                                        false,
+                                        intArrayOf(C.FORMAT_HANDLED),
+                                        booleanArrayOf(false),
+                                    ),
+                                    Tracks.Group(
+                                        subtitles,
+                                        false,
+                                        intArrayOf(C.FORMAT_HANDLED),
+                                        booleanArrayOf(true),
+                                    ),
+                                ),
+                            ),
+                        ).build(),
+                    ),
+                )
+            }
+            expanded = true
+        }
+        composeRule.onNodeWithText(text(R.string.audio)).performClick()
+        composeRule.onNodeWithText("French").performClick()
+        composeRule.runOnIdle {
+            assertEquals(
+                "french",
+                player.selectedTracks?.overrides?.values?.single()?.mediaTrackGroup?.id,
+            )
+        }
+        composeRule.onNodeWithText(text(R.string.subtitle)).performClick()
+        composeRule.onNodeWithText("English captions").assertIsDisplayed()
+        composeRule.onNodeWithText(text(R.string.disable)).performClick()
+        composeRule.runOnIdle {
+            assertTrue(C.TRACK_TYPE_TEXT in checkNotNull(player.selectedTracks).disabledTrackTypes)
+        }
+    }
+
+    @Test fun castSubtitlePickerWorksEvenWithoutReceiverTextTracks() {
+        show(connection = PlaybackConnection.CAST)
+        composeRule.runOnIdle {
+            player.remote(true)
+            player.update {
+                setAvailableCommands(Player.Commands.Builder().addAllCommands().build())
+            }
+            expanded = true
+        }
+        composeRule.onNodeWithText(text(R.string.subtitle)).performClick()
+        composeRule.onNodeWithText(text(R.string.no_subtitle_tracks_found)).assertIsDisplayed()
+        composeRule.onNodeWithText(text(R.string.open_subtitle)).performClick()
+        composeRule.runOnIdle {
+            assertEquals(
+                1,
+                subtitlePickers,
+            )
+        }
+        composeRule.onNodeWithTag("playback_tracks").assertDoesNotExist()
+    }
 
     @Test fun tapAndBackExpandAndCollapseTheSameSession() {
         show()
@@ -1138,6 +1236,7 @@ class PlaybackOverlayTest {
                         onStop = {},
                         onWatchVideo = { watched++ },
                         onAudioOutput = { audioOutputs += it },
+                        onSelectSubtitle = { subtitlePickers++ },
                     )
                 }
             }

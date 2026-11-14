@@ -3,7 +3,9 @@ package dev.anilbeesetti.nextplayer.feature.player
 import android.content.Intent
 import android.os.Bundle
 import android.os.SystemClock
+import android.widget.Toast
 import androidx.activity.compose.BackHandler
+import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.core.Animatable
 import androidx.compose.animation.core.AnimationVector1D
@@ -88,13 +90,16 @@ import androidx.compose.ui.unit.IntOffset
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.lerp
 import androidx.compose.ui.unit.sp
+import androidx.media3.common.MimeTypes
 import androidx.media3.common.Player
 import androidx.media3.common.Timeline
 import androidx.media3.common.util.UnstableApi
+import dev.anilbeesetti.nextplayer.feature.player.extensions.OpenDocumentAtInitialUri
 import dev.anilbeesetti.nextplayer.feature.player.service.CustomCommands
 import dev.anilbeesetti.nextplayer.feature.player.service.EXTRA_WATCH_VIDEO
 import dev.anilbeesetti.nextplayer.feature.player.service.PlaybackConnection
 import dev.anilbeesetti.nextplayer.feature.player.service.PlaybackPresentation
+import dev.anilbeesetti.nextplayer.feature.player.service.addSubtitleTrack
 import dev.anilbeesetti.nextplayer.feature.player.service.playbackCommand
 import dev.anilbeesetti.nextplayer.feature.player.service.setAudioOutput
 import dev.anilbeesetti.nextplayer.feature.player.service.stopPlayerSession
@@ -222,6 +227,30 @@ fun PlaybackOverlay(
     }
     val context = LocalContext.current
     val scope = rememberCoroutineScope()
+    var subtitleTarget by rememberSaveable { mutableStateOf<String?>(null) }
+    val subtitlePicker = rememberLauncherForActivityResult(OpenDocumentAtInitialUri()) { uri ->
+        if (uri != null) {
+            scope.launch {
+                val added = try {
+                    context.contentResolver.takePersistableUriPermission(
+                        uri,
+                        Intent.FLAG_GRANT_READ_URI_PERMISSION,
+                    )
+                    controller.currentMediaItem?.mediaId == subtitleTarget &&
+                        controller.addSubtitleTrack(uri)
+                } catch (_: SecurityException) {
+                    false
+                }
+                if (!added) {
+                    Toast.makeText(
+                        context,
+                        dev.anilbeesetti.nextplayer.core.ui.R.string.error_opening_subtitle,
+                        Toast.LENGTH_LONG,
+                    ).show()
+                }
+            }
+        }
+    }
     fun dismiss() {
         expanded = false
         scope.launch {
@@ -254,6 +283,21 @@ fun PlaybackOverlay(
                 CustomCommands.SYSTEM_AUDIO_OUTPUT,
             ),
             onAudioOutput = { controller.setAudioOutput(it) },
+            onSelectSubtitle = {
+                subtitleTarget = controller.currentMediaItem?.mediaId
+                subtitlePicker.launch(
+                    OpenDocumentAtInitialUri.Input(
+                        mimeTypes = arrayOf(
+                            MimeTypes.APPLICATION_SUBRIP,
+                            MimeTypes.APPLICATION_TTML,
+                            MimeTypes.TEXT_VTT,
+                            MimeTypes.TEXT_SSA,
+                            "application/octet-stream",
+                            "text/*",
+                        ),
+                    ),
+                )
+            },
             onWatchVideo = {
                 context.startActivity(
                     Intent(
@@ -319,6 +363,7 @@ internal fun PlaybackOverlayContent(
     audioOutput: Int = CustomCommands.SYSTEM_AUDIO_OUTPUT,
     onAudioOutput: (Int) -> Unit = {},
     queueSheet: PlaybackQueueSheet = rememberPlaybackQueueSheet(),
+    onSelectSubtitle: () -> Unit = {},
 ) {
     val density = LocalDensity.current
     val compactHeight = compactPlaybackHeight(density.fontScale)
@@ -330,12 +375,14 @@ internal fun PlaybackOverlayContent(
         onCompactHeightChanged(if (snapshot.visible && !hidden) compactHeight + 8.dp else 0.dp)
     }
     var output by rememberSaveable { mutableStateOf(false) }
+    var trackType by rememberSaveable { mutableStateOf<Int?>(null) }
     queueSheet.settleSpec =
         MaterialTheme.motionScheme.defaultSpatialSpec<Float>() as SpringSpec<Float>
     queueSheet.flingThreshold = with(density) { 400.dp.toPx() }
     BackHandler(expanded && !hidden && snapshot.visible) {
         when {
             queueSheet.engaged -> queueSheet.stepBack()
+            trackType != null -> trackType = null
             output -> output = false
             else -> onExpandedChanged(false)
         }
@@ -676,6 +723,7 @@ internal fun PlaybackOverlayContent(
                     queueSheet.animateTo(QueueStage.QUEUE)
                 },
                 onOutput = { output = true },
+                onTracks = { trackType = it },
                 onStop = onStop,
                 onWatchVideo = onWatchVideo,
                 onCommand = onCommand,
@@ -768,9 +816,25 @@ internal fun PlaybackOverlayContent(
         }
     }
 
-    LaunchedEffect(controlsEnabled) {
+    LaunchedEffect(
+        controlsEnabled,
+        expanded,
+        snapshot.isRemote,
+        snapshot.item?.mediaId,
+    ) {
+        trackType = null
         if (!controlsEnabled) {
             output = false
+        }
+    }
+    trackType?.takeIf { controlsEnabled && expanded && snapshot.isRemote }?.let { type ->
+        key(type) {
+            PlaybackTracksSheet(
+                player = player,
+                trackType = type,
+                onSelectSubtitle = onSelectSubtitle,
+                onDismiss = { trackType = null },
+            )
         }
     }
     if (output && controlsEnabled) {

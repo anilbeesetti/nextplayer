@@ -35,6 +35,19 @@ fun TrackGroup.getName(trackType: @C.TrackType Int, index: Int): String {
     }
 }
 
+// Keep sidecar IDs away from the receiver's manifest-generated track IDs.
+internal const val CAST_SUBTITLE_TRACK_ID_BASE = 1_000_000_000L
+
+@get:UnstableApi
+internal val TrackGroup.castSubtitleIndex: Int?
+    get() = id.substringAfterLast(
+        ",track=",
+        "",
+    ).toLongOrNull()
+        ?.minus(CAST_SUBTITLE_TRACK_ID_BASE)
+        ?.takeIf { it in 0..Int.MAX_VALUE.toLong() }
+        ?.toInt()
+
 // Format IDs retain the merged source index when MediaSession rewrites TrackGroup IDs.
 @get:UnstableApi
 val TrackGroup.externalAudioIndex: Int?

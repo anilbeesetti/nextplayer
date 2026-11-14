@@ -17,6 +17,7 @@ import com.google.android.gms.cast.MediaInfo
 import com.google.android.gms.cast.MediaQueueItem
 import com.google.android.gms.cast.MediaTrack
 import dev.anilbeesetti.nextplayer.core.ui.R
+import dev.anilbeesetti.nextplayer.feature.player.extensions.CAST_SUBTITLE_TRACK_ID_BASE
 import dev.anilbeesetti.nextplayer.feature.player.extensions.getSubtitleMime
 import java.net.Inet4Address
 
@@ -55,7 +56,7 @@ internal class CastMediaItemConverter(
             val type = subtitle.mimeType ?: subtitle.uri.getSubtitleMime()
             val convert = type != MimeTypes.TEXT_VTT && type != MimeTypes.APPLICATION_TTML
             MediaTrack.Builder(
-                index.toLong() + 1,
+                CAST_SUBTITLE_TRACK_ID_BASE + index,
                 MediaTrack.TYPE_TEXT,
             )
                 .setSubtype(MediaTrack.SUBTYPE_SUBTITLES)

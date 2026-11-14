@@ -145,6 +145,7 @@ internal fun ExpandedPlaybackControls(
     metadataModifier: Modifier = Modifier,
     headerModifier: Modifier = Modifier,
     queueSheet: PlaybackQueueSheet = rememberPlaybackQueueSheet(),
+    onTracks: (Int) -> Unit = {},
 ) {
     var titleWidth by remember(title) { mutableIntStateOf(0) }
     val collapseFocus = remember { FocusRequester() }
@@ -255,12 +256,24 @@ internal fun ExpandedPlaybackControls(
                     controlsTranslationY,
                 ),
             ) {
-                PlaybackModeControls(
-                    player,
-                    snapshot,
-                    controlsEnabled,
-                    onStop,
-                )
+                Column {
+                    PlaybackModeControls(
+                        player,
+                        snapshot,
+                        controlsEnabled,
+                        onStop,
+                    )
+                    if (snapshot.isRemote) {
+                        PlaybackTrackControls(
+                            enabled = controlsEnabled &&
+                                snapshot.commands.contains(Player.COMMAND_GET_TRACKS) &&
+                                snapshot.commands.contains(
+                                    Player.COMMAND_SET_TRACK_SELECTION_PARAMETERS,
+                                ),
+                            onTracks = onTracks,
+                        )
+                    }
+                }
             }
         }
     }

@@ -1,14 +1,21 @@
 package dev.anilbeesetti.nextplayer.feature.player.service
 
 import android.os.Looper
+import androidx.media3.common.C
 import androidx.media3.common.DeviceInfo
+import androidx.media3.common.Format
 import androidx.media3.common.ForwardingPlayer
 import androidx.media3.common.ForwardingSimpleBasePlayer
 import androidx.media3.common.MediaItem
+import androidx.media3.common.MimeTypes
 import androidx.media3.common.Player
+import androidx.media3.common.TrackGroup
+import androidx.media3.common.TrackSelectionParameters
+import androidx.media3.common.Tracks
 import androidx.media3.exoplayer.ExoPlayer
 import androidx.media3.exoplayer.trackselection.DefaultTrackSelector
 import androidx.media3.session.MediaSession
+import com.google.common.collect.ImmutableList
 import dev.anilbeesetti.nextplayer.core.data.repository.MediaRepository
 import dev.anilbeesetti.nextplayer.core.data.repository.PreferencesRepository
 import dev.anilbeesetti.nextplayer.core.data.repository.fake.FakeMediaRepository
@@ -31,6 +38,106 @@ import org.robolectric.annotation.Config
 @RunWith(RobolectricTestRunner::class)
 @Config(sdk = [28])
 class RemotePlaybackMetadataTest {
+    @Test
+    fun addedCastSubtitleIsSelectedOnceWhenReceiverReportsItsTrack() {
+        val exo = ExoPlayer.Builder(RuntimeEnvironment.getApplication()).build()
+        val subtitle = MediaItem.SubtitleConfiguration.Builder(
+            android.net.Uri.parse("file:///added.srt"),
+        )
+            .setId("added").build()
+        exo.setMediaItem(
+            MediaItem.Builder().setMediaId("video").setUri("file:///video.mp4")
+                .setSubtitleConfigurations(listOf(subtitle)).build(),
+        )
+        val group = TrackGroup(
+            "item=1,track=1000000000",
+            Format.Builder().setSampleMimeType(MimeTypes.TEXT_VTT).build(),
+        )
+        val audio = TrackGroup(
+            "item=1,track=2",
+            Format.Builder().setSampleMimeType(MimeTypes.AUDIO_AAC).build(),
+        )
+        val tracks = Tracks(
+            ImmutableList.of(
+                Tracks.Group(
+                    audio,
+                    false,
+                    intArrayOf(C.FORMAT_HANDLED),
+                    booleanArrayOf(false),
+                ),
+                Tracks.Group(
+                    group,
+                    false,
+                    intArrayOf(C.FORMAT_HANDLED),
+                    booleanArrayOf(false),
+                ),
+            ),
+        )
+        val selections = mutableListOf<TrackSelectionParameters>()
+        val player = object : ForwardingPlayer(exo) {
+            override fun getDeviceInfo() =
+                DeviceInfo.Builder(DeviceInfo.PLAYBACK_TYPE_REMOTE).build()
+            override fun getCurrentTracks() = tracks
+            override fun setTrackSelectionParameters(parameters: TrackSelectionParameters) {
+                selections += parameters
+                super.setTrackSelectionParameters(parameters)
+            }
+        }
+        val session = MediaSession.Builder(
+            RuntimeEnvironment.getApplication(),
+            player,
+        ).build()
+        val service = PlayerService()
+        fun field(name: String) = PlayerService::class.java.getDeclaredField(name).apply {
+            isAccessible =
+                true
+        }
+        field("mediaSession").set(
+            service,
+            session,
+        )
+        field("pendingCastSubtitleSelection").set(
+            service,
+            PendingCastSubtitleSelection(
+                "video",
+                "added",
+                0,
+            ),
+        )
+        val listener = field("playbackStateListener").get(service) as Player.Listener
+        try {
+            listener.onTracksChanged(Tracks.EMPTY)
+            listener.onTracksChanged(Tracks(ImmutableList.of(tracks.groups.last())))
+            assertEquals(
+                0,
+                selections.size,
+            )
+            listener.onTracksChanged(tracks)
+            assertEquals(
+                group,
+                selections.last().overrides.values.single {
+                    it.type == C.TRACK_TYPE_TEXT
+                }.mediaTrackGroup,
+            )
+            assertEquals(
+                audio,
+                selections.last().overrides.values.single {
+                    it.type ==
+                        C.TRACK_TYPE_AUDIO
+                }.mediaTrackGroup,
+            )
+            listener.onTracksChanged(tracks)
+            assertEquals(
+                2,
+                selections.size,
+            )
+            assertNull(field("pendingCastSubtitleSelection").get(service))
+        } finally {
+            session.release()
+            exo.release()
+        }
+    }
+
     @Test
     fun positionChangesIgnoreUnresolvedReceiverItems() {
         val recorded = mutableListOf<Pair<String, Long>>()

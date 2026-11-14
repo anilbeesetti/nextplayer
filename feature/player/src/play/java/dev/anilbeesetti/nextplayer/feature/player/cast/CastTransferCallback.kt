@@ -41,7 +41,13 @@ internal class CastTransferCallback(
         return if (index >= 0 && state.mediaItems.size == 1) {
             state.buildUpon().setMediaItems(
                 folderQueue.mapIndexed { itemIndex, item ->
-                    if (itemIndex == index) item.withoutResumePosition() else item
+                    if (itemIndex ==
+                        index
+                    ) {
+                        state.mediaItems.single().withoutResumePosition()
+                    } else {
+                        item
+                    }
                 },
             ).setCurrentMediaItemIndex(index).build()
         } else {
