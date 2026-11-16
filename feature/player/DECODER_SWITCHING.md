@@ -113,8 +113,8 @@ Live decoder labels come from session extras. Media3 ignores metadata extras whe
 comparing media items, so a controller's metadata-only timeline snapshot can remain
 stale after a decoder selection. Do not use that snapshot as live decoder state.
 
-The NextLib change (`a5da5e4`, branch `hwplus`) is currently unpublished and must be
-supplied through `nextlibPath`.
+This requires NextLib `1.11.1-0.19.0` containing NextLib PR #237 (`hwplus`, `eeb78cf`).
+Until that version is published, supply its source through `nextlibPath` for validation.
 It adds libavformat to media3ext. Its own `FFMPEG_EXTRACTION.md` documents the single-reader
 I/O contract, supported formats, fatal native I/O errors and HDR limitation (use HW).
 No APK/native binaries or personal recording are checked into either repository.
@@ -132,5 +132,4 @@ Verified on the ARM64 API 37 / Android 37 emulator, with 16 KB pages:
 - Reader tests verify request headers, bounded seek positions and EOF. JVM tests cover
   NAL framing, malformed private data and extraction choice retention.
 
-Playback is tested on the emulator only. The physical OPPO is used only to obtain the
-recording and install the final debug build for the user's own testing.
+The user also confirmed playback of the original recording on the physical OPPO.
