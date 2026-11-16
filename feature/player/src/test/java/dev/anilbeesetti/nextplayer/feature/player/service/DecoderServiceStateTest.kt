@@ -1,9 +1,9 @@
 package dev.anilbeesetti.nextplayer.feature.player.service
 
 import android.os.Bundle
+import dev.anilbeesetti.nextplayer.feature.player.model.DecoderMode
 import dev.anilbeesetti.nextplayer.feature.player.model.DecoderRecoveryStatus
 import dev.anilbeesetti.nextplayer.feature.player.model.DecoderTrackType
-import io.github.anilbeesetti.nextlib.media3ext.ffdecoder.DecoderMode
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertNull
 import org.junit.Test
@@ -26,7 +26,7 @@ class DecoderServiceStateTest {
             )
             putString(
                 CustomCommands.AUDIO_DECODER_MODE_KEY,
-                DecoderMode.SOFTWARE.name,
+                DecoderMode.HW_PLUS.name,
             )
             putString(
                 CustomCommands.DECODER_RECOVERY_STATUS_KEY,
@@ -47,7 +47,7 @@ class DecoderServiceStateTest {
             state.videoMode,
         )
         assertEquals(
-            DecoderMode.SOFTWARE,
+            DecoderMode.HW_PLUS,
             state.audioMode,
         )
         assertEquals(

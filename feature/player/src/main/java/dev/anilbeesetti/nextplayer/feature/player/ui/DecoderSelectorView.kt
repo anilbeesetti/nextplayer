@@ -29,11 +29,11 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.unit.dp
 import dev.anilbeesetti.nextplayer.core.ui.R
+import dev.anilbeesetti.nextplayer.feature.player.model.DecoderMode
 import dev.anilbeesetti.nextplayer.feature.player.model.DecoderTrackType
 import dev.anilbeesetti.nextplayer.feature.player.model.descriptionRes
 import dev.anilbeesetti.nextplayer.feature.player.model.labelRes
 import dev.anilbeesetti.nextplayer.feature.player.model.selectableDecoderModes
-import io.github.anilbeesetti.nextlib.media3ext.ffdecoder.DecoderMode
 
 @Composable
 fun BoxScope.DecoderSelectorView(
@@ -67,6 +67,7 @@ fun BoxScope.DecoderSelectorView(
                     DecoderTrackType.VIDEO -> videoMode
                     DecoderTrackType.AUDIO -> audioMode
                 },
+                trackType = selectedTrackType,
                 onModeSelected = when (selectedTrackType) {
                     DecoderTrackType.VIDEO -> onVideoModeSelected
                     DecoderTrackType.AUDIO -> onAudioModeSelected
@@ -106,9 +107,16 @@ private fun DecoderTrackTypeSelector(
 }
 
 @Composable
-private fun DecoderModeGroup(selectedMode: DecoderMode?, onModeSelected: (DecoderMode) -> Unit) {
+private fun DecoderModeGroup(
+    selectedMode: DecoderMode?,
+    trackType: DecoderTrackType,
+    onModeSelected: (DecoderMode) -> Unit,
+) {
     Column(modifier = Modifier.selectableGroup()) {
-        selectableDecoderModes.forEach { mode ->
+        selectableDecoderModes.filter {
+            trackType == DecoderTrackType.VIDEO ||
+                it != DecoderMode.HW_PLUS
+        }.forEach { mode ->
             DecoderModeRow(
                 mode = mode,
                 selected = mode == selectedMode,

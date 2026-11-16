@@ -62,8 +62,10 @@ import dev.anilbeesetti.nextplayer.feature.player.extensions.audioTrackIndex
 import dev.anilbeesetti.nextplayer.feature.player.extensions.copy
 import dev.anilbeesetti.nextplayer.feature.player.extensions.externalAudio
 import dev.anilbeesetti.nextplayer.feature.player.extensions.externalAudioIndex
+import dev.anilbeesetti.nextplayer.feature.player.extensions.ffmpegExtraction
 import dev.anilbeesetti.nextplayer.feature.player.extensions.getManuallySelectedTrackIndex
 import dev.anilbeesetti.nextplayer.feature.player.extensions.positionMs
+import dev.anilbeesetti.nextplayer.feature.player.extensions.reloadCurrentMediaItem
 import dev.anilbeesetti.nextplayer.feature.player.extensions.setExtras
 import dev.anilbeesetti.nextplayer.feature.player.extensions.setIsScrubbingModeEnabled
 import dev.anilbeesetti.nextplayer.feature.player.extensions.subtitleDelayMilliseconds
@@ -74,11 +76,12 @@ import dev.anilbeesetti.nextplayer.feature.player.extensions.uriToSubtitleConfig
 import dev.anilbeesetti.nextplayer.feature.player.extensions.videoDecoderMode
 import dev.anilbeesetti.nextplayer.feature.player.extensions.videoZoom
 import dev.anilbeesetti.nextplayer.feature.player.extensions.withExternalAudio
+import dev.anilbeesetti.nextplayer.feature.player.model.DecoderMode
 import dev.anilbeesetti.nextplayer.feature.player.model.DecoderTrackType
+import dev.anilbeesetti.nextplayer.feature.player.model.playerMode
 import dev.anilbeesetti.nextplayer.feature.player.utils.hasApiPosition
 import dev.anilbeesetti.nextplayer.feature.player.utils.isExplicitPlaylistItem
 import io.github.anilbeesetti.nextlib.media3ext.ffdecoder.DecoderManager
-import io.github.anilbeesetti.nextlib.media3ext.ffdecoder.DecoderMode
 import io.github.anilbeesetti.nextlib.media3ext.ffdecoder.NextRenderersFactory
 import io.github.anilbeesetti.nextlib.media3ext.renderer.subtitleDelayMilliseconds
 import io.github.anilbeesetti.nextlib.media3ext.renderer.subtitleSpeed
@@ -125,6 +128,7 @@ class PlayerService : MediaSessionService() {
     private val customCommands = CustomCommands.asSessionCommands()
 
     private var isMediaItemReady = false
+    private var pendingSourceReloadId: String? = null
     private var playbackRequestGeneration = 0L
     private var pendingMediaItemsRequest:
         ListenableFuture<MediaSession.MediaItemsWithStartPosition>? = null
@@ -223,7 +227,13 @@ class PlayerService : MediaSessionService() {
                 reason,
             )
             if (reason == Player.MEDIA_ITEM_TRANSITION_REASON_REPEAT) return
-            restoreDecoderChoices(mediaItem = mediaItem)
+            val sourceReload =
+                mediaItem?.mediaId == pendingSourceReloadId && pendingSourceReloadId != null
+            if (sourceReload) pendingSourceReloadId = null
+            restoreDecoderChoices(
+                mediaItem = mediaItem,
+                resetRecovery = !sourceReload,
+            )
             isMediaItemReady = false
             loadArtworkForCurrentMediaItem()
             mediaItem?.mediaMetadata?.let { metadata ->
@@ -388,6 +398,41 @@ class PlayerService : MediaSessionService() {
         override fun onPlayerError(error: PlaybackException) {
             if (!error.isDecoderFailure) {
                 decoderRecoveryManager.onNonDecoderError()
+                val item = mediaSession?.player?.currentMediaItem
+                if (item != null && !item.mediaMetadata.ffmpegExtraction &&
+                    item.copy(videoDecoderMode = DecoderMode.HW_PLUS).usesFfmpegExtractor &&
+                    item.mediaMetadata.videoDecoderMode in
+                    listOf(
+                        null,
+                        DecoderMode.AUTO,
+                        DecoderMode.FFMPEG,
+                    ) &&
+                    generateSequence<Throwable>(error) { it.cause }.any {
+                        it is androidx.media3.exoplayer.source.UnrecognizedInputFormatException
+                    }
+                ) {
+                    serviceScope.launch {
+                        val player = mediaSession?.player ?: return@launch
+                        val current = player.currentMediaItem
+                        if (current != item ||
+                            current?.mediaMetadata?.videoDecoderMode !=
+                            item.mediaMetadata.videoDecoderMode ||
+                            current?.mediaMetadata?.ffmpegExtraction !=
+                            item.mediaMetadata.ffmpegExtraction
+                        ) {
+                            return@launch
+                        }
+                        if (item.mediaMetadata.videoDecoderMode == DecoderMode.FFMPEG) {
+                            reloadSource(item.copy(ffmpegExtraction = true))
+                        } else {
+                            selectDecoder(
+                                DecoderTrackType.VIDEO,
+                                DecoderMode.HW_PLUS,
+                            )
+                        }
+                        player.prepare()
+                    }
+                }
                 return
             }
 
@@ -1160,6 +1205,7 @@ class PlayerService : MediaSessionService() {
                                 subtitleSpeed = subtitleSpeed,
                                 videoDecoderMode = mediaItem.mediaMetadata.videoDecoderMode,
                                 audioDecoderMode = mediaItem.mediaMetadata.audioDecoderMode,
+                                ffmpegExtraction = mediaItem.mediaMetadata.ffmpegExtraction,
                             )
                         }.build(),
                     )
@@ -1174,11 +1220,19 @@ class PlayerService : MediaSessionService() {
         session.sessionExtras = Bundle(session.sessionExtras).apply {
             putString(
                 CustomCommands.VIDEO_DECODER_MODE_KEY,
-                decoderManager.activeVideoMode?.name,
+                decoderManager.activeVideoMode?.playerMode()?.let {
+                    if (it == DecoderMode.HARDWARE &&
+                        session.player.currentMediaItem?.usesFfmpegExtractor == true
+                    ) {
+                        DecoderMode.HW_PLUS
+                    } else {
+                        it
+                    }
+                }?.name,
             )
             putString(
                 CustomCommands.AUDIO_DECODER_MODE_KEY,
-                decoderManager.activeAudioMode?.name,
+                decoderManager.activeAudioMode?.playerMode()?.name,
             )
             putString(
                 CustomCommands.DECODER_RECOVERY_STATUS_KEY,
@@ -1231,8 +1285,13 @@ class PlayerService : MediaSessionService() {
 
     private fun handleDecoderFailure(trackType: DecoderTrackType) {
         val mode = when (trackType) {
-            DecoderTrackType.VIDEO -> decoderManager.videoMode
-            DecoderTrackType.AUDIO -> decoderManager.audioMode
+            DecoderTrackType.VIDEO ->
+                mediaSession?.player?.currentMediaItem?.mediaMetadata?.videoDecoderMode
+                    ?: DecoderMode.AUTO
+
+            DecoderTrackType.AUDIO ->
+                mediaSession?.player?.currentMediaItem?.mediaMetadata?.audioDecoderMode
+                    ?: DecoderMode.AUTO
         }
         val retry = decoderRecoveryManager.onDecoderFailure(
             trackType = trackType,
@@ -1247,35 +1306,63 @@ class PlayerService : MediaSessionService() {
 
     private fun selectDecoder(trackType: DecoderTrackType, mode: DecoderMode) {
         when (trackType) {
-            DecoderTrackType.VIDEO -> decoderManager.selectVideoDecoder(mode = mode)
-            DecoderTrackType.AUDIO -> decoderManager.selectAudioDecoder(mode = mode)
+            DecoderTrackType.VIDEO -> decoderManager.selectVideoDecoder(
+                mode = mode.systemDecoderMode,
+            )
+
+            DecoderTrackType.AUDIO -> decoderManager.selectAudioDecoder(
+                mode = mode.systemDecoderMode,
+            )
         }
         val player = mediaSession?.player
         val mediaItem = player?.currentMediaItem
         if (mediaItem != null) {
             val updatedItem = when (trackType) {
-                DecoderTrackType.VIDEO -> mediaItem.copy(videoDecoderMode = mode)
+                DecoderTrackType.VIDEO -> mediaItem.copy(
+                    videoDecoderMode = mode,
+                    ffmpegExtraction = when (mode) {
+                        DecoderMode.HW_PLUS -> true
+                        DecoderMode.HARDWARE, DecoderMode.AUTO -> false
+                        DecoderMode.FFMPEG -> mediaItem.mediaMetadata.ffmpegExtraction
+                    },
+                )
+
                 DecoderTrackType.AUDIO -> mediaItem.copy(audioDecoderMode = mode)
             }
-            player.replaceMediaItem(
-                player.currentMediaItemIndex,
-                updatedItem,
-            )
+            if (trackType == DecoderTrackType.VIDEO &&
+                mediaItem.mediaMetadata.ffmpegExtraction !=
+                updatedItem.mediaMetadata.ffmpegExtraction
+            ) {
+                reloadSource(updatedItem)
+            } else {
+                player.replaceMediaItem(
+                    player.currentMediaItemIndex,
+                    updatedItem,
+                )
+            }
         }
         publishDecoderState()
     }
 
-    private fun restoreDecoderChoices(mediaItem: MediaItem?) {
+    private fun reloadSource(item: MediaItem) {
+        val player = mediaSession?.player ?: return
+        pendingSourceReloadId = item.mediaId
+        player.reloadCurrentMediaItem(item)
+    }
+
+    private fun restoreDecoderChoices(mediaItem: MediaItem?, resetRecovery: Boolean = true) {
         val videoMode = mediaItem?.mediaMetadata?.videoDecoderMode ?: DecoderMode.AUTO
         val audioMode = mediaItem?.mediaMetadata?.audioDecoderMode ?: DecoderMode.AUTO
-        decoderRecoveryManager.onUserSelection(
-            DecoderTrackType.VIDEO,
-            mode = videoMode,
-        )
-        decoderRecoveryManager.onUserSelection(
-            DecoderTrackType.AUDIO,
-            mode = audioMode,
-        )
+        if (resetRecovery) {
+            decoderRecoveryManager.onUserSelection(
+                DecoderTrackType.VIDEO,
+                mode = videoMode,
+            )
+            decoderRecoveryManager.onUserSelection(
+                DecoderTrackType.AUDIO,
+                mode = audioMode,
+            )
+        }
         selectDecoder(
             DecoderTrackType.VIDEO,
             mode = videoMode,

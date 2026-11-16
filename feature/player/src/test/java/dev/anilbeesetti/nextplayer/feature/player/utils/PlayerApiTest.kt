@@ -7,7 +7,7 @@ import dev.anilbeesetti.nextplayer.core.model.VideoContentScale
 import dev.anilbeesetti.nextplayer.feature.player.extensions.positionMs
 import dev.anilbeesetti.nextplayer.feature.player.extensions.uriToSubtitleConfiguration
 import dev.anilbeesetti.nextplayer.feature.player.extensions.videoDecoderMode
-import io.github.anilbeesetti.nextlib.media3ext.ffdecoder.DecoderMode
+import dev.anilbeesetti.nextplayer.feature.player.model.DecoderMode
 import kotlinx.coroutines.test.runTest
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertFalse
@@ -685,7 +685,7 @@ class PlayerApiTest {
         listOf(
             1 to DecoderMode.HARDWARE,
             2 to DecoderMode.FFMPEG,
-            4 to DecoderMode.HARDWARE,
+            4 to DecoderMode.HW_PLUS,
         ).forEach { (value, expected) ->
             val api = api(
                 Intent().putExtra(

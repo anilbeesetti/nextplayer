@@ -1,9 +1,9 @@
 package dev.anilbeesetti.nextplayer.feature.player.service
 
+import dev.anilbeesetti.nextplayer.feature.player.model.DecoderMode
 import dev.anilbeesetti.nextplayer.feature.player.model.DecoderRecoveryState
 import dev.anilbeesetti.nextplayer.feature.player.model.DecoderRecoveryStatus
 import dev.anilbeesetti.nextplayer.feature.player.model.DecoderTrackType
-import io.github.anilbeesetti.nextlib.media3ext.ffdecoder.DecoderMode
 
 /** Keeps NextPlayer's decoder fallback policy separate from nextlib's decoder switching. */
 internal class DecoderRecoveryManager {
@@ -33,7 +33,7 @@ internal class DecoderRecoveryManager {
 
         recovery.failedMode = mode
         if (recovery.fallbackModes == null) {
-            recovery.fallbackModes = ArrayDeque(mode.fallbackModes())
+            recovery.fallbackModes = ArrayDeque(mode.fallbackModes(trackType))
         }
         if (recovery.fallbackModes.isNullOrEmpty()) {
             recovery.state = DecoderRecoveryState(
@@ -115,15 +115,20 @@ private class TrackRecovery {
     }
 }
 
-private fun DecoderMode.fallbackModes(): List<DecoderMode> = when (this) {
-    DecoderMode.AUTO -> listOf(DecoderMode.FFMPEG)
+private fun DecoderMode.fallbackModes(trackType: DecoderTrackType): List<DecoderMode> =
+    when (this) {
+        DecoderMode.AUTO -> listOf(DecoderMode.FFMPEG)
 
-    DecoderMode.HARDWARE -> listOf(
-        DecoderMode.SOFTWARE,
-        DecoderMode.FFMPEG,
-    )
+        DecoderMode.HARDWARE -> if (trackType == DecoderTrackType.AUDIO) {
+            listOf(DecoderMode.FFMPEG)
+        } else {
+            listOf(
+                DecoderMode.HW_PLUS,
+                DecoderMode.FFMPEG,
+            )
+        }
 
-    DecoderMode.SOFTWARE -> listOf(DecoderMode.FFMPEG)
+        DecoderMode.HW_PLUS -> listOf(DecoderMode.FFMPEG)
 
-    DecoderMode.FFMPEG -> listOf(DecoderMode.AUTO)
-}
+        DecoderMode.FFMPEG -> listOf(DecoderMode.AUTO)
+    }

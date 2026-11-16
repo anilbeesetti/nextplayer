@@ -161,9 +161,12 @@
     <string name="audio_decoder">Audio decoder</string>
     <string name="decoder_mode_hardware">HW</string>
     <string name="decoder_mode_system_software">SW+</string>
+    <string name="decoder_mode_hardware_plus">HW+</string>
     <string name="decoder_mode_app_software">SW</string>
     <string name="decoder_hardware_description">Hardware MediaCodec decoders only</string>
+    <string name="decoder_system_description">Android system decoders (hardware or software)</string>
     <string name="decoder_system_software_description">Android software MediaCodec decoders only</string>
+    <string name="decoder_hardware_plus_description">FFmpeg container reader with Android system decoders</string>
     <string name="decoder_app_software_description">Bundled FFmpeg software decoder</string>
     <string name="video_decoder_mode_not_supported">%1$s video decoder is not supported</string>
     <string name="audio_decoder_mode_not_supported">%1$s audio decoder is not supported</string>

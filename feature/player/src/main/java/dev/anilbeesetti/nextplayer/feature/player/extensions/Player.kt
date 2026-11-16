@@ -104,13 +104,19 @@ fun Player.addAdditionalSubtitleConfiguration(subtitle: MediaItem.SubtitleConfig
             subtitleTrackIndex = textTracks.size,
         )
 
+    reloadCurrentMediaItem(updateMediaItem)
+}
+
+/** Recreates only the current source, retaining the playlist, shuffle order and playback position. */
+@androidx.annotation.OptIn(UnstableApi::class)
+fun Player.reloadCurrentMediaItem(item: MediaItem) {
+    val position = currentPosition
     val index = currentMediaItemIndex
     val exoPlayer = this as? ExoPlayer
     val shuffleOrder = exoPlayer?.shuffleOrder
-    // Create a new source so Media3 loads the added subtitle; metadata carries decoder choices.
     addMediaItem(
         index + 1,
-        updateMediaItem,
+        item.copy(positionMs = position),
     )
     seekTo(
         index + 1,

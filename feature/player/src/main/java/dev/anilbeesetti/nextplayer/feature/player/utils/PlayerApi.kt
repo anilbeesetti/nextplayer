@@ -9,8 +9,8 @@ import androidx.media3.common.Player
 import dev.anilbeesetti.nextplayer.core.model.VideoContentScale
 import dev.anilbeesetti.nextplayer.feature.player.extensions.getParcelableUriArray
 import dev.anilbeesetti.nextplayer.feature.player.extensions.setExtras
+import dev.anilbeesetti.nextplayer.feature.player.model.DecoderMode
 import dev.anilbeesetti.nextplayer.feature.player.model.Subtitle
-import io.github.anilbeesetti.nextlib.media3ext.ffdecoder.DecoderMode
 
 /** The VIEW intent contract shared by MX Player Free, Pro, and Next Player. */
 class PlayerApi(private val intent: Intent) {
@@ -54,7 +54,8 @@ class PlayerApi(private val intent: Intent) {
 
     private val decoderMode: DecoderMode?
         get() = when ((value("decode_mode") as? Number)?.toInt()) {
-            1, 4 -> DecoderMode.HARDWARE
+            1 -> DecoderMode.HARDWARE
+            4 -> DecoderMode.HW_PLUS
             2 -> DecoderMode.FFMPEG
             else -> null
         }
@@ -195,7 +196,12 @@ class PlayerApi(private val intent: Intent) {
                 1.toByte(),
             )
 
-            DecoderMode.FFMPEG, DecoderMode.SOFTWARE -> putExtra(
+            DecoderMode.HW_PLUS -> putExtra(
+                "decode_mode",
+                4.toByte(),
+            )
+
+            DecoderMode.FFMPEG -> putExtra(
                 "decode_mode",
                 2.toByte(),
             )
