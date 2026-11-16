@@ -366,10 +366,10 @@
         <item quantity="other">Не удалось переместить %1$d видео</item>
     </plurals>
     <plurals name="moved_videos_originals_remain">
-        <item quantity="one">Перемещено 1 видео, но не удалось удалить оригинал</item>
-        <item quantity="few">Перемещено %1$d видео, но не удалось удалить оригиналы</item>
-        <item quantity="many">Перемещено %1$d видео, но не удалось удалить оригиналы</item>
-        <item quantity="other">Перемещено %1$d видео, но не удалось удалить оригиналы</item>
+        <item quantity="one">Скопировано 1 видео, но не удалось удалить оригинал</item>
+        <item quantity="few">Скопировано %1$d видео, но не удалось удалить оригиналы</item>
+        <item quantity="many">Скопировано %1$d видео, но не удалось удалить оригиналы</item>
+        <item quantity="other">Скопировано %1$d видео, но не удалось удалить оригиналы</item>
     </plurals>
     <string name="cannot_move_to_same_folder">Невозможно переместить в ту же папку</string>
     <string name="folder_duration">Общая длительность</string>
@@ -556,4 +556,20 @@
     <string name="playlist_shortcut_failed">Не удалось добавить ярлык плейлиста. Попробуйте ещё раз.</string>
     <string name="github_sponsors">Спонсоры GitHub</string>
     <string name="settings_export">Экспортировать настройки</string>
+    <string name="settings_export_description">Сохранить настройки в JSON файл</string>
+    <string name="settings_import">Импорт настроек</string>
+    <string name="settings_import_description">Восстановить настройки из JSON файла</string>
+    <string name="settings_export_confirmation">Экспортировать настройки приложения и проигрывателя в JSON файл.</string>
+    <string name="settings_export_include_credentials">Включить сетевые подключения и учётные данные</string>
+    <string name="settings_export_credentials_warning">JSON файл не зашифрован. Он может содержать пароли и секретные ключи SSH. Храните его в безопасном месте.</string>
+    <string name="settings_import_confirmation">Настройки в этом файле перезапишут текущие настройки. Отсутствующие, устаревшие, неизвестные или недопустимые элементы будут проигнорированы. Сетевые подключения и учётные данные также будут импортированы, если они включены в файл.</string>
+    <string name="export_action">Экспорт</string>
+    <string name="import_action">Импорт</string>
+    <string name="settings_export_success">Настройки экспортированы</string>
+    <string name="settings_export_failed">Не удалось экспортировать настройки</string>
+    <string name="settings_import_success">Настройки импортированы</string>
+    <string name="settings_import_failed">Не удалось завершить импорт настроек. Попробуйте ещё раз.</string>
+    <string name="settings_import_invalid">Не удалось прочитать этот файл, или он не содержит поддерживаемых настроек JSON</string>
+    <string name="reset_subtitle_position">Сбросить положение субтитров</string>
+    <string name="reset_subtitle_position_desc">Во время воспроизведения перетаскивайте субтитры вверх или вниз, чтобы изменить их положение</string>
 </resources>
