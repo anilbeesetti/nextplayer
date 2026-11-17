@@ -793,8 +793,6 @@ internal fun PlaybackOverlayContent(
     }
     if (output && controlsEnabled) {
         PlaybackOutputSheet(
-            player,
-            snapshot,
             presentation,
             audioOutput,
             onAudioOutput,

@@ -238,8 +238,6 @@ internal fun MediaPlayerControls(
                     videoZoomAndContentScaleState::onVideoContentScaleChanged,
                 outputContent = {
                     PlaybackOutputContent(
-                        player = player,
-                        snapshot = rememberPlaybackSnapshot(player),
                         presentation = presentation,
                         audioOutput = audioOutput,
                         onAudioOutput = { (player as? MediaController)?.setAudioOutput(it) },

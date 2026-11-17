@@ -615,7 +615,7 @@ class PlaybackOverlayTest {
         }
     }
 
-    @Test fun expandedSeekAndOutputVolumeUseSessionCommands() {
+    @Test fun expandedSeekUsesSessionCommands() {
         expanded = true
         composeRule.runOnIdle { player.remote(true) }
         show(PlaybackConnection.CAST)
@@ -625,17 +625,6 @@ class PlaybackOverlayTest {
             assertEquals(
                 30_000,
                 player.currentPosition,
-            )
-        }
-        composeRule.onNodeWithContentDescription(
-            text(R.string.playback_output),
-        ).assertIsDisplayed().performClick()
-        composeRule.onNodeWithContentDescription(text(R.string.cast_volume))
-            .performSemanticsAction(SemanticsActions.SetProgress) { it(75f) }
-        composeRule.runOnIdle {
-            assertEquals(
-                75,
-                player.deviceVolume,
             )
         }
     }

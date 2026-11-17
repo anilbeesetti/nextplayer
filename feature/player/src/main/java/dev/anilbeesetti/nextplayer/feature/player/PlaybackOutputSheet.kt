@@ -73,8 +73,6 @@ import dev.anilbeesetti.nextplayer.feature.player.state.PlaybackSnapshot
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 internal fun PlaybackOutputSheet(
-    player: Player,
-    snapshot: PlaybackSnapshot,
     presentation: PlaybackPresentation,
     audioOutput: Int,
     onAudioOutput: (Int) -> Unit,
@@ -91,8 +89,6 @@ internal fun PlaybackOutputSheet(
             style = MaterialTheme.typography.titleLarge.copy(fontWeight = FontWeight.Bold),
         )
         PlaybackOutputContent(
-            player,
-            snapshot,
             presentation,
             audioOutput,
             onAudioOutput,
@@ -101,11 +97,9 @@ internal fun PlaybackOutputSheet(
     }
 }
 
-/** Output rows, the system picker shortcut and volume, shared by the sheet and player overlay. */
+/** Output rows and the system picker shortcut, shared by the sheet and player overlay. */
 @Composable
 internal fun PlaybackOutputContent(
-    player: Player,
-    snapshot: PlaybackSnapshot,
     presentation: PlaybackPresentation,
     audioOutput: Int,
     onAudioOutput: (Int) -> Unit,
@@ -162,13 +156,6 @@ internal fun PlaybackOutputContent(
                 onClick = { MediaRouter2.getInstance(context).showSystemOutputSwitcher() },
                 trailing = Icons.AutoMirrored.Rounded.OpenInNew,
                 isShortcut = true,
-            )
-        }
-        Spacer(Modifier.height(4.dp))
-        Column(Modifier.padding(horizontal = 8.dp)) {
-            PlaybackVolumeControl(
-                player,
-                snapshot,
             )
         }
     }
