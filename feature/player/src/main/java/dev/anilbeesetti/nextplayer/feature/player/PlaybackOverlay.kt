@@ -265,16 +265,18 @@ fun PlaybackOverlay(
                 ),
                 onAudioOutput = { controller.setAudioOutput(it) },
                 onWatchVideo = {
-                    context.startActivity(
-                        Intent(
-                            context,
-                            PlayerActivity::class.java,
+                    if (!PlayerActivity.expandPictureInPicture()) {
+                        context.startActivity(
+                            Intent(
+                                context,
+                                PlayerActivity::class.java,
+                            )
+                                .putExtra(
+                                    EXTRA_WATCH_VIDEO,
+                                    true,
+                                ),
                         )
-                            .putExtra(
-                                EXTRA_WATCH_VIDEO,
-                                true,
-                            ),
-                    )
+                    }
                 },
             )
         }

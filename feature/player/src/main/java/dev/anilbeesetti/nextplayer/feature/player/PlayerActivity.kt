@@ -785,6 +785,30 @@ class PlayerActivity : ComponentActivity() {
             java.util.WeakHashMap<PlayerActivity, Boolean>(),
         )
 
+        /**
+         * PiP moves the player into its own task, where a launch from elsewhere starts a second
+         * player; relaunching from inside that task reuses it and expands PiP instead.
+         * False when no player is in PiP.
+         */
+        fun expandPictureInPicture(): Boolean {
+            val player = activePlayers.firstOrNull {
+                it.isInPictureInPictureMode && !it.isFinishing
+            } ?: return false
+            // From here it behaves like Watch video: Back returns to the playback controls.
+            player.intent.putExtra(
+                EXTRA_WATCH_VIDEO,
+                true,
+            )
+            player.startActivity(
+                Intent(
+                    player,
+                    PlayerActivity::class.java,
+                )
+                    .addFlags(Intent.FLAG_ACTIVITY_SINGLE_TOP),
+            )
+            return true
+        }
+
         fun prepareForExpandedControls() {
             // MainActivity can cover an external player's task without destroying that activity.
             activePlayers.forEach { it.playInBackground = true }
