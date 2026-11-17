@@ -92,6 +92,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.lerp
 import androidx.compose.ui.unit.sp
 import androidx.compose.ui.zIndex
+import androidx.media3.common.C
 import androidx.media3.common.MimeTypes
 import androidx.media3.common.Player
 import androidx.media3.common.Timeline
@@ -845,7 +846,9 @@ internal fun PlaybackOverlayContent(
             output = false
         }
     }
-    trackType?.takeIf { controlsEnabled && expanded && snapshot.isRemote }?.let { type ->
+    trackType?.takeIf {
+        controlsEnabled && expanded && (snapshot.isRemote || it == C.TRACK_TYPE_AUDIO)
+    }?.let { type ->
         key(type) {
             PlaybackTracksSheet(
                 player = player,

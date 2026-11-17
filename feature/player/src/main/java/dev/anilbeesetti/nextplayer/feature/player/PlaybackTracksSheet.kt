@@ -32,14 +32,18 @@ import dev.anilbeesetti.nextplayer.feature.player.state.rememberTracksState
 import dev.anilbeesetti.nextplayer.feature.player.ui.RadioButtonRow
 
 @Composable
-internal fun PlaybackTrackControls(enabled: Boolean, onTracks: (Int) -> Unit) {
+internal fun PlaybackTrackControls(
+    enabled: Boolean,
+    showSubtitles: Boolean,
+    onTracks: (Int) -> Unit,
+) {
     Row(
         Modifier.fillMaxWidth().padding(top = 8.dp),
         horizontalArrangement = Arrangement.spacedBy(8.dp),
     ) {
-        for (type in listOf(
+        for (type in listOfNotNull(
             C.TRACK_TYPE_AUDIO,
-            C.TRACK_TYPE_TEXT,
+            C.TRACK_TYPE_TEXT.takeIf { showSubtitles },
         )) {
             val audio = type == C.TRACK_TYPE_AUDIO
             FilledTonalButton(

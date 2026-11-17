@@ -264,16 +264,16 @@ internal fun ExpandedPlaybackControls(
                         controlsEnabled,
                         onStop,
                     )
-                    if (snapshot.isRemote) {
-                        PlaybackTrackControls(
-                            enabled = controlsEnabled &&
-                                snapshot.commands.contains(Player.COMMAND_GET_TRACKS) &&
-                                snapshot.commands.contains(
-                                    Player.COMMAND_SET_TRACK_SELECTION_PARAMETERS,
-                                ),
-                            onTracks = onTracks,
-                        )
-                    }
+                    // Background playback has no subtitles to show, so only Cast offers them.
+                    PlaybackTrackControls(
+                        enabled = controlsEnabled &&
+                            snapshot.commands.contains(Player.COMMAND_GET_TRACKS) &&
+                            snapshot.commands.contains(
+                                Player.COMMAND_SET_TRACK_SELECTION_PARAMETERS,
+                            ),
+                        showSubtitles = snapshot.isRemote,
+                        onTracks = onTracks,
+                    )
                 }
             }
         }

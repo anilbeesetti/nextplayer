@@ -158,6 +158,47 @@ class PlaybackOverlayTest {
         }
     }
 
+    @Test fun backgroundPlaybackSwitchesAudioWithoutSubtitlePicker() {
+        show()
+        composeRule.runOnIdle {
+            val audio = TrackGroup(
+                "french",
+                Format.Builder().setSampleMimeType(
+                    MimeTypes.AUDIO_AAC,
+                ).setLabel("French").build(),
+            )
+            player.update {
+                setAvailableCommands(Player.Commands.Builder().addAllCommands().build())
+                setPlaylist(
+                    listOf(
+                        player.item(0).buildUpon().setTracks(
+                            Tracks(
+                                ImmutableList.of(
+                                    Tracks.Group(
+                                        audio,
+                                        false,
+                                        intArrayOf(C.FORMAT_HANDLED),
+                                        booleanArrayOf(false),
+                                    ),
+                                ),
+                            ),
+                        ).build(),
+                    ),
+                )
+            }
+            expanded = true
+        }
+        composeRule.onNodeWithText(text(R.string.subtitle)).assertDoesNotExist()
+        composeRule.onNodeWithText(text(R.string.audio)).performClick()
+        composeRule.onNodeWithText("French").performClick()
+        composeRule.runOnIdle {
+            assertEquals(
+                "french",
+                player.selectedTracks?.overrides?.values?.single()?.mediaTrackGroup?.id,
+            )
+        }
+    }
+
     @Test fun castSubtitlePickerWorksEvenWithoutReceiverTextTracks() {
         show(connection = PlaybackConnection.CAST)
         composeRule.runOnIdle {
