@@ -85,16 +85,13 @@ internal fun PlaybackOutputSheet(
     ) {
         Column(
             Modifier.fillMaxWidth().verticalScroll(rememberScrollState())
-                .padding(horizontal = 24.dp).padding(bottom = 24.dp).testTag("playback_outputs"),
-            verticalArrangement = Arrangement.spacedBy(16.dp),
+                .padding(horizontal = 16.dp).padding(bottom = 16.dp).testTag("playback_outputs"),
+            verticalArrangement = Arrangement.spacedBy(12.dp),
         ) {
             Text(
                 stringResource(R.string.play_on),
-                Modifier.padding(
-                    top = 8.dp,
-                    bottom = 4.dp,
-                ),
-                style = MaterialTheme.typography.headlineSmall.copy(fontWeight = FontWeight.Bold),
+                Modifier.padding(horizontal = 8.dp),
+                style = MaterialTheme.typography.titleLarge.copy(fontWeight = FontWeight.Bold),
             )
             val context = LocalContext.current
             val audio = remember(context) { context.getSystemService(AudioManager::class.java) }
@@ -104,7 +101,7 @@ internal fun PlaybackOutputSheet(
             val routed = audio.routedOutput(outputs)
             val active = outputs.find { it.id == audioOutput }?.id ?: routed
             Column(
-                Modifier.clip(RoundedCornerShape(28.dp)).testTag("playback_output_devices"),
+                Modifier.clip(RoundedCornerShape(20.dp)).testTag("playback_output_devices"),
                 verticalArrangement = Arrangement.spacedBy(2.dp),
             ) {
                 outputs.forEach { device ->
@@ -142,7 +139,7 @@ internal fun PlaybackOutputSheet(
                     isShortcut = true,
                 )
             }
-            Spacer(Modifier.height(16.dp))
+            Spacer(Modifier.height(4.dp))
             Column(Modifier.padding(horizontal = 8.dp)) {
                 PlaybackVolumeControl(
                     player,
@@ -177,14 +174,14 @@ internal fun PlaybackOutputRow(
             role = if (isShortcut) Role.Button else Role.RadioButton
             if (!isShortcut) this.selected = selected
         },
-        shape = RoundedCornerShape(if (isShortcut) 28.dp else 4.dp),
+        shape = RoundedCornerShape(if (isShortcut) 20.dp else 4.dp),
         color = container,
         contentColor = if (selected) colors.onSecondaryContainer else colors.onSurface,
     ) {
         Row(
             Modifier.padding(
-                horizontal = 20.dp,
-                vertical = 16.dp,
+                horizontal = 16.dp,
+                vertical = 12.dp,
             ),
             verticalAlignment = Alignment.CenterVertically,
         ) {
@@ -193,13 +190,13 @@ internal fun PlaybackOutputRow(
                     shape = CircleShape,
                     color = colors.primaryContainer,
                     contentColor = colors.onPrimaryContainer,
-                    modifier = Modifier.size(56.dp),
+                    modifier = Modifier.size(40.dp),
                 ) {
                     Box(contentAlignment = Alignment.Center) {
                         Icon(
                             icon,
                             contentDescription = null,
-                            modifier = Modifier.size(28.dp),
+                            modifier = Modifier.size(24.dp),
                         )
                     }
                 }
@@ -207,15 +204,15 @@ internal fun PlaybackOutputRow(
                 Icon(
                     icon,
                     contentDescription = null,
-                    modifier = Modifier.size(28.dp),
+                    modifier = Modifier.size(24.dp),
                 )
             }
             Column(
-                Modifier.weight(1f).padding(horizontal = 16.dp),
+                Modifier.weight(1f).padding(horizontal = 12.dp),
             ) {
                 Text(
                     title,
-                    style = MaterialTheme.typography.titleLarge,
+                    style = MaterialTheme.typography.titleMedium,
                     fontWeight = if (selected ||
                         isShortcut
                     ) {
@@ -229,7 +226,7 @@ internal fun PlaybackOutputRow(
                 if (summary != null) {
                     Text(
                         summary,
-                        style = MaterialTheme.typography.bodyLarge,
+                        style = MaterialTheme.typography.bodyMedium,
                         color = if (selected) {
                             colors.onSecondaryContainer
                         } else {
