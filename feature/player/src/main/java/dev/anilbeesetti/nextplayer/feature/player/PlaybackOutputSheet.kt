@@ -94,7 +94,7 @@ internal fun PlaybackOutputSheet(
                     top = 8.dp,
                     bottom = 4.dp,
                 ),
-                style = MaterialTheme.typography.headlineLarge.copy(fontWeight = FontWeight.Bold),
+                style = MaterialTheme.typography.headlineSmall.copy(fontWeight = FontWeight.Bold),
             )
             val context = LocalContext.current
             val audio = remember(context) { context.getSystemService(AudioManager::class.java) }
