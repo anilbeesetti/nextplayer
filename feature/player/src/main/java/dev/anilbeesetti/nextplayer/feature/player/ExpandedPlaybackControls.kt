@@ -40,8 +40,6 @@ import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.rounded.QueueMusic
-import androidx.compose.material.icons.rounded.Cast
-import androidx.compose.material.icons.rounded.CastConnected
 import androidx.compose.material.icons.rounded.KeyboardArrowDown
 import androidx.compose.material.icons.rounded.PhoneAndroid
 import androidx.compose.material.icons.rounded.Repeat
@@ -145,7 +143,9 @@ internal fun ExpandedPlaybackControls(
     metadataModifier: Modifier = Modifier,
     headerModifier: Modifier = Modifier,
     queueSheet: PlaybackQueueSheet = rememberPlaybackQueueSheet(),
+    audioOutput: Int = CustomCommands.SYSTEM_AUDIO_OUTPUT,
 ) {
+    val artworkAspectRatio = LocalControlsArtworkAspectRatio.current
     var titleWidth by remember(title) { mutableIntStateOf(0) }
     val collapseFocus = remember { FocusRequester() }
     LaunchedEffect(interactive) {
@@ -167,6 +167,7 @@ internal fun ExpandedPlaybackControls(
                 onOutput,
                 onQueue,
                 showDeviceLabel = !landscape,
+                audioOutput = audioOutput,
             )
         }
     }
@@ -369,6 +370,7 @@ internal fun ExpandedPlaybackControls(
                     constraints.maxWidth,
                     constraints.maxHeight,
                     density,
+                    artworkAspectRatio,
                 ) {
                     QueueStageGeometry(
                         constraints.maxWidth.toFloat(),
@@ -376,6 +378,7 @@ internal fun ExpandedPlaybackControls(
                         topInset = 0f,
                         blockHeight = 0f,
                         density,
+                        artworkAspectRatio,
                     )
                 }
                 LaunchedEffect(
@@ -405,20 +408,21 @@ internal fun ExpandedPlaybackControls(
                         Modifier.weight(1f).fillMaxHeight().padding(vertical = 8.dp),
                     ) {
                         val startGutter = 24.dp
-                        val artworkSize = minOf(
+                        val artworkWidth = minOf(
                             maxWidth - startGutter,
-                            maxHeight,
+                            maxHeight * artworkAspectRatio,
                         )
-                        val endInset = (maxWidth - startGutter - artworkSize) / 2
+                        val artworkHeight = artworkWidth / artworkAspectRatio
+                        val endInset = (maxWidth - startGutter - artworkWidth) / 2
                         val startInset = startGutter + endInset
                         PlaybackArtworkCarousel(
                             player,
                             snapshot,
                             controlsEnabled && interactive && !queueShown,
-                            Modifier.fillMaxWidth().height(artworkSize)
+                            Modifier.fillMaxWidth().height(artworkHeight)
                                 .align(Alignment.CenterStart)
                                 .graphicsLayer { alpha = if (queueShown) 0f else 1f },
-                            artworkSize,
+                            artworkWidth,
                             PaddingValues(
                                 start = startInset,
                                 end = endInset,
@@ -435,7 +439,11 @@ internal fun ExpandedPlaybackControls(
                         )
                         Box(
                             Modifier.align(Alignment.CenterStart).padding(start = startInset)
-                                .size(artworkSize).testTag("landscape_artwork_frame")
+                                .size(
+                                    width = artworkWidth,
+                                    height = artworkHeight,
+                                )
+                                .testTag("landscape_artwork_frame")
                                 .graphicsLayer {
                                     alpha = 1f - smoothStep(
                                         0f,
@@ -552,6 +560,7 @@ internal fun ExpandedPlaybackControls(
                     metadataBounds.bottom,
                     transportBounds.bottom,
                     density,
+                    artworkAspectRatio,
                 ) {
                     QueueStageGeometry(
                         constraints.maxWidth.toFloat(),
@@ -563,6 +572,7 @@ internal fun ExpandedPlaybackControls(
                             0f,
                         ),
                         density,
+                        artworkAspectRatio,
                     )
                 }
                 LaunchedEffect(
@@ -667,18 +677,19 @@ internal fun ExpandedPlaybackControls(
                                 fill = false,
                             ).fillMaxWidth().padding(vertical = 8.dp),
                         ) {
-                            val artworkSize = minOf(
+                            val artworkWidth = minOf(
                                 maxWidth - 48.dp,
-                                maxHeight,
+                                maxHeight * artworkAspectRatio,
                             ).coerceAtLeast(0.dp)
-                            val side = (maxWidth - artworkSize) / 2
+                            val artworkHeight = artworkWidth / artworkAspectRatio
+                            val side = (maxWidth - artworkWidth) / 2
                             PlaybackArtworkCarousel(
                                 player,
                                 snapshot,
                                 controlsEnabled && interactive && !queueShown,
-                                Modifier.fillMaxWidth().height(artworkSize)
+                                Modifier.fillMaxWidth().height(artworkHeight)
                                     .graphicsLayer { alpha = if (queueShown) 0f else 1f },
-                                artworkSize,
+                                artworkWidth,
                                 PaddingValues(horizontal = side),
                                 pageSpacing = side * 2,
                                 measured { artworkBounds = it }.then(
@@ -686,13 +697,17 @@ internal fun ExpandedPlaybackControls(
                                 ),
                             )
                             Box(
-                                Modifier.size(artworkSize).align(Alignment.Center).graphicsLayer {
-                                    alpha = 1f - smoothStep(
-                                        0f,
-                                        .3f,
-                                        queueProgress(),
-                                    )
-                                },
+                                Modifier.size(
+                                    width = artworkWidth,
+                                    height = artworkHeight,
+                                )
+                                    .align(Alignment.Center).graphicsLayer {
+                                        alpha = 1f - smoothStep(
+                                            0f,
+                                            .3f,
+                                            queueProgress(),
+                                        )
+                                    },
                             ) { artworkOverlay() }
                         }
                         Column(
@@ -900,6 +915,7 @@ private fun PlaybackHeaderActions(
     onOutput: () -> Unit,
     onQueue: () -> Unit,
     showDeviceLabel: Boolean,
+    audioOutput: Int,
 ) {
     val showDevice = showDeviceLabel &&
         (connection == PlaybackConnection.CONNECTING || snapshot.isRemote)
@@ -964,11 +980,11 @@ private fun PlaybackHeaderActions(
                     horizontalArrangement = Arrangement.spacedBy(8.dp),
                 ) {
                     Icon(
-                        when {
-                            snapshot.isRemote -> Icons.Rounded.CastConnected
-                            connection == PlaybackConnection.CONNECTING -> Icons.Rounded.Cast
-                            else -> Icons.Rounded.PhoneAndroid
-                        },
+                        playbackOutputIcon(
+                            connection,
+                            snapshot.isRemote,
+                            audioOutput,
+                        ),
                         stringResource(R.string.playback_output),
                         Modifier.size(24.dp),
                     )
@@ -1027,7 +1043,7 @@ private fun PlaybackArtworkCarousel(
     snapshot: PlaybackSnapshot,
     controlsEnabled: Boolean,
     modifier: Modifier,
-    artworkSize: Dp,
+    artworkWidth: Dp,
     contentPadding: PaddingValues,
     pageSpacing: Dp,
     artworkModifier: Modifier,
@@ -1096,7 +1112,7 @@ private fun PlaybackArtworkCarousel(
         state = pager,
         modifier = modifier.testTag("playback_artwork_pager"),
         contentPadding = contentPadding,
-        pageSize = PageSize.Fixed(artworkSize),
+        pageSize = PageSize.Fixed(artworkWidth),
         pageSpacing = pageSpacing,
         userScrollEnabled = canSelect && count > 1,
         beyondViewportPageCount = 1,

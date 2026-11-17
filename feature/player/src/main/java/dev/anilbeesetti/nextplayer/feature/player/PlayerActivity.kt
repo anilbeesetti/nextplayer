@@ -17,6 +17,7 @@ import androidx.activity.enableEdgeToEdge
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.runtime.snapshotFlow
 import androidx.core.util.Consumer
@@ -223,9 +224,11 @@ class PlayerActivity : ComponentActivity() {
             return
         }
         setContent {
+            var sessionExtras by remember { mutableStateOf(Bundle.EMPTY) }
             val player = rememberMediaController(
                 onBeforeRelease = ::onControllerStopped,
                 onExtrasChanged = { extras ->
+                    sessionExtras = extras
                     if (PlaybackPresentation.from(extras).connection ==
                         PlaybackConnection.CONNECTING
                     ) {
@@ -239,6 +242,7 @@ class PlayerActivity : ComponentActivity() {
             LaunchedEffect(key1 = player) {
                 if (player == null || !player.isConnected) return@LaunchedEffect
                 mediaController = player
+                sessionExtras = player.sessionExtras
                 viewModel.onAction(
                     PlayerAction.UpdateDecoderServiceState(
                         player.sessionExtras.decoderServiceState(),
@@ -260,6 +264,7 @@ class PlayerActivity : ComponentActivity() {
                         viewModel = viewModel,
                         player = player,
                         api = playerApi,
+                        sessionExtras = sessionExtras,
                     )
                 }
             }
@@ -760,15 +765,6 @@ class PlayerActivity : ComponentActivity() {
     }
 
     private fun finishAndStopPlayerSession() {
-        if (intent.getBooleanExtra(
-                EXTRA_WATCH_VIDEO,
-                false,
-            )
-        ) {
-            playInBackground = true
-            finish()
-            return
-        }
         finish()
         if (mediaController?.deviceInfo?.playbackType != DeviceInfo.PLAYBACK_TYPE_REMOTE) {
             mediaController?.stopPlayerSession()
@@ -779,6 +775,25 @@ class PlayerActivity : ComponentActivity() {
         private val activePlayers = java.util.Collections.newSetFromMap(
             java.util.WeakHashMap<PlayerActivity, Boolean>(),
         )
+
+        /**
+         * PiP moves the player into its own task, where a launch from elsewhere starts a second
+         * player; relaunching from inside that task reuses it and expands PiP instead.
+         * False when no player is in PiP.
+         */
+        fun expandPictureInPicture(): Boolean {
+            val player = activePlayers.firstOrNull {
+                it.isInPictureInPictureMode && !it.isFinishing
+            } ?: return false
+            player.startActivity(
+                Intent(
+                    player,
+                    PlayerActivity::class.java,
+                )
+                    .addFlags(Intent.FLAG_ACTIVITY_SINGLE_TOP),
+            )
+            return true
+        }
 
         fun prepareForExpandedControls() {
             // MainActivity can cover an external player's task without destroying that activity.

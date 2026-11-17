@@ -225,60 +225,6 @@ internal fun PlaybackSeekControl(
     }
 }
 
-@Composable
-internal fun PlaybackVolumeControl(player: Player, snapshot: PlaybackSnapshot) {
-    if (!snapshot.isRemote) {
-        if (snapshot.commands.contains(Player.COMMAND_SET_VOLUME)) {
-            val label = stringResource(R.string.volume)
-            Text(label)
-            Slider(
-                value = snapshot.volume.coerceIn(
-                    0f,
-                    1f,
-                ),
-                onValueChange = { player.volume = it },
-                modifier = Modifier.semantics { contentDescription = label },
-            )
-        }
-        return
-    }
-    val maximum = snapshot.deviceInfo.maxVolume
-    if (maximum <= 0 ||
-        !snapshot.commands.contains(Player.COMMAND_SET_DEVICE_VOLUME_WITH_FLAGS)
-    ) {
-        return
-    }
-    var dragged by remember(player) { mutableStateOf<Float?>(null) }
-    val label = stringResource(R.string.cast_volume)
-    Column {
-        Text(
-            label,
-            style = MaterialTheme.typography.labelLarge,
-        )
-        Slider(
-            value = (dragged ?: snapshot.deviceVolume.toFloat()).coerceIn(
-                0f,
-                maximum.toFloat(),
-            ),
-            onValueChange = { dragged = it },
-            onValueChangeFinished = {
-                dragged?.let {
-                    player.setDeviceVolume(
-                        it.toInt().coerceIn(
-                            0,
-                            maximum,
-                        ),
-                        0,
-                    )
-                }
-                dragged = null
-            },
-            valueRange = 0f..maximum.toFloat(),
-            modifier = Modifier.fillMaxWidth().semantics { contentDescription = label },
-        )
-    }
-}
-
 internal fun playbackInactiveTrackColor(onContainer: Color): Color = onContainer.copy(alpha = .7f)
 
 internal fun playbackThumbCenter(

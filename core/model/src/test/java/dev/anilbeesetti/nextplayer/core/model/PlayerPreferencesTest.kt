@@ -8,6 +8,31 @@ import org.junit.Test
 
 class PlayerPreferencesTest {
     @Test
+    fun `old preferences use default artwork styles and styles persist independently`() {
+        val defaults = Json.decodeFromString<PlayerPreferences>("{}")
+        assertEquals(
+            ArtworkStyle.AUDIO,
+            defaults.controlsArtworkStyle,
+        )
+        assertEquals(
+            ArtworkStyle.VIDEO,
+            defaults.queueArtworkStyle,
+        )
+        for (controls in ArtworkStyle.entries) {
+            for (queue in ArtworkStyle.entries) {
+                val preferences = defaults.copy(
+                    controlsArtworkStyle = controls,
+                    queueArtworkStyle = queue,
+                )
+                assertEquals(
+                    preferences,
+                    Json.decodeFromString<PlayerPreferences>(Json.encodeToString(preferences)),
+                )
+            }
+        }
+    }
+
+    @Test
     fun `existing preferences keep tunneled playback disabled`() {
         val preferences = Json.decodeFromString<PlayerPreferences>(
             string = """{"autoplay":false,"preferredAudioLanguage":"en"}""",
