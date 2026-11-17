@@ -1,5 +1,6 @@
 package dev.anilbeesetti.nextplayer.feature.player
 
+import android.os.Bundle
 import android.widget.Toast
 import androidx.annotation.OptIn
 import androidx.compose.foundation.background
@@ -52,7 +53,12 @@ val LocalUseMaterialYouControls = compositionLocalOf { false }
 
 @OptIn(UnstableApi::class)
 @Composable
-fun MediaPlayerScreen(viewModel: PlayerViewModel, player: Player?, api: PlayerApi? = null) {
+fun MediaPlayerScreen(
+    viewModel: PlayerViewModel,
+    player: Player?,
+    api: PlayerApi? = null,
+    sessionExtras: Bundle = Bundle.EMPTY,
+) {
     val state by viewModel.state.collectAsStateWithLifecycle()
 
     MediaPlayerContent(
@@ -60,6 +66,7 @@ fun MediaPlayerScreen(viewModel: PlayerViewModel, player: Player?, api: PlayerAp
         state = state,
         onAction = viewModel::onAction,
         api = api,
+        sessionExtras = sessionExtras,
     )
 }
 
@@ -70,6 +77,7 @@ internal fun MediaPlayerContent(
     state: PlayerUiState,
     onAction: (PlayerAction) -> Unit,
     api: PlayerApi? = null,
+    sessionExtras: Bundle = Bundle.EMPTY,
 ) {
     val playerPreferences = state.playerPreferences
     val isPreview = LocalInspectionMode.current
@@ -223,6 +231,7 @@ internal fun MediaPlayerContent(
             seekGestureState = seekGestureState,
             videoZoomAndContentScaleState = videoZoomAndContentScaleState,
             dpadUpDown = api?.dpadUpDown,
+            sessionExtras = sessionExtras,
             isPipSupported = pictureInPictureState?.isPipSupported == true,
             onPictureInPictureClick = {
                 pictureInPictureState?.let {

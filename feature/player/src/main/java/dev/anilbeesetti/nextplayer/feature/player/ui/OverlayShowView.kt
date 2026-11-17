@@ -94,6 +94,7 @@ val Configuration.isPortrait: Boolean
     get() = orientation == Configuration.ORIENTATION_PORTRAIT
 
 enum class OverlayView {
+    OUTPUT,
     DECODER_SELECTOR,
     AUDIO_SELECTOR,
     SUBTITLE_SELECTOR,

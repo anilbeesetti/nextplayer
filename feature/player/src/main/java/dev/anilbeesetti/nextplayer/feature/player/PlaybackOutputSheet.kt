@@ -9,7 +9,6 @@ import android.os.Build
 import android.os.Handler
 import android.os.Looper
 import androidx.compose.animation.animateColorAsState
-import androidx.compose.animation.core.animateDpAsState
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -45,10 +44,16 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.semantics.Role
+import androidx.compose.ui.semantics.role
+import androidx.compose.ui.semantics.selected
+import androidx.compose.ui.semantics.semantics
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.media3.common.Player
@@ -76,19 +81,20 @@ internal fun PlaybackOutputSheet(
     ModalBottomSheet(
         onDismissRequest = onDismiss,
         sheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true),
+        containerColor = MaterialTheme.colorScheme.surfaceContainer,
     ) {
         Column(
             Modifier.fillMaxWidth().verticalScroll(rememberScrollState())
-                .padding(horizontal = 16.dp).padding(bottom = 24.dp).testTag("playback_outputs"),
-            verticalArrangement = Arrangement.spacedBy(4.dp),
+                .padding(horizontal = 24.dp).padding(bottom = 24.dp).testTag("playback_outputs"),
+            verticalArrangement = Arrangement.spacedBy(16.dp),
         ) {
             Text(
                 stringResource(R.string.play_on),
                 Modifier.padding(
-                    start = 8.dp,
-                    bottom = 12.dp,
+                    top = 8.dp,
+                    bottom = 4.dp,
                 ),
-                style = MaterialTheme.typography.headlineSmall,
+                style = MaterialTheme.typography.headlineLarge.copy(fontWeight = FontWeight.Bold),
             )
             val context = LocalContext.current
             val audio = remember(context) { context.getSystemService(AudioManager::class.java) }
@@ -97,31 +103,35 @@ internal fun PlaybackOutputSheet(
                 presentation.connection == PlaybackConnection.STOPPED
             val routed = audio.routedOutput(outputs)
             val active = outputs.find { it.id == audioOutput }?.id ?: routed
-            outputs.forEach { device ->
-                PlaybackOutputRow(
-                    icon = device.icon(),
-                    title = device.label(),
-                    summary = null,
-                    selected = onPhone && device.id == active,
-                    onClick = {
-                        onAudioOutput(
-                            if (device.id ==
-                                routed
-                            ) {
-                                CustomCommands.SYSTEM_AUDIO_OUTPUT
-                            } else {
-                                device.id
-                            },
-                        )
-                    },
+            Column(
+                Modifier.clip(RoundedCornerShape(28.dp)).testTag("playback_output_devices"),
+                verticalArrangement = Arrangement.spacedBy(2.dp),
+            ) {
+                outputs.forEach { device ->
+                    PlaybackOutputRow(
+                        icon = device.icon(),
+                        title = device.label(),
+                        summary = null,
+                        selected = onPhone && device.id == active,
+                        onClick = {
+                            onAudioOutput(
+                                if (device.id ==
+                                    routed
+                                ) {
+                                    CustomCommands.SYSTEM_AUDIO_OUTPUT
+                                } else {
+                                    device.id
+                                },
+                            )
+                        },
+                    )
+                }
+                CastDeviceRows(
+                    presentation.connection,
+                    presentation.deviceName,
                 )
             }
-            CastDeviceRows(
-                presentation.connection,
-                presentation.deviceName,
-            )
             if (Build.VERSION.SDK_INT >= 34) {
-                Spacer(Modifier.height(8.dp))
                 PlaybackOutputRow(
                     icon = Icons.Rounded.Devices,
                     title = stringResource(R.string.more_devices),
@@ -129,6 +139,7 @@ internal fun PlaybackOutputSheet(
                     selected = false,
                     onClick = { MediaRouter2.getInstance(context).showSystemOutputSwitcher() },
                     trailing = Icons.AutoMirrored.Rounded.OpenInNew,
+                    isShortcut = true,
                 )
             }
             Spacer(Modifier.height(16.dp))
@@ -152,65 +163,78 @@ internal fun PlaybackOutputRow(
     onClick: () -> Unit,
     modifier: Modifier = Modifier,
     trailing: ImageVector? = if (selected) Icons.Rounded.Check else null,
+    isShortcut: Boolean = false,
 ) {
     val colors = MaterialTheme.colorScheme
     val container by animateColorAsState(
-        if (selected) colors.secondaryContainer else colors.surfaceContainerHigh,
+        if (selected) colors.secondaryContainer else colors.surfaceContainerLowest,
         MaterialTheme.motionScheme.defaultEffectsSpec(),
         label = "output_container",
     )
-    val corner by animateDpAsState(
-        if (selected) 28.dp else 16.dp,
-        MaterialTheme.motionScheme.defaultSpatialSpec(),
-        label = "output_corner",
-    )
     Surface(
-        selected = selected,
         onClick = onClick,
-        modifier = modifier.fillMaxWidth(),
-        shape = RoundedCornerShape(corner),
+        modifier = modifier.fillMaxWidth().semantics {
+            role = if (isShortcut) Role.Button else Role.RadioButton
+            if (!isShortcut) this.selected = selected
+        },
+        shape = RoundedCornerShape(if (isShortcut) 28.dp else 4.dp),
         color = container,
+        contentColor = if (selected) colors.onSecondaryContainer else colors.onSurface,
     ) {
         Row(
             Modifier.padding(
-                horizontal = 16.dp,
-                vertical = 14.dp,
+                horizontal = 20.dp,
+                vertical = 16.dp,
             ),
             verticalAlignment = Alignment.CenterVertically,
         ) {
-            Box(
-                Modifier.size(40.dp),
-                contentAlignment = Alignment.Center,
-            ) {
+            if (isShortcut) {
                 Surface(
                     shape = CircleShape,
-                    color = if (selected) colors.secondary else colors.surfaceContainerHighest,
-                    contentColor = if (selected) colors.onSecondary else colors.onSurfaceVariant,
-                    modifier = Modifier.size(40.dp),
+                    color = colors.primaryContainer,
+                    contentColor = colors.onPrimaryContainer,
+                    modifier = Modifier.size(56.dp),
                 ) {
                     Box(contentAlignment = Alignment.Center) {
                         Icon(
                             icon,
                             contentDescription = null,
-                            modifier = Modifier.size(22.dp),
+                            modifier = Modifier.size(28.dp),
                         )
                     }
                 }
+            } else {
+                Icon(
+                    icon,
+                    contentDescription = null,
+                    modifier = Modifier.size(28.dp),
+                )
             }
             Column(
                 Modifier.weight(1f).padding(horizontal = 16.dp),
             ) {
                 Text(
                     title,
-                    style = MaterialTheme.typography.titleMedium,
+                    style = MaterialTheme.typography.titleLarge,
+                    fontWeight = if (selected ||
+                        isShortcut
+                    ) {
+                        FontWeight.SemiBold
+                    } else {
+                        FontWeight.Normal
+                    },
                     maxLines = 1,
                     overflow = TextOverflow.Ellipsis,
                 )
                 if (summary != null) {
                     Text(
                         summary,
-                        style = MaterialTheme.typography.bodyMedium,
-                        color = colors.onSurfaceVariant,
+                        style = MaterialTheme.typography.bodyLarge,
+                        color = if (selected) {
+                            colors.onSecondaryContainer
+                        } else {
+                            colors.onSurfaceVariant
+                        },
                         maxLines = 2,
                         overflow = TextOverflow.Ellipsis,
                     )

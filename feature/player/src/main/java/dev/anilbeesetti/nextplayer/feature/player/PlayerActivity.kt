@@ -17,6 +17,7 @@ import androidx.activity.enableEdgeToEdge
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.runtime.snapshotFlow
 import androidx.core.util.Consumer
@@ -223,9 +224,11 @@ class PlayerActivity : ComponentActivity() {
             return
         }
         setContent {
+            var sessionExtras by remember { mutableStateOf(Bundle.EMPTY) }
             val player = rememberMediaController(
                 onBeforeRelease = ::onControllerStopped,
                 onExtrasChanged = { extras ->
+                    sessionExtras = extras
                     if (PlaybackPresentation.from(extras).connection ==
                         PlaybackConnection.CONNECTING
                     ) {
@@ -239,6 +242,7 @@ class PlayerActivity : ComponentActivity() {
             LaunchedEffect(key1 = player) {
                 if (player == null || !player.isConnected) return@LaunchedEffect
                 mediaController = player
+                sessionExtras = player.sessionExtras
                 viewModel.onAction(
                     PlayerAction.UpdateDecoderServiceState(
                         player.sessionExtras.decoderServiceState(),
@@ -260,6 +264,7 @@ class PlayerActivity : ComponentActivity() {
                         viewModel = viewModel,
                         player = player,
                         api = playerApi,
+                        sessionExtras = sessionExtras,
                     )
                 }
             }

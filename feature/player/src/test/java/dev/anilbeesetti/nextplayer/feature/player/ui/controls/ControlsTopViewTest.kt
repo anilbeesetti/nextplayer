@@ -5,9 +5,11 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.focus.FocusRequester
 import androidx.compose.ui.focus.focusRequester
 import androidx.compose.ui.input.key.Key
+import androidx.compose.ui.test.assertIsDisplayed
 import androidx.compose.ui.test.assertIsFocused
 import androidx.compose.ui.test.junit4.v2.createAndroidComposeRule
 import androidx.compose.ui.test.onNodeWithContentDescription
+import androidx.compose.ui.test.performClick
 import androidx.compose.ui.test.performKeyInput
 import androidx.compose.ui.test.pressKey
 import dev.anilbeesetti.nextplayer.core.ui.R
@@ -24,6 +26,24 @@ import org.robolectric.annotation.Config
 class ControlsTopViewTest {
     @get:Rule
     val composeRule = createAndroidComposeRule<ComponentActivity>()
+
+    @Test
+    fun outputSwitcherIsAvailableAndOpensFromThePlayer() {
+        var opened = false
+        composeRule.setContent {
+            NextPlayerTheme {
+                ControlsTopView(
+                    title = "Video",
+                    videoDecoderMode = null,
+                    onOutputClick = { opened = true },
+                )
+            }
+        }
+        composeRule.onNodeWithContentDescription(
+            composeRule.activity.getString(R.string.playback_output),
+        ).assertIsDisplayed().performClick()
+        composeRule.runOnIdle { assertTrue(opened) }
+    }
 
     @Test
     fun enteringGroupFocusesDecoderWithoutTrappingNavigationToBack() {

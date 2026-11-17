@@ -1,5 +1,6 @@
 package dev.anilbeesetti.nextplayer.feature.player
 
+import android.os.Bundle
 import androidx.activity.compose.BackHandler
 import androidx.annotation.OptIn
 import androidx.compose.foundation.focusable
@@ -26,10 +27,14 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
 import androidx.media3.common.Player
 import androidx.media3.common.util.UnstableApi
+import androidx.media3.session.MediaController
 import androidx.media3.ui.compose.state.rememberProgressStateWithTickInterval
 import dev.anilbeesetti.nextplayer.core.common.extensions.isTelevision
 import dev.anilbeesetti.nextplayer.core.ui.components.requestFocusUntilLanded
 import dev.anilbeesetti.nextplayer.core.ui.components.thenIf
+import dev.anilbeesetti.nextplayer.feature.player.service.CustomCommands
+import dev.anilbeesetti.nextplayer.feature.player.service.PlaybackPresentation
+import dev.anilbeesetti.nextplayer.feature.player.service.setAudioOutput
 import dev.anilbeesetti.nextplayer.feature.player.state.ControlsVisibilityState
 import dev.anilbeesetti.nextplayer.feature.player.state.SeekGestureState
 import dev.anilbeesetti.nextplayer.feature.player.state.TapGestureState
@@ -37,6 +42,7 @@ import dev.anilbeesetti.nextplayer.feature.player.state.VideoZoomAndContentScale
 import dev.anilbeesetti.nextplayer.feature.player.state.rememberChaptersState
 import dev.anilbeesetti.nextplayer.feature.player.state.rememberMediaPresentationState
 import dev.anilbeesetti.nextplayer.feature.player.state.rememberMetadataState
+import dev.anilbeesetti.nextplayer.feature.player.state.rememberPlaybackSnapshot
 import dev.anilbeesetti.nextplayer.feature.player.state.rememberPlayerKeyInputState
 import dev.anilbeesetti.nextplayer.feature.player.ui.DpadSeekIndicator
 import dev.anilbeesetti.nextplayer.feature.player.ui.OverlayShowView
@@ -59,6 +65,7 @@ internal fun MediaPlayerControls(
     onPictureInPictureClick: () -> Unit,
     modifier: Modifier = Modifier,
     dpadUpDown: Int? = null,
+    sessionExtras: Bundle = Bundle.EMPTY,
 ) {
     val playerPreferences = state.playerPreferences
     val metadataState = rememberMetadataState(player = player)
@@ -183,6 +190,23 @@ internal fun MediaPlayerControls(
                 )
             }
 
+            if (overlayView == OverlayView.OUTPUT) {
+                PlaybackOutputSheet(
+                    player = player,
+                    snapshot = rememberPlaybackSnapshot(player),
+                    presentation = PlaybackPresentation.from(sessionExtras),
+                    audioOutput = sessionExtras.getInt(
+                        CustomCommands.AUDIO_OUTPUT_KEY,
+                        CustomCommands.SYSTEM_AUDIO_OUTPUT,
+                    ),
+                    onAudioOutput = { (player as? MediaController)?.setAudioOutput(it) },
+                    onDismiss = {
+                        overlayView = null
+                        controlsVisibilityState.showControls()
+                    },
+                )
+            }
+
             OverlayShowView(
                 player = player,
                 overlayView = overlayView,
@@ -218,7 +242,10 @@ internal fun MediaPlayerControls(
 
     BackHandler {
         when {
-            overlayView != null -> overlayView = null
+            overlayView != null -> {
+                if (overlayView == OverlayView.OUTPUT) controlsVisibilityState.showControls()
+                overlayView = null
+            }
 
             isTv && controlsVisibilityState.controlsVisible ->
                 controlsVisibilityState.hideControls()

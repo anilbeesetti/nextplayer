@@ -593,7 +593,7 @@
     <string name="this_phone">This phone</string>
     <string name="headphones">Headphones</string>
     <string name="more_devices">More devices</string>
-    <string name="more_devices_summary">Pair or switch outputs with the system picker</string>
+    <string name="more_devices_summary">Connect or switch using the system output picker</string>
     <string name="available">Available</string>
     <string name="connected">Connected</string>
     <string name="allow_nearby_devices">Allow access to find devices on your network</string>

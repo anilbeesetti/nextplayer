@@ -30,7 +30,6 @@ import dev.anilbeesetti.nextplayer.feature.player.ui.controls.ControlsBottomView
 import dev.anilbeesetti.nextplayer.feature.player.ui.controls.ControlsMiddleView
 import dev.anilbeesetti.nextplayer.feature.player.ui.controls.ControlsTopView
 import io.github.anilbeesetti.nextlib.media3ext.ffdecoder.DecoderMode
-import kotlin.time.Duration
 
 @OptIn(UnstableApi::class)
 @Composable
@@ -71,14 +70,7 @@ fun PlayerControls(
                     onSubtitleClick = { onShowOverlay(OverlayView.SUBTITLE_SELECTOR) },
                     onPlaylistClick = { onShowOverlay(OverlayView.PLAYLIST) },
                     onBackClick = onBackClick,
-                    // Hiding the controls would close the cast picker mid-choice.
-                    onCastPickerVisibleChange = { open ->
-                        if (open) {
-                            controlsVisibilityState.showControls(Duration.INFINITE)
-                        } else {
-                            controlsVisibilityState.showControls()
-                        }
-                    },
+                    onOutputClick = { onShowOverlay(OverlayView.OUTPUT) },
                 )
             }
             Spacer(modifier = Modifier.weight(weight = 1f))
