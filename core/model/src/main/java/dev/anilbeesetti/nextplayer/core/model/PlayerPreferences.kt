@@ -45,7 +45,7 @@ data class PlayerPreferences(
     val showRemainingTime: Boolean = false,
 
     // Debug-only presentation overrides; release builds always use video artwork.
-    val controlsArtworkStyle: ArtworkStyle = ArtworkStyle.VIDEO,
+    val controlsArtworkStyle: ArtworkStyle = ArtworkStyle.AUDIO,
     val queueArtworkStyle: ArtworkStyle = ArtworkStyle.VIDEO,
 
     // Audio Preferences

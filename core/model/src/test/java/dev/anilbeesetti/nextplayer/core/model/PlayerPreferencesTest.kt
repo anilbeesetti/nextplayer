@@ -8,10 +8,10 @@ import org.junit.Test
 
 class PlayerPreferencesTest {
     @Test
-    fun `old preferences default to video artwork and styles persist independently`() {
+    fun `old preferences use default artwork styles and styles persist independently`() {
         val defaults = Json.decodeFromString<PlayerPreferences>("{}")
         assertEquals(
-            ArtworkStyle.VIDEO,
+            ArtworkStyle.AUDIO,
             defaults.controlsArtworkStyle,
         )
         assertEquals(

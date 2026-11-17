@@ -39,13 +39,13 @@ class DeveloperPreferencesScreenTest {
                 }
             }
         }
-        rule.onNodeWithTag("controls_artwork_style_VIDEO").assertIsSelected()
+        rule.onNodeWithTag("controls_artwork_style_AUDIO").assertIsSelected()
         rule.onNodeWithTag("queue_artwork_style_VIDEO").assertIsSelected()
-        rule.onNodeWithTag("controls_artwork_style_AUDIO").performClick().assertIsSelected()
-        rule.onNodeWithTag("controls_artwork_style_VIDEO").assertIsNotSelected()
+        rule.onNodeWithTag("controls_artwork_style_VIDEO").performClick().assertIsSelected()
+        rule.onNodeWithTag("controls_artwork_style_AUDIO").assertIsNotSelected()
         rule.onNodeWithTag("queue_artwork_style_VIDEO").assertIsSelected()
         rule.onNodeWithTag("queue_artwork_style_AUDIO").performClick().assertIsSelected()
-        rule.onNodeWithTag("controls_artwork_style_VIDEO").performClick().assertIsSelected()
+        rule.onNodeWithTag("controls_artwork_style_AUDIO").performClick().assertIsSelected()
         rule.onNodeWithTag("queue_artwork_style_AUDIO").assertIsSelected()
     }
 }

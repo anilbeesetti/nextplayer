@@ -30,15 +30,15 @@ class DeveloperPreferencesViewModelTest {
         )
         val viewModel = viewModel()
         val original = repository.playerPreferences.value
-        viewModel.onAction(DeveloperPreferencesEvent.ControlsArtwork(ArtworkStyle.AUDIO))
+        viewModel.onAction(DeveloperPreferencesEvent.ControlsArtwork(ArtworkStyle.VIDEO))
         advanceUntilIdle()
         assertEquals(
-            original.copy(controlsArtworkStyle = ArtworkStyle.AUDIO),
+            original.copy(controlsArtworkStyle = ArtworkStyle.VIDEO),
             viewModel.state.value,
         )
         viewModel.onAction(DeveloperPreferencesEvent.QueueArtwork(ArtworkStyle.AUDIO))
         advanceUntilIdle()
-        viewModel.onAction(DeveloperPreferencesEvent.ControlsArtwork(ArtworkStyle.VIDEO))
+        viewModel.onAction(DeveloperPreferencesEvent.ControlsArtwork(ArtworkStyle.AUDIO))
         advanceUntilIdle()
         assertEquals(
             original.copy(queueArtworkStyle = ArtworkStyle.AUDIO),
