@@ -98,6 +98,7 @@ import androidx.compose.ui.layout.onGloballyPositioned
 import androidx.compose.ui.layout.onPlaced
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.platform.testTag
+import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.semantics.paneTitle
@@ -108,6 +109,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
+import androidx.media3.common.C
 import androidx.media3.common.Player
 import dev.anilbeesetti.nextplayer.core.ui.R
 import dev.anilbeesetti.nextplayer.core.ui.components.tvFocusRing
@@ -1251,6 +1253,23 @@ private fun PlaybackModeControls(
             else -> R.string.loop_mode_off
         },
     )
+    // The track sheets work without a video screen, so background playback can switch tracks too.
+    var trackSheet by remember { mutableStateOf<Int?>(null) }
+    val tracksEnabled = enabled &&
+        snapshot.commands.contains(Player.COMMAND_SET_TRACK_SELECTION_PARAMETERS)
+    if (tracksEnabled) {
+        trackSheet?.let {
+            PlaybackTracksSheet(
+                player,
+                it,
+                onDismiss = { trackSheet = null },
+            )
+        }
+    }
+    val buttonColors = IconButtonDefaults.filledIconButtonColors(
+        containerColor = MaterialTheme.colorScheme.onSurface.copy(alpha = .07f),
+        contentColor = MaterialTheme.colorScheme.onSurface,
+    )
     val colors = IconButtonDefaults.filledIconToggleButtonColors(
         containerColor = MaterialTheme.colorScheme.onSurface.copy(alpha = .07f),
         contentColor = MaterialTheme.colorScheme.onSurface,
@@ -1310,6 +1329,32 @@ private fun PlaybackModeControls(
                     stringResource(R.string.player_controls_repeat),
                 )
             }
+            listOf(
+                C.TRACK_TYPE_AUDIO to R.drawable.ic_audio_track,
+                C.TRACK_TYPE_TEXT to R.drawable.ic_subtitle_track,
+            ).forEach { (type, icon) ->
+                FilledIconButton(
+                    onClick = { trackSheet = type },
+                    enabled = tracksEnabled,
+                    modifier = Modifier.weight(1f).height(48.dp).tvFocusRing(middle),
+                    shapes = IconButtonShapes(
+                        shape = middle,
+                        pressedShape = ButtonGroupDefaults.connectedMiddleButtonPressShape,
+                    ),
+                    colors = buttonColors,
+                ) {
+                    Icon(
+                        painterResource(icon),
+                        stringResource(
+                            if (type == C.TRACK_TYPE_AUDIO) {
+                                R.string.select_audio_track
+                            } else {
+                                R.string.select_subtitle_track
+                            },
+                        ),
+                    )
+                }
+            }
             val last = ButtonGroupDefaults.connectedTrailingButtonShape
             FilledIconButton(
                 onClick = onStop,
@@ -1318,10 +1363,7 @@ private fun PlaybackModeControls(
                     shape = last,
                     pressedShape = ButtonGroupDefaults.connectedTrailingButtonPressShape,
                 ),
-                colors = IconButtonDefaults.filledIconButtonColors(
-                    containerColor = MaterialTheme.colorScheme.onSurface.copy(alpha = .07f),
-                    contentColor = MaterialTheme.colorScheme.onSurface,
-                ),
+                colors = buttonColors,
             ) {
                 Icon(
                     Icons.Rounded.Stop,

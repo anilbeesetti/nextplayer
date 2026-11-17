@@ -43,6 +43,38 @@ fun BoxScope.AudioTrackSelectorView(
     onSelectAudioClick: () -> Unit,
     onDismiss: () -> Unit,
 ) {
+    OverlayView(
+        modifier = modifier,
+        show = show,
+        title = stringResource(R.string.select_audio_track),
+    ) {
+        Column(
+            modifier = Modifier
+                .verticalScroll(state = rememberScrollState())
+                .padding(bottom = 24.dp)
+                .padding(horizontal = 24.dp)
+                .selectableGroup(),
+        ) {
+            AudioTrackRows(
+                player,
+                onSelected = onDismiss,
+            )
+            Spacer(modifier = Modifier.size(16.dp))
+            FilledTonalButton(
+                modifier = Modifier.fillMaxWidth(),
+                onClick = {
+                    onSelectAudioClick()
+                    onDismiss()
+                },
+            ) { Text(text = stringResource(R.string.open_audio)) }
+        }
+    }
+}
+
+/** The audio tracks to choose from, plus Disable; shared by the player and expanded controls. */
+@OptIn(UnstableApi::class)
+@Composable
+internal fun AudioTrackRows(player: Player, onSelected: () -> Unit) {
     val audioTracksState = rememberTracksState(
         player = player,
         C.TRACK_TYPE_AUDIO,
@@ -57,50 +89,27 @@ fun BoxScope.AudioTrackSelectorView(
         audioNames =
             withContext(Dispatchers.IO) { uris.map { context.getFilenameFromUri(uri = it) } }
     }
-
-    OverlayView(
-        modifier = modifier,
-        show = show,
-        title = stringResource(R.string.select_audio_track),
-    ) {
-        Column(
-            modifier = Modifier
-                .verticalScroll(state = rememberScrollState())
-                .padding(bottom = 24.dp)
-                .padding(horizontal = 24.dp)
-                .selectableGroup(),
-        ) {
-            audioTracksState.tracks.forEachIndexed { index, track ->
-                RadioButtonRow(
-                    selected = track.isSelected,
-                    text = track.mediaTrackGroup.externalAudioIndex
-                        ?.let { audioNames.getOrNull(index = it) }
-                        ?: track.mediaTrackGroup.getName(
-                            C.TRACK_TYPE_AUDIO,
-                            index = index,
-                        ),
-                    onClick = {
-                        audioTracksState.switchTrack(index = index)
-                        onDismiss()
-                    },
-                )
-            }
-            RadioButtonRow(
-                selected = audioTracksState.tracks.none { it.isSelected },
-                text = stringResource(R.string.disable),
-                onClick = {
-                    audioTracksState.switchTrack(index = -1)
-                    onDismiss()
-                },
-            )
-            Spacer(modifier = Modifier.size(16.dp))
-            FilledTonalButton(
-                modifier = Modifier.fillMaxWidth(),
-                onClick = {
-                    onSelectAudioClick()
-                    onDismiss()
-                },
-            ) { Text(text = stringResource(R.string.open_audio)) }
-        }
+    audioTracksState.tracks.forEachIndexed { index, track ->
+        RadioButtonRow(
+            selected = track.isSelected,
+            text = track.mediaTrackGroup.externalAudioIndex
+                ?.let { audioNames.getOrNull(index = it) }
+                ?: track.mediaTrackGroup.getName(
+                    C.TRACK_TYPE_AUDIO,
+                    index = index,
+                ),
+            onClick = {
+                audioTracksState.switchTrack(index = index)
+                onSelected()
+            },
+        )
     }
+    RadioButtonRow(
+        selected = audioTracksState.tracks.none { it.isSelected },
+        text = stringResource(R.string.disable),
+        onClick = {
+            audioTracksState.switchTrack(index = -1)
+            onSelected()
+        },
+    )
 }

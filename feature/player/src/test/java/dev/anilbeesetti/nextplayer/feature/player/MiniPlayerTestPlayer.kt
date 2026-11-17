@@ -7,6 +7,7 @@ import androidx.media3.common.MediaItem
 import androidx.media3.common.MediaMetadata
 import androidx.media3.common.Player
 import androidx.media3.common.SimpleBasePlayer
+import androidx.media3.common.TrackSelectionParameters
 import com.google.common.util.concurrent.Futures
 import com.google.common.util.concurrent.ListenableFuture
 
@@ -26,6 +27,8 @@ internal class MiniPlayerTestPlayer : SimpleBasePlayer(Looper.getMainLooper()) {
                 Player.COMMAND_SEEK_TO_PREVIOUS,
                 Player.COMMAND_GET_DEVICE_VOLUME,
                 Player.COMMAND_SET_DEVICE_VOLUME_WITH_FLAGS,
+                Player.COMMAND_GET_TRACKS,
+                Player.COMMAND_SET_TRACK_SELECTION_PARAMETERS,
             ).build(),
         )
         .setPlaylist(
@@ -47,6 +50,13 @@ internal class MiniPlayerTestPlayer : SimpleBasePlayer(Looper.getMainLooper()) {
             .setMediaMetadata(MediaMetadata.Builder().setTitle("Movie ${index + 1}").build())
             .setDurationUs(durationUs)
             .build()
+
+    override fun handleSetTrackSelectionParameters(
+        trackSelectionParameters: TrackSelectionParameters,
+    ): ListenableFuture<*> {
+        update { setTrackSelectionParameters(trackSelectionParameters) }
+        return Futures.immediateVoidFuture()
+    }
 
     fun update(change: State.Builder.() -> Unit) {
         state = state.buildUpon().apply(change).build()
