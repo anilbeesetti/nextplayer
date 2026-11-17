@@ -765,15 +765,6 @@ class PlayerActivity : ComponentActivity() {
     }
 
     private fun finishAndStopPlayerSession() {
-        if (intent.getBooleanExtra(
-                EXTRA_WATCH_VIDEO,
-                false,
-            )
-        ) {
-            playInBackground = true
-            finish()
-            return
-        }
         finish()
         if (mediaController?.deviceInfo?.playbackType != DeviceInfo.PLAYBACK_TYPE_REMOTE) {
             mediaController?.stopPlayerSession()
@@ -794,11 +785,6 @@ class PlayerActivity : ComponentActivity() {
             val player = activePlayers.firstOrNull {
                 it.isInPictureInPictureMode && !it.isFinishing
             } ?: return false
-            // From here it behaves like Watch video: Back returns to the playback controls.
-            player.intent.putExtra(
-                EXTRA_WATCH_VIDEO,
-                true,
-            )
             player.startActivity(
                 Intent(
                     player,

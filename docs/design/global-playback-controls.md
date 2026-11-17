@@ -21,7 +21,7 @@ The existing high-bitrate Camera casting limitation remains unresolved and is ou
 - Failed or cancelled connections return playback to the phone at the same position and restore its previous playing/paused state.
 - The compact bar has square artwork with softly rounded corners, video title, folder/device text and previous/play-pause/next buttons.
 - The expanded player adds large artwork, seek/time, shuffle/repeat, queue, output/volume, Stop, and Watch video for local output or Play on phone for Cast. Music-specific lyrics and album navigation are outside this PR.
-- Back from full-screen video opened through Watch video returns to the expanded player and keeps playback active. Direct video launches keep their existing Back/background-playback behavior.
+- Back from full-screen video opened through Watch video leaves the player like a direct launch: local playback stops; Cast keeps playing. Watch video while the player is in PiP expands that PiP window instead of opening another player.
 - Videos opened from Files or another app also transition into Next Player's expanded Connecting/Cast controls when a receiver is selected.
 - Tapping the active playback notification opens expanded controls for both local and Cast output.
 - Unexpected Cast loss retains the queue and last known position, leaves phone playback paused, and presents connection-lost recovery with Retry and Play on phone.
