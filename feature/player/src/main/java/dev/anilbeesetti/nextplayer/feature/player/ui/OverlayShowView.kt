@@ -5,9 +5,11 @@ import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.BoxScope
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.res.stringResource
 import androidx.media3.common.Player
 import androidx.media3.extractor.metadata.Chapter
 import dev.anilbeesetti.nextplayer.core.model.VideoContentScale
+import dev.anilbeesetti.nextplayer.core.ui.R
 import dev.anilbeesetti.nextplayer.feature.player.extensions.noRippleClickable
 import dev.anilbeesetti.nextplayer.feature.player.state.SubtitleOptionsEvent
 import io.github.anilbeesetti.nextlib.media3ext.ffdecoder.DecoderMode
@@ -29,6 +31,7 @@ fun BoxScope.OverlayShowView(
     onSelectAudioClick: () -> Unit = {},
     onSubtitleOptionEvent: (SubtitleOptionsEvent) -> Unit = {},
     onVideoContentScaleChanged: (VideoContentScale) -> Unit = {},
+    outputContent: @Composable () -> Unit = {},
 ) {
     Box(
         modifier = Modifier
@@ -76,6 +79,13 @@ fun BoxScope.OverlayShowView(
         onVideoContentScaleChanged = onVideoContentScaleChanged,
         onDismiss = onDismiss,
     )
+
+    OverlayView(
+        show = overlayView == OverlayView.OUTPUT,
+        title = stringResource(R.string.play_on),
+    ) {
+        outputContent()
+    }
 
     PlaylistView(
         show = overlayView == OverlayView.PLAYLIST,

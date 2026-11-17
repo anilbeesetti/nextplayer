@@ -11,6 +11,7 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.res.stringResource
 import androidx.media3.common.Player
 import androidx.media3.common.util.UnstableApi
@@ -49,6 +50,7 @@ fun PlayerControls(
     onPlayInBackgroundClick: () -> Unit,
     onToggleTimeDisplay: () -> Unit,
     onPictureInPictureClick: () -> Unit,
+    outputIcon: ImageVector,
     modifier: Modifier = Modifier,
     middleControlsModifier: Modifier = Modifier,
 ) {
@@ -71,6 +73,7 @@ fun PlayerControls(
                     onPlaylistClick = { onShowOverlay(OverlayView.PLAYLIST) },
                     onBackClick = onBackClick,
                     onOutputClick = { onShowOverlay(OverlayView.OUTPUT) },
+                    outputIcon = outputIcon,
                 )
             }
             Spacer(modifier = Modifier.weight(weight = 1f))

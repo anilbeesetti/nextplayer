@@ -6,6 +6,7 @@ import androidx.annotation.OptIn
 import androidx.compose.foundation.focusable
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.runtime.Composable
@@ -33,6 +34,7 @@ import dev.anilbeesetti.nextplayer.core.common.extensions.isTelevision
 import dev.anilbeesetti.nextplayer.core.ui.components.requestFocusUntilLanded
 import dev.anilbeesetti.nextplayer.core.ui.components.thenIf
 import dev.anilbeesetti.nextplayer.feature.player.service.CustomCommands
+import dev.anilbeesetti.nextplayer.feature.player.service.PlaybackConnection
 import dev.anilbeesetti.nextplayer.feature.player.service.PlaybackPresentation
 import dev.anilbeesetti.nextplayer.feature.player.service.setAudioOutput
 import dev.anilbeesetti.nextplayer.feature.player.state.ControlsVisibilityState
@@ -82,6 +84,11 @@ internal fun MediaPlayerControls(
         dpadUpDown = dpadUpDown,
     )
     var overlayView by remember { mutableStateOf<OverlayView?>(value = null) }
+    val presentation = PlaybackPresentation.from(sessionExtras)
+    val audioOutput = sessionExtras.getInt(
+        CustomCommands.AUDIO_OUTPUT_KEY,
+        CustomCommands.SYSTEM_AUDIO_OUTPUT,
+    )
     LaunchedEffect(metadataState.mediaId) {
         if (overlayView == OverlayView.CHAPTERS) overlayView = null
     }
@@ -183,26 +190,14 @@ internal fun MediaPlayerControls(
                     onPlayInBackgroundClick = { onAction(PlayerAction.PlayInBackground) },
                     onToggleTimeDisplay = { onAction(PlayerAction.ToggleTimeDisplay) },
                     onPictureInPictureClick = onPictureInPictureClick,
+                    outputIcon = playbackOutputIcon(
+                        presentation.connection,
+                        isRemote = presentation.connection == PlaybackConnection.CAST,
+                        audioOutput,
+                    ),
                     middleControlsModifier = Modifier.thenIf(condition = isTv) {
                         focusRequester(focusRequester = middleControlsFocusRequester)
                             .onFocusChanged { isMiddleControlsFocused = it.hasFocus }
-                    },
-                )
-            }
-
-            if (overlayView == OverlayView.OUTPUT) {
-                PlaybackOutputSheet(
-                    player = player,
-                    snapshot = rememberPlaybackSnapshot(player),
-                    presentation = PlaybackPresentation.from(sessionExtras),
-                    audioOutput = sessionExtras.getInt(
-                        CustomCommands.AUDIO_OUTPUT_KEY,
-                        CustomCommands.SYSTEM_AUDIO_OUTPUT,
-                    ),
-                    onAudioOutput = { (player as? MediaController)?.setAudioOutput(it) },
-                    onDismiss = {
-                        overlayView = null
-                        controlsVisibilityState.showControls()
                     },
                 )
             }
@@ -236,16 +231,23 @@ internal fun MediaPlayerControls(
                 },
                 onVideoContentScaleChanged =
                     videoZoomAndContentScaleState::onVideoContentScaleChanged,
+                outputContent = {
+                    PlaybackOutputContent(
+                        player = player,
+                        snapshot = rememberPlaybackSnapshot(player),
+                        presentation = presentation,
+                        audioOutput = audioOutput,
+                        onAudioOutput = { (player as? MediaController)?.setAudioOutput(it) },
+                        modifier = Modifier.padding(horizontal = 16.dp).padding(bottom = 16.dp),
+                    )
+                },
             )
         }
     }
 
     BackHandler {
         when {
-            overlayView != null -> {
-                if (overlayView == OverlayView.OUTPUT) controlsVisibilityState.showControls()
-                overlayView = null
-            }
+            overlayView != null -> overlayView = null
 
             isTv && controlsVisibilityState.controlsVisible ->
                 controlsVisibilityState.hideControls()

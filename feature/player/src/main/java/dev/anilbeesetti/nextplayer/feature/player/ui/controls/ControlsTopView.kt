@@ -13,7 +13,6 @@ import androidx.compose.foundation.layout.union
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.rounded.PhoneAndroid
 import androidx.compose.material3.Icon
-import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
@@ -25,6 +24,7 @@ import androidx.compose.ui.focus.FocusRequester
 import androidx.compose.ui.focus.focusProperties
 import androidx.compose.ui.focus.focusRequester
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
@@ -36,7 +36,6 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.media3.common.util.UnstableApi
 import dev.anilbeesetti.nextplayer.core.ui.R
-import dev.anilbeesetti.nextplayer.core.ui.components.tvFocusRing
 import dev.anilbeesetti.nextplayer.core.ui.extensions.copy
 import dev.anilbeesetti.nextplayer.core.ui.theme.NextPlayerTheme
 import dev.anilbeesetti.nextplayer.feature.player.buttons.PlayerButton
@@ -55,6 +54,7 @@ fun ControlsTopView(
     onSubtitleClick: () -> Unit = {},
     onPlaylistClick: () -> Unit = {},
     onOutputClick: () -> Unit = {},
+    outputIcon: ImageVector = Icons.Rounded.PhoneAndroid,
 ) {
     val firstControlFocusRequester = remember { FocusRequester() }
     val systemBarsPadding = WindowInsets.systemBars.union(
@@ -105,14 +105,13 @@ fun ControlsTopView(
                     maxLines = 1,
                 )
             }
-            IconButton(
+            PlayerButton(
+                modifier = Modifier.testTag("player_output_action"),
                 onClick = onOutputClick,
-                modifier = Modifier.testTag("player_output_action").tvFocusRing(),
             ) {
                 Icon(
-                    Icons.Rounded.PhoneAndroid,
+                    outputIcon,
                     contentDescription = stringResource(R.string.playback_output),
-                    tint = Color.White,
                 )
             }
             PlayerButton(onClick = onPlaylistClick) {

@@ -691,6 +691,7 @@ internal fun PlaybackOverlayContent(
                 onCommand = onCommand,
                 dragModifier = verticalDrag,
                 queueSheet = queueSheet,
+                audioOutput = audioOutput,
                 interactive = interactive,
                 transitionProgress = { expansion.value },
                 controlsTranslationY = {

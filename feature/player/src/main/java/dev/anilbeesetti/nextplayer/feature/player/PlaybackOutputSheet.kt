@@ -25,6 +25,8 @@ import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.rounded.OpenInNew
 import androidx.compose.material.icons.rounded.Bluetooth
+import androidx.compose.material.icons.rounded.Cast
+import androidx.compose.material.icons.rounded.CastConnected
 import androidx.compose.material.icons.rounded.Check
 import androidx.compose.material.icons.rounded.Devices
 import androidx.compose.material.icons.rounded.Headphones
@@ -83,70 +85,114 @@ internal fun PlaybackOutputSheet(
         sheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true),
         containerColor = MaterialTheme.colorScheme.surfaceContainer,
     ) {
+        Text(
+            stringResource(R.string.play_on),
+            Modifier.padding(horizontal = 24.dp).padding(bottom = 12.dp),
+            style = MaterialTheme.typography.titleLarge.copy(fontWeight = FontWeight.Bold),
+        )
+        PlaybackOutputContent(
+            player,
+            snapshot,
+            presentation,
+            audioOutput,
+            onAudioOutput,
+            Modifier.padding(horizontal = 16.dp).padding(bottom = 16.dp),
+        )
+    }
+}
+
+/** Output rows, the system picker shortcut and volume, shared by the sheet and player overlay. */
+@Composable
+internal fun PlaybackOutputContent(
+    player: Player,
+    snapshot: PlaybackSnapshot,
+    presentation: PlaybackPresentation,
+    audioOutput: Int,
+    onAudioOutput: (Int) -> Unit,
+    modifier: Modifier = Modifier,
+) {
+    Column(
+        modifier.fillMaxWidth().verticalScroll(rememberScrollState()).testTag("playback_outputs"),
+        verticalArrangement = Arrangement.spacedBy(12.dp),
+    ) {
+        val context = LocalContext.current
+        val audio = remember(context) { context.getSystemService(AudioManager::class.java) }
+        val outputs = rememberPhoneOutputs(audio)
+        val onPhone = presentation.connection == PlaybackConnection.LOCAL ||
+            presentation.connection == PlaybackConnection.STOPPED
+        val routed = audio.routedOutput(outputs)
+        val active = audio.activeOutput(
+            outputs,
+            audioOutput,
+        )?.id
         Column(
-            Modifier.fillMaxWidth().verticalScroll(rememberScrollState())
-                .padding(horizontal = 16.dp).padding(bottom = 16.dp).testTag("playback_outputs"),
-            verticalArrangement = Arrangement.spacedBy(12.dp),
+            Modifier.clip(RoundedCornerShape(20.dp)).testTag("playback_output_devices"),
+            verticalArrangement = Arrangement.spacedBy(2.dp),
         ) {
-            Text(
-                stringResource(R.string.play_on),
-                Modifier.padding(horizontal = 8.dp),
-                style = MaterialTheme.typography.titleLarge.copy(fontWeight = FontWeight.Bold),
-            )
-            val context = LocalContext.current
-            val audio = remember(context) { context.getSystemService(AudioManager::class.java) }
-            val outputs = rememberPhoneOutputs(audio)
-            val onPhone = presentation.connection == PlaybackConnection.LOCAL ||
-                presentation.connection == PlaybackConnection.STOPPED
-            val routed = audio.routedOutput(outputs)
-            val active = outputs.find { it.id == audioOutput }?.id ?: routed
-            Column(
-                Modifier.clip(RoundedCornerShape(20.dp)).testTag("playback_output_devices"),
-                verticalArrangement = Arrangement.spacedBy(2.dp),
-            ) {
-                outputs.forEach { device ->
-                    PlaybackOutputRow(
-                        icon = device.icon(),
-                        title = device.label(),
-                        summary = null,
-                        selected = onPhone && device.id == active,
-                        onClick = {
-                            onAudioOutput(
-                                if (device.id ==
-                                    routed
-                                ) {
-                                    CustomCommands.SYSTEM_AUDIO_OUTPUT
-                                } else {
-                                    device.id
-                                },
-                            )
-                        },
-                    )
-                }
-                CastDeviceRows(
-                    presentation.connection,
-                    presentation.deviceName,
-                )
-            }
-            if (Build.VERSION.SDK_INT >= 34) {
+            outputs.forEach { device ->
                 PlaybackOutputRow(
-                    icon = Icons.Rounded.Devices,
-                    title = stringResource(R.string.more_devices),
-                    summary = stringResource(R.string.more_devices_summary),
-                    selected = false,
-                    onClick = { MediaRouter2.getInstance(context).showSystemOutputSwitcher() },
-                    trailing = Icons.AutoMirrored.Rounded.OpenInNew,
-                    isShortcut = true,
+                    icon = device.icon(),
+                    title = device.label(),
+                    summary = null,
+                    selected = onPhone && device.id == active,
+                    onClick = {
+                        onAudioOutput(
+                            if (device.id ==
+                                routed
+                            ) {
+                                CustomCommands.SYSTEM_AUDIO_OUTPUT
+                            } else {
+                                device.id
+                            },
+                        )
+                    },
                 )
             }
-            Spacer(Modifier.height(4.dp))
-            Column(Modifier.padding(horizontal = 8.dp)) {
-                PlaybackVolumeControl(
-                    player,
-                    snapshot,
-                )
-            }
+            CastDeviceRows(
+                presentation.connection,
+                presentation.deviceName,
+            )
         }
+        if (Build.VERSION.SDK_INT >= 34) {
+            PlaybackOutputRow(
+                icon = Icons.Rounded.Devices,
+                title = stringResource(R.string.more_devices),
+                summary = stringResource(R.string.more_devices_summary),
+                selected = false,
+                onClick = { MediaRouter2.getInstance(context).showSystemOutputSwitcher() },
+                trailing = Icons.AutoMirrored.Rounded.OpenInNew,
+                isShortcut = true,
+            )
+        }
+        Spacer(Modifier.height(4.dp))
+        Column(Modifier.padding(horizontal = 8.dp)) {
+            PlaybackVolumeControl(
+                player,
+                snapshot,
+            )
+        }
+    }
+}
+
+/** The icon of where playback goes now: the cast device, or the phone output in use. */
+@Composable
+internal fun playbackOutputIcon(
+    connection: PlaybackConnection,
+    isRemote: Boolean,
+    audioOutput: Int,
+): ImageVector {
+    val context = LocalContext.current
+    val audio = remember(context) { context.getSystemService(AudioManager::class.java) }
+    val outputs = rememberPhoneOutputs(audio)
+    return when {
+        isRemote -> Icons.Rounded.CastConnected
+
+        connection == PlaybackConnection.CONNECTING -> Icons.Rounded.Cast
+
+        else -> audio.activeOutput(
+            outputs,
+            audioOutput,
+        )?.icon() ?: Icons.Rounded.PhoneAndroid
     }
 }
 
@@ -275,6 +321,16 @@ private fun AudioManager.phoneOutputs(): List<AudioDeviceInfo> =
         .filter { it.kind() != OutputKind.OTHER }
         .distinctBy { it.kind() to it.productName.toString() }
         .sortedBy { it.kind().ordinal }
+
+/** The app's chosen output when it is still attached, otherwise the system's media route. */
+private fun AudioManager.activeOutput(
+    outputs: List<AudioDeviceInfo>,
+    audioOutput: Int,
+): AudioDeviceInfo? {
+    outputs.find { it.id == audioOutput }?.let { return it }
+    val routed = routedOutput(outputs)
+    return outputs.find { it.id == routed }
+}
 
 /** The output the system plays media on when the app has no preference. */
 private fun AudioManager.routedOutput(outputs: List<AudioDeviceInfo>): Int? {

@@ -40,8 +40,6 @@ import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.rounded.QueueMusic
-import androidx.compose.material.icons.rounded.Cast
-import androidx.compose.material.icons.rounded.CastConnected
 import androidx.compose.material.icons.rounded.KeyboardArrowDown
 import androidx.compose.material.icons.rounded.PhoneAndroid
 import androidx.compose.material.icons.rounded.Repeat
@@ -145,6 +143,7 @@ internal fun ExpandedPlaybackControls(
     metadataModifier: Modifier = Modifier,
     headerModifier: Modifier = Modifier,
     queueSheet: PlaybackQueueSheet = rememberPlaybackQueueSheet(),
+    audioOutput: Int = CustomCommands.SYSTEM_AUDIO_OUTPUT,
 ) {
     val artworkAspectRatio = LocalControlsArtworkAspectRatio.current
     var titleWidth by remember(title) { mutableIntStateOf(0) }
@@ -168,6 +167,7 @@ internal fun ExpandedPlaybackControls(
                 onOutput,
                 onQueue,
                 showDeviceLabel = !landscape,
+                audioOutput = audioOutput,
             )
         }
     }
@@ -915,6 +915,7 @@ private fun PlaybackHeaderActions(
     onOutput: () -> Unit,
     onQueue: () -> Unit,
     showDeviceLabel: Boolean,
+    audioOutput: Int,
 ) {
     val showDevice = showDeviceLabel &&
         (connection == PlaybackConnection.CONNECTING || snapshot.isRemote)
@@ -979,11 +980,11 @@ private fun PlaybackHeaderActions(
                     horizontalArrangement = Arrangement.spacedBy(8.dp),
                 ) {
                     Icon(
-                        when {
-                            snapshot.isRemote -> Icons.Rounded.CastConnected
-                            connection == PlaybackConnection.CONNECTING -> Icons.Rounded.Cast
-                            else -> Icons.Rounded.PhoneAndroid
-                        },
+                        playbackOutputIcon(
+                            connection,
+                            snapshot.isRemote,
+                            audioOutput,
+                        ),
                         stringResource(R.string.playback_output),
                         Modifier.size(24.dp),
                     )
