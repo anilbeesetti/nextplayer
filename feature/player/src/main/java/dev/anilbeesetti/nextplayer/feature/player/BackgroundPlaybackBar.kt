@@ -228,9 +228,11 @@ internal fun playbackSecondaryText(
 
     PlaybackConnection.STOPPED, PlaybackConnection.LOCAL ->
         snapshot.metadata.subtitle?.toString()
-            ?: snapshot.item?.localConfiguration?.uri?.path?.substringBeforeLast(
-                '/',
-            )?.substringAfterLast('/')
+            // A content URI's path names its provider ("media"), not a folder.
+            ?: snapshot.item?.localConfiguration?.uri?.takeIf { it.scheme != "content" }
+                ?.path?.substringBeforeLast(
+                    '/',
+                )?.substringAfterLast('/')
             ?: stringResource(R.string.background_play)
 }
 
