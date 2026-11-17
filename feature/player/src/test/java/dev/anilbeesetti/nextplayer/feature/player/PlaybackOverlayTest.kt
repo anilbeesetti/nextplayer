@@ -21,7 +21,6 @@ import androidx.compose.ui.test.SemanticsMatcher
 import androidx.compose.ui.test.assertCountEquals
 import androidx.compose.ui.test.assertIsDisplayed
 import androidx.compose.ui.test.assertIsNotEnabled
-import androidx.compose.ui.test.assertIsSelected
 import androidx.compose.ui.test.getUnclippedBoundsInRoot
 import androidx.compose.ui.test.junit4.v2.createAndroidComposeRule
 import androidx.compose.ui.test.onAllNodesWithTag
@@ -40,13 +39,8 @@ import androidx.compose.ui.text.TextLayoutResult
 import androidx.compose.ui.unit.Density
 import androidx.compose.ui.unit.LayoutDirection
 import androidx.compose.ui.unit.dp
-import androidx.media3.common.C
-import androidx.media3.common.Format
 import androidx.media3.common.MediaMetadata
-import androidx.media3.common.MimeTypes
 import androidx.media3.common.Player
-import androidx.media3.common.TrackGroup
-import androidx.media3.common.Tracks
 import dev.anilbeesetti.nextplayer.core.ui.R
 import dev.anilbeesetti.nextplayer.core.ui.theme.NextPlayerTheme
 import dev.anilbeesetti.nextplayer.feature.player.service.CustomCommands
@@ -473,44 +467,6 @@ class PlaybackOverlayTest {
         composeRule.onNodeWithContentDescription(
             text(R.string.stop_player_session),
         ).assertIsDisplayed()
-    }
-
-    @Test fun backgroundPlaybackPicksAudioButNotSubtitleTracksFromExpandedControls() {
-        val english = Format.Builder().setSampleMimeType(MimeTypes.AUDIO_AAC).setLanguage("en")
-            .build()
-        player.update {
-            setPlaylist(
-                listOf(
-                    player.item(0).buildUpon().setTracks(
-                        Tracks(
-                            listOf(
-                                Tracks.Group(
-                                    TrackGroup(english),
-                                    false,
-                                    intArrayOf(C.FORMAT_HANDLED),
-                                    booleanArrayOf(true),
-                                ),
-                            ),
-                        ),
-                    ).build(),
-                ),
-            )
-        }
-        expanded = true
-        show()
-        composeRule.onNodeWithContentDescription(text(R.string.select_subtitle_track))
-            .assertDoesNotExist()
-        composeRule.onNodeWithContentDescription(text(R.string.select_audio_track)).performClick()
-        composeRule.onNodeWithTag("playback_tracks").assertIsDisplayed()
-        composeRule.onNodeWithText(
-            "English",
-            substring = true,
-        ).assertIsSelected()
-        composeRule.onNodeWithText(text(R.string.disable)).performClick()
-        composeRule.onNodeWithTag("playback_tracks").assertDoesNotExist()
-        composeRule.runOnIdle {
-            assertTrue(C.TRACK_TYPE_AUDIO in player.trackSelectionParameters.disabledTrackTypes)
-        }
     }
 
     @Test fun slowPartialExpansionFollowsFingerAndReversesWithoutDisposal() {

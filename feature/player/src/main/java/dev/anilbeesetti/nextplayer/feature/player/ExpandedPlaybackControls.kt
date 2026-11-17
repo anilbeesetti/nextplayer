@@ -98,7 +98,6 @@ import androidx.compose.ui.layout.onGloballyPositioned
 import androidx.compose.ui.layout.onPlaced
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.platform.testTag
-import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.semantics.paneTitle
@@ -1252,20 +1251,6 @@ private fun PlaybackModeControls(
             else -> R.string.loop_mode_off
         },
     )
-    // The sheet works without a video screen, so background playback can switch audio too.
-    var audioSheet by remember { mutableStateOf(false) }
-    val audioEnabled = enabled &&
-        snapshot.commands.contains(Player.COMMAND_SET_TRACK_SELECTION_PARAMETERS)
-    if (audioEnabled && audioSheet) {
-        PlaybackAudioTracksSheet(
-            player,
-            onDismiss = { audioSheet = false },
-        )
-    }
-    val buttonColors = IconButtonDefaults.filledIconButtonColors(
-        containerColor = MaterialTheme.colorScheme.onSurface.copy(alpha = .07f),
-        contentColor = MaterialTheme.colorScheme.onSurface,
-    )
     val colors = IconButtonDefaults.filledIconToggleButtonColors(
         containerColor = MaterialTheme.colorScheme.onSurface.copy(alpha = .07f),
         contentColor = MaterialTheme.colorScheme.onSurface,
@@ -1325,21 +1310,6 @@ private fun PlaybackModeControls(
                     stringResource(R.string.player_controls_repeat),
                 )
             }
-            FilledIconButton(
-                onClick = { audioSheet = true },
-                enabled = audioEnabled,
-                modifier = Modifier.weight(1f).height(48.dp).tvFocusRing(middle),
-                shapes = IconButtonShapes(
-                    shape = middle,
-                    pressedShape = ButtonGroupDefaults.connectedMiddleButtonPressShape,
-                ),
-                colors = buttonColors,
-            ) {
-                Icon(
-                    painterResource(R.drawable.ic_audio_track),
-                    stringResource(R.string.select_audio_track),
-                )
-            }
             val last = ButtonGroupDefaults.connectedTrailingButtonShape
             FilledIconButton(
                 onClick = onStop,
@@ -1348,7 +1318,10 @@ private fun PlaybackModeControls(
                     shape = last,
                     pressedShape = ButtonGroupDefaults.connectedTrailingButtonPressShape,
                 ),
-                colors = buttonColors,
+                colors = IconButtonDefaults.filledIconButtonColors(
+                    containerColor = MaterialTheme.colorScheme.onSurface.copy(alpha = .07f),
+                    contentColor = MaterialTheme.colorScheme.onSurface,
+                ),
             ) {
                 Icon(
                     Icons.Rounded.Stop,
