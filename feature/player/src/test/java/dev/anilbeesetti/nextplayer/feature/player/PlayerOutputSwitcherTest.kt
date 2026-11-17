@@ -8,6 +8,9 @@ import androidx.compose.material.icons.rounded.Bluetooth
 import androidx.compose.material.icons.rounded.Cast
 import androidx.compose.material.icons.rounded.CastConnected
 import androidx.compose.runtime.CompositionLocalProvider
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.platform.LocalInspectionMode
 import androidx.compose.ui.semantics.Role
@@ -21,6 +24,11 @@ import androidx.compose.ui.test.performClick
 import dev.anilbeesetti.nextplayer.core.ui.R
 import dev.anilbeesetti.nextplayer.core.ui.theme.NextPlayerTheme
 import dev.anilbeesetti.nextplayer.feature.player.service.PlaybackConnection
+import dev.anilbeesetti.nextplayer.feature.player.state.rememberControlsVisibilityState
+import dev.anilbeesetti.nextplayer.feature.player.state.rememberSeekGestureState
+import dev.anilbeesetti.nextplayer.feature.player.state.rememberTapGestureState
+import dev.anilbeesetti.nextplayer.feature.player.state.rememberVideoZoomAndContentScaleState
+import kotlin.time.Duration.Companion.seconds
 import org.junit.After
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertFalse
@@ -114,5 +122,51 @@ class PlayerOutputSwitcherTest {
                 icons.take(3),
             )
         }
+    }
+
+    @Test fun enteringPictureInPictureClosesTheOutputOverlay() {
+        var inPip by mutableStateOf(false)
+        rule.setContent {
+            NextPlayerTheme {
+                CompositionLocalProvider(LocalInspectionMode provides true) {
+                    val preferences = PlayerUiState().playerPreferences
+                    MediaPlayerControls(
+                        player = player,
+                        state = PlayerUiState(),
+                        onAction = actions::add,
+                        controlsVisibilityState = rememberControlsVisibilityState(
+                            player = player,
+                            hideAfter = preferences.controllerAutoHideTimeout.seconds,
+                        ),
+                        tapGestureState = rememberTapGestureState(
+                            player = player,
+                            doubleTapGesture = preferences.doubleTapGesture,
+                            seekIncrementMillis = 10_000,
+                            useLongPressGesture = false,
+                            longPressSpeed = 1f,
+                        ),
+                        seekGestureState = rememberSeekGestureState(
+                            player = player,
+                            sensitivity = preferences.seekSensitivity,
+                            enableSeekGesture = false,
+                        ),
+                        videoZoomAndContentScaleState = rememberVideoZoomAndContentScaleState(
+                            player = player,
+                            initialContentScale = preferences.playerVideoZoom,
+                            enableZoomGesture = false,
+                            enablePanGesture = false,
+                            onEvent = {},
+                        ),
+                        isPipSupported = true,
+                        onPictureInPictureClick = {},
+                        isInPictureInPictureMode = inPip,
+                    )
+                }
+            }
+        }
+        rule.onNodeWithTag("player_output_action").performClick()
+        rule.onNodeWithTag("playback_outputs").assertIsDisplayed()
+        inPip = true
+        rule.onNodeWithTag("playback_outputs").assertDoesNotExist()
     }
 }

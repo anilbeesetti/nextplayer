@@ -89,6 +89,7 @@ import androidx.compose.ui.unit.IntOffset
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.lerp
 import androidx.compose.ui.unit.sp
+import androidx.compose.ui.zIndex
 import androidx.media3.common.Player
 import androidx.media3.common.Timeline
 import androidx.media3.common.util.UnstableApi
@@ -616,6 +617,9 @@ internal fun PlaybackOverlayContent(
                     enabled = isCollapsed,
                     bothDirections = true,
                     modifier = Modifier
+                        // Once closing, the mini player sits above the fading expanded layer,
+                        // which otherwise swallows taps until the spring settles.
+                        .zIndex(if (expanded) 0f else 1f)
                         .offset {
                             IntOffset(
                                 0,
@@ -631,7 +635,8 @@ internal fun PlaybackOverlayContent(
                 ) {
                     MiniPlayer(
                         player = player,
-                        onOpenPlayer = { if (isCollapsed) onExpandedChanged(true) },
+                        // A tap while the player is still settling closed reopens it.
+                        onOpenPlayer = { if (!expanded) onExpandedChanged(true) },
                         onStop = onDismissPlayback,
                         deviceName = presentation.deviceName,
                         controlsEnabled = controlsEnabled,

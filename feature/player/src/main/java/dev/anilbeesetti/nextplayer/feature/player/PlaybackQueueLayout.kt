@@ -330,8 +330,9 @@ internal fun QueuePanel(
             }
             PlaybackQueueContent(
                 player,
-                Modifier.weight(1f).nestedScroll(connection).padding(bottom = bottomInset),
+                Modifier.weight(1f).nestedScroll(connection),
                 showHeader = false,
+                bottomInset = bottomInset,
             )
         }
     }

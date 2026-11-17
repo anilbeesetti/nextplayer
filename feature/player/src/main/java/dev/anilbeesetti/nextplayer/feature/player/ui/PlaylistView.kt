@@ -66,6 +66,7 @@ import androidx.compose.ui.semantics.selected
 import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
+import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.media3.common.Player
@@ -109,6 +110,8 @@ internal fun PlaybackQueueContent(
     player: Player,
     modifier: Modifier = Modifier,
     showHeader: Boolean = true,
+    // Space under the last row so it can scroll clear of the navigation bar.
+    bottomInset: Dp = 0.dp,
 ) {
     val artworkAspectRatio = LocalQueueArtworkAspectRatio.current
     val videoArtwork = artworkAspectRatio > 1f
@@ -183,7 +186,8 @@ internal fun PlaybackQueueContent(
                         start = 12.dp,
                         end = 12.dp,
                         top = 8.dp,
-                        bottom = if (removal != null) (if (showHeader) 164.dp else 84.dp) else 8.dp,
+                        bottom = bottomInset +
+                            if (removal != null) (if (showHeader) 164.dp else 84.dp) else 8.dp,
                     ),
                     verticalArrangement = Arrangement.spacedBy(8.dp),
                 ) {

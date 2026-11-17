@@ -68,6 +68,7 @@ internal fun MediaPlayerControls(
     modifier: Modifier = Modifier,
     dpadUpDown: Int? = null,
     sessionExtras: Bundle = Bundle.EMPTY,
+    isInPictureInPictureMode: Boolean = false,
 ) {
     val playerPreferences = state.playerPreferences
     val metadataState = rememberMetadataState(player = player)
@@ -89,6 +90,10 @@ internal fun MediaPlayerControls(
         CustomCommands.AUDIO_OUTPUT_KEY,
         CustomCommands.SYSTEM_AUDIO_OUTPUT,
     )
+    // PiP has room only for the video, so any open panel closes when the player shrinks into it.
+    LaunchedEffect(isInPictureInPictureMode) {
+        if (isInPictureInPictureMode) overlayView = null
+    }
     LaunchedEffect(metadataState.mediaId) {
         if (overlayView == OverlayView.CHAPTERS) overlayView = null
     }

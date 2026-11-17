@@ -233,6 +233,7 @@ internal fun MediaPlayerContent(
             dpadUpDown = api?.dpadUpDown,
             sessionExtras = sessionExtras,
             isPipSupported = pictureInPictureState?.isPipSupported == true,
+            isInPictureInPictureMode = pictureInPictureState?.isInPictureInPictureMode == true,
             onPictureInPictureClick = {
                 pictureInPictureState?.let {
                     if (!it.hasPipPermission) {
