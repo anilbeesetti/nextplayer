@@ -475,7 +475,7 @@ class PlaybackOverlayTest {
         ).assertIsDisplayed()
     }
 
-    @Test fun backgroundPlaybackPicksAudioTracksFromExpandedControls() {
+    @Test fun backgroundPlaybackPicksAudioButNotSubtitleTracksFromExpandedControls() {
         val english = Format.Builder().setSampleMimeType(MimeTypes.AUDIO_AAC).setLanguage("en")
             .build()
         player.update {
@@ -499,7 +499,7 @@ class PlaybackOverlayTest {
         expanded = true
         show()
         composeRule.onNodeWithContentDescription(text(R.string.select_subtitle_track))
-            .assertIsDisplayed()
+            .assertDoesNotExist()
         composeRule.onNodeWithContentDescription(text(R.string.select_audio_track)).performClick()
         composeRule.onNodeWithTag("playback_tracks").assertIsDisplayed()
         composeRule.onNodeWithText(

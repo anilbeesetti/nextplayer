@@ -59,6 +59,10 @@ fun BoxScope.SubtitleSelectorView(
     onEvent: (SubtitleOptionsEvent) -> Unit = {},
     onDismiss: () -> Unit,
 ) {
+    val subtitleTracksState = rememberTracksState(
+        player = player,
+        C.TRACK_TYPE_TEXT,
+    )
     val subtitleOptionsState = rememberSubtitleOptionsState(
         player = player,
         onEvent = onEvent,
@@ -76,9 +80,26 @@ fun BoxScope.SubtitleSelectorView(
                 .padding(horizontal = 24.dp)
                 .selectableGroup(),
         ) {
-            SubtitleTrackRows(
-                player,
-                onSelected = onDismiss,
+            subtitleTracksState.tracks.forEachIndexed { index, track ->
+                RadioButtonRow(
+                    selected = track.isSelected,
+                    text = track.mediaTrackGroup.getName(
+                        C.TRACK_TYPE_TEXT,
+                        index = index,
+                    ),
+                    onClick = {
+                        subtitleTracksState.switchTrack(index = index)
+                        onDismiss()
+                    },
+                )
+            }
+            RadioButtonRow(
+                selected = subtitleTracksState.tracks.none { it.isSelected },
+                text = stringResource(R.string.disable),
+                onClick = {
+                    subtitleTracksState.switchTrack(index = -1)
+                    onDismiss()
+                },
             )
             Spacer(modifier = Modifier.size(16.dp))
             FilledTonalButton(
@@ -273,35 +294,4 @@ private fun Modifier.repeatingClickable(
             }
         }
     }
-}
-
-/** The subtitle tracks to choose from, plus Disable; shared by the player and expanded controls. */
-@OptIn(UnstableApi::class)
-@Composable
-internal fun SubtitleTrackRows(player: Player, onSelected: () -> Unit) {
-    val subtitleTracksState = rememberTracksState(
-        player = player,
-        C.TRACK_TYPE_TEXT,
-    )
-    subtitleTracksState.tracks.forEachIndexed { index, track ->
-        RadioButtonRow(
-            selected = track.isSelected,
-            text = track.mediaTrackGroup.getName(
-                C.TRACK_TYPE_TEXT,
-                index = index,
-            ),
-            onClick = {
-                subtitleTracksState.switchTrack(index = index)
-                onSelected()
-            },
-        )
-    }
-    RadioButtonRow(
-        selected = subtitleTracksState.tracks.none { it.isSelected },
-        text = stringResource(R.string.disable),
-        onClick = {
-            subtitleTracksState.switchTrack(index = -1)
-            onSelected()
-        },
-    )
 }
