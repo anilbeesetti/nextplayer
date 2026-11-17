@@ -10,6 +10,8 @@ import androidx.compose.foundation.layout.displayCutout
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.systemBars
 import androidx.compose.foundation.layout.union
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.rounded.PhoneAndroid
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
@@ -22,6 +24,8 @@ import androidx.compose.ui.focus.FocusRequester
 import androidx.compose.ui.focus.focusProperties
 import androidx.compose.ui.focus.focusRequester
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.vector.ImageVector
+import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.semantics.contentDescription
@@ -35,7 +39,6 @@ import dev.anilbeesetti.nextplayer.core.ui.R
 import dev.anilbeesetti.nextplayer.core.ui.extensions.copy
 import dev.anilbeesetti.nextplayer.core.ui.theme.NextPlayerTheme
 import dev.anilbeesetti.nextplayer.feature.player.buttons.PlayerButton
-import dev.anilbeesetti.nextplayer.feature.player.cast.CastButton
 import dev.anilbeesetti.nextplayer.feature.player.model.labelRes
 import io.github.anilbeesetti.nextlib.media3ext.ffdecoder.DecoderMode
 
@@ -50,7 +53,8 @@ fun ControlsTopView(
     onAudioClick: () -> Unit = {},
     onSubtitleClick: () -> Unit = {},
     onPlaylistClick: () -> Unit = {},
-    onCastPickerVisibleChange: (Boolean) -> Unit = {},
+    onOutputClick: () -> Unit = {},
+    outputIcon: ImageVector = Icons.Rounded.PhoneAndroid,
 ) {
     val firstControlFocusRequester = remember { FocusRequester() }
     val systemBarsPadding = WindowInsets.systemBars.union(
@@ -101,7 +105,15 @@ fun ControlsTopView(
                     maxLines = 1,
                 )
             }
-            CastButton(onPickerVisibleChange = onCastPickerVisibleChange)
+            PlayerButton(
+                modifier = Modifier.testTag("player_output_action"),
+                onClick = onOutputClick,
+            ) {
+                Icon(
+                    outputIcon,
+                    contentDescription = stringResource(R.string.playback_output),
+                )
+            }
             PlayerButton(onClick = onPlaylistClick) {
                 Icon(
                     painter = painterResource(R.drawable.ic_playlist),

@@ -21,6 +21,7 @@ import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
+import dev.anilbeesetti.nextplayer.core.common.BuildConfig
 import dev.anilbeesetti.nextplayer.core.ui.R
 import dev.anilbeesetti.nextplayer.core.ui.components.ClickablePreferenceItem
 import dev.anilbeesetti.nextplayer.core.ui.components.NextTopAppBar
@@ -54,7 +55,9 @@ fun SettingsScreen(output: SettingsOutput) {
 )
 @Composable
 private fun SettingsScreenContent(onAction: (SettingsAction) -> Unit) {
-    val settingRows = remember { SettingRow.entries }
+    val settingRows = remember {
+        SettingRow.entries.filter { BuildConfig.DEBUG || it.setting != Setting.DEVELOPER }
+    }
     val focusState = rememberRestorableFocusState()
 
     Scaffold(
@@ -117,6 +120,7 @@ enum class Setting {
     SUBTITLE,
     GENERAL,
     ABOUT,
+    DEVELOPER,
 }
 
 private enum class SettingRow(
@@ -172,5 +176,11 @@ private enum class SettingRow(
         descriptionResId = R.string.about_description,
         icon = NextIcons.Info,
         setting = Setting.ABOUT,
+    ),
+    DEVELOPER(
+        titleResId = R.string.developer_settings,
+        descriptionResId = R.string.developer_settings_description,
+        icon = NextIcons.ExtraSettings,
+        setting = Setting.DEVELOPER,
     ),
 }

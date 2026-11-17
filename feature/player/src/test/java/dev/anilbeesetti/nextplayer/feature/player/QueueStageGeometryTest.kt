@@ -10,7 +10,7 @@ import org.junit.Test
 class QueueStageGeometryTest {
     @Test
     fun halfArtworkFillsThePhoneWidth() {
-        // A phone whose player is shorter than the emulator's still gets the full-width square.
+        // A phone whose player is shorter than the emulator's still gets the full-width banner.
         val stages = QueueStageGeometry(
             width = 1080f,
             height = 2300f,
@@ -40,9 +40,41 @@ class QueueStageGeometryTest {
             tall.transportLift + tall.transportCut,
             0f,
         )
-        val short = stages(2300f)
+        val short = stages(1400f)
         assertTrue(short.seekLift > 0f && short.transportLift > short.seekLift)
         assertTrue(short.transportCut > 0f)
+    }
+
+    @Test
+    fun audioStyleRestoresSquareBannerAndOriginalThumbnailSize() {
+        for (height in listOf(
+            2400f,
+            1400f,
+        )) {
+            val stages = QueueStageGeometry(
+                width = 1080f,
+                height = height,
+                topInset = 120f,
+                blockHeight = 520f,
+                density = Density(1f),
+                artworkAspectRatio = 1f,
+            )
+            assertEquals(
+                stages.halfArtwork.width,
+                stages.halfArtwork.height,
+                .01f,
+            )
+            assertEquals(
+                48f,
+                stages.thumbnail.width,
+                .01f,
+            )
+            assertEquals(
+                48f,
+                stages.thumbnail.height,
+                .01f,
+            )
+        }
     }
 
     @Test
@@ -74,7 +106,7 @@ class QueueStageGeometryTest {
     }
 
     @Test
-    fun halfArtworkStaysSquareOnTallAndShortScreens() {
+    fun queueArtworkStaysSixteenByTenOnTallAndShortScreens() {
         for (height in listOf(
             2400f,
             1400f,
@@ -89,14 +121,14 @@ class QueueStageGeometryTest {
             val half = stages.halfArtwork
             assertEquals(
                 "height $height",
-                half.width,
-                half.height,
-                .5f,
+                16f / 10f,
+                half.width / half.height,
+                .01f,
             )
             assertEquals(
-                stages.thumbnail.width,
-                stages.thumbnail.height,
-                .5f,
+                16f / 10f,
+                stages.thumbnail.width / stages.thumbnail.height,
+                .01f,
             )
         }
     }

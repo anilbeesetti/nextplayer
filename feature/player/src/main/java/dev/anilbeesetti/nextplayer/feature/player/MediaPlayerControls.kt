@@ -1,10 +1,12 @@
 package dev.anilbeesetti.nextplayer.feature.player
 
+import android.os.Bundle
 import androidx.activity.compose.BackHandler
 import androidx.annotation.OptIn
 import androidx.compose.foundation.focusable
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.runtime.Composable
@@ -26,10 +28,15 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
 import androidx.media3.common.Player
 import androidx.media3.common.util.UnstableApi
+import androidx.media3.session.MediaController
 import androidx.media3.ui.compose.state.rememberProgressStateWithTickInterval
 import dev.anilbeesetti.nextplayer.core.common.extensions.isTelevision
 import dev.anilbeesetti.nextplayer.core.ui.components.requestFocusUntilLanded
 import dev.anilbeesetti.nextplayer.core.ui.components.thenIf
+import dev.anilbeesetti.nextplayer.feature.player.service.CustomCommands
+import dev.anilbeesetti.nextplayer.feature.player.service.PlaybackConnection
+import dev.anilbeesetti.nextplayer.feature.player.service.PlaybackPresentation
+import dev.anilbeesetti.nextplayer.feature.player.service.setAudioOutput
 import dev.anilbeesetti.nextplayer.feature.player.state.ControlsVisibilityState
 import dev.anilbeesetti.nextplayer.feature.player.state.SeekGestureState
 import dev.anilbeesetti.nextplayer.feature.player.state.TapGestureState
@@ -37,6 +44,7 @@ import dev.anilbeesetti.nextplayer.feature.player.state.VideoZoomAndContentScale
 import dev.anilbeesetti.nextplayer.feature.player.state.rememberChaptersState
 import dev.anilbeesetti.nextplayer.feature.player.state.rememberMediaPresentationState
 import dev.anilbeesetti.nextplayer.feature.player.state.rememberMetadataState
+import dev.anilbeesetti.nextplayer.feature.player.state.rememberPlaybackSnapshot
 import dev.anilbeesetti.nextplayer.feature.player.state.rememberPlayerKeyInputState
 import dev.anilbeesetti.nextplayer.feature.player.ui.DpadSeekIndicator
 import dev.anilbeesetti.nextplayer.feature.player.ui.OverlayShowView
@@ -59,6 +67,8 @@ internal fun MediaPlayerControls(
     onPictureInPictureClick: () -> Unit,
     modifier: Modifier = Modifier,
     dpadUpDown: Int? = null,
+    sessionExtras: Bundle = Bundle.EMPTY,
+    isInPictureInPictureMode: Boolean = false,
 ) {
     val playerPreferences = state.playerPreferences
     val metadataState = rememberMetadataState(player = player)
@@ -75,6 +85,15 @@ internal fun MediaPlayerControls(
         dpadUpDown = dpadUpDown,
     )
     var overlayView by remember { mutableStateOf<OverlayView?>(value = null) }
+    val presentation = PlaybackPresentation.from(sessionExtras)
+    val audioOutput = sessionExtras.getInt(
+        CustomCommands.AUDIO_OUTPUT_KEY,
+        CustomCommands.SYSTEM_AUDIO_OUTPUT,
+    )
+    // PiP has room only for the video, so any open panel closes when the player shrinks into it.
+    LaunchedEffect(isInPictureInPictureMode) {
+        if (isInPictureInPictureMode) overlayView = null
+    }
     LaunchedEffect(metadataState.mediaId) {
         if (overlayView == OverlayView.CHAPTERS) overlayView = null
     }
@@ -114,6 +133,8 @@ internal fun MediaPlayerControls(
     CompositionLocalProvider(
         LocalControlsVisibilityState provides controlsVisibilityState,
         LocalUseMaterialYouControls provides playerPreferences.useMaterialYouControls,
+        LocalQueueArtworkAspectRatio provides
+            artworkAspectRatio(playerPreferences.queueArtworkStyle),
     ) {
         Box(
             modifier = modifier
@@ -174,6 +195,11 @@ internal fun MediaPlayerControls(
                     onPlayInBackgroundClick = { onAction(PlayerAction.PlayInBackground) },
                     onToggleTimeDisplay = { onAction(PlayerAction.ToggleTimeDisplay) },
                     onPictureInPictureClick = onPictureInPictureClick,
+                    outputIcon = playbackOutputIcon(
+                        presentation.connection,
+                        isRemote = presentation.connection == PlaybackConnection.CAST,
+                        audioOutput,
+                    ),
                     middleControlsModifier = Modifier.thenIf(condition = isTv) {
                         focusRequester(focusRequester = middleControlsFocusRequester)
                             .onFocusChanged { isMiddleControlsFocused = it.hasFocus }
@@ -210,6 +236,14 @@ internal fun MediaPlayerControls(
                 },
                 onVideoContentScaleChanged =
                     videoZoomAndContentScaleState::onVideoContentScaleChanged,
+                outputContent = {
+                    PlaybackOutputContent(
+                        presentation = presentation,
+                        audioOutput = audioOutput,
+                        onAudioOutput = { (player as? MediaController)?.setAudioOutput(it) },
+                        modifier = Modifier.padding(horizontal = 16.dp).padding(bottom = 16.dp),
+                    )
+                },
             )
         }
     }

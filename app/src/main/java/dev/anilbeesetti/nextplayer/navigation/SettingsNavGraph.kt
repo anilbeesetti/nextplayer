@@ -7,6 +7,7 @@ import dev.anilbeesetti.nextplayer.settings.Setting
 import dev.anilbeesetti.nextplayer.settings.navigation.aboutPreferencesEntry
 import dev.anilbeesetti.nextplayer.settings.navigation.appearancePreferencesEntry
 import dev.anilbeesetti.nextplayer.settings.navigation.audioPreferencesEntry
+import dev.anilbeesetti.nextplayer.settings.navigation.developerPreferencesEntry
 import dev.anilbeesetti.nextplayer.settings.navigation.folderPreferencesEntry
 import dev.anilbeesetti.nextplayer.settings.navigation.generalPreferencesEntry
 import dev.anilbeesetti.nextplayer.settings.navigation.gesturePreferencesEntry
@@ -15,6 +16,7 @@ import dev.anilbeesetti.nextplayer.settings.navigation.mediaLibraryPreferencesEn
 import dev.anilbeesetti.nextplayer.settings.navigation.navigateToAboutPreferences
 import dev.anilbeesetti.nextplayer.settings.navigation.navigateToAppearancePreferences
 import dev.anilbeesetti.nextplayer.settings.navigation.navigateToAudioPreferences
+import dev.anilbeesetti.nextplayer.settings.navigation.navigateToDeveloperPreferences
 import dev.anilbeesetti.nextplayer.settings.navigation.navigateToFolderPreferencesScreen
 import dev.anilbeesetti.nextplayer.settings.navigation.navigateToGeneralPreferences
 import dev.anilbeesetti.nextplayer.settings.navigation.navigateToGesturePreferences
@@ -41,9 +43,11 @@ fun EntryProviderScope<NavKey>.settingsNavGraph(backStack: NavBackStack<NavKey>)
                 Setting.SUBTITLE -> backStack.navigateToSubtitlePreferences()
                 Setting.GENERAL -> backStack.navigateToGeneralPreferences()
                 Setting.ABOUT -> backStack.navigateToAboutPreferences()
+                Setting.DEVELOPER -> backStack.navigateToDeveloperPreferences()
             }
         },
     )
+    developerPreferencesEntry(onNavigateUp = { backStack.removeLastIfNotRoot() })
     appearancePreferencesEntry(
         onNavigateUp = { backStack.removeLastIfNotRoot() },
     )

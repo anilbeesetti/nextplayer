@@ -43,6 +43,7 @@ import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.derivedStateOf
 import androidx.compose.runtime.getValue
@@ -90,10 +91,12 @@ import androidx.compose.ui.unit.IntOffset
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.lerp
 import androidx.compose.ui.unit.sp
+import androidx.compose.ui.zIndex
 import androidx.media3.common.MimeTypes
 import androidx.media3.common.Player
 import androidx.media3.common.Timeline
 import androidx.media3.common.util.UnstableApi
+import dev.anilbeesetti.nextplayer.core.model.PlayerPreferences
 import dev.anilbeesetti.nextplayer.feature.player.extensions.OpenDocumentAtInitialUri
 import dev.anilbeesetti.nextplayer.feature.player.service.CustomCommands
 import dev.anilbeesetti.nextplayer.feature.player.service.EXTRA_WATCH_VIDEO
@@ -128,6 +131,7 @@ fun PlaybackOverlay(
     onExpandedChanged: (Boolean) -> Unit,
     modifier: Modifier = Modifier,
     compactModifier: Modifier = Modifier,
+    playerPreferences: PlayerPreferences = PlayerPreferences(),
 ) {
     var expanded by rememberSaveable { mutableStateOf(false) }
     var lastExpansion by rememberSaveable { mutableStateOf(0L) }
@@ -262,55 +266,64 @@ fun PlaybackOverlay(
         }
     }
     Box(modifier.fillMaxSize()) {
-        PlaybackOverlayContent(
-            player = controller,
-            queueSheet = queueSheet,
-            snapshot = snapshot,
-            presentation = presentation,
-            expanded = showExpanded,
-            onExpandedChanged = { expanded = it },
-            compactBottom = compactBottom,
-            compactStart = compactStart,
-            hidden = hidden,
-            focusRequester = focusRequester,
-            onCompactHeightChanged = { contentHeight = it },
-            onDismissPlayback = ::dismiss,
-            onCommand = { controller.playbackCommand(it) },
-            onStop = controller::stopPlayerSession,
-            compactModifier = compactModifier,
-            audioOutput = extras.getInt(
-                CustomCommands.AUDIO_OUTPUT_KEY,
-                CustomCommands.SYSTEM_AUDIO_OUTPUT,
-            ),
-            onAudioOutput = { controller.setAudioOutput(it) },
-            onSelectSubtitle = {
-                subtitleTarget = controller.currentMediaItem?.mediaId
-                subtitlePicker.launch(
-                    OpenDocumentAtInitialUri.Input(
-                        mimeTypes = arrayOf(
-                            MimeTypes.APPLICATION_SUBRIP,
-                            MimeTypes.APPLICATION_TTML,
-                            MimeTypes.TEXT_VTT,
-                            MimeTypes.TEXT_SSA,
-                            "application/octet-stream",
-                            "text/*",
+        CompositionLocalProvider(
+            LocalControlsArtworkAspectRatio provides
+                artworkAspectRatio(playerPreferences.controlsArtworkStyle),
+            LocalQueueArtworkAspectRatio provides
+                artworkAspectRatio(playerPreferences.queueArtworkStyle),
+        ) {
+            PlaybackOverlayContent(
+                player = controller,
+                queueSheet = queueSheet,
+                snapshot = snapshot,
+                presentation = presentation,
+                expanded = showExpanded,
+                onExpandedChanged = { expanded = it },
+                compactBottom = compactBottom,
+                compactStart = compactStart,
+                hidden = hidden,
+                focusRequester = focusRequester,
+                onCompactHeightChanged = { contentHeight = it },
+                onDismissPlayback = ::dismiss,
+                onCommand = { controller.playbackCommand(it) },
+                onStop = controller::stopPlayerSession,
+                compactModifier = compactModifier,
+                audioOutput = extras.getInt(
+                    CustomCommands.AUDIO_OUTPUT_KEY,
+                    CustomCommands.SYSTEM_AUDIO_OUTPUT,
+                ),
+                onAudioOutput = { controller.setAudioOutput(it) },
+                onSelectSubtitle = {
+                    subtitleTarget = controller.currentMediaItem?.mediaId
+                    subtitlePicker.launch(
+                        OpenDocumentAtInitialUri.Input(
+                            mimeTypes = arrayOf(
+                                MimeTypes.APPLICATION_SUBRIP,
+                                MimeTypes.APPLICATION_TTML,
+                                MimeTypes.TEXT_VTT,
+                                MimeTypes.TEXT_SSA,
+                                "application/octet-stream",
+                                "text/*",
+                            ),
                         ),
-                    ),
-                )
-            },
-            onWatchVideo = {
-                context.startActivity(
-                    Intent(
-                        context,
-                        PlayerActivity::class.java,
                     )
-                        .putExtra(
-                            EXTRA_WATCH_VIDEO,
-                            true,
-                        ),
-                )
-            },
-        )
+                },
+                onWatchVideo = {
+                    if (!PlayerActivity.expandPictureInPicture()) {
+                        context.startActivity(
+                            Intent(
+                                context,
+                                PlayerActivity::class.java,
+                            )
+                                .putExtra(
+                                    EXTRA_WATCH_VIDEO,
+                                    true,
+                                ),
+                        )
+                    }
+                },
+            )
+        }
         val direction = LocalLayoutDirection.current
         val cutout = WindowInsets.displayCutout.asPaddingValues()
         AnimatedVisibility(
@@ -653,6 +666,9 @@ internal fun PlaybackOverlayContent(
                     enabled = isCollapsed,
                     bothDirections = true,
                     modifier = Modifier
+                        // Once closing, the mini player sits above the fading expanded layer,
+                        // which otherwise swallows taps until the spring settles.
+                        .zIndex(if (expanded) 0f else 1f)
                         .offset {
                             IntOffset(
                                 0,
@@ -668,7 +684,8 @@ internal fun PlaybackOverlayContent(
                 ) {
                     MiniPlayer(
                         player = player,
-                        onOpenPlayer = { if (isCollapsed) onExpandedChanged(true) },
+                        // A tap while the player is still settling closed reopens it.
+                        onOpenPlayer = { if (!expanded) onExpandedChanged(true) },
                         onStop = onDismissPlayback,
                         deviceName = presentation.deviceName,
                         controlsEnabled = controlsEnabled,
@@ -729,6 +746,7 @@ internal fun PlaybackOverlayContent(
                 onCommand = onCommand,
                 dragModifier = verticalDrag,
                 queueSheet = queueSheet,
+                audioOutput = audioOutput,
                 interactive = interactive,
                 transitionProgress = { expansion.value },
                 controlsTranslationY = {
@@ -839,8 +857,6 @@ internal fun PlaybackOverlayContent(
     }
     if (output && controlsEnabled) {
         PlaybackOutputSheet(
-            player,
-            snapshot,
             presentation,
             audioOutput,
             onAudioOutput,

@@ -81,6 +81,7 @@ import com.google.accompanist.permissions.ExperimentalPermissionsApi
 import dev.anilbeesetti.nextplayer.core.common.extensions.isTelevision
 import dev.anilbeesetti.nextplayer.core.common.service.system.SystemService
 import dev.anilbeesetti.nextplayer.core.media.services.MediaOperationsService
+import dev.anilbeesetti.nextplayer.core.model.PlayerPreferences
 import dev.anilbeesetti.nextplayer.core.model.ThemeConfig
 import dev.anilbeesetti.nextplayer.core.ui.components.LocalNavigationBottomPadding
 import dev.anilbeesetti.nextplayer.core.ui.components.LocalPlaybackOverlayHiddenSetter
@@ -172,6 +173,7 @@ class MainActivity : FragmentActivity() {
 
         setContent {
             val state by viewModel.state.collectAsStateWithLifecycle()
+            val playerPreferences by viewModel.playerPreferences.collectAsStateWithLifecycle()
             val shouldUseDarkTheme = shouldUseDarkTheme(state = state)
 
             LaunchedEffect(key1 = shouldUseDarkTheme) {
@@ -240,6 +242,7 @@ class MainActivity : FragmentActivity() {
                         fabStates = topLevelFabStates,
                         showBottomBar = showTopLevelBottomBar,
                         expansionRequest = playbackExpansionRequest,
+                        playerPreferences = playerPreferences,
                     ) { layoutPaddingValues ->
                         val railPadding = layoutPaddingValues.calculateStartPadding(
                             LocalLayoutDirection.current,
@@ -328,6 +331,7 @@ fun NavigationLayout(
     fabStates: SnapshotStateMap<String, TopLevelFabState>,
     showBottomBar: Boolean,
     expansionRequest: Long = 0,
+    playerPreferences: PlayerPreferences = PlayerPreferences(),
     windowSizeClass: WindowSizeClass = currentWindowAdaptiveInfoV2().windowSizeClass,
     content: @Composable (PaddingValues) -> Unit,
 ) {
@@ -489,6 +493,7 @@ fun NavigationLayout(
             compactStart = railExtent,
             hidden = overlayHidden,
             expansionRequest = expansionRequest,
+            playerPreferences = playerPreferences,
             focusRequester = miniPlayerFocusRequester,
             compactModifier = Modifier.focusProperties {
                 if (isTv) {

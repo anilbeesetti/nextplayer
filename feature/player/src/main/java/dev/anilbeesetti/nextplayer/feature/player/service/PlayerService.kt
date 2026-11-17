@@ -1534,6 +1534,12 @@ class PlayerService : MediaSessionService() {
                                     ?: video?.duration?.takeIf { it > 0 },
                             )
                             setTitle(title)
+                            // The library folder; MediaStore URIs don't carry it in their path.
+                            setSubtitle(
+                                mediaItem.mediaMetadata.subtitle
+                                    ?: video?.parentPath?.takeIf { it.isNotBlank() }
+                                        ?.let { File(it).name },
+                            )
                             setArtworkUri(artworkUri)
                             setExtras(
                                 positionMs = positionMs,

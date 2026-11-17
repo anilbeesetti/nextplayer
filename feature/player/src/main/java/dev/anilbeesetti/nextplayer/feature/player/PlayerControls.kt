@@ -11,6 +11,7 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.res.stringResource
 import androidx.media3.common.Player
 import androidx.media3.common.util.UnstableApi
@@ -30,7 +31,6 @@ import dev.anilbeesetti.nextplayer.feature.player.ui.controls.ControlsBottomView
 import dev.anilbeesetti.nextplayer.feature.player.ui.controls.ControlsMiddleView
 import dev.anilbeesetti.nextplayer.feature.player.ui.controls.ControlsTopView
 import io.github.anilbeesetti.nextlib.media3ext.ffdecoder.DecoderMode
-import kotlin.time.Duration
 
 @OptIn(UnstableApi::class)
 @Composable
@@ -50,6 +50,7 @@ fun PlayerControls(
     onPlayInBackgroundClick: () -> Unit,
     onToggleTimeDisplay: () -> Unit,
     onPictureInPictureClick: () -> Unit,
+    outputIcon: ImageVector,
     modifier: Modifier = Modifier,
     middleControlsModifier: Modifier = Modifier,
 ) {
@@ -71,14 +72,8 @@ fun PlayerControls(
                     onSubtitleClick = { onShowOverlay(OverlayView.SUBTITLE_SELECTOR) },
                     onPlaylistClick = { onShowOverlay(OverlayView.PLAYLIST) },
                     onBackClick = onBackClick,
-                    // Hiding the controls would close the cast picker mid-choice.
-                    onCastPickerVisibleChange = { open ->
-                        if (open) {
-                            controlsVisibilityState.showControls(Duration.INFINITE)
-                        } else {
-                            controlsVisibilityState.showControls()
-                        }
-                    },
+                    onOutputClick = { onShowOverlay(OverlayView.OUTPUT) },
+                    outputIcon = outputIcon,
                 )
             }
             Spacer(modifier = Modifier.weight(weight = 1f))

@@ -9,7 +9,6 @@ import android.os.Build
 import android.os.Handler
 import android.os.Looper
 import androidx.compose.animation.animateColorAsState
-import androidx.compose.animation.core.animateDpAsState
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -26,6 +25,8 @@ import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.rounded.OpenInNew
 import androidx.compose.material.icons.rounded.Bluetooth
+import androidx.compose.material.icons.rounded.Cast
+import androidx.compose.material.icons.rounded.CastConnected
 import androidx.compose.material.icons.rounded.Check
 import androidx.compose.material.icons.rounded.Devices
 import androidx.compose.material.icons.rounded.Headphones
@@ -45,10 +46,16 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.semantics.Role
+import androidx.compose.ui.semantics.role
+import androidx.compose.ui.semantics.selected
+import androidx.compose.ui.semantics.semantics
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.media3.common.Player
@@ -66,8 +73,6 @@ import dev.anilbeesetti.nextplayer.feature.player.state.PlaybackSnapshot
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 internal fun PlaybackOutputSheet(
-    player: Player,
-    snapshot: PlaybackSnapshot,
     presentation: PlaybackPresentation,
     audioOutput: Int,
     onAudioOutput: (Int) -> Unit,
@@ -76,27 +81,48 @@ internal fun PlaybackOutputSheet(
     ModalBottomSheet(
         onDismissRequest = onDismiss,
         sheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true),
+        containerColor = MaterialTheme.colorScheme.surfaceContainer,
     ) {
+        Text(
+            stringResource(R.string.play_on),
+            Modifier.padding(horizontal = 24.dp).padding(bottom = 12.dp),
+            style = MaterialTheme.typography.titleLarge.copy(fontWeight = FontWeight.Bold),
+        )
+        PlaybackOutputContent(
+            presentation,
+            audioOutput,
+            onAudioOutput,
+            Modifier.padding(horizontal = 16.dp).padding(bottom = 16.dp),
+        )
+    }
+}
+
+/** Output rows and the system picker shortcut, shared by the sheet and player overlay. */
+@Composable
+internal fun PlaybackOutputContent(
+    presentation: PlaybackPresentation,
+    audioOutput: Int,
+    onAudioOutput: (Int) -> Unit,
+    modifier: Modifier = Modifier,
+) {
+    Column(
+        modifier.fillMaxWidth().verticalScroll(rememberScrollState()).testTag("playback_outputs"),
+        verticalArrangement = Arrangement.spacedBy(12.dp),
+    ) {
+        val context = LocalContext.current
+        val audio = remember(context) { context.getSystemService(AudioManager::class.java) }
+        val outputs = rememberPhoneOutputs(audio)
+        val onPhone = presentation.connection == PlaybackConnection.LOCAL ||
+            presentation.connection == PlaybackConnection.STOPPED
+        val routed = audio.routedOutput(outputs)
+        val active = audio.activeOutput(
+            outputs,
+            audioOutput,
+        )?.id
         Column(
-            Modifier.fillMaxWidth().verticalScroll(rememberScrollState())
-                .padding(horizontal = 16.dp).padding(bottom = 24.dp).testTag("playback_outputs"),
-            verticalArrangement = Arrangement.spacedBy(4.dp),
+            Modifier.clip(RoundedCornerShape(20.dp)).testTag("playback_output_devices"),
+            verticalArrangement = Arrangement.spacedBy(2.dp),
         ) {
-            Text(
-                stringResource(R.string.play_on),
-                Modifier.padding(
-                    start = 8.dp,
-                    bottom = 12.dp,
-                ),
-                style = MaterialTheme.typography.headlineSmall,
-            )
-            val context = LocalContext.current
-            val audio = remember(context) { context.getSystemService(AudioManager::class.java) }
-            val outputs = rememberPhoneOutputs(audio)
-            val onPhone = presentation.connection == PlaybackConnection.LOCAL ||
-                presentation.connection == PlaybackConnection.STOPPED
-            val routed = audio.routedOutput(outputs)
-            val active = outputs.find { it.id == audioOutput }?.id ?: routed
             outputs.forEach { device ->
                 PlaybackOutputRow(
                     icon = device.icon(),
@@ -120,25 +146,40 @@ internal fun PlaybackOutputSheet(
                 presentation.connection,
                 presentation.deviceName,
             )
-            if (Build.VERSION.SDK_INT >= 34) {
-                Spacer(Modifier.height(8.dp))
-                PlaybackOutputRow(
-                    icon = Icons.Rounded.Devices,
-                    title = stringResource(R.string.more_devices),
-                    summary = stringResource(R.string.more_devices_summary),
-                    selected = false,
-                    onClick = { MediaRouter2.getInstance(context).showSystemOutputSwitcher() },
-                    trailing = Icons.AutoMirrored.Rounded.OpenInNew,
-                )
-            }
-            Spacer(Modifier.height(16.dp))
-            Column(Modifier.padding(horizontal = 8.dp)) {
-                PlaybackVolumeControl(
-                    player,
-                    snapshot,
-                )
-            }
         }
+        if (Build.VERSION.SDK_INT >= 34) {
+            PlaybackOutputRow(
+                icon = Icons.Rounded.Devices,
+                title = stringResource(R.string.more_devices),
+                summary = stringResource(R.string.more_devices_summary),
+                selected = false,
+                onClick = { MediaRouter2.getInstance(context).showSystemOutputSwitcher() },
+                trailing = Icons.AutoMirrored.Rounded.OpenInNew,
+                isShortcut = true,
+            )
+        }
+    }
+}
+
+/** The icon of where playback goes now: the cast device, or the phone output in use. */
+@Composable
+internal fun playbackOutputIcon(
+    connection: PlaybackConnection,
+    isRemote: Boolean,
+    audioOutput: Int,
+): ImageVector {
+    val context = LocalContext.current
+    val audio = remember(context) { context.getSystemService(AudioManager::class.java) }
+    val outputs = rememberPhoneOutputs(audio)
+    return when {
+        isRemote -> Icons.Rounded.CastConnected
+
+        connection == PlaybackConnection.CONNECTING -> Icons.Rounded.Cast
+
+        else -> audio.activeOutput(
+            outputs,
+            audioOutput,
+        )?.icon() ?: Icons.Rounded.PhoneAndroid
     }
 }
 
@@ -152,57 +193,66 @@ internal fun PlaybackOutputRow(
     onClick: () -> Unit,
     modifier: Modifier = Modifier,
     trailing: ImageVector? = if (selected) Icons.Rounded.Check else null,
+    isShortcut: Boolean = false,
 ) {
     val colors = MaterialTheme.colorScheme
     val container by animateColorAsState(
-        if (selected) colors.secondaryContainer else colors.surfaceContainerHigh,
+        if (selected) colors.secondaryContainer else colors.surfaceContainerLowest,
         MaterialTheme.motionScheme.defaultEffectsSpec(),
         label = "output_container",
     )
-    val corner by animateDpAsState(
-        if (selected) 28.dp else 16.dp,
-        MaterialTheme.motionScheme.defaultSpatialSpec(),
-        label = "output_corner",
-    )
     Surface(
-        selected = selected,
         onClick = onClick,
-        modifier = modifier.fillMaxWidth(),
-        shape = RoundedCornerShape(corner),
+        modifier = modifier.fillMaxWidth().semantics {
+            role = if (isShortcut) Role.Button else Role.RadioButton
+            if (!isShortcut) this.selected = selected
+        },
+        shape = RoundedCornerShape(if (isShortcut) 20.dp else 4.dp),
         color = container,
+        contentColor = if (selected) colors.onSecondaryContainer else colors.onSurface,
     ) {
         Row(
             Modifier.padding(
                 horizontal = 16.dp,
-                vertical = 14.dp,
+                vertical = 12.dp,
             ),
             verticalAlignment = Alignment.CenterVertically,
         ) {
-            Box(
-                Modifier.size(40.dp),
-                contentAlignment = Alignment.Center,
-            ) {
+            if (isShortcut) {
                 Surface(
                     shape = CircleShape,
-                    color = if (selected) colors.secondary else colors.surfaceContainerHighest,
-                    contentColor = if (selected) colors.onSecondary else colors.onSurfaceVariant,
+                    color = colors.primaryContainer,
+                    contentColor = colors.onPrimaryContainer,
                     modifier = Modifier.size(40.dp),
                 ) {
                     Box(contentAlignment = Alignment.Center) {
                         Icon(
                             icon,
                             contentDescription = null,
-                            modifier = Modifier.size(22.dp),
+                            modifier = Modifier.size(24.dp),
                         )
                     }
                 }
+            } else {
+                Icon(
+                    icon,
+                    contentDescription = null,
+                    modifier = Modifier.size(24.dp),
+                )
             }
             Column(
-                Modifier.weight(1f).padding(horizontal = 16.dp),
+                Modifier.weight(1f).padding(horizontal = 12.dp),
             ) {
                 Text(
                     title,
                     style = MaterialTheme.typography.titleMedium,
+                    fontWeight = if (selected ||
+                        isShortcut
+                    ) {
+                        FontWeight.SemiBold
+                    } else {
+                        FontWeight.Normal
+                    },
                     maxLines = 1,
                     overflow = TextOverflow.Ellipsis,
                 )
@@ -210,7 +260,11 @@ internal fun PlaybackOutputRow(
                     Text(
                         summary,
                         style = MaterialTheme.typography.bodyMedium,
-                        color = colors.onSurfaceVariant,
+                        color = if (selected) {
+                            colors.onSecondaryContainer
+                        } else {
+                            colors.onSurfaceVariant
+                        },
                         maxLines = 2,
                         overflow = TextOverflow.Ellipsis,
                     )
@@ -254,6 +308,16 @@ private fun AudioManager.phoneOutputs(): List<AudioDeviceInfo> =
         .filter { it.kind() != OutputKind.OTHER }
         .distinctBy { it.kind() to it.productName.toString() }
         .sortedBy { it.kind().ordinal }
+
+/** The app's chosen output when it is still attached, otherwise the system's media route. */
+private fun AudioManager.activeOutput(
+    outputs: List<AudioDeviceInfo>,
+    audioOutput: Int,
+): AudioDeviceInfo? {
+    outputs.find { it.id == audioOutput }?.let { return it }
+    val routed = routedOutput(outputs)
+    return outputs.find { it.id == routed }
+}
 
 /** The output the system plays media on when the app has no preference. */
 private fun AudioManager.routedOutput(outputs: List<AudioDeviceInfo>): Int? {

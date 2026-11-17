@@ -700,6 +700,14 @@ class PlaybackSpeedSessionTest {
             ),
             items.map { it.mediaMetadata.durationMs },
         )
+        // The library video's folder becomes the line under its title.
+        assertEquals(
+            listOf(
+                null,
+                "Download",
+            ),
+            items.map { it.mediaMetadata.subtitle?.toString() },
+        )
     }
 
     private fun foregroundRequest(service: PlayerService, item: MediaItem) =
