@@ -2,7 +2,7 @@ package dev.anilbeesetti.nextplayer.feature.player.extensions
 
 import androidx.media3.common.MediaItem
 import androidx.media3.common.MediaMetadata
-import io.github.anilbeesetti.nextlib.media3ext.ffdecoder.DecoderMode
+import dev.anilbeesetti.nextplayer.feature.player.model.DecoderMode
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertNotNull
 import org.junit.Assert.assertNull
@@ -12,6 +12,27 @@ import org.robolectric.RobolectricTestRunner
 
 @RunWith(RobolectricTestRunner::class)
 class MediaItemTest {
+    @Test
+    fun switchingToSoftwareRetainsCompatibilityExtraction() {
+        val item = androidx.media3.common.MediaItem.fromUri("file:///video.mp4")
+            .copy(
+                videoDecoderMode = DecoderMode.HW_PLUS,
+                ffmpegExtraction = true,
+            )
+        val software = item.copy(videoDecoderMode = DecoderMode.FFMPEG)
+        org.junit.Assert.assertTrue(software.mediaMetadata.ffmpegExtraction)
+        org.junit.Assert.assertEquals(
+            DecoderMode.FFMPEG,
+            software.mediaMetadata.videoDecoderMode,
+        )
+        org.junit.Assert.assertFalse(
+            software.copy(
+                videoDecoderMode = DecoderMode.HARDWARE,
+                ffmpegExtraction = false,
+            ).mediaMetadata.ffmpegExtraction,
+        )
+    }
+
     @Test
     fun `copy creates metadata extras when source extras are null`() {
         val mediaItem = MediaItem.Builder()
@@ -58,13 +79,13 @@ class MediaItemTest {
                     audioMode,
                     restored.mediaMetadata.audioDecoderMode,
                 )
-                val fallback = restored.copy(audioDecoderMode = DecoderMode.SOFTWARE)
+                val fallback = restored.copy(audioDecoderMode = DecoderMode.HW_PLUS)
                 assertEquals(
                     videoMode,
                     fallback.mediaMetadata.videoDecoderMode,
                 )
                 assertEquals(
-                    DecoderMode.SOFTWARE,
+                    DecoderMode.HW_PLUS,
                     fallback.mediaMetadata.audioDecoderMode,
                 )
             }

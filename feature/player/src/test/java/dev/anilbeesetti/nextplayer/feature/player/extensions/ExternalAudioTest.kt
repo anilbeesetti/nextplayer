@@ -6,7 +6,7 @@ import androidx.media3.common.MediaItem
 import androidx.media3.common.MediaMetadata
 import androidx.media3.common.TrackGroup
 import androidx.media3.common.util.UnstableApi
-import io.github.anilbeesetti.nextlib.media3ext.ffdecoder.DecoderMode
+import dev.anilbeesetti.nextplayer.feature.player.model.DecoderMode
 import org.junit.Assert.assertEquals
 import org.junit.Test
 import org.junit.runner.RunWith
@@ -51,7 +51,7 @@ class ExternalAudioTest {
                 positionMs = 12000,
                 audioTrackIndex = 2,
                 videoDecoderMode = DecoderMode.HARDWARE,
-                audioDecoderMode = DecoderMode.SOFTWARE,
+                audioDecoderMode = DecoderMode.HARDWARE,
             )
             .copy(durationMs = 60000)
             .buildUpon().setSubtitleConfigurations(listOf(element = subtitle)).build()
@@ -77,7 +77,7 @@ class ExternalAudioTest {
             item.mediaMetadata.videoDecoderMode,
         )
         assertEquals(
-            DecoderMode.SOFTWARE,
+            DecoderMode.HARDWARE,
             item.mediaMetadata.audioDecoderMode,
         )
         assertEquals(

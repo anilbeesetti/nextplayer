@@ -5,11 +5,11 @@ import android.os.Bundle
 import androidx.media3.session.MediaController
 import androidx.media3.session.SessionCommand
 import androidx.media3.session.SessionResult
+import dev.anilbeesetti.nextplayer.feature.player.model.DecoderMode
 import dev.anilbeesetti.nextplayer.feature.player.model.DecoderRecoveryState
 import dev.anilbeesetti.nextplayer.feature.player.model.DecoderRecoveryStatus
 import dev.anilbeesetti.nextplayer.feature.player.model.DecoderServiceState
 import dev.anilbeesetti.nextplayer.feature.player.model.DecoderTrackType
-import io.github.anilbeesetti.nextlib.media3ext.ffdecoder.DecoderMode
 import kotlinx.coroutines.guava.await
 
 enum class CustomCommands(val customAction: String) {
@@ -276,5 +276,11 @@ suspend fun MediaController.tryDecoderFallback(): Boolean {
 
 internal fun Bundle.decoderMode(key: String): DecoderMode? {
     val value = getString(key) ?: return null
-    return DecoderMode.entries.find { it.name == value }
+    return if (value ==
+        "SOFTWARE"
+    ) {
+        DecoderMode.HARDWARE
+    } else {
+        DecoderMode.entries.find { it.name == value }
+    }
 }

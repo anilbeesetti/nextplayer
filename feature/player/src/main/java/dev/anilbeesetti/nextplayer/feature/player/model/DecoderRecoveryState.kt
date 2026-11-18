@@ -1,6 +1,6 @@
 package dev.anilbeesetti.nextplayer.feature.player.model
 
-import io.github.anilbeesetti.nextlib.media3ext.ffdecoder.DecoderMode
+import dev.anilbeesetti.nextplayer.feature.player.model.DecoderMode
 
 /** Player-service recovery state exposed to the controller while handling a decoder failure. */
 enum class DecoderRecoveryStatus {

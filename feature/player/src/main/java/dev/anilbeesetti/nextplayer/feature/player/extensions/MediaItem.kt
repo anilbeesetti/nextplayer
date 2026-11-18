@@ -5,8 +5,8 @@ import android.os.Bundle
 import androidx.core.net.toUri
 import androidx.media3.common.MediaItem
 import androidx.media3.common.MediaMetadata
+import dev.anilbeesetti.nextplayer.feature.player.model.DecoderMode
 import dev.anilbeesetti.nextplayer.feature.player.service.decoderMode
-import io.github.anilbeesetti.nextlib.media3ext.ffdecoder.DecoderMode
 
 private const val MEDIA_METADATA_EXTERNAL_AUDIO_KEY = "external_audio"
 
@@ -37,6 +37,7 @@ private const val MEDIA_METADATA_SUBTITLE_DELAY_KEY = "media_metadata_subtitle_d
 private const val MEDIA_METADATA_SUBTITLE_SPEED_KEY = "media_metadata_subtitle_speed"
 private const val MEDIA_METADATA_VIDEO_DECODER_MODE_KEY = "media_metadata_video_decoder_mode"
 private const val MEDIA_METADATA_AUDIO_DECODER_MODE_KEY = "media_metadata_audio_decoder_mode"
+private const val MEDIA_METADATA_FFMPEG_EXTRACTION_KEY = "media_metadata_ffmpeg_extraction"
 
 private fun Bundle.setExtras(
     positionMs: Long?,
@@ -47,6 +48,7 @@ private fun Bundle.setExtras(
     subtitleSpeed: Float? = null,
     videoDecoderMode: DecoderMode? = null,
     audioDecoderMode: DecoderMode? = null,
+    ffmpegExtraction: Boolean? = null,
 ) = apply {
     positionMs?.let {
         putLong(
@@ -90,6 +92,12 @@ private fun Bundle.setExtras(
             it.name,
         )
     }
+    ffmpegExtraction?.let {
+        putBoolean(
+            MEDIA_METADATA_FFMPEG_EXTRACTION_KEY,
+            it,
+        )
+    }
     audioDecoderMode?.let {
         putString(
             MEDIA_METADATA_AUDIO_DECODER_MODE_KEY,
@@ -107,6 +115,7 @@ fun MediaMetadata.Builder.setExtras(
     subtitleSpeed: Float? = null,
     videoDecoderMode: DecoderMode? = null,
     audioDecoderMode: DecoderMode? = null,
+    ffmpegExtraction: Boolean? = null,
 ): MediaMetadata.Builder = setExtras(
     Bundle().setExtras(
         positionMs = positionMs,
@@ -117,6 +126,7 @@ fun MediaMetadata.Builder.setExtras(
         subtitleSpeed = subtitleSpeed,
         videoDecoderMode = videoDecoderMode,
         audioDecoderMode = audioDecoderMode,
+        ffmpegExtraction = ffmpegExtraction,
     ),
 )
 
@@ -172,6 +182,7 @@ fun MediaItem.copy(
     subtitleSpeed: Float? = this.mediaMetadata.subtitleSpeed,
     videoDecoderMode: DecoderMode? = this.mediaMetadata.videoDecoderMode,
     audioDecoderMode: DecoderMode? = this.mediaMetadata.audioDecoderMode,
+    ffmpegExtraction: Boolean = this.mediaMetadata.ffmpegExtraction,
 ): MediaItem = buildUpon().setMediaMetadata(
     mediaMetadata.buildUpon()
         .setDurationMs(durationMs)
@@ -185,6 +196,11 @@ fun MediaItem.copy(
                 subtitleSpeed = subtitleSpeed,
                 videoDecoderMode = videoDecoderMode,
                 audioDecoderMode = audioDecoderMode,
+                ffmpegExtraction = ffmpegExtraction,
             ),
         ).build(),
 ).build()
+
+val MediaMetadata.ffmpegExtraction: Boolean
+    get() = videoDecoderMode == DecoderMode.HW_PLUS ||
+        extras?.getBoolean(MEDIA_METADATA_FFMPEG_EXTRACTION_KEY) == true

@@ -1,8 +1,8 @@
 package dev.anilbeesetti.nextplayer.feature.player.service
 
+import dev.anilbeesetti.nextplayer.feature.player.model.DecoderMode
 import dev.anilbeesetti.nextplayer.feature.player.model.DecoderRecoveryStatus
 import dev.anilbeesetti.nextplayer.feature.player.model.DecoderTrackType
-import io.github.anilbeesetti.nextlib.media3ext.ffdecoder.DecoderMode
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertNotNull
 import org.junit.Assert.assertNull
@@ -11,6 +11,28 @@ import org.junit.Test
 class DecoderRecoveryManagerTest {
     private val video = DecoderTrackType.VIDEO
     private val audio = DecoderTrackType.AUDIO
+
+    @Test
+    fun systemAudioFallsBackDirectlyToFfmpeg() {
+        val manager = DecoderRecoveryManager()
+        manager.onUserSelection(
+            audio,
+            DecoderMode.HARDWARE,
+        )
+        assertNull(
+            manager.onDecoderFailure(
+                audio,
+                DecoderMode.HARDWARE,
+            ),
+        )
+        assertEquals(
+            DecoderRetry(
+                audio,
+                DecoderMode.FFMPEG,
+            ),
+            manager.confirmFallback(),
+        )
+    }
 
     @Test
     fun automaticFailureRetriesFfmpegOnce() {
@@ -53,7 +75,7 @@ class DecoderRecoveryManagerTest {
     }
 
     @Test
-    fun explicitHardwareRequiresConfirmationThenTriesBothSoftwareDecoders() {
+    fun explicitSystemRequiresConfirmationThenTriesFfmpegDirectly() {
         val manager = DecoderRecoveryManager()
         manager.onUserSelection(
             trackType = video,
@@ -76,21 +98,11 @@ class DecoderRecoveryManagerTest {
         assertEquals(
             DecoderRetry(
                 trackType = video,
-                DecoderMode.SOFTWARE,
+                DecoderMode.FFMPEG,
             ),
             manager.confirmFallback(),
         )
         assertNull(manager.confirmFallback())
-        assertEquals(
-            DecoderRetry(
-                trackType = video,
-                DecoderMode.FFMPEG,
-            ),
-            manager.onDecoderFailure(
-                trackType = video,
-                DecoderMode.SOFTWARE,
-            ),
-        )
         assertNull(
             manager.onDecoderFailure(
                 trackType = video,
@@ -140,11 +152,11 @@ class DecoderRecoveryManagerTest {
         val manager = DecoderRecoveryManager()
         manager.onUserSelection(
             trackType = video,
-            DecoderMode.SOFTWARE,
+            DecoderMode.HW_PLUS,
         )
         manager.onDecoderFailure(
             trackType = video,
-            DecoderMode.SOFTWARE,
+            DecoderMode.HW_PLUS,
         )
         manager.confirmFallback()
         manager.onDecoderFailure(
@@ -153,7 +165,7 @@ class DecoderRecoveryManagerTest {
         )
         manager.onUserSelection(
             trackType = video,
-            DecoderMode.SOFTWARE,
+            DecoderMode.HW_PLUS,
         )
         assertEquals(
             DecoderRecoveryStatus.NONE,
@@ -161,7 +173,7 @@ class DecoderRecoveryManagerTest {
         )
         manager.onDecoderFailure(
             trackType = video,
-            DecoderMode.SOFTWARE,
+            DecoderMode.HW_PLUS,
         )
         assertEquals(
             DecoderRetry(
@@ -229,7 +241,7 @@ class DecoderRecoveryManagerTest {
         assertEquals(
             DecoderRetry(
                 trackType = video,
-                DecoderMode.SOFTWARE,
+                DecoderMode.FFMPEG,
             ),
             manager.confirmFallback(),
         )

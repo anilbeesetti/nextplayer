@@ -19,9 +19,9 @@ import dev.anilbeesetti.nextplayer.feature.player.extensions.externalAudio
 import dev.anilbeesetti.nextplayer.feature.player.extensions.externalAudioIndex
 import dev.anilbeesetti.nextplayer.feature.player.extensions.switchTrack
 import dev.anilbeesetti.nextplayer.feature.player.extensions.videoDecoderMode
+import dev.anilbeesetti.nextplayer.feature.player.model.DecoderMode
 import dev.anilbeesetti.nextplayer.feature.player.service.CustomCommands
 import dev.anilbeesetti.nextplayer.feature.player.service.PlayerService
-import io.github.anilbeesetti.nextlib.media3ext.ffdecoder.DecoderMode
 import java.io.File
 import java.nio.ByteBuffer
 import java.nio.ByteOrder
@@ -106,7 +106,7 @@ class LocalSubtitleTest {
                 player = player,
                 CustomCommands.SET_AUDIO_DECODER_MODE,
                 CustomCommands.AUDIO_DECODER_MODE_KEY,
-                DecoderMode.SOFTWARE,
+                DecoderMode.HARDWARE,
             )
             val audioUri = items.first().localConfiguration!!.uri
             command(
@@ -180,7 +180,7 @@ class LocalSubtitleTest {
                         player.currentMediaItem?.mediaMetadata?.videoDecoderMode,
                     )
                     assertEquals(
-                        DecoderMode.SOFTWARE,
+                        DecoderMode.HARDWARE,
                         player.currentMediaItem?.mediaMetadata?.audioDecoderMode,
                     )
                     assertEquals(
@@ -225,7 +225,7 @@ class LocalSubtitleTest {
                 val metadata = player.currentMediaItem?.mediaMetadata
                 player.currentMediaItem?.mediaId == items[1].mediaId &&
                     metadata?.videoDecoderMode == DecoderMode.HARDWARE &&
-                    metadata?.audioDecoderMode == DecoderMode.SOFTWARE &&
+                    metadata?.audioDecoderMode == DecoderMode.HARDWARE &&
                     player.playbackState == Player.STATE_READY
             }
         } finally {

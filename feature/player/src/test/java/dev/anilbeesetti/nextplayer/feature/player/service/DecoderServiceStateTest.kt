@@ -1,9 +1,9 @@
 package dev.anilbeesetti.nextplayer.feature.player.service
 
 import android.os.Bundle
+import dev.anilbeesetti.nextplayer.feature.player.model.DecoderMode
 import dev.anilbeesetti.nextplayer.feature.player.model.DecoderRecoveryStatus
 import dev.anilbeesetti.nextplayer.feature.player.model.DecoderTrackType
-import io.github.anilbeesetti.nextlib.media3ext.ffdecoder.DecoderMode
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertNull
 import org.junit.Test
@@ -18,6 +18,21 @@ import org.robolectric.annotation.Config
 )
 class DecoderServiceStateTest {
     @Test
+    fun legacySoftwareModeUsesSystemDecoding() {
+        val key = CustomCommands.VIDEO_DECODER_MODE_KEY
+        val extras = Bundle().apply {
+            putString(
+                key,
+                "SOFTWARE",
+            )
+        }
+        assertEquals(
+            DecoderMode.HARDWARE,
+            extras.decoderMode(key),
+        )
+    }
+
+    @Test
     fun extrasCarryActiveModesAndRecoveryWithoutPlayerEvents() {
         val extras = Bundle().apply {
             putString(
@@ -26,7 +41,7 @@ class DecoderServiceStateTest {
             )
             putString(
                 CustomCommands.AUDIO_DECODER_MODE_KEY,
-                DecoderMode.SOFTWARE.name,
+                DecoderMode.HW_PLUS.name,
             )
             putString(
                 CustomCommands.DECODER_RECOVERY_STATUS_KEY,
@@ -47,7 +62,7 @@ class DecoderServiceStateTest {
             state.videoMode,
         )
         assertEquals(
-            DecoderMode.SOFTWARE,
+            DecoderMode.HW_PLUS,
             state.audioMode,
         )
         assertEquals(

@@ -7,7 +7,7 @@ import androidx.media3.exoplayer.ExoPlayer
 import androidx.media3.exoplayer.source.DefaultMediaSourceFactory
 import androidx.media3.exoplayer.source.MediaSource
 import androidx.media3.exoplayer.source.ShuffleOrder
-import io.github.anilbeesetti.nextlib.media3ext.ffdecoder.DecoderMode
+import dev.anilbeesetti.nextplayer.feature.player.model.DecoderMode
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertTrue
 import org.junit.Test

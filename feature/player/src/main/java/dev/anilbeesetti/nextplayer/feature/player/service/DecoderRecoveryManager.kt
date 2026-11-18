@@ -1,9 +1,9 @@
 package dev.anilbeesetti.nextplayer.feature.player.service
 
+import dev.anilbeesetti.nextplayer.feature.player.model.DecoderMode
 import dev.anilbeesetti.nextplayer.feature.player.model.DecoderRecoveryState
 import dev.anilbeesetti.nextplayer.feature.player.model.DecoderRecoveryStatus
 import dev.anilbeesetti.nextplayer.feature.player.model.DecoderTrackType
-import io.github.anilbeesetti.nextlib.media3ext.ffdecoder.DecoderMode
 
 /** Keeps NextPlayer's decoder fallback policy separate from nextlib's decoder switching. */
 internal class DecoderRecoveryManager {
@@ -117,13 +117,6 @@ private class TrackRecovery {
 
 private fun DecoderMode.fallbackModes(): List<DecoderMode> = when (this) {
     DecoderMode.AUTO -> listOf(DecoderMode.FFMPEG)
-
-    DecoderMode.HARDWARE -> listOf(
-        DecoderMode.SOFTWARE,
-        DecoderMode.FFMPEG,
-    )
-
-    DecoderMode.SOFTWARE -> listOf(DecoderMode.FFMPEG)
-
+    DecoderMode.HARDWARE, DecoderMode.HW_PLUS -> listOf(DecoderMode.FFMPEG)
     DecoderMode.FFMPEG -> listOf(DecoderMode.AUTO)
 }
