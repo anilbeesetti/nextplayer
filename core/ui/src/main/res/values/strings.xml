@@ -585,6 +585,7 @@
     <string name="undo">Undo</string>
     <string name="connecting_to_device">Connecting to %1$s</string>
     <string name="cast_connection_lost">Connection to %1$s lost</string>
+    <string name="cast_media_unsupported">%1$s can’t play this video’s format</string>
     <string name="player_controls_shuffle">Shuffle</string>
     <string name="player_controls_repeat">Repeat</string>
     <string name="queue_next_up">Next up</string>

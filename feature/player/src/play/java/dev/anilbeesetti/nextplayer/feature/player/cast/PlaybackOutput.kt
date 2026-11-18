@@ -4,6 +4,7 @@ import android.content.Context
 import android.net.Uri
 import android.os.Handler
 import android.os.Looper
+import android.widget.Toast
 import androidx.media3.cast.CastPlayer
 import androidx.media3.cast.RemoteCastPlayer
 import androidx.media3.common.C
@@ -17,12 +18,15 @@ import androidx.media3.datasource.DefaultDataSource
 import androidx.media3.exoplayer.ExoPlayer
 import androidx.mediarouter.media.MediaRouter
 import com.google.android.gms.cast.CastDevice
+import com.google.android.gms.cast.MediaError
 import com.google.android.gms.cast.MediaSeekOptions
 import com.google.android.gms.cast.framework.CastContext
 import com.google.android.gms.cast.framework.CastSession
 import com.google.android.gms.cast.framework.SessionManager
 import com.google.android.gms.cast.framework.SessionManagerListener
+import com.google.android.gms.cast.framework.media.RemoteMediaClient
 import dev.anilbeesetti.nextplayer.core.common.Logger
+import dev.anilbeesetti.nextplayer.core.ui.R
 import dev.anilbeesetti.nextplayer.feature.player.service.PlaybackConnection
 import dev.anilbeesetti.nextplayer.feature.player.service.PlaybackPresentation
 import dev.anilbeesetti.nextplayer.feature.player.service.playbackTransferState
@@ -163,19 +167,47 @@ internal class PlaybackOutput(
         )
     }
 
+    // A receiver that cannot decode the item skips to the next one muted, so stop waiting at once.
+    private val receiverErrors = object : RemoteMediaClient.Callback() {
+        override fun onMediaError(error: MediaError) {
+            if (presentation.connection != PlaybackConnection.CONNECTING) return
+            Toast.makeText(
+                context,
+                context.getString(
+                    R.string.cast_media_unsupported,
+                    presentation.deviceName ?: MediaRouter.getInstance(context).selectedRoute.name,
+                ),
+                Toast.LENGTH_LONG,
+            ).show()
+            cancelConnection()
+        }
+    }
+
+    private fun watchReceiverErrors(session: CastSession) {
+        session.remoteMediaClient?.run {
+            unregisterCallback(receiverErrors)
+            registerCallback(receiverErrors)
+        }
+    }
+
     private val sessionListener = object : SessionManagerListener<CastSession> {
         override fun onSessionStarting(session: CastSession) = beginConnection(
             session,
             true,
         )
-        override fun onSessionStarted(session: CastSession, sessionId: String) = acknowledgeRemote()
+        override fun onSessionStarted(session: CastSession, sessionId: String) {
+            watchReceiverErrors(session)
+            acknowledgeRemote()
+        }
         override fun onSessionStartFailed(session: CastSession, error: Int) = cancelConnection()
         override fun onSessionResuming(session: CastSession, sessionId: String) = beginConnection(
             session,
             false,
         )
-        override fun onSessionResumed(session: CastSession, wasSuspended: Boolean) =
+        override fun onSessionResumed(session: CastSession, wasSuspended: Boolean) {
+            watchReceiverErrors(session)
             acknowledgeRemote()
+        }
         override fun onSessionResumeFailed(session: CastSession, error: Int) = connectionLost()
         override fun onSessionSuspended(session: CastSession, reason: Int) = connectionLost()
         override fun onSessionEnding(session: CastSession) = Unit

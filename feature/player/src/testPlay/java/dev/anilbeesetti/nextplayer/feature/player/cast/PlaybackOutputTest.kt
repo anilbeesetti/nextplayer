@@ -4,8 +4,10 @@ import androidx.media3.common.MediaItem
 import androidx.media3.common.Player
 import androidx.media3.common.SimpleBasePlayer
 import androidx.media3.exoplayer.ExoPlayer
+import com.google.android.gms.cast.MediaError
 import com.google.android.gms.cast.framework.CastSession
 import com.google.android.gms.cast.framework.SessionManagerListener
+import com.google.android.gms.cast.framework.media.RemoteMediaClient
 import dev.anilbeesetti.nextplayer.feature.player.MiniPlayerTestPlayer
 import dev.anilbeesetti.nextplayer.feature.player.service.PlaybackConnection
 import dev.anilbeesetti.nextplayer.feature.player.service.PlaybackPresentation
@@ -20,6 +22,7 @@ import org.mockito.Mockito.mock
 import org.robolectric.RobolectricTestRunner
 import org.robolectric.RuntimeEnvironment
 import org.robolectric.annotation.Config
+import org.robolectric.shadows.ShadowToast
 
 @RunWith(RobolectricTestRunner::class)
 @Config(sdk = [28])
@@ -84,6 +87,28 @@ class PlaybackOutputTest {
                 publications.last().connection,
             )
         }
+    }
+
+    @Test fun receiverMediaErrorWhileConnectingReturnsToPhoneWithMessage() {
+        local.setMediaItems(
+            items,
+            1,
+            32_000,
+        )
+        local.playWhenReady = true
+        listener.onSessionStarting(session)
+        val errors = field("receiverErrors").get(output) as RemoteMediaClient.Callback
+        errors.onMediaError(MediaError.Builder().setDetailedErrorCode(102).build())
+        assertEquals(
+            PlaybackConnection.LOCAL,
+            publications.last().connection,
+        )
+        assertEquals(
+            32_000,
+            local.currentPosition,
+        )
+        assertTrue(local.playWhenReady)
+        assertTrue(ShadowToast.getTextOfLatestToast().isNotEmpty())
     }
 
     @Test fun unexpectedLossTransfersLiveQueueToPhonePaused() {
