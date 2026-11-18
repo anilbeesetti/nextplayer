@@ -103,19 +103,21 @@ class VideoThumbnailDecoder(
         // Cache miss OR cache insufficient: decode fresh thumbnail
         val rawBitmap = MediaMetadataRetriever().use { nativeRetriever ->
             MediaThumbnailRetriever().use { ffmpegRetriever ->
-                nativeRetriever.setDataSource(source = source)
+                val systemRetriever = runCatching {
+                    nativeRetriever.apply { setDataSource(source = source) }
+                }.getOrNull()
                 val fallbackRetriever = try {
                     ffmpegRetriever.setDataSource(source = source)
                     ffmpegRetriever
                 } catch (_: IllegalArgumentException) {
-                    // FFmpeg can fail to reopen a trashed MediaStore descriptor even
-                    // when the native retriever can read it. Keep native decoding available.
+                    // Either reader can reject a source the other one supports.
                     null
                 }
 
                 // First, try to get embedded picture (album art/metadata thumbnail)
                 val embeddedPicture =
-                    nativeRetriever.embeddedPicture ?: fallbackRetriever?.getEmbeddedPicture()
+                    runCatching { systemRetriever?.embeddedPicture }.getOrNull()
+                        ?: fallbackRetriever?.getEmbeddedPicture()
                 val embeddedPictureBitmap = embeddedPicture?.let { pictureBytes ->
                     BitmapFactory.decodeByteArray(
                         pictureBytes,
@@ -126,28 +128,30 @@ class VideoThumbnailDecoder(
 
                 if (embeddedPictureBitmap != null) return@use embeddedPictureBitmap
 
-                val videoDuration = nativeRetriever
-                    .extractMetadata(MediaMetadataRetriever.METADATA_KEY_DURATION)
-                    ?.toLongOrNull() ?: 0L
+                val videoDuration = runCatching {
+                    systemRetriever?.extractMetadata(MediaMetadataRetriever.METADATA_KEY_DURATION)
+                        ?.toLongOrNull()?.takeIf { it > 0 }
+                }.getOrNull() ?: fallbackRetriever?.durationMillis ?: 0L
+
+                fun frameAt(timeUs: Long): Bitmap? =
+                    runCatching { systemRetriever?.getFrameAtTime(timeUs) }.getOrNull()
+                        ?: fallbackRetriever?.getFrameAtTime(timeUs)
 
                 return@use when (strategy) {
                     is ThumbnailStrategy.FirstFrame -> {
-                        nativeRetriever.getFrameAtTime(0)
-                            ?: fallbackRetriever?.getFrameAtTime(timeUs = 0)
+                        frameAt(0)
                     }
 
                     is ThumbnailStrategy.FrameAtPercentage -> {
                         val timeUs = (videoDuration * strategy.percentage * 1000).toLong()
-                        nativeRetriever.getFrameAtTime(timeUs)
-                            ?: fallbackRetriever?.getFrameAtTime(timeUs = timeUs)
+                        frameAt(timeUs)
                     }
 
                     is ThumbnailStrategy.Hybrid -> {
-                        val firstFrame = nativeRetriever.getFrameAtTime(0)
+                        val firstFrame = frameAt(0)
                         if (firstFrame == null || isSolidColor(bitmap = firstFrame)) {
                             val timeUs = (videoDuration * strategy.percentage * 1000).toLong()
-                            nativeRetriever.getFrameAtTime(timeUs)
-                                ?: fallbackRetriever?.getFrameAtTime(timeUs = timeUs)
+                            frameAt(timeUs)
                         } else {
                             firstFrame
                         }

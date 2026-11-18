@@ -58,6 +58,7 @@ dependencies {
         )
     }
     implementation(libs.androidx.media3.datasource)
+    implementation(libs.github.anilbeesetti.nextlib.mediainfo)
 
     // Koin
     implementation(libs.koin.core)

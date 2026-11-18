@@ -8,10 +8,12 @@ import android.net.Uri
 import android.os.Build
 import android.os.Bundle
 import android.provider.MediaStore
+import android.util.LruCache
 import androidx.annotation.RequiresApi
 import dev.anilbeesetti.nextplayer.core.common.di.DiQualifiers
 import dev.anilbeesetti.nextplayer.core.common.extensions.VIDEO_COLLECTION_URI
 import dev.anilbeesetti.nextplayer.core.common.extensions.prettyName
+import io.github.anilbeesetti.nextlib.mediainfo.MediaInfoBuilder
 import java.io.File
 import kotlin.time.Duration.Companion.milliseconds
 import kotlinx.coroutines.CoroutineScope
@@ -42,6 +44,10 @@ class MediaStoreMediaService(
     private val context: Context,
     @Named(DiQualifiers.APPLICATION_SCOPE) private val applicationScope: CoroutineScope,
 ) : MediaService {
+
+    private data class MetadataKey(val uri: Uri, val size: Long, val modified: Long)
+    private data class VideoMetadata(val duration: Long, val width: Int, val height: Int)
+    private val missingMetadata = LruCache<MetadataKey, VideoMetadata>(256)
 
     companion object {
         private const val OBSERVER_DEBOUNCE_MS = 250L
@@ -325,6 +331,49 @@ class MediaStoreMediaService(
             size = getLong(sizeIndex),
             dateModified = getLong(dateModifiedIndex),
             dateAdded = getLong(dateAddedIndex),
+        ).withMissingMetadata()
+    }
+
+    private fun MediaVideo.withMissingMetadata(): MediaVideo {
+        // shortcut: probe on IO; use background indexing if incomplete files slow initial scans.
+        if (duration > 0 && width > 0 && height > 0) return this
+        val key = MetadataKey(
+            uri,
+            size,
+            dateModified,
+        )
+        val metadata = synchronized(missingMetadata) {
+            missingMetadata.get(key) ?: try {
+                context.contentResolver.openFileDescriptor(
+                    uri,
+                    "r",
+                )?.use { descriptor ->
+                    val info = MediaInfoBuilder().from(descriptor).build() ?: return@use null
+                    try {
+                        VideoMetadata(
+                            duration = info.duration.coerceAtLeast(0),
+                            width = info.videoStream?.frameWidth ?: 0,
+                            height = info.videoStream?.frameHeight ?: 0,
+                        ).also {
+                            if (it.duration > 0 && it.width > 0 && it.height > 0) {
+                                missingMetadata.put(
+                                    key,
+                                    it,
+                                )
+                            }
+                        }
+                    } finally {
+                        info.release()
+                    }
+                }
+            } catch (_: Exception) {
+                null
+            }
+        } ?: return this
+        return copy(
+            duration = duration.takeIf { it > 0 } ?: metadata.duration,
+            width = width.takeIf { it > 0 } ?: metadata.width,
+            height = height.takeIf { it > 0 } ?: metadata.height,
         )
     }
 }
