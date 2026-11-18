@@ -103,7 +103,7 @@ Decoder selection and recovery passed, but FFmpeg visual playback did not.
 items marked for FFmpeg extraction. Adaptive streams and DRM keep the standard source
 factory. Unrecognized progressive input in AUTO tries HW+ once; explicit SW can likewise
 retry extraction without changing its decoder. The extraction flag is separate from the
-requested decoder and survives switching from HW+ to SW. Selecting HW restores the
+requested decoder and survives switching from HW+ to SW or AUTO. Selecting HW restores the
 standard extractor. A source change recreates only the current item, preserving paused
 position, playback intent and shuffle order. Synthetic same-item reloads do not reset
 recovery queues.

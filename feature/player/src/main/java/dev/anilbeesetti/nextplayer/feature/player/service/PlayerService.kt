@@ -400,7 +400,8 @@ class PlayerService : MediaSessionService() {
         override fun onPlayerError(error: PlaybackException) {
             if (!error.isDecoderFailure) {
                 decoderRecoveryManager.onNonDecoderError()
-                val item = mediaSession?.player?.currentMediaItem
+                val sourcePlayer = mediaSession?.player
+                val item = sourcePlayer?.currentMediaItem
                 val retryStandardReader = item?.usesFfmpegExtractor == true &&
                     item.mediaMetadata.videoDecoderMode == DecoderMode.HW_PLUS &&
                     generateSequence<Throwable>(error) { it.cause }.any {
@@ -418,14 +419,22 @@ class PlayerService : MediaSessionService() {
                         it is UnrecognizedInputFormatException
                     }
                 if (item != null && (retryStandardReader || retryFfmpegReader)) {
+                    val windowUid = sourcePlayer.currentTimeline.getWindow(
+                        sourcePlayer.currentMediaItemIndex,
+                        Timeline.Window(),
+                    ).uid
                     serviceScope.launch {
                         val player = mediaSession?.player ?: return@launch
-                        val current = player.currentMediaItem
-                        if (current != item ||
-                            current?.mediaMetadata?.videoDecoderMode !=
+                        val current = player.currentMediaItem ?: return@launch
+                        if (player !== sourcePlayer || player.playerError !== error ||
+                            player.currentTimeline.isEmpty ||
+                            player.currentTimeline.getWindow(
+                                player.currentMediaItemIndex,
+                                Timeline.Window(),
+                            ).uid != windowUid ||
+                            current.mediaMetadata.videoDecoderMode !=
                             item.mediaMetadata.videoDecoderMode ||
-                            current?.mediaMetadata?.ffmpegExtraction !=
-                            item.mediaMetadata.ffmpegExtraction
+                            current.usesFfmpegExtractor != item.usesFfmpegExtractor
                         ) {
                             return@launch
                         }
@@ -438,8 +447,8 @@ class PlayerService : MediaSessionService() {
                             )
                             return@launch
                         }
-                        if (item.mediaMetadata.videoDecoderMode == DecoderMode.FFMPEG) {
-                            reloadSource(item.copy(ffmpegExtraction = true))
+                        if (current.mediaMetadata.videoDecoderMode == DecoderMode.FFMPEG) {
+                            reloadSource(current.copy(ffmpegExtraction = true))
                         } else {
                             selectDecoder(
                                 DecoderTrackType.VIDEO,
@@ -1338,8 +1347,11 @@ class PlayerService : MediaSessionService() {
                     videoDecoderMode = mode,
                     ffmpegExtraction = when (mode) {
                         DecoderMode.HW_PLUS -> true
-                        DecoderMode.HARDWARE, DecoderMode.AUTO -> false
-                        DecoderMode.FFMPEG -> mediaItem.mediaMetadata.ffmpegExtraction
+
+                        DecoderMode.HARDWARE -> false
+
+                        DecoderMode.AUTO, DecoderMode.FFMPEG ->
+                            mediaItem.mediaMetadata.ffmpegExtraction
                     },
                 )
 

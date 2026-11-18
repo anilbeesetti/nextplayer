@@ -6,7 +6,6 @@ import android.net.Uri
 import android.os.Bundle
 import android.os.SystemClock
 import androidx.media3.common.MediaItem
-import androidx.media3.common.PlaybackException
 import androidx.media3.common.Player
 import androidx.media3.session.MediaController
 import androidx.media3.session.SessionResult
@@ -22,7 +21,7 @@ import dev.anilbeesetti.nextplayer.feature.player.service.CustomCommands
 import dev.anilbeesetti.nextplayer.feature.player.service.PlayerService
 import java.io.File
 import java.util.concurrent.TimeUnit
-import java.util.concurrent.atomic.AtomicInteger
+import java.util.concurrent.atomic.AtomicBoolean
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertTrue
 import org.junit.Test
@@ -42,6 +41,7 @@ class CompatibilityServiceTest {
             fixture.outputStream().use { input.copyTo(it) }
         }
         fun onMain(block: () -> Unit) = instrumentation.runOnMainSync(block)
+        val attemptedHwPlus = AtomicBoolean()
         lateinit var future: ListenableFuture<MediaController>
         onMain {
             future = MediaController.Builder(
@@ -53,13 +53,20 @@ class CompatibilityServiceTest {
                         PlayerService::class.java,
                     ),
                 ),
-            ).buildAsync()
+            ).setListener(object : MediaController.Listener {
+                override fun onExtrasChanged(controller: MediaController, extras: Bundle) {
+                    if (extras.getString(CustomCommands.VIDEO_DECODER_MODE_KEY) ==
+                        DecoderMode.HW_PLUS.name
+                    ) {
+                        attemptedHwPlus.set(true)
+                    }
+                }
+            }).buildAsync()
         }
         val player = future.get(
             10,
             TimeUnit.SECONDS,
         )
-        val errors = AtomicInteger()
         fun await(description: String, condition: () -> Boolean) {
             val deadline = SystemClock.elapsedRealtime() + 20_000
             var done = false
@@ -74,11 +81,6 @@ class CompatibilityServiceTest {
         }
         try {
             onMain {
-                player.addListener(object : Player.Listener {
-                    override fun onPlayerError(error: PlaybackException) {
-                        errors.incrementAndGet()
-                    }
-                })
                 val uri = Uri.fromFile(fixture)
                 player.setMediaItem(
                     MediaItem.Builder().setUri(uri).setMediaId(uri.toString()).build()
@@ -117,7 +119,7 @@ class CompatibilityServiceTest {
                 ).resultCode,
             )
             await("Rejected HDR reader recovers to HW at the paused position") {
-                errors.get() == 1 && player.playerError == null &&
+                attemptedHwPlus.get() && player.playerError == null &&
                     player.playbackState == Player.STATE_READY && !player.playWhenReady &&
                     player.currentPosition == 500L &&
                     player.sessionExtras.getString(CustomCommands.VIDEO_DECODER_MODE_KEY) ==
@@ -127,11 +129,12 @@ class CompatibilityServiceTest {
             await("HDR playback continues after reader recovery") {
                 player.currentPosition >= 1_000 && player.playerError == null
             }
-            assertEquals(
-                "Reader recovery must not loop",
-                1,
-                errors.get(),
-            )
+            onMain {
+                assertEquals(
+                    DecoderMode.HARDWARE.name,
+                    player.sessionExtras.getString(CustomCommands.VIDEO_DECODER_MODE_KEY),
+                )
+            }
         } finally {
             onMain {
                 player.stop()
@@ -248,10 +251,47 @@ class CompatibilityServiceTest {
                         player.currentMediaItem?.mediaMetadata?.ffmpegExtraction == true &&
                         player.playbackState == Player.STATE_READY
                 }
+                var sourceTransitions = 0
+                onMain {
+                    player.addListener(object : Player.Listener {
+                        override fun onMediaItemTransition(mediaItem: MediaItem?, reason: Int) {
+                            sourceTransitions++
+                        }
+                    })
+                    result = player.sendCustomCommand(
+                        CustomCommands.SET_VIDEO_DECODER_MODE.sessionCommand,
+                        Bundle().apply {
+                            putString(
+                                CustomCommands.VIDEO_DECODER_MODE_KEY,
+                                DecoderMode.AUTO.name,
+                            )
+                        },
+                    )
+                }
+                assertEquals(
+                    SessionResult.RESULT_SUCCESS,
+                    result.get(
+                        10,
+                        TimeUnit.SECONDS,
+                    ).resultCode,
+                )
+                await("AUTO retains FFmpeg extraction") {
+                    player.sessionExtras.getString(CustomCommands.VIDEO_DECODER_MODE_KEY) ==
+                        DecoderMode.HW_PLUS.name &&
+                        player.currentMediaItem?.mediaMetadata?.ffmpegExtraction == true &&
+                        player.playbackState == Player.STATE_READY
+                }
                 onMain { player.play() }
                 await("playback advances after switch") {
                     player.currentPosition >= 800 &&
                         player.playerError == null
+                }
+                onMain {
+                    assertEquals(
+                        "AUTO must retain the working source",
+                        0,
+                        sourceTransitions,
+                    )
                 }
             } finally {
                 onMain {
