@@ -552,4 +552,7 @@
     <string name="reset_subtitle_position_desc">Subtiitrite liigutamiseks lohista neid esitamise ajal üles või alla</string>
     <string name="settings_export_credentials_warning">See JSON-fail pole krüptitud. Selles võib leiduda salasõnu ja SSH privaatvõtmeid. Hoia faili turvaliselt.</string>
     <string name="settings_import_confirmation">Selles failis leiduvad seadistused kirjutavad üle sinu praegused seadistused. Puuduvad, vananenud, tundmatud või vigased kirjed jäetakse tähelepanuta. Samuti imporditakse võrguühendused ja autentimisandmed, kui need on failis olemas.</string>
+    <string name="decoder_mode_hardware_plus">HW+</string>
+    <string name="decoder_system_description">Androidi süsteemsed dekoodrid (riistvaralised või tarkvaralised)</string>
+    <string name="decoder_hardware_plus_description">FFmpeg-i konteinerilugeja koos Androidi süsteemi dekooderitega</string>
 </resources>
