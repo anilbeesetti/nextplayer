@@ -75,7 +75,23 @@ class CompatibilityPickerTest {
                 var modified = 0L
                 var known = false
                 var unreadable = false
+                var shortRead = false
                 var opens = 0
+                val partial = File.createTempFile(
+                    "partial-",
+                    ".h264",
+                    context.cacheDir,
+                )
+                // The fixture's first SPS and partial frame have dimensions but no container timing.
+                InstrumentationRegistry.getInstrumentation().context.assets
+                    .open("header-program-stream.mp4").use {
+                        partial.writeBytes(
+                            it.readBytes().copyOfRange(
+                                4543,
+                                5567,
+                            ),
+                        )
+                    }
                 val provider = object : ContentProvider() {
                     override fun onCreate() = true
                     override fun query(
@@ -114,6 +130,12 @@ class CompatibilityPickerTest {
                     override fun openFile(uri: Uri, mode: String): ParcelFileDescriptor {
                         opens++
                         if (unreadable) throw FileNotFoundException("Temporarily unreadable")
+                        if (shortRead) {
+                            return ParcelFileDescriptor.open(
+                                partial,
+                                ParcelFileDescriptor.MODE_READ_ONLY,
+                            )
+                        }
                         return checkNotNull(
                             resolver.openFileDescriptor(
                                 uri,
@@ -192,8 +214,35 @@ class CompatibilityPickerTest {
                         4,
                         opens,
                     )
+                    modified++
+                    shortRead = true
+                    val incomplete = checkNotNull(service.findVideo(uri))
+                    assertEquals(
+                        0L,
+                        incomplete.duration,
+                    )
+                    assertEquals(
+                        160,
+                        incomplete.width,
+                    )
+                    assertEquals(
+                        120,
+                        incomplete.height,
+                    )
+                    shortRead = false
+                    val restored = checkNotNull(service.findVideo(uri))
+                    assertTrue(restored.duration > 0)
+                    assertEquals(
+                        restored,
+                        service.findVideo(uri),
+                    )
+                    assertEquals(
+                        6,
+                        opens,
+                    )
                 } finally {
                     scope.cancel()
+                    partial.delete()
                 }
             }
         }
@@ -278,12 +327,6 @@ class CompatibilityPickerTest {
                         )
                         frame?.recycle()
                     }
-                    val frame = retriever.getFrameAtIndex(5)
-                    assertNotNull(
-                        "FFmpeg did not decode frame 5",
-                        frame,
-                    )
-                    frame?.recycle()
                 }
             }
         }

@@ -355,10 +355,12 @@ class MediaStoreMediaService(
                             width = info.videoStream?.frameWidth ?: 0,
                             height = info.videoStream?.frameHeight ?: 0,
                         ).also {
-                            missingMetadata.put(
-                                key,
-                                it,
-                            )
+                            if (it.duration > 0 && it.width > 0 && it.height > 0) {
+                                missingMetadata.put(
+                                    key,
+                                    it,
+                                )
+                            }
                         }
                     } finally {
                         info.release()
