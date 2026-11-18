@@ -14,6 +14,7 @@ import androidx.media3.common.C
 import androidx.media3.common.MediaItem
 import androidx.media3.common.MediaMetadata
 import androidx.media3.common.MimeTypes
+import androidx.media3.common.ParserException
 import androidx.media3.common.PlaybackException
 import androidx.media3.common.Player
 import androidx.media3.common.Player.DISCONTINUITY_REASON_AUTO_TRANSITION
@@ -27,6 +28,7 @@ import androidx.media3.datasource.DataSourceBitmapLoader
 import androidx.media3.exoplayer.ExoPlaybackException
 import androidx.media3.exoplayer.ExoPlayer
 import androidx.media3.exoplayer.analytics.AnalyticsListener
+import androidx.media3.exoplayer.source.UnrecognizedInputFormatException
 import androidx.media3.exoplayer.trackselection.DefaultTrackSelector
 import androidx.media3.session.CommandButton
 import androidx.media3.session.CommandButton.ICON_UNDEFINED
@@ -399,7 +401,12 @@ class PlayerService : MediaSessionService() {
             if (!error.isDecoderFailure) {
                 decoderRecoveryManager.onNonDecoderError()
                 val item = mediaSession?.player?.currentMediaItem
-                if (item != null && !item.mediaMetadata.ffmpegExtraction &&
+                val retryStandardReader = item?.usesFfmpegExtractor == true &&
+                    item.mediaMetadata.videoDecoderMode == DecoderMode.HW_PLUS &&
+                    generateSequence<Throwable>(error) { it.cause }.any {
+                        it is ParserException
+                    }
+                val retryFfmpegReader = item != null && !item.mediaMetadata.ffmpegExtraction &&
                     item.copy(videoDecoderMode = DecoderMode.HW_PLUS).usesFfmpegExtractor &&
                     item.mediaMetadata.videoDecoderMode in
                     listOf(
@@ -408,9 +415,9 @@ class PlayerService : MediaSessionService() {
                         DecoderMode.FFMPEG,
                     ) &&
                     generateSequence<Throwable>(error) { it.cause }.any {
-                        it is androidx.media3.exoplayer.source.UnrecognizedInputFormatException
+                        it is UnrecognizedInputFormatException
                     }
-                ) {
+                if (item != null && (retryStandardReader || retryFfmpegReader)) {
                     serviceScope.launch {
                         val player = mediaSession?.player ?: return@launch
                         val current = player.currentMediaItem
@@ -420,6 +427,15 @@ class PlayerService : MediaSessionService() {
                             current?.mediaMetadata?.ffmpegExtraction !=
                             item.mediaMetadata.ffmpegExtraction
                         ) {
+                            return@launch
+                        }
+                        if (retryStandardReader) {
+                            retryDecoderWith(
+                                DecoderRetry(
+                                    DecoderTrackType.VIDEO,
+                                    DecoderMode.HARDWARE,
+                                ),
+                            )
                             return@launch
                         }
                         if (item.mediaMetadata.videoDecoderMode == DecoderMode.FFMPEG) {
@@ -1330,8 +1346,7 @@ class PlayerService : MediaSessionService() {
                 DecoderTrackType.AUDIO -> mediaItem.copy(audioDecoderMode = mode)
             }
             if (trackType == DecoderTrackType.VIDEO &&
-                mediaItem.mediaMetadata.ffmpegExtraction !=
-                updatedItem.mediaMetadata.ffmpegExtraction
+                mediaItem.usesFfmpegExtractor != updatedItem.usesFfmpegExtractor
             ) {
                 reloadSource(updatedItem)
             } else {

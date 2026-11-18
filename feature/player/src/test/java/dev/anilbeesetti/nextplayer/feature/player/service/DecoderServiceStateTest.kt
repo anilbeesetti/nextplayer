@@ -18,6 +18,21 @@ import org.robolectric.annotation.Config
 )
 class DecoderServiceStateTest {
     @Test
+    fun legacySoftwareModeUsesSystemDecoding() {
+        val key = CustomCommands.VIDEO_DECODER_MODE_KEY
+        val extras = Bundle().apply {
+            putString(
+                key,
+                "SOFTWARE",
+            )
+        }
+        assertEquals(
+            DecoderMode.HARDWARE,
+            extras.decoderMode(key),
+        )
+    }
+
+    @Test
     fun extrasCarryActiveModesAndRecoveryWithoutPlayerEvents() {
         val extras = Bundle().apply {
             putString(

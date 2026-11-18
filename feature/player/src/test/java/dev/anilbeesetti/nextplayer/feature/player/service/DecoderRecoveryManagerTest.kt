@@ -75,7 +75,7 @@ class DecoderRecoveryManagerTest {
     }
 
     @Test
-    fun explicitSystemRequiresConfirmationThenTriesCompatibilityAndFfmpeg() {
+    fun explicitSystemRequiresConfirmationThenTriesFfmpegDirectly() {
         val manager = DecoderRecoveryManager()
         manager.onUserSelection(
             trackType = video,
@@ -98,21 +98,11 @@ class DecoderRecoveryManagerTest {
         assertEquals(
             DecoderRetry(
                 trackType = video,
-                DecoderMode.HW_PLUS,
+                DecoderMode.FFMPEG,
             ),
             manager.confirmFallback(),
         )
         assertNull(manager.confirmFallback())
-        assertEquals(
-            DecoderRetry(
-                trackType = video,
-                DecoderMode.FFMPEG,
-            ),
-            manager.onDecoderFailure(
-                trackType = video,
-                DecoderMode.HW_PLUS,
-            ),
-        )
         assertNull(
             manager.onDecoderFailure(
                 trackType = video,
@@ -251,7 +241,7 @@ class DecoderRecoveryManagerTest {
         assertEquals(
             DecoderRetry(
                 trackType = video,
-                DecoderMode.HW_PLUS,
+                DecoderMode.FFMPEG,
             ),
             manager.confirmFallback(),
         )

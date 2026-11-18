@@ -33,7 +33,7 @@ internal class DecoderRecoveryManager {
 
         recovery.failedMode = mode
         if (recovery.fallbackModes == null) {
-            recovery.fallbackModes = ArrayDeque(mode.fallbackModes(trackType))
+            recovery.fallbackModes = ArrayDeque(mode.fallbackModes())
         }
         if (recovery.fallbackModes.isNullOrEmpty()) {
             recovery.state = DecoderRecoveryState(
@@ -115,20 +115,8 @@ private class TrackRecovery {
     }
 }
 
-private fun DecoderMode.fallbackModes(trackType: DecoderTrackType): List<DecoderMode> =
-    when (this) {
-        DecoderMode.AUTO -> listOf(DecoderMode.FFMPEG)
-
-        DecoderMode.HARDWARE -> if (trackType == DecoderTrackType.AUDIO) {
-            listOf(DecoderMode.FFMPEG)
-        } else {
-            listOf(
-                DecoderMode.HW_PLUS,
-                DecoderMode.FFMPEG,
-            )
-        }
-
-        DecoderMode.HW_PLUS -> listOf(DecoderMode.FFMPEG)
-
-        DecoderMode.FFMPEG -> listOf(DecoderMode.AUTO)
-    }
+private fun DecoderMode.fallbackModes(): List<DecoderMode> = when (this) {
+    DecoderMode.AUTO -> listOf(DecoderMode.FFMPEG)
+    DecoderMode.HARDWARE, DecoderMode.HW_PLUS -> listOf(DecoderMode.FFMPEG)
+    DecoderMode.FFMPEG -> listOf(DecoderMode.AUTO)
+}

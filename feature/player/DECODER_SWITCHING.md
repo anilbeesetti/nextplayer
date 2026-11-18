@@ -45,8 +45,7 @@ duplicate failures for the same attempt are ignored.
 | Failed selection | Next attempts |
 | --- | --- |
 | `AUTO` | Silently try `FFMPEG` |
-| Explicit video `HARDWARE` | Confirm, then `HW_PLUS`, then `FFMPEG` |
-| Explicit audio `HARDWARE` | Confirm, then `FFMPEG` |
+| Explicit `HARDWARE` | Confirm, then `FFMPEG` |
 | Explicit `HW_PLUS` | Confirm, then `FFMPEG` |
 | Explicit `FFMPEG` | Confirm, then `AUTO` |
 | Exhausted queue | Show the player error dialog |
@@ -113,8 +112,14 @@ Live decoder labels come from session extras. Media3 ignores metadata extras whe
 comparing media items, so a controller's metadata-only timeline snapshot can remain
 stale after a decoder selection. Do not use that snapshot as live decoder state.
 
+Decoder failures in HW retry SW directly: HW and HW+ share the same system decoders.
+If explicit HW+ extraction rejects a container (including HDR), retry the standard HW
+reader once, retaining position and pause state. Explicit HW does not automatically
+retry HW+, preventing a reader-recovery loop. Adaptive/DRM source selection remains
+unchanged when a requested mode only changes the extraction flag.
+
 This requires NextLib `1.11.1-0.19.0` containing NextLib PR #237 (`hwplus`, `eeb78cf`).
-Until that version is published, supply its source through `nextlibPath` for validation.
+Normal builds resolve the published artifact; `nextlibPath` is only for local source validation.
 It adds libavformat to media3ext. Its own `FFMPEG_EXTRACTION.md` documents the single-reader
 I/O contract, supported formats, fatal native I/O errors and HDR limitation (use HW).
 No APK/native binaries or personal recording are checked into either repository.

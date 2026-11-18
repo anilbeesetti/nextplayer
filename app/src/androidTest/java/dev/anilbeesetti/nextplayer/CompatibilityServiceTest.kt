@@ -6,6 +6,7 @@ import android.net.Uri
 import android.os.Bundle
 import android.os.SystemClock
 import androidx.media3.common.MediaItem
+import androidx.media3.common.PlaybackException
 import androidx.media3.common.Player
 import androidx.media3.session.MediaController
 import androidx.media3.session.SessionResult
@@ -13,6 +14,7 @@ import androidx.media3.session.SessionToken
 import androidx.test.ext.junit.runners.AndroidJUnit4
 import androidx.test.platform.app.InstrumentationRegistry
 import com.google.common.util.concurrent.ListenableFuture
+import dev.anilbeesetti.nextplayer.feature.player.extensions.copy
 import dev.anilbeesetti.nextplayer.feature.player.extensions.ffmpegExtraction
 import dev.anilbeesetti.nextplayer.feature.player.extensions.videoDecoderMode
 import dev.anilbeesetti.nextplayer.feature.player.model.DecoderMode
@@ -20,6 +22,7 @@ import dev.anilbeesetti.nextplayer.feature.player.service.CustomCommands
 import dev.anilbeesetti.nextplayer.feature.player.service.PlayerService
 import java.io.File
 import java.util.concurrent.TimeUnit
+import java.util.concurrent.atomic.AtomicInteger
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertTrue
 import org.junit.Test
@@ -27,6 +30,124 @@ import org.junit.runner.RunWith
 
 @RunWith(AndroidJUnit4::class)
 class CompatibilityServiceTest {
+    @Test
+    fun rejectedHdrReaderReturnsToSystemAndPreservesPausedPosition() {
+        val instrumentation = InstrumentationRegistry.getInstrumentation()
+        val context = instrumentation.targetContext
+        val fixture = File(
+            context.cacheDir,
+            "compatibility-hdr.mp4",
+        )
+        instrumentation.context.assets.open(fixture.name).use { input ->
+            fixture.outputStream().use { input.copyTo(it) }
+        }
+        fun onMain(block: () -> Unit) = instrumentation.runOnMainSync(block)
+        lateinit var future: ListenableFuture<MediaController>
+        onMain {
+            future = MediaController.Builder(
+                context,
+                SessionToken(
+                    context,
+                    ComponentName(
+                        context,
+                        PlayerService::class.java,
+                    ),
+                ),
+            ).buildAsync()
+        }
+        val player = future.get(
+            10,
+            TimeUnit.SECONDS,
+        )
+        val errors = AtomicInteger()
+        fun await(description: String, condition: () -> Boolean) {
+            val deadline = SystemClock.elapsedRealtime() + 20_000
+            var done = false
+            while (!done && SystemClock.elapsedRealtime() < deadline) {
+                onMain { done = condition() }
+                if (!done) SystemClock.sleep(50)
+            }
+            assertTrue(
+                description,
+                done,
+            )
+        }
+        try {
+            onMain {
+                player.addListener(object : Player.Listener {
+                    override fun onPlayerError(error: PlaybackException) {
+                        errors.incrementAndGet()
+                    }
+                })
+                val uri = Uri.fromFile(fixture)
+                player.setMediaItem(
+                    MediaItem.Builder().setUri(uri).setMediaId(uri.toString()).build()
+                        .copy(videoDecoderMode = DecoderMode.HARDWARE),
+                )
+                player.prepare()
+                player.play()
+            }
+            await("HDR plays through the standard reader") {
+                player.playbackState == Player.STATE_READY && player.currentPosition >= 200
+            }
+            onMain {
+                player.pause()
+                player.seekTo(500)
+            }
+            await("HDR paused at 500ms") {
+                player.playbackState == Player.STATE_READY && player.currentPosition == 500L
+            }
+            lateinit var result: ListenableFuture<SessionResult>
+            onMain {
+                result = player.sendCustomCommand(
+                    CustomCommands.SET_VIDEO_DECODER_MODE.sessionCommand,
+                    Bundle().apply {
+                        putString(
+                            CustomCommands.VIDEO_DECODER_MODE_KEY,
+                            DecoderMode.HW_PLUS.name,
+                        )
+                    },
+                )
+            }
+            assertEquals(
+                SessionResult.RESULT_SUCCESS,
+                result.get(
+                    10,
+                    TimeUnit.SECONDS,
+                ).resultCode,
+            )
+            await("Rejected HDR reader recovers to HW at the paused position") {
+                errors.get() == 1 && player.playerError == null &&
+                    player.playbackState == Player.STATE_READY && !player.playWhenReady &&
+                    player.currentPosition == 500L &&
+                    player.sessionExtras.getString(CustomCommands.VIDEO_DECODER_MODE_KEY) ==
+                    DecoderMode.HARDWARE.name
+            }
+            onMain { player.play() }
+            await("HDR playback continues after reader recovery") {
+                player.currentPosition >= 1_000 && player.playerError == null
+            }
+            assertEquals(
+                "Reader recovery must not loop",
+                1,
+                errors.get(),
+            )
+        } finally {
+            onMain {
+                player.stop()
+                player.clearMediaItems()
+                player.release()
+            }
+            context.stopService(
+                Intent(
+                    context,
+                    PlayerService::class.java,
+                ),
+            )
+            fixture.delete()
+        }
+    }
+
     @Test
     fun unrecognizedRecordingFallsBackAndRetainsExtractionWhenSwitchingToSoftware() {
         val instrumentation = InstrumentationRegistry.getInstrumentation()
