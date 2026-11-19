@@ -552,4 +552,7 @@
     <string name="settings_import_invalid">Δεν ήταν δυνατή η ανάγνωση αυτού του αρχείου ή δεν περιέχει υποστηριζόμενες ρυθμίσεις JSON</string>
     <string name="reset_subtitle_position">Επαναφορά θέσης υποτίτλων</string>
     <string name="reset_subtitle_position_desc">Σύρετε τους υπότιτλους προς τα πάνω ή προς τα κάτω κατά την αναπαραγωγή για να τους μετακινήσετε</string>
+    <string name="decoder_mode_hardware_plus">HW+</string>
+    <string name="decoder_system_description">Αποκωδικοποιητές συστήματος Android (υλικό ή λογισμικό)</string>
+    <string name="decoder_hardware_plus_description">Αναγνώστης κοντέινερ FFmpeg με αποκωδικοποιητές συστήματος Android</string>
 </resources>
