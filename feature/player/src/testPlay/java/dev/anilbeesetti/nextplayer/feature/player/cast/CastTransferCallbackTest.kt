@@ -329,6 +329,15 @@ class CastTransferCallbackTest {
             12_000L,
             remote.currentPosition,
         )
+        val subtitle = MediaItem.SubtitleConfiguration.Builder(
+            android.net.Uri.parse("file:///added.vtt"),
+        )
+            .setId("added").build()
+        remote.replaceMediaItem(
+            0,
+            checkNotNull(remote.currentMediaItem).buildUpon()
+                .setSubtitleConfigurations(listOf(subtitle)).build(),
+        )
         remote.seekTo(45_000)
         val saved = callback.snapshotForPhone(remote)
         callback.transferState(
@@ -357,6 +366,10 @@ class CastTransferCallbackTest {
         assertEquals(
             saved.currentMediaItemIndex,
             local.currentMediaItemIndex,
+        )
+        assertEquals(
+            listOf(subtitle),
+            local.currentMediaItem?.localConfiguration?.subtitleConfigurations,
         )
         assertEquals(
             saved.playWhenReady,

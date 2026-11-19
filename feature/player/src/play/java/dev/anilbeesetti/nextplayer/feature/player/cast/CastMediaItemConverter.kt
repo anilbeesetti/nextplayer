@@ -9,17 +9,23 @@ import android.widget.Toast
 import androidx.core.content.getSystemService
 import androidx.media3.cast.DefaultMediaItemConverter
 import androidx.media3.cast.MediaItemConverter
+import androidx.media3.common.C
 import androidx.media3.common.MediaItem
+import androidx.media3.common.MimeTypes
 import androidx.media3.common.util.UnstableApi
 import com.google.android.gms.cast.MediaInfo
 import com.google.android.gms.cast.MediaQueueItem
+import com.google.android.gms.cast.MediaTrack
 import dev.anilbeesetti.nextplayer.core.ui.R
+import dev.anilbeesetti.nextplayer.feature.player.extensions.CAST_SUBTITLE_TRACK_ID_BASE
+import dev.anilbeesetti.nextplayer.feature.player.extensions.getSubtitleMime
 import java.net.Inet4Address
 
 @UnstableApi
 internal class CastMediaItemConverter(
     private val context: Context,
     private val server: LocalCastServer,
+    private val audioPatch: (Uri) -> MatroskaTrackPatch? = { null },
 ) : MediaItemConverter {
     private val delegate = DefaultMediaItemConverter()
     private val originals = mutableMapOf<String, MediaItem>()
@@ -42,34 +48,33 @@ internal class CastMediaItemConverter(
         val original = item.buildUpon().setMimeType(mimeType).build()
         val defaultInfo = checkNotNull(delegate.toMediaQueueItem(original).media)
         originals[key(item)] = item
-        val url = if (uri.scheme in setOf(
-                "http",
-                "https",
+        val url = receiverUrl(
+            uri,
+            mimeType,
+            headerPatch = audioPatch(uri),
+        )
+        val subtitles = configuration.subtitleConfigurations
+        val tracks = subtitles.mapIndexed { index, subtitle ->
+            val type = subtitle.mimeType ?: subtitle.uri.getSubtitleMime()
+            val convert = type != MimeTypes.TEXT_VTT && type != MimeTypes.APPLICATION_TTML
+            MediaTrack.Builder(
+                CAST_SUBTITLE_TRACK_ID_BASE + index,
+                MediaTrack.TYPE_TEXT,
             )
-        ) {
-            uri.toString()
-        } else {
-            try {
-                require(
-                    uri.scheme in setOf(
-                        "content",
-                        "file",
+                .setSubtype(MediaTrack.SUBTYPE_SUBTITLES)
+                .setContentId(
+                    receiverUrl(
+                        subtitle.uri,
+                        if (convert) MimeTypes.TEXT_VTT else type,
+                        type.takeIf {
+                            convert
+                        },
                     ),
                 )
-                server.register(
-                    uri,
-                    mimeType,
-                    host ?: localAddress().also { host = it },
-                )
-            } catch (_: Exception) {
-                Toast.makeText(
-                    context,
-                    R.string.cast_transfer_failed,
-                    Toast.LENGTH_LONG,
-                ).show()
-                // An unreadable URI becomes a receiver playback error, never a sender crash.
-                uri.toString()
-            }
+                .setContentType(if (convert) MimeTypes.TEXT_VTT else type)
+                .setName(subtitle.label)
+                .setLanguage(subtitle.language)
+                .build()
         }
         // Keep the original URI in customData, so transfer back never opens our HTTP URL.
         val info = MediaInfo.Builder(defaultInfo.contentId)
@@ -78,9 +83,54 @@ internal class CastMediaItemConverter(
             .setStreamType(defaultInfo.streamType)
             .setMetadata(defaultInfo.metadata)
             .setCustomData(defaultInfo.customData)
+            .setMediaTracks(tracks)
             .apply { item.mediaMetadata.durationMs?.let { setStreamDuration(it) } }
             .build()
-        return MediaQueueItem.Builder(info).build()
+        val selected = subtitles.indexOfFirst {
+            it.selectionFlags and C.SELECTION_FLAG_DEFAULT != 0
+        }
+        return MediaQueueItem.Builder(info)
+            .apply { if (selected >= 0) setActiveTrackIds(longArrayOf(tracks[selected].id)) }
+            .build()
+    }
+
+    private fun receiverUrl(
+        uri: Uri,
+        mimeType: String,
+        subtitleMimeType: String? = null,
+        headerPatch: MatroskaTrackPatch? = null,
+    ): String = if (subtitleMimeType == null && headerPatch == null && uri.scheme in setOf(
+            "http",
+            "https",
+        )
+    ) {
+        uri.toString()
+    } else {
+        try {
+            require(
+                uri.scheme in setOf(
+                    "content",
+                    "file",
+                    "http",
+                    "https",
+                ),
+            )
+            server.register(
+                uri,
+                mimeType,
+                host ?: localAddress().also { host = it },
+                subtitleMimeType,
+                headerPatch,
+            )
+        } catch (_: Exception) {
+            Toast.makeText(
+                context,
+                R.string.cast_transfer_failed,
+                Toast.LENGTH_LONG,
+            ).show()
+            // An unreadable URI becomes a receiver playback error, never a sender crash.
+            uri.toString()
+        }
     }
 
     fun clear() {

@@ -1,5 +1,8 @@
 package dev.anilbeesetti.nextplayer.feature.player.extensions
 
+import androidx.media3.common.C
+import androidx.media3.common.DeviceInfo
+import androidx.media3.common.ForwardingPlayer
 import androidx.media3.common.MediaItem
 import androidx.media3.common.MimeTypes
 import androidx.media3.common.Player
@@ -17,6 +20,83 @@ import org.robolectric.RuntimeEnvironment
 
 @RunWith(RobolectricTestRunner::class)
 class PlayerTest {
+    @Test
+    fun remoteSubtitleReloadKeepsQueuePositionAndPlayStateAndSelectsOnlyNewSubtitle() {
+        val local = ExoPlayer.Builder(RuntimeEnvironment.getApplication()).build()
+        val remote = object : ForwardingPlayer(local) {
+            override fun getDeviceInfo() =
+                DeviceInfo.Builder(DeviceInfo.PLAYBACK_TYPE_REMOTE).build()
+        }
+        try {
+            val previous = MediaItem.SubtitleConfiguration.Builder(
+                android.net.Uri.parse("file:///old.vtt"),
+            )
+                .setId("old").setSelectionFlags(C.SELECTION_FLAG_DEFAULT).build()
+            val items = listOf(
+                "before",
+                "current",
+                "after",
+            ).map {
+                MediaItem.Builder().setMediaId(it).setUri("file:///$it.mp4")
+                    .setSubtitleConfigurations(
+                        listOf(previous),
+                    ).build().copy(subtitleTrackIndex = 7)
+            }
+            remote.setMediaItems(
+                items,
+                1,
+                12_000,
+            )
+            for (playing in listOf(
+                false,
+                true,
+            )) {
+                remote.playWhenReady = playing
+                remote.addAdditionalSubtitleConfiguration(
+                    MediaItem.SubtitleConfiguration.Builder(
+                        android.net.Uri.parse("file:///new-$playing.srt"),
+                    )
+                        .setId("new-$playing").build(),
+                )
+                assertEquals(
+                    items.map {
+                        it.mediaId
+                    },
+                    (0 until remote.mediaItemCount).map { remote.getMediaItemAt(it).mediaId },
+                )
+                assertEquals(
+                    1,
+                    remote.currentMediaItemIndex,
+                )
+                assertEquals(
+                    12_000L,
+                    remote.currentPosition,
+                )
+                assertEquals(
+                    playing,
+                    remote.playWhenReady,
+                )
+                assertEquals(
+                    7,
+                    remote.currentMediaItem?.mediaMetadata?.subtitleTrackIndex,
+                )
+                val subtitles = checkNotNull(
+                    remote.currentMediaItem?.localConfiguration,
+                ).subtitleConfigurations
+                assertEquals(
+                    "new-$playing",
+                    subtitles.single {
+                        it.selectionFlags and
+                            C.SELECTION_FLAG_DEFAULT !=
+                            0
+                    }.id,
+                )
+            }
+        } finally {
+            remote.release()
+        }
+    }
+
     @Test
     fun addingSubtitleReloadsOnlyCurrentSourceAndPreservesPlaybackState() {
         val context = RuntimeEnvironment.getApplication()

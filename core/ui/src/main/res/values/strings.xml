@@ -236,6 +236,7 @@
     <string name="open_audio">Open local audio</string>
     <string name="error_opening_audio">Can’t open this audio file</string>
     <string name="open_subtitle">Open local subtitle</string>
+    <string name="error_opening_subtitle">Can’t open this subtitle file</string>
     <string name="no_subtitle_tracks_found">Subtitle tracks for this video are either unavailable or not supported.</string>
     <string name="no_audio_tracks_found">Audio tracks for this video are either unavailable or not supported.</string>
     <string name="rename">Rename</string>
@@ -584,6 +585,7 @@
     <string name="undo">Undo</string>
     <string name="connecting_to_device">Connecting to %1$s</string>
     <string name="cast_connection_lost">Connection to %1$s lost</string>
+    <string name="cast_media_unsupported">%1$s can’t play this video’s format</string>
     <string name="player_controls_shuffle">Shuffle</string>
     <string name="player_controls_repeat">Repeat</string>
     <string name="queue_next_up">Next up</string>

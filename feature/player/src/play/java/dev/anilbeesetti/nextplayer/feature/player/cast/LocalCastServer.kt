@@ -10,6 +10,7 @@ import androidx.media3.common.util.UnstableApi
 import androidx.media3.datasource.DataSource
 import androidx.media3.datasource.DataSourceInputStream
 import androidx.media3.datasource.DataSpec
+import com.google.common.io.ByteStreams
 import fi.iki.elonen.NanoHTTPD
 import java.io.IOException
 import java.util.UUID
@@ -35,7 +36,12 @@ internal class LocalCastServer(
             "NextPlayer:LocalCast",
         )
         ?.apply { setReferenceCounted(false) }
-    private data class Resource(val uri: Uri, val mimeType: String)
+    private data class Resource(
+        val uri: Uri,
+        val mimeType: String,
+        val subtitleMimeType: String?,
+        val headerPatch: MatroskaTrackPatch?,
+    )
     private val resources = ConcurrentHashMap<String, Resource>()
 
     init {
@@ -47,7 +53,14 @@ internal class LocalCastServer(
     }
 
     @Synchronized
-    fun register(uri: Uri, mimeType: String, host: String): String {
+    fun register(
+        uri: Uri,
+        mimeType: String,
+        host: String,
+        subtitleMimeType: String? = null,
+        headerPatch: MatroskaTrackPatch? = null,
+    ): String {
+        require(subtitleMimeType == null || headerPatch == null)
         if (!isAlive) {
             try {
                 start(
@@ -64,6 +77,8 @@ internal class LocalCastServer(
         val resource = Resource(
             uri,
             mimeType,
+            subtitleMimeType,
+            headerPatch,
         )
         val path = resources.entries.firstOrNull { it.value == resource }?.key
             ?: "/${UUID.randomUUID()}".also { resources[it] = resource }
@@ -94,6 +109,43 @@ internal class LocalCastServer(
         }
         var input: DataSourceInputStream? = null
         return try {
+            if (resource.subtitleMimeType != null) {
+                val bytes = DataSourceInputStream(
+                    dataSourceFactory.createDataSource(),
+                    DataSpec(resource.uri),
+                ).use {
+                    ByteStreams.limit(
+                        it,
+                        MAX_SUBTITLE_BYTES.toLong() + 1,
+                    ).readBytes()
+                }
+                if (bytes.size > MAX_SUBTITLE_BYTES) return error(Response.Status.PAYLOAD_TOO_LARGE)
+                val vtt = castWebVtt(
+                    bytes,
+                    resource.subtitleMimeType,
+                )
+                return newFixedLengthResponse(
+                    Response.Status.OK,
+                    resource.mimeType,
+                    if (session.method ==
+                        Method.HEAD
+                    ) {
+                        java.io.ByteArrayInputStream(byteArrayOf())
+                    } else {
+                        vtt.inputStream()
+                    },
+                    vtt.size.toLong(),
+                ).apply {
+                    addHeader(
+                        "Access-Control-Allow-Origin",
+                        "*",
+                    )
+                    addHeader(
+                        "Cache-Control",
+                        "no-store",
+                    )
+                }
+            }
             val source = dataSourceFactory.createDataSource()
             val total = try {
                 source.open(DataSpec(resource.uri))
@@ -129,17 +181,21 @@ internal class LocalCastServer(
                     it.open()
                 }
             }
+            val body = resource.headerPatch?.wrap(
+                stream,
+                start,
+            ) ?: stream
             val response = if (length == C.LENGTH_UNSET.toLong()) {
                 newChunkedResponse(
                     status,
                     resource.mimeType,
-                    stream,
+                    body,
                 )
             } else {
                 newFixedLengthResponse(
                     status,
                     resource.mimeType,
-                    stream,
+                    body,
                     length,
                 )
             }
@@ -171,6 +227,9 @@ internal class LocalCastServer(
         } catch (_: SecurityException) {
             input?.close()
             error(Response.Status.FORBIDDEN)
+        } catch (_: IllegalArgumentException) {
+            input?.close()
+            error(Response.Status.BAD_REQUEST)
         }
     }
 
@@ -180,6 +239,8 @@ internal class LocalCastServer(
         "",
     )
 }
+
+private const val MAX_SUBTITLE_BYTES = 8 * 1024 * 1024
 
 /** RFC 9110 single byte ranges, including open-ended and suffix ranges. */
 internal fun byteRange(header: String, size: Long): LongRange? {

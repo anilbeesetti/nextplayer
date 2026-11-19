@@ -8,8 +8,10 @@ import android.net.NetworkCapabilities
 import android.net.Uri
 import android.os.Bundle
 import android.webkit.MimeTypeMap
+import androidx.media3.common.C
 import androidx.media3.common.MediaItem
 import androidx.media3.common.MediaMetadata
+import androidx.media3.common.MimeTypes
 import androidx.media3.datasource.ByteArrayDataSource
 import androidx.media3.datasource.DataSource
 import dev.anilbeesetti.nextplayer.feature.player.extensions.withExternalAudio
@@ -88,13 +90,26 @@ class CastMediaItemConverterTest {
                 )
             },
         )
-        val item = item("content://media/external/video/media/42")
+        val item = item(
+            "content://media/external/video/media/42",
+        ).buildUpon().setSubtitleConfigurations(
+            listOf(
+                MediaItem.SubtitleConfiguration.Builder(Uri.parse("file:///movie.srt"))
+                    .setMimeType(MimeTypes.APPLICATION_SUBRIP).build(),
+            ),
+        ).build()
         val queueItem = converter.toMediaQueueItem(item)
         val info = checkNotNull(queueItem.media)
         assertTrue(checkNotNull(info.contentUrl).startsWith("http://192.168.1.12:"))
         assertEquals(
             "video/mp4",
             info.contentType,
+        )
+        val subtitle = checkNotNull(info.mediaTracks).single()
+        assertTrue(checkNotNull(subtitle.contentId).startsWith("http://192.168.1.12:"))
+        assertEquals(
+            MimeTypes.TEXT_VTT,
+            subtitle.contentType,
         )
         assertEquals(
             120_000L,
@@ -103,6 +118,31 @@ class CastMediaItemConverterTest {
         assertSame(
             item,
             converter.toMediaItem(queueItem),
+        )
+        val originalMkv = item.buildUpon().setUri(
+            "file:///movie.mkv",
+        ).setMimeType("video/x-matroska").build()
+        val preparedConverter = CastMediaItemConverter(
+            context,
+            server,
+        ) {
+            MatroskaTrackPatch(
+                0,
+                byteArrayOf(1),
+            )
+        }
+        val prepared = preparedConverter.toMediaQueueItem(originalMkv)
+        assertEquals(
+            "video/x-matroska",
+            prepared.media?.contentType,
+        )
+        assertNotEquals(
+            info.contentUrl,
+            prepared.media?.contentUrl,
+        )
+        assertSame(
+            originalMkv,
+            preparedConverter.toMediaItem(prepared),
         )
         converter.clear()
         assertEquals(
@@ -162,6 +202,45 @@ class CastMediaItemConverterTest {
     }
 
     @Test
+    fun externalSubtitlesHaveReceiverTracksAndDefaultSelection() {
+        val subtitle = MediaItem.SubtitleConfiguration.Builder(
+            Uri.parse("https://example.com/captions.vtt"),
+        )
+            .setMimeType(MimeTypes.TEXT_VTT).setLabel("English").setLanguage("en")
+            .setSelectionFlags(C.SELECTION_FLAG_DEFAULT).build()
+        val item = item(
+            "https://example.com/video.mp4",
+        ).buildUpon().setSubtitleConfigurations(listOf(subtitle)).build()
+        val queueItem = converter.toMediaQueueItem(item)
+        val track = checkNotNull(queueItem.media?.mediaTracks).single()
+        assertEquals(
+            subtitle.uri.toString(),
+            track.contentId,
+        )
+        assertEquals(
+            MimeTypes.TEXT_VTT,
+            track.contentType,
+        )
+        assertEquals(
+            "English",
+            track.name,
+        )
+        assertEquals(
+            "en",
+            track.language,
+        )
+        assertTrue(checkNotNull(queueItem.activeTrackIds).contentEquals(longArrayOf(track.id)))
+        assertSame(
+            item,
+            converter.toMediaItem(queueItem),
+        )
+        assertEquals(
+            -1,
+            server.listeningPort,
+        )
+    }
+
+    @Test
     fun differentUrisWithDefaultMediaIdsKeepTheirOwnItems() {
         val first = item("https://example.com/first.mp4").buildUpon().setMediaId("").build()
         val second = item("https://example.com/second.mp4").buildUpon().setMediaId("").build()
@@ -185,9 +264,6 @@ class CastMediaItemConverterTest {
         .setMediaId(uri)
         .setUri(Uri.parse(uri))
         .setMimeType("video/mp4")
-        .setSubtitleConfigurations(
-            listOf(MediaItem.SubtitleConfiguration.Builder(Uri.parse("file:///movie.srt")).build()),
-        )
         .setMediaMetadata(
             MediaMetadata.Builder()
                 .setTitle("Local movie")

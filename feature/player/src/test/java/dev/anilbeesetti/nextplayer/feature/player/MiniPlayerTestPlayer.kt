@@ -7,11 +7,13 @@ import androidx.media3.common.MediaItem
 import androidx.media3.common.MediaMetadata
 import androidx.media3.common.Player
 import androidx.media3.common.SimpleBasePlayer
+import androidx.media3.common.TrackSelectionParameters
 import com.google.common.util.concurrent.Futures
 import com.google.common.util.concurrent.ListenableFuture
 
 internal class MiniPlayerTestPlayer : SimpleBasePlayer(Looper.getMainLooper()) {
     val seeks = mutableListOf<Int>()
+    var selectedTracks: TrackSelectionParameters? = null
     private var state = State.Builder()
         .setAvailableCommands(
             Player.Commands.Builder().addAll(
@@ -62,6 +64,14 @@ internal class MiniPlayerTestPlayer : SimpleBasePlayer(Looper.getMainLooper()) {
     }
 
     override fun getState(): State = state
+    override fun handleRelease(): ListenableFuture<*> = Futures.immediateVoidFuture()
+    override fun handleSetTrackSelectionParameters(
+        parameters: TrackSelectionParameters,
+    ): ListenableFuture<*> {
+        selectedTracks = parameters
+        state = state.buildUpon().setTrackSelectionParameters(parameters).build()
+        return Futures.immediateVoidFuture()
+    }
     override fun handleSetPlayWhenReady(playWhenReady: Boolean): ListenableFuture<*> {
         state = state.buildUpon().setPlayWhenReady(
             playWhenReady,

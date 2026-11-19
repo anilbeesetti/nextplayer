@@ -3,6 +3,7 @@ package dev.anilbeesetti.nextplayer.feature.player.cast
 import android.content.Context
 import android.net.Uri
 import android.net.wifi.WifiManager
+import androidx.media3.common.MimeTypes
 import androidx.media3.datasource.ByteArrayDataSource
 import androidx.media3.datasource.DataSource
 import java.net.HttpURLConnection
@@ -36,6 +37,145 @@ class LocalCastServerTest {
 
     @After
     fun tearDown() = server.stop()
+
+    @Test
+    fun subtitlesAreConvertedOffThePlaybackThreadAndServedWithCors() {
+        val subtitles = LocalCastServer(
+            RuntimeEnvironment.getApplication(),
+            DataSource.Factory {
+                ByteArrayDataSource("1\n00:00:01,000 --> 00:00:02,000\nHello\n".toByteArray())
+            },
+        )
+        try {
+            val url = subtitles.register(
+                uri,
+                MimeTypes.TEXT_VTT,
+                "127.0.0.1",
+                MimeTypes.APPLICATION_SUBRIP,
+            )
+            (URL(url).openConnection() as HttpURLConnection).useResponse {
+                assertEquals(
+                    200,
+                    responseCode,
+                )
+                assertEquals(
+                    MimeTypes.TEXT_VTT,
+                    contentType,
+                )
+                assertEquals(
+                    "*",
+                    getHeaderField("Access-Control-Allow-Origin"),
+                )
+                assertEquals(
+                    "WEBVTT\n\n00:00:01.000 --> 00:00:02.000\nHello\n\n",
+                    inputStream.bufferedReader().readText(),
+                )
+            }
+        } finally {
+            subtitles.stop()
+        }
+    }
+
+    @Test
+    fun headerOverlayPreservesRangesLengthAndPreviouslyRegisteredUrls() {
+        val original = server.register(
+            uri,
+            "video/x-matroska",
+            "127.0.0.1",
+        )
+        val replacement = byteArrayOf(
+            11,
+            22,
+            33,
+            44,
+        )
+        val patch = MatroskaTrackPatch(
+            123,
+            replacement,
+        )
+        val patched = server.register(
+            uri,
+            "video/x-matroska",
+            "127.0.0.1",
+            headerPatch = patch,
+        )
+        assertNotEquals(
+            original,
+            patched,
+        )
+        assertEquals(
+            patched,
+            server.register(
+                uri,
+                "video/x-matroska",
+                "127.0.0.1",
+                headerPatch = patch,
+            ),
+        )
+        val expected = bytes.copyOf().apply {
+            replacement.copyInto(
+                this,
+                123,
+            )
+        }
+        (URL(patched).openConnection() as HttpURLConnection).useResponse {
+            assertEquals(
+                bytes.size.toLong(),
+                contentLengthLong,
+            )
+            assertEquals(
+                "video/x-matroska",
+                contentType,
+            )
+            assertArrayEquals(
+                expected,
+                inputStream.readBytes(),
+            )
+        }
+        for (range in listOf(
+            100..150,
+            124..125,
+            0..10,
+            254000..254020,
+        )) {
+            (URL(patched).openConnection() as HttpURLConnection).apply {
+                setRequestProperty(
+                    "Range",
+                    "bytes=${range.first}-${range.last}",
+                )
+            }.useResponse {
+                assertEquals(
+                    206,
+                    responseCode,
+                )
+                assertArrayEquals(
+                    expected.copyOfRange(
+                        range.first,
+                        range.last + 1,
+                    ),
+                    inputStream.readBytes(),
+                )
+            }
+        }
+        (URL(patched).openConnection() as HttpURLConnection).apply {
+            requestMethod = "HEAD"
+        }.useResponse {
+            assertEquals(
+                bytes.size.toLong(),
+                contentLengthLong,
+            )
+            assertEquals(
+                0,
+                inputStream.readBytes().size,
+            )
+        }
+        (URL(original).openConnection() as HttpURLConnection).useResponse {
+            assertArrayEquals(
+                bytes,
+                inputStream.readBytes(),
+            )
+        }
+    }
 
     @Test
     fun getStreamsCompleteVideoWithMimeAndLength() {

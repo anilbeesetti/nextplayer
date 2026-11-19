@@ -49,8 +49,9 @@ suspend fun Context.uriToSubtitleConfiguration(
     } else {
         null
     }
-    val subtitleLabel = label ?: filename ?: getFilenameFromUri(uri)
-    val mimeType = (filename?.let(Uri::parse) ?: uri).getSubtitleMime()
+    val subtitleFilename = filename ?: getFilenameFromUri(uri)
+    val subtitleLabel = label ?: subtitleFilename
+    val mimeType = Uri.parse(subtitleFilename).getSubtitleMime()
     val utf8ConvertedUri = if (useMediaSourceForNetwork && uri.scheme in listOf(
             "http",
             "https",

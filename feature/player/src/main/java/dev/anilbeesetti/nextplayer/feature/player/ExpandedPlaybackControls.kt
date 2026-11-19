@@ -143,6 +143,7 @@ internal fun ExpandedPlaybackControls(
     metadataModifier: Modifier = Modifier,
     headerModifier: Modifier = Modifier,
     queueSheet: PlaybackQueueSheet = rememberPlaybackQueueSheet(),
+    onTracks: (Int) -> Unit = {},
     audioOutput: Int = CustomCommands.SYSTEM_AUDIO_OUTPUT,
 ) {
     val artworkAspectRatio = LocalControlsArtworkAspectRatio.current
@@ -256,12 +257,24 @@ internal fun ExpandedPlaybackControls(
                     controlsTranslationY,
                 ),
             ) {
-                PlaybackModeControls(
-                    player,
-                    snapshot,
-                    controlsEnabled,
-                    onStop,
-                )
+                Column {
+                    PlaybackModeControls(
+                        player,
+                        snapshot,
+                        controlsEnabled,
+                        onStop,
+                    )
+                    // Background playback has no subtitles to show, so only Cast offers them.
+                    PlaybackTrackControls(
+                        enabled = controlsEnabled &&
+                            snapshot.commands.contains(Player.COMMAND_GET_TRACKS) &&
+                            snapshot.commands.contains(
+                                Player.COMMAND_SET_TRACK_SELECTION_PARAMETERS,
+                            ),
+                        showSubtitles = snapshot.isRemote,
+                        onTracks = onTracks,
+                    )
+                }
             }
         }
     }

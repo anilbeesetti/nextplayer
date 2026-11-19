@@ -60,6 +60,7 @@ enum class CustomCommands(val customAction: String) {
         const val BACKGROUND_DURATION_KEY = "background_duration"
         const val AUDIO_TRACK_URI_KEY = "audio_track_uri"
         const val SUBTITLE_TRACK_URI_KEY = "subtitle_track_uri"
+        const val SUBTITLE_MEDIA_ID_KEY = "subtitle_media_id"
         const val SKIP_SILENCE_ENABLED_KEY = "skip_silence_enabled"
         const val IS_SCRUBBING_MODE_ENABLED_KEY = "is_scrubbing_mode_enabled"
         const val SUBTITLE_DELAY_KEY = "subtitle_delay"
@@ -91,17 +92,21 @@ suspend fun MediaController.addAudioTrack(uri: Uri): Boolean {
     ).await().resultCode == SessionResult.RESULT_SUCCESS
 }
 
-fun MediaController.addSubtitleTrack(uri: Uri) {
+suspend fun MediaController.addSubtitleTrack(uri: Uri): Boolean {
     val args = Bundle().apply {
         putString(
             CustomCommands.SUBTITLE_TRACK_URI_KEY,
             uri.toString(),
         )
+        putString(
+            CustomCommands.SUBTITLE_MEDIA_ID_KEY,
+            currentMediaItem?.mediaId,
+        )
     }
-    sendCustomCommand(
+    return sendCustomCommand(
         CustomCommands.ADD_SUBTITLE_TRACK.sessionCommand,
         args,
-    )
+    ).await().resultCode == SessionResult.RESULT_SUCCESS
 }
 
 suspend fun MediaController.setSkipSilenceEnabled(enabled: Boolean) {

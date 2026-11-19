@@ -345,11 +345,22 @@ class PlayerActivity : ComponentActivity() {
                     initialUri = currentMediaDirectory(),
                 ),
             ) ?: return@launch
-            contentResolver.takePersistableUriPermission(
-                uri,
-                Intent.FLAG_GRANT_READ_URI_PERMISSION,
-            )
-            snapshotFlow { mediaController }.filterNotNull().first().addSubtitleTrack(uri = uri)
+            val added = try {
+                contentResolver.takePersistableUriPermission(
+                    uri,
+                    Intent.FLAG_GRANT_READ_URI_PERMISSION,
+                )
+                snapshotFlow { mediaController }.filterNotNull().first().addSubtitleTrack(uri = uri)
+            } catch (_: SecurityException) {
+                false
+            }
+            if (!added) {
+                Toast.makeText(
+                    this@PlayerActivity,
+                    coreUiR.string.error_opening_subtitle,
+                    Toast.LENGTH_LONG,
+                ).show()
+            }
         }
     }
 
