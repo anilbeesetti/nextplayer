@@ -542,4 +542,7 @@
     <string name="github_sponsors">GitHub Sponsors</string>
     <string name="reset_subtitle_position">重置字幕位置</string>
     <string name="reset_subtitle_position_desc">播放时上下拖动字幕可移动它们</string>
+    <string name="decoder_mode_hardware_plus">HW+</string>
+    <string name="decoder_system_description">Android 系统解码器 (硬件或软件)</string>
+    <string name="decoder_hardware_plus_description">含 Android 系统解码器的 FFmpeg 容器读取程序</string>
 </resources>
