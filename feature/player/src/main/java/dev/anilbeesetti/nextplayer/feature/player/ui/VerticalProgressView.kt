@@ -80,7 +80,7 @@ internal fun VerticalProgressView(
 
     Column(
         modifier = modifier
-            .heightIn(max = if (useMaterialYouControls) 250.dp else 220.dp)
+            .heightIn(max = 220.dp)
             .clip(shape = CircleShape)
             .background(backgroundColor)
             .padding(8.dp),
