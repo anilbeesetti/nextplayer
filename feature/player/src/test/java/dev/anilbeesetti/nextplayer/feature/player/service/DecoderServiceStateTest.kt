@@ -18,6 +18,22 @@ import org.robolectric.annotation.Config
 )
 class DecoderServiceStateTest {
     @Test
+    fun initializedDolbyAudioDecodersUseSystemMode() {
+        assertEquals(
+            DecoderMode.HARDWARE,
+            "c2.dolby.eac3.decoder.eac3".audioDecoderMode(),
+        )
+        assertEquals(
+            DecoderMode.HARDWARE,
+            "c2.dolby.eac3.decoder.eac3-joc".audioDecoderMode(),
+        )
+        assertEquals(
+            DecoderMode.FFMPEG,
+            "ffmpeg8.0-eac3".audioDecoderMode(),
+        )
+    }
+
+    @Test
     fun legacySoftwareModeUsesSystemDecoding() {
         val key = CustomCommands.VIDEO_DECODER_MODE_KEY
         val extras = Bundle().apply {
