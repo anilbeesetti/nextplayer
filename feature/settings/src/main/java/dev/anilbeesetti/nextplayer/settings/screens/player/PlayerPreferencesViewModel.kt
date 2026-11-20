@@ -82,6 +82,8 @@ class PlayerPreferencesViewModel(
 
             is PlayerPreferencesUiEvent.ToggleUseMaterialYouControls ->
                 toggleUseMaterialYouControls()
+
+            is PlayerPreferencesUiEvent.ToggleHideStatusBar -> toggleHideStatusBar()
         }
     }
 
@@ -182,6 +184,14 @@ class PlayerPreferencesViewModel(
             }
         }
     }
+
+    private fun toggleHideStatusBar() {
+        viewModelScope.launch {
+            preferencesRepository.updatePlayerPreferences {
+                it.copy(hideStatusBar = !it.hideStatusBar)
+            }
+        }
+    }
 }
 
 @Stable
@@ -207,6 +217,7 @@ sealed interface PlayerPreferencesUiEvent {
     data object ToggleAutoBackgroundPlay : PlayerPreferencesUiEvent
     data object ToggleRememberBrightnessLevel : PlayerPreferencesUiEvent
     data object ToggleRememberSelections : PlayerPreferencesUiEvent
+    data object ToggleHideStatusBar : PlayerPreferencesUiEvent
     data class UpdatePreferredPlayerOrientation(val value: ScreenOrientation) :
         PlayerPreferencesUiEvent
     data class UpdatePreferredControlButtonsPosition(val value: ControlButtonsPosition) :
