@@ -54,15 +54,17 @@ internal class DecoderRecoveryManager {
         mode: DecoderMode,
         canTryHwPlus: Boolean = false,
         requestedMode: DecoderMode = mode,
+        retrySoftwareReader: Boolean = false,
         showConfirmation: Boolean = true,
     ): DecoderRetry? {
         val recovery = recoveryFor(trackType)
         val failedMode = if (trackType == DecoderTrackType.VIDEO) mode.videoBackend else mode
-        if (!recovery.failedModes.add(failedMode)) return null
+        if (!retrySoftwareReader && !recovery.failedModes.add(failedMode)) return null
 
         val candidates = when (trackType) {
             DecoderTrackType.VIDEO -> listOfNotNull(
-                recovery.lastWorkingMode,
+                DecoderMode.FFMPEG.takeIf { retrySoftwareReader },
+                recovery.lastWorkingMode?.takeUnless { it == DecoderMode.HW_PLUS && !canTryHwPlus },
                 when (failedMode) {
                     DecoderMode.HARDWARE -> DecoderMode.HW_PLUS.takeIf { canTryHwPlus }
                     DecoderMode.HW_PLUS, DecoderMode.FFMPEG -> DecoderMode.HARDWARE
@@ -92,7 +94,7 @@ internal class DecoderRecoveryManager {
             fallbackMode,
         )
         recovery.pendingRetry = retry
-        if (recovery.requiresConfirmation && showConfirmation) {
+        if (recovery.requiresConfirmation && showConfirmation && !retrySoftwareReader) {
             recovery.state = DecoderRecoveryState(
                 status = DecoderRecoveryStatus.AWAITING_CONFIRMATION,
                 trackType = trackType,

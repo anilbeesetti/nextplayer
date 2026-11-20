@@ -425,7 +425,8 @@ class PlayerService : MediaSessionService() {
                 primaryParserError -> DecoderTrackType.VIDEO
                 else -> null
             }
-            if (primaryParserError && item?.usesFfmpegExtractor == true) ffmpegReaderFailed = true
+            val rejectedFfmpegReader = primaryParserError && item?.usesFfmpegExtractor == true
+            if (rejectedFfmpegReader) ffmpegReaderFailed = true
             if (trackType == null) {
                 decoderRecoveryManager.onNonDecoderError()
                 publishDecoderState()
@@ -433,6 +434,8 @@ class PlayerService : MediaSessionService() {
             }
             handleDecoderFailure(
                 trackType = trackType,
+                retrySoftwareReader =
+                    rejectedFfmpegReader && item?.videoDecoderBackend == DecoderMode.FFMPEG,
                 initializing =
                     error.errorCode == PlaybackException.ERROR_CODE_DECODER_INIT_FAILED ||
                         !isMediaItemReady,
@@ -1293,7 +1296,11 @@ class PlayerService : MediaSessionService() {
         handleDecoderFailure(trackType = trackType)
     }
 
-    private fun handleDecoderFailure(trackType: DecoderTrackType, initializing: Boolean = false) {
+    private fun handleDecoderFailure(
+        trackType: DecoderTrackType,
+        initializing: Boolean = false,
+        retrySoftwareReader: Boolean = false,
+    ) {
         val item = mediaSession?.player?.currentMediaItem ?: return
         val mode = when (trackType) {
             DecoderTrackType.VIDEO -> item.videoDecoderBackend
@@ -1313,7 +1320,8 @@ class PlayerService : MediaSessionService() {
                 mode
             },
             // shortcut: use source eligibility until NextLib exposes native codec compatibility.
-            canTryHwPlus = trackType == DecoderTrackType.VIDEO &&
+            retrySoftwareReader = retrySoftwareReader,
+            canTryHwPlus = trackType == DecoderTrackType.VIDEO && !ffmpegReaderFailed &&
                 item.copy(videoDecoderMode = DecoderMode.HW_PLUS).usesFfmpegExtractor,
             showConfirmation =
                 trackType == DecoderTrackType.AUDIO || initializing || recentVideoSelection,

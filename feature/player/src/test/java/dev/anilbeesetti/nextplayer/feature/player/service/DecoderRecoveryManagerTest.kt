@@ -15,6 +15,50 @@ class DecoderRecoveryManagerTest {
     private val audio = DecoderTrackType.AUDIO
 
     @Test
+    fun softwareRetriesTheReaderBeforeMarkingTheDecoderFailed() {
+        val manager = DecoderRecoveryManager()
+        manager.onUserSelection(
+            video,
+            DecoderMode.FFMPEG,
+        )
+        val retry = checkNotNull(
+            manager.onDecoderFailure(
+                video,
+                DecoderMode.FFMPEG,
+                retrySoftwareReader = true,
+            ),
+        )
+        assertEquals(
+            DecoderRetry(
+                video,
+                DecoderMode.FFMPEG,
+            ),
+            retry,
+        )
+        assertTrue(manager.takeRetry(retry))
+        assertEquals(
+            DecoderRetry(
+                video,
+                DecoderMode.HARDWARE,
+            ),
+            manager.onDecoderFailure(
+                video,
+                DecoderMode.FFMPEG,
+            ),
+        )
+        assertNull(
+            manager.onDecoderFailure(
+                video,
+                DecoderMode.HARDWARE,
+            ),
+        )
+        assertEquals(
+            DecoderRecoveryStatus.FAILED,
+            manager.state.status,
+        )
+    }
+
+    @Test
     fun manualHwPlusOnSystemReaderReenablesHardwareAndReportsRequestedMode() {
         val manager = DecoderRecoveryManager()
         assertNotNull(

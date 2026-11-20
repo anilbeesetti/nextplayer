@@ -144,6 +144,21 @@ class CompatibilityServiceTest {
                     player.sessionExtras.getString(CustomCommands.VIDEO_DECODER_MODE_KEY),
                 )
             }
+            onMain {
+                player.setMediaItem(
+                    MediaItem.Builder().setUri(
+                        Uri.fromFile(fixture),
+                    ).setMediaId("direct-software-hdr").build()
+                        .copy(videoDecoderMode = DecoderMode.FFMPEG),
+                )
+                player.prepare()
+            }
+            await("SW recovers from FFmpeg reader rejection using the standard reader") {
+                player.playerError == null && player.playbackState == Player.STATE_READY &&
+                    player.currentMediaItem?.mediaMetadata?.ffmpegExtraction == false &&
+                    player.sessionExtras.getString(CustomCommands.VIDEO_DECODER_MODE_KEY) ==
+                    DecoderMode.FFMPEG.name
+            }
         } finally {
             onMain {
                 player.stop()
