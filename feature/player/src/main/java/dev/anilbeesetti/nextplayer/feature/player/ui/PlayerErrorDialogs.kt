@@ -29,7 +29,9 @@ internal fun PlayerErrorDialogs(
         recoveryTrackType != null
     ) {
         AlertDialog(
-            onDismissRequest = {},
+            onDismissRequest = {
+                if (recoveryTrackType == DecoderTrackType.VIDEO) onTryDecoderFallback()
+            },
             title = { Text(text = stringResource(coreUiR.string.decoder)) },
             text = {
                 Text(

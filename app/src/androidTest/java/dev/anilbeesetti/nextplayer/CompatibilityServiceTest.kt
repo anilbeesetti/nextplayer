@@ -17,11 +17,11 @@ import dev.anilbeesetti.nextplayer.feature.player.extensions.copy
 import dev.anilbeesetti.nextplayer.feature.player.extensions.ffmpegExtraction
 import dev.anilbeesetti.nextplayer.feature.player.extensions.videoDecoderMode
 import dev.anilbeesetti.nextplayer.feature.player.model.DecoderMode
+import dev.anilbeesetti.nextplayer.feature.player.model.DecoderRecoveryStatus
 import dev.anilbeesetti.nextplayer.feature.player.service.CustomCommands
 import dev.anilbeesetti.nextplayer.feature.player.service.PlayerService
 import java.io.File
 import java.util.concurrent.TimeUnit
-import java.util.concurrent.atomic.AtomicBoolean
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertTrue
 import org.junit.Test
@@ -30,7 +30,7 @@ import org.junit.runner.RunWith
 @RunWith(AndroidJUnit4::class)
 class CompatibilityServiceTest {
     @Test
-    fun rejectedHdrReaderReturnsToSystemAndPreservesPausedPosition() {
+    fun rejectedHdrReaderWaitsForAcknowledgmentThenRestartsPausedInHardware() {
         val instrumentation = InstrumentationRegistry.getInstrumentation()
         val context = instrumentation.targetContext
         val fixture = File(
@@ -41,7 +41,6 @@ class CompatibilityServiceTest {
             fixture.outputStream().use { input.copyTo(it) }
         }
         fun onMain(block: () -> Unit) = instrumentation.runOnMainSync(block)
-        val attemptedHwPlus = AtomicBoolean()
         lateinit var future: ListenableFuture<MediaController>
         onMain {
             future = MediaController.Builder(
@@ -53,15 +52,7 @@ class CompatibilityServiceTest {
                         PlayerService::class.java,
                     ),
                 ),
-            ).setListener(object : MediaController.Listener {
-                override fun onExtrasChanged(controller: MediaController, extras: Bundle) {
-                    if (extras.getString(CustomCommands.VIDEO_DECODER_MODE_KEY) ==
-                        DecoderMode.HW_PLUS.name
-                    ) {
-                        attemptedHwPlus.set(true)
-                    }
-                }
-            }).buildAsync()
+            ).buildAsync()
         }
         val player = future.get(
             10,
@@ -118,10 +109,28 @@ class CompatibilityServiceTest {
                     TimeUnit.SECONDS,
                 ).resultCode,
             )
-            await("Rejected HDR reader recovers to HW at the paused position") {
-                attemptedHwPlus.get() && player.playerError == null &&
-                    player.playbackState == Player.STATE_READY && !player.playWhenReady &&
-                    player.currentPosition == 500L &&
+            await("Manual HW+ switch reports unsupported decoder") {
+                player.sessionExtras.getString(CustomCommands.DECODER_RECOVERY_STATUS_KEY) ==
+                    DecoderRecoveryStatus.AWAITING_CONFIRMATION.name &&
+                    player.sessionExtras.getString(CustomCommands.UNSUPPORTED_DECODER_MODE_KEY) ==
+                    DecoderMode.HW_PLUS.name
+            }
+            onMain {
+                result = player.sendCustomCommand(
+                    CustomCommands.TRY_DECODER_FALLBACK.sessionCommand,
+                    Bundle.EMPTY,
+                )
+            }
+            assertEquals(
+                SessionResult.RESULT_SUCCESS,
+                result.get(
+                    10,
+                    TimeUnit.SECONDS,
+                ).resultCode,
+            )
+            await("Acknowledgment restarts the paused video in HW") {
+                player.playerError == null && player.playbackState == Player.STATE_READY &&
+                    !player.playWhenReady && player.currentPosition == 0L &&
                     player.sessionExtras.getString(CustomCommands.VIDEO_DECODER_MODE_KEY) ==
                     DecoderMode.HARDWARE.name
             }
@@ -134,6 +143,21 @@ class CompatibilityServiceTest {
                     DecoderMode.HARDWARE.name,
                     player.sessionExtras.getString(CustomCommands.VIDEO_DECODER_MODE_KEY),
                 )
+            }
+            onMain {
+                player.setMediaItem(
+                    MediaItem.Builder().setUri(
+                        Uri.fromFile(fixture),
+                    ).setMediaId("direct-software-hdr").build()
+                        .copy(videoDecoderMode = DecoderMode.FFMPEG),
+                )
+                player.prepare()
+            }
+            await("SW recovers from FFmpeg reader rejection using the standard reader") {
+                player.playerError == null && player.playbackState == Player.STATE_READY &&
+                    player.currentMediaItem?.mediaMetadata?.ffmpegExtraction == false &&
+                    player.sessionExtras.getString(CustomCommands.VIDEO_DECODER_MODE_KEY) ==
+                    DecoderMode.FFMPEG.name
             }
         } finally {
             onMain {
@@ -152,7 +176,7 @@ class CompatibilityServiceTest {
     }
 
     @Test
-    fun unrecognizedRecordingFallsBackAndRetainsExtractionWhenSwitchingToSoftware() {
+    fun unrecognizedRecordingWorksWithAutomaticFallbackAndDirectSoftwareSelection() {
         val instrumentation = InstrumentationRegistry.getInstrumentation()
         val context = instrumentation.targetContext
         val suppliedPath = InstrumentationRegistry.getArguments().getString("compatibilityVideo")
@@ -292,6 +316,19 @@ class CompatibilityServiceTest {
                         0,
                         sourceTransitions,
                     )
+                }
+                onMain {
+                    player.setMediaItem(
+                        MediaItem.Builder().setUri(uri).setMediaId("software:$uri").build()
+                            .copy(videoDecoderMode = DecoderMode.FFMPEG),
+                    )
+                    player.prepare()
+                }
+                await("SW starts directly with FFmpeg extraction") {
+                    player.sessionExtras.getString(CustomCommands.VIDEO_DECODER_MODE_KEY) ==
+                        DecoderMode.FFMPEG.name &&
+                        player.currentMediaItem?.mediaMetadata?.ffmpegExtraction == true &&
+                        player.playbackState == Player.STATE_READY && player.playerError == null
                 }
             } finally {
                 onMain {

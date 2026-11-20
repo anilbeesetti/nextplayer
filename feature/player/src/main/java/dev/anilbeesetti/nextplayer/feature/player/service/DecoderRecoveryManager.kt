@@ -18,72 +18,125 @@ internal class DecoderRecoveryManager {
             audioRecovery.state,
         ).maxBy { it.status }
 
-    fun onUserSelection(trackType: DecoderTrackType, mode: DecoderMode) {
+    fun onMediaItemChanged(audioMode: DecoderMode = DecoderMode.AUTO) {
+        videoRecovery.reset()
+        onUserSelection(
+            DecoderTrackType.AUDIO,
+            mode = audioMode,
+        )
+    }
+
+    fun onVideoReady(mode: DecoderMode) {
+        if (videoRecovery.pendingRetry != null) return
+        videoRecovery.lastWorkingMode = mode.videoBackend
+        onDecoderInitialized(DecoderTrackType.VIDEO)
+    }
+
+    fun onUserSelection(
+        trackType: DecoderTrackType,
+        mode: DecoderMode,
+        effectiveMode: DecoderMode = mode,
+    ) {
         recoveryFor(trackType = trackType).apply {
-            reset()
+            if (trackType == DecoderTrackType.VIDEO) {
+                state = DecoderRecoveryState()
+                failedModes.remove(effectiveMode.videoBackend)
+                pendingRetry = null
+            } else {
+                reset()
+            }
             requiresConfirmation = mode != DecoderMode.AUTO
         }
     }
 
-    fun onDecoderFailure(trackType: DecoderTrackType, mode: DecoderMode): DecoderRetry? {
-        val recovery = recoveryFor(trackType = trackType)
-        if (recovery.failedMode == mode) {
-            return null
-        }
+    fun onDecoderFailure(
+        trackType: DecoderTrackType,
+        mode: DecoderMode,
+        canTryHwPlus: Boolean = false,
+        requestedMode: DecoderMode = mode,
+        retrySoftwareReader: Boolean = false,
+        showConfirmation: Boolean = true,
+    ): DecoderRetry? {
+        val recovery = recoveryFor(trackType)
+        val failedMode = if (trackType == DecoderTrackType.VIDEO) mode.videoBackend else mode
+        if (!retrySoftwareReader && !recovery.failedModes.add(failedMode)) return null
 
-        recovery.failedMode = mode
-        if (recovery.fallbackModes == null) {
-            recovery.fallbackModes = ArrayDeque(mode.fallbackModes())
+        val candidates = when (trackType) {
+            DecoderTrackType.VIDEO -> listOfNotNull(
+                DecoderMode.FFMPEG.takeIf { retrySoftwareReader },
+                recovery.lastWorkingMode?.takeUnless { it == DecoderMode.HW_PLUS && !canTryHwPlus },
+                when (failedMode) {
+                    DecoderMode.HARDWARE -> DecoderMode.HW_PLUS.takeIf { canTryHwPlus }
+                    DecoderMode.HW_PLUS, DecoderMode.FFMPEG -> DecoderMode.HARDWARE
+                    DecoderMode.AUTO -> null
+                },
+                DecoderMode.FFMPEG.takeUnless { failedMode == DecoderMode.FFMPEG },
+            )
+
+            DecoderTrackType.AUDIO -> if (mode == DecoderMode.FFMPEG) {
+                listOf(DecoderMode.AUTO.takeIf { recovery.requiresConfirmation })
+            } else {
+                listOf(DecoderMode.FFMPEG)
+            }.filterNotNull()
         }
-        if (recovery.fallbackModes.isNullOrEmpty()) {
+        val fallbackMode = candidates.firstOrNull { it !in recovery.failedModes }
+        if (fallbackMode == null) {
+            recovery.pendingRetry = null
             recovery.state = DecoderRecoveryState(
-                status = DecoderRecoveryStatus.FAILED,
-                trackType = trackType,
+                DecoderRecoveryStatus.FAILED,
+                trackType,
             )
             return null
         }
 
-        if (recovery.requiresConfirmation) {
+        val retry = DecoderRetry(
+            trackType,
+            fallbackMode,
+        )
+        recovery.pendingRetry = retry
+        if (recovery.requiresConfirmation && showConfirmation && !retrySoftwareReader) {
             recovery.state = DecoderRecoveryState(
                 status = DecoderRecoveryStatus.AWAITING_CONFIRMATION,
                 trackType = trackType,
-                unsupportedMode = mode,
+                unsupportedMode = requestedMode,
             )
             return null
         }
-
-        val fallbackMode = checkNotNull(recovery.fallbackModes).removeFirst()
-        recovery.state = DecoderRecoveryState(
-            status = DecoderRecoveryStatus.RECOVERING,
-            trackType = trackType,
-        )
-        return DecoderRetry(
-            trackType = trackType,
-            mode = fallbackMode,
-        )
+        return startRetry(retry)
     }
 
     fun confirmFallback(): DecoderRetry? {
         if (state.status != DecoderRecoveryStatus.AWAITING_CONFIRMATION) return null
         val trackType = state.trackType ?: return null
-        val recovery = recoveryFor(trackType = trackType)
-        if (recovery.fallbackModes.isNullOrEmpty()) return null
-        val fallbackMode = checkNotNull(recovery.fallbackModes).removeFirst()
+        return recoveryFor(trackType).pendingRetry?.let(::startRetry)
+    }
 
+    fun takeRetry(retry: DecoderRetry): Boolean {
+        val recovery = recoveryFor(retry.trackType)
+        if (recovery.pendingRetry !== retry ||
+            recovery.state.status != DecoderRecoveryStatus.RECOVERING
+        ) {
+            return false
+        }
+        recovery.pendingRetry = null
+        return true
+    }
+
+    private fun startRetry(retry: DecoderRetry): DecoderRetry {
+        val recovery = recoveryFor(retry.trackType)
         recovery.requiresConfirmation = false
         recovery.state = DecoderRecoveryState(
-            status = DecoderRecoveryStatus.RECOVERING,
-            trackType = trackType,
+            DecoderRecoveryStatus.RECOVERING,
+            retry.trackType,
         )
-        return DecoderRetry(
-            trackType = trackType,
-            mode = fallbackMode,
-        )
+        return retry
     }
 
     fun onDecoderInitialized(trackType: DecoderTrackType) {
         val recovery = recoveryFor(trackType = trackType)
-        if (recovery.state.status == DecoderRecoveryStatus.RECOVERING) {
+        if (recovery.pendingRetry == null &&
+            recovery.state.status == DecoderRecoveryStatus.RECOVERING
+        ) {
             recovery.state = DecoderRecoveryState()
         }
     }
@@ -104,19 +157,18 @@ internal data class DecoderRetry(val trackType: DecoderTrackType, val mode: Deco
 private class TrackRecovery {
     var state = DecoderRecoveryState()
     var requiresConfirmation = false
-    var fallbackModes: ArrayDeque<DecoderMode>? = null
-    var failedMode: DecoderMode? = null
+    val failedModes = mutableSetOf<DecoderMode>()
+    var lastWorkingMode: DecoderMode? = null
+    var pendingRetry: DecoderRetry? = null
 
     fun reset() {
         state = DecoderRecoveryState()
         requiresConfirmation = false
-        fallbackModes = null
-        failedMode = null
+        failedModes.clear()
+        lastWorkingMode = null
+        pendingRetry = null
     }
 }
 
-private fun DecoderMode.fallbackModes(): List<DecoderMode> = when (this) {
-    DecoderMode.AUTO -> listOf(DecoderMode.FFMPEG)
-    DecoderMode.HARDWARE, DecoderMode.HW_PLUS -> listOf(DecoderMode.FFMPEG)
-    DecoderMode.FFMPEG -> listOf(DecoderMode.AUTO)
-}
+private val DecoderMode.videoBackend: DecoderMode
+    get() = if (this == DecoderMode.AUTO) DecoderMode.HARDWARE else this

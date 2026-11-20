@@ -39,22 +39,42 @@ uses the current playback position.
 Nextlib also restores active modes from successful decoder reuse evaluations: a renderer can be
 disabled and enabled again without initializing a new codec.
 
-NextPlayer owns fallback policy. Each track keeps a bounded queue of fallback modes;
-duplicate failures for the same attempt are ignored.
+NextPlayer owns the fallback policy. Video starts with HW in AUTO. Decoder and progressive
+parser failures share one retry policy per playlist item. A failed decoder is skipped until
+the user selects it again or opens another item.
 
-| Failed selection | Next attempts |
+| Failed video mode | Automatic retry |
 | --- | --- |
-| `AUTO` | Silently try `FFMPEG` |
-| Explicit `HARDWARE` | Confirm, then `FFMPEG` |
-| Explicit `HW_PLUS` | Confirm, then `FFMPEG` |
-| Explicit `FFMPEG` | Confirm, then `AUTO` |
-| Exhausted queue | Show the player error dialog |
+| HW | HW+ if available, otherwise SW |
+| HW+ | HW if it has yet to fail, otherwise SW |
+| SW | HW if it has yet to fail |
+| No retry left | Player error dialog |
 
-Only present, unsupported tracks or decoder-related playback errors start recovery.
-Missing audio/video tracks do not. Decoder initialization clears recovery for that track.
-Non-decoder errors use the normal error dialog. A retry prepares the player if it currently
-has an error; otherwise nextlib handles track remapping and codec restarts. Position,
-playlist, and `playWhenReady` remain intact.
+The last working mode takes precedence when it is still available. An early failure after
+a manual switch shows the unsupported mode. Acknowledging or dismissing that message starts
+the retry, and subsequent attempts run automatically. Video retries below five seconds restart
+at zero. Later retries preserve playback position, and all retries preserve playback intent
+and playlist order.
+
+Audio uses independent HW/SW recovery. Missing tracks do not trigger fallback. I/O and unrelated
+playback errors use the normal player error dialog.
+
+## MX Player Pro 1.93.4 comparison
+
+REA traced the failure handler and the manual-switch dialog in the supplied APK.
+The handler removes failed modes from the available set. It also checks MX-specific
+codec compatibility before switching between HW and HW+. NextPlayer's hardware retry
+uses its Media3/NextLib source and codec capabilities.
+
+- Failure handler `com.mxtech.videoplayer.l.V(int, int)`, REA evidence
+  `ev_769daaf763e4c0aedf40ce0493a20f258b666374269e78781fa5ffd6132f3758`
+- Manual-switch dialog path `ActivityScreen.H1(byte, byte, boolean)`, REA evidence
+  `ev_bf03eb731fe2d3ced18c928fd3763c73e8370fbdcfd808b9bba6c70d539d0702`
+
+On a Pixel 6a emulator running API 37 with 16 KB pages, MX logged HW → HW+ on the
+header-prefixed program stream. NextPlayer's CompatibilityServiceTest verified the same
+automatic transition, direct SW playback of that fixture, and acknowledgment followed
+by a paused restart at zero when the HW+ reader rejects the HDR fixture.
 
 ## Local verification
 
@@ -99,24 +119,15 @@ Decoder selection and recovery passed, but FFmpeg visual playback did not.
 
 ## HW+ compatibility extraction, 2026-11-16
 
-`ApiMediaSourceFactory` uses NextLib's `FfmpegMediaSourceFactory` for clear progressive
-items marked for FFmpeg extraction. Adaptive streams and DRM keep the standard source
-factory. Unrecognized progressive input in AUTO tries HW+ once; explicit SW can likewise
-retry extraction without changing its decoder. The extraction flag is separate from the
-requested decoder and survives switching from HW+ to SW or AUTO. Selecting HW restores the
-standard extractor. A source change recreates only the current item, preserving paused
-position, playback intent and shuffle order. Synthetic same-item reloads do not reset
-recovery queues.
+HW+ and SW start with FFmpeg extraction for clear progressive items. SW can use the
+standard reader if the FFmpeg reader rejects the source. Adaptive streams and DRM
+use the standard source factory. AUTO retains the current reader and HW selects the
+standard reader. A reader change recreates the current item and keeps shuffle order.
+Synthetic reloads preserve recovery state.
 
 Live decoder labels come from session extras. Media3 ignores metadata extras when
 comparing media items, so a controller's metadata-only timeline snapshot can remain
-stale after a decoder selection. Do not use that snapshot as live decoder state.
-
-Decoder failures in HW retry SW directly: HW and HW+ share the same system decoders.
-If explicit HW+ extraction rejects a container (including HDR), retry the standard HW
-reader once, retaining position and pause state. Explicit HW does not automatically
-retry HW+, preventing a reader-recovery loop. Adaptive/DRM source selection remains
-unchanged when a requested mode only changes the extraction flag.
+stale after a decoder selection.
 
 This requires NextLib `1.11.1-0.19.0` containing NextLib PR #237 (`hwplus`, `eeb78cf`).
 Normal builds resolve the published artifact; `nextlibPath` is only for local source validation.
