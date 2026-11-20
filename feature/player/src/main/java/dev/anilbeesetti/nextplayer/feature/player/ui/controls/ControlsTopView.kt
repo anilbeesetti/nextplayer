@@ -3,10 +3,12 @@ package dev.anilbeesetti.nextplayer.feature.player.ui.controls
 import androidx.annotation.OptIn
 import androidx.compose.foundation.focusGroup
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.BoxWithConstraints
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.asPaddingValues
 import androidx.compose.foundation.layout.displayCutout
+import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.systemBars
 import androidx.compose.foundation.layout.union
@@ -32,6 +34,7 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.media3.common.util.UnstableApi
 import dev.anilbeesetti.nextplayer.core.ui.R
+import dev.anilbeesetti.nextplayer.core.ui.designsystem.NextIcons
 import dev.anilbeesetti.nextplayer.core.ui.extensions.copy
 import dev.anilbeesetti.nextplayer.core.ui.theme.NextPlayerTheme
 import dev.anilbeesetti.nextplayer.feature.player.buttons.PlayerButton
@@ -49,6 +52,7 @@ fun ControlsTopView(
     onAudioClick: () -> Unit = {},
     onSubtitleClick: () -> Unit = {},
     onPlaylistClick: () -> Unit = {},
+    onMoreClick: () -> Unit = {},
 ) {
     val firstControlFocusRequester = remember { FocusRequester() }
     val systemBarsPadding = WindowInsets.systemBars.union(
@@ -57,69 +61,103 @@ fun ControlsTopView(
     val decoderDescription = stringResource(R.string.select_decoders)
     // Add top spacing only when the system bars don't already provide it (e.g. on TV / landscape).
     val extraTopPadding = if (systemBarsPadding.calculateTopPadding() == 0.dp) 16.dp else 0.dp
-    Row(
+    BoxWithConstraints(
         modifier = modifier
             .padding(systemBarsPadding.copy(bottom = 0.dp))
             .padding(horizontal = 16.dp)
             .padding(bottom = 16.dp)
-            .padding(top = extraTopPadding)
-            .focusProperties { onEnter = { firstControlFocusRequester.requestFocus() } }
-            .focusGroup(),
-        verticalAlignment = Alignment.CenterVertically,
-        horizontalArrangement = Arrangement.spacedBy(16.dp),
+            .padding(top = extraTopPadding),
     ) {
-        PlayerButton(onClick = onBackClick) {
-            Icon(
-                painter = painterResource(R.drawable.ic_arrow_left),
-                contentDescription = null,
-            )
+        // Keep room for the title; actions that don't fit move to the "More" overlay.
+        val actionSlots = ((maxWidth - FixedContentWidth - MinTitleWidth) / ActionSlotWidth).toInt()
+        val inlineActionCount = if (actionSlots >= OVERFLOWABLE_ACTION_COUNT) {
+            OVERFLOWABLE_ACTION_COUNT
+        } else {
+            (actionSlots - 1).coerceAtLeast(0)
         }
-        Text(
-            text = title,
-            style = MaterialTheme.typography.titleMedium.copy(lineBreak = LineBreak.Heading),
-            color = Color.White,
-            maxLines = 2,
-            overflow = TextOverflow.Ellipsis,
-            modifier = Modifier.weight(weight = 1f),
-        )
-
         Row(
+            modifier = Modifier
+                .fillMaxWidth()
+                .focusProperties { onEnter = { firstControlFocusRequester.requestFocus() } }
+                .focusGroup(),
             verticalAlignment = Alignment.CenterVertically,
-            horizontalArrangement = Arrangement.spacedBy(8.dp),
+            horizontalArrangement = Arrangement.spacedBy(16.dp),
         ) {
-            PlayerButton(
-                modifier = Modifier
-                    .semantics { contentDescription = decoderDescription }
-                    .focusRequester(focusRequester = firstControlFocusRequester),
-                onClick = onDecoderClick,
+            PlayerButton(onClick = onBackClick) {
+                Icon(
+                    painter = painterResource(R.drawable.ic_arrow_left),
+                    contentDescription = null,
+                )
+            }
+            Text(
+                text = title,
+                style = MaterialTheme.typography.titleMedium.copy(lineBreak = LineBreak.Heading),
+                color = Color.White,
+                maxLines = 2,
+                overflow = TextOverflow.Ellipsis,
+                modifier = Modifier.weight(weight = 1f),
+            )
+
+            Row(
+                verticalAlignment = Alignment.CenterVertically,
+                horizontalArrangement = Arrangement.spacedBy(8.dp),
             ) {
-                Text(
-                    text = stringResource((videoDecoderMode ?: DecoderMode.HARDWARE).labelRes),
-                    style = MaterialTheme.typography.labelLarge,
-                    maxLines = 1,
-                )
-            }
-            PlayerButton(onClick = onPlaylistClick) {
-                Icon(
-                    painter = painterResource(R.drawable.ic_playlist),
-                    contentDescription = null,
-                )
-            }
-            PlayerButton(onClick = onAudioClick) {
-                Icon(
-                    painter = painterResource(R.drawable.ic_audio_track),
-                    contentDescription = null,
-                )
-            }
-            PlayerButton(onClick = onSubtitleClick) {
-                Icon(
-                    painter = painterResource(R.drawable.ic_subtitle_track),
-                    contentDescription = null,
-                )
+                PlayerButton(
+                    modifier = Modifier
+                        .semantics { contentDescription = decoderDescription }
+                        .focusRequester(focusRequester = firstControlFocusRequester),
+                    onClick = onDecoderClick,
+                ) {
+                    Text(
+                        text = stringResource((videoDecoderMode ?: DecoderMode.HARDWARE).labelRes),
+                        style = MaterialTheme.typography.labelLarge,
+                        maxLines = 1,
+                    )
+                }
+                if (inlineActionCount >= 1) {
+                    PlayerButton(onClick = onPlaylistClick) {
+                        Icon(
+                            painter = painterResource(R.drawable.ic_playlist),
+                            contentDescription = stringResource(R.string.now_playing),
+                        )
+                    }
+                }
+                if (inlineActionCount >= 2) {
+                    PlayerButton(onClick = onAudioClick) {
+                        Icon(
+                            painter = painterResource(R.drawable.ic_audio_track),
+                            contentDescription = stringResource(R.string.audio_track),
+                        )
+                    }
+                }
+                if (inlineActionCount >= 3) {
+                    PlayerButton(onClick = onSubtitleClick) {
+                        Icon(
+                            painter = painterResource(R.drawable.ic_subtitle_track),
+                            contentDescription = stringResource(R.string.subtitle_track),
+                        )
+                    }
+                } else {
+                    PlayerButton(onClick = onMoreClick) {
+                        Icon(
+                            imageVector = NextIcons.MoreVert,
+                            contentDescription = stringResource(R.string.more),
+                        )
+                    }
+                }
             }
         }
     }
 }
+
+private const val OVERFLOWABLE_ACTION_COUNT = 3
+private val MinTitleWidth = 160.dp
+
+// 40dp button + 8dp spacing.
+private val ActionSlotWidth = 48.dp
+
+// Back button, its gap, the title-to-actions gap and the decoder button.
+private val FixedContentWidth = 40.dp + 16.dp + 16.dp + 48.dp
 
 @Preview
 @Composable

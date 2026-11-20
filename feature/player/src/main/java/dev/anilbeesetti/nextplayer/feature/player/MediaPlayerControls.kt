@@ -197,6 +197,7 @@ internal fun MediaPlayerControls(
                 audioDecoderMode = state.decoderServiceState.audioMode,
                 videoContentScale = videoZoomAndContentScaleState.videoContentScale,
                 onDismiss = { overlayView = null },
+                onShowOverlay = ::showOverlay,
                 onVideoDecoderModeSelected = {
                     onAction(PlayerAction.SetVideoDecoderMode(mode = it))
                 },

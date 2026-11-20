@@ -69,6 +69,7 @@ fun PlayerControls(
                     onAudioClick = { onShowOverlay(OverlayView.AUDIO_SELECTOR) },
                     onSubtitleClick = { onShowOverlay(OverlayView.SUBTITLE_SELECTOR) },
                     onPlaylistClick = { onShowOverlay(OverlayView.PLAYLIST) },
+                    onMoreClick = { onShowOverlay(OverlayView.MORE_OPTIONS) },
                     onBackClick = onBackClick,
                 )
             }
