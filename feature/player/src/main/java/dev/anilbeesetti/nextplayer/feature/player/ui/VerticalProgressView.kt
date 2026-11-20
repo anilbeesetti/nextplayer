@@ -39,7 +39,8 @@ private const val NORMAL_MAX_PERCENTAGE = 100
  * @param boostColor Optional color for the boost portion (above 100%)
  */
 @Composable
-fun VerticalProgressView(
+internal fun VerticalProgressView(
+    useMaterialYouControls: Boolean,
     modifier: Modifier = Modifier,
     width: Dp = 32.dp,
     icon: Painter,
@@ -57,11 +58,31 @@ fun VerticalProgressView(
     val fillFraction = normalizedValue.toFloat() / maxValue.toFloat()
     val isBoostActive = maxValue > NORMAL_MAX_PERCENTAGE && value > NORMAL_MAX_PERCENTAGE
 
+    val colors = MaterialTheme.colorScheme
+    val backgroundColor = if (useMaterialYouControls) {
+        colors.background
+    } else {
+        Color.Black.copy(alpha = 0.5f)
+    }
+    val contentColor = if (useMaterialYouControls) colors.onBackground else Color.White
+    val trackColor = if (useMaterialYouControls) {
+        colors.surfaceVariant
+    } else {
+        Color.White.copy(alpha = 0.5f)
+    }
+    val trackWidth = if (useMaterialYouControls) width else 4.dp
+    val trackShape = if (useMaterialYouControls) MaterialTheme.shapes.medium else CircleShape
+    val fillColor = when {
+        isBoostActive -> boostColor
+        useMaterialYouControls -> colors.primary
+        else -> Color.White
+    }
+
     Column(
         modifier = modifier
-            .heightIn(max = 250.dp)
+            .heightIn(max = 220.dp)
             .clip(shape = CircleShape)
-            .background(MaterialTheme.colorScheme.background)
+            .background(backgroundColor)
             .padding(8.dp),
         horizontalAlignment = Alignment.CenterHorizontally,
         verticalArrangement = Arrangement.spacedBy(4.dp),
@@ -73,7 +94,7 @@ fun VerticalProgressView(
             BasicText(
                 text = normalizedValue.toString(),
                 style = MaterialTheme.typography.labelLarge.copy(
-                    color = MaterialTheme.colorScheme.onBackground,
+                    color = contentColor,
                 ),
                 autoSize = TextAutoSize.StepBased(
                     maxFontSize = MaterialTheme.typography.labelLarge.fontSize,
@@ -83,22 +104,16 @@ fun VerticalProgressView(
         Box(
             modifier = Modifier
                 .weight(weight = 1f)
-                .width(width = width)
-                .clip(MaterialTheme.shapes.medium)
-                .background(MaterialTheme.colorScheme.surfaceVariant),
+                .width(trackWidth)
+                .clip(trackShape)
+                .background(trackColor),
             contentAlignment = Alignment.BottomCenter,
         ) {
             Box(
                 modifier = Modifier
-                    .width(width = width)
+                    .width(trackWidth)
                     .fillMaxHeight(fraction = fillFraction)
-                    .background(
-                        color = if (isBoostActive) {
-                            boostColor
-                        } else {
-                            MaterialTheme.colorScheme.primary
-                        },
-                    ),
+                    .background(fillColor),
             )
         }
         Box(
@@ -108,7 +123,7 @@ fun VerticalProgressView(
             Icon(
                 painter = icon,
                 contentDescription = null,
-                tint = MaterialTheme.colorScheme.onBackground,
+                tint = contentColor,
             )
         }
     }
@@ -116,9 +131,10 @@ fun VerticalProgressView(
 
 @Preview
 @Composable
-private fun VerticalProgressPreview() {
+private fun SimpleVerticalProgressPreview() {
     NextPlayerTheme {
         VerticalProgressView(
+            useMaterialYouControls = false,
             value = 50,
             icon = painterResource(R.drawable.ic_volume),
         )
@@ -130,6 +146,7 @@ private fun VerticalProgressPreview() {
 private fun VerticalProgressBoostPreview() {
     NextPlayerTheme {
         VerticalProgressView(
+            useMaterialYouControls = true,
             value = 150,
             maxValue = 200,
             icon = painterResource(R.drawable.ic_volume),
