@@ -6,6 +6,7 @@ import android.content.Intent
 import android.media.audiofx.LoudnessEnhancer
 import android.net.Uri
 import android.os.Bundle
+import android.os.SystemClock
 import androidx.annotation.OptIn
 import androidx.core.net.toUri
 import androidx.media3.common.AudioAttributes
@@ -28,7 +29,6 @@ import androidx.media3.datasource.DataSourceBitmapLoader
 import androidx.media3.exoplayer.ExoPlaybackException
 import androidx.media3.exoplayer.ExoPlayer
 import androidx.media3.exoplayer.analytics.AnalyticsListener
-import androidx.media3.exoplayer.source.UnrecognizedInputFormatException
 import androidx.media3.exoplayer.trackselection.DefaultTrackSelector
 import androidx.media3.session.CommandButton
 import androidx.media3.session.CommandButton.ICON_UNDEFINED
@@ -142,6 +142,7 @@ class PlayerService : MediaSessionService() {
     private lateinit var decoderManager: DecoderManager
     private lateinit var trackSelector: DefaultTrackSelector
     private val decoderRecoveryManager = DecoderRecoveryManager()
+    private var videoDecoderSelectionTimeMs: Long? = null
 
     private val decoderAnalyticsListener = object : AnalyticsListener {
         override fun onEvents(player: Player, events: AnalyticsListener.Events) {
@@ -159,7 +160,6 @@ class PlayerService : MediaSessionService() {
                 message = "Video decoder initialized with requested=${decoderManager.videoMode} " +
                     "as ${decoderManager.activeVideoMode}: $decoderName",
             )
-            decoderRecoveryManager.onDecoderInitialized(DecoderTrackType.VIDEO)
         }
 
         override fun onAudioDecoderInitialized(
@@ -199,6 +199,16 @@ class PlayerService : MediaSessionService() {
                 tag = DECODER_LOG_TAG,
                 message = "Rendered first frame with video=${decoderManager.activeVideoMode}",
             )
+            val player = mediaSession?.player ?: return
+            val mode = player.currentMediaItem?.videoDecoderBackend ?: return
+            val activeMode = decoderManager.activeVideoMode?.playerMode()
+            if (eventTime.timeline == player.currentTimeline &&
+                eventTime.windowIndex == player.currentMediaItemIndex &&
+                renderTimeMs >= (videoDecoderSelectionTimeMs ?: 0L) &&
+                (activeMode == DecoderMode.FFMPEG) == (mode == DecoderMode.FFMPEG)
+            ) {
+                decoderRecoveryManager.onVideoReady(mode)
+            }
         }
 
         override fun onPlayerError(
@@ -231,11 +241,15 @@ class PlayerService : MediaSessionService() {
             if (reason == Player.MEDIA_ITEM_TRANSITION_REASON_REPEAT) return
             val sourceReload =
                 mediaItem?.mediaId == pendingSourceReloadId && pendingSourceReloadId != null
-            if (sourceReload) pendingSourceReloadId = null
-            restoreDecoderChoices(
-                mediaItem = mediaItem,
-                resetRecovery = !sourceReload,
-            )
+            if (sourceReload) {
+                pendingSourceReloadId = null
+            } else {
+                decoderRecoveryManager.onMediaItemChanged(
+                    audioMode = mediaItem?.mediaMetadata?.audioDecoderMode ?: DecoderMode.AUTO,
+                )
+                videoDecoderSelectionTimeMs = null
+            }
+            restoreDecoderChoices(mediaItem)
             isMediaItemReady = false
             loadArtworkForCurrentMediaItem()
             mediaItem?.mediaMetadata?.let { metadata ->
@@ -392,80 +406,36 @@ class PlayerService : MediaSessionService() {
                     playbackState == Player.STATE_IDLE &&
                         player?.mediaItemCount == 0
                     )
+            if (playbackState == Player.STATE_READY) {
+                decoderRecoveryManager.onDecoderInitialized(DecoderTrackType.VIDEO)
+            }
             if (shouldResetTrackSelectionParameters) {
                 mediaSession?.player?.trackSelectionParameters = TrackSelectionParameters.DEFAULT
             }
         }
 
         override fun onPlayerError(error: PlaybackException) {
-            if (!error.isDecoderFailure) {
-                decoderRecoveryManager.onNonDecoderError()
-                val sourcePlayer = mediaSession?.player
-                val item = sourcePlayer?.currentMediaItem
-                val retryStandardReader = item?.usesFfmpegExtractor == true &&
-                    item.mediaMetadata.videoDecoderMode == DecoderMode.HW_PLUS &&
-                    generateSequence<Throwable>(error) { it.cause }.any {
-                        it is ParserException
-                    }
-                val retryFfmpegReader = item != null && !item.mediaMetadata.ffmpegExtraction &&
-                    item.copy(videoDecoderMode = DecoderMode.HW_PLUS).usesFfmpegExtractor &&
-                    item.mediaMetadata.videoDecoderMode in
-                    listOf(
-                        null,
-                        DecoderMode.AUTO,
-                        DecoderMode.FFMPEG,
-                    ) &&
-                    generateSequence<Throwable>(error) { it.cause }.any {
-                        it is UnrecognizedInputFormatException
-                    }
-                if (item != null && (retryStandardReader || retryFfmpegReader)) {
-                    val windowUid = sourcePlayer.currentTimeline.getWindow(
-                        sourcePlayer.currentMediaItemIndex,
-                        Timeline.Window(),
-                    ).uid
-                    serviceScope.launch {
-                        val player = mediaSession?.player ?: return@launch
-                        val current = player.currentMediaItem ?: return@launch
-                        if (player !== sourcePlayer || player.playerError !== error ||
-                            player.currentTimeline.isEmpty ||
-                            player.currentTimeline.getWindow(
-                                player.currentMediaItemIndex,
-                                Timeline.Window(),
-                            ).uid != windowUid ||
-                            current.mediaMetadata.videoDecoderMode !=
-                            item.mediaMetadata.videoDecoderMode ||
-                            current.usesFfmpegExtractor != item.usesFfmpegExtractor
-                        ) {
-                            return@launch
-                        }
-                        if (retryStandardReader) {
-                            retryDecoderWith(
-                                DecoderRetry(
-                                    DecoderTrackType.VIDEO,
-                                    DecoderMode.HARDWARE,
-                                ),
-                            )
-                            return@launch
-                        }
-                        if (current.mediaMetadata.videoDecoderMode == DecoderMode.FFMPEG) {
-                            reloadSource(current.copy(ffmpegExtraction = true))
-                        } else {
-                            selectDecoder(
-                                DecoderTrackType.VIDEO,
-                                DecoderMode.HW_PLUS,
-                            )
-                        }
-                        player.prepare()
-                    }
-                }
-                return
-            }
+            val item = mediaSession?.player?.currentMediaItem
+            val trackType = when {
+                error.isDecoderFailure -> error.decoderTrackType()
 
-            val trackType = error.decoderTrackType() ?: run {
+                item?.copy(videoDecoderMode = DecoderMode.HW_PLUS)?.usesFfmpegExtractor == true &&
+                    generateSequence<Throwable>(error) { it.cause }.any { it is ParserException } ->
+                    DecoderTrackType.VIDEO
+
+                else -> null
+            }
+            if (trackType == null) {
                 decoderRecoveryManager.onNonDecoderError()
+                publishDecoderState()
                 return
             }
-            handleDecoderFailure(trackType = trackType)
+            handleDecoderFailure(
+                trackType = trackType,
+                initializing =
+                    error.errorCode == PlaybackException.ERROR_CODE_DECODER_INIT_FAILED ||
+                        !isMediaItemReady,
+            )
         }
 
         override fun onPlayWhenReadyChanged(playWhenReady: Boolean, reason: Int) {
@@ -797,6 +767,7 @@ class PlayerService : MediaSessionService() {
                         DecoderTrackType.VIDEO,
                         mode = mode,
                     )
+                    videoDecoderSelectionTimeMs = SystemClock.elapsedRealtime()
                     selectDecoder(
                         DecoderTrackType.VIDEO,
                         mode = mode,
@@ -835,8 +806,7 @@ class PlayerService : MediaSessionService() {
                 CustomCommands.TRY_DECODER_FALLBACK -> {
                     val retry = decoderRecoveryManager.confirmFallback()
                         ?: return@future SessionResult(SessionResult.RESULT_ERROR_INVALID_STATE)
-                    if (!retryDecoderWith(retry = retry)) {
-                        decoderRecoveryManager.onNonDecoderError()
+                    if (!retryDecoderWith(retry)) {
                         return@future SessionResult(SessionResult.RESULT_ERROR_INVALID_STATE)
                     }
                     return@future SessionResult(SessionResult.RESULT_SUCCESS)
@@ -1276,7 +1246,17 @@ class PlayerService : MediaSessionService() {
 
     private fun retryDecoderWith(retry: DecoderRetry): Boolean {
         val player = mediaSession?.player as? ExoPlayer ?: return false
+        if (player.currentMediaItem == null ||
+            !decoderRecoveryManager.takeRetry(retry)
+        ) {
+            return false
+        }
         val shouldPrepare = player.playerError != null
+        if (retry.trackType == DecoderTrackType.VIDEO &&
+            player.currentPosition in 1L until DECODER_RESTART_WINDOW_MS
+        ) {
+            player.seekTo(0)
+        }
         selectDecoder(
             retry.trackType,
             retry.mode,
@@ -1308,31 +1288,41 @@ class PlayerService : MediaSessionService() {
         handleDecoderFailure(trackType = trackType)
     }
 
-    private fun handleDecoderFailure(trackType: DecoderTrackType) {
+    private fun handleDecoderFailure(trackType: DecoderTrackType, initializing: Boolean = false) {
+        val item = mediaSession?.player?.currentMediaItem ?: return
         val mode = when (trackType) {
-            DecoderTrackType.VIDEO ->
-                mediaSession?.player?.currentMediaItem?.mediaMetadata?.videoDecoderMode
-                    ?: DecoderMode.AUTO
-
-            DecoderTrackType.AUDIO ->
-                mediaSession?.player?.currentMediaItem?.mediaMetadata?.audioDecoderMode
-                    ?: DecoderMode.AUTO
+            DecoderTrackType.VIDEO -> item.videoDecoderBackend
+            DecoderTrackType.AUDIO -> item.mediaMetadata.audioDecoderMode ?: DecoderMode.AUTO
         }
+        val recentVideoSelection = videoDecoderSelectionTimeMs?.let {
+            SystemClock.elapsedRealtime() - it < DECODER_RESTART_WINDOW_MS
+        } == true
         val retry = decoderRecoveryManager.onDecoderFailure(
             trackType = trackType,
             mode = mode,
+            // shortcut: use source eligibility until NextLib exposes native codec compatibility.
+            canTryHwPlus = trackType == DecoderTrackType.VIDEO &&
+                item.copy(videoDecoderMode = DecoderMode.HW_PLUS).usesFfmpegExtractor,
+            showConfirmation =
+                trackType == DecoderTrackType.AUDIO || initializing || recentVideoSelection,
         )
         publishDecoderState()
         if (retry == null) return
-        serviceScope.launch {
-            if (!retryDecoderWith(retry = retry)) decoderRecoveryManager.onNonDecoderError()
-        }
+        serviceScope.launch { retryDecoderWith(retry) }
     }
 
     private fun selectDecoder(trackType: DecoderTrackType, mode: DecoderMode) {
         when (trackType) {
             DecoderTrackType.VIDEO -> decoderManager.selectVideoDecoder(
-                mode = mode.systemDecoderMode,
+                mode = (
+                    if (mode ==
+                        DecoderMode.AUTO
+                    ) {
+                        DecoderMode.HARDWARE
+                    } else {
+                        mode
+                    }
+                    ).systemDecoderMode,
             )
 
             DecoderTrackType.AUDIO -> decoderManager.selectAudioDecoder(
@@ -1346,12 +1336,9 @@ class PlayerService : MediaSessionService() {
                 DecoderTrackType.VIDEO -> mediaItem.copy(
                     videoDecoderMode = mode,
                     ffmpegExtraction = when (mode) {
-                        DecoderMode.HW_PLUS -> true
-
+                        DecoderMode.HW_PLUS, DecoderMode.FFMPEG -> true
                         DecoderMode.HARDWARE -> false
-
-                        DecoderMode.AUTO, DecoderMode.FFMPEG ->
-                            mediaItem.mediaMetadata.ffmpegExtraction
+                        DecoderMode.AUTO -> mediaItem.mediaMetadata.ffmpegExtraction
                     },
                 )
 
@@ -1377,19 +1364,9 @@ class PlayerService : MediaSessionService() {
         player.reloadCurrentMediaItem(item)
     }
 
-    private fun restoreDecoderChoices(mediaItem: MediaItem?, resetRecovery: Boolean = true) {
+    private fun restoreDecoderChoices(mediaItem: MediaItem?) {
         val videoMode = mediaItem?.mediaMetadata?.videoDecoderMode ?: DecoderMode.AUTO
         val audioMode = mediaItem?.mediaMetadata?.audioDecoderMode ?: DecoderMode.AUTO
-        if (resetRecovery) {
-            decoderRecoveryManager.onUserSelection(
-                DecoderTrackType.VIDEO,
-                mode = videoMode,
-            )
-            decoderRecoveryManager.onUserSelection(
-                DecoderTrackType.AUDIO,
-                mode = audioMode,
-            )
-        }
         selectDecoder(
             DecoderTrackType.VIDEO,
             mode = videoMode,
@@ -1512,6 +1489,7 @@ private val DecoderTrackType.mediaTrackType: Int
         DecoderTrackType.AUDIO -> C.TRACK_TYPE_AUDIO
     }
 
+private const val DECODER_RESTART_WINDOW_MS = 5_000L
 private const val DECODER_LOG_TAG = "Decoder"
 private const val MAX_SESSION_ARTWORK_SIZE = 500
 

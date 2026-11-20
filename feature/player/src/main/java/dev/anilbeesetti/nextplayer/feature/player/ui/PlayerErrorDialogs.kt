@@ -29,7 +29,7 @@ internal fun PlayerErrorDialogs(
         recoveryTrackType != null
     ) {
         AlertDialog(
-            onDismissRequest = {},
+            onDismissRequest = onTryDecoderFallback,
             title = { Text(text = stringResource(coreUiR.string.decoder)) },
             text = {
                 Text(

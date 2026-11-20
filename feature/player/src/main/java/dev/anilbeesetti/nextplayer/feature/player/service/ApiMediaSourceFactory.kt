@@ -10,6 +10,8 @@ import androidx.media3.datasource.DataSpec
 import androidx.media3.exoplayer.source.DefaultMediaSourceFactory
 import androidx.media3.exoplayer.source.MediaSource
 import dev.anilbeesetti.nextplayer.feature.player.extensions.ffmpegExtraction
+import dev.anilbeesetti.nextplayer.feature.player.extensions.videoDecoderMode
+import dev.anilbeesetti.nextplayer.feature.player.model.DecoderMode
 import dev.anilbeesetti.nextplayer.feature.player.utils.apiHeaders
 import io.github.anilbeesetti.nextlib.media3ext.ffdecoder.FfmpegMediaSourceFactory
 import io.github.anilbeesetti.nextlib.media3ext.ffdecoder.FfmpegSubtitleExtractorsFactory
@@ -75,4 +77,11 @@ internal val MediaItem.usesFfmpegExtractor: Boolean
                 config.uri,
                 config.mimeType,
             ) == C.CONTENT_TYPE_OTHER
+    }
+
+internal val MediaItem.videoDecoderBackend: DecoderMode
+    get() = when {
+        mediaMetadata.videoDecoderMode == DecoderMode.FFMPEG -> DecoderMode.FFMPEG
+        usesFfmpegExtractor -> DecoderMode.HW_PLUS
+        else -> DecoderMode.HARDWARE
     }

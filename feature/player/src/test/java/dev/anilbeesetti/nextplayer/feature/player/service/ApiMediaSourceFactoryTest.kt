@@ -4,6 +4,7 @@ import androidx.media3.common.C
 import androidx.media3.common.MediaItem
 import dev.anilbeesetti.nextplayer.feature.player.extensions.copy
 import dev.anilbeesetti.nextplayer.feature.player.model.DecoderMode
+import org.junit.Assert.assertEquals
 import org.junit.Assert.assertFalse
 import org.junit.Assert.assertTrue
 import org.junit.Test
@@ -12,6 +13,19 @@ import org.robolectric.RobolectricTestRunner
 
 @RunWith(RobolectricTestRunner::class)
 class ApiMediaSourceFactoryTest {
+    @Test
+    fun automaticModeUsesTheBackendOfTheCurrentReader() {
+        val item = MediaItem.fromUri("https://example.test/video.mp4")
+        assertEquals(
+            DecoderMode.HARDWARE,
+            item.videoDecoderBackend,
+        )
+        assertEquals(
+            DecoderMode.HW_PLUS,
+            item.copy(ffmpegExtraction = true).videoDecoderBackend,
+        )
+    }
+
     @Test
     fun compatibilityExtractionOnlyAppliesToClearProgressiveMedia() {
         val progressive = MediaItem.fromUri("https://example.test/video.mp4")
