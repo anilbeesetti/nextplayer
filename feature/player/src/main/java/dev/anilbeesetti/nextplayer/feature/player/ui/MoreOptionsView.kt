@@ -2,27 +2,24 @@ package dev.anilbeesetti.nextplayer.feature.player.ui
 
 import androidx.annotation.DrawableRes
 import androidx.annotation.StringRes
-import androidx.compose.foundation.border
-import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.BoxScope
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.grid.GridCells
 import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
 import androidx.compose.foundation.lazy.grid.items
-import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.material3.FilledTonalIconButton
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.clip
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.semantics.clearAndSetSemantics
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import dev.anilbeesetti.nextplayer.core.ui.R
@@ -66,28 +63,21 @@ fun BoxScope.MoreOptionsView(
             verticalArrangement = Arrangement.spacedBy(16.dp),
         ) {
             items(MoreOption.entries) { option ->
+                val label = stringResource(option.labelRes)
                 Column(
-                    modifier = Modifier
-                        .clip(MaterialTheme.shapes.medium)
-                        .clickable { onOptionClick(option.overlay) }
-                        .padding(8.dp),
+                    modifier = Modifier.padding(8.dp),
                     horizontalAlignment = Alignment.CenterHorizontally,
                     verticalArrangement = Arrangement.spacedBy(8.dp),
                 ) {
-                    Icon(
-                        painter = painterResource(option.iconRes),
-                        contentDescription = null,
-                        modifier = Modifier
-                            .size(56.dp)
-                            .border(
-                                1.dp,
-                                MaterialTheme.colorScheme.outline,
-                                CircleShape,
-                            )
-                            .padding(16.dp),
-                    )
+                    FilledTonalIconButton(onClick = { onOptionClick(option.overlay) }) {
+                        Icon(
+                            painter = painterResource(option.iconRes),
+                            contentDescription = label,
+                        )
+                    }
                     Text(
-                        text = stringResource(option.labelRes),
+                        text = label,
+                        modifier = Modifier.clearAndSetSemantics {},
                         style = MaterialTheme.typography.labelLarge,
                         textAlign = TextAlign.Center,
                     )
