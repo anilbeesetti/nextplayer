@@ -5,11 +5,11 @@ import androidx.annotation.StringRes
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.BoxScope
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.PaddingValues
+import androidx.compose.foundation.layout.FlowRow
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.lazy.grid.GridCells
-import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
-import androidx.compose.foundation.lazy.grid.items
+import androidx.compose.foundation.layout.widthIn
+import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.FilledTonalIconButton
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
@@ -57,17 +57,21 @@ fun BoxScope.MoreOptionsView(
         show = show,
         title = stringResource(R.string.more),
     ) {
-        LazyVerticalGrid(
-            columns = GridCells.Adaptive(minSize = 96.dp),
-            contentPadding = PaddingValues(16.dp),
-            verticalArrangement = Arrangement.spacedBy(16.dp),
+        FlowRow(
+            modifier = Modifier
+                .verticalScroll(rememberScrollState())
+                .padding(
+                    horizontal = 16.dp,
+                    vertical = 8.dp,
+                ),
+            horizontalArrangement = Arrangement.spacedBy(4.dp),
+            verticalArrangement = Arrangement.spacedBy(8.dp),
         ) {
-            items(MoreOption.entries) { option ->
+            for (option in MoreOption.entries) {
                 val label = stringResource(option.labelRes)
                 Column(
-                    modifier = Modifier.padding(8.dp),
+                    modifier = Modifier.widthIn(max = 72.dp),
                     horizontalAlignment = Alignment.CenterHorizontally,
-                    verticalArrangement = Arrangement.spacedBy(8.dp),
                 ) {
                     FilledTonalIconButton(onClick = { onOptionClick(option.overlay) }) {
                         Icon(
@@ -78,7 +82,7 @@ fun BoxScope.MoreOptionsView(
                     Text(
                         text = label,
                         modifier = Modifier.clearAndSetSemantics {},
-                        style = MaterialTheme.typography.labelLarge,
+                        style = MaterialTheme.typography.labelSmall,
                         textAlign = TextAlign.Center,
                     )
                 }
