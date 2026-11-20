@@ -32,11 +32,15 @@ internal class DecoderRecoveryManager {
         onDecoderInitialized(DecoderTrackType.VIDEO)
     }
 
-    fun onUserSelection(trackType: DecoderTrackType, mode: DecoderMode) {
+    fun onUserSelection(
+        trackType: DecoderTrackType,
+        mode: DecoderMode,
+        effectiveMode: DecoderMode = mode,
+    ) {
         recoveryFor(trackType = trackType).apply {
             if (trackType == DecoderTrackType.VIDEO) {
                 state = DecoderRecoveryState()
-                failedModes.remove(mode.videoBackend)
+                failedModes.remove(effectiveMode.videoBackend)
                 pendingRetry = null
             } else {
                 reset()
@@ -49,6 +53,7 @@ internal class DecoderRecoveryManager {
         trackType: DecoderTrackType,
         mode: DecoderMode,
         canTryHwPlus: Boolean = false,
+        requestedMode: DecoderMode = mode,
         showConfirmation: Boolean = true,
     ): DecoderRetry? {
         val recovery = recoveryFor(trackType)
@@ -91,7 +96,7 @@ internal class DecoderRecoveryManager {
             recovery.state = DecoderRecoveryState(
                 status = DecoderRecoveryStatus.AWAITING_CONFIRMATION,
                 trackType = trackType,
-                unsupportedMode = failedMode,
+                unsupportedMode = requestedMode,
             )
             return null
         }

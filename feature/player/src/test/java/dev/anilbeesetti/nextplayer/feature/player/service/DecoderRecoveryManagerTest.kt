@@ -15,6 +15,37 @@ class DecoderRecoveryManagerTest {
     private val audio = DecoderTrackType.AUDIO
 
     @Test
+    fun manualHwPlusOnSystemReaderReenablesHardwareAndReportsRequestedMode() {
+        val manager = DecoderRecoveryManager()
+        assertNotNull(
+            manager.onDecoderFailure(
+                video,
+                DecoderMode.HARDWARE,
+            ),
+        )
+        manager.onUserSelection(
+            video,
+            DecoderMode.HW_PLUS,
+            effectiveMode = DecoderMode.HARDWARE,
+        )
+        assertNull(
+            manager.onDecoderFailure(
+                video,
+                DecoderMode.HARDWARE,
+                requestedMode = DecoderMode.HW_PLUS,
+            ),
+        )
+        assertEquals(
+            DecoderRecoveryStatus.AWAITING_CONFIRMATION,
+            manager.state.status,
+        )
+        assertEquals(
+            DecoderMode.HW_PLUS,
+            manager.state.unsupportedMode,
+        )
+    }
+
+    @Test
     fun systemAudioFallsBackDirectlyToFfmpeg() {
         val manager = DecoderRecoveryManager()
         manager.onUserSelection(

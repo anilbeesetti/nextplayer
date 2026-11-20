@@ -119,8 +119,9 @@ Decoder selection and recovery passed, but FFmpeg visual playback did not.
 
 ## HW+ compatibility extraction, 2026-11-16
 
-HW+ and SW use FFmpeg extraction for clear progressive items. Adaptive streams and DRM
-keep the standard source factory. AUTO retains the current reader and HW selects the
+HW+ and SW start with FFmpeg extraction for clear progressive items. SW can use the
+standard reader if the FFmpeg reader rejects the source. Adaptive streams and DRM
+use the standard source factory. AUTO retains the current reader and HW selects the
 standard reader. A reader change recreates the current item and keeps shuffle order.
 Synthetic reloads preserve recovery state.
 

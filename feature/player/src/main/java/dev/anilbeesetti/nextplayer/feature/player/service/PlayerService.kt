@@ -15,7 +15,6 @@ import androidx.media3.common.C
 import androidx.media3.common.MediaItem
 import androidx.media3.common.MediaMetadata
 import androidx.media3.common.MimeTypes
-import androidx.media3.common.ParserException
 import androidx.media3.common.PlaybackException
 import androidx.media3.common.Player
 import androidx.media3.common.Player.DISCONTINUITY_REASON_AUTO_TRANSITION
@@ -143,6 +142,7 @@ class PlayerService : MediaSessionService() {
     private lateinit var trackSelector: DefaultTrackSelector
     private val decoderRecoveryManager = DecoderRecoveryManager()
     private var videoDecoderSelectionTimeMs: Long? = null
+    private var ffmpegReaderFailed = false
 
     private val decoderAnalyticsListener = object : AnalyticsListener {
         override fun onEvents(player: Player, events: AnalyticsListener.Events) {
@@ -248,6 +248,7 @@ class PlayerService : MediaSessionService() {
                     audioMode = mediaItem?.mediaMetadata?.audioDecoderMode ?: DecoderMode.AUTO,
                 )
                 videoDecoderSelectionTimeMs = null
+                ffmpegReaderFailed = false
             }
             restoreDecoderChoices(mediaItem)
             isMediaItemReady = false
@@ -416,15 +417,15 @@ class PlayerService : MediaSessionService() {
 
         override fun onPlayerError(error: PlaybackException) {
             val item = mediaSession?.player?.currentMediaItem
+            val primaryParserError = item != null &&
+                item.copy(videoDecoderMode = DecoderMode.HW_PLUS).usesFfmpegExtractor &&
+                item.hasPrimaryParserError(error)
             val trackType = when {
                 error.isDecoderFailure -> error.decoderTrackType()
-
-                item?.copy(videoDecoderMode = DecoderMode.HW_PLUS)?.usesFfmpegExtractor == true &&
-                    generateSequence<Throwable>(error) { it.cause }.any { it is ParserException } ->
-                    DecoderTrackType.VIDEO
-
+                primaryParserError -> DecoderTrackType.VIDEO
                 else -> null
             }
+            if (primaryParserError && item?.usesFfmpegExtractor == true) ffmpegReaderFailed = true
             if (trackType == null) {
                 decoderRecoveryManager.onNonDecoderError()
                 publishDecoderState()
@@ -766,6 +767,10 @@ class PlayerService : MediaSessionService() {
                     decoderRecoveryManager.onUserSelection(
                         DecoderTrackType.VIDEO,
                         mode = mode,
+                        effectiveMode = player.currentMediaItem?.withVideoDecoder(
+                            mode,
+                            useFfmpegForSoftware = !ffmpegReaderFailed,
+                        )?.videoDecoderBackend ?: mode,
                     )
                     videoDecoderSelectionTimeMs = SystemClock.elapsedRealtime()
                     selectDecoder(
@@ -1300,6 +1305,13 @@ class PlayerService : MediaSessionService() {
         val retry = decoderRecoveryManager.onDecoderFailure(
             trackType = trackType,
             mode = mode,
+            requestedMode = if (trackType ==
+                DecoderTrackType.VIDEO
+            ) {
+                item.mediaMetadata.videoDecoderMode ?: mode
+            } else {
+                mode
+            },
             // shortcut: use source eligibility until NextLib exposes native codec compatibility.
             canTryHwPlus = trackType == DecoderTrackType.VIDEO &&
                 item.copy(videoDecoderMode = DecoderMode.HW_PLUS).usesFfmpegExtractor,
@@ -1333,13 +1345,9 @@ class PlayerService : MediaSessionService() {
         val mediaItem = player?.currentMediaItem
         if (mediaItem != null) {
             val updatedItem = when (trackType) {
-                DecoderTrackType.VIDEO -> mediaItem.copy(
-                    videoDecoderMode = mode,
-                    ffmpegExtraction = when (mode) {
-                        DecoderMode.HW_PLUS, DecoderMode.FFMPEG -> true
-                        DecoderMode.HARDWARE -> false
-                        DecoderMode.AUTO -> mediaItem.mediaMetadata.ffmpegExtraction
-                    },
+                DecoderTrackType.VIDEO -> mediaItem.withVideoDecoder(
+                    mode,
+                    useFfmpegForSoftware = !ffmpegReaderFailed,
                 )
 
                 DecoderTrackType.AUDIO -> mediaItem.copy(audioDecoderMode = mode)
