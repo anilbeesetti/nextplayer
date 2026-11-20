@@ -1,3 +1,31 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
+    <string name="settings_export">Izvoz nastavitev</string>
+    <string name="settings_export_description">Shrani nastavitve v datoteko JSON</string>
+    <string name="settings_import">Uvoz nastavitev</string>
+    <string name="settings_import_description">Obnovi nastavitve iz datoteke JSON</string>
+    <string name="settings_export_confirmation">Izvozi nastavitve aplikacije in predvajalnika v datoteko JSON.</string>
+    <string name="settings_export_include_credentials">Vključi omrežne povezave in poverilnice</string>
+    <string name="about_description">Različica, podpora, avtorji</string>
+    <string name="about_name">O aplikaciji</string>
+    <string name="appearance_description">Prilagodite aplikacijo po svojih željah</string>
+    <string name="appearance_name">Videz</string>
+    <string name="ascending">Naraščajoče</string>
+    <string name="cancel">Prekliči</string>
+    <string name="descending">Padajoče</string>
+    <string name="disable">Onemogoči</string>
+    <string name="done">Končano</string>
+    <string name="double_tap">Poteza dvojnega dotika</string>
+    <string name="double_tap_description">Izberite potezo dvojnega dotika</string>
+    <string name="error_playing_video">Napaka: Videoposnetka ni mogoče predvajati</string>
+    <string name="fast_seek">Hitro iskanje</string>
+    <string name="export_action">Izvozi</string>
+    <string name="import_action">Uvozi</string>
+    <string name="settings_export_success">Nastavitve izvožene</string>
+    <string name="settings_export_failed">Nastavitev ni bilo mogoče izvoziti</string>
+    <string name="settings_import_success">Nastavitve uvožene</string>
+    <string name="settings_import_failed">Uvoza nastavitev ni bilo mogoče dokončati. Poskusite znova.</string>
+    <string name="settings_import_invalid">Te datoteke ni bilo mogoče prebrati ali pa ne vsebuje podprtih nastavitev JSON</string>
+    <string name="settings_export_credentials_warning">Datoteka JSON ni šifrirana. Lahko vsebuje gesla in zasebne ključe SSH. Shranite jo na varno.</string>
+    <string name="settings_import_confirmation">Nastavitve v tej datoteki bodo prepisale vaše trenutne nastavitve. Manjkajoči, zastareli, neznani ali neveljavni elementi bodo prezrti. Omrežne povezave in poverilnice bodo prav tako uvožene, če so vključene.</string>
 </resources>
