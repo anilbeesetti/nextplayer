@@ -62,7 +62,7 @@ internal fun VerticalProgressView(
     val backgroundColor = if (useMaterialYouControls) {
         colors.background
     } else {
-        Color.Black.copy(alpha = 0.6f)
+        Color.Black.copy(alpha = 0.5f)
     }
     val contentColor = if (useMaterialYouControls) colors.onBackground else Color.White
     val trackColor = if (useMaterialYouControls) {
@@ -80,7 +80,7 @@ internal fun VerticalProgressView(
 
     Column(
         modifier = modifier
-            .heightIn(max = 250.dp)
+            .heightIn(max = if (useMaterialYouControls) 250.dp else 220.dp)
             .clip(shape = CircleShape)
             .background(backgroundColor)
             .padding(8.dp),
