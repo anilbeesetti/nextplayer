@@ -3,18 +3,17 @@ package dev.anilbeesetti.nextplayer.core.media.sync
 import android.content.ContentResolver
 import android.content.Context
 import android.content.Intent
-import android.content.pm.PackageManager
-import androidx.core.content.ContextCompat
 import androidx.core.net.toUri
 import coil3.ImageLoader
 import dev.anilbeesetti.nextplayer.core.common.di.DiQualifiers
 import dev.anilbeesetti.nextplayer.core.common.extensions.getStorageVolumes
+import dev.anilbeesetti.nextplayer.core.common.extensions.hasStorageAccess
 import dev.anilbeesetti.nextplayer.core.common.extensions.scanPaths
 import dev.anilbeesetti.nextplayer.core.common.extensions.scanStorage
-import dev.anilbeesetti.nextplayer.core.common.storagePermission
 import dev.anilbeesetti.nextplayer.core.database.converter.UriListConverter
 import dev.anilbeesetti.nextplayer.core.database.dao.MediumStateDao
 import dev.anilbeesetti.nextplayer.core.database.dao.PlaylistDao
+import dev.anilbeesetti.nextplayer.core.media.services.ExternalVolumeMediaService
 import dev.anilbeesetti.nextplayer.core.media.services.MediaService
 import dev.anilbeesetti.nextplayer.core.media.services.MediaVideo
 import kotlinx.coroutines.CoroutineScope
@@ -35,16 +34,20 @@ class LocalMediaSynchronizer(
     private val playlistDao: PlaylistDao,
     private val imageLoader: ImageLoader,
     private val mediaService: MediaService,
+    private val externalVolumeMediaService: ExternalVolumeMediaService,
     @Named(DiQualifiers.APPLICATION_SCOPE) private val applicationScope: CoroutineScope,
     private val context: Context,
 ) : MediaSynchronizer {
 
     private var mediaSyncingJob: Job? = null
 
-    override suspend fun refresh(path: String?): Boolean = path?.let {
-        context.scanPaths(paths = listOf(element = path))
+    override suspend fun refresh(path: String?): Boolean {
+        externalVolumeMediaService.refresh()
+        return path?.let {
+            context.scanPaths(paths = listOf(element = path))
+        }
+            ?: context.getStorageVolumes().all { context.scanStorage(it.path) }
     }
-        ?: context.getStorageVolumes().all { context.scanStorage(it.path) }
 
     override fun startSync() {
         if (mediaSyncingJob?.isActive == true) return
@@ -61,14 +64,8 @@ class LocalMediaSynchronizer(
         mediaSyncingJob?.cancel()
     }
 
-    private fun Context.hasStoragePermission(): Boolean = ContextCompat.checkSelfPermission(
-        this,
-        storagePermission,
-    ) ==
-        PackageManager.PERMISSION_GRANTED
-
     private suspend fun updateMedia(media: List<MediaVideo>) = withContext(Dispatchers.Default) {
-        if (!context.hasStoragePermission()) return@withContext
+        if (!context.hasStorageAccess()) return@withContext
 
         val currentMediaUris = media.mapTo(destination = mutableSetOf()) { it.uri.toString() }
 

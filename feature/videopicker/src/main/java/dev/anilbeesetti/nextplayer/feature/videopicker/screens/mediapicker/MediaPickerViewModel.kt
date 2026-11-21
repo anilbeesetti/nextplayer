@@ -1,16 +1,14 @@
 package dev.anilbeesetti.nextplayer.feature.videopicker.screens.mediapicker
 
 import android.content.Context
-import android.content.pm.PackageManager
 import android.net.Uri
 import android.widget.Toast
 import androidx.compose.runtime.Stable
-import androidx.core.content.ContextCompat
 import androidx.core.net.toUri
 import androidx.lifecycle.viewModelScope
+import dev.anilbeesetti.nextplayer.core.common.extensions.hasStorageAccess
 import dev.anilbeesetti.nextplayer.core.common.extensions.prettyName
 import dev.anilbeesetti.nextplayer.core.common.service.system.SystemService
-import dev.anilbeesetti.nextplayer.core.common.storagePermission
 import dev.anilbeesetti.nextplayer.core.data.repository.MediaRepository
 import dev.anilbeesetti.nextplayer.core.data.repository.PlaylistRepository
 import dev.anilbeesetti.nextplayer.core.data.repository.PreferencesRepository
@@ -96,12 +94,7 @@ class MediaPickerViewModel(
     private var transferJob: Job? = null
 
     init {
-        if (ContextCompat.checkSelfPermission(
-                context,
-                storagePermission,
-            ) ==
-            PackageManager.PERMISSION_GRANTED
-        ) {
+        if (context.hasStorageAccess()) {
             startMediaCollection()
         }
         collectPreferences()

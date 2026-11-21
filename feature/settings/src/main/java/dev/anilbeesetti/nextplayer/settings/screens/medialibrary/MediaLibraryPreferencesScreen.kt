@@ -16,14 +16,19 @@ import androidx.compose.material3.Scaffold
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.pluralStringResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.tooling.preview.PreviewLightDark
 import androidx.compose.ui.unit.dp
+import androidx.lifecycle.compose.LifecycleResumeEffect
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import dev.anilbeesetti.nextplayer.core.common.extensions.hasAllFilesAccess
+import dev.anilbeesetti.nextplayer.core.common.extensions.openAllFilesAccessSettings
 import dev.anilbeesetti.nextplayer.core.model.ThumbnailGenerationStrategy
 import dev.anilbeesetti.nextplayer.core.ui.R
 import dev.anilbeesetti.nextplayer.core.ui.components.ClickablePreferenceItem
@@ -61,6 +66,14 @@ private fun MediaLibraryPreferencesScreenContent(
 ) {
     val preferences = state.preferences
     var enableHistoryConfirmation by rememberSaveable { mutableStateOf<Boolean?>(value = null) }
+
+    // Re-read when coming back from the system page where the permission is changed.
+    val context = LocalContext.current
+    var hasAllFilesAccess by remember { mutableStateOf(value = hasAllFilesAccess()) }
+    LifecycleResumeEffect(Unit) {
+        hasAllFilesAccess = hasAllFilesAccess()
+        onPauseOrDispose {}
+    }
 
     val focusState = rememberRestorableFocusState()
 
@@ -146,6 +159,20 @@ private fun MediaLibraryPreferencesScreenContent(
             Column(
                 verticalArrangement = Arrangement.spacedBy(ListItemDefaults.SegmentedGap),
             ) {
+                PreferenceSwitch(
+                    modifier = Modifier.restorableFocusItem(
+                        state = focusState,
+                        key = "all_files_access",
+                    ),
+                    title = stringResource(id = R.string.all_files_access),
+                    description = stringResource(id = R.string.all_files_access_desc),
+                    icon = NextIcons.Folder,
+                    isChecked = hasAllFilesAccess,
+                    // The permission is turned on or off on its own system settings page.
+                    onClick = { context.openAllFilesAccessSettings() },
+                    isFirstItem = true,
+                    isLastItem = false,
+                )
                 ClickablePreferenceItem(
                     modifier = Modifier.restorableFocusItem(
                         state = focusState,
@@ -155,7 +182,7 @@ private fun MediaLibraryPreferencesScreenContent(
                     description = stringResource(id = R.string.manage_folders_desc),
                     icon = NextIcons.FolderOff,
                     onClick = { onAction(MediaLibraryPreferencesUiEvent.OpenFolders) },
-                    isFirstItem = true,
+                    isFirstItem = false,
                     isLastItem = true,
                 )
             }
