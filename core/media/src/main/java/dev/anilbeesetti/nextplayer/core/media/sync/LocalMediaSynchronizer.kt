@@ -3,13 +3,15 @@ package dev.anilbeesetti.nextplayer.core.media.sync
 import android.content.ContentResolver
 import android.content.Context
 import android.content.Intent
+import android.content.pm.PackageManager
+import androidx.core.content.ContextCompat
 import androidx.core.net.toUri
 import coil3.ImageLoader
 import dev.anilbeesetti.nextplayer.core.common.di.DiQualifiers
 import dev.anilbeesetti.nextplayer.core.common.extensions.getStorageVolumes
-import dev.anilbeesetti.nextplayer.core.common.extensions.hasStorageAccess
 import dev.anilbeesetti.nextplayer.core.common.extensions.scanPaths
 import dev.anilbeesetti.nextplayer.core.common.extensions.scanStorage
+import dev.anilbeesetti.nextplayer.core.common.storagePermission
 import dev.anilbeesetti.nextplayer.core.database.converter.UriListConverter
 import dev.anilbeesetti.nextplayer.core.database.dao.MediumStateDao
 import dev.anilbeesetti.nextplayer.core.database.dao.PlaylistDao
@@ -64,8 +66,14 @@ class LocalMediaSynchronizer(
         mediaSyncingJob?.cancel()
     }
 
+    private fun Context.hasStoragePermission(): Boolean = ContextCompat.checkSelfPermission(
+        this,
+        storagePermission,
+    ) ==
+        PackageManager.PERMISSION_GRANTED
+
     private suspend fun updateMedia(media: List<MediaVideo>) = withContext(Dispatchers.Default) {
-        if (!context.hasStorageAccess()) return@withContext
+        if (!context.hasStoragePermission()) return@withContext
 
         val currentMediaUris = media.mapTo(destination = mutableSetOf()) { it.uri.toString() }
 

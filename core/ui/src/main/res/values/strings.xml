@@ -44,13 +44,6 @@
     <string name="permission_request">Permission Request</string>
     <string name="all_files_access">All files access</string>
     <string name="all_files_access_desc">Show videos from USB drives and other external storage. Opens system settings to turn it on or off.</string>
-    <string name="access_choice_title">How should Next Player access your videos?</string>
-    <string name="access_choice_desc">You can change this later in Settings &gt; Media library.</string>
-    <string name="full_access">Full access</string>
-    <string name="full_access_desc">Also shows videos on USB drives and other external storage. Opens system settings, where you turn on \"Allow access to manage all files\".</string>
-    <string name="limited_access">Limited access</string>
-    <string name="limited_access_desc">Shows videos from your phone\'s storage only.</string>
-    <string name="all_files_access_info">To show videos on USB drives and other external storage, Next Player needs access to all files. Tap Grant Permission, then turn on \"Allow access to manage all files\".</string>
     <string name="permission_settings">The Next Player app needs \"%1$s\" permission to access and play media. Without it, media access and playback won\'t work. To use the app fully, grant the permission from settings since it was permanently denied.</string>
     <string name="player_controls_exit">Navigate up</string>
     <string name="player_controls_next">Player next</string>

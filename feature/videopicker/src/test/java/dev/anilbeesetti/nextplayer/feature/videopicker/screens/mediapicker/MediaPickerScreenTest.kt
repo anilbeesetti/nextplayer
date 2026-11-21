@@ -25,7 +25,6 @@ import androidx.core.net.toUri
 import androidx.lifecycle.Lifecycle
 import androidx.test.core.app.ApplicationProvider
 import androidx.test.ext.junit.runners.AndroidJUnit4
-import dev.anilbeesetti.nextplayer.core.common.extensions.allFilesAccessPrompted
 import dev.anilbeesetti.nextplayer.core.domain.MediaHolder
 import dev.anilbeesetti.nextplayer.core.model.ApplicationPreferences
 import dev.anilbeesetti.nextplayer.core.model.Folder
@@ -40,7 +39,6 @@ import dev.anilbeesetti.nextplayer.core.ui.components.TopLevelFabState
 import dev.anilbeesetti.nextplayer.core.ui.theme.NextPlayerTheme
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertTrue
-import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
 import org.junit.runner.RunWith
@@ -53,12 +51,6 @@ class MediaPickerScreenTest {
 
     @get:Rule
     val composeRule = createAndroidComposeRule<ComponentActivity>()
-
-    @Before
-    fun setUp() {
-        // Most tests are about something else, so start as if the access choice was already made.
-        ApplicationProvider.getApplicationContext<Application>().allFilesAccessPrompted = true
-    }
 
     @Test
     fun rootResumeFabUsesAutomaticPlaylistInEveryViewMode() {
@@ -176,9 +168,8 @@ class MediaPickerScreenTest {
 
     @Test
     fun loadingWithoutStoragePermissionShowsPermissionMessage() {
-        val application = ApplicationProvider.getApplicationContext<Application>()
-        application.allFilesAccessPrompted = true
-        val permissionMessage = application.getString(R.string.permission_not_granted)
+        val permissionMessage = ApplicationProvider.getApplicationContext<android.content.Context>()
+            .getString(R.string.permission_not_granted)
 
         composeRule.setContent {
             NextPlayerTheme {
@@ -264,71 +255,5 @@ class MediaPickerScreenTest {
         assertTrue(MediaPickerAction.AddSelectionToPlaylist(playlistId = 7) in actions)
         composeRule.runOnIdle { showPlaylistDialog = false }
         composeRule.onNodeWithText(text = "1 / 1 Selected").assertDoesNotExist()
-    }
-
-    @Test
-    fun freshInstallWithoutPermissionShowsFullOrLimitedAccessChoice() {
-        val context = ApplicationProvider.getApplicationContext<Application>()
-        context.allFilesAccessPrompted = false
-        val permissionMessage = context.getString(R.string.permission_not_granted)
-
-        composeRule.setContent {
-            NextPlayerTheme {
-                MediaPickerScreenContent(state = MediaPickerUiState(folderName = null))
-            }
-        }
-
-        composeRule.onNodeWithText(text = context.getString(R.string.full_access))
-            .assertIsDisplayed()
-        composeRule.onNodeWithText(text = context.getString(R.string.limited_access))
-            .assertIsDisplayed()
-        composeRule.onNodeWithText(text = permissionMessage).assertDoesNotExist()
-    }
-
-    @Test
-    fun choosingLimitedAccessRemembersTheChoiceAndAsksForTheStoragePermission() {
-        val application = ApplicationProvider.getApplicationContext<Application>()
-        application.allFilesAccessPrompted = false
-        val permissionMessage = application.getString(R.string.permission_not_granted)
-
-        composeRule.setContent {
-            NextPlayerTheme {
-                MediaPickerScreenContent(state = MediaPickerUiState(folderName = null))
-            }
-        }
-        composeRule.onNodeWithText(text = application.getString(R.string.limited_access))
-            .performClick()
-
-        composeRule.onNodeWithText(text = permissionMessage).assertIsDisplayed()
-        assertTrue(application.allFilesAccessPrompted)
-    }
-
-    @Test
-    fun existingUserIsAskedForAllFilesAccessOnlyOnce() {
-        val application = ApplicationProvider.getApplicationContext<Application>()
-        application.allFilesAccessPrompted = false
-        shadowOf(application).grantPermissions(Manifest.permission.READ_MEDIA_VIDEO)
-        val message = application.getString(R.string.all_files_access_info)
-
-        composeRule.setContent {
-            NextPlayerTheme {
-                MediaPickerScreenContent(
-                    state = MediaPickerUiState(
-                        folderName = null,
-                        mediaDataState = DataState.Success(
-                            value = MediaHolder(
-                                folders = emptyList(),
-                                videos = emptyList(),
-                            ),
-                        ),
-                    ),
-                )
-            }
-        }
-
-        composeRule.onNodeWithText(text = message).assertIsDisplayed()
-        composeRule.onNodeWithText(text = application.getString(R.string.not_now)).performClick()
-        composeRule.onNodeWithText(text = message).assertDoesNotExist()
-        assertTrue(application.allFilesAccessPrompted)
     }
 }

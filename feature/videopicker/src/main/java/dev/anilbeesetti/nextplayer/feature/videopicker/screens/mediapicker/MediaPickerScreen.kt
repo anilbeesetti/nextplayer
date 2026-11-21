@@ -36,9 +36,6 @@ import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.shape.ZeroCornerSize
-import androidx.compose.foundation.verticalScroll
-import androidx.compose.material3.AlertDialog
-import androidx.compose.material3.Button
 import androidx.compose.material3.Checkbox
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.ExperimentalMaterial3ExpressiveApi
@@ -48,7 +45,6 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.LinearProgressIndicator
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
@@ -83,16 +79,12 @@ import androidx.compose.ui.window.Dialog
 import androidx.compose.ui.window.DialogProperties
 import androidx.core.net.toUri
 import androidx.lifecycle.Lifecycle
-import androidx.lifecycle.compose.LifecycleResumeEffect
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.google.accompanist.permissions.ExperimentalPermissionsApi
 import com.google.accompanist.permissions.isGranted
 import com.google.accompanist.permissions.rememberPermissionState
 import com.google.accompanist.permissions.shouldShowRationale
-import dev.anilbeesetti.nextplayer.core.common.extensions.allFilesAccessPrompted
-import dev.anilbeesetti.nextplayer.core.common.extensions.hasAllFilesAccess
 import dev.anilbeesetti.nextplayer.core.common.extensions.isTelevision
-import dev.anilbeesetti.nextplayer.core.common.extensions.openAllFilesAccessSettings
 import dev.anilbeesetti.nextplayer.core.common.storagePermission
 import dev.anilbeesetti.nextplayer.core.domain.MediaHolder
 import dev.anilbeesetti.nextplayer.core.media.services.MediaOperationsService
@@ -187,54 +179,6 @@ internal fun MediaPickerScreenContent(
             onAction(MediaPickerAction.OnPermissionAccepted)
         }
         wasPermissionGranted = isPermissionGranted
-    }
-
-    // Some external drives are not in MediaStore (for example USB drives on a Pixel), so reading
-    // them needs "All files access", which is granted on its own settings page. It is asked about
-    // only once (a new install chooses limited or full access on a first screen, an update gets a
-    // pop-up); after that it can be turned on or off from Settings > Media library.
-    var hasAllFilesAccess by remember { mutableStateOf(value = hasAllFilesAccess()) }
-    var accessChoiceDone by remember { mutableStateOf(value = context.allFilesAccessPrompted) }
-    val markAccessChoiceDone = {
-        context.allFilesAccessPrompted = true
-        accessChoiceDone = true
-    }
-    // Set while the user is on the system "All files access" page chosen from the first screen.
-    var waitingForFullAccess by remember { mutableStateOf(value = false) }
-    LifecycleResumeEffect(Unit) {
-        val isGranted = hasAllFilesAccess()
-        if (isGranted && !hasAllFilesAccess) onAction(MediaPickerAction.OnPermissionAccepted)
-        hasAllFilesAccess = isGranted
-        if (waitingForFullAccess) {
-            // Back from the system page. If it was not granted, the first screen stays so the
-            // user can choose again.
-            waitingForFullAccess = false
-            if (isGranted) markAccessChoiceDone()
-        }
-        onPauseOrDispose {}
-    }
-    if (permissionState.status.isGranted && !hasAllFilesAccess && !accessChoiceDone) {
-        val closePrompt = markAccessChoiceDone
-        AlertDialog(
-            onDismissRequest = closePrompt,
-            title = { Text(text = stringResource(R.string.permission_request)) },
-            text = { Text(text = stringResource(R.string.all_files_access_info)) },
-            confirmButton = {
-                Button(
-                    onClick = {
-                        closePrompt()
-                        context.openAllFilesAccessSettings()
-                    },
-                ) {
-                    Text(text = stringResource(R.string.grant_permission))
-                }
-            },
-            dismissButton = {
-                TextButton(onClick = closePrompt) {
-                    Text(text = stringResource(R.string.not_now))
-                }
-            },
-        )
     }
     val lazyGridState = rememberLazyGridState()
     val selectVideoFileLauncher = rememberLauncherForActivityResult(
@@ -480,23 +424,13 @@ internal fun MediaPickerScreenContent(
                 )
                 .background(MaterialTheme.colorScheme.background),
         ) {
-            if (!permissionState.status.isGranted && !hasAllFilesAccess) {
-                if (accessChoiceDone) {
-                    PermissionMissingView(
-                        isGranted = permissionState.status.isGranted,
-                        showRationale = permissionState.status.shouldShowRationale,
-                        permission = permissionState.permission,
-                        launchPermissionRequest = { permissionState.launchPermissionRequest() },
-                    ) {}
-                } else {
-                    AccessChoiceView(
-                        onLimitedAccess = markAccessChoiceDone,
-                        onFullAccess = {
-                            waitingForFullAccess = true
-                            context.openAllFilesAccessSettings()
-                        },
-                    )
-                }
+            if (!permissionState.status.isGranted) {
+                PermissionMissingView(
+                    isGranted = permissionState.status.isGranted,
+                    showRationale = permissionState.status.shouldShowRationale,
+                    permission = permissionState.permission,
+                    launchPermissionRequest = { permissionState.launchPermissionRequest() },
+                ) {}
                 return@Scaffold
             }
             when (state.mediaDataState) {
@@ -1411,56 +1345,5 @@ private fun MediaPickerLoadingPreview() {
                 ),
             )
         }
-    }
-}
-
-/** First screen of a new install: limited access (media permission) or full access. */
-@Composable
-private fun AccessChoiceView(onLimitedAccess: () -> Unit, onFullAccess: () -> Unit) {
-    Column(
-        modifier = Modifier
-            .fillMaxSize()
-            .verticalScroll(rememberScrollState())
-            .padding(24.dp),
-        verticalArrangement = Arrangement.Center,
-        horizontalAlignment = Alignment.CenterHorizontally,
-    ) {
-        Text(
-            text = stringResource(R.string.access_choice_title),
-            style = MaterialTheme.typography.headlineSmall,
-            textAlign = TextAlign.Center,
-        )
-        Spacer(modifier = Modifier.height(8.dp))
-        Text(
-            text = stringResource(R.string.access_choice_desc),
-            style = MaterialTheme.typography.bodyMedium,
-            textAlign = TextAlign.Center,
-        )
-        Spacer(modifier = Modifier.height(32.dp))
-        Button(
-            onClick = onFullAccess,
-            modifier = Modifier.fillMaxWidth(),
-        ) {
-            Text(text = stringResource(R.string.full_access))
-        }
-        Spacer(modifier = Modifier.height(4.dp))
-        Text(
-            text = stringResource(R.string.full_access_desc),
-            style = MaterialTheme.typography.bodySmall,
-            textAlign = TextAlign.Center,
-        )
-        Spacer(modifier = Modifier.height(24.dp))
-        OutlinedButton(
-            onClick = onLimitedAccess,
-            modifier = Modifier.fillMaxWidth(),
-        ) {
-            Text(text = stringResource(R.string.limited_access))
-        }
-        Spacer(modifier = Modifier.height(4.dp))
-        Text(
-            text = stringResource(R.string.limited_access_desc),
-            style = MaterialTheme.typography.bodySmall,
-            textAlign = TextAlign.Center,
-        )
     }
 }
