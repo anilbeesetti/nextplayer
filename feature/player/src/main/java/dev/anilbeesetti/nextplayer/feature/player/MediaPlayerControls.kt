@@ -49,6 +49,7 @@ import dev.anilbeesetti.nextplayer.feature.player.ui.OverlayView
 import dev.anilbeesetti.nextplayer.feature.player.ui.PlayerGestureIndicators
 import dev.anilbeesetti.nextplayer.feature.player.utils.createVideoShareIntent
 import dev.anilbeesetti.nextplayer.feature.player.utils.isMediaStoreVideo
+import dev.anilbeesetti.nextplayer.feature.player.utils.mediaInfoSnapshot
 import kotlin.time.Duration.Companion.seconds
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
@@ -243,6 +244,20 @@ internal fun MediaPlayerControls(
                     {
                         overlayView = null
                         onAction(PlayerAction.RequestRename)
+                    }
+                } else {
+                    null
+                },
+                onInfo = if (player.currentMediaItem != null) {
+                    {
+                        val currentUri = player.currentMediaItem?.localConfiguration?.uri
+                        player.mediaInfoSnapshot(
+                            fallbackName = context.getString(R.string.unknown),
+                            renamedName = state.renamedVideoTitles[currentUri],
+                        )?.let { info ->
+                            overlayView = null
+                            onAction(PlayerAction.ShowMediaInfo(info))
+                        }
                     }
                 } else {
                     null

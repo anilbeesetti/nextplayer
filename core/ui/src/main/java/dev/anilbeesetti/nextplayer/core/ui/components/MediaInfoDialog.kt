@@ -1,4 +1,4 @@
-package dev.anilbeesetti.nextplayer.feature.videopicker.composables
+package dev.anilbeesetti.nextplayer.core.ui.components
 
 import androidx.compose.foundation.focusable
 import androidx.compose.foundation.gestures.animateScrollBy
@@ -33,8 +33,6 @@ import dev.anilbeesetti.nextplayer.core.common.Utils
 import dev.anilbeesetti.nextplayer.core.common.extensions.isTelevision
 import dev.anilbeesetti.nextplayer.core.model.MediaInfo
 import dev.anilbeesetti.nextplayer.core.ui.R
-import dev.anilbeesetti.nextplayer.core.ui.components.NextDialog
-import dev.anilbeesetti.nextplayer.core.ui.components.thenIf
 import kotlinx.coroutines.launch
 
 @Composable
@@ -130,14 +128,18 @@ fun MediaInfoDialog(mediaInfo: MediaInfo, onDismiss: () -> Unit) {
                         title = stringResource(id = R.string.codec),
                         subText = videoStream.codecName,
                     )
-                    MediaInfoText(
-                        title = stringResource(id = R.string.resolution),
-                        subText = "${videoStream.frameWidth} x ${videoStream.frameHeight}",
-                    )
-                    MediaInfoText(
-                        title = stringResource(id = R.string.frame_rate),
-                        subText = videoStream.frameRate.toInt().toString(),
-                    )
+                    if (videoStream.frameWidth > 0 && videoStream.frameHeight > 0) {
+                        MediaInfoText(
+                            title = stringResource(id = R.string.resolution),
+                            subText = "${videoStream.frameWidth} x ${videoStream.frameHeight}",
+                        )
+                    }
+                    if (videoStream.frameRate > 0) {
+                        MediaInfoText(
+                            title = stringResource(id = R.string.frame_rate),
+                            subText = videoStream.frameRate.toInt().toString(),
+                        )
+                    }
                     Utils.formatBitrate(videoStream.bitRate)?.let {
                         MediaInfoText(
                             title = stringResource(id = R.string.bitrate),
@@ -159,13 +161,15 @@ fun MediaInfoDialog(mediaInfo: MediaInfo, onDismiss: () -> Unit) {
                         title = stringResource(id = R.string.codec),
                         subText = audioStream.codecName,
                     )
-                    MediaInfoText(
-                        title = stringResource(id = R.string.sample_rate),
-                        subText = "${audioStream.sampleRate} Hz",
-                    )
+                    if (audioStream.sampleRate > 0) {
+                        MediaInfoText(
+                            title = stringResource(id = R.string.sample_rate),
+                            subText = "${audioStream.sampleRate} Hz",
+                        )
+                    }
                     MediaInfoText(
                         title = stringResource(id = R.string.sample_format),
-                        subText = audioStream.sampleFormat.toString(),
+                        subText = audioStream.sampleFormat.orEmpty(),
                     )
                     Utils.formatBitrate(audioStream.bitRate)?.let {
                         MediaInfoText(
@@ -175,7 +179,8 @@ fun MediaInfoDialog(mediaInfo: MediaInfo, onDismiss: () -> Unit) {
                     }
                     MediaInfoText(
                         title = stringResource(id = R.string.channels),
-                        subText = audioStream.channelLayout ?: audioStream.channels.toString(),
+                        subText = audioStream.channelLayout
+                            ?: audioStream.channels.takeIf { it > 0 }?.toString().orEmpty(),
                     )
                     Utils.formatLanguage(audioStream.language)?.let {
                         MediaInfoText(
@@ -231,6 +236,7 @@ private fun MediaInfoTitle(
 
 @Composable
 private fun MediaInfoText(title: String, subText: String, modifier: Modifier = Modifier) {
+    if (subText.isBlank()) return
     Row(modifier = modifier) {
         Text(
             text = "$title: ",

@@ -56,6 +56,7 @@ fun BoxScope.MoreOptionsView(
     onOptionClick: (OverlayView) -> Unit,
     onShare: (() -> Unit)?,
     onRename: (() -> Unit)?,
+    onInfo: (() -> Unit)?,
 ) {
     OverlayView(
         modifier = modifier,
@@ -88,6 +89,11 @@ fun BoxScope.MoreOptionsView(
                 label = stringResource(R.string.rename),
                 painter = rememberVectorPainter(NextIcons.Edit),
                 onClick = onRename,
+            )
+            MoreOptionButton(
+                label = stringResource(R.string.info),
+                painter = rememberVectorPainter(NextIcons.Info),
+                onClick = onInfo,
             )
         }
     }
