@@ -72,13 +72,23 @@ class ControlsTopViewTest {
     }
 
     @Test
-    fun wideWidthShowsAllActionsWithoutMoreMenu() {
+    fun wideWidthShowsAllActionsAndMoreMenu() {
         setTopView(width = 900.dp)
 
         node(R.string.now_playing).assertExists()
         node(R.string.audio_track).assertExists()
         node(R.string.subtitle_track).assertExists()
-        node(R.string.more).assertDoesNotExist()
+        node(R.string.more).assertExists()
+    }
+
+    @Test
+    fun mediumWidthReservesSpaceForMoreMenu() {
+        setTopView(width = 480.dp)
+
+        node(R.string.now_playing).assertExists()
+        node(R.string.audio_track).assertExists()
+        node(R.string.subtitle_track).assertDoesNotExist()
+        node(R.string.more).assertExists()
     }
 
     private fun setTopView(width: Dp, onMoreClick: () -> Unit = {}) {

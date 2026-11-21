@@ -177,6 +177,7 @@
     <string name="seek_increment">Seek increment</string>
     <string name="seconds">%1$s seconds</string>
     <string name="share">Share</string>
+    <string name="error_sharing_video">Could not share this video</string>
     <string name="delete">Delete</string>
     <string name="delete_permanently">Delete permanently</string>
     <string name="restore">Restore</string>

@@ -1,5 +1,7 @@
 package dev.anilbeesetti.nextplayer.feature.player
 
+import android.content.ContentResolver
+import android.widget.Toast
 import androidx.activity.compose.BackHandler
 import androidx.annotation.OptIn
 import androidx.compose.foundation.focusable
@@ -13,6 +15,7 @@ import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -27,7 +30,9 @@ import androidx.compose.ui.unit.dp
 import androidx.media3.common.Player
 import androidx.media3.common.util.UnstableApi
 import androidx.media3.ui.compose.state.rememberProgressStateWithTickInterval
+import dev.anilbeesetti.nextplayer.core.common.extensions.getMediaContentUri
 import dev.anilbeesetti.nextplayer.core.common.extensions.isTelevision
+import dev.anilbeesetti.nextplayer.core.ui.R
 import dev.anilbeesetti.nextplayer.core.ui.components.requestFocusUntilLanded
 import dev.anilbeesetti.nextplayer.core.ui.components.thenIf
 import dev.anilbeesetti.nextplayer.feature.player.state.ControlsVisibilityState
@@ -42,7 +47,11 @@ import dev.anilbeesetti.nextplayer.feature.player.ui.DpadSeekIndicator
 import dev.anilbeesetti.nextplayer.feature.player.ui.OverlayShowView
 import dev.anilbeesetti.nextplayer.feature.player.ui.OverlayView
 import dev.anilbeesetti.nextplayer.feature.player.ui.PlayerGestureIndicators
+import dev.anilbeesetti.nextplayer.feature.player.utils.createVideoShareIntent
 import kotlin.time.Duration.Companion.seconds
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 
 /** Controls and overlays shared by live playback and the previewable content. */
 @OptIn(UnstableApi::class)
@@ -85,6 +94,34 @@ internal fun MediaPlayerControls(
     }
 
     val context = LocalContext.current
+    val scope = rememberCoroutineScope()
+    fun currentShareUri() = player.currentMediaItem?.localConfiguration?.uri?.takeIf {
+        it.scheme == ContentResolver.SCHEME_CONTENT || it.scheme == ContentResolver.SCHEME_FILE
+    }
+
+    fun shareCurrentVideo() {
+        val uri = currentShareUri() ?: return
+        scope.launch {
+            val contentUri = if (uri.scheme == ContentResolver.SCHEME_FILE) {
+                // shortcut: file URIs need a MediaStore entry until unindexed videos have an export path.
+                withContext(Dispatchers.IO) { context.getMediaContentUri(uri) }
+            } else {
+                uri
+            }
+            val shared = contentUri?.let {
+                runCatching { context.startActivity(createVideoShareIntent(it)) }.isSuccess
+            } ?: false
+            if (shared) {
+                overlayView = null
+            } else {
+                Toast.makeText(
+                    context,
+                    R.string.error_sharing_video,
+                    Toast.LENGTH_SHORT,
+                ).show()
+            }
+        }
+    }
     val isTv = remember { context.isTelevision }
     val handleDpadKeys = isTv || dpadUpDown != null
     val rootFocusRequester = remember { FocusRequester() }
@@ -198,6 +235,7 @@ internal fun MediaPlayerControls(
                 videoContentScale = videoZoomAndContentScaleState.videoContentScale,
                 onDismiss = { overlayView = null },
                 onShowOverlay = ::showOverlay,
+                onShare = (::shareCurrentVideo).takeIf { currentShareUri() != null },
                 onVideoDecoderModeSelected = {
                     onAction(PlayerAction.SetVideoDecoderMode(mode = it))
                 },

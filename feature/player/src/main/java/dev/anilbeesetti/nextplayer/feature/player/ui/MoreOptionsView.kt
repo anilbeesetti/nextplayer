@@ -17,12 +17,15 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.painter.Painter
+import androidx.compose.ui.graphics.vector.rememberVectorPainter
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.semantics.clearAndSetSemantics
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import dev.anilbeesetti.nextplayer.core.ui.R
+import dev.anilbeesetti.nextplayer.core.ui.designsystem.NextIcons
 
 private enum class MoreOption(
     @StringRes val labelRes: Int,
@@ -51,6 +54,7 @@ fun BoxScope.MoreOptionsView(
     modifier: Modifier = Modifier,
     show: Boolean,
     onOptionClick: (OverlayView) -> Unit,
+    onShare: (() -> Unit)?,
 ) {
     OverlayView(
         modifier = modifier,
@@ -68,25 +72,41 @@ fun BoxScope.MoreOptionsView(
             verticalArrangement = Arrangement.spacedBy(8.dp),
         ) {
             for (option in MoreOption.entries) {
-                val label = stringResource(option.labelRes)
-                Column(
-                    modifier = Modifier.widthIn(max = 72.dp),
-                    horizontalAlignment = Alignment.CenterHorizontally,
-                ) {
-                    FilledTonalIconButton(onClick = { onOptionClick(option.overlay) }) {
-                        Icon(
-                            painter = painterResource(option.iconRes),
-                            contentDescription = label,
-                        )
-                    }
-                    Text(
-                        text = label,
-                        modifier = Modifier.clearAndSetSemantics {},
-                        style = MaterialTheme.typography.labelSmall,
-                        textAlign = TextAlign.Center,
-                    )
-                }
+                MoreOptionButton(
+                    label = stringResource(option.labelRes),
+                    painter = painterResource(option.iconRes),
+                    onClick = { onOptionClick(option.overlay) },
+                )
             }
+            MoreOptionButton(
+                label = stringResource(R.string.share),
+                painter = rememberVectorPainter(NextIcons.Share),
+                onClick = onShare,
+            )
         }
+    }
+}
+
+@Composable
+private fun MoreOptionButton(label: String, painter: Painter, onClick: (() -> Unit)?) {
+    Column(
+        modifier = Modifier.widthIn(max = 72.dp),
+        horizontalAlignment = Alignment.CenterHorizontally,
+    ) {
+        FilledTonalIconButton(
+            enabled = onClick != null,
+            onClick = { onClick?.invoke() },
+        ) {
+            Icon(
+                painter = painter,
+                contentDescription = label,
+            )
+        }
+        Text(
+            text = label,
+            modifier = Modifier.clearAndSetSemantics {},
+            style = MaterialTheme.typography.labelSmall,
+            textAlign = TextAlign.Center,
+        )
     }
 }

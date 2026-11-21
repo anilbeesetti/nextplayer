@@ -24,6 +24,7 @@ fun BoxScope.OverlayShowView(
     onChapterSelected: (Chapter) -> Unit,
     onDismiss: () -> Unit = {},
     onShowOverlay: (OverlayView) -> Unit = {},
+    onShare: (() -> Unit)? = null,
     onVideoDecoderModeSelected: (DecoderMode) -> Unit = {},
     onAudioDecoderModeSelected: (DecoderMode) -> Unit = {},
     onSelectSubtitleClick: () -> Unit = {},
@@ -86,6 +87,7 @@ fun BoxScope.OverlayShowView(
     MoreOptionsView(
         show = overlayView == OverlayView.MORE_OPTIONS,
         onOptionClick = onShowOverlay,
+        onShare = onShare,
     )
 
     ChaptersView(

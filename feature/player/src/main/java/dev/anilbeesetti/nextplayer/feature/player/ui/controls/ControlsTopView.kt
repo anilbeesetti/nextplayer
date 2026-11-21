@@ -70,11 +70,7 @@ fun ControlsTopView(
     ) {
         // Keep room for the title; actions that don't fit move to the "More" overlay.
         val actionSlots = ((maxWidth - FixedContentWidth - MinTitleWidth) / ActionSlotWidth).toInt()
-        val inlineActionCount = if (actionSlots >= OVERFLOWABLE_ACTION_COUNT) {
-            OVERFLOWABLE_ACTION_COUNT
-        } else {
-            (actionSlots - 1).coerceAtLeast(0)
-        }
+        val inlineActionCount = (actionSlots - 1).coerceAtLeast(0)
         Row(
             modifier = Modifier
                 .fillMaxWidth()
@@ -137,20 +133,18 @@ fun ControlsTopView(
                             contentDescription = stringResource(R.string.subtitle_track),
                         )
                     }
-                } else {
-                    PlayerButton(onClick = onMoreClick) {
-                        Icon(
-                            imageVector = NextIcons.MoreVert,
-                            contentDescription = stringResource(R.string.more),
-                        )
-                    }
+                }
+                PlayerButton(onClick = onMoreClick) {
+                    Icon(
+                        imageVector = NextIcons.MoreVert,
+                        contentDescription = stringResource(R.string.more),
+                    )
                 }
             }
         }
     }
 }
 
-private const val OVERFLOWABLE_ACTION_COUNT = 3
 private val MinTitleWidth = 160.dp
 
 // 40dp button + 8dp spacing.
