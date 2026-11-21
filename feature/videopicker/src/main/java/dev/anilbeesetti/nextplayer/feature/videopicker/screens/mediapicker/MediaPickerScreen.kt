@@ -105,6 +105,7 @@ import dev.anilbeesetti.nextplayer.core.ui.components.LocalNavigationBottomPaddi
 import dev.anilbeesetti.nextplayer.core.ui.components.NextDialog
 import dev.anilbeesetti.nextplayer.core.ui.components.NextOutlinedTextField
 import dev.anilbeesetti.nextplayer.core.ui.components.NextTopAppBar
+import dev.anilbeesetti.nextplayer.core.ui.components.RenameDialog
 import dev.anilbeesetti.nextplayer.core.ui.components.TextIconToggleButton
 import dev.anilbeesetti.nextplayer.core.ui.components.TopLevelFabKey
 import dev.anilbeesetti.nextplayer.core.ui.components.rememberRestorableFocusState
@@ -121,7 +122,6 @@ import dev.anilbeesetti.nextplayer.feature.videopicker.composables.MediaInfoDial
 import dev.anilbeesetti.nextplayer.feature.videopicker.composables.MediaView
 import dev.anilbeesetti.nextplayer.feature.videopicker.composables.NoVideosFound
 import dev.anilbeesetti.nextplayer.feature.videopicker.composables.QuickSettingsDialog
-import dev.anilbeesetti.nextplayer.feature.videopicker.composables.RenameDialog
 import dev.anilbeesetti.nextplayer.feature.videopicker.composables.SelectionAction
 import dev.anilbeesetti.nextplayer.feature.videopicker.composables.vault.PinDotsIndicator
 import dev.anilbeesetti.nextplayer.feature.videopicker.composables.vault.PinKeypad

@@ -528,6 +528,49 @@ class MediaTransferTest {
 
     @Test
     @Config(sdk = [24, 28])
+    fun `legacy rename restores the file when MediaStore rejects the update`() = runBlocking {
+        provider.nativeMode = true
+        provider.failUpdate = true
+        val renamed = File(
+            source.parentFile,
+            "renamed.mp4",
+        )
+
+        assertFalse(
+            service.renameMedia(
+                uri = sourceUri,
+                to = renamed.name,
+            ),
+        )
+
+        assertTrue(source.isFile)
+        assertFalse(renamed.exists())
+    }
+
+    @Test
+    @Config(sdk = [24, 28])
+    fun `legacy rename leaves an occupied destination intact`() = runBlocking {
+        val destination = File(
+            source.parentFile,
+            "occupied.mp4",
+        ).apply { writeText("occupied") }
+
+        assertFalse(
+            service.renameMedia(
+                uri = sourceUri,
+                to = destination.name,
+            ),
+        )
+
+        assertTrue(source.isFile)
+        assertEquals(
+            "occupied",
+            destination.readText(),
+        )
+    }
+
+    @Test
+    @Config(sdk = [24, 28])
     fun `legacy rollback failure preserves moved file and replacement source`() = runBlocking {
         useNativeFolder()
         provider.failUpdate = true

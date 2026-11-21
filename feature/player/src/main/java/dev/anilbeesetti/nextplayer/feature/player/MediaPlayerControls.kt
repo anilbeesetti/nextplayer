@@ -48,6 +48,7 @@ import dev.anilbeesetti.nextplayer.feature.player.ui.OverlayShowView
 import dev.anilbeesetti.nextplayer.feature.player.ui.OverlayView
 import dev.anilbeesetti.nextplayer.feature.player.ui.PlayerGestureIndicators
 import dev.anilbeesetti.nextplayer.feature.player.utils.createVideoShareIntent
+import dev.anilbeesetti.nextplayer.feature.player.utils.isMediaStoreVideo
 import kotlin.time.Duration.Companion.seconds
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
@@ -94,6 +95,7 @@ internal fun MediaPlayerControls(
     }
 
     val context = LocalContext.current
+    val videoUri = player.currentMediaItem?.localConfiguration?.uri
     val scope = rememberCoroutineScope()
     fun currentShareUri() = player.currentMediaItem?.localConfiguration?.uri?.takeIf {
         it.scheme == ContentResolver.SCHEME_CONTENT || it.scheme == ContentResolver.SCHEME_FILE
@@ -197,7 +199,7 @@ internal fun MediaPlayerControls(
             } else {
                 PlayerControls(
                     player = player,
-                    title = metadataState.title.orEmpty(),
+                    title = state.renamedVideoTitles[videoUri] ?: metadataState.title.orEmpty(),
                     playerPreferences = playerPreferences,
                     videoDecoderMode = state.decoderServiceState.videoMode,
                     controlsVisibilityState = controlsVisibilityState,
@@ -233,9 +235,18 @@ internal fun MediaPlayerControls(
                 videoDecoderMode = state.decoderServiceState.videoMode,
                 audioDecoderMode = state.decoderServiceState.audioMode,
                 videoContentScale = videoZoomAndContentScaleState.videoContentScale,
+                renamedVideoTitles = state.renamedVideoTitles,
                 onDismiss = { overlayView = null },
                 onShowOverlay = ::showOverlay,
                 onShare = (::shareCurrentVideo).takeIf { currentShareUri() != null },
+                onRename = if (videoUri?.isMediaStoreVideo() == true) {
+                    {
+                        overlayView = null
+                        onAction(PlayerAction.RequestRename)
+                    }
+                } else {
+                    null
+                },
                 onVideoDecoderModeSelected = {
                     onAction(PlayerAction.SetVideoDecoderMode(mode = it))
                 },

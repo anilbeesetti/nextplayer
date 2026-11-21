@@ -24,6 +24,7 @@ import androidx.annotation.RequiresApi
 import dev.anilbeesetti.nextplayer.core.common.extensions.deleteMedia
 import dev.anilbeesetti.nextplayer.core.common.extensions.getFilenameFromUri
 import dev.anilbeesetti.nextplayer.core.common.extensions.getPath
+import dev.anilbeesetti.nextplayer.core.common.extensions.isValidFileName
 import dev.anilbeesetti.nextplayer.core.common.extensions.scanPaths
 import dev.anilbeesetti.nextplayer.core.common.extensions.updateMedia
 import dev.anilbeesetti.nextplayer.core.common.service.SuspendActivityResultLauncher
@@ -82,6 +83,7 @@ class LocalMediaOperationsService(private val context: Context) : MediaOperation
     }
 
     override suspend fun renameMedia(uri: Uri, to: String): Boolean = withContext(Dispatchers.IO) {
+        if (!to.isValidFileName()) return@withContext false
         return@withContext if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) {
             renameMediaR(
                 uri = uri,
@@ -471,10 +473,15 @@ class LocalMediaOperationsService(private val context: Context) : MediaOperation
         }
     }
 
-    private suspend fun moveLegacyFile(uri: Uri, source: File, folder: File): DirectMoveResult {
+    private suspend fun moveLegacyFile(
+        uri: Uri,
+        source: File,
+        folder: File,
+        newName: String? = null,
+    ): DirectMoveResult {
         var destination = File(
             folder,
-            source.name,
+            newName ?: source.name,
         )
         var suffix = 0
         var reserved = false
@@ -482,6 +489,7 @@ class LocalMediaOperationsService(private val context: Context) : MediaOperation
         var rollbackReserved = false
         try {
             while (!destination.createNewFile()) {
+                if (newName != null) return DirectMoveResult.FAILED
                 suffix++
                 val extension = source.extension.takeIf {
                     it.isNotEmpty()
@@ -506,6 +514,12 @@ class LocalMediaOperationsService(private val context: Context) : MediaOperation
                             MediaStore.MediaColumns.DISPLAY_NAME,
                             destination.name,
                         )
+                        if (newName != null) {
+                            put(
+                                MediaStore.MediaColumns.TITLE,
+                                destination.name,
+                            )
+                        }
                     },
                 )
             ) {
@@ -722,32 +736,20 @@ class LocalMediaOperationsService(private val context: Context) : MediaOperation
             },
         )
 
-    private suspend fun renameMediaBelowR(uri: Uri, to: String): Boolean = runCatching {
-        val oldFile = context.getPath(uri = uri)?.let { File(it) } ?: throw Error()
-        val newFile = File(
-            oldFile.parentFile,
-            to,
-        )
-        oldFile.renameTo(newFile).also { success ->
-            if (success) {
-                contentResolver.updateMedia(
-                    uri = uri,
-                    contentValues = ContentValues().apply {
-                        put(
-                            MediaStore.Files.FileColumns.DISPLAY_NAME,
-                            to,
-                        )
-                        put(
-                            MediaStore.Files.FileColumns.TITLE,
-                            to,
-                        )
-                        put(
-                            MediaStore.Files.FileColumns.DATA,
-                            newFile.path,
-                        )
-                    },
-                )
-            }
+    private suspend fun renameMediaBelowR(uri: Uri, to: String): Boolean {
+        val source = runCatching {
+            context.getPath(uri = uri)?.let(::File)
+        }.getOrNull() ?: return false
+        val folder = source.parentFile ?: return false
+        if (source.name == to) return source.isFile
+        currentCoroutineContext().ensureActive()
+        return withContext(NonCancellable) {
+            moveLegacyFile(
+                uri = uri,
+                source = source,
+                folder = folder,
+                newName = to,
+            ) == DirectMoveResult.MOVED
         }
-    }.getOrNull() ?: false
+    }
 }

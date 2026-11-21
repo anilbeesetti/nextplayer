@@ -1,6 +1,7 @@
 package dev.anilbeesetti.nextplayer.feature.player.ui
 
 import android.content.res.Configuration
+import android.net.Uri
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.BoxScope
 import androidx.compose.runtime.Composable
@@ -21,10 +22,12 @@ fun BoxScope.OverlayShowView(
     videoContentScale: VideoContentScale,
     chapters: List<Chapter>,
     currentChapterIndex: Int,
+    renamedVideoTitles: Map<Uri, String>,
     onChapterSelected: (Chapter) -> Unit,
     onDismiss: () -> Unit = {},
     onShowOverlay: (OverlayView) -> Unit = {},
     onShare: (() -> Unit)? = null,
+    onRename: (() -> Unit)? = null,
     onVideoDecoderModeSelected: (DecoderMode) -> Unit = {},
     onAudioDecoderModeSelected: (DecoderMode) -> Unit = {},
     onSelectSubtitleClick: () -> Unit = {},
@@ -82,12 +85,14 @@ fun BoxScope.OverlayShowView(
     PlaylistView(
         show = overlayView == OverlayView.PLAYLIST,
         player = player,
+        renamedVideoTitles = renamedVideoTitles,
     )
 
     MoreOptionsView(
         show = overlayView == OverlayView.MORE_OPTIONS,
         onOptionClick = onShowOverlay,
         onShare = onShare,
+        onRename = onRename,
     )
 
     ChaptersView(

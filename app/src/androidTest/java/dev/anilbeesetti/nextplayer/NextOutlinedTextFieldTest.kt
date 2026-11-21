@@ -29,8 +29,8 @@ import androidx.test.ext.junit.runners.AndroidJUnit4
 import androidx.test.platform.app.InstrumentationRegistry
 import dev.anilbeesetti.nextplayer.core.common.extensions.isTelevision
 import dev.anilbeesetti.nextplayer.core.ui.components.NextOutlinedTextField
+import dev.anilbeesetti.nextplayer.core.ui.components.RenameDialog
 import dev.anilbeesetti.nextplayer.core.ui.theme.NextPlayerTheme
-import dev.anilbeesetti.nextplayer.feature.videopicker.composables.RenameDialog
 import org.junit.Assert.assertFalse
 import org.junit.Assert.assertTrue
 import org.junit.Assume.assumeFalse

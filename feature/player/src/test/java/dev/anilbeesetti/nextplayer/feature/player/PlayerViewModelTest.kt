@@ -57,6 +57,7 @@ class PlayerViewModelTest {
                 setVideoDecoderMode = {},
                 setAudioDecoderMode = {},
                 tryDecoderFallback = {},
+                requestRename = {},
             ),
         )
     }

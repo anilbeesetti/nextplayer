@@ -39,6 +39,7 @@ class PlayerViewModel(
         val setVideoDecoderMode: (DecoderMode) -> Unit,
         val setAudioDecoderMode: (DecoderMode) -> Unit,
         val tryDecoderFallback: () -> Unit,
+        val requestRename: () -> Unit,
     )
 
     private val stateInternal = MutableStateFlow(
@@ -63,6 +64,8 @@ class PlayerViewModel(
             is PlayerAction.SelectSubtitle -> output.selectSubtitle()
 
             is PlayerAction.SelectAudio -> output.selectAudio()
+
+            is PlayerAction.RequestRename -> output.requestRename()
 
             is PlayerAction.PlayInBackground -> output.playInBackground()
 
@@ -95,6 +98,12 @@ class PlayerViewModel(
     }
 
     suspend fun getPlaylistFromUri(uri: Uri): List<Video> = getSortedPlaylistUseCase.invoke(uri)
+
+    internal fun onVideoRenamed(uri: Uri, title: String) {
+        stateInternal.update {
+            it.copy(renamedVideoTitles = it.renamedVideoTitles + (uri to title))
+        }
+    }
 
     private fun updateVideoZoom(uri: String, zoom: Float) {
         viewModelScope.launch {
@@ -196,12 +205,15 @@ data class PlayerUiState(
     val playerPreferences: PlayerPreferences = PlayerPreferences(),
     val playWhenReady: Boolean = true,
     val decoderServiceState: DecoderServiceState = DecoderServiceState(),
+    // shortcut: titles update only in the player UI until the session supports metadata-only edits.
+    val renamedVideoTitles: Map<Uri, String> = emptyMap(),
 )
 
 sealed interface PlayerAction {
     data object NavigateUp : PlayerAction
     data object SelectSubtitle : PlayerAction
     data object SelectAudio : PlayerAction
+    data object RequestRename : PlayerAction
     data object PlayInBackground : PlayerAction
     data class SetVideoDecoderMode(val mode: DecoderMode) : PlayerAction
     data class SetAudioDecoderMode(val mode: DecoderMode) : PlayerAction

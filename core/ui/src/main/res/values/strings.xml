@@ -236,6 +236,7 @@
     <string name="no_audio_tracks_found">Audio tracks for this video are either unavailable or not supported.</string>
     <string name="rename">Rename</string>
     <string name="rename_to">Rename to</string>
+    <string name="error_renaming_video">Could not rename this video</string>
     <string name="mark_last_played_media">Mark last played media</string>
     <string name="mark_last_played_media_desc">Mark last played media in home and in each folder</string>
     <string name="open_local_video">Open local video</string>
