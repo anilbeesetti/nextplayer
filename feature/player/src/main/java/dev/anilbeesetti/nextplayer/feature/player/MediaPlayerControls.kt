@@ -86,13 +86,20 @@ internal fun MediaPlayerControls(
         dpadUpDown = dpadUpDown,
     )
     var overlayView by remember { mutableStateOf<OverlayView?>(value = null) }
+    val mediaInfo = state.mediaInfo.takeIf { overlayView == OverlayView.MORE_OPTIONS }
     LaunchedEffect(metadataState.mediaId) {
         if (overlayView == OverlayView.CHAPTERS) overlayView = null
     }
 
     fun showOverlay(overlay: OverlayView) {
+        if (state.mediaInfo != null) onAction(PlayerAction.DismissMediaInfo)
         controlsVisibilityState.hideControls()
         overlayView = overlay
+    }
+
+    fun dismissOverlay() {
+        if (state.mediaInfo != null) onAction(PlayerAction.DismissMediaInfo)
+        overlayView = null
     }
 
     val context = LocalContext.current
@@ -115,7 +122,7 @@ internal fun MediaPlayerControls(
                 runCatching { context.startActivity(createVideoShareIntent(it)) }.isSuccess
             } ?: false
             if (shared) {
-                overlayView = null
+                dismissOverlay()
             } else {
                 Toast.makeText(
                     context,
@@ -237,12 +244,13 @@ internal fun MediaPlayerControls(
                 audioDecoderMode = state.decoderServiceState.audioMode,
                 videoContentScale = videoZoomAndContentScaleState.videoContentScale,
                 renamedVideoTitles = state.renamedVideoTitles,
-                onDismiss = { overlayView = null },
+                mediaInfo = mediaInfo,
+                onDismiss = ::dismissOverlay,
                 onShowOverlay = ::showOverlay,
                 onShare = (::shareCurrentVideo).takeIf { currentShareUri() != null },
                 onRename = if (videoUri?.isMediaStoreVideo() == true) {
                     {
-                        overlayView = null
+                        dismissOverlay()
                         onAction(PlayerAction.RequestRename)
                     }
                 } else {
@@ -255,13 +263,13 @@ internal fun MediaPlayerControls(
                             fallbackName = context.getString(R.string.unknown),
                             renamedName = state.renamedVideoTitles[currentUri],
                         )?.let { info ->
-                            overlayView = null
                             onAction(PlayerAction.ShowMediaInfo(info))
                         }
                     }
                 } else {
                     null
                 },
+                onDismissInfo = { onAction(PlayerAction.DismissMediaInfo) },
                 onVideoDecoderModeSelected = {
                     onAction(PlayerAction.SetVideoDecoderMode(mode = it))
                 },
@@ -281,7 +289,9 @@ internal fun MediaPlayerControls(
 
     BackHandler {
         when {
-            overlayView != null -> overlayView = null
+            mediaInfo != null -> onAction(PlayerAction.DismissMediaInfo)
+
+            overlayView != null -> dismissOverlay()
 
             isTv && controlsVisibilityState.controlsVisible ->
                 controlsVisibilityState.hideControls()

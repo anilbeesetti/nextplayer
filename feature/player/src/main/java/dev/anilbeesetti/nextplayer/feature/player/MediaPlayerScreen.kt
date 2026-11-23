@@ -25,7 +25,6 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.media3.common.Player
 import androidx.media3.common.util.UnstableApi
 import dev.anilbeesetti.nextplayer.core.ui.R
-import dev.anilbeesetti.nextplayer.core.ui.components.MediaInfoDialog
 import dev.anilbeesetti.nextplayer.core.ui.theme.NextPlayerTheme
 import dev.anilbeesetti.nextplayer.feature.player.state.ControlsVisibilityState
 import dev.anilbeesetti.nextplayer.feature.player.state.PlayerOrientationEffect
@@ -62,12 +61,6 @@ fun MediaPlayerScreen(viewModel: PlayerViewModel, player: Player?, api: PlayerAp
         onAction = viewModel::onAction,
         api = api,
     )
-    state.mediaInfo?.let { info ->
-        MediaInfoDialog(
-            mediaInfo = info,
-            onDismiss = { viewModel.onAction(PlayerAction.DismissMediaInfo) },
-        )
-    }
 }
 
 @OptIn(UnstableApi::class)

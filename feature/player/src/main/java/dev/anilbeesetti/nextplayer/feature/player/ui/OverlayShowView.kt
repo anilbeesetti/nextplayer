@@ -8,6 +8,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.media3.common.Player
 import androidx.media3.extractor.metadata.Chapter
+import dev.anilbeesetti.nextplayer.core.model.MediaInfo
 import dev.anilbeesetti.nextplayer.core.model.VideoContentScale
 import dev.anilbeesetti.nextplayer.feature.player.extensions.noRippleClickable
 import dev.anilbeesetti.nextplayer.feature.player.model.DecoderMode
@@ -23,12 +24,14 @@ fun BoxScope.OverlayShowView(
     chapters: List<Chapter>,
     currentChapterIndex: Int,
     renamedVideoTitles: Map<Uri, String>,
+    mediaInfo: MediaInfo?,
     onChapterSelected: (Chapter) -> Unit,
     onDismiss: () -> Unit = {},
     onShowOverlay: (OverlayView) -> Unit = {},
     onShare: (() -> Unit)? = null,
     onRename: (() -> Unit)? = null,
     onInfo: (() -> Unit)? = null,
+    onDismissInfo: () -> Unit,
     onVideoDecoderModeSelected: (DecoderMode) -> Unit = {},
     onAudioDecoderModeSelected: (DecoderMode) -> Unit = {},
     onSelectSubtitleClick: () -> Unit = {},
@@ -91,10 +94,12 @@ fun BoxScope.OverlayShowView(
 
     MoreOptionsView(
         show = overlayView == OverlayView.MORE_OPTIONS,
+        mediaInfo = mediaInfo,
         onOptionClick = onShowOverlay,
         onShare = onShare,
         onRename = onRename,
         onInfo = onInfo,
+        onDismissInfo = onDismissInfo,
     )
 
     ChaptersView(

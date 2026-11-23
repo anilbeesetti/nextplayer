@@ -37,18 +37,6 @@ import kotlinx.coroutines.launch
 
 @Composable
 fun MediaInfoDialog(mediaInfo: MediaInfo, onDismiss: () -> Unit) {
-    val context = LocalContext.current
-    val isTv = remember { context.isTelevision }
-    val scrollState = rememberScrollState()
-    val scope = rememberCoroutineScope()
-    val focusRequester = remember { FocusRequester() }
-
-    // On a TV the info panel has no focusable rows, so make it focusable and scroll it with the
-    // D-pad. Focus escapes to the OK button once there's nothing left to scroll.
-    if (isTv) {
-        LaunchedEffect(key1 = Unit) { runCatching { focusRequester.requestFocus() } }
-    }
-
     NextDialog(
         onDismissRequest = onDismiss,
         title = {
@@ -60,162 +48,179 @@ fun MediaInfoDialog(mediaInfo: MediaInfo, onDismiss: () -> Unit) {
         },
         content = {
             HorizontalDivider()
-            Column(
-                verticalArrangement = Arrangement.spacedBy(5.dp),
-                modifier = Modifier
-                    .verticalScroll(state = scrollState)
-                    .thenIf(condition = isTv) {
-                        focusRequester(focusRequester = focusRequester)
-                            .focusable()
-                            .onKeyEvent { event ->
-                                if (event.type != KeyEventType.KeyDown) return@onKeyEvent false
-                                val amount =
-                                    (scrollState.viewportSize * 0.8f).takeIf { it > 0f } ?: 400f
-                                when (event.key) {
-                                    Key.DirectionDown -> if (scrollState.canScrollForward) {
-                                        scope.launch { scrollState.animateScrollBy(value = amount) }
-                                        true
-                                    } else {
-                                        false
-                                    }
-
-                                    Key.DirectionUp -> if (scrollState.canScrollBackward) {
-                                        scope.launch {
-                                            scrollState.animateScrollBy(value = -amount)
-                                        }
-                                        true
-                                    } else {
-                                        false
-                                    }
-
-                                    else -> false
-                                }
-                            }
-                    },
-            ) {
-                MediaInfoTitle(text = stringResource(R.string.file))
-                MediaInfoText(
-                    title = stringResource(id = R.string.file),
-                    subText = mediaInfo.video.nameWithExtension,
-                )
-                MediaInfoText(
-                    title = stringResource(id = R.string.location),
-                    subText = mediaInfo.video.parentPath,
-                )
-                MediaInfoText(
-                    title = stringResource(id = R.string.size),
-                    subText = mediaInfo.video.formattedFileSize,
-                )
-                MediaInfoText(
-                    title = stringResource(id = R.string.duration),
-                    subText = mediaInfo.video.formattedDuration,
-                )
-                mediaInfo.video.format?.let {
-                    MediaInfoText(
-                        title = stringResource(id = R.string.format),
-                        subText = it,
-                    )
-                }
-                mediaInfo.videoStream?.let { videoStream ->
-                    MediaInfoTitle(text = stringResource(id = R.string.video_track))
-                    videoStream.title?.let {
-                        MediaInfoText(
-                            title = stringResource(id = R.string.title),
-                            subText = it,
-                        )
-                    }
-                    MediaInfoText(
-                        title = stringResource(id = R.string.codec),
-                        subText = videoStream.codecName,
-                    )
-                    if (videoStream.frameWidth > 0 && videoStream.frameHeight > 0) {
-                        MediaInfoText(
-                            title = stringResource(id = R.string.resolution),
-                            subText = "${videoStream.frameWidth} x ${videoStream.frameHeight}",
-                        )
-                    }
-                    if (videoStream.frameRate > 0) {
-                        MediaInfoText(
-                            title = stringResource(id = R.string.frame_rate),
-                            subText = videoStream.frameRate.toInt().toString(),
-                        )
-                    }
-                    Utils.formatBitrate(videoStream.bitRate)?.let {
-                        MediaInfoText(
-                            title = stringResource(id = R.string.bitrate),
-                            subText = it,
-                        )
-                    }
-                }
-                mediaInfo.audioStreams.forEachIndexed { index, audioStream ->
-                    MediaInfoTitle(
-                        text = "${stringResource(id = R.string.audio_track)} #${index + 1}",
-                    )
-                    audioStream.title?.let {
-                        MediaInfoText(
-                            title = stringResource(id = R.string.title),
-                            subText = it,
-                        )
-                    }
-                    MediaInfoText(
-                        title = stringResource(id = R.string.codec),
-                        subText = audioStream.codecName,
-                    )
-                    if (audioStream.sampleRate > 0) {
-                        MediaInfoText(
-                            title = stringResource(id = R.string.sample_rate),
-                            subText = "${audioStream.sampleRate} Hz",
-                        )
-                    }
-                    MediaInfoText(
-                        title = stringResource(id = R.string.sample_format),
-                        subText = audioStream.sampleFormat.orEmpty(),
-                    )
-                    Utils.formatBitrate(audioStream.bitRate)?.let {
-                        MediaInfoText(
-                            title = stringResource(id = R.string.bitrate),
-                            subText = it,
-                        )
-                    }
-                    MediaInfoText(
-                        title = stringResource(id = R.string.channels),
-                        subText = audioStream.channelLayout
-                            ?: audioStream.channels.takeIf { it > 0 }?.toString().orEmpty(),
-                    )
-                    Utils.formatLanguage(audioStream.language)?.let {
-                        MediaInfoText(
-                            title = stringResource(id = R.string.language),
-                            subText = it,
-                        )
-                    }
-                }
-                mediaInfo.subtitleStreams.forEachIndexed { index, subtitleStream ->
-                    MediaInfoTitle(
-                        text = "${stringResource(id = R.string.subtitle_track)} #${index + 1}",
-                    )
-                    subtitleStream.title?.let {
-                        MediaInfoText(
-                            title = stringResource(id = R.string.title),
-                            subText = it,
-                        )
-                    }
-                    MediaInfoText(
-                        title = stringResource(id = R.string.codec),
-                        subText = subtitleStream.codecName,
-                    )
-                    Utils.formatLanguage(subtitleStream.language)?.let {
-                        MediaInfoText(
-                            title = stringResource(id = R.string.language),
-                            subText = it,
-                        )
-                    }
-                }
-            }
+            MediaInfoContent(mediaInfo = mediaInfo)
         },
         confirmButton = {
             TextButton(onClick = onDismiss) { Text(text = stringResource(id = R.string.okay)) }
         },
     )
+}
+
+@Composable
+fun MediaInfoContent(mediaInfo: MediaInfo, modifier: Modifier = Modifier) {
+    val context = LocalContext.current
+    val isTv = remember { context.isTelevision }
+    val scrollState = rememberScrollState()
+    val scope = rememberCoroutineScope()
+    val focusRequester = remember { FocusRequester() }
+
+    // On a TV the info panel has no focusable rows, so make it focusable and scroll it with the
+    // D-pad. Once it reaches an edge, focus can leave the scroll area.
+    if (isTv) {
+        LaunchedEffect(key1 = Unit) { runCatching { focusRequester.requestFocus() } }
+    }
+
+    Column(
+        verticalArrangement = Arrangement.spacedBy(5.dp),
+        modifier = modifier
+            .verticalScroll(state = scrollState)
+            .thenIf(condition = isTv) {
+                focusRequester(focusRequester = focusRequester)
+                    .focusable()
+                    .onKeyEvent { event ->
+                        if (event.type != KeyEventType.KeyDown) return@onKeyEvent false
+                        val amount =
+                            (scrollState.viewportSize * 0.8f).takeIf { it > 0f } ?: 400f
+                        when (event.key) {
+                            Key.DirectionDown -> if (scrollState.canScrollForward) {
+                                scope.launch { scrollState.animateScrollBy(value = amount) }
+                                true
+                            } else {
+                                false
+                            }
+
+                            Key.DirectionUp -> if (scrollState.canScrollBackward) {
+                                scope.launch {
+                                    scrollState.animateScrollBy(value = -amount)
+                                }
+                                true
+                            } else {
+                                false
+                            }
+
+                            else -> false
+                        }
+                    }
+            },
+    ) {
+        MediaInfoTitle(text = stringResource(R.string.file))
+        MediaInfoText(
+            title = stringResource(id = R.string.file),
+            subText = mediaInfo.video.nameWithExtension,
+        )
+        MediaInfoText(
+            title = stringResource(id = R.string.location),
+            subText = mediaInfo.video.parentPath,
+        )
+        MediaInfoText(
+            title = stringResource(id = R.string.size),
+            subText = mediaInfo.video.formattedFileSize,
+        )
+        MediaInfoText(
+            title = stringResource(id = R.string.duration),
+            subText = mediaInfo.video.formattedDuration,
+        )
+        mediaInfo.video.format?.let {
+            MediaInfoText(
+                title = stringResource(id = R.string.format),
+                subText = it,
+            )
+        }
+        mediaInfo.videoStream?.let { videoStream ->
+            MediaInfoTitle(text = stringResource(id = R.string.video_track))
+            videoStream.title?.let {
+                MediaInfoText(
+                    title = stringResource(id = R.string.title),
+                    subText = it,
+                )
+            }
+            MediaInfoText(
+                title = stringResource(id = R.string.codec),
+                subText = videoStream.codecName,
+            )
+            if (videoStream.frameWidth > 0 && videoStream.frameHeight > 0) {
+                MediaInfoText(
+                    title = stringResource(id = R.string.resolution),
+                    subText = "${videoStream.frameWidth} x ${videoStream.frameHeight}",
+                )
+            }
+            if (videoStream.frameRate > 0) {
+                MediaInfoText(
+                    title = stringResource(id = R.string.frame_rate),
+                    subText = videoStream.frameRate.toInt().toString(),
+                )
+            }
+            Utils.formatBitrate(videoStream.bitRate)?.let {
+                MediaInfoText(
+                    title = stringResource(id = R.string.bitrate),
+                    subText = it,
+                )
+            }
+        }
+        mediaInfo.audioStreams.forEachIndexed { index, audioStream ->
+            MediaInfoTitle(
+                text = "${stringResource(id = R.string.audio_track)} #${index + 1}",
+            )
+            audioStream.title?.let {
+                MediaInfoText(
+                    title = stringResource(id = R.string.title),
+                    subText = it,
+                )
+            }
+            MediaInfoText(
+                title = stringResource(id = R.string.codec),
+                subText = audioStream.codecName,
+            )
+            if (audioStream.sampleRate > 0) {
+                MediaInfoText(
+                    title = stringResource(id = R.string.sample_rate),
+                    subText = "${audioStream.sampleRate} Hz",
+                )
+            }
+            MediaInfoText(
+                title = stringResource(id = R.string.sample_format),
+                subText = audioStream.sampleFormat.orEmpty(),
+            )
+            Utils.formatBitrate(audioStream.bitRate)?.let {
+                MediaInfoText(
+                    title = stringResource(id = R.string.bitrate),
+                    subText = it,
+                )
+            }
+            MediaInfoText(
+                title = stringResource(id = R.string.channels),
+                subText = audioStream.channelLayout
+                    ?: audioStream.channels.takeIf { it > 0 }?.toString().orEmpty(),
+            )
+            Utils.formatLanguage(audioStream.language)?.let {
+                MediaInfoText(
+                    title = stringResource(id = R.string.language),
+                    subText = it,
+                )
+            }
+        }
+        mediaInfo.subtitleStreams.forEachIndexed { index, subtitleStream ->
+            MediaInfoTitle(
+                text = "${stringResource(id = R.string.subtitle_track)} #${index + 1}",
+            )
+            subtitleStream.title?.let {
+                MediaInfoText(
+                    title = stringResource(id = R.string.title),
+                    subText = it,
+                )
+            }
+            MediaInfoText(
+                title = stringResource(id = R.string.codec),
+                subText = subtitleStream.codecName,
+            )
+            Utils.formatLanguage(subtitleStream.language)?.let {
+                MediaInfoText(
+                    title = stringResource(id = R.string.language),
+                    subText = it,
+                )
+            }
+        }
+    }
 }
 
 @Composable
