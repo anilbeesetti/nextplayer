@@ -230,4 +230,24 @@
     <string name="delete_one_folder">Apagar 1 pasta?</string>
     <string name="delete_folders">Apagar %1$d pastas?</string>
     <string name="delete_items">Apagar %1$d itens?</string>
+    <string name="settings_export">Configurações de exportação</string>
+    <string name="settings_export_description">Salvar configurações em um arquivo JSON</string>
+    <string name="settings_import">Configurações de importação</string>
+    <string name="settings_import_description">Restaurar as configurações de um arquivo JSON</string>
+    <string name="settings_export_confirmation">Exporte as configurações do aplicativo e do player para um arquivo JSON.</string>
+    <string name="settings_export_include_credentials">Incluir conexões e credenciais de rede</string>
+    <string name="settings_export_credentials_warning">O arquivo JSON não está criptografado. Pode conter senhas e chaves privadas SSH. Mantenha-o seguro.</string>
+    <string name="settings_import_confirmation">Configurações neste arquivo irá substituir suas configurações atuais. Itens ausentes, obsoletos, desconhecidos ou inválidos serão ignorados. As conexões e credenciais de rede também serão importadas se incluídas.</string>
+    <string name="export_action">Exportação</string>
+    <string name="import_action">Importação</string>
+    <string name="settings_export_success">Configurações exportadas</string>
+    <string name="settings_export_failed">Não foi possível exportar configurações</string>
+    <string name="settings_import_success">Configurações importadas</string>
+    <string name="settings_import_failed">Não foi possível terminar a importação de configurações. Por favor, tente de novo.</string>
+    <string name="settings_import_invalid">Não foi possível ler este arquivo ou não contém configurações JSON compatíveis</string>
+    <string name="tunneled_playback">Reprodução tonalizada</string>
+    <string name="tunneled_playback_description">Use a reprodução em túnel quando suportado pelo dispositivo e pela mídia. Pode melhorar a reprodução Dolby Vision e HDR10+ em TVs Android. Aplica-se a novas sessões de reprodução.</string>
+    <string name="history">História</string>
+    <string name="reset_subtitle_position">Redefinir a posição do subtítulo</string>
+    <string name="reset_subtitle_position_desc">Arraste legendas para cima ou para baixo enquanto joga para movê-las</string>
 </resources>

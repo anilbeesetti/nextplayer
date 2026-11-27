@@ -376,7 +376,7 @@
         <item quantity="other">%1$d 本の動画を移動できませんでした</item>
     </plurals>
     <plurals name="moved_videos_originals_remain">
-        <item quantity="other">%1$d 本の動画を移動しましたが、元の動画を削除できませんでした</item>
+        <item quantity="other">%1$d 本の動画をコピーしましたが、元の動画を削除できませんでした</item>
     </plurals>
     <string name="cannot_move_to_same_folder">同じフォルダーには移動できません</string>
     <string name="tunneled_playback_description">デバイスおよびメディアが対応している場合は、トンネリング再生を使用します。Android TV での Dolby Vision および HDR10+ の再生品質が向上する可能性があります。この設定は、新規再生セッションに適用されます。</string>
@@ -525,4 +525,24 @@
     <string name="add_to_home_screen">ホーム画面に追加</string>
     <string name="playlist_shortcut_failed">プレイリストのショートカットを追加できませんでした。もう一度お試しください。</string>
     <string name="github_sponsors">GitHub Sponsors</string>
+    <string name="settings_export">設定をエクスポート</string>
+    <string name="settings_export_description">設定を JSON ファイルに保存します</string>
+    <string name="settings_import">設定をインポート</string>
+    <string name="settings_import_description">JSON ファイルから設定を復元します</string>
+    <string name="settings_export_confirmation">アプリおよびプレーヤーの設定を JSON ファイルにエクスポートします。</string>
+    <string name="settings_export_include_credentials">ネットワーク接続と認証情報を含める</string>
+    <string name="settings_export_credentials_warning">JSON ファイルは暗号化されていません。パスワードや SSH 秘密鍵が含まれている可能性があります。安全に保管してください。</string>
+    <string name="settings_import_confirmation">このファイルの設定は、現在の設定を上書きします。欠落している項目、非推奨の項目、不明な項目、または無効な項目は無視されます。ネットワーク接続や認証情報が含まれている場合は、それらもインポートされます。</string>
+    <string name="export_action">エクスポート</string>
+    <string name="import_action">インポート</string>
+    <string name="settings_export_success">設定をエクスポートしました</string>
+    <string name="settings_export_failed">設定をエクスポートできませんでした</string>
+    <string name="settings_import_success">設定をインポートしました</string>
+    <string name="settings_import_failed">設定のインポートを完了できませんでした。もう一度お試しください。</string>
+    <string name="settings_import_invalid">このファイルを読み取れなかったか、サポートされている JSON 設定が含まれていませんでした</string>
+    <string name="reset_subtitle_position">字幕の位置をリセット</string>
+    <string name="reset_subtitle_position_desc">再生中に字幕を上下にドラッグして移動できます</string>
+    <string name="decoder_mode_hardware_plus">HW+</string>
+    <string name="decoder_system_description">Android システム デコーダー（ハードウェアまたはソフトウェア）</string>
+    <string name="decoder_hardware_plus_description">Android システム デコーダー搭載の FFmpeg コンテナ リーダー</string>
 </resources>

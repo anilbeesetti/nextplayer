@@ -562,4 +562,7 @@
     <string name="settings_import_invalid">No se pudo leer este archivo o no contiene una configuración JSON compatible</string>
     <string name="reset_subtitle_position">Restablecer la posición de los subtítulos</string>
     <string name="reset_subtitle_position_desc">Arrastra los subtítulos hacia arriba o hacia abajo durante la reproducción para moverlos</string>
+    <string name="decoder_mode_hardware_plus">HW+</string>
+    <string name="decoder_system_description">Decodificadores del sistema Android (hardware o software)</string>
+    <string name="decoder_hardware_plus_description">Lector de contenedores FFmpeg con decodificadores del sistema Android</string>
 </resources>

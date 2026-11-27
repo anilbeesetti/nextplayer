@@ -572,4 +572,7 @@
     <string name="settings_import_success">Ustawienia zostały zaimportowane</string>
     <string name="settings_import_failed">Nie udało się zakończyć importowania ustawień. Spróbuj ponownie.</string>
     <string name="settings_import_invalid">Nie udało się odczytać tego pliku lub nie zawiera on obsługiwanych ustawień JSON</string>
+    <string name="decoder_mode_hardware_plus">HW+</string>
+    <string name="decoder_system_description">Dekodery systemu Android (sprzętowe lub programowe)</string>
+    <string name="decoder_hardware_plus_description">Moduł odczytu kontenerów FFmpeg z dekoderami systemu Android</string>
 </resources>
