@@ -19,3 +19,24 @@ The completed FLAC fixture has 94 audio packets and a two-second duration.
 compatibility-hdr.mp4: three-second synthetic AVC/PQ video for rejected-reader recovery.
 8-bit AVC exercises the HDR transfer guard without requiring a Main 10 decoder on CI.
   ffmpeg -f lavfi -i testsrc2=size=160x120:rate=10 -t 3 -an -c:v libx264 -pix_fmt yuv420p -g 10 -bsf:v h264_metadata=colour_primaries=9:transfer_characteristics=16:matrix_coefficients=9 -color_primaries bt2020 -color_trc smpte2084 -colorspace bt2020nc compatibility-hdr.mp4
+
+Legacy fixtures use only FFmpeg testsrc2 and sine generators (160x120, 25 fps,
+four seconds, stereo 48 kHz; no original recording bytes):
+  ffmpeg -f lavfi -i testsrc2=size=160x120:rate=25 -f lavfi -i sine=frequency=440:sample_rate=48000 -t 4 -ac 2 -g 12 <options> <filename>
+  legacy-mpeg1.mpg: -c:v mpeg1video -c:a mp2 -f mpeg
+  legacy-xvid.avi: -c:v mpeg4 -vtag XVID -c:a libmp3lame
+  legacy-wmv2.wmv: -c:v wmv2 -c:a wmav2
+  legacy-dvd.vob.mpeg: -c:v mpeg2video -c:a pcm_dvd -f vob
+LegacyVideoCompatibilityTest covers content-URI metadata, all uncached thumbnail
+strategies, and SW audio/video rendering with forward/backward seeks. Optional
+compatibilityVideo tests a local original through both content and file URIs.
+CompatibilityPickerTest also accepts compatibilityDuration (ms),
+compatibilityWidth, and compatibilityHeight for original-specific assertions.
+The HW+ Xvid test checks rendered Android MediaCodec video with SW audio, then
+checks PlayerService keeps HW+ video while recovering an Android audio failure.
+
+legacy-layer1.mpg: MPEG-2 video plus valid silent MPEG Audio Layer I frames.
+  Generate 500 frames, each bytes.fromhex('ffff4000') + bytes(132), as silence.mp1.
+  ffmpeg -f lavfi -i testsrc2=size=160x120:rate=25 -i silence.mp1 -t 4 -c:v mpeg2video -g 12 -c:a copy -f mpeg legacy-layer1.mpg
+Auto startup tests verify that DVD LPCM and MPEG Layer I keep their actual audio
+formats through the compatibility reader; these clips contain no user media.
