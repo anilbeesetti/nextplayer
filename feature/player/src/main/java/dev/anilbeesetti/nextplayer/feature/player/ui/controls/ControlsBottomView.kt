@@ -266,8 +266,9 @@ fun ControlsBottomView(
                     PlaybackSpeedButton(
                         player = player,
                         onClick = onPlaybackSpeedClick,
+                        useBottomRowStyle = true,
                     )
-                    RotateButton()
+                    RotateButton(useBottomRowStyle = true)
                 }
             }
         }
