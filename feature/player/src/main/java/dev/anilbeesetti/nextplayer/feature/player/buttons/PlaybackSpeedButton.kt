@@ -34,16 +34,15 @@ fun PlaybackSpeedButton(
 ) {
     val state = rememberPlaybackSpeedState(player = player)
     val description = stringResource(R.string.select_playback_speed)
-    val maxFontSize = if (useBottomRowStyle) 24.sp else MaterialTheme.typography.labelLarge.fontSize
     PlayerButton(
         modifier = modifier.semantics { contentDescription = description },
         enabled = state.isEnabled,
         onClick = onClick,
         containerColor = if (useBottomRowStyle) Color.Transparent else PlayerButtonBlackAlpha,
-        contentPadding = PaddingValues(if (useBottomRowStyle) 2.dp else 4.dp),
+        contentPadding = PaddingValues(if (useBottomRowStyle) 8.dp else 4.dp),
     ) {
         Box(
-            modifier = Modifier.size(if (useBottomRowStyle) 36.dp else 28.dp),
+            modifier = Modifier.size(if (useBottomRowStyle) 24.dp else 28.dp),
             contentAlignment = Alignment.Center,
         ) {
             BasicText(
@@ -54,7 +53,7 @@ fun PlaybackSpeedButton(
                 ),
                 maxLines = 1,
                 autoSize = TextAutoSize.StepBased(
-                    maxFontSize = maxFontSize,
+                    maxFontSize = MaterialTheme.typography.labelLarge.fontSize,
                     minFontSize = 6.sp,
                     stepSize = 0.5.sp,
                 ),
