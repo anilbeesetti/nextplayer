@@ -117,9 +117,10 @@ class ControlsTopViewTest {
     @Config(qualifiers = "w411dp-h915dp-port")
     fun portraitMoreShowsOnlyActionsThatDidNotFitInTopBar() {
         var showMore by mutableStateOf(false)
+        var width by mutableStateOf(411.dp)
         composeRule.setContent {
             NextPlayerTheme {
-                BoxWithConstraints(modifier = Modifier.requiredWidth(411.dp)) {
+                BoxWithConstraints(modifier = Modifier.requiredWidth(width)) {
                     val inlineActionCount = inlineTopActionCount(maxWidth)
                     if (!showMore) {
                         ControlsTopView(
@@ -150,10 +151,16 @@ class ControlsTopViewTest {
         val subtitles = node(R.string.subtitle_track).getUnclippedBoundsInRoot()
         val share = node(R.string.share).getUnclippedBoundsInRoot()
         val rename = node(R.string.rename).getUnclippedBoundsInRoot()
-        node(R.string.info).assertExists()
-        assertTrue(subtitles.left - audio.right >= 12.dp)
-        assertTrue(share.left - subtitles.right >= 12.dp)
-        assertTrue(rename.top - audio.bottom >= 12.dp)
+        val info = node(R.string.info).getUnclippedBoundsInRoot()
+        assertTrue(subtitles.left - audio.left in 79.dp..81.dp)
+        assertTrue(share.left - subtitles.left in 79.dp..81.dp)
+        assertTrue(rename.top == audio.top)
+        assertTrue(info.top - audio.bottom >= 12.dp)
+
+        composeRule.runOnIdle { width = 320.dp }
+        val narrowAudio = node(R.string.audio_track).getUnclippedBoundsInRoot()
+        val narrowShare = node(R.string.share).getUnclippedBoundsInRoot()
+        assertTrue(narrowShare.top > narrowAudio.bottom)
     }
 
     private fun node(stringRes: Int) =
