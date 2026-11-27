@@ -5,6 +5,7 @@ import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
@@ -35,6 +36,7 @@ class MoreOptionsViewTest {
     @Test
     fun infoReplacesTheButtonsAndBackReturnsToThem() {
         var mediaInfo by mutableStateOf<MediaInfo?>(null)
+        var inlineActionCount by mutableIntStateOf(0)
         composeRule.setContent {
             NextPlayerTheme {
                 val inputModeManager = LocalInputModeManager.current
@@ -42,9 +44,10 @@ class MoreOptionsViewTest {
                 Box(modifier = Modifier.fillMaxSize()) {
                     MoreOptionsView(
                         show = true,
+                        inlineActionCount = inlineActionCount,
                         mediaInfo = mediaInfo,
                         onOptionClick = {},
-                        onShare = null,
+                        onShare = {},
                         onRename = null,
                         onInfo = { mediaInfo = MediaInfo(video = Video.sample) },
                         onDismissInfo = { mediaInfo = null },
@@ -77,6 +80,14 @@ class MoreOptionsViewTest {
         fileName.assertDoesNotExist()
         composeRule.onNodeWithContentDescription(
             composeRule.activity.getString(R.string.now_playing),
+        ).assertIsFocused()
+
+        composeRule.runOnIdle { inlineActionCount = 3 }
+        composeRule.onNodeWithContentDescription(
+            composeRule.activity.getString(R.string.now_playing),
+        ).assertDoesNotExist()
+        composeRule.onNodeWithContentDescription(
+            composeRule.activity.getString(R.string.share),
         ).assertIsFocused()
     }
 }

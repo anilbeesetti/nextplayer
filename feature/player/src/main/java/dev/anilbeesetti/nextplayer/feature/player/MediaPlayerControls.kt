@@ -5,7 +5,7 @@ import android.widget.Toast
 import androidx.activity.compose.BackHandler
 import androidx.annotation.OptIn
 import androidx.compose.foundation.focusable
-import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.BoxWithConstraints
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.size
 import androidx.compose.material3.CircularProgressIndicator
@@ -47,6 +47,7 @@ import dev.anilbeesetti.nextplayer.feature.player.ui.DpadSeekIndicator
 import dev.anilbeesetti.nextplayer.feature.player.ui.OverlayShowView
 import dev.anilbeesetti.nextplayer.feature.player.ui.OverlayView
 import dev.anilbeesetti.nextplayer.feature.player.ui.PlayerGestureIndicators
+import dev.anilbeesetti.nextplayer.feature.player.ui.controls.inlineTopActionCount
 import dev.anilbeesetti.nextplayer.feature.player.utils.createVideoShareIntent
 import dev.anilbeesetti.nextplayer.feature.player.utils.isMediaStoreVideo
 import dev.anilbeesetti.nextplayer.feature.player.utils.mediaInfoSnapshot
@@ -162,7 +163,7 @@ internal fun MediaPlayerControls(
         LocalControlsVisibilityState provides controlsVisibilityState,
         LocalUseMaterialYouControls provides playerPreferences.useMaterialYouControls,
     ) {
-        Box(
+        BoxWithConstraints(
             modifier = modifier
                 .fillMaxSize()
                 .thenIf(condition = handleDpadKeys) {
@@ -182,6 +183,7 @@ internal fun MediaPlayerControls(
                         }
                 },
         ) {
+            val inlineActionCount = inlineTopActionCount(maxWidth)
             if (mediaPresentationState.isBuffering) {
                 CircularProgressIndicator(
                     Modifier
@@ -210,6 +212,7 @@ internal fun MediaPlayerControls(
                     title = state.renamedVideoTitles[videoUri] ?: metadataState.title.orEmpty(),
                     playerPreferences = playerPreferences,
                     videoDecoderMode = state.decoderServiceState.videoMode,
+                    inlineActionCount = inlineActionCount,
                     controlsVisibilityState = controlsVisibilityState,
                     seekGestureState = seekGestureState,
                     videoZoomAndContentScaleState = videoZoomAndContentScaleState,
@@ -244,6 +247,7 @@ internal fun MediaPlayerControls(
                 audioDecoderMode = state.decoderServiceState.audioMode,
                 videoContentScale = videoZoomAndContentScaleState.videoContentScale,
                 renamedVideoTitles = state.renamedVideoTitles,
+                inlineActionCount = inlineActionCount,
                 mediaInfo = mediaInfo,
                 onDismiss = ::dismissOverlay,
                 onShowOverlay = ::showOverlay,

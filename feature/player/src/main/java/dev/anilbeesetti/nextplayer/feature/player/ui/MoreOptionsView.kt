@@ -71,6 +71,7 @@ private enum class MoreOption(
 fun BoxScope.MoreOptionsView(
     modifier: Modifier = Modifier,
     show: Boolean,
+    inlineActionCount: Int,
     mediaInfo: MediaInfo?,
     onOptionClick: (OverlayView) -> Unit,
     onShare: (() -> Unit)?,
@@ -84,6 +85,7 @@ fun BoxScope.MoreOptionsView(
     LaunchedEffect(
         show,
         showingInfo,
+        inlineActionCount,
     ) {
         if (show && !showingInfo && inputModeManager.inputMode == InputMode.Keyboard) {
             buttonsFocusRequester.requestFocusUntilLanded()
@@ -132,6 +134,7 @@ fun BoxScope.MoreOptionsView(
                     OverlayTitle(title = stringResource(R.string.more))
                     MoreOptionsButtons(
                         modifier = Modifier.focusRequester(buttonsFocusRequester).focusGroup(),
+                        inlineActionCount = inlineActionCount,
                         onOptionClick = onOptionClick,
                         onShare = onShare,
                         onRename = onRename,
@@ -146,6 +149,7 @@ fun BoxScope.MoreOptionsView(
 @Composable
 private fun MoreOptionsButtons(
     modifier: Modifier,
+    inlineActionCount: Int,
     onOptionClick: (OverlayView) -> Unit,
     onShare: (() -> Unit)?,
     onRename: (() -> Unit)?,
@@ -161,7 +165,7 @@ private fun MoreOptionsButtons(
         horizontalArrangement = Arrangement.spacedBy(4.dp),
         verticalArrangement = Arrangement.spacedBy(8.dp),
     ) {
-        for (option in MoreOption.entries) {
+        for (option in MoreOption.entries.drop(inlineActionCount)) {
             MoreOptionButton(
                 label = stringResource(option.labelRes),
                 painter = painterResource(option.iconRes),

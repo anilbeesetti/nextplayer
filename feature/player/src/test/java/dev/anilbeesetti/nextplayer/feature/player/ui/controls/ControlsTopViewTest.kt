@@ -1,7 +1,11 @@
 package dev.anilbeesetti.nextplayer.feature.player.ui.controls
 
 import androidx.activity.ComponentActivity
+import androidx.compose.foundation.layout.BoxWithConstraints
 import androidx.compose.foundation.layout.requiredWidth
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.focus.FocusRequester
 import androidx.compose.ui.focus.focusRequester
@@ -16,6 +20,7 @@ import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import dev.anilbeesetti.nextplayer.core.ui.R
 import dev.anilbeesetti.nextplayer.core.ui.theme.NextPlayerTheme
+import dev.anilbeesetti.nextplayer.feature.player.ui.MoreOptionsView
 import org.junit.Assert.assertTrue
 import org.junit.Rule
 import org.junit.Test
@@ -39,6 +44,7 @@ class ControlsTopViewTest {
                     modifier = Modifier.focusRequester(focusRequester = groupFocusRequester),
                     title = "Video",
                     videoDecoderMode = null,
+                    inlineActionCount = 0,
                     onBackClick = { backClicked = true },
                 )
             }
@@ -94,14 +100,55 @@ class ControlsTopViewTest {
     private fun setTopView(width: Dp, onMoreClick: () -> Unit = {}) {
         composeRule.setContent {
             NextPlayerTheme {
-                ControlsTopView(
-                    modifier = Modifier.requiredWidth(width),
-                    title = "Video",
-                    videoDecoderMode = null,
-                    onMoreClick = onMoreClick,
-                )
+                BoxWithConstraints(modifier = Modifier.requiredWidth(width)) {
+                    ControlsTopView(
+                        title = "Video",
+                        videoDecoderMode = null,
+                        inlineActionCount = inlineTopActionCount(maxWidth),
+                        onMoreClick = onMoreClick,
+                    )
+                }
             }
         }
+    }
+
+    @Test
+    fun portraitMoreShowsOnlyActionsThatDidNotFitInTopBar() {
+        var showMore by mutableStateOf(false)
+        composeRule.setContent {
+            NextPlayerTheme {
+                BoxWithConstraints(modifier = Modifier.requiredWidth(411.dp)) {
+                    val inlineActionCount = inlineTopActionCount(maxWidth)
+                    if (!showMore) {
+                        ControlsTopView(
+                            title = "Video",
+                            videoDecoderMode = null,
+                            inlineActionCount = inlineActionCount,
+                            onMoreClick = { showMore = true },
+                        )
+                    }
+                    MoreOptionsView(
+                        show = showMore,
+                        inlineActionCount = inlineActionCount,
+                        mediaInfo = null,
+                        onOptionClick = {},
+                        onShare = {},
+                        onRename = {},
+                        onInfo = {},
+                        onDismissInfo = {},
+                    )
+                }
+            }
+        }
+
+        node(R.string.now_playing).assertExists()
+        node(R.string.more).performClick()
+        node(R.string.now_playing).assertDoesNotExist()
+        node(R.string.audio_track).assertExists()
+        node(R.string.subtitle_track).assertExists()
+        node(R.string.share).assertExists()
+        node(R.string.rename).assertExists()
+        node(R.string.info).assertExists()
     }
 
     private fun node(stringRes: Int) =

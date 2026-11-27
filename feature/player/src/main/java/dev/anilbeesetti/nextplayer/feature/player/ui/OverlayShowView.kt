@@ -24,6 +24,7 @@ fun BoxScope.OverlayShowView(
     chapters: List<Chapter>,
     currentChapterIndex: Int,
     renamedVideoTitles: Map<Uri, String>,
+    inlineActionCount: Int,
     mediaInfo: MediaInfo?,
     onChapterSelected: (Chapter) -> Unit,
     onDismiss: () -> Unit = {},
@@ -94,6 +95,7 @@ fun BoxScope.OverlayShowView(
 
     MoreOptionsView(
         show = overlayView == OverlayView.MORE_OPTIONS,
+        inlineActionCount = inlineActionCount,
         mediaInfo = mediaInfo,
         onOptionClick = onShowOverlay,
         onShare = onShare,

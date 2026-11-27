@@ -61,6 +61,7 @@ class MediaTitleLineBreakTest {
             modifier = Modifier.requiredWidth(400.dp),
             title = title,
             videoDecoderMode = null,
+            inlineActionCount = 0,
             onBackClick = {},
         )
     }
