@@ -12,6 +12,7 @@ import androidx.core.net.toUri
 import androidx.media3.common.AudioAttributes
 import androidx.media3.common.BundleListRetriever
 import androidx.media3.common.C
+import androidx.media3.common.Format
 import androidx.media3.common.MediaItem
 import androidx.media3.common.MediaMetadata
 import androidx.media3.common.MimeTypes
@@ -25,6 +26,8 @@ import androidx.media3.common.TrackSelectionParameters
 import androidx.media3.common.Tracks
 import androidx.media3.common.util.UnstableApi
 import androidx.media3.datasource.DataSourceBitmapLoader
+import androidx.media3.exoplayer.DecoderCounters
+import androidx.media3.exoplayer.DecoderReuseEvaluation
 import androidx.media3.exoplayer.ExoPlaybackException
 import androidx.media3.exoplayer.ExoPlayer
 import androidx.media3.exoplayer.analytics.AnalyticsListener
@@ -141,6 +144,7 @@ class PlayerService : MediaSessionService() {
     private lateinit var decoderManager: DecoderManager
     private lateinit var trackSelector: DefaultTrackSelector
     private val decoderRecoveryManager = DecoderRecoveryManager()
+    private var activeAudioMode: DecoderMode? = null
     private var videoDecoderSelectionTimeMs: Long? = null
     private var ffmpegReaderFailed = false
 
@@ -168,12 +172,32 @@ class PlayerService : MediaSessionService() {
             initializedTimestampMs: Long,
             initializationDurationMs: Long,
         ) {
+            activeAudioMode = decoderName.audioDecoderMode()
             Logger.logInfo(
                 tag = DECODER_LOG_TAG,
                 message = "Audio decoder initialized with requested=${decoderManager.audioMode} " +
-                    "as ${decoderManager.activeAudioMode}: $decoderName",
+                    "as $activeAudioMode: $decoderName",
             )
             decoderRecoveryManager.onDecoderInitialized(DecoderTrackType.AUDIO)
+        }
+
+        override fun onAudioInputFormatChanged(
+            eventTime: AnalyticsListener.EventTime,
+            format: Format,
+            decoderReuseEvaluation: DecoderReuseEvaluation?,
+        ) {
+            if (decoderReuseEvaluation != null &&
+                decoderReuseEvaluation.result != DecoderReuseEvaluation.REUSE_RESULT_NO
+            ) {
+                activeAudioMode = decoderReuseEvaluation.decoderName.audioDecoderMode()
+            }
+        }
+
+        override fun onAudioDisabled(
+            eventTime: AnalyticsListener.EventTime,
+            decoderCounters: DecoderCounters,
+        ) {
+            activeAudioMode = null
         }
 
         override fun onTracksChanged(eventTime: AnalyticsListener.EventTime, tracks: Tracks) {
@@ -220,7 +244,7 @@ class PlayerService : MediaSessionService() {
                 message = "Player error with requestedVideo=${decoderManager.videoMode}, " +
                     "activeVideo=${decoderManager.activeVideoMode}, " +
                     "requestedAudio=${decoderManager.audioMode}, " +
-                    "activeAudio=${decoderManager.activeAudioMode}: ${error.message}",
+                    "activeAudio=$activeAudioMode: ${error.message}",
             )
         }
     }
@@ -1235,7 +1259,7 @@ class PlayerService : MediaSessionService() {
             )
             putString(
                 CustomCommands.AUDIO_DECODER_MODE_KEY,
-                decoderManager.activeAudioMode?.playerMode()?.name,
+                activeAudioMode?.name,
             )
             putString(
                 CustomCommands.DECODER_RECOVERY_STATUS_KEY,
@@ -1557,3 +1581,7 @@ private val REMOTE_SCHEMES = setOf(
     "https",
     "rtsp",
 )
+
+// Vendor MediaCodec decoders can omit both acceleration flags.
+internal fun String.audioDecoderMode(): DecoderMode =
+    if (startsWith("ffmpeg")) DecoderMode.FFMPEG else DecoderMode.HARDWARE
