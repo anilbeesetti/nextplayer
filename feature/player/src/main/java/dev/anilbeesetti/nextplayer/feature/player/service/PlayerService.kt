@@ -440,10 +440,18 @@ class PlayerService : MediaSessionService() {
         }
 
         override fun onPlayerError(error: PlaybackException) {
-            val item = mediaSession?.player?.currentMediaItem
+            val player = mediaSession?.player
+            val item = player?.currentMediaItem
             val primaryParserError = item != null &&
                 item.copy(videoDecoderMode = DecoderMode.HW_PLUS).usesFfmpegExtractor &&
                 item.hasPrimaryParserError(error)
+            if (primaryParserError && item != null && !item.usesFfmpegExtractor &&
+                !ffmpegReaderFailed && item.mediaMetadata.videoDecoderMode == DecoderMode.FFMPEG
+            ) {
+                reloadSource(item.copy(ffmpegExtraction = true))
+                player.prepare()
+                return
+            }
             val trackType = when {
                 error.isDecoderFailure -> error.decoderTrackType()
                 primaryParserError -> DecoderTrackType.VIDEO
@@ -1417,7 +1425,7 @@ class PlayerService : MediaSessionService() {
     private fun MediaItem.withServiceVideoDecoder(mode: DecoderMode): MediaItem = withVideoDecoder(
         mode,
         useFfmpegForSoftware = !ffmpegReaderFailed &&
-            !requiresStandardReaderForSoftware(this@PlayerService),
+            (usesFfmpegExtractor || !requiresStandardReaderForSoftware(this@PlayerService)),
         // The standard PS reader can misidentify DVD LPCM as AC-3.
         useFfmpegForAuto = !ffmpegReaderFailed &&
             (mediaMetadata.ffmpegExtraction || isMpegProgramStream(this@PlayerService)),
