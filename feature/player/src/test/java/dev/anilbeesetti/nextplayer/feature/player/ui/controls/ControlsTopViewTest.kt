@@ -158,7 +158,7 @@ class ControlsTopViewTest {
         assertTrue(audio.left - (width - rename.right) in (-1).dp..1.dp)
         assertTrue(rename.top == audio.top)
         assertTrue(info.top - audio.bottom >= 12.dp)
-        assertTrue(info.left + info.right - width in (-1).dp..1.dp)
+        assertTrue(info.left == audio.left)
 
         composeRule.runOnIdle { width = 320.dp }
         val narrowAudio = node(R.string.audio_track).getUnclippedBoundsInRoot()

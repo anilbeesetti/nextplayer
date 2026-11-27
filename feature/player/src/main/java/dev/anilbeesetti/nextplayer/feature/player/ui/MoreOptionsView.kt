@@ -10,21 +10,21 @@ import androidx.compose.animation.togetherWith
 import androidx.compose.foundation.focusGroup
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.BoxScope
+import androidx.compose.foundation.layout.BoxWithConstraints
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.FlowRow
+import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.width
-import androidx.compose.foundation.rememberScrollState
-import androidx.compose.foundation.verticalScroll
+import androidx.compose.foundation.lazy.grid.GridCells
+import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
+import androidx.compose.foundation.lazy.grid.items
 import androidx.compose.material3.FilledTonalIconButton
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
-import androidx.compose.runtime.key
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -159,50 +159,61 @@ private fun MoreOptionsButtons(
     onRename: (() -> Unit)?,
     onInfo: (() -> Unit)?,
 ) {
-    FlowRow(
-        modifier = modifier
-            .fillMaxWidth()
-            .verticalScroll(rememberScrollState())
-            .padding(
-                horizontal = 16.dp,
-                vertical = 12.dp,
-            ),
-        maxItemsInEachRow = 4,
-        horizontalArrangement = Arrangement.SpaceEvenly,
-        verticalArrangement = Arrangement.spacedBy(12.dp),
-    ) {
-        for (option in MoreOption.entries.drop(inlineActionCount)) {
-            key(option) {
+    val trackOptions = MoreOption.entries.drop(inlineActionCount)
+    val minColumnWidth = 72.dp * LocalDensity.current.fontScale.coerceAtLeast(1f)
+    val columnGap = 8.dp
+    BoxWithConstraints(modifier = Modifier.fillMaxWidth().padding(horizontal = 24.dp)) {
+        val columns = ((maxWidth + columnGap) / (minColumnWidth + columnGap))
+            .toInt()
+            .coerceAtLeast(1)
+            .coerceAtMost(4)
+            .coerceAtMost(trackOptions.size + 3)
+        LazyVerticalGrid(
+            columns = GridCells.Fixed(columns),
+            modifier = modifier.fillMaxWidth(),
+            contentPadding = PaddingValues(vertical = 12.dp),
+            horizontalArrangement = Arrangement.spacedBy(columnGap),
+            verticalArrangement = Arrangement.spacedBy(12.dp),
+        ) {
+            items(
+                items = trackOptions,
+                key = { it.labelRes },
+            ) { option ->
                 MoreOptionButton(
                     label = stringResource(option.labelRes),
                     painter = painterResource(option.iconRes),
                     onClick = { onOptionClick(option.overlay) },
                 )
             }
+            item(key = R.string.share) {
+                MoreOptionButton(
+                    label = stringResource(R.string.share),
+                    painter = rememberVectorPainter(NextIcons.Share),
+                    onClick = onShare,
+                )
+            }
+            item(key = R.string.rename) {
+                MoreOptionButton(
+                    label = stringResource(R.string.rename),
+                    painter = rememberVectorPainter(NextIcons.Edit),
+                    onClick = onRename,
+                )
+            }
+            item(key = R.string.info) {
+                MoreOptionButton(
+                    label = stringResource(R.string.info),
+                    painter = rememberVectorPainter(NextIcons.Info),
+                    onClick = onInfo,
+                )
+            }
         }
-        MoreOptionButton(
-            label = stringResource(R.string.share),
-            painter = rememberVectorPainter(NextIcons.Share),
-            onClick = onShare,
-        )
-        MoreOptionButton(
-            label = stringResource(R.string.rename),
-            painter = rememberVectorPainter(NextIcons.Edit),
-            onClick = onRename,
-        )
-        MoreOptionButton(
-            label = stringResource(R.string.info),
-            painter = rememberVectorPainter(NextIcons.Info),
-            onClick = onInfo,
-        )
     }
 }
 
 @Composable
 private fun MoreOptionButton(label: String, painter: Painter, onClick: (() -> Unit)?) {
-    val width = 72.dp * LocalDensity.current.fontScale.coerceAtLeast(1f)
     Column(
-        modifier = Modifier.padding(horizontal = 4.dp).width(width),
+        modifier = Modifier.fillMaxWidth(),
         horizontalAlignment = Alignment.CenterHorizontally,
         verticalArrangement = Arrangement.spacedBy(8.dp),
     ) {
