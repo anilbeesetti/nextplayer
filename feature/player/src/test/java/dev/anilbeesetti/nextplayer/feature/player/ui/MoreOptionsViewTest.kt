@@ -58,7 +58,7 @@ class MoreOptionsViewTest {
             }
         }
 
-        val info = composeRule.onNodeWithText(
+        val info = composeRule.onNodeWithContentDescription(
             composeRule.activity.getString(R.string.info),
         )
         val fileName = composeRule.onNodeWithText(Video.sample.nameWithExtension)
@@ -80,15 +80,15 @@ class MoreOptionsViewTest {
         ).performClick()
         info.assertExists()
         fileName.assertDoesNotExist()
-        composeRule.onNodeWithText(
+        composeRule.onNodeWithContentDescription(
             composeRule.activity.getString(R.string.now_playing),
         ).assertIsFocused()
 
         composeRule.runOnIdle { inlineActionCount = 3 }
-        composeRule.onNodeWithText(
+        composeRule.onNodeWithContentDescription(
             composeRule.activity.getString(R.string.now_playing),
         ).assertDoesNotExist()
-        composeRule.onNodeWithText(
+        composeRule.onNodeWithContentDescription(
             composeRule.activity.getString(R.string.share),
         ).assertIsFocused()
     }

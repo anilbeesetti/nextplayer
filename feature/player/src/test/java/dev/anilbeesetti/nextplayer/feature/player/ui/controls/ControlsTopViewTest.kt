@@ -14,7 +14,6 @@ import androidx.compose.ui.test.assertIsFocused
 import androidx.compose.ui.test.getUnclippedBoundsInRoot
 import androidx.compose.ui.test.junit4.v2.createAndroidComposeRule
 import androidx.compose.ui.test.onNodeWithContentDescription
-import androidx.compose.ui.test.onNodeWithText
 import androidx.compose.ui.test.performClick
 import androidx.compose.ui.test.performKeyInput
 import androidx.compose.ui.test.pressKey
@@ -146,12 +145,12 @@ class ControlsTopViewTest {
 
         node(R.string.now_playing).assertExists()
         node(R.string.more).performClick()
-        moreAction(R.string.now_playing).assertDoesNotExist()
-        val audio = moreAction(R.string.audio_track).getUnclippedBoundsInRoot()
-        val subtitles = moreAction(R.string.subtitle_track).getUnclippedBoundsInRoot()
-        val share = moreAction(R.string.share).getUnclippedBoundsInRoot()
-        val rename = moreAction(R.string.rename).getUnclippedBoundsInRoot()
-        moreAction(R.string.info).assertExists()
+        node(R.string.now_playing).assertDoesNotExist()
+        val audio = node(R.string.audio_track).getUnclippedBoundsInRoot()
+        val subtitles = node(R.string.subtitle_track).getUnclippedBoundsInRoot()
+        val share = node(R.string.share).getUnclippedBoundsInRoot()
+        val rename = node(R.string.rename).getUnclippedBoundsInRoot()
+        node(R.string.info).assertExists()
         assertTrue(subtitles.left - audio.right >= 12.dp)
         assertTrue(share.left - subtitles.right >= 12.dp)
         assertTrue(rename.top - audio.bottom >= 12.dp)
@@ -159,7 +158,4 @@ class ControlsTopViewTest {
 
     private fun node(stringRes: Int) =
         composeRule.onNodeWithContentDescription(composeRule.activity.getString(stringRes))
-
-    private fun moreAction(stringRes: Int) =
-        composeRule.onNodeWithText(composeRule.activity.getString(stringRes))
 }

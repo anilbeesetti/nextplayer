@@ -14,15 +14,11 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.grid.GridCells
 import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
 import androidx.compose.foundation.lazy.grid.items
-import androidx.compose.material3.ButtonDefaults
-import androidx.compose.material3.ExperimentalMaterial3ExpressiveApi
-import androidx.compose.material3.FilledTonalButton
+import androidx.compose.material3.FilledTonalIconButton
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
@@ -41,6 +37,7 @@ import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.platform.LocalInputModeManager
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.semantics.clearAndSetSemantics
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.IntOffset
 import androidx.compose.ui.unit.dp
@@ -170,7 +167,7 @@ private fun MoreOptionsButtons(
             vertical = 12.dp,
         ),
         horizontalArrangement = Arrangement.spacedBy(12.dp),
-        verticalArrangement = Arrangement.spacedBy(12.dp),
+        verticalArrangement = Arrangement.spacedBy(20.dp),
     ) {
         items(
             items = MoreOption.entries.drop(inlineActionCount),
@@ -207,33 +204,27 @@ private fun MoreOptionsButtons(
 }
 
 @Composable
-@OptIn(ExperimentalMaterial3ExpressiveApi::class)
 private fun MoreOptionButton(label: String, painter: Painter, onClick: (() -> Unit)?) {
-    val shape = MaterialTheme.shapes.extraLarge
-    FilledTonalButton(
-        modifier = Modifier.fillMaxWidth().heightIn(min = 104.dp).tvFocusRing(shape = shape),
-        shapes = ButtonDefaults.shapes(
-            shape = shape,
-            pressedShape = MaterialTheme.shapes.medium,
-        ),
-        contentPadding = PaddingValues(12.dp),
-        enabled = onClick != null,
-        onClick = { onClick?.invoke() },
+    Column(
+        modifier = Modifier.fillMaxWidth(),
+        horizontalAlignment = Alignment.CenterHorizontally,
+        verticalArrangement = Arrangement.spacedBy(8.dp),
     ) {
-        Column(
-            horizontalAlignment = Alignment.CenterHorizontally,
-            verticalArrangement = Arrangement.spacedBy(8.dp),
+        FilledTonalIconButton(
+            modifier = Modifier.tvFocusRing(),
+            enabled = onClick != null,
+            onClick = { onClick?.invoke() },
         ) {
             Icon(
                 painter = painter,
-                contentDescription = null,
-                modifier = Modifier.size(28.dp),
-            )
-            Text(
-                text = label,
-                minLines = 2,
-                textAlign = TextAlign.Center,
+                contentDescription = label,
             )
         }
+        Text(
+            text = label,
+            modifier = Modifier.clearAndSetSemantics {},
+            style = MaterialTheme.typography.labelMedium,
+            textAlign = TextAlign.Center,
+        )
     }
 }
