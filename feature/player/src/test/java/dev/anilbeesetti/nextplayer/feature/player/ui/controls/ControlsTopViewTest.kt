@@ -152,10 +152,13 @@ class ControlsTopViewTest {
         val share = node(R.string.share).getUnclippedBoundsInRoot()
         val rename = node(R.string.rename).getUnclippedBoundsInRoot()
         val info = node(R.string.info).getUnclippedBoundsInRoot()
-        assertTrue(subtitles.left - audio.left in 79.dp..81.dp)
-        assertTrue(share.left - subtitles.left in 79.dp..81.dp)
+        val firstGap = subtitles.left - audio.left
+        val secondGap = share.left - subtitles.left
+        assertTrue(firstGap - secondGap in (-1).dp..1.dp)
+        assertTrue(audio.left - (width - rename.right) in (-1).dp..1.dp)
         assertTrue(rename.top == audio.top)
         assertTrue(info.top - audio.bottom >= 12.dp)
+        assertTrue(info.left + info.right - width in (-1).dp..1.dp)
 
         composeRule.runOnIdle { width = 320.dp }
         val narrowAudio = node(R.string.audio_track).getUnclippedBoundsInRoot()

@@ -168,7 +168,7 @@ private fun MoreOptionsButtons(
                 vertical = 12.dp,
             ),
         maxItemsInEachRow = 4,
-        horizontalArrangement = Arrangement.spacedBy(8.dp),
+        horizontalArrangement = Arrangement.SpaceEvenly,
         verticalArrangement = Arrangement.spacedBy(12.dp),
     ) {
         for (option in MoreOption.entries.drop(inlineActionCount)) {
@@ -202,7 +202,7 @@ private fun MoreOptionsButtons(
 private fun MoreOptionButton(label: String, painter: Painter, onClick: (() -> Unit)?) {
     val width = 72.dp * LocalDensity.current.fontScale.coerceAtLeast(1f)
     Column(
-        modifier = Modifier.width(width),
+        modifier = Modifier.padding(horizontal = 4.dp).width(width),
         horizontalAlignment = Alignment.CenterHorizontally,
         verticalArrangement = Arrangement.spacedBy(8.dp),
     ) {
