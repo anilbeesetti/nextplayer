@@ -11,8 +11,10 @@ import androidx.compose.ui.focus.FocusRequester
 import androidx.compose.ui.focus.focusRequester
 import androidx.compose.ui.input.key.Key
 import androidx.compose.ui.test.assertIsFocused
+import androidx.compose.ui.test.getUnclippedBoundsInRoot
 import androidx.compose.ui.test.junit4.v2.createAndroidComposeRule
 import androidx.compose.ui.test.onNodeWithContentDescription
+import androidx.compose.ui.test.onNodeWithText
 import androidx.compose.ui.test.performClick
 import androidx.compose.ui.test.performKeyInput
 import androidx.compose.ui.test.pressKey
@@ -113,6 +115,7 @@ class ControlsTopViewTest {
     }
 
     @Test
+    @Config(qualifiers = "w411dp-h915dp-port")
     fun portraitMoreShowsOnlyActionsThatDidNotFitInTopBar() {
         var showMore by mutableStateOf(false)
         composeRule.setContent {
@@ -143,14 +146,20 @@ class ControlsTopViewTest {
 
         node(R.string.now_playing).assertExists()
         node(R.string.more).performClick()
-        node(R.string.now_playing).assertDoesNotExist()
-        node(R.string.audio_track).assertExists()
-        node(R.string.subtitle_track).assertExists()
-        node(R.string.share).assertExists()
-        node(R.string.rename).assertExists()
-        node(R.string.info).assertExists()
+        moreAction(R.string.now_playing).assertDoesNotExist()
+        val audio = moreAction(R.string.audio_track).getUnclippedBoundsInRoot()
+        val subtitles = moreAction(R.string.subtitle_track).getUnclippedBoundsInRoot()
+        val share = moreAction(R.string.share).getUnclippedBoundsInRoot()
+        val rename = moreAction(R.string.rename).getUnclippedBoundsInRoot()
+        moreAction(R.string.info).assertExists()
+        assertTrue(subtitles.left - audio.right >= 12.dp)
+        assertTrue(share.left - subtitles.right >= 12.dp)
+        assertTrue(rename.top - audio.bottom >= 12.dp)
     }
 
     private fun node(stringRes: Int) =
         composeRule.onNodeWithContentDescription(composeRule.activity.getString(stringRes))
+
+    private fun moreAction(stringRes: Int) =
+        composeRule.onNodeWithText(composeRule.activity.getString(stringRes))
 }

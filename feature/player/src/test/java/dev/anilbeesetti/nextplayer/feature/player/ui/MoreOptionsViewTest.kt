@@ -27,8 +27,10 @@ import org.junit.Rule
 import org.junit.Test
 import org.junit.runner.RunWith
 import org.robolectric.RobolectricTestRunner
+import org.robolectric.annotation.Config
 
 @RunWith(RobolectricTestRunner::class)
+@Config(qualifiers = "w411dp-h915dp-port")
 class MoreOptionsViewTest {
     @get:Rule
     val composeRule = createAndroidComposeRule<ComponentActivity>()
@@ -56,7 +58,7 @@ class MoreOptionsViewTest {
             }
         }
 
-        val info = composeRule.onNodeWithContentDescription(
+        val info = composeRule.onNodeWithText(
             composeRule.activity.getString(R.string.info),
         )
         val fileName = composeRule.onNodeWithText(Video.sample.nameWithExtension)
@@ -78,15 +80,15 @@ class MoreOptionsViewTest {
         ).performClick()
         info.assertExists()
         fileName.assertDoesNotExist()
-        composeRule.onNodeWithContentDescription(
+        composeRule.onNodeWithText(
             composeRule.activity.getString(R.string.now_playing),
         ).assertIsFocused()
 
         composeRule.runOnIdle { inlineActionCount = 3 }
-        composeRule.onNodeWithContentDescription(
+        composeRule.onNodeWithText(
             composeRule.activity.getString(R.string.now_playing),
         ).assertDoesNotExist()
-        composeRule.onNodeWithContentDescription(
+        composeRule.onNodeWithText(
             composeRule.activity.getString(R.string.share),
         ).assertIsFocused()
     }

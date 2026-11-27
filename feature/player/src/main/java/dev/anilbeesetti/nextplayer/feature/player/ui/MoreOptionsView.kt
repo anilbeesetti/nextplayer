@@ -11,13 +11,18 @@ import androidx.compose.foundation.focusGroup
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.BoxScope
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.FlowRow
+import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.widthIn
-import androidx.compose.foundation.rememberScrollState
-import androidx.compose.foundation.verticalScroll
-import androidx.compose.material3.FilledTonalIconButton
+import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.lazy.grid.GridCells
+import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
+import androidx.compose.foundation.lazy.grid.items
+import androidx.compose.material3.ButtonDefaults
+import androidx.compose.material3.ExperimentalMaterial3ExpressiveApi
+import androidx.compose.material3.FilledTonalButton
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
@@ -32,10 +37,10 @@ import androidx.compose.ui.focus.focusRequester
 import androidx.compose.ui.graphics.painter.Painter
 import androidx.compose.ui.graphics.vector.rememberVectorPainter
 import androidx.compose.ui.input.InputMode
+import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.platform.LocalInputModeManager
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
-import androidx.compose.ui.semantics.clearAndSetSemantics
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.IntOffset
 import androidx.compose.ui.unit.dp
@@ -43,6 +48,7 @@ import dev.anilbeesetti.nextplayer.core.model.MediaInfo
 import dev.anilbeesetti.nextplayer.core.ui.R
 import dev.anilbeesetti.nextplayer.core.ui.components.MediaInfoContent
 import dev.anilbeesetti.nextplayer.core.ui.components.requestFocusUntilLanded
+import dev.anilbeesetti.nextplayer.core.ui.components.tvFocusRing
 import dev.anilbeesetti.nextplayer.core.ui.designsystem.NextIcons
 
 private enum class MoreOption(
@@ -155,61 +161,79 @@ private fun MoreOptionsButtons(
     onRename: (() -> Unit)?,
     onInfo: (() -> Unit)?,
 ) {
-    FlowRow(
-        modifier = modifier
-            .verticalScroll(rememberScrollState())
-            .padding(
-                horizontal = 16.dp,
-                vertical = 8.dp,
-            ),
-        horizontalArrangement = Arrangement.spacedBy(4.dp),
-        verticalArrangement = Arrangement.spacedBy(8.dp),
+    val minTileWidth = 96.dp * LocalDensity.current.fontScale.coerceAtLeast(1f)
+    LazyVerticalGrid(
+        columns = GridCells.Adaptive(minSize = minTileWidth),
+        modifier = modifier.fillMaxWidth(),
+        contentPadding = PaddingValues(
+            horizontal = 24.dp,
+            vertical = 12.dp,
+        ),
+        horizontalArrangement = Arrangement.spacedBy(12.dp),
+        verticalArrangement = Arrangement.spacedBy(12.dp),
     ) {
-        for (option in MoreOption.entries.drop(inlineActionCount)) {
+        items(
+            items = MoreOption.entries.drop(inlineActionCount),
+            key = { it.labelRes },
+        ) { option ->
             MoreOptionButton(
                 label = stringResource(option.labelRes),
                 painter = painterResource(option.iconRes),
                 onClick = { onOptionClick(option.overlay) },
             )
         }
-        MoreOptionButton(
-            label = stringResource(R.string.share),
-            painter = rememberVectorPainter(NextIcons.Share),
-            onClick = onShare,
-        )
-        MoreOptionButton(
-            label = stringResource(R.string.rename),
-            painter = rememberVectorPainter(NextIcons.Edit),
-            onClick = onRename,
-        )
-        MoreOptionButton(
-            label = stringResource(R.string.info),
-            painter = rememberVectorPainter(NextIcons.Info),
-            onClick = onInfo,
-        )
+        item(key = R.string.share) {
+            MoreOptionButton(
+                label = stringResource(R.string.share),
+                painter = rememberVectorPainter(NextIcons.Share),
+                onClick = onShare,
+            )
+        }
+        item(key = R.string.rename) {
+            MoreOptionButton(
+                label = stringResource(R.string.rename),
+                painter = rememberVectorPainter(NextIcons.Edit),
+                onClick = onRename,
+            )
+        }
+        item(key = R.string.info) {
+            MoreOptionButton(
+                label = stringResource(R.string.info),
+                painter = rememberVectorPainter(NextIcons.Info),
+                onClick = onInfo,
+            )
+        }
     }
 }
 
 @Composable
+@OptIn(ExperimentalMaterial3ExpressiveApi::class)
 private fun MoreOptionButton(label: String, painter: Painter, onClick: (() -> Unit)?) {
-    Column(
-        modifier = Modifier.widthIn(max = 72.dp),
-        horizontalAlignment = Alignment.CenterHorizontally,
+    val shape = MaterialTheme.shapes.extraLarge
+    FilledTonalButton(
+        modifier = Modifier.fillMaxWidth().heightIn(min = 104.dp).tvFocusRing(shape = shape),
+        shapes = ButtonDefaults.shapes(
+            shape = shape,
+            pressedShape = MaterialTheme.shapes.medium,
+        ),
+        contentPadding = PaddingValues(12.dp),
+        enabled = onClick != null,
+        onClick = { onClick?.invoke() },
     ) {
-        FilledTonalIconButton(
-            enabled = onClick != null,
-            onClick = { onClick?.invoke() },
+        Column(
+            horizontalAlignment = Alignment.CenterHorizontally,
+            verticalArrangement = Arrangement.spacedBy(8.dp),
         ) {
             Icon(
                 painter = painter,
-                contentDescription = label,
+                contentDescription = null,
+                modifier = Modifier.size(28.dp),
+            )
+            Text(
+                text = label,
+                minLines = 2,
+                textAlign = TextAlign.Center,
             )
         }
-        Text(
-            text = label,
-            modifier = Modifier.clearAndSetSemantics {},
-            style = MaterialTheme.typography.labelSmall,
-            textAlign = TextAlign.Center,
-        )
     }
 }
