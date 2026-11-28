@@ -336,7 +336,12 @@ class MediaStoreMediaService(
 
     private fun MediaVideo.withMissingMetadata(): MediaVideo {
         // shortcut: probe on IO; use background indexing if incomplete files slow initial scans.
-        if (duration > 0 && width > 0 && height > 0) return this
+        // Android's AVI duration estimate can be wrong for interleaved/VBR audio.
+        val preferProbeDuration = File(path).extension.equals(
+            "avi",
+            ignoreCase = true,
+        )
+        if (!preferProbeDuration && duration > 0 && width > 0 && height > 0) return this
         val key = MetadataKey(
             uri,
             size,
@@ -371,7 +376,11 @@ class MediaStoreMediaService(
             }
         } ?: return this
         return copy(
-            duration = duration.takeIf { it > 0 } ?: metadata.duration,
+            duration = if (preferProbeDuration && metadata.duration > 0) {
+                metadata.duration
+            } else {
+                duration.takeIf { it > 0 } ?: metadata.duration
+            },
             width = width.takeIf { it > 0 } ?: metadata.width,
             height = height.takeIf { it > 0 } ?: metadata.height,
         )

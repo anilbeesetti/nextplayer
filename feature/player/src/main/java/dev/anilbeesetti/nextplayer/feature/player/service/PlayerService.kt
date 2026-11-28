@@ -440,10 +440,18 @@ class PlayerService : MediaSessionService() {
         }
 
         override fun onPlayerError(error: PlaybackException) {
-            val item = mediaSession?.player?.currentMediaItem
+            val player = mediaSession?.player
+            val item = player?.currentMediaItem
             val primaryParserError = item != null &&
                 item.copy(videoDecoderMode = DecoderMode.HW_PLUS).usesFfmpegExtractor &&
                 item.hasPrimaryParserError(error)
+            if (primaryParserError && item != null && !item.usesFfmpegExtractor &&
+                !ffmpegReaderFailed && item.mediaMetadata.videoDecoderMode == DecoderMode.FFMPEG
+            ) {
+                reloadSource(item.copy(ffmpegExtraction = true))
+                player.prepare()
+                return
+            }
             val trackType = when {
                 error.isDecoderFailure -> error.decoderTrackType()
                 primaryParserError -> DecoderTrackType.VIDEO
@@ -794,16 +802,16 @@ class PlayerService : MediaSessionService() {
                     decoderRecoveryManager.onUserSelection(
                         DecoderTrackType.VIDEO,
                         mode = mode,
-                        effectiveMode = player.currentMediaItem?.withVideoDecoder(
-                            mode,
-                            useFfmpegForSoftware = !ffmpegReaderFailed,
-                        )?.videoDecoderBackend ?: mode,
+                        effectiveMode = player.currentMediaItem?.withServiceVideoDecoder(mode)
+                            ?.videoDecoderBackend ?: mode,
                     )
                     videoDecoderSelectionTimeMs = SystemClock.elapsedRealtime()
+                    val shouldPrepare = player.playerError != null
                     selectDecoder(
                         DecoderTrackType.VIDEO,
                         mode = mode,
                     )
+                    if (shouldPrepare) player.prepare()
                     serviceScope.launch {
                         handleUnsupportedTrack(
                             player.currentTracks,
@@ -822,10 +830,12 @@ class PlayerService : MediaSessionService() {
                         DecoderTrackType.AUDIO,
                         mode = mode,
                     )
+                    val shouldPrepare = player.playerError != null
                     selectDecoder(
                         DecoderTrackType.AUDIO,
                         mode = mode,
                     )
+                    if (shouldPrepare) player.prepare()
                     serviceScope.launch {
                         handleUnsupportedTrack(
                             player.currentTracks,
@@ -1215,6 +1225,8 @@ class PlayerService : MediaSessionService() {
                 val subtitleSpeed =
                     mediaItem.mediaMetadata.subtitleSpeed ?: videoState?.subtitleSpeed
 
+                val preferProgramStreamReader = mediaItem.prefersProgramStreamReader()
+
                 mediaItem.buildUpon().apply {
                     setSubtitleConfigurations(existingSubConfigurations + subConfigurations)
                     setMediaMetadata(
@@ -1232,7 +1244,8 @@ class PlayerService : MediaSessionService() {
                                 subtitleSpeed = subtitleSpeed,
                                 videoDecoderMode = mediaItem.mediaMetadata.videoDecoderMode,
                                 audioDecoderMode = mediaItem.mediaMetadata.audioDecoderMode,
-                                ffmpegExtraction = mediaItem.mediaMetadata.ffmpegExtraction,
+                                ffmpegExtraction = mediaItem.mediaMetadata.ffmpegExtraction ||
+                                    preferProgramStreamReader,
                             )
                         }.build(),
                     )
@@ -1284,7 +1297,11 @@ class PlayerService : MediaSessionService() {
             return false
         }
         val shouldPrepare = player.playerError != null
-        if (retry.trackType == DecoderTrackType.VIDEO &&
+        val restartProgramStream = retry.trackType == DecoderTrackType.VIDEO &&
+            retry.mode == DecoderMode.FFMPEG &&
+            player.currentMediaItem?.prefersProgramStreamReader() == true &&
+            !ffmpegReaderFailed
+        if (retry.trackType == DecoderTrackType.VIDEO && !restartProgramStream &&
             player.currentPosition in 1L until DECODER_RESTART_WINDOW_MS
         ) {
             player.seekTo(0)
@@ -1292,6 +1309,7 @@ class PlayerService : MediaSessionService() {
         selectDecoder(
             retry.trackType,
             retry.mode,
+            reloadReader = restartProgramStream,
         )
         if (shouldPrepare && player.mediaItemCount > 0) {
             player.prepare()
@@ -1345,6 +1363,8 @@ class PlayerService : MediaSessionService() {
             },
             // shortcut: use source eligibility until NextLib exposes native codec compatibility.
             retrySoftwareReader = retrySoftwareReader,
+            preferSoftware = trackType == DecoderTrackType.VIDEO && mode == DecoderMode.HW_PLUS &&
+                !ffmpegReaderFailed && item.prefersProgramStreamReader(),
             canTryHwPlus = trackType == DecoderTrackType.VIDEO && !ffmpegReaderFailed &&
                 item.copy(videoDecoderMode = DecoderMode.HW_PLUS).usesFfmpegExtractor,
             showConfirmation =
@@ -1355,7 +1375,11 @@ class PlayerService : MediaSessionService() {
         serviceScope.launch { retryDecoderWith(retry) }
     }
 
-    private fun selectDecoder(trackType: DecoderTrackType, mode: DecoderMode) {
+    private fun selectDecoder(
+        trackType: DecoderTrackType,
+        mode: DecoderMode,
+        reloadReader: Boolean = false,
+    ) {
         when (trackType) {
             DecoderTrackType.VIDEO -> decoderManager.selectVideoDecoder(
                 mode = (
@@ -1377,15 +1401,11 @@ class PlayerService : MediaSessionService() {
         val mediaItem = player?.currentMediaItem
         if (mediaItem != null) {
             val updatedItem = when (trackType) {
-                DecoderTrackType.VIDEO -> mediaItem.withVideoDecoder(
-                    mode,
-                    useFfmpegForSoftware = !ffmpegReaderFailed,
-                )
-
+                DecoderTrackType.VIDEO -> mediaItem.withServiceVideoDecoder(mode)
                 DecoderTrackType.AUDIO -> mediaItem.copy(audioDecoderMode = mode)
             }
             if (trackType == DecoderTrackType.VIDEO &&
-                mediaItem.usesFfmpegExtractor != updatedItem.usesFfmpegExtractor
+                (reloadReader || mediaItem.usesFfmpegExtractor != updatedItem.usesFfmpegExtractor)
             ) {
                 reloadSource(updatedItem)
             } else {
@@ -1397,6 +1417,19 @@ class PlayerService : MediaSessionService() {
         }
         publishDecoderState()
     }
+
+    private fun MediaItem.prefersProgramStreamReader(): Boolean =
+        (mediaMetadata.videoDecoderMode ?: DecoderMode.AUTO) == DecoderMode.AUTO &&
+            isMpegProgramStream(this@PlayerService)
+
+    private fun MediaItem.withServiceVideoDecoder(mode: DecoderMode): MediaItem = withVideoDecoder(
+        mode,
+        useFfmpegForSoftware = !ffmpegReaderFailed &&
+            (usesFfmpegExtractor || !requiresStandardReaderForSoftware(this@PlayerService)),
+        // The standard PS reader can misidentify DVD LPCM as AC-3.
+        useFfmpegForAuto = !ffmpegReaderFailed &&
+            (mediaMetadata.ffmpegExtraction || isMpegProgramStream(this@PlayerService)),
+    )
 
     private fun reloadSource(item: MediaItem) {
         val player = mediaSession?.player ?: return

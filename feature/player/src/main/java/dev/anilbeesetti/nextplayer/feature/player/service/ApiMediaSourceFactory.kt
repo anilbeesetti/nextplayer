@@ -1,6 +1,7 @@
 package dev.anilbeesetti.nextplayer.feature.player.service
 
 import android.content.Context
+import android.webkit.MimeTypeMap
 import androidx.media3.common.C
 import androidx.media3.common.MediaItem
 import androidx.media3.common.ParserException
@@ -93,13 +94,14 @@ internal val MediaItem.videoDecoderBackend: DecoderMode
 internal fun MediaItem.withVideoDecoder(
     mode: DecoderMode,
     useFfmpegForSoftware: Boolean,
+    useFfmpegForAuto: Boolean = mediaMetadata.ffmpegExtraction,
 ): MediaItem = copy(
     videoDecoderMode = mode,
     ffmpegExtraction = when (mode) {
         DecoderMode.HW_PLUS -> true
         DecoderMode.FFMPEG -> useFfmpegForSoftware
         DecoderMode.HARDWARE -> false
-        DecoderMode.AUTO -> mediaMetadata.ffmpegExtraction
+        DecoderMode.AUTO -> useFfmpegForAuto
     },
 )
 
@@ -112,5 +114,30 @@ internal fun MediaItem.hasPrimaryParserError(error: Throwable): Boolean {
         null -> false
         is UnrecognizedInputFormatException -> parserError.uri == config.uri
         else -> mediaMetadata.externalAudio.isEmpty() && config.subtitleConfigurations.isEmpty()
+    }
+}
+
+internal fun MediaItem.isMpegProgramStream(context: Context): Boolean =
+    containerMimeType(context) in listOf(
+        "video/mpeg",
+        "video/mp2p",
+    )
+
+// The standard readers preserve embedded TX3G and WebVTT in software mode.
+internal fun MediaItem.requiresStandardReaderForSoftware(context: Context): Boolean =
+    containerMimeType(context) in listOf(
+        "video/mp4",
+        "video/webm",
+    )
+
+private fun MediaItem.containerMimeType(context: Context): String? {
+    val config = localConfiguration ?: return null
+    val extension = config.uri.lastPathSegment?.substringAfterLast('.')?.lowercase()
+    return config.mimeType ?: if (config.uri.scheme == "content") {
+        runCatching { context.contentResolver.getType(config.uri) }.getOrNull()
+    } else if (extension == "vob") {
+        "video/mpeg"
+    } else {
+        MimeTypeMap.getSingleton().getMimeTypeFromExtension(extension)
     }
 }

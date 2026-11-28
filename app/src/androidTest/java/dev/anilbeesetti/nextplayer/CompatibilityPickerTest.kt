@@ -9,6 +9,7 @@ import android.database.CursorWrapper
 import android.net.Uri
 import android.os.ParcelFileDescriptor
 import android.provider.MediaStore
+import android.webkit.MimeTypeMap
 import androidx.test.ext.junit.runners.AndroidJUnit4
 import androidx.test.filters.SdkSuppress
 import androidx.test.platform.app.InstrumentationRegistry
@@ -332,18 +333,23 @@ class CompatibilityPickerTest {
         }
     }
 
-    private suspend fun withRecording(block: suspend (Uri) -> Unit) {
+    internal suspend fun withRecording(
+        asset: String = "header-program-stream.mp4",
+        supplied: String? = InstrumentationRegistry.getArguments().getString("compatibilityVideo"),
+        block: suspend (Uri) -> Unit,
+    ) {
         val instrumentation = InstrumentationRegistry.getInstrumentation()
         val context = instrumentation.targetContext
         val resolver = context.contentResolver
-        val supplied = InstrumentationRegistry.getArguments().getString("compatibilityVideo")
+        val name = supplied?.let { File(it).name } ?: asset
+        val extension = name.substringAfterLast('.')
         val uri = checkNotNull(
             resolver.insert(
                 MediaStore.Video.Media.EXTERNAL_CONTENT_URI,
                 ContentValues().apply {
                     put(
                         MediaStore.MediaColumns.DISPLAY_NAME,
-                        "picker-${UUID.randomUUID()}.mp4",
+                        "picker-${UUID.randomUUID()}.$extension",
                     )
                     put(
                         MediaStore.MediaColumns.RELATIVE_PATH,
@@ -351,7 +357,8 @@ class CompatibilityPickerTest {
                     )
                     put(
                         MediaStore.MediaColumns.MIME_TYPE,
-                        "video/mp4",
+                        MimeTypeMap.getSingleton().getMimeTypeFromExtension(extension)
+                            ?: "video/mpeg",
                     )
                     put(
                         MediaStore.MediaColumns.IS_PENDING,
@@ -362,7 +369,7 @@ class CompatibilityPickerTest {
         )
         try {
             val input = supplied?.let { File(it).inputStream() }
-                ?: instrumentation.context.assets.open("header-program-stream.mp4")
+                ?: instrumentation.context.assets.open(asset)
             input.use { source ->
                 resolver.openOutputStream(uri)!!.use { source.copyTo(it) }
             }
@@ -388,19 +395,20 @@ class CompatibilityPickerTest {
     }
 
     private fun assertRecordingMetadata(duration: Long, width: Int, height: Int) {
-        val original = InstrumentationRegistry.getArguments()
-            .getString("compatibilityVideo") != null
-        val expectedDuration = if (original) 815_328L else 3_000L
+        val args = InstrumentationRegistry.getArguments()
+        val original = args.getString("compatibilityVideo") != null
+        val expectedDuration = args.getString("compatibilityDuration")?.toLong()
+            ?: if (original) 815_328L else 3_000L
         assertTrue(
             "Duration was ${duration}ms",
             kotlin.math.abs(duration - expectedDuration) < 500,
         )
         assertEquals(
-            if (original) 960 else 160,
+            args.getString("compatibilityWidth")?.toInt() ?: if (original) 960 else 160,
             width,
         )
         assertEquals(
-            if (original) 1080 else 120,
+            args.getString("compatibilityHeight")?.toInt() ?: if (original) 1080 else 120,
             height,
         )
     }

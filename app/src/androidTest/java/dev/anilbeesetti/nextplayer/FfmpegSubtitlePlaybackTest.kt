@@ -13,7 +13,10 @@ import androidx.media3.session.MediaController
 import androidx.media3.session.SessionToken
 import androidx.test.ext.junit.runners.AndroidJUnit4
 import androidx.test.platform.app.InstrumentationRegistry
+import dev.anilbeesetti.nextplayer.feature.player.extensions.copy
 import dev.anilbeesetti.nextplayer.feature.player.extensions.switchTrack
+import dev.anilbeesetti.nextplayer.feature.player.model.DecoderMode
+import dev.anilbeesetti.nextplayer.feature.player.service.CustomCommands
 import dev.anilbeesetti.nextplayer.feature.player.service.PlayerService
 import dev.anilbeesetti.nextplayer.feature.player.state.CuesState
 import java.io.File
@@ -42,7 +45,12 @@ class FfmpegSubtitlePlaybackTest {
     private var activePlayer: MediaController? = null
 
     @Test
-    fun nativeAndTextTracksRenderSeekAndReselectThroughPlayerService() {
+    fun nativeAndTextTracksRenderSeekAndReselectThroughPlayerService() = verifySubtitles(false)
+
+    @Test
+    fun embeddedSubtitlesSurviveSoftwareVideo() = verifySubtitles(true)
+
+    private fun verifySubtitles(softwareVideo: Boolean) {
         val directory = File(
             context.cacheDir,
             "ffmpeg-subtitle-test-${System.nanoTime()}",
@@ -176,11 +184,23 @@ class FfmpegSubtitlePlaybackTest {
                     false,
                 ),
             )
-            for ((file, mime, bitmap) in cases + Triple(
-                "http-styled.ass",
-                MimeTypes.TEXT_SSA,
-                true,
-            )) {
+            val selectedCases = if (softwareVideo) {
+                cases.filter {
+                    it.first in
+                        listOf(
+                            "tx3g.mp4",
+                            "styled.vtt.webm",
+                            "captions.vtt.webm",
+                        )
+                }
+            } else {
+                cases + Triple(
+                    "http-styled.ass",
+                    MimeTypes.TEXT_SSA,
+                    true,
+                )
+            }
+            for ((file, mime, bitmap) in selectedCases) {
                 val video = if (mime ==
                     null
                 ) {
@@ -250,7 +270,9 @@ class FfmpegSubtitlePlaybackTest {
                 }
                 main {
                     player.setMediaItem(
-                        item.build(),
+                        item.build().copy(
+                            videoDecoderMode = if (softwareVideo) DecoderMode.FFMPEG else null,
+                        ),
                         2_000,
                     )
                     player.trackSelectionParameters = player.trackSelectionParameters.buildUpon()
@@ -267,7 +289,12 @@ class FfmpegSubtitlePlaybackTest {
                         "$file: ${player.playerError}",
                         player.playerError,
                     )
-                    player.playbackState == Player.STATE_READY &&
+                    (
+                        !softwareVideo || player.sessionExtras.getString(
+                            CustomCommands.VIDEO_DECODER_MODE_KEY,
+                        ) == DecoderMode.FFMPEG.name
+                        ) &&
+                        player.playbackState == Player.STATE_READY &&
                         player.currentCues.cues.any { (it.bitmap != null) == bitmap }
                 }
                 main {

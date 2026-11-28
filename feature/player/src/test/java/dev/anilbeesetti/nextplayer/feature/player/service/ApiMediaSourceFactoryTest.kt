@@ -12,9 +12,36 @@ import org.junit.Assert.assertTrue
 import org.junit.Test
 import org.junit.runner.RunWith
 import org.robolectric.RobolectricTestRunner
+import org.robolectric.RuntimeEnvironment
 
 @RunWith(RobolectricTestRunner::class)
 class ApiMediaSourceFactoryTest {
+    @Test
+    fun automaticProgramStreamExtractionLeavesOtherContainersOnStandardReaders() {
+        val context = RuntimeEnvironment.getApplication()
+        for (extension in listOf(
+            "mpg",
+            "mpeg",
+            "vob",
+        )) {
+            assertTrue(MediaItem.fromUri("file:///video.$extension").isMpegProgramStream(context))
+        }
+        for (extension in listOf(
+            "avi",
+            "wmv",
+            "mp4",
+            "webm",
+            "mkv",
+            "ts",
+        )) {
+            assertFalse(MediaItem.fromUri("file:///video.$extension").isMpegProgramStream(context))
+        }
+        assertTrue(
+            MediaItem.Builder().setUri("content://media/external/video/media/1")
+                .setMimeType("video/mp2p").build().isMpegProgramStream(context),
+        )
+    }
+
     @Test
     fun sidecarParserFailureDoesNotMatchThePrimarySource() {
         val video = Uri.parse("https://example.test/video.mp4")

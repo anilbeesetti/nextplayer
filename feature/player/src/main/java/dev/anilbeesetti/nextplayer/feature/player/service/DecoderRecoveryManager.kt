@@ -55,6 +55,7 @@ internal class DecoderRecoveryManager {
         canTryHwPlus: Boolean = false,
         requestedMode: DecoderMode = mode,
         retrySoftwareReader: Boolean = false,
+        preferSoftware: Boolean = false,
         showConfirmation: Boolean = true,
     ): DecoderRetry? {
         val recovery = recoveryFor(trackType)
@@ -63,7 +64,7 @@ internal class DecoderRecoveryManager {
 
         val candidates = when (trackType) {
             DecoderTrackType.VIDEO -> listOfNotNull(
-                DecoderMode.FFMPEG.takeIf { retrySoftwareReader },
+                DecoderMode.FFMPEG.takeIf { retrySoftwareReader || preferSoftware },
                 recovery.lastWorkingMode?.takeUnless { it == DecoderMode.HW_PLUS && !canTryHwPlus },
                 when (failedMode) {
                     DecoderMode.HARDWARE -> DecoderMode.HW_PLUS.takeIf { canTryHwPlus }
