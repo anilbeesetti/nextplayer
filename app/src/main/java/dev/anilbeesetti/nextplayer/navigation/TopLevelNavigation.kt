@@ -62,14 +62,17 @@ import androidx.compose.runtime.toMutableStateList
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
-import androidx.compose.ui.draw.drawWithContent
+import androidx.compose.ui.draw.drawWithCache
 import androidx.compose.ui.focus.FocusRequester
 import androidx.compose.ui.focus.focusProperties
 import androidx.compose.ui.focus.focusRequester
 import androidx.compose.ui.geometry.Rect
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.Path
 import androidx.compose.ui.graphics.Shape
+import androidx.compose.ui.graphics.addOutline
+import androidx.compose.ui.graphics.drawscope.clipPath
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.input.pointer.pointerInput
@@ -350,25 +353,38 @@ internal fun TopLevelNavState.navigationTransitionModifier(entry: NavEntry<NavKe
     ) { if (it == EnterExitState.Visible) 0f else MAX_SCRIM_ALPHA }
     val cornerShape = rememberDisplayCornerShape()
 
-    if (initialState == targetState ||
-        isNavigationBetweenTopLevelDestinations(
+    val isSliding = initialState != targetState &&
+        !isNavigationBetweenTopLevelDestinations(
             initialState,
             targetState,
         )
-    ) {
-        return Modifier
-    }
     val bottomScene = if (isPop) targetState else initialState
-    return if (entry.contentKey == bottomScene.entries.lastOrNull()?.contentKey) {
-        Modifier.drawWithContent {
-            drawContent()
-            drawRect(
-                color = Color.Black,
-                alpha = scrimAlpha.value,
+    val drawScrim = isSliding && entry.contentKey == bottomScene.entries.lastOrNull()?.contentKey
+    // Keep the drawing modifier in place when the slide settles to avoid swapping graphics layers.
+    return Modifier.drawWithCache {
+        val cornerPath = if (isSliding && !drawScrim && cornerShape != null) {
+            val outline = cornerShape.createOutline(
+                size = size,
+                layoutDirection = layoutDirection,
+                density = this,
             )
+            Path().apply { addOutline(outline) }
+        } else {
+            null
         }
-    } else {
-        Modifier.thenIf(cornerShape != null) { clip(cornerShape!!) }
+        onDrawWithContent {
+            if (cornerPath != null) {
+                clipPath(cornerPath) { this@onDrawWithContent.drawContent() }
+            } else {
+                drawContent()
+            }
+            if (drawScrim) {
+                drawRect(
+                    color = Color.Black,
+                    alpha = scrimAlpha.value,
+                )
+            }
+        }
     }
 }
 
