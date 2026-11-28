@@ -366,10 +366,10 @@
         <item quantity="other">Не вдалося перемістити %1$d відео</item>
     </plurals>
     <plurals name="moved_videos_originals_remain">
-        <item quantity="one">Переміщено 1 відео, проте оригінал залишився</item>
-        <item quantity="few">Переміщено %1$d відео, проте оригінали залишилися</item>
-        <item quantity="many">Переміщено %1$d відео, проте оригінали залишилися</item>
-        <item quantity="other">Переміщено %1$d відео, проте оригінали залишилися</item>
+        <item quantity="one">Скопійовано 1 відео, проте оригінал залишився</item>
+        <item quantity="few">Скопійовано %1$d відео, проте оригінали залишилися</item>
+        <item quantity="many">Скопійовано %1$d відео, проте оригінали залишилися</item>
+        <item quantity="other">Скопійовано %1$d відео, проте оригінали залишилися</item>
     </plurals>
     <string name="cannot_move_to_same_folder">Не вдалося перемістити в ту саму теку</string>
     <string name="folder_duration">Тривалість теки</string>
@@ -555,4 +555,21 @@
     <string name="add_to_home_screen">Додати на головний екран</string>
     <string name="playlist_shortcut_failed">Не вдалося додати ярлик добірки. Спробуйте ще раз.</string>
     <string name="github_sponsors">Спонсори GitHub</string>
+    <string name="settings_export">Налаштування експорту</string>
+    <string name="settings_export_description">Зберегти налаштування до JSON-файлу</string>
+    <string name="settings_import">Налаштування імпорту</string>
+    <string name="settings_import_description">Відновити налаштування з JSON-файлу</string>
+    <string name="settings_export_confirmation">Експортувати застосунок і налаштування програвача до JSON-файлу.</string>
+    <string name="settings_export_include_credentials">Включити мережеві з’єднання та облікові дані</string>
+    <string name="settings_export_credentials_warning">JSON-файл не зашифрований. Він може містити паролі та приватні SSH-ключі. Зберігайте його в безпеці.</string>
+    <string name="settings_import_confirmation">Налаштування в цьому файлі перезапишуть ваші поточні налаштування. Відсутні, застарілі, невідомі або недійсні елементи будуть проігноровані. Мережеві з’єднання та облікові дані також будуть імпортовані, якщо вони включені.</string>
+    <string name="export_action">Експортувати</string>
+    <string name="import_action">Імпортувати</string>
+    <string name="settings_export_success">Налаштування експортовано</string>
+    <string name="settings_export_failed">Не вдалося експортувати налаштування</string>
+    <string name="settings_import_success">Налаштування імпортовано</string>
+    <string name="settings_import_failed">Не вдалося завершити налаштування імпорту. Спробуйте ще раз.</string>
+    <string name="settings_import_invalid">Не вдалося прочитати цей файл, або він не містить підтримуваних налаштувань JSON</string>
+    <string name="reset_subtitle_position">Скинути позицію субтитрів</string>
+    <string name="reset_subtitle_position_desc">Перетягніть субтитри вгору або вниз під час відтворення, аби перемістити їх</string>
 </resources>

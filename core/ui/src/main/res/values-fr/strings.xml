@@ -555,4 +555,7 @@
     <string name="reset_subtitle_position_desc">Faites glisser les sous-titres vers le haut ou vers le bas pendant la lecture pour les déplacer</string>
     <string name="add_to_home_screen">Ajouter à l\'écran d\'accueil</string>
     <string name="playlist_shortcut_failed">Impossible d\'ajouter le raccourci de la playlist. Réessaie.</string>
+    <string name="decoder_mode_hardware_plus">Matériel+</string>
+    <string name="decoder_system_description">Décodeurs du système Android (matériel ou logiciel)</string>
+    <string name="decoder_hardware_plus_description">Lecteur de conteneurs FFmpeg avec les décodeurs système Android</string>
 </resources>

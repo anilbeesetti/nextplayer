@@ -184,7 +184,7 @@ internal fun MediaPlayerControls(
                 },
         ) {
             val inlineActionCount = inlineTopActionCount(maxWidth)
-            if (mediaPresentationState.isBuffering) {
+            if (mediaPresentationState.showBufferingIndicator) {
                 CircularProgressIndicator(
                     Modifier
                         .align(Alignment.Center)

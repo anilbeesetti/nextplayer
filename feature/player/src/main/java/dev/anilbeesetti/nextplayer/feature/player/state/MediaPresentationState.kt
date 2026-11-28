@@ -8,8 +8,8 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.media3.common.Player
-import androidx.media3.common.listen
 import androidx.media3.common.util.UnstableApi
+import kotlinx.coroutines.awaitCancellation
 
 @UnstableApi
 @Composable
@@ -21,17 +21,37 @@ fun rememberMediaPresentationState(player: Player?): MediaPresentationState {
 
 @Stable
 class MediaPresentationState(private val player: Player?) {
-    var isBuffering: Boolean by mutableStateOf(value = false)
+    var showBufferingIndicator: Boolean by mutableStateOf(value = false)
         private set
 
     suspend fun observe() {
-        isBuffering = player?.playbackState == Player.STATE_BUFFERING
+        val player = player ?: return
+        showBufferingIndicator = player.playbackState == Player.STATE_BUFFERING
 
-        player?.listen { events ->
-            if (events.contains(Player.EVENT_PLAYBACK_STATE_CHANGED)) {
-                this@MediaPresentationState.isBuffering =
-                    player.playbackState == Player.STATE_BUFFERING
+        val listener = object : Player.Listener {
+            private var isSeeking = false
+
+            override fun onPositionDiscontinuity(
+                oldPosition: Player.PositionInfo,
+                newPosition: Player.PositionInfo,
+                reason: Int,
+            ) {
+                if (reason == Player.DISCONTINUITY_REASON_SEEK) isSeeking = true
             }
+
+            override fun onEvents(player: Player, events: Player.Events) {
+                val isBuffering = player.playbackState == Player.STATE_BUFFERING
+                if (!isBuffering || events.contains(Player.EVENT_MEDIA_ITEM_TRANSITION)) {
+                    isSeeking = false
+                }
+                showBufferingIndicator = isBuffering && !isSeeking
+            }
+        }
+        player.addListener(listener)
+        try {
+            awaitCancellation()
+        } finally {
+            player.removeListener(listener)
         }
     }
 }

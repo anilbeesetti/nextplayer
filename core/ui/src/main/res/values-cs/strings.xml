@@ -564,4 +564,7 @@
     <string name="settings_import_invalid">Nešlo přečíst tento soubor nebo neobsahuje žádné podporované JSON nastavení</string>
     <string name="reset_subtitle_position">Resetovat umístění titulek</string>
     <string name="reset_subtitle_position_desc">Posuňte titulky nahoru nebo dolů při přehráváním pro jejich přesun</string>
+    <string name="decoder_mode_hardware_plus">HW+</string>
+    <string name="decoder_system_description">Systémové dekodéry v Androidu (hardwarové nebo softwarové)</string>
+    <string name="decoder_hardware_plus_description">Parser FFmpeg kontejnerů s systémovýma dekodérama v Androidu</string>
 </resources>
