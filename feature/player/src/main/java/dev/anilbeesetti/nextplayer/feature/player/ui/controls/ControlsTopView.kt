@@ -1,6 +1,8 @@
 package dev.anilbeesetti.nextplayer.feature.player.ui.controls
 
+import androidx.annotation.DrawableRes
 import androidx.annotation.OptIn
+import androidx.annotation.StringRes
 import androidx.compose.foundation.focusGroup
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.BoxWithConstraints
@@ -42,6 +44,7 @@ import dev.anilbeesetti.nextplayer.core.ui.theme.NextPlayerTheme
 import dev.anilbeesetti.nextplayer.feature.player.buttons.PlayerButton
 import dev.anilbeesetti.nextplayer.feature.player.model.DecoderMode
 import dev.anilbeesetti.nextplayer.feature.player.model.labelRes
+import dev.anilbeesetti.nextplayer.feature.player.ui.OverlayView
 
 @OptIn(UnstableApi::class)
 @Composable
@@ -105,27 +108,17 @@ fun ControlsTopView(
                     maxLines = 1,
                 )
             }
-            if (inlineActionCount >= 1) {
-                PlayerButton(onClick = onPlaylistClick) {
+            for (action in PlayerTopAction.entries.take(inlineActionCount.coerceAtLeast(0))) {
+                PlayerButton(
+                    onClick = when (action) {
+                        PlayerTopAction.PLAYLIST -> onPlaylistClick
+                        PlayerTopAction.AUDIO -> onAudioClick
+                        PlayerTopAction.SUBTITLE -> onSubtitleClick
+                    },
+                ) {
                     Icon(
-                        painter = painterResource(R.drawable.ic_playlist),
-                        contentDescription = stringResource(R.string.now_playing),
-                    )
-                }
-            }
-            if (inlineActionCount >= 2) {
-                PlayerButton(onClick = onAudioClick) {
-                    Icon(
-                        painter = painterResource(R.drawable.ic_audio_track),
-                        contentDescription = stringResource(R.string.audio_track),
-                    )
-                }
-            }
-            if (inlineActionCount >= 3) {
-                PlayerButton(onClick = onSubtitleClick) {
-                    Icon(
-                        painter = painterResource(R.drawable.ic_subtitle_track),
-                        contentDescription = stringResource(R.string.subtitle_track),
+                        painter = painterResource(action.iconRes),
+                        contentDescription = stringResource(action.labelRes),
                     )
                 }
             }
@@ -137,6 +130,28 @@ fun ControlsTopView(
             }
         }
     }
+}
+
+internal enum class PlayerTopAction(
+    @StringRes val labelRes: Int,
+    @DrawableRes val iconRes: Int,
+    val overlay: OverlayView,
+) {
+    PLAYLIST(
+        R.string.now_playing,
+        R.drawable.ic_playlist,
+        OverlayView.PLAYLIST,
+    ),
+    AUDIO(
+        R.string.audio_track,
+        R.drawable.ic_audio_track,
+        OverlayView.AUDIO_SELECTOR,
+    ),
+    SUBTITLE(
+        R.string.subtitle_track,
+        R.drawable.ic_subtitle_track,
+        OverlayView.SUBTITLE_SELECTOR,
+    ),
 }
 
 private val topControlsInsets: WindowInsets

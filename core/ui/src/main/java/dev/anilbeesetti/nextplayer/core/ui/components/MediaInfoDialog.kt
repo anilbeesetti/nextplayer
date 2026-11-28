@@ -4,7 +4,6 @@ import androidx.compose.foundation.focusable
 import androidx.compose.foundation.gestures.animateScrollBy
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.rememberScrollState
@@ -224,25 +223,22 @@ fun MediaInfoContent(mediaInfo: MediaInfo, modifier: Modifier = Modifier) {
 }
 
 @Composable
-private fun MediaInfoTitle(
-    text: String,
-    paddingValues: PaddingValues = PaddingValues(
-        top = 16.dp,
-        bottom = 2.dp,
-    ),
-) {
+private fun MediaInfoTitle(text: String) {
     Text(
         text = text,
         style = MaterialTheme.typography.titleLarge,
         color = MaterialTheme.colorScheme.onSurface,
-        modifier = Modifier.padding(paddingValues = paddingValues),
+        modifier = Modifier.padding(
+            top = 16.dp,
+            bottom = 2.dp,
+        ),
     )
 }
 
 @Composable
-private fun MediaInfoText(title: String, subText: String, modifier: Modifier = Modifier) {
+private fun MediaInfoText(title: String, subText: String) {
     if (subText.isBlank()) return
-    Row(modifier = modifier) {
+    Row {
         Text(
             text = "$title: ",
             style = MaterialTheme.typography.titleSmall,

@@ -1,7 +1,5 @@
 package dev.anilbeesetti.nextplayer.feature.player.ui
 
-import androidx.annotation.DrawableRes
-import androidx.annotation.StringRes
 import androidx.compose.animation.AnimatedContent
 import androidx.compose.animation.AnimatedContentTransitionScope.SlideDirection
 import androidx.compose.animation.core.FastOutSlowInEasing
@@ -48,32 +46,10 @@ import dev.anilbeesetti.nextplayer.core.ui.components.MediaInfoContent
 import dev.anilbeesetti.nextplayer.core.ui.components.requestFocusUntilLanded
 import dev.anilbeesetti.nextplayer.core.ui.components.tvFocusRing
 import dev.anilbeesetti.nextplayer.core.ui.designsystem.NextIcons
-
-private enum class MoreOption(
-    @StringRes val labelRes: Int,
-    @DrawableRes val iconRes: Int,
-    val overlay: OverlayView,
-) {
-    PLAYLIST(
-        R.string.now_playing,
-        R.drawable.ic_playlist,
-        OverlayView.PLAYLIST,
-    ),
-    AUDIO(
-        R.string.audio_track,
-        R.drawable.ic_audio_track,
-        OverlayView.AUDIO_SELECTOR,
-    ),
-    SUBTITLE(
-        R.string.subtitle_track,
-        R.drawable.ic_subtitle_track,
-        OverlayView.SUBTITLE_SELECTOR,
-    ),
-}
+import dev.anilbeesetti.nextplayer.feature.player.ui.controls.PlayerTopAction
 
 @Composable
 fun BoxScope.MoreOptionsView(
-    modifier: Modifier = Modifier,
     show: Boolean,
     inlineActionCount: Int,
     mediaInfo: MediaInfo?,
@@ -96,7 +72,6 @@ fun BoxScope.MoreOptionsView(
         }
     }
     OverlayView(
-        modifier = modifier,
         show = show,
         title = null,
     ) {
@@ -159,7 +134,7 @@ private fun MoreOptionsButtons(
     onRename: (() -> Unit)?,
     onInfo: (() -> Unit)?,
 ) {
-    val trackOptions = MoreOption.entries.drop(inlineActionCount)
+    val trackOptions = PlayerTopAction.entries.drop(inlineActionCount)
     val minColumnWidth = 72.dp * LocalDensity.current.fontScale.coerceAtLeast(1f)
     val columnGap = 8.dp
     BoxWithConstraints(modifier = Modifier.fillMaxWidth().padding(horizontal = 24.dp)) {
