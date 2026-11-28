@@ -40,7 +40,7 @@ class PlaylistDetailViewModel(
 
     data class Output(
         val navigateUp: () -> Unit,
-        val playPlaylist: (playlistId: Long, startUri: Uri) -> Unit,
+        val playPlaylist: (playlistId: Long, startUri: Uri, itemId: Long) -> Unit,
     )
 
     private val stateInternal = MutableStateFlow(value = PlaylistDetailUiState())
@@ -101,7 +101,10 @@ class PlaylistDetailViewModel(
                 it.copy(isReordering = false)
             }
 
-            is PlaylistDetailUiAction.OnPlay -> play(action.startUri)
+            is PlaylistDetailUiAction.OnPlay -> play(
+                action.startUri,
+                action.itemId,
+            )
 
             is PlaylistDetailUiAction.Refresh -> refreshM3U()
 
@@ -119,11 +122,12 @@ class PlaylistDetailViewModel(
         }
     }
 
-    private fun play(startUri: Uri) {
-        markVideoPlayed(startUri.toString())
+    private fun play(startUri: Uri, itemId: Long) {
+        markVideoPlayed(itemId)
         output.playPlaylist(
             input.playlistId,
             startUri,
+            itemId,
         )
     }
 
@@ -191,12 +195,12 @@ class PlaylistDetailViewModel(
         )
     }
 
-    private fun markVideoPlayed(videoUri: String) {
+    private fun markVideoPlayed(itemId: Long) {
         viewModelScope.launch {
             try {
                 playlistRepository.markVideoPlayed(
                     input.playlistId,
-                    videoUri = videoUri,
+                    itemId = itemId,
                 )
             } catch (cancellation: CancellationException) {
                 throw cancellation
@@ -262,7 +266,7 @@ sealed interface PlaylistDetailUiAction {
     data object OnCloseSearchClick : PlaylistDetailUiAction
     data object OnReorderClick : PlaylistDetailUiAction
     data object OnFinishReorderingClick : PlaylistDetailUiAction
-    data class OnPlay(val startUri: Uri) : PlaylistDetailUiAction
+    data class OnPlay(val startUri: Uri, val itemId: Long) : PlaylistDetailUiAction
     data object Refresh : PlaylistDetailUiAction
     data class ShowRemoveDialogFor(val item: PlaylistItem) : PlaylistDetailUiAction
     data object DismissRemoveDialog : PlaylistDetailUiAction

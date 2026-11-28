@@ -55,6 +55,7 @@ import dev.anilbeesetti.nextplayer.core.ui.R
 import dev.anilbeesetti.nextplayer.core.ui.components.NextSegmentedListItem
 import dev.anilbeesetti.nextplayer.core.ui.designsystem.NextIcons
 import dev.anilbeesetti.nextplayer.feature.player.state.rememberPlaylistState
+import dev.anilbeesetti.nextplayer.feature.player.utils.playlistQueueKey
 import sh.calvin.reorderable.DragGestureDetector
 import sh.calvin.reorderable.ReorderableCollectionItemScope
 import sh.calvin.reorderable.ReorderableItem
@@ -107,12 +108,12 @@ fun BoxScope.PlaylistView(
             ) {
                 items(
                     count = playlistState.mediaItemCount,
-                    key = { index -> playlistState.getMediaItemAt(index = index).mediaId },
+                    key = { index -> playlistState.getMediaItemAt(index = index).playlistQueueKey },
                 ) { index ->
                     val mediaItem = playlistState.getMediaItemAt(index = index)
                     ReorderableItem(
                         state = reorderableLazyListState,
-                        key = mediaItem.mediaId,
+                        key = mediaItem.playlistQueueKey,
                     ) {
                         val isCurrentItem = index == playlistState.currentMediaItemIndex
                         PlaylistItemView(

@@ -79,10 +79,10 @@ interface PlaylistDao {
         """
         UPDATE playlist_item
         SET last_played_at = :playedAt
-        WHERE playlist_id = :playlistId AND uri = :uri
+        WHERE playlist_id = :playlistId AND id = :itemId
         """,
     )
-    suspend fun updateLastPlayedAt(playlistId: Long, uri: String, playedAt: Long): Int
+    suspend fun updateLastPlayedAt(playlistId: Long, itemId: Long, playedAt: Long): Int
 
     @Delete
     suspend fun deleteItems(items: List<PlaylistItemEntity>)
@@ -122,15 +122,21 @@ interface PlaylistDao {
         require(value = getPlaylistEntity(playlistId = playlistId)?.type in LINKED_PLAYLIST_TYPES) {
             "Only linked playlists can be refreshed"
         }
-        val playedAtByUri = getItems(playlistId = playlistId).associate {
-            it.uri to it.lastPlayedAt
-        }
+        val previousItems = getItems(playlistId = playlistId)
+        val previousByUri = previousItems.groupBy { it.uri }
+        val newCountsByUri = items.groupingBy { it.uri }.eachCount()
+        val previousByTitle = previousItems.groupBy { it.uri to it.title }
+            .mapValues { (_, matches) -> ArrayDeque(matches) }
         deleteItemsForPlaylist(playlistId = playlistId)
         insertItems(
             items.map { item ->
+                val previous = previousByUri[item.uri]?.singleOrNull()
+                    ?.takeIf { newCountsByUri[item.uri] == 1 }
+                    ?: previousByTitle[item.uri to item.title]?.removeFirstOrNull()
                 item.copy(
+                    id = previous?.id ?: 0,
                     playlistId = playlistId,
-                    lastPlayedAt = playedAtByUri[item.uri],
+                    lastPlayedAt = previous?.lastPlayedAt,
                 )
             },
         )
@@ -175,15 +181,15 @@ interface PlaylistDao {
     }
 
     @Transaction
-    suspend fun markItemPlayed(playlistId: Long, uri: String, playedAt: Long) {
+    suspend fun markItemPlayed(playlistId: Long, itemId: Long, playedAt: Long) {
         require(
             value =
                 updateLastPlayedAt(
                     playlistId = playlistId,
-                    uri = uri,
+                    itemId = itemId,
                     playedAt = playedAt,
                 ) == 1,
-        ) { "Last played URI must belong to the playlist" }
+        ) { "Last played item must belong to the playlist" }
     }
 
     @Transaction

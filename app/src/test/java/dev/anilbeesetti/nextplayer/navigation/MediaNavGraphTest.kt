@@ -109,13 +109,14 @@ class MediaNavGraphTest {
     }
 
     @Test
-    fun `saved playlist playback sends only playlist id and selected uri`() {
+    fun `saved playlist playback sends playlist and item ids with selected uri`() {
         val context = Robolectric.buildActivity(Activity::class.java).setup().get()
         val selected = "https://example.com/live".toUri()
 
         context.startPlaylistPlayback(
             playlistId = 42,
             startUri = selected,
+            itemId = 81,
         )
 
         val intent = shadowOf(context).nextStartedActivity
@@ -131,6 +132,13 @@ class MediaNavGraphTest {
             42L,
             intent.getLongExtra(
                 PlaylistPlaybackContract.EXTRA_PLAYLIST_ID,
+                -1,
+            ),
+        )
+        assertEquals(
+            81L,
+            intent.getLongExtra(
+                PlaylistPlaybackContract.EXTRA_PLAYLIST_ITEM_ID,
                 -1,
             ),
         )

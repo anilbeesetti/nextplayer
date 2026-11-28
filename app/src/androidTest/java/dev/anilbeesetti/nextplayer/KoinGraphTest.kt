@@ -177,7 +177,7 @@ class KoinGraphTest {
                     PlaylistDetailViewModel.Input(playlistId = -1),
                     PlaylistDetailViewModel.Output(
                         navigateUp = {},
-                        playPlaylist = { _, _ -> },
+                        playPlaylist = { _, _, _ -> },
                     ),
                 )
                 viewModel<SearchViewModel>(

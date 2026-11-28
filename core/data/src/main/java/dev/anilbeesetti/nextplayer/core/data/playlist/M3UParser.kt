@@ -104,7 +104,6 @@ class M3UParser(
             ) { "HLS manifests cannot be imported as M3U playlists" }
 
             val entries = mutableListOf<M3UPlaylistItem>()
-            val seenUris = mutableSetOf<String>()
             var playlistName: String? = null
             var pending = PendingEntryMetadata()
 
@@ -150,7 +149,7 @@ class M3UParser(
                             rawValue = line,
                             source = source,
                         )
-                        if (resolvedUri != null && seenUris.add(element = resolvedUri)) {
+                        if (resolvedUri != null) {
                             entries += M3UPlaylistItem(
                                 uri = resolvedUri,
                                 title = pending.title ?: deriveItemTitle(uri = resolvedUri),

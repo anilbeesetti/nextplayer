@@ -22,7 +22,7 @@ import dev.anilbeesetti.nextplayer.core.database.entities.PlaylistItemEntity
         PlaylistEntity::class,
         PlaylistItemEntity::class,
     ],
-    version = 13,
+    version = 14,
     exportSchema = true,
 )
 abstract class MediaDatabase : RoomDatabase() {
@@ -417,6 +417,53 @@ abstract class MediaDatabase : RoomDatabase() {
                 db.execSQL(sql = "ALTER TABLE `media_state_new` RENAME TO `media_state`")
                 db.execSQL(
                     sql = "CREATE UNIQUE INDEX `index_media_state_uri` ON `media_state` (`uri`)",
+                )
+            }
+        }
+
+        val MIGRATION_13_14 = object : Migration(
+            13,
+            14,
+        ) {
+            override fun migrate(db: SupportSQLiteDatabase) {
+                db.execSQL(
+                    sql = """
+                    CREATE TABLE `playlist_item_new` (
+                        `id` INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL,
+                        `playlist_id` INTEGER NOT NULL,
+                        `uri` TEXT NOT NULL,
+                        `position` INTEGER NOT NULL,
+                        `title` TEXT,
+                        `tvg_logo` TEXT,
+                        `duration` INTEGER NOT NULL,
+                        `group_title` TEXT,
+                        `last_played_at` INTEGER,
+                        FOREIGN KEY(`playlist_id`) REFERENCES `playlist`(`id`)
+                            ON UPDATE NO ACTION ON DELETE CASCADE
+                    )
+                    """,
+                )
+                db.execSQL(
+                    sql = """
+                    INSERT INTO `playlist_item_new` (
+                        `playlist_id`, `uri`, `position`, `title`, `tvg_logo`, `duration`,
+                        `group_title`, `last_played_at`
+                    )
+                    SELECT
+                        `playlist_id`, `uri`, `position`, `title`, `tvg_logo`, `duration`,
+                        `group_title`, `last_played_at`
+                    FROM `playlist_item`
+                    """,
+                )
+                db.execSQL(sql = "DROP TABLE `playlist_item`")
+                db.execSQL(sql = "ALTER TABLE `playlist_item_new` RENAME TO `playlist_item`")
+                db.execSQL(
+                    sql = "CREATE INDEX `index_playlist_item_playlist_id` " +
+                        "ON `playlist_item` (`playlist_id`)",
+                )
+                db.execSQL(
+                    sql = "CREATE UNIQUE INDEX `index_playlist_item_playlist_id_position` " +
+                        "ON `playlist_item` (`playlist_id`, `position`)",
                 )
             }
         }

@@ -96,10 +96,10 @@ class LocalPlaylistRepository(private val playlistDao: PlaylistDao) : PlaylistRe
         )
     }
 
-    override suspend fun markVideoPlayed(playlistId: Long, videoUri: String) {
+    override suspend fun markVideoPlayed(playlistId: Long, itemId: Long) {
         playlistDao.markItemPlayed(
             playlistId = playlistId,
-            uri = videoUri,
+            itemId = itemId,
             playedAt = System.currentTimeMillis(),
         )
     }
@@ -129,6 +129,7 @@ private fun PlaylistWithItems.toModel() = PlaylistRecord(
     source = playlist.source,
     items = items.sortedBy { it.position }.map { item ->
         PlaylistItemRecord(
+            id = item.id,
             position = item.position,
             uri = item.uri,
             title = item.title,

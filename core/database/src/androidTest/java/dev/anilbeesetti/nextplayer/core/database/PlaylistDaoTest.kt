@@ -176,14 +176,15 @@ class PlaylistDaoTest {
             ),
         )
 
+        val (first, second) = dao.getItems(playlistId = playlistId)
         dao.markItemPlayed(
             playlistId = playlistId,
-            uri = "content://one",
+            itemId = first.id,
             playedAt = 100,
         )
         dao.markItemPlayed(
             playlistId = playlistId,
-            uri = "content://two",
+            itemId = second.id,
             playedAt = 200,
         )
         assertEquals(
@@ -216,6 +217,7 @@ class PlaylistDaoTest {
 
         assertEquals(
             setOf(
+                "id",
                 "playlist_id",
                 "uri",
                 "position",
@@ -226,6 +228,72 @@ class PlaylistDaoTest {
                 "last_played_at",
             ),
             columns,
+        )
+    }
+
+    @Test
+    fun linkedRefreshPreservesRepeatedEntriesAndTheirOwnPlaybackHistory() = runTest {
+        val first = PlaylistItemEntity(
+            playlistId = 0,
+            uri = "https://example.com/live.m3u8",
+            position = 0,
+            title = "Event 1",
+        )
+        val second = first.copy(
+            position = 1,
+            title = "Event 3",
+        )
+        val playlistId = dao.createM3UPlaylist(
+            playlist = PlaylistEntity(
+                name = "Events",
+                type = "M3U_URL",
+            ),
+            items = listOf(
+                first,
+                second,
+            ),
+        )
+        val imported = dao.getItems(playlistId)
+        assertEquals(
+            listOf(
+                "Event 1",
+                "Event 3",
+            ),
+            imported.map { it.title },
+        )
+        dao.markItemPlayed(
+            playlistId,
+            itemId = imported.last().id,
+            playedAt = 123,
+        )
+
+        dao.replaceM3UItems(
+            playlistId = playlistId,
+            items = listOf(
+                second.copy(position = 0),
+                first.copy(position = 1),
+            ),
+            refreshedAt = 999,
+        )
+
+        val refreshed = dao.getItems(playlistId)
+        assertEquals(
+            imported.map { it.id }.reversed(),
+            refreshed.map { it.id },
+        )
+        assertEquals(
+            listOf(
+                "Event 3",
+                "Event 1",
+            ),
+            refreshed.map { it.title },
+        )
+        assertEquals(
+            listOf(
+                123L,
+                null,
+            ),
+            refreshed.map { it.lastPlayedAt },
         )
     }
 
@@ -253,7 +321,7 @@ class PlaylistDaoTest {
         )
         dao.markItemPlayed(
             playlistId = playlistId,
-            uri = "https://example.com/one",
+            itemId = dao.getItems(playlistId = playlistId).first().id,
             playedAt = 123,
         )
 
