@@ -31,6 +31,8 @@ import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.semantics.contentDescription
 import androidx.compose.ui.semantics.semantics
+import androidx.compose.ui.semantics.text
+import androidx.compose.ui.text.AnnotatedString
 import androidx.compose.ui.text.style.LineBreak
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.tooling.preview.Preview
@@ -63,6 +65,13 @@ fun ControlsTopView(
     val firstControlFocusRequester = remember { FocusRequester() }
     val systemBarsPadding = topControlsInsets.asPaddingValues()
     val decoderDescription = stringResource(R.string.select_decoders)
+    // Android can treat dot-separated filename words as one long token.
+    val displayTitle = remember(title) {
+        title.replace(
+            DotBetweenLetters,
+            ".\u200B",
+        )
+    }
     // Add top spacing only when the system bars don't already provide it (e.g. on TV / landscape).
     val extraTopPadding = if (systemBarsPadding.calculateTopPadding() == 0.dp) 16.dp else 0.dp
     Row(
@@ -84,12 +93,12 @@ fun ControlsTopView(
             )
         }
         Text(
-            text = title,
+            text = displayTitle,
             style = MaterialTheme.typography.titleMedium.copy(lineBreak = LineBreak.Heading),
             color = Color.White,
             maxLines = 2,
             overflow = TextOverflow.Ellipsis,
-            modifier = Modifier.weight(weight = 1f),
+            modifier = Modifier.weight(weight = 1f).semantics { text = AnnotatedString(title) },
         )
 
         Row(
@@ -170,6 +179,7 @@ internal fun inlineTopActionCount(width: Dp): Int {
 
 private val TopControlsHorizontalPadding = 16.dp
 private val MinTitleWidth = 160.dp
+private val DotBetweenLetters = Regex("(?<=\\p{L})\\.(?=\\p{L})")
 
 // 40dp button + 8dp spacing.
 private val ActionSlotWidth = 48.dp

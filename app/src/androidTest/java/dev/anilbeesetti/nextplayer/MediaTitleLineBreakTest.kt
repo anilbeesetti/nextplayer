@@ -79,13 +79,16 @@ class MediaTitleLineBreakTest {
             2,
             layout.lineCount,
         )
+        val renderedTitle = layout.layoutInput.text.text
+        val firstLine = renderedTitle.take(layout.getLineEnd(lineIndex = 0))
+            .filterNot { it == '\u200B' }
         assertTrue(
-            "First line ends at ${layout.getLineEnd(lineIndex = 0)}",
-            layout.getLineEnd(lineIndex = 0) > 2,
+            "First line only contains the prefix: $firstLine",
+            firstLine.length > "悬案.".length,
         )
         assertEquals(
             title,
-            layout.layoutInput.text.text,
+            renderedTitle.filterNot { it == '\u200B' },
         )
     }
 }
