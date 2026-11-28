@@ -73,4 +73,31 @@ class PlayerPreferencesViewModelTest {
 
         assertTrue(viewModel.state.value.preferences.enableTunneledPlayback)
     }
+
+    @Test
+    fun toggleHideStatusBarUpdatesRepositoryAndScreenState() = runTest(context = dispatcher) {
+        val original = repository.playerPreferences.value
+        val viewModel = PlayerPreferencesViewModel(
+            preferencesRepository = repository,
+            PlayerPreferencesViewModel.Output(navigateUp = {}),
+        )
+
+        viewModel.onAction(action = PlayerPreferencesUiEvent.ToggleHideStatusBar)
+        advanceUntilIdle()
+
+        assertTrue(repository.playerPreferences.value.hideStatusBar)
+        assertEquals(
+            original.copy(hideStatusBar = true),
+            viewModel.state.value.preferences,
+        )
+
+        viewModel.onAction(action = PlayerPreferencesUiEvent.ToggleHideStatusBar)
+        advanceUntilIdle()
+
+        assertFalse(repository.playerPreferences.value.hideStatusBar)
+        assertEquals(
+            original,
+            viewModel.state.value.preferences,
+        )
+    }
 }
