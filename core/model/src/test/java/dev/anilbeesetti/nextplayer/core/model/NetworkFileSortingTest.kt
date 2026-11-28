@@ -106,6 +106,28 @@ class NetworkFileSortingTest {
         )
     }
 
+    @Test
+    fun `watched sort falls back to title order and keeps folders first`() {
+        assertOrder(
+            Sort.By.WATCHED,
+            Sort.Order.ASCENDING,
+            "folder2",
+            "folder10",
+            "1",
+            "2",
+            "10",
+        )
+        assertOrder(
+            Sort.By.WATCHED,
+            Sort.Order.DESCENDING,
+            "folder10",
+            "folder2",
+            "10",
+            "2",
+            "1",
+        )
+    }
+
     private fun assertOrder(by: Sort.By, order: Sort.Order, vararg paths: String) {
         assertEquals(
             paths.toList(),
