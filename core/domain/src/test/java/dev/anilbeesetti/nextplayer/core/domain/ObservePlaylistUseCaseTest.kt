@@ -30,16 +30,19 @@ class ObservePlaylistUseCaseTest {
                 source = null,
                 items = listOf(
                     PlaylistItemRecord(
+                        id = 1,
                         position = 0,
                         uri = "content://two",
                         lastPlayedAt = 200,
                     ),
                     PlaylistItemRecord(
+                        id = 2,
                         position = 1,
                         uri = "content://missing",
                         lastPlayedAt = 300,
                     ),
                     PlaylistItemRecord(
+                        id = 3,
                         position = 2,
                         uri = "content://one",
                         lastPlayedAt = 100,
@@ -110,6 +113,7 @@ class ObservePlaylistUseCaseTest {
                 source = null,
                 items = listOf(
                     element = PlaylistItemRecord(
+                        id = 1,
                         position = 0,
                         uri = "content://one",
                     ),
@@ -187,7 +191,7 @@ private class FakePlaylistRepository(initialRecord: PlaylistRecord?) : PlaylistR
         error(message = "Not used")
     override suspend fun replaceOrder(playlistId: Long, orderedUris: List<String>) =
         error(message = "Not used")
-    override suspend fun markVideoPlayed(playlistId: Long, videoUri: String) =
+    override suspend fun markVideoPlayed(playlistId: Long, itemId: Long) =
         error(message = "Not used")
     override suspend fun countFilePlaylistsBySource(source: String): Int = 0
 }

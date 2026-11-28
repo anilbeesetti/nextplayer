@@ -51,6 +51,48 @@ class PlaylistPlaybackContractTest {
         assertNull(playlistRecord().toMediaQueue(selectedUri = "https://example.com/missing"))
     }
 
+    @Test
+    fun queueSelectsTheRepeatedUriByEntryId() {
+        val playlist = playlistRecord()
+        val first = playlist.items.first()
+        val repeated = first.copy(
+            id = 3,
+            position = 2,
+            title = "Three",
+        )
+        val queue = checkNotNull(
+            playlist.copy(items = playlist.items + repeated).toMediaQueue(
+                selectedUri = repeated.uri,
+                itemId = repeated.id,
+            ),
+        )
+
+        assertEquals(
+            2,
+            queue.startIndex,
+        )
+        assertEquals(
+            listOf(
+                "One",
+                "Two",
+                "Three",
+            ),
+            queue.mediaItems.map { it.mediaMetadata.title },
+        )
+        assertEquals(
+            listOf(
+                1L,
+                2L,
+                3L,
+            ),
+            queue.mediaItems.map { it.playlistQueueKey },
+        )
+        assertEquals(
+            first.uri,
+            queue.mediaItems.last().mediaId,
+        )
+    }
+
     private fun playlistRecord() = PlaylistRecord(
         id = 7,
         name = "Channels",
@@ -58,12 +100,14 @@ class PlaylistPlaybackContractTest {
         source = "https://example.com/list.m3u",
         items = listOf(
             PlaylistItemRecord(
+                id = 1,
                 position = 0,
                 uri = "https://example.com/one",
                 title = "One",
                 tvgLogo = "https://example.com/one.png",
             ),
             PlaylistItemRecord(
+                id = 2,
                 position = 1,
                 uri = "https://example.com/two",
                 title = "Two",

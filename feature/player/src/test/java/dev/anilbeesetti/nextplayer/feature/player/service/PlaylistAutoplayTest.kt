@@ -147,10 +147,12 @@ class PlaylistAutoplayTest {
         source = "https://example.com/list.m3u",
         items = listOf(
             PlaylistItemRecord(
+                id = 1,
                 position = 0,
                 uri = "file:///first.mp4",
             ),
             PlaylistItemRecord(
+                id = 2,
                 position = 1,
                 uri = "file:///second.mp4",
             ),

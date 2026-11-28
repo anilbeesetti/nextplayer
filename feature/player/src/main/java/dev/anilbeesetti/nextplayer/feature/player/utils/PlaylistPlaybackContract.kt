@@ -9,7 +9,15 @@ import dev.anilbeesetti.nextplayer.core.model.PlaylistRecord
 object PlaylistPlaybackContract {
     const val EXTRA_PLAYLIST_ID =
         "dev.anilbeesetti.nextplayer.extra.PLAYLIST_ID"
+    const val EXTRA_PLAYLIST_ITEM_ID =
+        "dev.anilbeesetti.nextplayer.extra.PLAYLIST_ITEM_ID"
 }
+
+internal val MediaItem.playlistQueueKey: Any
+    get() = requestMetadata.extras
+        ?.getLong(PlaylistPlaybackContract.EXTRA_PLAYLIST_ITEM_ID)
+        ?.takeIf { it > 0 }
+        ?: mediaId
 
 private const val EXPLICIT_PLAYLIST_KEY = "dev.anilbeesetti.nextplayer.extra.EXPLICIT_PLAYLIST"
 
@@ -30,16 +38,31 @@ internal fun MediaItem.asExplicitPlaylistItem(): MediaItem = buildUpon()
 
 internal data class PlaylistMediaQueue(val mediaItems: List<MediaItem>, val startIndex: Int)
 
-internal fun PlaylistRecord.toMediaQueue(selectedUri: String): PlaylistMediaQueue? {
-    val startIndex = items.indexOfFirst { it.uri == selectedUri }
-        .takeIf { it >= 0 }
-        ?: return null
+internal fun PlaylistRecord.toMediaQueue(
+    selectedUri: String,
+    itemId: Long? = null,
+): PlaylistMediaQueue? {
+    val startIndex = items.indexOfFirst { item ->
+        item.uri == selectedUri && (itemId == null || item.id == itemId)
+    }.takeIf { it >= 0 } ?: return null
 
     return PlaylistMediaQueue(
         mediaItems = items.map { item ->
             MediaItem.Builder()
                 .setUri(item.uri)
                 .setMediaId(item.uri)
+                .setRequestMetadata(
+                    MediaItem.RequestMetadata.Builder()
+                        .setExtras(
+                            Bundle().apply {
+                                putLong(
+                                    PlaylistPlaybackContract.EXTRA_PLAYLIST_ITEM_ID,
+                                    item.id,
+                                )
+                            },
+                        )
+                        .build(),
+                )
                 .setMediaMetadata(
                     MediaMetadata.Builder()
                         .setTitle(item.title)

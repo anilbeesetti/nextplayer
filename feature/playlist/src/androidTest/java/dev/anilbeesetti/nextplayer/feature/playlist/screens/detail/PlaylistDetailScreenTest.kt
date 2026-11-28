@@ -111,7 +111,10 @@ class PlaylistDetailScreenTest {
         composeRule.onNodeWithContentDescription(label = "Play").performClick()
 
         assertEquals(
-            PlaylistDetailUiAction.OnPlay(Uri.parse("content://two")),
+            PlaylistDetailUiAction.OnPlay(
+                Uri.parse("content://two"),
+                itemId = 1,
+            ),
             actions.single(),
         )
     }
@@ -142,7 +145,10 @@ class PlaylistDetailScreenTest {
         composeRule.onNodeWithContentDescription(label = "Play").performClick()
 
         assertEquals(
-            PlaylistDetailUiAction.OnPlay(Uri.parse("content://two")),
+            PlaylistDetailUiAction.OnPlay(
+                Uri.parse("content://two"),
+                itemId = 2,
+            ),
             actions.single(),
         )
     }
@@ -244,7 +250,10 @@ class PlaylistDetailScreenTest {
         composeRule.onNodeWithText(text = "Two").performClick()
 
         assertEquals(
-            PlaylistDetailUiAction.OnPlay(Uri.parse("content://two")),
+            PlaylistDetailUiAction.OnPlay(
+                Uri.parse("content://two"),
+                itemId = 2,
+            ),
             actions.single(),
         )
     }
@@ -388,7 +397,10 @@ class PlaylistDetailScreenTest {
 
         composeRule.onNodeWithText(text = "One").performClick()
         assertEquals(
-            PlaylistDetailUiAction.OnPlay(Uri.parse("content://one")),
+            PlaylistDetailUiAction.OnPlay(
+                Uri.parse("content://one"),
+                itemId = 1,
+            ),
             actions.single(),
         )
     }
@@ -442,6 +454,7 @@ private fun item(
     position: Int,
     lastPlayedAt: Long? = null,
 ) = PlaylistItem(
+    id = position.toLong() + 1,
     position = position,
     uri = uri,
     title = null,

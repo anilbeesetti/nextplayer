@@ -47,7 +47,7 @@ fun EntryProviderScope<NavKey>.playlistListEntry(
 
 fun EntryProviderScope<NavKey>.playlistDetailEntry(
     onNavigateUp: () -> Unit,
-    onPlayPlaylist: (playlistId: Long, startUri: Uri) -> Unit,
+    onPlayPlaylist: (playlistId: Long, startUri: Uri, itemId: Long) -> Unit,
 ) {
     entry<PlaylistDetailRoute> { route ->
         val output = PlaylistDetailViewModel.Output(

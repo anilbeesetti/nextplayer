@@ -31,7 +31,7 @@ interface PlaylistRepository {
 
     suspend fun replaceOrder(playlistId: Long, orderedUris: List<String>)
 
-    suspend fun markVideoPlayed(playlistId: Long, videoUri: String)
+    suspend fun markVideoPlayed(playlistId: Long, itemId: Long)
 
     suspend fun countFilePlaylistsBySource(source: String): Int
 }

@@ -426,16 +426,24 @@ class PlayerActivity : ComponentActivity() {
         playbackRequestJob = lifecycleScope.launch {
             playVideo(
                 uri = uri,
-                playlistId = intent.playlistIdOrNull(),
+                intent = intent,
             )
         }
     }
 
-    private suspend fun playVideo(uri: Uri, playlistId: Long?) = withContext(Dispatchers.Default) {
+    private suspend fun playVideo(uri: Uri, intent: Intent) = withContext(Dispatchers.Default) {
         val request = playerApi
+        val playlistId = intent.playlistIdOrNull()
+        val itemId = intent.getLongExtra(
+            PlaylistPlaybackContract.EXTRA_PLAYLIST_ITEM_ID,
+            0,
+        ).takeIf { it > 0 }
         val savedQueue = playlistId
             ?.let { playlistRepository.getPlaylist(playlistId = it) }
-            ?.toMediaQueue(selectedUri = uri.toString())
+            ?.toMediaQueue(
+                selectedUri = uri.toString(),
+                itemId = itemId,
+            )
 
         if (playlistId != null) {
             val mediaItems = savedQueue?.mediaItems ?: listOf(

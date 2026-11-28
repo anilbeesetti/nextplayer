@@ -26,6 +26,7 @@ class ObservePlaylistUseCase(
                 val video = videosByUri[item.uri]
                 if (record.type == PlaylistType.LOCAL && video == null) return@mapNotNull null
                 PlaylistItem(
+                    id = item.id,
                     position = item.position,
                     uri = item.uri,
                     title = item.title,

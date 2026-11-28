@@ -106,11 +106,8 @@ internal fun PlaylistDetailScreenContent(
 ) {
     val isTv = LocalContext.current.isTelevision
     val playlist = (state.playlistDataState as? DataState.Success)?.value
-    val videoUris = playlist?.items.orEmpty().map { it.uri.toUri() }
-    val playbackStartUri = playlist?.lastPlayedItem
-        ?.uri
-        ?.toUri()
-        ?: videoUris.firstOrNull()
+    val playlistItems = playlist?.items.orEmpty()
+    val playbackStart = playlist?.lastPlayedItem ?: playlistItems.firstOrNull()
     val isReordering = state.isReordering &&
         playlist?.type == PlaylistType.LOCAL &&
         !isTv
@@ -251,7 +248,7 @@ internal fun PlaylistDetailScreenContent(
                             if (!isTv && playlist?.type == PlaylistType.LOCAL) {
                                 IconButton(
                                     onClick = { onAction(PlaylistDetailUiAction.OnReorderClick) },
-                                    enabled = videoUris.size > 1 &&
+                                    enabled = playlistItems.size > 1 &&
                                         !state.updateActionState.isRunning,
                                     modifier = Modifier.tvFocusRing(),
                                 ) {
@@ -269,11 +266,14 @@ internal fun PlaylistDetailScreenContent(
             )
         },
         floatingActionButton = {
-            if (!state.isSearching && !isReordering && playbackStartUri != null) {
+            if (!state.isSearching && !isReordering && playbackStart != null) {
                 FloatingActionButton(
                     onClick = {
                         onAction(
-                            PlaylistDetailUiAction.OnPlay(startUri = playbackStartUri),
+                            PlaylistDetailUiAction.OnPlay(
+                                startUri = playbackStart.uri.toUri(),
+                                itemId = playbackStart.id,
+                            ),
                         )
                     },
                     modifier = Modifier
@@ -325,7 +325,7 @@ internal fun PlaylistDetailScreenContent(
                             searchQuery = state.searchQuery,
                             showPlayFab = !state.isSearching &&
                                 !isReordering &&
-                                playbackStartUri != null,
+                                playbackStart != null,
                             actionsEnabled = !state.updateActionState.isRunning,
                             scaffoldPadding = scaffoldPadding,
                             onAction = onAction,
@@ -446,13 +446,20 @@ private fun PlaylistDetailContent(
                 ) {
                     itemsIndexed(
                         items = visibleItems,
-                        key = { _, item -> item.uri },
+                        key = { _, item -> item.id },
                     ) { index, item ->
-                        val onPlay = { onAction(PlaylistDetailUiAction.OnPlay(item.uri.toUri())) }
+                        val onPlay = {
+                            onAction(
+                                PlaylistDetailUiAction.OnPlay(
+                                    startUri = item.uri.toUri(),
+                                    itemId = item.id,
+                                ),
+                            )
+                        }
                         if (isReordering && !isTv) {
                             ReorderableItem(
                                 state = reorderState,
-                                key = item.uri,
+                                key = item.id,
                             ) {
                                 PlaylistVideoRow(
                                     item = item,

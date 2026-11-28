@@ -24,6 +24,7 @@ data class PlaylistRecord(
 )
 
 data class PlaylistItemRecord(
+    val id: Long,
     val position: Int,
     val uri: String,
     val title: String? = null,
@@ -34,6 +35,7 @@ data class PlaylistItemRecord(
 )
 
 data class PlaylistItem(
+    val id: Long,
     val position: Int,
     val uri: String,
     val title: String?,

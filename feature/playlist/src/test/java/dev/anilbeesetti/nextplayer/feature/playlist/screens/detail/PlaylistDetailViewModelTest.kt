@@ -133,7 +133,7 @@ class PlaylistDetailViewModelTest {
         input = PlaylistDetailViewModel.Input(playlistId = 7),
         output = PlaylistDetailViewModel.Output(
             navigateUp = {},
-            playPlaylist = { _, _ -> },
+            playPlaylist = { _, _, _ -> },
         ),
     )
 
@@ -144,6 +144,7 @@ class PlaylistDetailViewModelTest {
         source = source,
         items = listOf(
             element = PlaylistItemRecord(
+                id = 1,
                 position = 0,
                 uri = "https://media.example/cached",
                 title = "Cached",

@@ -64,7 +64,7 @@ internal class FakePlaylistRepository : PlaylistRepository {
 
     override suspend fun replaceOrder(playlistId: Long, orderedUris: List<String>) = Unit
 
-    override suspend fun markVideoPlayed(playlistId: Long, videoUri: String) = Unit
+    override suspend fun markVideoPlayed(playlistId: Long, itemId: Long) = Unit
 
     override suspend fun countFilePlaylistsBySource(source: String): Int = 0
 }
