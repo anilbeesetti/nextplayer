@@ -171,7 +171,7 @@ class M3UParserTest {
     }
 
     @Test
-    fun deduplicatesResolvedUrisAndKeepsFirstMetadata() {
+    fun preservesRepeatedUrisAndTheirMetadataInOrder() {
         val result = parser.parseContent(
             content = """
                 #EXTINF:1,First
@@ -183,16 +183,22 @@ class M3UParserTest {
         ).getOrThrow()
 
         assertEquals(
-            1,
-            result.items.size,
+            List(2) { "https://example.com/video.mp4" },
+            result.items.map { it.uri },
         )
         assertEquals(
-            "First",
-            result.items.single().title,
+            listOf(
+                "First",
+                "Second",
+            ),
+            result.items.map { it.title },
         )
         assertEquals(
-            1,
-            result.items.single().duration,
+            listOf(
+                1,
+                2,
+            ),
+            result.items.map { it.duration },
         )
     }
 

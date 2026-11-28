@@ -241,6 +241,73 @@ class MediaDatabaseMigrationTest {
         }
     }
 
+    @Test
+    fun migrate13To14_preservesItemsAndAllowsRepeatedUris() {
+        helper.createDatabase(
+            name = TEST_DB,
+            version = 13,
+        ).use { db ->
+            db.execSQL(
+                "INSERT INTO playlist (id, name, created_at, type) VALUES (1, 'Events', 100, 'M3U_URL')",
+            )
+            db.execSQL(
+                """
+                INSERT INTO playlist_item
+                    (playlist_id, uri, position, title, tvg_logo, duration, group_title, last_played_at)
+                VALUES (1, 'https://example.com/live.m3u8', 0, 'Event 1', 'logo.png', 42, 'Sports', 123)
+                """.trimIndent(),
+            )
+        }
+
+        helper.runMigrationsAndValidate(
+            name = TEST_DB,
+            version = 14,
+            validateDroppedTables = true,
+            MediaDatabase.MIGRATION_13_14,
+        ).use { db ->
+            db.execSQL(
+                """
+                INSERT INTO playlist_item (playlist_id, uri, position, title, duration)
+                VALUES (1, 'https://example.com/live.m3u8', 1, 'Event 3', -1)
+                """.trimIndent(),
+            )
+            db.query("SELECT * FROM playlist_item ORDER BY position").use { cursor ->
+                assertEquals(
+                    2,
+                    cursor.count,
+                )
+                check(cursor.moveToFirst())
+                val firstId = cursor.getLong(cursor.getColumnIndexOrThrow("id"))
+                assertEquals(
+                    "Event 1",
+                    cursor.getString(cursor.getColumnIndexOrThrow("title")),
+                )
+                assertEquals(
+                    "logo.png",
+                    cursor.getString(cursor.getColumnIndexOrThrow("tvg_logo")),
+                )
+                assertEquals(
+                    42,
+                    cursor.getInt(cursor.getColumnIndexOrThrow("duration")),
+                )
+                assertEquals(
+                    "Sports",
+                    cursor.getString(cursor.getColumnIndexOrThrow("group_title")),
+                )
+                assertEquals(
+                    123L,
+                    cursor.getLong(cursor.getColumnIndexOrThrow("last_played_at")),
+                )
+                check(cursor.moveToNext())
+                assertTrue(cursor.getLong(cursor.getColumnIndexOrThrow("id")) != firstId)
+                assertEquals(
+                    "Event 3",
+                    cursor.getString(cursor.getColumnIndexOrThrow("title")),
+                )
+            }
+        }
+    }
+
     private companion object {
         const val TEST_DB = "migration-test"
     }

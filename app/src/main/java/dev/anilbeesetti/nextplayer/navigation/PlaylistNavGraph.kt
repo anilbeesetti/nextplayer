@@ -46,10 +46,11 @@ fun EntryProviderScope<NavKey>.playlistNavGraph(
 
     playlistDetailEntry(
         onNavigateUp = { backStack.removeLastIfNotRoot() },
-        onPlayPlaylist = { playlistId, startUri ->
+        onPlayPlaylist = { playlistId, startUri, itemId ->
             context.startPlaylistPlayback(
                 playlistId = playlistId,
                 startUri = startUri,
+                itemId = itemId,
             )
         },
     )
@@ -63,7 +64,7 @@ internal fun TopLevelNavState.openPlaylist(playlistId: Long) {
     switchTo(route = PlaylistListRoute)
 }
 
-internal fun Context.startPlaylistPlayback(playlistId: Long, startUri: Uri) {
+internal fun Context.startPlaylistPlayback(playlistId: Long, startUri: Uri, itemId: Long) {
     startActivity(
         Intent(
             this,
@@ -74,6 +75,10 @@ internal fun Context.startPlaylistPlayback(playlistId: Long, startUri: Uri) {
             putExtra(
                 PlaylistPlaybackContract.EXTRA_PLAYLIST_ID,
                 playlistId,
+            )
+            putExtra(
+                PlaylistPlaybackContract.EXTRA_PLAYLIST_ITEM_ID,
+                itemId,
             )
         },
     )
