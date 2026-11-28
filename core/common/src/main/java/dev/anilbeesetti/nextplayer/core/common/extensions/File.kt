@@ -7,6 +7,11 @@ import java.io.File
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 
+fun String.isValidFileName(): Boolean = isNotBlank() &&
+    this != "." &&
+    this != ".." &&
+    none { it == '/' || it == '\\' || it == '\u0000' }
+
 suspend fun File.getSubtitles(): List<File> = withContext(Dispatchers.IO) {
     val mediaName = this@getSubtitles.nameWithoutExtension
     val parentDir = this@getSubtitles.parentFile

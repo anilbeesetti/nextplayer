@@ -1,5 +1,6 @@
 package dev.anilbeesetti.nextplayer.feature.player.ui
 
+import android.net.Uri
 import androidx.annotation.OptIn
 import androidx.compose.foundation.background
 import androidx.compose.foundation.interaction.MutableInteractionSource
@@ -15,7 +16,6 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
-import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.material3.ExperimentalMaterial3ExpressiveApi
 import androidx.compose.material3.Icon
@@ -63,7 +63,12 @@ import sh.calvin.reorderable.rememberReorderableLazyListState
 
 @OptIn(UnstableApi::class)
 @Composable
-fun BoxScope.PlaylistView(modifier: Modifier = Modifier, show: Boolean, player: Player) {
+fun BoxScope.PlaylistView(
+    modifier: Modifier = Modifier,
+    show: Boolean,
+    player: Player,
+    renamedVideoTitles: Map<Uri, String>,
+) {
     val hapticFeedback = LocalHapticFeedback.current
     val playlistState = rememberPlaylistState(player = player)
     val lazyListState = rememberLazyListState()
@@ -113,6 +118,7 @@ fun BoxScope.PlaylistView(modifier: Modifier = Modifier, show: Boolean, player: 
                         val isCurrentItem = index == playlistState.currentMediaItemIndex
                         PlaylistItemView(
                             mediaItem = mediaItem,
+                            renamedTitle = renamedVideoTitles[mediaItem.localConfiguration?.uri],
                             isFirstItem = index == 0,
                             isLastItem = index == playlistState.mediaItemCount - 1,
                             isCurrentItem = isCurrentItem,
@@ -131,6 +137,7 @@ fun BoxScope.PlaylistView(modifier: Modifier = Modifier, show: Boolean, player: 
 @Composable
 private fun ReorderableCollectionItemScope.PlaylistItemView(
     mediaItem: MediaItem,
+    renamedTitle: String?,
     isFirstItem: Boolean = false,
     isLastItem: Boolean = false,
     isCurrentItem: Boolean,
@@ -199,7 +206,7 @@ private fun ReorderableCollectionItemScope.PlaylistItemView(
         },
         content = {
             Text(
-                text = mediaItem.mediaMetadata.title?.toString() ?: stringResource(
+                text = renamedTitle ?: mediaItem.mediaMetadata.title?.toString() ?: stringResource(
                     R.string.unknown,
                 ),
                 maxLines = 2,

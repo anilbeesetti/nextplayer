@@ -76,6 +76,7 @@ import dev.anilbeesetti.nextplayer.core.model.Sort
 import dev.anilbeesetti.nextplayer.core.model.Video
 import dev.anilbeesetti.nextplayer.core.ui.R
 import dev.anilbeesetti.nextplayer.core.ui.components.CancelButton
+import dev.anilbeesetti.nextplayer.core.ui.components.MediaInfoDialog
 import dev.anilbeesetti.nextplayer.core.ui.components.MediaQuickSettingsDialog
 import dev.anilbeesetti.nextplayer.core.ui.components.NextDialog
 import dev.anilbeesetti.nextplayer.core.ui.components.NextTopAppBar
@@ -88,7 +89,6 @@ import dev.anilbeesetti.nextplayer.core.ui.designsystem.NextIcons
 import dev.anilbeesetti.nextplayer.core.ui.extensions.copy
 import dev.anilbeesetti.nextplayer.core.ui.theme.NextPlayerTheme
 import dev.anilbeesetti.nextplayer.feature.videopicker.composables.CenterCircularProgressBar
-import dev.anilbeesetti.nextplayer.feature.videopicker.composables.MediaInfoDialog
 import dev.anilbeesetti.nextplayer.feature.videopicker.composables.SelectionAction
 import dev.anilbeesetti.nextplayer.feature.videopicker.composables.VideoItem
 import dev.anilbeesetti.nextplayer.feature.videopicker.composables.vault.PinDotsIndicator

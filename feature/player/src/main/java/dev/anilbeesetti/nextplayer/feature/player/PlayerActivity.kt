@@ -31,12 +31,15 @@ import androidx.media3.session.MediaController
 import androidx.media3.session.SessionResult
 import androidx.media3.session.SessionToken
 import com.google.common.util.concurrent.ListenableFuture
+import dev.anilbeesetti.nextplayer.core.common.extensions.getFilenameFromContentUri
 import dev.anilbeesetti.nextplayer.core.common.extensions.getInitialDirectoryUri
 import dev.anilbeesetti.nextplayer.core.common.extensions.getMediaContentUri
 import dev.anilbeesetti.nextplayer.core.common.service.registerForSuspendActivityResult
 import dev.anilbeesetti.nextplayer.core.data.repository.PlaylistRepository
 import dev.anilbeesetti.nextplayer.core.data.repository.PreferencesRepository
+import dev.anilbeesetti.nextplayer.core.media.services.LocalMediaOperationsService
 import dev.anilbeesetti.nextplayer.core.ui.R as coreUiR
+import dev.anilbeesetti.nextplayer.core.ui.components.RenameDialog
 import dev.anilbeesetti.nextplayer.core.ui.theme.NextPlayerTheme
 import dev.anilbeesetti.nextplayer.feature.player.extensions.OpenDocumentAtInitialUri
 import dev.anilbeesetti.nextplayer.feature.player.extensions.uriToSubtitleConfiguration
@@ -55,6 +58,8 @@ import dev.anilbeesetti.nextplayer.feature.player.service.tryDecoderFallback
 import dev.anilbeesetti.nextplayer.feature.player.state.rememberMediaController
 import dev.anilbeesetti.nextplayer.feature.player.utils.PlayerApi
 import dev.anilbeesetti.nextplayer.feature.player.utils.PlaylistPlaybackContract
+import dev.anilbeesetti.nextplayer.feature.player.utils.VideoRename
+import dev.anilbeesetti.nextplayer.feature.player.utils.isMediaStoreVideo
 import dev.anilbeesetti.nextplayer.feature.player.utils.toMediaQueue
 import java.util.concurrent.CopyOnWriteArrayList
 import kotlinx.coroutines.CancellationException
@@ -84,6 +89,7 @@ class PlayerActivity : ComponentActivity() {
 
     private val playlistRepository: PlaylistRepository by inject()
     private val preferencesRepository: PreferencesRepository by inject()
+    private val mediaOperations by lazy { LocalMediaOperationsService(applicationContext) }
 
     private val viewModel: PlayerViewModel by viewModel { parametersOf(playerOutput()) }
     val playerPreferences get() = viewModel.state.value.playerPreferences
@@ -107,6 +113,8 @@ class PlayerActivity : ComponentActivity() {
     private var mediaController by mutableStateOf<MediaController?>(null)
     private var playerApi by mutableStateOf(PlayerApi(Intent()))
     private var playbackRequestJob: Job? = null
+    private var renameJob: Job? = null
+    private var videoToRename by mutableStateOf<VideoRename?>(null)
     private var pendingGrantItems: List<MediaItem> = emptyList()
     private val playbackStateListener = object : Player.Listener {
         override fun onMediaItemTransition(mediaItem: MediaItem?, reason: Int) {
@@ -214,6 +222,7 @@ class PlayerActivity : ComponentActivity() {
             connectBackgroundController()
             return
         }
+        mediaOperations.initialize(activity = this)
         setContent {
             val player = rememberMediaController(
                 onBeforeRelease = ::onControllerStopped,
@@ -248,6 +257,19 @@ class PlayerActivity : ComponentActivity() {
                         player = player,
                         api = playerApi,
                     )
+                    videoToRename?.let { video ->
+                        RenameDialog(
+                            name = video.baseName,
+                            onDismiss = { videoToRename = null },
+                            onDone = { name ->
+                                videoToRename = null
+                                renameVideo(
+                                    video,
+                                    name,
+                                )
+                            },
+                        )
+                    }
                 }
             }
         }
@@ -301,7 +323,61 @@ class PlayerActivity : ComponentActivity() {
             lifecycleScope.launch { mediaController?.setAudioDecoderMode(mode = mode) }
         },
         tryDecoderFallback = { lifecycleScope.launch { mediaController?.tryDecoderFallback() } },
+        requestRename = ::requestVideoRename,
     )
+
+    private fun requestVideoRename() {
+        if (renameJob?.isActive == true || videoToRename != null) return
+        val uri = mediaController?.currentMediaItem?.localConfiguration?.uri
+            ?.takeIf(Uri::isMediaStoreVideo) ?: return
+        renameJob = lifecycleScope.launch {
+            val fileName = withContext(Dispatchers.IO) { getFilenameFromContentUri(uri) }
+            if (fileName.isNullOrBlank()) {
+                showRenameError()
+            } else {
+                videoToRename = VideoRename(
+                    uri,
+                    fileName,
+                )
+            }
+        }
+    }
+
+    private fun renameVideo(video: VideoRename, name: String) {
+        val newName = video.withBaseName(name)
+        if (newName == video.fileName) return
+        renameJob = lifecycleScope.launch {
+            val renamed = try {
+                mediaOperations.renameMedia(
+                    uri = video.uri,
+                    to = newName,
+                )
+            } catch (e: CancellationException) {
+                throw e
+            } catch (_: Exception) {
+                false
+            }
+            if (!renamed) {
+                showRenameError()
+                return@launch
+            }
+            val title = withContext(Dispatchers.IO) {
+                getFilenameFromContentUri(video.uri)
+            } ?: newName
+            viewModel.onVideoRenamed(
+                video.uri,
+                title,
+            )
+        }
+    }
+
+    private fun showRenameError() {
+        Toast.makeText(
+            this,
+            coreUiR.string.error_renaming_video,
+            Toast.LENGTH_SHORT,
+        ).show()
+    }
 
     private suspend fun currentMediaDirectory(): Uri? {
         val uri = mediaController?.currentMediaItem?.localConfiguration?.uri ?: return null

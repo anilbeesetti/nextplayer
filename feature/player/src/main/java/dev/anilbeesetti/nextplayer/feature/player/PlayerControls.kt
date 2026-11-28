@@ -38,6 +38,7 @@ fun PlayerControls(
     title: String,
     playerPreferences: PlayerPreferences,
     videoDecoderMode: DecoderMode?,
+    inlineActionCount: Int,
     controlsVisibilityState: ControlsVisibilityState,
     seekGestureState: SeekGestureState,
     videoZoomAndContentScaleState: VideoZoomAndContentScaleState,
@@ -65,10 +66,12 @@ fun PlayerControls(
                 ControlsTopView(
                     title = title,
                     videoDecoderMode = videoDecoderMode,
+                    inlineActionCount = inlineActionCount,
                     onDecoderClick = { onShowOverlay(OverlayView.DECODER_SELECTOR) },
                     onAudioClick = { onShowOverlay(OverlayView.AUDIO_SELECTOR) },
                     onSubtitleClick = { onShowOverlay(OverlayView.SUBTITLE_SELECTOR) },
                     onPlaylistClick = { onShowOverlay(OverlayView.PLAYLIST) },
+                    onMoreClick = { onShowOverlay(OverlayView.MORE_OPTIONS) },
                     onBackClick = onBackClick,
                 )
             }

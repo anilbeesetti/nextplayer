@@ -32,6 +32,8 @@ jobs:
         run: ./gradlew assembleDebug
 
       - name: Run Local Tests
+        env:
+          JAVA_TOOL_OPTIONS: -Drobolectric.dependency.repo.url=https://repo.maven.apache.org/maven2
         run: ./gradlew test
 
       - name: Lint Checks

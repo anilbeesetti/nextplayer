@@ -111,6 +111,7 @@ class KoinGraphTest {
                         setVideoDecoderMode = {},
                         setAudioDecoderMode = {},
                         tryDecoderFallback = {},
+                        requestRename = {},
                     ),
                 )
                 viewModel<HistoryViewModel>(

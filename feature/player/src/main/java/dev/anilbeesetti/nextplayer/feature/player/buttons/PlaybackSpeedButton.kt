@@ -11,6 +11,7 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.semantics.contentDescription
 import androidx.compose.ui.semantics.semantics
@@ -25,18 +26,23 @@ import dev.anilbeesetti.nextplayer.core.ui.R
 
 @OptIn(UnstableApi::class)
 @Composable
-fun PlaybackSpeedButton(player: Player?, onClick: () -> Unit, modifier: Modifier = Modifier) {
+fun PlaybackSpeedButton(
+    player: Player?,
+    onClick: () -> Unit,
+    modifier: Modifier = Modifier,
+    useBottomRowStyle: Boolean = false,
+) {
     val state = rememberPlaybackSpeedState(player = player)
     val description = stringResource(R.string.select_playback_speed)
     PlayerButton(
         modifier = modifier.semantics { contentDescription = description },
         enabled = state.isEnabled,
         onClick = onClick,
-        containerColor = PlayerButtonBlackAlpha,
-        contentPadding = PaddingValues(4.dp),
+        containerColor = if (useBottomRowStyle) Color.Transparent else PlayerButtonBlackAlpha,
+        contentPadding = PaddingValues(if (useBottomRowStyle) 8.dp else 4.dp),
     ) {
         Box(
-            modifier = Modifier.size(28.dp),
+            modifier = Modifier.size(if (useBottomRowStyle) 24.dp else 28.dp),
             contentAlignment = Alignment.Center,
         ) {
             BasicText(

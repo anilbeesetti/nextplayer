@@ -13,8 +13,10 @@ import androidx.compose.ui.input.key.Key
 import androidx.compose.ui.semantics.SemanticsProperties
 import androidx.compose.ui.test.SemanticsMatcher
 import androidx.compose.ui.test.assertCountEquals
+import androidx.compose.ui.test.assertHeightIsEqualTo
 import androidx.compose.ui.test.assertIsDisplayed
 import androidx.compose.ui.test.assertIsFocused
+import androidx.compose.ui.test.assertWidthIsEqualTo
 import androidx.compose.ui.test.click
 import androidx.compose.ui.test.junit4.v2.createAndroidComposeRule
 import androidx.compose.ui.test.onAllNodesWithContentDescription
@@ -201,10 +203,12 @@ class ControlsBottomViewTest {
                 ).fetchSemanticsNode().boundsInRoot
                 val speed = composeRule.onNodeWithContentDescription(
                     composeRule.activity.getString(R.string.select_playback_speed),
-                ).fetchSemanticsNode().boundsInRoot
+                ).assertWidthIsEqualTo(40.dp).assertHeightIsEqualTo(40.dp)
+                    .fetchSemanticsNode().boundsInRoot
                 val rotation = composeRule.onNodeWithContentDescription(
                     composeRule.activity.getString(R.string.screen_rotation),
-                ).fetchSemanticsNode().boundsInRoot
+                ).assertWidthIsEqualTo(40.dp).assertHeightIsEqualTo(40.dp)
+                    .fetchSemanticsNode().boundsInRoot
                 assertTrue(speed.left >= shuffle.right)
                 assertTrue(rotation.left >= speed.right)
             }

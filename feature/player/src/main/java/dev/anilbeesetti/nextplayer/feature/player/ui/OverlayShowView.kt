@@ -1,12 +1,14 @@
 package dev.anilbeesetti.nextplayer.feature.player.ui
 
 import android.content.res.Configuration
+import android.net.Uri
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.BoxScope
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.media3.common.Player
 import androidx.media3.extractor.metadata.Chapter
+import dev.anilbeesetti.nextplayer.core.model.MediaInfo
 import dev.anilbeesetti.nextplayer.core.model.VideoContentScale
 import dev.anilbeesetti.nextplayer.feature.player.extensions.noRippleClickable
 import dev.anilbeesetti.nextplayer.feature.player.model.DecoderMode
@@ -21,14 +23,22 @@ fun BoxScope.OverlayShowView(
     videoContentScale: VideoContentScale,
     chapters: List<Chapter>,
     currentChapterIndex: Int,
+    renamedVideoTitles: Map<Uri, String>,
+    inlineActionCount: Int,
+    mediaInfo: MediaInfo?,
     onChapterSelected: (Chapter) -> Unit,
-    onDismiss: () -> Unit = {},
-    onVideoDecoderModeSelected: (DecoderMode) -> Unit = {},
-    onAudioDecoderModeSelected: (DecoderMode) -> Unit = {},
-    onSelectSubtitleClick: () -> Unit = {},
-    onSelectAudioClick: () -> Unit = {},
-    onSubtitleOptionEvent: (SubtitleOptionsEvent) -> Unit = {},
-    onVideoContentScaleChanged: (VideoContentScale) -> Unit = {},
+    onDismiss: () -> Unit,
+    onShowOverlay: (OverlayView) -> Unit,
+    onShare: (() -> Unit)?,
+    onRename: (() -> Unit)?,
+    onInfo: (() -> Unit)?,
+    onDismissInfo: () -> Unit,
+    onVideoDecoderModeSelected: (DecoderMode) -> Unit,
+    onAudioDecoderModeSelected: (DecoderMode) -> Unit,
+    onSelectSubtitleClick: () -> Unit,
+    onSelectAudioClick: () -> Unit,
+    onSubtitleOptionEvent: (SubtitleOptionsEvent) -> Unit,
+    onVideoContentScaleChanged: (VideoContentScale) -> Unit,
 ) {
     Box(
         modifier = Modifier
@@ -80,6 +90,18 @@ fun BoxScope.OverlayShowView(
     PlaylistView(
         show = overlayView == OverlayView.PLAYLIST,
         player = player,
+        renamedVideoTitles = renamedVideoTitles,
+    )
+
+    MoreOptionsView(
+        show = overlayView == OverlayView.MORE_OPTIONS,
+        inlineActionCount = inlineActionCount,
+        mediaInfo = mediaInfo,
+        onOptionClick = onShowOverlay,
+        onShare = onShare,
+        onRename = onRename,
+        onInfo = onInfo,
+        onDismissInfo = onDismissInfo,
     )
 
     ChaptersView(
@@ -101,4 +123,5 @@ enum class OverlayView {
     VIDEO_CONTENT_SCALE,
     PLAYLIST,
     CHAPTERS,
+    MORE_OPTIONS,
 }

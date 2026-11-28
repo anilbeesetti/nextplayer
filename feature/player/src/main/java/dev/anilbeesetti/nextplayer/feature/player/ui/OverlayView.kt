@@ -10,6 +10,7 @@ import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.BoxScope
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.ColumnScope
+import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.asPaddingValues
@@ -17,11 +18,12 @@ import androidx.compose.foundation.layout.calculateEndPadding
 import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.imePadding
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.safeDrawing
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
@@ -35,17 +37,21 @@ import androidx.compose.ui.focus.focusRequester
 import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalLayoutDirection
+import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import dev.anilbeesetti.nextplayer.core.common.extensions.isTelevision
+import dev.anilbeesetti.nextplayer.core.ui.R
 import dev.anilbeesetti.nextplayer.core.ui.components.requestFocusUntilLanded
+import dev.anilbeesetti.nextplayer.core.ui.designsystem.NextIcons
 import dev.anilbeesetti.nextplayer.core.ui.theme.NextPlayerTheme
 
 @Composable
 fun BoxScope.OverlayView(
     modifier: Modifier = Modifier,
     show: Boolean,
-    title: String,
+    title: String?,
     content: @Composable ColumnScope.() -> Unit,
 ) {
     val configuration = LocalConfiguration.current
@@ -105,16 +111,44 @@ fun BoxScope.OverlayView(
                     .padding(top = 24.dp)
                     .padding(end = endPadding),
             ) {
-                Text(
-                    modifier = Modifier.padding(horizontal = 24.dp),
-                    text = title,
-                    style = MaterialTheme.typography.headlineSmall,
-                )
-                Spacer(modifier = Modifier.size(8.dp))
+                if (title != null) OverlayTitle(title = title)
                 content()
             }
         }
     }
+}
+
+@Composable
+internal fun OverlayTitle(title: String, onBack: (() -> Unit)? = null) {
+    if (onBack == null) {
+        Text(
+            modifier = Modifier.padding(horizontal = 24.dp),
+            text = title,
+            style = MaterialTheme.typography.headlineSmall,
+        )
+    } else {
+        Row(
+            modifier = Modifier.padding(
+                start = 12.dp,
+                end = 24.dp,
+            ),
+            verticalAlignment = Alignment.CenterVertically,
+        ) {
+            IconButton(onClick = onBack) {
+                Icon(
+                    imageVector = NextIcons.ArrowBack,
+                    contentDescription = stringResource(R.string.navigate_up),
+                )
+            }
+            Text(
+                text = title,
+                style = MaterialTheme.typography.headlineSmall,
+                maxLines = 1,
+                overflow = TextOverflow.Ellipsis,
+            )
+        }
+    }
+    Spacer(modifier = Modifier.size(8.dp))
 }
 
 @Preview

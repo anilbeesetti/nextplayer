@@ -7,6 +7,7 @@ import dev.anilbeesetti.nextplayer.core.data.repository.MediaRepository
 import dev.anilbeesetti.nextplayer.core.data.repository.PreferencesRepository
 import dev.anilbeesetti.nextplayer.core.domain.GetSortedPlaylistUseCase
 import dev.anilbeesetti.nextplayer.core.model.LoopMode
+import dev.anilbeesetti.nextplayer.core.model.MediaInfo
 import dev.anilbeesetti.nextplayer.core.model.PlayerPreferences
 import dev.anilbeesetti.nextplayer.core.model.Video
 import dev.anilbeesetti.nextplayer.core.model.VideoContentScale
@@ -15,6 +16,9 @@ import dev.anilbeesetti.nextplayer.feature.player.model.DecoderMode
 import dev.anilbeesetti.nextplayer.feature.player.model.DecoderServiceState
 import dev.anilbeesetti.nextplayer.feature.player.state.SubtitleOptionsEvent
 import dev.anilbeesetti.nextplayer.feature.player.state.VideoZoomEvent
+import dev.anilbeesetti.nextplayer.feature.player.utils.isMediaStoreVideo
+import kotlinx.coroutines.CancellationException
+import kotlinx.coroutines.Job
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
@@ -39,6 +43,7 @@ class PlayerViewModel(
         val setVideoDecoderMode: (DecoderMode) -> Unit,
         val setAudioDecoderMode: (DecoderMode) -> Unit,
         val tryDecoderFallback: () -> Unit,
+        val requestRename: () -> Unit,
     )
 
     private val stateInternal = MutableStateFlow(
@@ -47,6 +52,7 @@ class PlayerViewModel(
         ),
     )
     override val state: StateFlow<PlayerUiState> = stateInternal.asStateFlow()
+    private var mediaInfoJob: Job? = null
 
     init {
         viewModelScope.launch {
@@ -63,6 +69,15 @@ class PlayerViewModel(
             is PlayerAction.SelectSubtitle -> output.selectSubtitle()
 
             is PlayerAction.SelectAudio -> output.selectAudio()
+
+            is PlayerAction.RequestRename -> output.requestRename()
+
+            is PlayerAction.ShowMediaInfo -> showMediaInfo(action.info)
+
+            is PlayerAction.DismissMediaInfo -> {
+                mediaInfoJob?.cancel()
+                stateInternal.update { it.copy(mediaInfo = null) }
+            }
 
             is PlayerAction.PlayInBackground -> output.playInBackground()
 
@@ -95,6 +110,43 @@ class PlayerViewModel(
     }
 
     suspend fun getPlaylistFromUri(uri: Uri): List<Video> = getSortedPlaylistUseCase.invoke(uri)
+
+    private fun showMediaInfo(snapshot: MediaInfo) {
+        mediaInfoJob?.cancel()
+        stateInternal.update { it.copy(mediaInfo = snapshot) }
+        val uri = snapshot.video.uriString
+        if (!Uri.parse(uri).isMediaStoreVideo()) return
+        mediaInfoJob = viewModelScope.launch {
+            val details = try {
+                mediaRepository.getMediaInfo(uri = uri)
+            } catch (e: CancellationException) {
+                throw e
+            } catch (_: Exception) {
+                null
+            } ?: return@launch
+            stateInternal.update {
+                if (it.mediaInfo !== snapshot) return@update it
+                it.copy(
+                    mediaInfo = details.copy(
+                        videoStream = details.videoStream ?: snapshot.videoStream,
+                        // shortcut: keep the longer track list until both sources share track IDs.
+                        audioStreams = details.audioStreams
+                            .takeIf { it.size >= snapshot.audioStreams.size }
+                            ?: snapshot.audioStreams,
+                        subtitleStreams = details.subtitleStreams
+                            .takeIf { it.size >= snapshot.subtitleStreams.size }
+                            ?: snapshot.subtitleStreams,
+                    ),
+                )
+            }
+        }
+    }
+
+    internal fun onVideoRenamed(uri: Uri, title: String) {
+        stateInternal.update {
+            it.copy(renamedVideoTitles = it.renamedVideoTitles + (uri to title))
+        }
+    }
 
     private fun updateVideoZoom(uri: String, zoom: Float) {
         viewModelScope.launch {
@@ -196,12 +248,18 @@ data class PlayerUiState(
     val playerPreferences: PlayerPreferences = PlayerPreferences(),
     val playWhenReady: Boolean = true,
     val decoderServiceState: DecoderServiceState = DecoderServiceState(),
+    // shortcut: titles update only in the player UI until the session supports metadata-only edits.
+    val renamedVideoTitles: Map<Uri, String> = emptyMap(),
+    val mediaInfo: MediaInfo? = null,
 )
 
 sealed interface PlayerAction {
     data object NavigateUp : PlayerAction
     data object SelectSubtitle : PlayerAction
     data object SelectAudio : PlayerAction
+    data object RequestRename : PlayerAction
+    data class ShowMediaInfo(val info: MediaInfo) : PlayerAction
+    data object DismissMediaInfo : PlayerAction
     data object PlayInBackground : PlayerAction
     data class SetVideoDecoderMode(val mode: DecoderMode) : PlayerAction
     data class SetAudioDecoderMode(val mode: DecoderMode) : PlayerAction
