@@ -39,7 +39,7 @@ import org.koin.core.annotation.Single
  * - Videos are fetched recursively from the specified folder path
  * - Folders are derived from video parent directories
  */
-@Single
+@Single(binds = [])
 class MediaStoreMediaService(
     private val context: Context,
     @Named(DiQualifiers.APPLICATION_SCOPE) private val applicationScope: CoroutineScope,

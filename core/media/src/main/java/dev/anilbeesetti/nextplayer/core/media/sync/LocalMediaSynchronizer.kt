@@ -15,6 +15,7 @@ import dev.anilbeesetti.nextplayer.core.common.storagePermission
 import dev.anilbeesetti.nextplayer.core.database.converter.UriListConverter
 import dev.anilbeesetti.nextplayer.core.database.dao.MediumStateDao
 import dev.anilbeesetti.nextplayer.core.database.dao.PlaylistDao
+import dev.anilbeesetti.nextplayer.core.media.services.ExternalVolumeMediaService
 import dev.anilbeesetti.nextplayer.core.media.services.MediaService
 import dev.anilbeesetti.nextplayer.core.media.services.MediaVideo
 import kotlinx.coroutines.CoroutineScope
@@ -35,16 +36,20 @@ class LocalMediaSynchronizer(
     private val playlistDao: PlaylistDao,
     private val imageLoader: ImageLoader,
     private val mediaService: MediaService,
+    private val externalVolumeMediaService: ExternalVolumeMediaService,
     @Named(DiQualifiers.APPLICATION_SCOPE) private val applicationScope: CoroutineScope,
     private val context: Context,
 ) : MediaSynchronizer {
 
     private var mediaSyncingJob: Job? = null
 
-    override suspend fun refresh(path: String?): Boolean = path?.let {
-        context.scanPaths(paths = listOf(element = path))
+    override suspend fun refresh(path: String?): Boolean {
+        externalVolumeMediaService.refresh()
+        return path?.let {
+            context.scanPaths(paths = listOf(element = path))
+        }
+            ?: context.getStorageVolumes().all { context.scanStorage(it.path) }
     }
-        ?: context.getStorageVolumes().all { context.scanStorage(it.path) }
 
     override fun startSync() {
         if (mediaSyncingJob?.isActive == true) return
