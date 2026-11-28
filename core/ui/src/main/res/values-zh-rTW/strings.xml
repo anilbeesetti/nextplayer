@@ -352,7 +352,7 @@
         <item quantity="other">無法移動 %1$d 部影片</item>
     </plurals>
     <plurals name="moved_videos_originals_remain">
-        <item quantity="other">已移動 %1$d 部影片，但無法刪除原始檔案</item>
+        <item quantity="other">已複製 %1$d 部影片，但無法刪除原始檔案</item>
     </plurals>
     <string name="cannot_move_to_same_folder">無法移至相同資料夾</string>
     <string name="home">首頁</string>
@@ -510,4 +510,21 @@
     <plurals name="new_videos_count">
         <item quantity="other">%1$d 部新影片</item>
     </plurals>
+    <string name="settings_export">匯出設定</string>
+    <string name="settings_export_description">保存設定到 JSON 檔案</string>
+    <string name="settings_import">匯入設定</string>
+    <string name="settings_import_description">從 JSON 檔案匯入設定</string>
+    <string name="settings_export_confirmation">匯出應用程式和播放器設定到一個 JSON 檔案。</string>
+    <string name="settings_export_credentials_warning">JSON 檔案未加密。裡面可能包含密碼和 SSH 密鑰。將其放在安全的地方</string>
+    <string name="export_action">匯出</string>
+    <string name="import_action">匯入</string>
+    <string name="settings_export_success">已匯出設定</string>
+    <string name="settings_export_failed">無法匯出設定</string>
+    <string name="settings_import_success">已匯入設定</string>
+    <string name="settings_import_failed">無法完成匯入設定。請再試一次</string>
+    <string name="settings_import_invalid">無法讀取此檔案，或是其包含不支援的 JSON 設定</string>
+    <string name="reset_subtitle_position">重置字母位子</string>
+    <string name="reset_subtitle_position_desc">在播放時拖曳字幕以移動</string>
+    <string name="no_watch_history">沒有觀看紀錄</string>
+    <string name="watch_history">觀看記錄</string>
 </resources>
