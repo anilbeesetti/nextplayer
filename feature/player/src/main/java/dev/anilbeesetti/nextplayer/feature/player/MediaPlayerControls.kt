@@ -135,7 +135,7 @@ internal fun MediaPlayerControls(
                         }
                 },
         ) {
-            if (mediaPresentationState.isBuffering) {
+            if (mediaPresentationState.showBufferingIndicator) {
                 CircularProgressIndicator(
                     Modifier
                         .align(Alignment.Center)
