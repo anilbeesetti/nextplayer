@@ -173,6 +173,8 @@
     <string name="no_supported_decoder">No supported decoder is available for this media.</string>
     <string name="embedded_styles">Embedded styles</string>
     <string name="embedded_styles_desc">Apply the embedded styles that are present in subtitle files, such as ASS and so on</string>
+    <string name="advanced_subtitle_rendering">Advanced subtitle rendering</string>
+    <string name="advanced_subtitle_rendering_desc">Use FFmpeg and libass for advanced subtitles. Turn off to use Media3 when opening a video. HW+ and other playback using the FFmpeg extractor always use advanced rendering.</string>
     <string name="controller_timeout">Controller timeout</string>
     <string name="seek_increment">Seek increment</string>
     <string name="seconds">%1$s seconds</string>

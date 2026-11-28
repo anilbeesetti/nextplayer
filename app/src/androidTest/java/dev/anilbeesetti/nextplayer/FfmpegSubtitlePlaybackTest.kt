@@ -13,6 +13,7 @@ import androidx.media3.session.MediaController
 import androidx.media3.session.SessionToken
 import androidx.test.ext.junit.runners.AndroidJUnit4
 import androidx.test.platform.app.InstrumentationRegistry
+import dev.anilbeesetti.nextplayer.core.data.repository.PreferencesRepository
 import dev.anilbeesetti.nextplayer.feature.player.extensions.switchTrack
 import dev.anilbeesetti.nextplayer.feature.player.service.PlayerService
 import dev.anilbeesetti.nextplayer.feature.player.state.CuesState
@@ -22,7 +23,10 @@ import java.util.concurrent.TimeUnit
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.cancel
+import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.runBlocking
+import kotlinx.coroutines.withTimeout
 import okhttp3.mockwebserver.Dispatcher
 import okhttp3.mockwebserver.MockResponse
 import okhttp3.mockwebserver.MockWebServer
@@ -33,6 +37,7 @@ import org.junit.Assert.assertFalse
 import org.junit.Assert.assertNull
 import org.junit.Test
 import org.junit.runner.RunWith
+import org.koin.core.context.GlobalContext
 
 /** Exercises the application's real source factories and renderer selection, without a custom load control. */
 @RunWith(AndroidJUnit4::class)
@@ -42,7 +47,16 @@ class FfmpegSubtitlePlaybackTest {
     private var activePlayer: MediaController? = null
 
     @Test
-    fun nativeAndTextTracksRenderSeekAndReselectThroughPlayerService() {
+    fun nativeAndTextTracksRenderSeekAndReselectThroughPlayerService() =
+        verifyPlayback(advancedRendering = true)
+
+    @Test
+    fun embeddedAndSidecarAssRenderAsTextWhenAdvancedRenderingIsDisabled() =
+        verifyPlayback(advancedRendering = false)
+
+    private fun verifyPlayback(advancedRendering: Boolean) {
+        val preferences = GlobalContext.get().get<PreferencesRepository>()
+        val original = preferences.playerPreferences.value
         val directory = File(
             context.cacheDir,
             "ffmpeg-subtitle-test-${System.nanoTime()}",
@@ -94,6 +108,16 @@ class FfmpegSubtitlePlaybackTest {
         val scope = CoroutineScope(Dispatchers.Main)
         val cues = main { CuesState(player).also { scope.launch { it.observe() } } }
         try {
+            runBlocking {
+                preferences.updatePlayerPreferences {
+                    it.copy(enableAdvancedSubtitleRendering = advancedRendering)
+                }
+                withTimeout(5_000) {
+                    preferences.playerPreferences.first {
+                        it.enableAdvancedSubtitleRendering == advancedRendering
+                    }
+                }
+            }
             val cases = listOf(
                 Triple(
                     "styled.ass.mkv",
@@ -176,10 +200,26 @@ class FfmpegSubtitlePlaybackTest {
                     false,
                 ),
             )
-            for ((file, mime, bitmap) in cases + Triple(
+            val playbackCases = if (advancedRendering) {
+                cases
+            } else {
+                listOf(
+                    Triple(
+                        "styled.ass.mkv",
+                        null,
+                        false,
+                    ),
+                    Triple(
+                        "styled.ass",
+                        MimeTypes.TEXT_SSA,
+                        false,
+                    ),
+                )
+            }
+            for ((file, mime, bitmap) in playbackCases + Triple(
                 "http-styled.ass",
                 MimeTypes.TEXT_SSA,
-                true,
+                advancedRendering,
             )) {
                 val video = if (mime ==
                     null
@@ -268,15 +308,19 @@ class FfmpegSubtitlePlaybackTest {
                         player.playerError,
                     )
                     player.playbackState == Player.STATE_READY &&
-                        player.currentCues.cues.any { (it.bitmap != null) == bitmap }
+                        player.currentCues.cues.any {
+                            if (bitmap) it.bitmap != null else !it.text.isNullOrEmpty()
+                        }
                 }
                 main {
                     player.pause()
-                    assertEquals(
-                        "$file movement",
-                        !bitmap,
-                        cues.canReposition,
-                    )
+                    if (advancedRendering) {
+                        assertEquals(
+                            "$file movement",
+                            !bitmap,
+                            cues.canReposition,
+                        )
+                    }
                     player.seekTo(player.currentPosition + 100)
                 }
                 await("$file seek") {
@@ -336,6 +380,13 @@ class FfmpegSubtitlePlaybackTest {
             )
             server.shutdown()
             directory.deleteRecursively()
+            runBlocking {
+                preferences.updatePlayerPreferences {
+                    it.copy(
+                        enableAdvancedSubtitleRendering = original.enableAdvancedSubtitleRendering,
+                    )
+                }
+            }
         }
     }
 

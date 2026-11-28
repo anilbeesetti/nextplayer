@@ -26,6 +26,7 @@ import io.github.anilbeesetti.nextlib.media3ext.ffdecoder.withFfmpegSubtitles
 internal class ApiMediaSourceFactory(
     private val context: Context,
     private val dataSourceFactory: DataSource.Factory,
+    private val enableAdvancedSubtitleRendering: () -> Boolean,
 ) : MediaSource.Factory by DefaultMediaSourceFactory(
     context,
 ).setDataSourceFactory(dataSourceFactory) {
@@ -37,13 +38,16 @@ internal class ApiMediaSourceFactory(
         if (mediaItem.usesFfmpegExtractor) {
             return FfmpegMediaSourceFactory(sources).createMediaSource(mediaItem)
         }
-        return DefaultMediaSourceFactory(
+        val factory = DefaultMediaSourceFactory(
             context,
             FfmpegSubtitleExtractorsFactory(),
-        )
-            .setDataSourceFactory(sources)
-            .withFfmpegSubtitles(sources)
-            .createMediaSource(mediaItem)
+        ).setDataSourceFactory(sources)
+        val subtitleFactory = if (enableAdvancedSubtitleRendering()) {
+            factory.withFfmpegSubtitles(sources)
+        } else {
+            factory
+        }
+        return subtitleFactory.createMediaSource(mediaItem)
     }
 }
 

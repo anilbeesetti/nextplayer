@@ -230,6 +230,15 @@ private fun SubtitlePreferencesScreenContent(
                     isChecked = state.preferences.applyEmbeddedStyles,
                     onClick = { onAction(SubtitlePreferencesUiEvent.ToggleApplyEmbeddedStyles) },
                 )
+                PreferenceSwitch(
+                    title = stringResource(R.string.advanced_subtitle_rendering),
+                    description = stringResource(R.string.advanced_subtitle_rendering_desc),
+                    icon = NextIcons.Subtitle,
+                    isChecked = state.preferences.enableAdvancedSubtitleRendering,
+                    onClick = {
+                        onAction(SubtitlePreferencesUiEvent.ToggleAdvancedSubtitleRendering)
+                    },
+                )
                 ClickablePreferenceItem(
                     title = stringResource(id = R.string.reset_subtitle_position),
                     description = stringResource(id = R.string.reset_subtitle_position_desc),

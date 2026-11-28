@@ -1015,7 +1015,7 @@ class PlayerService : MediaSessionService() {
                     ApiMediaSourceFactory(
                         applicationContext,
                         dataSourceFactory,
-                    ),
+                    ) { playerPreferences.enableAdvancedSubtitleRendering },
                 ),
             )
             .setAudioAttributes(
